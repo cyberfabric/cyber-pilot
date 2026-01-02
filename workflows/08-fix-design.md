@@ -88,7 +88,7 @@
 **Decision Criteria**:
 - **No code changes needed**: Design clarification only, continue with existing implementation
 - **Minor code changes needed**: Update existing OpenSpec change tasks
-- **Major code changes needed**: Create new OpenSpec change (use workflow `11-openspec-next.md`)
+- **Major code changes needed**: Create new OpenSpec change (use workflow `12-openspec-change-next.md`)
 
 **Expected Outcome**: Implementation plan aligned with updated design
 

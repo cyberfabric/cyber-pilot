@@ -132,18 +132,48 @@ openspec validate --report
 
 ---
 
+## Validation Scoring
+
+**Target Score**: All checks must pass (100%)
+
+**Validation Categories**:
+1. **Structure** (30 points)
+   - Directory structure exists and valid
+   - Required directories present (specs/, changes/)
+   - Archive structure correct
+
+2. **Changes** (30 points)
+   - All changes have required files (proposal.md, tasks.md, specs/)
+   - Change numbering sequential
+   - Status consistent across files
+
+3. **Specifications** (30 points)
+   - Spec files valid markdown
+   - Source of truth specs valid
+   - No conflicting or duplicate specs
+
+4. **Integrity** (10 points)
+   - No orphaned files
+   - No broken references
+   - Validation report generated
+
+**Pass Criteria**: 100/100 (all checks must pass)
+
+---
+
 ## Completion Criteria
 
 Validation complete when:
 
-- [ ] Directory structure valid
-- [ ] All changes have proposal.md, tasks.md, specs/
+- [ ] Directory structure valid (30 pts)
+- [ ] All changes have proposal.md, tasks.md, specs/ (30 pts)
 - [ ] Change numbering sequential
 - [ ] Status consistent across files
-- [ ] Spec files valid markdown
+- [ ] Spec files valid markdown (30 pts)
 - [ ] Source of truth specs valid
-- [ ] No critical orphaned files
+- [ ] No critical orphaned files (10 pts)
 - [ ] Validation report generated
+- [ ] Score: 100/100
 
 ---
 

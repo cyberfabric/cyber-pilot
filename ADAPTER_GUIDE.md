@@ -1,586 +1,162 @@
 # FDD Adapter Creation Guide
 
-**Purpose**: Step-by-step guide for creating a project-specific FDD adapter
+## Core Principle
 
-**Audience**: Technical leads, architects setting up FDD for their project
+Adapters extend FDD with project-specific context. Start files with `Extends: ../FDD/path/to/file.md`.
 
----
-
-## What is an Adapter?
-
-An **adapter** connects FDD's universal methodology to your project's specific:
-- Technology stack (language, framework)
-- Specification formats (domain model, API contracts)
-- Development patterns (database, authentication, testing)
-
-**Core FDD is universal** - adapters make it practical for your tech stack.
+**You can override/add anything EXCEPT the immutable rules below.**
 
 ---
 
-## Prerequisites
+## Immutable Rules (NEVER Override)
 
-Before creating an adapter, ensure you have:
+These are validated by tooling and cannot be changed:
 
-1. **Chosen specification technologies**:
-   - Domain model format (JSON Schema, TypeScript, Protobuf, etc.)
-   - API contract format (OpenAPI, GraphQL Schema, gRPC, etc.)
+### 1. Design Hierarchy
+```
+OVERALL DESIGN → FEATURE DESIGN → OpenSpec CHANGES → CODE
+```
+Must reference parent level, never contradict.
 
-2. **Identified project patterns**:
-   - Database access patterns (ORM, query builders, raw SQL)
-   - Authentication/authorization approach
-   - Testing strategy (unit, integration, e2e)
+### 2. Mandatory FDD Rules
+- Actor Flows (Section B) are PRIMARY - always start from what actors do
+- Use FDL for flows/algorithms/states - NEVER code in DESIGN.md
+- Never redefine types - reference domain model from Overall Design
+- Validate before proceeding (Overall ≥90/100, Feature 100/100)
+- Feature size limits: ≤3000 lines (recommended), ≤4000 (hard limit)
+- OpenSpec changes are atomic - one change = one deployable unit
+- Design is source of truth - if code contradicts design, fix design first
 
-3. **Set up FDD core**:
-   ```bash
-   your-project/
-   └── guidelines/
-       └── FDD/  # Core FDD methodology
-   ```
+### 3. File Structure
+```
+architecture/
+├── DESIGN.md                    # Overall Design
+└── features/
+    ├── FEATURES.md              # Feature manifest
+    └── feature-{slug}/
+        ├── DESIGN.md            # Feature Design
+        └── openspec/            # OpenSpec changes
+```
+
+### 4. DESIGN.md Sections
+**Overall Design**:
+- Section A: Business Context
+- Section B: Requirements & Principles
+- Section C: Technical Architecture
+- Section D: Project-Specific Details (optional)
+
+**Feature Design**:
+- Section A: Feature Overview
+- Section B: Actor Flows (PRIMARY)
+- Section C: Algorithms
+- Section D: States (optional)
+- Section E: Technical Details
+- Section F: Validation & Implementation
+
+### 5. Validation Scores
+- Overall Design: ≥90/100
+- Feature Design: 100/100 + 100% completeness
+
+### 6. OpenSpec Structure
+Must follow OpenSpec specification exactly (see `openspec/AGENTS.md`).
 
 ---
 
-## Step 1: Create Adapter Directory
+## What Adapters Define
 
-Create your adapter next to FDD core:
+Everything else is adapter-specific. Define as needed:
+
+### Domain Model Format
+- Technology (TypeScript, JSON Schema, Protobuf, etc.)
+- Location (`architecture/domain-model/`, per-feature, etc.)
+- DML syntax (`@DomainModel.TypeName`)
+- Validation commands
+- Naming conventions
+
+### API Contract Format
+- Technology (OpenAPI, GraphQL, gRPC, etc.)
+- Location (`architecture/api-specs/`, per-feature, etc.)
+- Linking syntax (`@API.GET:/path`, `@Feature.{slug}`)
+- Validation commands
+- API conventions
+
+### Implementation Details
+- Database technology and patterns
+- Authentication/authorization approach
+- Error handling patterns
+- Testing strategy (frameworks, locations)
+- Build/deployment commands
+- Code style and linting rules
+
+### Additional Artifacts
+- Diagrams location and format
+- Documentation structure
+- CI/CD configuration
+- Any project-specific tooling
+
+---
+
+## Adapter Structure
 
 ```bash
-mkdir -p guidelines/your-project-fdd-adapter
-cd guidelines/your-project-fdd-adapter
-```
-
-**Naming convention**: `{project-name}-fdd-adapter`
-
-Examples:
-- `hyperspot-fdd-adapter`
-- `ecommerce-fdd-adapter`
-- `analytics-fdd-adapter`
-
----
-
-## Step 2: Create Adapter Structure
-
-Create these files in your adapter directory:
-
-```bash
-guidelines/your-project-fdd-adapter/
-├── README.md                    # Integration overview
-├── AGENTS.md                    # AI agent instructions (project-specific)
-├── PATTERNS.md                  # Technology-specific patterns
-├── VALIDATION.md                # Validation requirements
-└── COMMON_PITFALLS.md          # Common mistakes and solutions
+guidelines/
+├── FDD/                         # Core (immutable rules)
+└── {project}-adapter/           # Your extensions
+    ├── AGENTS.md                # Extends: ../FDD/AGENTS.md
+    └── workflows/
+        ├── AGENTS.md            # Extends: ../FDD/workflows/AGENTS.md
+        └── *.md                 # Extend specific workflows as needed
 ```
 
 ---
 
-## Step 3: Write README.md (Integration Overview)
-
-**Purpose**: Explain how FDD integrates with your project
-
-**Template**:
-
-```markdown
-# {Project Name} FDD Adapter
-
-**Purpose**: Integrate FDD with {Project Name}'s {tech stack}
-
-## Technology Choices
-
-### Domain Model
-- **Format**: {JSON Schema / TypeScript / Protobuf / etc.}
-- **Location**: `{path to domain model specs}`
-- **Validation**: {how to validate}
-- **Code Generation**: {if applicable}
-
-### API Contracts
-- **Format**: {OpenAPI / GraphQL Schema / gRPC / etc.}
-- **Location**: `{path to API specs}`
-- **Validation**: {how to validate}
-- **Code Generation**: {if applicable}
-
-## Feature Structure
-
-```
-architecture/features/feature-{slug}/
-├── DESIGN.md                    # Feature design (FDD format)
-├── {domain-model-files}         # Domain model specs
-├── {api-spec-files}             # API specs
-└── openspec/                    # OpenSpec changes
-```
-
-## Quick Start
-
-1. Initialize FDD structure:
-   ```bash
-   # Follow FDD workflow
-   cat ../FDD/workflows/01-init-project.md
-   ```
-
-2. Create your first feature:
-   ```bash
-   # Follow FDD workflow
-   cat ../FDD/workflows/05-init-feature.md
-   ```
-
-3. Review project-specific patterns:
-   ```bash
-   cat PATTERNS.md
-   ```
-
-## References
-
-- **Core FDD**: `../FDD/README.md`
-- **Patterns**: `PATTERNS.md`
-- **Common Pitfalls**: `COMMON_PITFALLS.md`
-
----
-
-## Step 4: Write AGENTS.md (AI Instructions)
-
-**Purpose**: Provide AI agents with project-specific instructions
-
-**Template**:
+## Template: AGENTS.md
 
 ```markdown
 # AI Agent Instructions for {Project Name}
 
-**READ THIS FIRST**: Project-specific FDD instructions. Read `../FDD/AGENTS.md` first for core methodology.
+**Extends**: `../FDD/AGENTS.md`
 
 ---
 
-## Project-Specific Rules
+## Domain Model
 
-### Domain Model
+**Technology**: TypeScript
+**Location**: `architecture/domain-model/types.ts`
+**DML Syntax**: `@DomainModel.TypeName`
+**Validation**: `tsc --noEmit`
 
-**Format**: {JSON Schema / TypeScript / Protobuf / etc.}
-**Location**: `{path}`
+## API Contracts
 
-**Rules**:
-- {Rule 1 - e.g., "Use PascalCase for type names"}
-- {Rule 2 - e.g., "All types must have descriptions"}
-- {Rule 3 - e.g., "Use strict validation"}
+**Technology**: OpenAPI 3.1
+**Location**: `architecture/api-specs/openapi.yaml`
+**Linking**: `@API.GET:/path`
+**Validation**: `openapi validate`
 
-**Example**:
-```{format}
-{example domain model type}
-```
+## Implementation
 
-### API Contracts
-
-**Format**: {OpenAPI / GraphQL Schema / etc.}
-**Location**: `{path}`
-
-**Rules**:
-- {Rule 1 - e.g., "Use /api/v1 prefix"}
-- {Rule 2 - e.g., "All endpoints must have 401/403 responses"}
-- {Rule 3 - e.g., "Use JSON for request/response"}
-
-### Database Access
-
-**Pattern**: {ORM / Query Builder / Raw SQL}
-
-**Rules**:
-- {Rule 1}
-- {Rule 2}
-
-### Authentication
-
-**Pattern**: {JWT / Session / OAuth}
-
-**Rules**:
-- {Rule 1}
-- {Rule 2}
-
-### Testing
-
-**Patterns**:
-- Unit tests: {where and how}
-- Integration tests: {where and how}
-- E2E tests: {where and how}
-
----
-
-## Validation Commands
-
-```bash
-# Validate domain model
-{command to validate domain model}
-
-# Validate API specs
-{command to validate API specs}
-
-# Run tests
-{command to run tests}
+**Database**: Prisma
+**Auth**: JWT + refresh tokens
+**Testing**: Jest (unit), Playwright (e2e)
+**Commands**: `npm test`, `npm run build`
 ```
 
 ---
 
-## Common Patterns
-
-### Pattern 1: {Name}
-
-**When to use**: {description}
-
-**Implementation**:
-```{language}
-{code example}
-```
-
-### Pattern 2: {Name}
-
-{...}
-
----
-
-## References
-
-- **Core FDD**: `../FDD/AGENTS.md`
-- **Patterns**: `PATTERNS.md`
-- **Pitfalls**: `COMMON_PITFALLS.md`
-
----
-
-## Step 5: Write PATTERNS.md (Technology Patterns)
-
-**Purpose**: Document technology-specific implementation patterns
-
-**Template**:
+## Template: workflows/AGENTS.md
 
 ```markdown
-# {Project Name} Implementation Patterns
+# Workflow Instructions for {Project Name}
 
-Technology-specific patterns for implementing FDD features.
+**Extends**: `../FDD/workflows/AGENTS.md`
 
 ---
 
-## Database Patterns
+## Pre-Workflow Checks
+- [ ] npm dependencies installed
+- [ ] Database running
 
-### Pattern: Create Entity
-
-**Implementation**:
-```{language}
-{code example}
+## Validation
+- Domain model: `tsc --noEmit`
+- API specs: `openapi validate`
 ```
-
-### Pattern: Query with Relations
-
-**Implementation**:
-```{language}
-{code example}
-```
-
----
-
-## API Patterns
-
-### Pattern: REST Endpoint
-
-**Implementation**:
-```{language}
-{code example}
-```
-
-### Pattern: Error Response
-
-**Implementation**:
-```{language}
-{code example}
-```
-
----
-
-## Authentication Patterns
-
-### Pattern: Protected Route
-
-**Implementation**:
-```{language}
-{code example}
-```
-
----
-
-## Testing Patterns
-
-### Pattern: Unit Test
-
-**Implementation**:
-```{language}
-{code example}
-```
-
-### Pattern: Integration Test
-
-**Implementation**:
-```{language}
-{code example}
-```
-
----
-
-## Validation Patterns
-
-### Pattern: Input Validation
-
-**Implementation**:
-```{language}
-{code example}
-```
-
----
-
-## Step 6: Write VALIDATION.md (Validation Requirements)
-
-**Purpose**: Define project-specific validation rules
-
-**Template**:
-
-```markdown
-# {Project Name} Validation Requirements
-
-Project-specific validation rules and checks.
-
----
-
-## Domain Model Validation
-
-**Command**:
-```bash
-{command to validate domain model}
-```
-
-**Requirements**:
-- [ ] All types have descriptions
-- [ ] All fields have types
-- [ ] {project-specific rule}
-- [ ] {project-specific rule}
-
----
-
-## API Contract Validation
-
-**Command**:
-```bash
-{command to validate API specs}
-```
-
-**Requirements**:
-- [ ] All endpoints documented
-- [ ] All responses defined (200, 400, 401, 403, 500)
-- [ ] {project-specific rule}
-- [ ] {project-specific rule}
-
----
-
-## Code Validation
-
-**Pre-commit checks**:
-```bash
-# Type checking
-{command}
-
-# Linting
-{command}
-
-# Tests
-{command}
-```
-
-**CI/CD checks**:
-```bash
-# Build
-{command}
-
-# Test suite
-{command}
-
-# Integration tests
-{command}
-```
-
----
-
-## Feature Validation Checklist
-
-Before marking feature complete:
-
-- [ ] Domain model specs valid
-- [ ] API specs valid
-- [ ] All tests pass
-- [ ] Code compiles/type-checks
-- [ ] Linting passes
-- [ ] {project-specific check}
-- [ ] {project-specific check}
-
----
-
-## Step 7: Write COMMON_PITFALLS.md
-
-**Purpose**: Document common mistakes and solutions
-
-**Template**:
-
-```markdown
-# {Project Name} Common Pitfalls
-
-Common mistakes when implementing FDD features in {Project Name}.
-
----
-
-## Pitfall 1: {Name}
-
-**Symptom**: {what developers see}
-
-**Cause**: {why it happens}
-
-**Solution**:
-```{language}
-// Bad
-{bad example}
-
-// Good
-{good example}
-```
-
----
-
-## Pitfall 2: {Name}
-
-{...}
-
----
-
-## Debugging Guide
-
-### Issue: {Common issue}
-
-**Symptoms**:
-- {symptom 1}
-- {symptom 2}
-
-**Diagnosis**:
-```bash
-{commands to diagnose}
-```
-
-**Fix**:
-{step-by-step fix}
-
----
-
-## Performance Considerations
-
-### Consideration 1: {Name}
-
-**Issue**: {what can go wrong}
-
-**Solution**: {how to avoid}
-
----
-
-## Security Considerations
-
-### Consideration 1: {Name}
-
-**Issue**: {security risk}
-
-**Solution**: {how to secure}
-
----
-
-## Step 8: Test Your Adapter
-
-1. **Create test feature**:
-   ```bash
-   # Follow FDD workflows
-   cat ../FDD/workflows/05-init-feature.md
-   ```
-
-2. **Implement using adapter patterns**:
-   - Use domain model format from adapter
-   - Use API contract format from adapter
-   - Follow implementation patterns from PATTERNS.md
-
-3. **Validate**:
-   ```bash
-   # Run validation commands from VALIDATION.md
-   ```
-
-4. **Iterate**:
-   - Update adapter based on learnings
-   - Document new patterns
-   - Add common pitfalls
-
----
-
-## Step 9: Team Onboarding
-
-Create onboarding checklist for new team members:
-
-```markdown
-# {Project Name} FDD Onboarding
-
-## Reading (30 min)
-- [ ] Read `../FDD/README.md` - Core FDD methodology
-- [ ] Read `README.md` - Project integration
-- [ ] Read `PATTERNS.md` - Implementation patterns
-
-## Setup (15 min)
-- [ ] Install FDD tools (if any)
-- [ ] Configure IDE (see main project README)
-- [ ] Run validation commands
-
-## Practice (2 hours)
-- [ ] Review existing feature: `architecture/features/feature-{example}/`
-- [ ] Create small feature following workflows
-- [ ] Get feedback from team lead
-```
-
----
-
-## Maintenance
-
-### When to Update Adapter
-
-- **Technology changes**: New framework version, new patterns
-- **New patterns discovered**: Team finds better approach
-- **Common pitfalls identified**: Same mistake happens multiple times
-- **Validation rules change**: New checks needed
-
-### How to Update
-
-1. Update relevant file (PATTERNS.md, PITFALLS.md, etc.)
-2. Notify team of changes
-3. Update existing features if needed (create migration plan)
-
----
-
-## Example Adapters
-
-### My FDD Adapter
-
-**Stack**:
-- Domain Model: JSON Schema (GTS)
-- API Contracts: OpenAPI
-- Database: Prisma ORM
-- API: Express + TypeScript
-
-**Reference** for creating your own adapter.
-
----
-
-## Getting Help
-
-- **Core FDD questions**: See `../FDD/README.md`
-
----
-
-## Checklist: Is Your Adapter Complete?
-
-- [ ] README.md explains integration
-- [ ] AGENTS.md provides AI-specific instructions
-- [ ] PATTERNS.md documents implementation patterns
-- [ ] VALIDATION.md defines validation rules
-- [ ] COMMON_PITFALLS.md helps avoid mistakes
-- [ ] Example feature demonstrates all patterns
-- [ ] Team onboarding process documented
-- [ ] Validation commands work and pass

@@ -14,7 +14,7 @@
 ## Input Parameters
 
 - **slug**: Feature identifier (lowercase, kebab-case)
-- **change-name**: Name for first change (e.g., "implement-core")
+- **change-name**: Descriptive name for first change (e.g., "implement-core" - will be prefixed with number by OpenSpec)
 
 ---
 

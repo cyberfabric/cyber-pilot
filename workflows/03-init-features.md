@@ -83,6 +83,7 @@
 - **Status**: Current state (⏳ NOT_STARTED, 🔄 IN_PROGRESS, ✅ IMPLEMENTED)
 - **Priority**: Importance level (CRITICAL, HIGH, MEDIUM, LOW)
 - **Depends On**: List of prerequisite features or "None"
+- **Blocks**: List of features that depend on this feature or "None" (calculated from reverse "Depends On" relationships)
 - **Purpose**: One-line description of feature goal
 - **Scope**: Bulleted list of what feature creates/implements
 
@@ -350,7 +351,8 @@ Feature initialization is complete when:
 
 - [ ] FEATURES.md created with all features listed
 - [ ] init is first feature
-- [ ] All features have: status, priority, dependencies, scope
+- [ ] All features have: status, priority, dependencies, blocks, purpose, scope
+- [ ] Blocks field consistent with Depends On (reverse dependencies)
 - [ ] feature-init/DESIGN.md created
 - [ ] Placeholder designs created for other features
 - [ ] Feature dependency graph valid (no cycles)

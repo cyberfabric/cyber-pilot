@@ -227,6 +227,36 @@ feature-{slug}/
 
 ---
 
+## Adapters - Project-Specific Extensions
+
+**Purpose**: Adapters extend FDD with project-specific context without changing core methodology.
+
+**Location**: `guidelines/{project-name}-adapter/`
+
+### Immutable Rules (Adapters CANNOT Override)
+
+These rules are validated by tooling and must never be changed:
+
+1. **Design Hierarchy**: OVERALL DESIGN → FEATURE DESIGN → OpenSpec CHANGES → CODE
+2. **Mandatory FDD Rules**: Actor Flows PRIMARY, FDL only, no type redefinition, validate before proceeding
+3. **File Structure**: `architecture/DESIGN.md`, `architecture/features/`, OpenSpec structure
+4. **DESIGN.md Sections**: Section A-C (Overall), Section A-F (Feature) - structure is fixed
+5. **Validation Scores**: Overall ≥90/100, Feature 100/100 + 100% completeness
+6. **OpenSpec Structure**: Must follow OpenSpec specification exactly
+
+### What Adapters Define
+
+Everything else is adapter-specific:
+
+- **Domain Model Format**: Technology, location, DML syntax, validation commands
+- **API Contract Format**: Technology, location, linking syntax, validation commands
+- **Implementation Details**: Database, auth, error handling, testing, build/deploy
+- **Additional Artifacts**: Diagrams, documentation, CI/CD, tooling
+
+**See**: `ADAPTER_GUIDE.md` for creating adapters
+
+---
+
 ## Quick Reference
 
 **When Starting FDD Work**:

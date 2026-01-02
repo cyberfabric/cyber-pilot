@@ -20,6 +20,8 @@ These workflows are **IDE and agent-agnostic** - they describe the FDD methodolo
 
 **Status**: ✅ All 13 workflows complete
 
+**Quick Start**: See `AGENTS.md` for workflow selection decision tree and common sequences
+
 ### Phase 1: Architecture Design
 
 1. ✅ **`01-init-project.md`** - Initialize FDD project structure
@@ -34,13 +36,13 @@ These workflows are **IDE and agent-agnostic** - they describe the FDD methodolo
 
 ### Phase 3: Feature Implementation
 
+7. ✅ **`07-complete-feature.md`** - Mark feature as complete
+8. ✅ **`08-fix-design.md`** - Fix design issues during implementation
 9. ✅ **`09-openspec-init.md`** - Initialize OpenSpec for feature
 10. ✅ **`10-openspec-change-implement.md`** - Implement OpenSpec change
 11. ✅ **`11-openspec-change-complete.md`** - Complete and archive change
 12. ✅ **`12-openspec-change-next.md`** - Create next change from DESIGN.md
 13. ✅ **`13-openspec-validate.md`** - Validate OpenSpec structure
-7. ✅ **`07-complete-feature.md`** - Mark feature as complete
-8. ✅ **`08-fix-design.md`** - Fix design issues during implementation
 
 ---
 

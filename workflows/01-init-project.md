@@ -63,6 +63,45 @@
   - Project-specific notes
   - Any additional context not covered by A-C
 
+**Template Example**:
+```markdown
+# Overall Design
+
+## A. Business Context
+
+### System Vision
+[Describe what the system does and why it exists]
+
+### Core Capabilities
+- Capability 1: [Description]
+- Capability 2: [Description]
+
+### Actors
+- **Actor Name**: [Role and responsibilities]
+
+## B. Requirements & Principles
+
+### Use Cases
+[Actor interactions and use cases]
+
+### Business Rules
+[Key business rules and principles]
+
+## C. Technical Architecture
+
+### Architecture Overview
+[System components and layers]
+
+### Domain Model
+[Link to DML specifications]
+
+### API Contract
+[Link to API specifications]
+
+## D. Project-Specific Details (Optional)
+[Additional context not covered by A-C]
+```
+
 **Expected Outcome**: Complete DESIGN.md template exists
 
 **Validation Criteria**:

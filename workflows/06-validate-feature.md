@@ -100,7 +100,10 @@
 - Flows use FDL syntax, not code
 - All major actors and interactions covered
 
-**Exception**: Init feature may have intentionally minimal Section B (structural task only)
+**Exceptions**:
+- Init feature may have intentionally minimal Section B (structural task only)
+- Technical/infrastructure features with minimal user interaction may have shorter flows
+- Small utility features may require <50 lines if functionality is simple
 
 ---
 
@@ -197,7 +200,32 @@
 
 ---
 
-### 9: Validate OpenSpec Changes Listed
+### 9: Validate References to Overall Design
+
+**Requirement**: Feature Design must correctly reference Overall Design elements
+
+**What to Validate**:
+- Domain types referenced (not redefined) from Overall Design
+- API endpoints referenced (not redefined) from Overall Design
+- Actors used match those defined in Overall Design
+- Capabilities align with Overall Design Section A
+
+**Reference Format**:
+- Use DML notation for type references (per adapter)
+- Use API paths for endpoint references
+- Link to Overall Design sections where appropriate
+
+**Expected Outcome**: Feature Design properly references Overall Design
+
+**Validation Criteria**:
+- No type redefinitions (already checked in Requirement 7)
+- No API endpoint redefinitions
+- Actor names consistent with Overall Design
+- Clear traceability to Overall Design
+
+---
+
+### 10: Validate OpenSpec Changes Listed
 
 **Requirement**: Section F must list planned OpenSpec changes
 

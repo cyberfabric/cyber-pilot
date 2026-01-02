@@ -51,12 +51,13 @@ None (validates entire FEATURES.md)
 - Status (NOT_STARTED, IN_PROGRESS, IMPLEMENTED)
 - Priority (CRITICAL, HIGH, MEDIUM, LOW)
 - Depends On (list or "None")
+- **Blocks**: List of features blocked by this feature or "None" (must be consistent with "Depends On")
 - Purpose (one-line description)
 - Scope (bulleted list of deliverables)
 
 **Expected Outcome**: All features fully documented
 
-**Validation Criteria**: Every feature has all 6 required fields
+**Validation Criteria**: Every feature has all 7 required fields
 
 ---
 
@@ -106,7 +107,38 @@ feature-B depends on feature-A
 
 ---
 
-### 7. Validate Feature Slug Format
+### 7. Validate Blocks Consistency
+
+**Requirement**: Blocks field must be consistent with Depends On relationships
+
+**Consistency Rule**: If feature A depends on feature B, then feature B must block feature A
+
+**Reverse Dependency Check**:
+- For each feature's "Depends On" list, verify corresponding "Blocks" entries exist
+- For each feature's "Blocks" list, verify corresponding "Depends On" entries exist
+
+**Example Valid Relationships**:
+```
+feature-init:
+  Depends On: None
+  Blocks: feature-user-crud, feature-data-import
+
+feature-user-crud:
+  Depends On: feature-init
+  Blocks: feature-user-auth
+
+feature-user-auth:
+  Depends On: feature-user-crud
+  Blocks: None
+```
+
+**Expected Outcome**: Blocks and Depends On are mirror images
+
+**Validation Criteria**: All dependency relationships properly bidirectional
+
+---
+
+### 8. Validate Feature Slug Format
 
 **Requirement**: Feature slugs must follow naming convention
 
@@ -124,7 +156,7 @@ feature-B depends on feature-A
 
 ---
 
-### 8. Validate Implementation Order
+### 9. Validate Implementation Order
 
 **Requirement**: Features ordered respecting dependency graph (topological sort)
 
@@ -149,9 +181,10 @@ Manifest validation complete when:
 
 - [ ] FEATURES.md exists
 - [ ] init is first feature
-- [ ] All features have: status, priority, dependencies, purpose, scope
+- [ ] All features have: status, priority, dependencies, blocks, purpose, scope
 - [ ] All statuses valid (NOT_STARTED, IN_PROGRESS, IMPLEMENTED)
 - [ ] All dependencies reference existing features
+- [ ] Blocks field consistent with Depends On (reverse dependencies)
 - [ ] No circular dependencies
 - [ ] Feature slugs valid and unique
 - [ ] Implementation order topologically valid

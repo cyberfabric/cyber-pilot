@@ -199,7 +199,36 @@ Start FDD work
 
 ---
 
+## Adapters - Workflow Extensions
+
+**Purpose**: Adapters can extend workflows with project-specific pre-checks and validation commands.
+
+**Location**: `guidelines/{project-name}-adapter/workflows/`
+
+### Immutable Workflow Rules (Adapters CANNOT Override)
+
+These are validated by tooling:
+
+1. **Workflow sequence** - Must follow phase order (Architecture → Planning → Implementation)
+2. **Workflow structure** - Each workflow's core steps are fixed
+3. **Validation requirements** - Score thresholds and completeness checks are mandatory
+4. **File structure requirements** - What each workflow creates/validates is fixed
+
+### What Workflow Adapters Can Define
+
+Everything else is project-specific:
+
+- **Pre-workflow checks** - Environment setup, dependencies, services running
+- **Validation commands** - Project-specific validation tools
+- **Post-workflow actions** - Code generation, notifications, CI/CD triggers
+- **Additional setup steps** - Project-specific initialization
+
+**See**: `../ADAPTER_GUIDE.md` for creating workflow extensions
+
+---
+
 ## See Also
 
 - **Core Methodology**: `../AGENTS.md` - FDD principles
 - **FDL Syntax**: `../FDL.md` - Flow and algorithm syntax
+- **Adapters**: `../ADAPTER_GUIDE.md` - Creating project adapters

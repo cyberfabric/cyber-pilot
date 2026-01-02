@@ -69,7 +69,7 @@ cat > DESIGN.md << 'EOF'
 # {Feature Name} - Feature Design
 
 **Status**: 🔄 IN_PROGRESS  
-**Module**: {Module Name}
+**Module**: {Project Name}
 
 ---
 
@@ -127,7 +127,7 @@ cat > DESIGN.md << 'EOF'
 
 **Output**: {Result}
 
-**Steps** (in ADL):
+**Steps** (in FDL):
 1. Validate input parameters
    1. **IF** parameter invalid **THEN** return error
    2. **IF** parameter valid **THEN** continue

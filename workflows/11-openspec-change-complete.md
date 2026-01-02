@@ -189,17 +189,15 @@ openspec list --archived
 **Requirement**: Archive handles cleanup automatically
 
 **What OpenSpec Does**:
-- Moves change from `changes/` to archive location
+- Moves change from `changes/` to `changes/archive/YYYY-MM-DD-{change-id}/`
 - Keeps clean separation of active vs completed
 - Maintains full history in archive
 - Preserves all files for audit trail
 
-**Configuration**: Archive behavior configured in OpenSpec settings
-
-**Options**:
-- Move to `completed/` directory (default)
-- Keep in `changes/` with COMPLETED status
-- Custom archive location
+**Archive Location Standard**:
+- Path: `openspec/changes/archive/YYYY-MM-DD-{change-id}/`
+- Format: Date prefix for chronological ordering
+- Example: `changes/archive/2026-01-03-implement-core/`
 
 **Expected Outcome**: Clean structure maintained automatically
 

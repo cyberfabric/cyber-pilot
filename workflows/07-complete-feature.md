@@ -134,9 +134,9 @@
 **Requirement**: Identify features that can now start
 
 **Analysis**:
-- Review `FEATURES.md` for features listing this feature as dependency
-- Check "Depends On" fields for references to `{slug}`
-- Verify if all other dependencies for those features are also met
+- Review this feature's "Blocks" field in `FEATURES.md` to see which features it blocks
+- Check those features' "Depends On" fields to verify all dependencies are met
+- Identify features that are now fully unblocked
 
 **Expected Outcome**: List of features that are now unblocked
 

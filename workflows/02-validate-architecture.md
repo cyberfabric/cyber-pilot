@@ -39,26 +39,22 @@ None (validates current architecture)
 
 ### 2. Validate Section Structure
 
-**Requirement**: Overall Design must contain all mandatory sections A-F
+**Requirement**: Overall Design must contain all mandatory sections A-C (D optional)
 
 **Required Sections**:
-- **Section A**: Vision & Capabilities
-- **Section B**: Actors & Use Cases
-- **Section C**: Domain Model Specification
-- **Section D**: API Contract Specification
-- **Section E**: Architecture
-- **Section F**: Non-Functional Requirements
+- **Section A**: Business Context
+- **Section B**: Requirements & Principles
+- **Section C**: Technical Architecture
+- **Section D**: Project-Specific Details (optional, not validated)
 
-**Expected Outcome**: All 6 sections present and properly labeled
+**Expected Outcome**: All 3 mandatory sections present and properly labeled
 
 **Validation Criteria**:
 - Section A present with heading `## A.`
 - Section B present with heading `## B.`
 - Section C present with heading `## C.`
-- Section D present with heading `## D.`
-- Section E present with heading `## E.`
-- Section F present with heading `## F.`
-- Total: 6 sections found
+- Section D optional (not validated)
+- Total: 3 mandatory sections found
 
 ---
 
@@ -119,6 +115,29 @@ None (validates current architecture)
 - Notation/format consistent (per adapter)
 - DML directory exists
 - Types align with system capabilities
+
+---
+
+### 5a. Validate Capability Dependencies
+
+**Requirement**: Capabilities must not have circular dependencies
+
+**What to Check**:
+- If capabilities reference each other, verify no cycles exist
+- Dependency graph must be acyclic (DAG)
+- Each capability can be implemented independently or with clear ordering
+
+**Detection**:
+- Map capability dependencies
+- Check for circular references (A → B → C → A)
+- Verify implementation order is possible
+
+**Expected Outcome**: Capabilities form valid dependency graph
+
+**Validation Criteria**:
+- No circular capability dependencies
+- Clear implementation order exists
+- Dependencies explicitly documented
 
 ---
 

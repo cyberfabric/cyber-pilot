@@ -312,6 +312,34 @@ Implementation complete when:
 - Keep functions focused
 - Handle errors properly
 
+### 5. When to Stop and Fix Design
+
+**Stop Implementation If**:
+- Specs are fundamentally wrong or impossible to implement
+- Major design flaws discovered during implementation
+- Implementation requires types/endpoints not in Overall Design
+- Algorithm complexity far exceeds design estimates
+- Security or architectural concerns arise
+
+**Warning Signs**:
+- Need to add >3 types not in Overall Design
+- Implementation diverges significantly from design
+- Core assumptions in design are invalid
+- Technical debt would be severe
+
+**Action When Stopping**:
+1. Document the design issue clearly
+2. Use workflow `08-fix-design.md`
+3. Update Feature DESIGN.md with corrections
+4. Re-validate with workflow `06-validate-feature.md`
+5. Resume implementation with corrected design
+
+**Don't Stop For**:
+- Minor clarifications or typos in specs
+- Small refactoring opportunities
+- Edge cases not covered in design (add to notes)
+- Performance optimizations (do after core implementation)
+
 ---
 
 ## Next Activities
