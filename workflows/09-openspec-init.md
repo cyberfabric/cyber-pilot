@@ -344,7 +344,33 @@ openspec validate {change-name} --strict
 
 ---
 
-### 9. Show Summary
+### 9. Update FEATURES.md Status
+
+**Requirement**: Mark feature as IN_PROGRESS in features manifest
+
+**Location**: `../../FEATURES.md` (or `architecture/features/FEATURES.md` from project root)
+
+**Update Feature Entry**:
+```markdown
+### N. [feature-{slug}](feature-{slug}/) {priority}
+**Purpose**: {purpose}
+**Status**: IN_PROGRESS  
+**Depends On**: {dependencies}
+**Blocks**: {blocked features}
+**Scope**:
+{scope items}
+```
+
+**What to Change**:
+- Status: `NOT_STARTED` → `IN_PROGRESS`
+
+**Expected Outcome**: FEATURES.md reflects that feature implementation has started
+
+**Verification**: Check that feature status shows 🔄 IN_PROGRESS
+
+---
+
+### 10. Show Summary
 
 **Requirement**: Display what was created
 
