@@ -26,7 +26,7 @@
 
 **Requirement**: All tasks in tasks.md must be completed (100%)
 
-**Location**: `architecture/features/feature-{slug}/openspec/changes/{change-id}-{name}/tasks.md`
+**Location**: `openspec/changes/{change-name}/tasks.md` (project root)
 
 **Validation Criteria**:
 - All checklist items marked with [x]
@@ -122,12 +122,12 @@
 
 **Requirement**: Archive change using OpenSpec tool
 
-**Location**: `architecture/features/feature-{slug}/openspec/`
+**Location**: `openspec/` (project root)
 
 **Command**:
 ```bash
-cd architecture/features/feature-{slug}/
-openspec archive {change-id}
+cd openspec/
+openspec archive {change-name} -y
 ```
 
 **For Non-Interactive/Automation**:
@@ -141,7 +141,7 @@ openspec archive {change-id} --skip-specs --yes
 ```
 
 **What This Does**:
-- Merges delta specs to `openspec/specs/{capability}/spec.md`
+- Merges delta specs to `openspec/specs/fdd-{project-name}-feature-{feature-slug}/spec.md`
 - Applies ADDED/MODIFIED/REMOVED/RENAMED operations
 - Moves change to `changes/archive/YYYY-MM-DD-{change-id}/`
 - Preserves full change history
@@ -185,7 +185,63 @@ openspec list --archived
 
 ---
 
-### 7: Clean Up (Handled by OpenSpec)
+### 7: Update Feature DESIGN.md Section H Status
+
+**Requirement**: Mark change as COMPLETED in Feature DESIGN.md Section H
+
+**Location**: `architecture/features/feature-{slug}/DESIGN.md` Section H
+
+**Update Section H**:
+```markdown
+## H. Implementation Plan
+
+### Change {NUMBER}: {change-name}
+**Status**: ✅ COMPLETED
+**Description**: {description}
+**Implements Requirements**: {requirement IDs}
+**Dependencies**: {dependencies}
+**Completed**: {YYYY-MM-DD}
+
+{Keep remaining changes with their current status}
+```
+
+**Expected Outcome**: Feature DESIGN.md Section H reflects change as COMPLETED
+
+---
+
+### 8: Update Section G Requirements Status
+
+**Requirement**: Mark requirements as COMPLETED in Section G for this change
+
+**Location**: `architecture/features/feature-{slug}/DESIGN.md` Section G
+
+**For each requirement implemented in this change**:
+```markdown
+## G. Requirements
+
+### Requirement: {Requirement Title}
+
+**Status**: ✅ COMPLETED
+
+{Requirement description with SHALL statements}
+
+**Testing Scenarios (FDL)**:
+{FDL numbered list scenarios}
+
+**Acceptance Criteria**:
+{Criteria list}
+```
+
+**What to Update**:
+- Find requirements listed in Section H under "Implements Requirements" for this change
+- Update each requirement's status from 🔄 IN_PROGRESS to ✅ COMPLETED
+- Requirements not in this change keep their existing status
+
+**Expected Outcome**: Requirements in Section G show COMPLETED for those in this change
+
+---
+
+### 9: Clean Up (Handled by OpenSpec)
 
 **Requirement**: Archive handles cleanup automatically
 
@@ -206,7 +262,7 @@ openspec list --archived
 
 ---
 
-### 8: Check Feature Status with OpenSpec
+### 10: Check Feature Status with OpenSpec
 
 **Requirement**: Assess if feature implementation is complete
 
@@ -216,9 +272,8 @@ openspec list
 ```
 
 **Status Assessment**:
-- **If no active changes**: Feature implementation complete
-  - Ready to run workflow `07-complete-feature.md`
-  - All OpenSpec changes done
+- **If more changes needed**: Feature implementation continues
+  - Next: Run `09-openspec-change-next.md` to create next changes done
   - Run `openspec list --archived` to see all completed work
 
 - **If changes remaining**: Continue implementation
@@ -244,6 +299,8 @@ Change completion verified when:
 - [ ] Change status updated to COMPLETED
 - [ ] Specs archived to `openspec/specs/`
 - [ ] Change archived with `openspec archive`
+- [ ] Feature DESIGN.md Section H updated (change marked COMPLETED)
+- [ ] Feature DESIGN.md Section G updated (requirements marked COMPLETED)
 - [ ] Feature status checked
 
 ---

@@ -24,12 +24,12 @@
 
 **Requirement**: Read specs to understand what code should implement
 
-**Location**: `architecture/features/feature-{slug}/openspec/changes/{change-id}-{name}/specs/`
+**Location**: `openspec/changes/{change-name}/specs/fdd-{project-name}-feature-{feature-slug}/` (project root)
 
 **Command**:
 ```bash
-cd architecture/features/feature-{slug}/
-openspec show {change-id}
+cd openspec/
+openspec show {change-name}
 ```
 
 **What to Load**:

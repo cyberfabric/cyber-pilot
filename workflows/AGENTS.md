@@ -8,11 +8,11 @@ Instructions for AI assistants on when and which FDD workflow to use.
 
 **BEFORE selecting any workflow, verify adapter exists**:
 
-1. Look for `{adapter-directory}/AGENTS.md` that extends `../FDD/AGENTS.md`
+1. Look for `{adapter-directory}/FDD-Adapter/AGENTS.md` that extends `../FDD/AGENTS.md`
 2. Common locations:
-   - `spec/{project-name}-adapter/AGENTS.md`
-   - `guidelines/{project-name}-adapter/AGENTS.md`
-   - `docs/{project-name}-adapter/AGENTS.md`
+   - `spec/FDD-Adapter/AGENTS.md`
+   - `guidelines/FDD-Adapter/AGENTS.md`
+   - `docs/FDD-Adapter/AGENTS.md`
 
 **If adapter NOT found** → Use **Workflow: adapter-config**
 
@@ -104,10 +104,10 @@ Always read the specific workflow file before executing. This guide helps you ch
 
 ### When: Feature Design validated, ready to implement
 
-**09-openspec-init.md** - Initialize OpenSpec for feature
-- **Use when**: Feature Design validated, ready to start implementation
-- **Creates**: `openspec/` structure, first change (001-*)
-- **Next step**: Implement first OpenSpec change (workflow 10)
+**09-openspec-change-next.md** - Create OpenSpec change (first or subsequent)
+- **Use when**: Feature Design validated OR previous change completed
+- **Creates**: First change after feature validation, or next change after completion
+- **Next step**: Implement change (workflow 10)
 
 **10-openspec-change-implement.md** - Implement OpenSpec change
 - **Use when**: Active change exists in `openspec/changes/{change-name}/`
@@ -125,14 +125,9 @@ Always read the specific workflow file before executing. This guide helps you ch
 - **Use when**: Change implementation finished and tested
 - **Merges**: Change specs to `openspec/specs/`
 - **Archives**: Change to `changes/archive/`
-- **Next step**: Create next change (workflow 12) or validate all (workflow 13)
+- **Next step**: Create next change (workflow 09) or validate all (workflow 12)
 
-**12-openspec-change-next.md** - Create next OpenSpec change
-- **Use when**: Current change complete, more changes planned in DESIGN.md
-- **Creates**: Next change directory and files from Feature DESIGN.md Section F
-- **Next step**: Implement next change (workflow 10)
-
-**13-openspec-validate.md** - Validate OpenSpec structure
+**12-openspec-validate.md** - Validate OpenSpec structure
 - **Use when**: Need to verify OpenSpec consistency
 - **Validates**: Structure, specs, changes consistency
 - **Next step**: Complete feature (workflow 07) if all changes done
@@ -174,13 +169,13 @@ Start FDD work
 │  └─> Use workflow 06 (validate-feature)
 │
 ├─ Ready to implement feature?
-│  └─> Use workflow 09 (openspec-init)
+│  └─> Use workflow 09 (openspec-change-next)
 │
 ├─ Active OpenSpec change?
 │  ├─ Need to implement? → Use workflow 10 (openspec-change-implement)
 │  ├─ Implementation done? → Use workflow 11 (openspec-change-complete)
-│  ├─ Need next change? → Use workflow 12 (openspec-change-next)
-│  └─ Need to validate? → Use workflow 13 (openspec-validate)
+│  ├─ Need next change? → Use workflow 09 (openspec-change-next)
+│  └─ Need to validate? → Use workflow 12 (openspec-validate)
 │
 ├─ All changes complete?
 │  └─> Use workflow 07 (complete-feature)
@@ -196,24 +191,24 @@ Start FDD work
 **New project from scratch**:
 ```
 adapter-config → 01-init-project → 02-validate-architecture → 03-init-features
-→ 06-validate-feature → 09-openspec-init → 10-openspec-change-implement
+→ 06-validate-feature → 09-openspec-change-next → 10-openspec-change-implement
 → 10-1-openspec-code-validate (auto) → 11-openspec-change-complete 
-→ 13-openspec-validate → 07-complete-feature
+→ 12-openspec-validate → 07-complete-feature
 ```
 
 **Add single feature to existing project**:
 ```
-05-init-feature → 06-validate-feature → 09-openspec-init
+05-init-feature → 06-validate-feature → 09-openspec-change-next
 → 10-openspec-change-implement → 10a-openspec-code-validate (auto)
-→ 11-openspec-change-complete → 13-openspec-validate → 07-complete-feature
+→ 11-openspec-change-complete → 12-openspec-validate → 07-complete-feature
 ```
 
 **Feature with multiple OpenSpec changes**:
 ```
-09-openspec-init → 10-openspec-change-implement → 10a-openspec-code-validate (auto)
-→ 11-openspec-change-complete → 12-openspec-change-next 
+09-openspec-change-next → 10-openspec-change-implement → 10a-openspec-code-validate (auto)
+→ 11-openspec-change-complete → 09-openspec-change-next 
 → 10-openspec-change-implement → 10a-openspec-code-validate (auto)
-→ 11-openspec-change-complete → 13-openspec-validate → 07-complete-feature
+→ 11-openspec-change-complete → 12-openspec-validate → 07-complete-feature
 ```
 
 **Fix design during implementation**:

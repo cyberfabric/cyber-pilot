@@ -24,14 +24,17 @@
 
 **Requirement**: All OpenSpec changes must be completed and archived
 
-**Location**: `architecture/features/feature-{slug}/openspec/`
+**Location**: `openspec/` (project root)
 
 **Validation Criteria**:
-- `openspec/changes/` directory is empty (no active changes)
-- All changes archived to `openspec/archive/` or merged to `openspec/specs/`
-- No changes with status IN_PROGRESS or NOT_STARTED
+- No active changes for this feature in `openspec/changes/`
+- All changes listed in Section G are ✅ COMPLETED
+- All requirements from Section F present in `openspec/specs/fdd-{project-name}-feature-{feature-slug}/spec.md`
+- No changes with status ⏳ NOT_STARTED or 🔄 IN_PROGRESS
 
-**Tools**: Use `openspec list` to verify status
+**Tools**: 
+- Use `openspec list` from `openspec/` directory
+- Use `openspec validate {feature-slug}` to verify spec
 
 **Expected Outcome**: Zero pending OpenSpec changes
 
@@ -48,10 +51,11 @@
 **Expected Outcome**: Validation score 100/100 + 100% completeness
 
 **Validation Criteria**:
-- All sections A-F compliant
+- All sections A-G compliant
+- Section F: All requirements documented
+- Section G: All changes marked ✅ COMPLETED
 - No validation errors
 - Design matches implementation
-- All requirements met
 
 **Resolution if Failed**: Fix design issues using workflow `08-fix-design.md` before marking complete
 
@@ -65,7 +69,7 @@
 - Unit tests for feature components
 - Integration tests for feature flows
 - End-to-end tests if applicable
-- All test scenarios from Section F validated
+- All test scenarios from Section F (Requirements) validated
 
 **Expected Outcome**: 100% tests passing, zero failures
 
@@ -147,26 +151,29 @@
 
 ---
 
-### 7: Verify OpenSpec Structure
+### 7: Verify OpenSpec Spec Complete
 
-**Requirement**: OpenSpec structure must be valid and complete
+**Requirement**: OpenSpec spec must contain all feature requirements
 
-**Location**: `architecture/features/feature-{slug}/openspec/`
+**Location**: `openspec/specs/fdd-{project-name}-feature-{feature-slug}/spec.md`
 
-**Required Structure**:
-- `specs/` directory exists (source of truth)
-- `specs/` contains all merged specifications
-- `changes/` directory is empty
-- `archive/` contains completed changes (optional)
+**Required Content**:
+- Spec file exists for feature
+- All requirements from DESIGN.md Section F are present
+- All scenarios documented
+- Spec validates successfully
 
 **Validation Criteria**:
-- All changes moved from `changes/` to `archive/` or merged to `specs/`
-- No orphaned files
-- Structure matches OpenSpec conventions
+- File `openspec/specs/fdd-{project-name}-feature-{feature-slug}/spec.md` exists
+- Contains all requirements from Section F
+- No ADDED/MODIFIED/REMOVED markers (fully merged)
+- Spec structure valid
 
-**Expected Outcome**: Clean OpenSpec structure with all changes archived
+**Expected Outcome**: Complete, merged spec for feature
 
-**Tools**: Use `openspec validate` to verify structure
+**Tools**: 
+- Run `openspec validate {feature-slug}` from `openspec/` directory
+- Compare spec.md requirements to DESIGN.md Section F
 
 ---
 
@@ -194,7 +201,7 @@
 - No additional completion sections added elsewhere
 - Header formatting preserved
 
-**Note**: Section F (Implementation Plan) should list completed changes, but main status is in header only
+**Note**: Section G (Implementation Plan) should list all changes with ✅ COMPLETED status
 
 ---
 
@@ -202,13 +209,14 @@
 
 Feature completion verified when:
 
-- [ ] All OpenSpec changes completed
+- [ ] All changes in Section G marked ✅ COMPLETED
+- [ ] All Section F requirements in openspec/specs/fdd-{project-name}-feature-{feature-slug}/spec.md
 - [ ] Design validation passes (100/100 + 100%)
 - [ ] Tests passing
 - [ ] Code compiles without errors
 - [ ] FEATURES.md status = IMPLEMENTED
 - [ ] Dependent features identified
-- [ ] OpenSpec structure valid (changes archived)
+- [ ] OpenSpec spec complete and valid
 - [ ] Completion note in DESIGN.md
 
 ---
@@ -219,15 +227,16 @@ Feature completion verified when:
 
 **Resolution**: Fix tests before marking complete. Feature is not done if tests fail.
 
-### Issue: OpenSpec Changes Not Archived
+### Issue: OpenSpec Changes Not Complete
 
 **Resolution**: Complete and archive remaining changes:
 ```bash
-cd architecture/features/feature-{slug}/
-openspec archive {change-id}
+cd openspec/
+openspec list  # Check active changes
+openspec archive {change-name} -y  # Archive completed change
 ```
 
-**Note**: Use `openspec archive {change-id} --yes` for non-interactive mode
+**Note**: All changes must be archived and specs merged to `openspec/specs/fdd-{project-name}-feature-{feature-slug}/`
 
 ---
 

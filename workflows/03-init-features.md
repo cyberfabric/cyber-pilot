@@ -211,11 +211,13 @@ Describe the modifications you'd like:
 
 **Content Requirements**:
 - **Section A**: Feature context (minimal for init)
-- **Section B**: Actor flows (intentionally minimal - structural task)
-- **Section C**: Algorithms (intentionally minimal - structural task)
-- **Section D**: States (not applicable)
+- **Section B**: Actor flows (intentionally minimal - structural task, in FDL)
+- **Section C**: Algorithms (intentionally minimal - structural task, in FDL)
+- **Section D**: States (in FDL if needed, typically not applicable for init)
 - **Section E**: Technical details (structure being created)
 - **Section F**: Validation & implementation (compilation tests)
+- **Section G**: Requirements (minimal for init - structural requirements)
+- **Section H**: Implementation Plan (changes for init structure)
 
 **Critical Constraints**:
 - Init is **structural only** - NO business logic
@@ -228,7 +230,7 @@ Describe the modifications you'd like:
 
 **Validation Criteria**:
 - File `architecture/features/feature-init/DESIGN.md` exists
-- Contains all sections A-F
+- Contains all sections A-H
 - Clearly defines structural scope
 - No business logic described
 
@@ -301,7 +303,7 @@ See implementation for details.
 
 ## D. States
 
-*Not applicable* (use FDL if needed - see `../FDL.md`)
+*Not applicable for init* (use FDL if needed - see `../FDL.md`)
 
 ---
 
@@ -320,9 +322,52 @@ See implementation for details.
 1. **Compilation Test**: Verify structure compiles
 2. **Integration Test**: Verify framework registration
 
-### Implementation
+---
 
-Implementation steps defined in framework adapter.
+## G. Requirements
+
+### Requirement R001: Project Structure Initialization
+
+**Status**: ⏳ NOT_STARTED
+
+**Description**: The system SHALL create compilable project structure with framework integration.
+
+**References**:
+- [Overall Design](../../DESIGN.md)
+
+**Testing Scenarios** (FDL):
+
+**Test: Successful Project Initialization**
+
+1. Developer opens empty project directory
+2. Developer runs init command
+3. **IF** command succeeds:
+   1. Project structure is created
+   2. All folders exist
+4. Developer runs build command
+5. **IF** build succeeds:
+   1. Project compiles successfully
+   2. No errors reported
+
+**Acceptance Criteria**:
+- Project compiles without errors
+- Framework properly configured
+- All structural folders created
+
+---
+
+## H. Implementation Plan
+
+### Change 001: Initialize Project Structure
+
+**Status**: ⏳ NOT_STARTED
+
+**Description**: Create minimal compilable project structure
+
+**Implements Requirements**:
+- [R001: Project Structure Initialization](#requirement-r001-project-structure-initialization)
+
+**Dependencies**: None
 
 ---
 EOF
@@ -343,7 +388,7 @@ EOF
 - Exclude init (already created in previous requirement)
 
 **Content Requirements**:
-- Basic template with sections A-F
+- Basic template with sections A-H
 - Status: ⏳ NOT_STARTED
 - Placeholder text indicating design pending
 - Reference to Overall Design
@@ -408,6 +453,18 @@ for FEATURE in feature-{name} feature-{name2}; do
 ## F. Validation & Implementation
 
 {To be designed}
+
+---
+
+## G. Requirements
+
+{To be designed - formalized requirements with references to B-E}
+
+---
+
+## H. Implementation Plan
+
+{To be designed - OpenSpec changes with status}
 
 ---
 EOF

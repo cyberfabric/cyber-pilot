@@ -117,6 +117,63 @@ Additional context (optional, free form): ___
 ```
 **Store as**: `ADDITIONAL_CONTEXT`
 
+### Q8: Naming Conventions
+```
+What naming conventions should be used for changes and specs?
+
+Examples:
+- Change IDs: "add-", "update-", "fix-", "refactor-" prefix
+- Spec names: kebab-case, descriptive (e.g., "user-authentication")
+- File naming: lowercase-with-dashes
+
+Describe conventions (or press Enter for defaults): ___
+```
+**Store as**: `NAMING_CONVENTIONS`
+**Default**: "Use verb-led kebab-case for changes (add-, update-, fix-), descriptive kebab-case for spec names"
+
+### Q9: Code Standards
+```
+What code standards and patterns should be followed?
+
+Examples:
+- Language style guides (e.g., PEP 8, ESLint config)
+- Architecture patterns (e.g., MVC, Clean Architecture)
+- Anti-patterns to avoid
+
+Describe standards (or press Enter for defaults): ___
+```
+**Store as**: `CODE_STANDARDS`
+**Default**: "Follow language-specific best practices and consistent code style"
+
+### Q10: Testing Requirements
+```
+What are the testing requirements?
+
+Examples:
+- Unit test coverage: 80%
+- Integration tests for all API endpoints
+- Contract tests for external services
+- Performance benchmarks
+
+Describe requirements (or press Enter for defaults): ___
+```
+**Store as**: `TESTING_REQUIREMENTS`
+**Default**: "Unit tests for business logic, integration tests for API endpoints"
+
+### Q11: Deployment Context
+```
+What is the deployment context?
+
+Examples:
+- CI/CD: GitHub Actions, Jenkins
+- Environments: dev, staging, production
+- Deployment strategy: blue-green, rolling updates
+
+Describe context (or press Enter for defaults): ___
+```
+**Store as**: `DEPLOYMENT_CONTEXT`
+**Default**: "Standard CI/CD pipeline with dev, staging, and production environments"
+
 ---
 
 ## Requirements
@@ -310,8 +367,8 @@ Features will be generated after Overall Design validation.
 
 **Next Steps**:
 1. Complete Overall Design (add domain model types and API endpoints)
-2. Validate architecture: `workflows/02-validate-architecture.md`
-3. Generate features: `workflows/03-init-features.md`
+2. Validate architecture (workflow 02-validate-architecture)
+3. Generate features (workflow 03-init-features)
 ```
 
 **Expected Outcome**: Features manifest placeholder created
@@ -323,7 +380,254 @@ Features will be generated after Overall Design validation.
 
 ---
 
-### 5. Show Summary and Confirm
+### 5. Create OpenSpec Project Conventions
+
+**Requirement**: Initialize `openspec/project.md` with project-specific conventions for OpenSpec changes and specs
+
+**Required Actions**:
+- Create directory: `openspec/`
+- Create subdirectories: `openspec/specs/`, `openspec/changes/`, `openspec/changes/archive/`
+
+**Required Content**:
+Generate `openspec/project.md` with the following structure and content from Q8-Q11:
+
+```markdown
+# OpenSpec Project Conventions: {MODULE_NAME}
+
+This document defines project-specific conventions for creating OpenSpec changes and specifications.
+
+**Read this before creating any changes or specs.**
+
+---
+
+## Project Overview
+
+**System**: {MODULE_NAME from Q1}
+
+**Architecture**: {ARCHITECTURE_STYLE from Q6}
+
+**Technology Stack**:
+- Domain Model: {DML_TECH from adapter}
+- API Contracts: {API_TECH from adapter}
+
+---
+
+## Naming Conventions
+
+{NAMING_CONVENTIONS from Q8}
+
+### Change ID Format
+
+Use verb-led kebab-case for change IDs:
+- `add-*` - New features or capabilities
+- `update-*` - Modifications to existing features
+- `fix-*` - Bug fixes (use only for bugs, not enhancements)
+- `refactor-*` - Code restructuring without behavior changes
+- `remove-*` - Deprecation or removal
+
+**Examples**:
+- `add-user-authentication`
+- `update-payment-validation`
+- `fix-session-timeout`
+
+### Spec Naming
+
+Use descriptive kebab-case for spec names:
+- Format: `fdd-{project-slug}-feature-{feature-slug}`
+- Keep names concise but clear
+- Match feature names from `architecture/features/`
+
+---
+
+## Code Standards
+
+{CODE_STANDARDS from Q9}
+
+### Required Practices
+
+- Follow language-specific style guides
+- Use consistent formatting (automated formatters preferred)
+- Document public APIs and complex logic
+- Avoid anti-patterns specific to this project
+
+---
+
+## Testing Requirements
+
+{TESTING_REQUIREMENTS from Q10}
+
+### Coverage Expectations
+
+- Unit tests: Test business logic and algorithms
+- Integration tests: Test API endpoints and external integrations
+- Contract tests: Verify external service contracts
+- Performance tests: Benchmark critical paths (if applicable)
+
+### Test Documentation
+
+- Include test scenarios in Feature DESIGN.md Section F
+- Reference test scenarios in OpenSpec change specs
+- Keep tests maintainable and readable
+
+---
+
+## Deployment Context
+
+{DEPLOYMENT_CONTEXT from Q11}
+
+### Environments
+
+- Development: Local and CI
+- Staging: Pre-production validation
+- Production: Live environment
+
+### CI/CD Pipeline
+
+- All changes must pass automated tests
+- Changes require review before merge
+- Deployments follow project deployment strategy
+
+---
+
+## Change Proposal Guidelines
+
+### When to Create a Proposal
+
+Create OpenSpec change proposal for:
+- New features or capabilities
+- Breaking changes (API, schema, contracts)
+- Architecture or pattern changes
+- Performance optimizations that change behavior
+- Security pattern updates
+
+### When to Skip Proposal
+
+Skip proposal for:
+- Bug fixes (restore intended behavior)
+- Typos, formatting, comments
+- Dependency updates (non-breaking)
+- Configuration changes
+- Tests for existing behavior
+
+### Proposal Structure
+
+Every change must include:
+1. **proposal.md** - Why, what changes, impact
+2. **tasks.md** - Implementation checklist
+3. **specs/{spec-name}/spec.md** - Delta specifications (ADDED/MODIFIED/REMOVED)
+4. **design.md** (optional) - Technical decisions if complexity requires
+
+---
+
+## Spec Writing Guidelines
+
+### Requirement Format
+
+- Use `SHALL` or `MUST` for normative requirements
+- Every requirement needs at least one `#### Scenario:`
+- Use `**WHEN**` and `**THEN**` in scenarios
+- Keep requirements atomic and testable
+
+### Delta Operations
+
+- `## ADDED Requirements` - New capabilities
+- `## MODIFIED Requirements` - Changed behavior (include full requirement)
+- `## REMOVED Requirements` - Deprecated features (with reason and migration)
+- `## RENAMED Requirements` - Name changes only
+
+---
+
+## Integration with FDD
+
+### Feature Design Alignment
+
+- OpenSpec specs derive from Feature DESIGN.md Section G (Requirements)
+- OpenSpec changes implement Feature DESIGN.md Section H (Implementation Plan)
+- Always maintain traceability: Requirement → Change → Code
+
+### Validation Workflow
+
+1. Create change → `openspec validate {change-id} --strict`
+2. Implement change → Follow tasks.md checklist
+3. Complete change → `openspec archive {change-id} -y`
+4. Validate structure → `openspec validate --all --no-interactive`
+
+---
+
+**Document Status**: Project conventions defined
+
+**Last Updated**: {Current date}
+```
+
+**Expected Outcome**: File `openspec/project.md` exists with project conventions
+
+**Validation Criteria**:
+- Directory `openspec/` exists with subdirectories
+- File `openspec/project.md` exists
+- Contains module name from Q1
+- Contains naming conventions from Q8 (or defaults)
+- Contains code standards from Q9 (or defaults)
+- Contains testing requirements from Q10 (or defaults)
+- Contains deployment context from Q11 (or defaults)
+- Contains architecture style from Q6
+- References adapter settings (DML_TECH, API_TECH)
+- No empty placeholders
+
+---
+
+### 6. Initialize OpenSpec Structure
+
+**Requirement**: Create project-level OpenSpec directory at project root
+
+**Commands**:
+```bash
+cd {project-root}/
+mkdir -p openspec/specs
+mkdir -p openspec/changes
+```
+
+**Required Content** for `openspec/project.md`:
+```markdown
+# {MODULE_NAME}
+
+**Project**: {module-name}
+
+## OpenSpec Conventions
+
+This project uses OpenSpec for atomic change management.
+
+**Structure**:
+- `specs/{project-name}-{feature-slug}/` - Feature specifications (source of truth)
+- `changes/{change-name}/` - Active implementation changes
+- `changes/archive/` - Completed changes
+
+**Naming Convention**:
+- Changes: kebab-case (e.g., `implement-core-auth`)
+- Specs: `{project-name}-{feature-slug}` format
+
+**Workflow**:
+1. Feature designs validated → Create changes via workflow 12
+2. Implement changes → workflow 10
+3. Complete & archive → workflow 11
+4. Next change → workflow 12
+```
+
+**What This Does**:
+- Creates single project-level OpenSpec at `openspec/`
+- Centralizes all feature specifications
+- Ready for feature implementation via workflow 12
+
+**Expected Outcome**: OpenSpec structure initialized at project level
+
+**Validation Criteria**:
+- Directory `openspec/` exists at project root
+- Directory `openspec/specs/` exists
+- Directory `openspec/changes/` exists
+- File `openspec/project.md` exists with project name
+
+---
+
+### 6. Show Summary and Confirm
 
 **Requirement**: Display what will be created and get user confirmation
 
@@ -342,6 +646,10 @@ Will create:
   ✓ diagrams/
 ✓ {DML_LOCATION from adapter}/
 ✓ {API_LOCATION from adapter}/
+✓ openspec/ (project-level change management)
+  ✓ specs/ (feature specifications)
+  ✓ changes/ (implementation changes)
+  ✓ project.md (OpenSpec conventions)
 
 DESIGN.md will include:
 - System vision: {first 60 chars of SYSTEM_VISION}...
@@ -363,7 +671,7 @@ Proceed with initialization? (y/n)
 
 ---
 
-### 6. Version Control Integration (Optional)
+### 7. Version Control Integration (Optional)
 
 **Requirement**: Add FDD structure to version control system
 
@@ -397,6 +705,10 @@ Project initialization is complete when:
   - [ ] `architecture/diagrams/`
   - [ ] {DML_LOCATION from adapter}
   - [ ] {API_LOCATION from adapter}
+  - [ ] `openspec/` structure created at project root:
+    - [ ] `openspec/specs/` directory exists
+    - [ ] `openspec/changes/` directory exists
+    - [ ] `openspec/project.md` created with project conventions
 - [ ] `architecture/DESIGN.md` generated with actual content from answers:
   - [ ] Section A: Business Context (vision, capabilities, actors)
   - [ ] Section B: Requirements & Principles (use cases, business rules, design principles)

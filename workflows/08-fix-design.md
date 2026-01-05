@@ -231,5 +231,6 @@ After fixing design:
 ## References
 
 - **Core FDD**: `../AGENTS.md` - Design iteration
+- **Next Workflow**: `06-validate-feature.md` (re-validate) or `09-openspec-change-next.md` (if ready to implement)
 - **Validation**: `06-validate-feature.md` - Re-validate after changes
-- **OpenSpec**: `09-openspec-init.md` - If implementation needs updates
+- **OpenSpec**: `09-openspec-change-next.md` - If implementation needs updates

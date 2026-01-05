@@ -11,11 +11,11 @@
 Before doing ANY FDD work, you **MUST** verify that a project adapter exists:
 
 **Check for adapter**:
-1. Look for `{adapter-directory}/AGENTS.md` that extends `../FDD/AGENTS.md`
+1. Look for `{adapter-directory}/FDD-Adapter/AGENTS.md` that extends `../FDD/AGENTS.md`
 2. Common locations:
-   - `spec/{project-name}-adapter/AGENTS.md`
-   - `guidelines/{project-name}-adapter/AGENTS.md`
-   - `docs/{project-name}-adapter/AGENTS.md`
+   - `spec/FDD-Adapter/AGENTS.md`
+   - `guidelines/FDD-Adapter/AGENTS.md`
+   - `docs/FDD-Adapter/AGENTS.md`
 
 **If adapter NOT found**:
 ```
@@ -72,8 +72,8 @@ CODE (implementation)
 ```
 
 **Mandatory Rules**:
-1. ✅ **Actor Flows are PRIMARY** - Section B drives everything, always start from what actors do
-2. ✅ **Use FDL for Actor Flows, Algorithms, and States** - NEVER write code in DESIGN.md, only plain English FDL
+1. ✅ **Actor Flows are PRIMARY** - Section B drives everything, document all flows first
+2. ✅ **Use FDL for flows/algorithms/states** - NEVER write code in DESIGN.md, only plain English FDL
 3. ✅ **Never redefine types** - Reference domain model from Overall Design, never duplicate
 4. ✅ **Validate before proceeding** - Overall Design must score ≥90/100, Feature Design must score 100/100 + 100%
 5. ✅ **Feature size limits** - ≤3000 lines recommended, ≤4000 hard limit
@@ -110,6 +110,13 @@ CODE (implementation)
 - If passes: suggest next workflow
 - If fails: propose fixes, iterate until passes
 
+**Validation Output** (CRITICAL):
+- ❌ **DO NOT create validation report files** (e.g., `VALIDATION_REPORT.md`, `FEATURE_VALIDATION_REPORT.md`, `OPENSPEC_VALIDATION_REPORT.md`)
+- ✅ **Output all validation results directly in chat** with comprehensive information
+- ✅ Include: scores, findings, issues, recommendations, next steps
+- ✅ Format clearly using markdown (sections, tables, lists, code blocks)
+- **Rationale**: Report files clutter workspace and get deleted; chat output is immediately visible and actionable
+
 **Suggest Next Workflow** (MANDATORY):
 - After every workflow + validation, suggest next logical step
 - Progression paths: New Project (01→02→03→04→05), New Feature (05→06→09→10→11→07), Fix (08→02/06)
@@ -122,23 +129,26 @@ CODE (implementation)
 
 ## OpenSpec Integration (REQUIRED)
 
-**CRITICAL**: Before using any OpenSpec commands (workflows 09-12), **you MUST read the full OpenSpec specification** at `openspec/AGENTS.md`
+**CRITICAL**: Before using any OpenSpec commands (workflows 09-13), **you MUST read the full OpenSpec specification** at `spec/FDD/openspec/AGENTS.md`
 
 ### Core OpenSpec Principles
 
 **What is OpenSpec**:
 - Atomic change management system for feature implementation
 - Each change is self-contained, traceable, and deployable
+- Single project-level OpenSpec at `openspec/` (project root)
 - Changes tracked in `openspec/changes/`, merged to `openspec/specs/`
 
 **Key Rules**:
 1. **Use `openspec` CLI tool** - All operations through CLI, not manual scripts
-2. **Always run from feature root** - OpenSpec commands MUST run from `architecture/features/feature-{slug}/` directory (where feature DESIGN.md is), NOT from `openspec/` subdirectory
-3. **Always use non-interactive mode** - Agents MUST use appropriate flags to avoid prompts: specify item explicitly (`show <change-name>`, `validate <change-name>`), use `--all --no-interactive` for bulk validate, use `-y` for archive
-4. **Changes are atomic** - One change = one deployable unit
-5. **Changes created manually** - Create directory structure manually (no `create` command)
-6. **Required files** - Every change has `proposal.md`, `tasks.md`, `specs/`, optional `design.md`
-7. **Source of truth** - `openspec/specs/` contains merged specifications
+2. **Single OpenSpec location** - `openspec/` at project root, NOT per-feature
+3. **Feature grouping** - Specs organized by feature: `specs/{project-name}-{feature-slug}/spec.md`
+4. **Always run from openspec root** - OpenSpec commands MUST run from `openspec/` directory
+5. **Always use non-interactive mode** - Agents MUST use appropriate flags to avoid prompts: specify item explicitly (`show <change-name>`, `validate <change-name>`), use `--all --no-interactive` for bulk validate, use `-y` for archive
+6. **Changes are atomic** - One change = one deployable unit (implements 1-5 requirements)
+7. **Changes created manually** - Create directory structure manually (no `openspec init` command)
+8. **Required files** - Every change has `proposal.md`, `tasks.md`, `specs/{feature-slug}/spec.md`, optional `design.md`
+9. **Source of truth** - `openspec/specs/` contains merged specifications
 
 **OpenSpec Commands**:
 - `openspec list` - List active changes
@@ -157,234 +167,102 @@ CODE (implementation)
 - For bulk `validate`: Use `--all --no-interactive` to validate everything without prompts
 - For `archive`: Use `-y` or `--yes` flag to skip confirmation prompts
 
-**Note**: `openspec init` is NOT used - FDD workflows create OpenSpec structure manually
+**Project Structure**:
+```
+project-root/
+├── architecture/
+│   ├── DESIGN.md                      # Overall Design
+│   └── features/
+│       └── feature-{slug}/
+│           └── DESIGN.md
+│               Section B: Actor Flows (FDL)
+│               Section C: Algorithms (FDL)
+│               Section D: States (FDL)
+│               Section E: Technical Details
+│               Section F: Validation & Implementation
+│               Section G: Requirements (references to B-E)
+│               Section H: Implementation Plan (changes with status)
+├── openspec/                          # ← SINGLE project-level OpenSpec
+│   ├── project.md                     # Project conventions
+│   ├── specs/                         # Source of truth (merged specs)
+│   │   └── fdd-{project-name}-feature-{feature-slug}/  # ← FDD prefix + project + feature
+│   │       └── spec.md                # ← Requirements from DESIGN.md Section G
+│   └── changes/                       # Active and archived changes
+│       ├── {change-name}/             # Active change (kebab-case)
+│       │   ├── proposal.md            # Why, what, impact
+│       │   ├── tasks.md               # Implementation checklist
+│       │   ├── design.md              # Technical decisions (optional)
+│       │   └── specs/                 # Delta specifications
+│       │       └── fdd-{project-name}-feature-{feature-slug}/  # ← FDD prefix + project + feature
+│       │           └── spec.md        # ← ADDED/MODIFIED/REMOVED
+│       └── archive/                   # Completed changes
+│           └── YYYY-MM-DD-{change-name}/
+└── spec/
+```
 
-**Change Structure**:
-```
-feature-{slug}/
-└── openspec/
-    ├── project.md       # Project conventions
-    ├── specs/           # Source of truth (merged specs)
-    │   └── [capability]/
-    │       ├── spec.md
-    │       └── design.md
-    └── changes/         # Active and archived changes
-        ├── [change-name]/        # Active change (kebab-case)
-        │   ├── proposal.md       # Why, what, impact
-        │   ├── tasks.md          # Implementation checklist
-        │   ├── design.md         # Technical decisions (optional)
-        │   └── specs/            # Delta specifications
-        │       └── [capability]/
-        │           └── spec.md   # ADDED/MODIFIED/REMOVED
-        └── archive/              # Completed changes
-            └── YYYY-MM-DD-[change-name]/
-```
-
-**Three-Stage Workflow**:
-```
-1. Creating Changes - Scaffold proposal, tasks, design (optional), delta specs
-2. Implementing Changes - Read docs, implement sequentially, update checklist
-3. Archiving Changes - Use `openspec archive <change-id>`, moves to archive/
-```
-
-**When to Use OpenSpec**:
-- Workflows 09-12 are OpenSpec workflows
-- Use after Feature Design is validated (workflow 06)
-- Each feature breaks into multiple OpenSpec changes
-- Changes implement code according to Feature Design
+**Feature Design Integration**:
+- **Section G**: Requirements (formalized scope, references to flows/algorithms/states)
+- **Section H**: Implementation Plan (changes implementing 1-5 requirements each, with status)
+- Workflows 09-13 are OpenSpec workflows
+- Use after Feature Design validated (workflow 06)
 
 **Workflows**:
-- Initialize OpenSpec → `workflows/09-openspec-init.md`
+- Create change (first or next) → `workflows/09-openspec-change-next.md`
 - Implement change → `workflows/10-openspec-change-implement.md`
 - Complete change → `workflows/11-openspec-change-complete.md`
 - Validate specs → `workflows/12-openspec-validate.md`
 
 **Resources**:
-- **Full Specification**: `openspec/AGENTS.md` ⚠️ READ BEFORE USE
+- **Full Specification**: `spec/FDD/openspec/AGENTS.md` ⚠️ READ BEFORE USE
 - **Website**: https://openspec.dev
 - **GitHub**: https://github.com/Fission-AI/OpenSpec
 - **Install**: `npm install -g @fission-ai/openspec@latest`
 
 ---
 
-## Design Levels - When to Use What
+## Design Levels
 
-**OVERALL DESIGN** - Create ONCE per module/service:
-- ✅ System architecture and layers
-- ✅ Domain model types (all entities, value objects)
-- ✅ API contract specification (all endpoints)
-- ✅ Actors, roles, capabilities, principles
-- ❌ HOW things work (that's Feature Design)
-- ❌ Implementation details (that's OpenSpec Changes)
+**OVERALL DESIGN** (`architecture/DESIGN.md`, ≤5000 lines, ≥90/100):
+- Section A: Business Context, Section B: Requirements & Principles, Section C: Technical Architecture
+- Defines: architecture, domain model, API contracts, actors
+- Workflows: 01-init-project, 02-validate-architecture
 
-**Workflows**:
-- Initialize → `workflows/01-init-project.md`
-- Validate → `workflows/02-validate-architecture.md`
+**FEATURE DESIGN** (`architecture/features/feature-{slug}/DESIGN.md`, ≤4000 lines, 100/100):
+- Section A: Overview (purpose, actors, references)
+- Section B: Actor Flows (in FDL)
+- Section C: Algorithms (in FDL)
+- Section D: States (in FDL, state machines if needed)
+- Section E: Technical Details (DB, API, security)
+- Section F: Validation & Implementation (test scenarios)
+- **Section G: Requirements** (formalized scope, references B-E via markdown anchors)
+- **Section H: Implementation Plan** (OpenSpec changes implementing requirements, with status)
+- Uses FDL for flows/algorithms/states, references Overall Design types
+- Workflows: 05-init-feature, 06-validate-feature, 08-fix-design
 
----
+**OpenSpec CHANGES** (`openspec/changes/{change-name}/`):
+- Files: proposal.md, tasks.md, specs/{feature-slug}/spec.md, design.md (optional)
+- Atomic units implementing 1-5 requirements
+- Workflows: 09-openspec-init, 10-implement, 11-complete, 12-next, 13-validate
 
-**FEATURE DESIGN** - Create for EACH feature:
-- ✅ Actor flows (what each actor does)
-- ✅ Algorithms in FDL (how system processes)
-- ✅ OpenSpec changes plan (breakdown)
-- ✅ Testing scenarios
-- ❌ Type definitions (reference Overall Design)
-- ❌ API endpoints (reference Overall Design)
+**FEATURES.md** (`architecture/features/FEATURES.md`):
+- Status: ⏳ NOT_STARTED, 🔄 IN_PROGRESS, ✅ IMPLEMENTED
+- Workflows: 03-init-features, 04-validate-features
 
-**Workflows**:
-- Initialize feature → `workflows/05-init-feature.md`
-- Validate feature → `workflows/06-validate-feature.md`
-- Fix design issues → `workflows/08-fix-design.md`
-
----
-
-**OpenSpec CHANGES** - Create for EACH atomic implementation:
-- ✅ Proposal (why this change)
-- ✅ Tasks checklist (implementation steps)
-- ✅ Delta specs (what changes in code)
-- ❌ Design rationale (that's in Feature Design)
-- ❌ Architecture changes (that's in Overall Design)
-
-**Workflows**: See OpenSpec Integration section above
-
----
-
-## OVERALL DESIGN
-
-**File**: `architecture/DESIGN.md`  
-**Size**: ≤5000 lines  
-**Score**: ≥90/100
-
-**What Goes Here**:
-- Section A: Business Context (vision, actors, capabilities)
-- Section B: Requirements & Principles
-- Section C: Technical Architecture (architecture overview, domain model, API contracts)
-- Section D: Project-Specific Details (optional, not validated - integrations, future plans, etc.)
-
-**What's Defined by Adapter**:
-- DML (Domain Model Language) - how to reference types
-- Feature Linking - how to link between features and Overall Design
-- External artifact locations (domain model specs, API specs, diagrams)
-
-**Workflows**:
-- Create structure and templates → `workflows/01-init-project.md`
-- Validate completeness → `workflows/02-validate-architecture.md`
-
----
-
-## FEATURE DESIGN
-
-**File**: `architecture/features/feature-{slug}/DESIGN.md`  
-**Size**: ≤3000 lines (recommended), ≤4000 (hard limit)  
-**Score**: 100/100 + 100% completeness
-
-**What Goes Here**:
-- Section A: Feature Overview (purpose, scope, references to Overall Design)
-- **Section B: Actor Flows** ⚠️ PRIMARY - use FDL, design this first!
-- Section C: Algorithms - use FDL, never code
-- Section D: States (optional) - use FDL for state machines
-- Section E: Technical Details (DB schema, operations, access control, error handling)
-- Section F: Validation & Implementation (testing scenarios, OpenSpec changes plan)
-
-**What's NOT Here**:
-- ❌ Type definitions (reference Overall Design)
-- ❌ API endpoints (reference Overall Design)
-- ❌ Code examples (use FDL only)
-
-**What's Defined by Adapter**:
-- DML (Domain Model Language) - how to reference types
-- Feature Linking - how to link between features and Overall Design
-- Format for technical details sections
-
-**Workflows**:
-- Create feature structure and template → `workflows/05-init-feature.md`
-- Validate feature completeness → `workflows/06-validate-feature.md`
-- Fix design issues → `workflows/08-fix-design.md`
-
----
-
-## FEATURES.md Manifest
-
-**Location**: `architecture/features/FEATURES.md`
-
-**Purpose**: Central registry tracking all features with dependencies and status
-
-**Status Values**:
-- ⏳ **NOT_STARTED** - DESIGN.md created, design in progress
-- 🔄 **IN_PROGRESS** - OpenSpec initialized, implementation started
-- ✅ **IMPLEMENTED** - All OpenSpec changes completed
-
-**Content**: Feature list with slug, status, folder/DESIGN links (clickable), dependencies (depends on / blocks)
-
-**Workflows**:
-- Generate from Overall Design → `workflows/03-init-features.md`
-- Validate manifest → `workflows/04-validate-features.md`
-
----
-
-## Adapters - Project-Specific Extensions
-
-**Purpose**: Adapters extend FDD with project-specific context without changing core methodology.
-
-**Location**: `guidelines/{project-name}-adapter/`
-
-### Immutable Rules (Adapters CANNOT Override)
-
-These rules are validated by tooling and must never be changed:
-
-1. **Design Hierarchy**: OVERALL DESIGN → FEATURE DESIGN → OpenSpec CHANGES → CODE
-2. **Mandatory FDD Rules**: Actor Flows PRIMARY, FDL only, no type redefinition, validate before proceeding
-3. **File Structure**: `architecture/DESIGN.md`, `architecture/features/`, OpenSpec structure
-4. **DESIGN.md Sections**: Section A-C (Overall), Section A-F (Feature) - structure is fixed
-5. **Validation Scores**: Overall ≥90/100, Feature 100/100 + 100% completeness
-6. **OpenSpec Structure**: Must follow OpenSpec specification exactly
-
-### What Adapters Define
-
-Everything else is adapter-specific:
-
-- **Domain Model Format**: Technology, location, DML syntax, validation commands
-- **API Contract Format**: Technology, location, linking syntax, validation commands
-- **Implementation Details**: Database, auth, error handling, testing, build/deploy
-- **Additional Artifacts**: Diagrams, documentation, CI/CD, tooling
-
-**See**: `ADAPTER_GUIDE.md` for creating adapters
+**Adapters** (`{adapter-directory}/FDD-Adapter/`):
+- Define: domain model format, API contracts, implementation details
+- Cannot override: design hierarchy, mandatory rules, file structure, validation scores
+- See: `ADAPTER_GUIDE.md`
+- Note: `{adapter-directory}` is configured by project owner (spec/, guidelines/, docs/, etc.)
 
 ---
 
 ## Quick Reference
 
-**New to FDD? Start here**: `QUICKSTART.md` - 5-minute guide with examples
+**Starting FDD Work**:
+1. Check for FDD Adapter (REQUIRED) → Look for `{adapter-dir}/AGENTS.md`
+2. Read `workflows/AGENTS.md` for workflow selection
+3. Read `FDL.md` for syntax
 
-**When Starting FDD Work**:
-1. **Check for FDD Adapter** - REQUIRED before any work
-   - Look for `{adapter-dir}/AGENTS.md`
-   - If not found → Run Workflow: adapter-config
-2. Read `QUICKSTART.md` (if new to FDD) - Quick start guide
-3. Read `AGENTS.md` (this file) - Core methodology
-4. Read `workflows/AGENTS.md` - Workflow selection guide
-5. Read `FDL.md` - FDL syntax reference
+**Key Files**: `architecture/DESIGN.md`, `architecture/features/FEATURES.md`, `architecture/features/feature-{slug}/DESIGN.md`, `openspec/`
 
-**Key Files**:
-- `architecture/DESIGN.md` - Overall Design (≤5000 lines, ≥90/100)
-- `architecture/features/FEATURES.md` - Feature manifest
-- `architecture/features/feature-{slug}/DESIGN.md` - Feature Design (≤4000 lines, 100/100)
-- `architecture/features/feature-{slug}/openspec/` - OpenSpec changes
-- `CLISPEC.md` - CLI command specification format
-
-**Key Workflows**: See `workflows/AGENTS.md`
-
-**Key Concepts**: Design Hierarchy, FDL, Actor Flows, Domain Model, OpenSpec
-
-**Built-in Formats**:
-- **CLISPEC**: CLI command specification format (`CLISPEC.md`)
-  - Human and machine-readable
-  - For CLI tools documentation
-  - Structured command format
-
-**Remember**:
-- ✅ Actor Flows (Section B) are PRIMARY - start design here
-- ✅ Use FDL for flows/algorithms/states - NEVER write code in DESIGN.md
-- ✅ Reference types from Overall Design - NEVER redefine
-- ✅ Validate before proceeding (Overall ≥90/100, Feature 100/100)
-- ✅ If contradiction found - STOP, fix design, re-validate
+**Remember**: Requirements PRIMARY (B), FDL for flows/algorithms, reference types (never redefine), validate before proceeding

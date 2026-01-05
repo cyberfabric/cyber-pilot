@@ -8,7 +8,7 @@
 ## Prerequisites
 
 - OpenSpec initialized for feature (run `09-openspec-init.md` first)
-- Change directory exists: `architecture/features/feature-{slug}/openspec/changes/{id}-{name}/`
+- Change directory exists: `openspec/changes/{change-name}/` (project root)
 - Proposal and specs reviewed
 
 ## Input Parameters
@@ -26,8 +26,8 @@
 
 **Command**:
 ```bash
-cd architecture/features/feature-{slug}/
-openspec show {change-id}
+cd openspec/
+openspec show {change-name}
 ```
 
 **What This Shows**:
@@ -360,4 +360,4 @@ After implementation complete:
 
 - **Core FDD**: `../AGENTS.md` - Implementation guidelines
 - **OpenSpec**: https://openspec.dev - Change management
-- **Next Workflow**: `11-openspec-change-complete.md`
+- **Previous Workflow**: `09-openspec-change-next.md`

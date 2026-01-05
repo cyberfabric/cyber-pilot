@@ -304,12 +304,12 @@ Phase 2: Feature Planning
 └─ 06-validate-feature.md   → Validate feature design
 
 Phase 3: Implementation
-├─ 09-openspec-init.md      → Initialize OpenSpec
+├─ 09-openspec-change-next.md      → Create change (first or next)
 ├─ 10-openspec-change-implement.md → Implement change
 ├─ 10-1-openspec-code-validate.md  → Validate code vs spec (auto)
 ├─ 11-openspec-change-complete.md  → Complete change
-├─ 12-openspec-change-next.md      → Create next change
-├─ 13-openspec-validate.md  → Validate OpenSpec structure
+└─ (Repeat 09→10→11 for each change)
+├─ 12-openspec-validate.md  → Validate OpenSpec structure
 ├─ 07-complete-feature.md   → Mark feature complete
 └─ 08-fix-design.md         → Fix design issues
 ```
@@ -917,9 +917,9 @@ git submodule add <fdd-repo-url> guidelines/FDD
 
 ### 3. Create Project Adapter (5-10 minutes) 🤖
 
-**Run workflow**: `workflows/adapter-config.md` (interactive)
+**Follow workflow**: `workflows/adapter-config.md`
 
-Or use AI agent:
+With AI agent:
 ```
 Follow @guidelines/FDD/workflows/adapter-config.md to create FDD adapter
 ```
@@ -937,7 +937,7 @@ For manual setup, see: **`ADAPTER_GUIDE.md`**
 
 ### 4. Configure AI Agent (2 minutes, optional) 🤖
 
-**Run workflow**: `workflows/config-agent-tools.md` (interactive)
+**Follow workflow**: `workflows/config-agent-tools.md`
 
 This optional workflow sets up your AI agent (Windsurf, Cursor, Cline, Aider) to use FDD natively:
 - Creates agent-specific configuration files
@@ -1127,11 +1127,11 @@ spec/FDD/                                       # Core FDD (standalone, universa
     ├── 06-validate-feature.md                  # Validate Feature Design
     ├── 07-complete-feature.md                  # Mark feature complete
     ├── 08-fix-design.md                        # Fix design issues
-    ├── 09-openspec-init.md                     # Initialize OpenSpec
+    ├── 09-openspec-change-next.md              # Create change (first or next)
     ├── 10-openspec-change-implement.md         # Implement change
+    ├── 10-1-openspec-code-validate.md          # Validate code vs spec (auto)
     ├── 11-openspec-change-complete.md          # Complete change
-    ├── 12-openspec-change-next.md              # Create next change
-    └── 13-openspec-validate.md                 # Validate OpenSpec
+    └── 12-openspec-validate.md                 # Validate OpenSpec structure
 
 spec/FDD-Adapter/                               # Your project adapter (created by workflow)
 ├── AGENTS.md                                   # AI instructions (project-specific)

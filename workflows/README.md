@@ -43,12 +43,11 @@ These workflows are **IDE and agent-agnostic** - they describe the FDD methodolo
 
 7. ✅ **`07-complete-feature.md`** - Mark feature as complete
 8. ✅ **`08-fix-design.md`** - Fix design issues during implementation
-9. ✅ **`09-openspec-init.md`** - Initialize OpenSpec for feature
-10. ✅ **`10-openspec-change-implement.md`** - Implement OpenSpec change
+9. ✅ **`09-openspec-change-next.md`** - Create change (first or subsequent, universal workflow)
+10. ✅ **`10-openspec-change-implement.md`** - Implement OpenSpec change (1-5 requirements)
 10-1. ✅ **`10-1-openspec-code-validate.md`** - Validate code against spec (auto-runs after 10)
-11. ✅ **`11-openspec-change-complete.md`** - Complete and archive change
-12. ✅ **`12-openspec-change-next.md`** - Create next change from DESIGN.md
-13. ✅ **`13-openspec-validate.md`** - Validate OpenSpec structure
+11. ✅ **`11-openspec-change-complete.md`** - Complete and archive change to specs/{feature-slug}/
+12. ✅ **`12-openspec-validate.md`** - Validate OpenSpec structure
 
 ---
 

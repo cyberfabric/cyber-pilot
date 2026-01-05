@@ -23,9 +23,9 @@ FDD (Feature-Driven Development) is a design-first methodology that ensures your
 spec/FDD-Adapter/AGENTS.md
 ```
 
-**No adapter found?** → Run workflow: **adapter-config**
+**No adapter found?** → Follow workflow: **adapter-config** (workflows/adapter-config.md)
 
-This interactive workflow (5-10 minutes) will:
+This workflow (5-10 minutes) guides you through:
 - ✅ Ask guided questions about your project
 - ✅ Define domain model format (GTS, JSON Schema, TypeScript, etc.)
 - ✅ Define API contract format (OpenAPI, GraphQL, CLISPEC, etc.)
@@ -38,7 +38,7 @@ This interactive workflow (5-10 minutes) will:
 
 **After creating adapter, optionally set up your AI agent:**
 
-Run workflow: **config-agent-tools**
+Follow workflow: **config-agent-tools** (workflows/config-agent-tools.md)
 
 This workflow (2 minutes) creates agent-specific configuration:
 - **Windsurf**: `.windsurf/rules.md` + workflow wrappers in `.windsurf/workflows/`
@@ -49,19 +49,14 @@ This workflow (2 minutes) creates agent-specific configuration:
 **All configs**:
 - ✅ Tell agent to read `spec/FDD-Adapter/AGENTS.md` first
 - ✅ Provide FDD workflow references
-- ✅ Follow agent-specific format
-
-**Result**: Agent automatically reads FDD adapter and uses workflows natively
 
 ### 2. Initialize Project
 
-```bash
-# Run workflow: 01-init-project
-# Creates:
-# - architecture/DESIGN.md (template)
-# - architecture/features/ (directory)
-# - architecture/diagrams/ (directory)
-```
+Follow these manual steps to initialize your project:
+
+1. Create a new directory `architecture/` and add a new file `DESIGN.md` (template)
+2. Create a new directory `architecture/features/` (directory)
+3. Create a new directory `gts/` or `spec/API/` (if needed)
 
 ### 3. Write Overall Design
 
@@ -82,18 +77,15 @@ Edit `architecture/DESIGN.md` with:
 
 ### 4. Validate Overall Design
 
-```bash
-# Run workflow: 02-validate-architecture
-# Must score ≥90/100
-```
+Follow workflow: **02-validate-architecture** (workflows/02-validate-architecture.md)
+
+Must score ≥90/100
 
 ### 5. Initialize Features
 
-```bash
-# Run workflow: 03-init-features
-# Extracts features from Overall Design
-# Creates architecture/features/FEATURES.md manifest
-```
+Follow workflow: **03-init-features** (workflows/03-init-features.md)
+
+Extracts features from Overall Design and creates `architecture/features/FEATURES.md` manifest
 
 ### 6. Design Each Feature
 
@@ -117,26 +109,23 @@ For each feature in `architecture/features/feature-{slug}/DESIGN.md`:
 
 ### 7. Validate Feature
 
-```bash
-# Run workflow: 06-validate-feature {slug}
-# Must score 100/100 + 100% completeness
-```
+Follow workflow: **06-validate-feature** (workflows/06-validate-feature.md)
+
+Must score 100/100 + 100% completeness
 
 ### 8. Implement via OpenSpec
 
-```bash
-# Run workflow: 09-openspec-init {slug}
-# Then for each change:
-# 10-openspec-change-implement {slug} {change-id}
-# 11-openspec-change-complete {slug} {change-id}
-```
+Follow workflows:
+1. **09-openspec-change-next** - Create first (or next) change from DESIGN.md
+2. **10-openspec-change-implement** - Implement each change
+3. **11-openspec-change-complete** - Complete and archive change
+4. **09-openspec-change-next** - Create next change (repeat from step 2)
 
 ### 9. Complete Feature
 
-```bash
-# Run workflow: 07-complete-feature {slug}
-# Validates all tests pass, marks feature complete
-```
+Follow workflow: **07-complete-feature** (workflows/07-complete-feature.md)
+
+Validates all tests pass, marks feature complete
 
 ---
 
@@ -307,7 +296,7 @@ User management API for authentication and profile management.
 **Adapter** uses **CLISPEC** for API contracts:
 ```
 COMMAND validate-feature
-SYNOPSIS: fdd validate-feature <slug> [options]
+SYNOPSIS: mytool validate-feature <slug> [options]
 DESCRIPTION: Validate feature design completeness
 WORKFLOW: 06-validate-feature
 
@@ -322,7 +311,7 @@ EXIT CODES:
   2  Validation failed
 
 EXAMPLE:
-  $ fdd validate-feature user-authentication
+  $ mytool validate-feature user-authentication
 ---
 ```
 
@@ -361,8 +350,8 @@ Operations:
 
 ```bash
 # Phase 0: Setup (REQUIRED FIRST)
-adapter-config                         # Create FDD adapter at spec/FDD-Adapter/
-                                       # Interactive: answers 8 questions
+adapter-config                         # Follow workflow to create adapter
+                                       # Location: spec/FDD-Adapter/
                                        # Result: AGENTS.md + workflows/AGENTS.md
 
 # Phase 1: Architecture
@@ -376,11 +365,11 @@ adapter-config                         # Create FDD adapter at spec/FDD-Adapter/
 06-validate-feature {slug}             # Validate Feature Design (100/100)
 
 # Phase 3: Implementation
-09-openspec-init {slug}                # Initialize OpenSpec
+09-openspec-change-next {slug}         # Create change (first or next)
 10-openspec-change-implement {slug} {id}  # Implement change
 11-openspec-change-complete {slug} {id}   # Complete change
-12-openspec-change-next {slug}         # Create next change
-13-openspec-validate {slug}            # Validate OpenSpec structure
+# Repeat 09→10→11 for each change
+12-openspec-validate {slug}            # Validate OpenSpec structure
 07-complete-feature {slug}             # Mark feature complete
 
 # Utils

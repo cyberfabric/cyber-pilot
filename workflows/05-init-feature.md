@@ -72,15 +72,27 @@ Example:
 ```
 **Store as**: `MAIN_FLOWS[]` (each with name and brief description)
 
-### Q6: Estimated OpenSpec Changes
+### Q6: Initial Requirements
 ```
-How many OpenSpec changes do you estimate for this feature?
-Consider implementation complexity and scope.
+What are 2-4 key requirements for this feature?
+List them as complete sentences describing system behavior:
+
+Example:
+1. The system SHALL register an `fdd init` command that accepts optional project path
+2. The system SHALL validate the target directory is empty or doesn't exist
+3. The system SHALL generate architecture directory structure with templates
+```
+**Store as**: `REQUIREMENTS[]` (each requirement as full sentence)
+
+### Q7: Estimated Changes
+```
+How many implementation changes do you estimate?
+Each change implements 1-5 requirements.
 
 Options:
   1. Small (1-2 changes)
-  2. Medium (3-5 changes)
-  3. Large (6-10 changes)
+  2. Medium (3-4 changes)
+  3. Large (5-8 changes)
   4. Custom (specify number)
 ```
 **Store as**: `CHANGES_COUNT`
@@ -255,20 +267,70 @@ N/A - This feature does not require state machine modeling.
    - When: {Action from flow}
    - Then: {Expected result}
 
-### OpenSpec Changes
+---
 
-**Total Changes**: {CHANGES_COUNT from Q6}
+## G. Requirements
 
-{Generate placeholders for each change}
-#### Change {001..N}: Initial Implementation Phase {N}
+**Note**: Requirements formalize the scope by combining flows, algorithms, states, and technical details.
+
+{Generate 1-2 example requirements based on flows and Q6}
+### Requirement R{001}: {Requirement Name from Q6}
 
 **Status**: ⏳ NOT_STARTED
 
-**Description**: To be defined during design
+**Description**: {Requirement description from Q6}
 
-**Scope**: To be defined
+**References**:
+- [Flow: {Flow Name}](#flow-{flow-slug})
+- [Algorithm: {Algorithm Name}](#algorithm-{algo-slug})
+{If technical details referenced}
+- [Technical: {Detail}](#technical-details)
 
-**Dependencies**: None (or previous change)
+**Testing Scenarios** (FDL):
+
+**Test: {Success case}**
+
+1. {Set up initial state}
+2. {Actor} performs {action}
+3. **IF** {operation succeeds}:
+   1. {Verify expected outcome}
+   2. {Verify side effects}
+4. {Assert result is correct}
+
+**Test: {Error case}**
+
+1. {Set up error condition}
+2. {Actor} performs {action}
+3. **TRY**:
+   1. {Execute operation}
+4. **CATCH** {ErrorType}:
+   1. {Verify error handling}
+   2. {Verify system state}
+
+**Acceptance Criteria**:
+- {Derive from requirement description}
+- {Add 1-2 more criteria}
+
+{Repeat for each requirement from Q6}
+
+---
+
+## H. Implementation Plan
+
+**Total Changes**: {CHANGES_COUNT from Q7}
+
+{Generate placeholders for each change}
+### Change 001: {Infer name from first 1-2 requirements}
+
+**Status**: ⏳ NOT_STARTED
+
+**Description**: To be defined during detailed design
+
+**Implements Requirements**:
+- [R001: {Requirement name}](#requirement-r001)
+{If multiple requirements: add more}
+
+**Dependencies**: None
 
 **Effort**: To be estimated
 
@@ -276,23 +338,29 @@ N/A - This feature does not require state machine modeling.
 
 ---
 
+{Repeat for remaining changes}
+
+---
+
 **Document Status**: Initial version - ready for detailed design
 
 **Next Steps**:
-1. Expand actor flows with detailed FDL
-2. Define algorithms in FDL
-3. Document technical details (DB, API, security)
-4. Create detailed OpenSpec change specifications
-5. Validate design (workflow 06-validate-feature)
+1. Expand actor flows with detailed FDL (Section B)
+2. Define algorithms in FDL (Section C)
+3. Document technical details (Section E)
+4. Complete requirements with references and phases (Section G)
+5. Detail implementation changes (Section H)
+6. Validate design (workflow 06-validate-feature)
 ```
 
 **Expected Result**: DESIGN.md with meaningful starter content
 
 **Validation Criteria**:
-- File contains actual content from Q2-Q6
+- File contains actual content from Q2-Q7
 - Actor names and roles filled from Q4
 - Flow descriptions filled from Q5
-- OpenSpec changes count matches Q6
+- Requirements listed in Section G from Q6
+- Changes count in Section H matches Q7
 - No empty placeholders like "[TODO]"
 - Document ready for user to expand with details
 
@@ -317,7 +385,8 @@ DESIGN.md will include:
 - Purpose: {first 60 chars of FEATURE_PURPOSE}...
 - {count} actors
 - {count} main flows
-- {CHANGES_COUNT} OpenSpec changes planned
+- {count} requirements from Q6
+- {CHANGES_COUNT} implementation changes from Q7
 {If dependencies: "- Dependencies: {list}"}
 
 Feature status will change: NOT_STARTED → IN_PROGRESS
@@ -362,7 +431,9 @@ Feature initialization complete when:
   - [ ] Section B: Actor Flows (initial flow descriptions from Q5)
   - [ ] Section C: Algorithms (placeholders based on flows)
   - [ ] Section E: Technical Details (placeholders)
-  - [ ] Section F: Validation & Implementation (test scenarios, OpenSpec changes)
+  - [ ] Section F: Validation & Implementation (test scenarios)
+  - [ ] Section G: Requirements (from Q6, references to B-E)
+  - [ ] Section H: Implementation Plan (changes from Q7, implementing requirements)
 - [ ] Feature status updated: NOT_STARTED → IN_PROGRESS
 - [ ] No empty placeholders like "[TODO]" in generated content
 - [ ] Document ready for user to expand with detailed FDL and technical specs
@@ -385,18 +456,19 @@ Feature initialization complete when:
 
 After initialization:
 
-1. **Fill in DESIGN.md**: Complete all sections A-F
+1. **Fill in DESIGN.md**: Complete all sections A-H
    - Define actors and flows (Section B - PRIMARY)
-   - Describe algorithms in ADL (Section C)
+   - Describe algorithms in FDL (Section C)
    - Document technical details (Section E)
-   - List OpenSpec changes (Section F)
+   - Complete requirements with phases (Section G)
+   - Detail implementation changes (Section H)
 
 2. **Validate Design**: Run `06-validate-feature.md {slug}`
    - Must pass 100/100 + 100% completeness
    - Fix issues and re-validate
 
 3. **Start Implementation**: After validation passes
-   - Run `09-openspec-init.md {slug}`
+   - Run `09-openspec-change-next.md {slug}`
    - Implement changes
    - Complete feature
 

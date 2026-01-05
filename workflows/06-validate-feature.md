@@ -40,7 +40,7 @@
 
 ### 2: Validate Section Structure
 
-**Requirement**: All required sections A-F must be present
+**Requirement**: All required sections A-G must be present
 
 **Required Sections**:
 - **Section A**: Feature Context
@@ -48,13 +48,14 @@
 - **Section C**: Algorithms
 - **Section D**: States
 - **Section E**: Technical Details
-- **Section F**: Validation & Implementation
+- **Section F**: Requirements
+- **Section G**: Implementation Plan
 
-**Expected Outcome**: All 6 sections present with proper headings
+**Expected Outcome**: All 7 sections present with proper headings
 
 **Validation Criteria**:
 - Each section heading follows format `## A.`, `## B.`, etc.
-- All 6 sections found in correct order
+- All 7 sections found in correct order
 - No duplicate sections
 
 ---
@@ -252,26 +253,56 @@ cat ../../DESIGN.md
 
 ---
 
-### 10: Validate OpenSpec Changes Listed
+### 10: Validate Section G (Requirements)
 
-**Requirement**: Section F must list planned OpenSpec changes
+**Requirement**: Section G must contain formalized requirements with references to B-E
 
 **Required Content**:
-- **Testing Scenarios**: Test cases for validation
-- **OpenSpec Changes**: List of implementation changes
-  - Change numbering (001, 002, etc.)
-  - Change descriptions
-  - Scope and dependencies
-  - Effort estimates
-  - Verification criteria
+- **Requirements**: Listed as "### Requirement R{NNN}: {Title}"
+  - Status field (⏳ NOT_STARTED, 🔄 IN_PROGRESS, ✅ IMPLEMENTED)
+  - Description: Clear description of what requirement addresses
+  - References: Markdown anchors to flows/algorithms/states in sections B-E
+  - Testing Scenarios: Written in FDL (numbered lists + bold keywords)
+  - Acceptance Criteria: Specific, testable criteria
+  - Scope details if needed
 
-**Expected Outcome**: Implementation plan documented
+**Expected Outcome**: Formalized scope with clear traceability and testable scenarios
 
 **Validation Criteria**:
-- Section F contains OpenSpec changes
-- Changes are numbered and described
-- Testing scenarios defined
-- Implementation is plannable
+- Section G contains ≥1 requirement
+- Each requirement has Status field
+- Each requirement has description
+- Each requirement has ≥1 reference to B-E (markdown anchors)
+- References are valid (target sections exist)
+- Each requirement has ≥1 testing scenario in FDL
+- Testing scenarios use FDL format (numbered lists + bold keywords)
+- Acceptance criteria are specific and testable
+- Requirements define formalized scope
+
+---
+
+### 11: Validate Section H (Implementation Plan)
+
+**Requirement**: Section H must list implementation changes
+
+**Required Content**:
+- **Changes**: Listed as "### Change {NNN}: {Title}"
+  - Change numbering (001, 002, etc.)
+  - Status field (⏳ NOT_STARTED, 🔄 IN_PROGRESS, ✅ COMPLETED)
+  - Description of what will be implemented
+  - "Implements Requirements" list referencing Section G
+  - Each change implements 1-5 requirements
+  - Dependencies field (other changes or "None")
+
+**Expected Outcome**: Implementation plan is clear and traceable
+
+**Validation Criteria**:
+- Section H contains ≥1 change
+- Changes are numbered sequentially (001, 002, ...)
+- Each change lists 1-5 requirements from Section G
+- All requirements in Section G are referenced by ≥1 change
+- Dependencies are valid (reference previous changes or "None")
+- Implementation plan is feasible
 
 ---
 
@@ -280,14 +311,17 @@ cat ../../DESIGN.md
 Validation complete when:
 
 - [ ] File size ≤4000 lines (recommended ≤3000)
-- [ ] All sections A-F present
+- [ ] All sections A-H present
 - [ ] Section A ≤500 lines
-- [ ] Section B ≥50 lines (or minimal for init)
-- [ ] Section C ≥100 lines, uses FDL (or minimal for init)
+- [ ] Section B ≥50 lines (or minimal for init), uses FDL
+- [ ] Section C ≥100 lines (or minimal for init), uses FDL
+- [ ] Section D uses FDL if applicable
 - [ ] Section E ≥200 lines
+- [ ] Section F: test scenarios present
+- [ ] Section G: ≥1 requirement with references to B-E
+- [ ] Section H: ≥1 change, all requirements from G covered
 - [ ] No type redefinitions
 - [ ] No TODO/TBD markers
-- [ ] OpenSpec changes listed
 
 ---
 
@@ -311,13 +345,13 @@ Validation complete when:
 
 After validation passes:
 
-1. **Initialize OpenSpec**: Run `09-openspec-init.md`
-   - Creates openspec structure
-   - Generates first change
+1. **Create First Change**: Run `09-openspec-change-next.md`
+   - Creates first change from DESIGN.md
+   - Generates proposal, tasks, specs
 
 2. **Start Implementation**: Follow OpenSpec workflow
-   - Implement changes
-   - Complete feature
+   - Implement changes (workflow 09)
+   - Complete feature (workflow 07)
 
 ---
 
@@ -335,4 +369,4 @@ After validation passes:
 
 - **Core FDD**: `../AGENTS.md` - Validation requirements
 - **FDL Spec**: `../FDL.md` - FDL syntax (flows, algorithms, states)
-- **Next Workflow**: `09-openspec-init.md`
+- **Next Workflow**: `09-openspec-change-next.md`
