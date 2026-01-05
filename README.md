@@ -463,7 +463,169 @@ OpenSpec Changes (openspec/changes/)
 - ✅ **Audit trail** - Know why every change was made
 - ✅ **Rollback safety** - Can revert changes without breaking design coherence
 
-### 5. 🏗️ Structured Project Organization - Rules and Validation
+### 5. 📝 FDL (FDD Description Language) - Logic Without Code
+
+FDD uses **FDL** - plain English pseudocode for describing algorithms, actor flows, and state machines. This is one of FDD's most powerful innovations.
+
+**What is FDL?**
+
+Plain English syntax for describing logic that **anyone can read**, not just programmers:
+
+```
+1. User clicks "Add to Cart" button
+2. System checks if item is in stock
+   2.1. IF out of stock
+       2.1.1. Show error "Item unavailable"
+       2.1.2. STOP
+3. System adds item to cart
+4. System updates cart count
+5. Show success message "Item added"
+```
+
+**Why FDL is a Game-Changer**:
+
+✅ **Stakeholders Can Review Logic**
+- Business analysts review actor flows
+- Product managers validate user experiences
+- QA designs test scenarios from flows
+- No programming knowledge needed
+
+✅ **Language-Agnostic Design**
+- Same design works for Python, JavaScript, Go, any language
+- Refactor implementation without changing design
+- Multiple teams can implement same design differently
+
+✅ **AI-Friendly**
+- AI agents convert FDL → code automatically
+- No ambiguity in instructions
+- Clear step-by-step logic
+
+✅ **Focus on Logic, Not Syntax**
+- Designers think about "what happens" not "how to code it"
+- No distractions from language-specific details
+- Catch logical errors before coding
+
+**Real Example: Authentication Flow**
+
+**FDL in DESIGN.md**:
+```
+### Flow: User Login
+
+1. User submits login form
+2. System validates email format
+   2.1. IF invalid format
+       2.1.1. Show error "Invalid email address"
+       2.1.2. STOP
+3. System checks credentials in database
+4. IF credentials match
+   4.1. Generate session token
+   4.2. Store token in cookies
+   4.3. Redirect to dashboard
+5. ELSE
+   5.1. Increment failed login counter
+   5.2. IF failed attempts >= 3
+       5.2.1. Lock account for 15 minutes
+       5.2.2. Send security email
+   5.3. Show error "Invalid credentials"
+```
+
+**Review Process**:
+- Product Manager reads → "Yes, this matches requirements"
+- Security Team reads → "Add rate limiting at step 5.2"
+- QA reads → "I'll test all branches: valid, invalid format, wrong password, account lock"
+- Developer reads → "Clear implementation path"
+
+**Then AI converts to code** - but the logic was reviewed and approved first.
+
+**FDL vs Code in Design Docs**:
+
+| Code in DESIGN.md | FDL in DESIGN.md |
+|-------------------|------------------|
+| ❌ Only programmers can review | ✅ Anyone can review |
+| ❌ Couples design to language | ✅ Language-agnostic |
+| ❌ Syntax distracts from logic | ✅ Pure logic focus |
+| ❌ Outdates when refactored | ✅ Stable across refactors |
+| ❌ AI may misinterpret | ✅ Clear AI instructions |
+
+**Where FDL is Used**:
+
+1. **Actor Flows** (Section B) - PRIMARY
+   - What each actor does step-by-step
+   - All interactions and user journeys
+
+2. **Algorithms** (Section C)
+   - Business logic processing
+   - Data transformations
+   - Calculations and validations
+
+3. **State Machines** (Section D, optional)
+   - State transitions
+   - Conditions for state changes
+   - Actions on state entry/exit
+
+**FDL Syntax Guide**:
+
+```
+Basic structure:
+1. Action or event
+2. Another action
+   2.1. Nested detail
+   2.2. Another detail
+3. Conditional
+   3.1. IF condition
+       3.1.1. Action if true
+   3.2. ELSE
+       3.2.1. Action if false
+4. Loops
+   4.1. FOR EACH item in list
+       4.1.1. Process item
+5. STOP - terminates flow
+
+Keywords (ALL CAPS):
+- IF / ELSE - conditions
+- FOR EACH - loops
+- STOP - terminate
+- AND / OR - logical operators
+- WHILE - conditional loops
+```
+
+**Why No Code in Designs**:
+
+FDD **strictly prohibits code** in DESIGN.md files:
+- ❌ No `if (x > 5) { ... }` syntax
+- ❌ No function definitions
+- ❌ No framework-specific patterns
+- ✅ Only FDL plain English
+
+**This is enforced by validation** - designs with code fail validation.
+
+**The Business Impact**:
+
+Before FDL:
+```
+Developer writes algorithm in code
+    ↓
+Stakeholder can't review (too technical)
+    ↓
+Logic bug discovered in production
+    ↓
+Expensive fix + customer impact
+```
+
+With FDL:
+```
+Designer writes algorithm in FDL
+    ↓
+Stakeholder reviews and approves
+    ↓
+Developer implements validated logic
+    ↓
+Bug caught before coding
+```
+
+**See Full FDL Specification**: `spec/FDD/FDL.md`
+
+### 6. 🏗️ Structured Project Organization - Rules and Validation
 
 FDD enforces **consistent structure and validation** across your entire project.
 
@@ -697,30 +859,7 @@ FDD adds structure and validation. Skip it if:
 - Technical details (database, security, etc.)
 - Testing scenarios
 
-### 2. FDL (FDD Description Language)
-
-Plain English pseudocode for describing logic:
-
-```
-1. User submits login form
-2. System validates email format
-   2.1. IF invalid format
-       2.1.1. Show error "Invalid email"
-       2.1.2. STOP
-3. System checks credentials in database
-4. IF credentials match
-   4.1. Create session
-   4.2. Redirect to dashboard
-5. ELSE
-   5.1. Show error "Invalid credentials"
-```
-
-**Benefits**:
-- Non-programmers can review
-- Language-agnostic
-- Focuses on logic, not syntax
-
-### 3. OpenSpec (Change Management)
+### 2. OpenSpec (Change Management)
 
 Break features into atomic, traceable changes:
 
@@ -735,7 +874,7 @@ feature-login/
             └── specs/        # Implementation details
 ```
 
-### 4. Formal Specifications
+### 3. Formal Specifications
 
 **DML (Domain Model Language)** - you choose format:
 - [GTS](https://github.com/GlobalTypeSystem/gts-spec), [CTI](https://github.com/acronis/go-cti/blob/main/cti-spec/SPEC.md), JSON Schema, RAML, Protobuf etc.
