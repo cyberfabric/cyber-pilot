@@ -89,7 +89,7 @@ Agent: {AGENT_NAME}
 Files to create:
 {If Windsurf}
 - .windsurf/rules.md (points to spec/FDD-Adapter/AGENTS.md)
-- .windsurf/workflows/ (15 workflow wrappers)
+- .windsurf/workflows/ (16 workflow wrappers)
 {End if}
 {If Cursor}
 - .cursorrules (includes workflow references)
@@ -267,7 +267,7 @@ Follow @spec/FDD/workflows/{workflow-id}.md
 **Note**: This wrapper calls FDD workflow. All logic is in `spec/FDD/workflows/{workflow-id}.md`
 ```
 
-**Wrappers to create** (15 total):
+**Wrappers to create** (16 total):
 - `adapter-config.md` → `spec/FDD/workflows/adapter-config.md`
 - `config-agent-tools.md` → `spec/FDD/workflows/config-agent-tools.md`
 - `init-project.md` → `spec/FDD/workflows/01-init-project.md`
@@ -280,6 +280,7 @@ Follow @spec/FDD/workflows/{workflow-id}.md
 - `fix-design.md` → `spec/FDD/workflows/08-fix-design.md`
 - `openspec-init.md` → `spec/FDD/workflows/09-openspec-init.md`
 - `openspec-change-implement.md` → `spec/FDD/workflows/10-openspec-change-implement.md`
+- `openspec-code-validate.md` → `spec/FDD/workflows/10-1-openspec-code-validate.md`
 - `openspec-change-complete.md` → `spec/FDD/workflows/11-openspec-change-complete.md`
 - `openspec-change-next.md` → `spec/FDD/workflows/12-openspec-change-next.md`
 - `openspec-validate.md` → `spec/FDD/workflows/13-openspec-validate.md`
@@ -300,7 +301,7 @@ Agent Files Created:
 ✓ {AGENT_NAME}
   {If Windsurf}
   - Rules: .windsurf/rules.md
-  - Workflows: .windsurf/workflows/ (15 wrappers)
+  - Workflows: .windsurf/workflows/ (16 wrappers)
   {End if}
   {If Cursor}
   - Rules: .cursorrules (includes workflow references)
@@ -333,7 +334,7 @@ Next Steps:
 - [ ] User confirmed configuration (Q3)
 - [ ] Agent directories created per spec
 - [ ] Rules file generated for each agent
-- [ ] Workflow wrappers generated (Windsurf only: 15 wrappers)
+- [ ] Workflow wrappers generated (Windsurf only: 16 wrappers)
 - [ ] Summary displayed with created files
 
 ---
