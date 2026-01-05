@@ -108,7 +108,40 @@ openspec show {change-id}
 
 ---
 
-### 5: Generate Validation Report
+### 5: Validate Changes Against Feature Design
+
+**Requirement**: Verify OpenSpec changes implement feature DESIGN.md Section F
+
+**Load Feature Design**:
+```bash
+cat ../DESIGN.md
+```
+
+**What to Verify**:
+- All changes listed in Section F exist in `openspec/changes/` or `openspec/changes/archive/`
+- Change numbering matches Section F plan
+- Change scope matches what Section F describes
+- No extra changes that aren't in Section F
+
+**Cross-Reference Check**:
+- Each change `proposal.md` references specific Section B (Actor Flows) or Section C (Algorithms)
+- Change tasks align with feature technical details (Section E)
+- Specs implement feature requirements, not unplanned work
+
+**Expected Outcome**: All changes traceable to feature design
+
+**Validation Criteria**:
+- ✅ All planned changes from Section F are created
+- ✅ All active/archived changes are listed in Section F
+- ✅ Each change proposal references feature DESIGN.md sections
+- ✅ No orphaned changes that don't match feature plan
+- ❌ Changes that contradict feature design
+
+**Resolution if Failed**: Update feature DESIGN.md Section F or remove/modify misaligned changes
+
+---
+
+### 6: Generate Validation Report
 
 **Requirement**: Document validation results
 
@@ -137,22 +170,28 @@ openspec validate --report
 **Target Score**: All checks must pass (100%)
 
 **Validation Categories**:
-1. **Structure** (30 points)
+1. **Structure** (20 points)
    - Directory structure exists and valid
    - Required directories present (specs/, changes/)
    - Archive structure correct
 
-2. **Changes** (30 points)
+2. **Changes** (20 points)
    - All changes have required files (proposal.md, tasks.md, specs/)
    - Change numbering sequential
    - Status consistent across files
 
-3. **Specifications** (30 points)
+3. **Specifications** (20 points)
    - Spec files valid markdown
    - Source of truth specs valid
    - No conflicting or duplicate specs
 
-4. **Integrity** (10 points)
+4. **Traceability** (30 points)
+   - All changes from feature DESIGN.md Section F exist
+   - All changes traceable to feature design
+   - Change proposals reference design sections
+   - No orphaned or unplanned changes
+
+5. **Integrity** (10 points)
    - No orphaned files
    - No broken references
    - Validation report generated
@@ -165,13 +204,17 @@ openspec validate --report
 
 Validation complete when:
 
-- [ ] Directory structure valid (30 pts)
-- [ ] All changes have proposal.md, tasks.md, specs/ (30 pts)
+- [ ] Directory structure valid (20 pts)
+- [ ] All changes have proposal.md, tasks.md, specs/ (20 pts)
 - [ ] Change numbering sequential
 - [ ] Status consistent across files
-- [ ] Spec files valid markdown (30 pts)
+- [ ] Spec files valid markdown (20 pts)
 - [ ] Source of truth specs valid
-- [ ] No critical orphaned files (10 pts)
+- [ ] All planned changes from DESIGN.md Section F exist (30 pts)
+- [ ] All changes traceable to feature design
+- [ ] Change proposals reference design sections
+- [ ] No orphaned or unplanned changes
+- [ ] No broken references (10 pts)
 - [ ] Validation report generated
 - [ ] Score: 100/100
 

@@ -200,28 +200,55 @@
 
 ---
 
-### 9: Validate References to Overall Design
+### 9: Validate Against Overall Design (Cross-Validation)
 
-**Requirement**: Feature Design must correctly reference Overall Design elements
+**Requirement**: Feature Design must align with and reference Overall Design
+
+**Load Overall Design**:
+```bash
+cat ../../DESIGN.md
+```
 
 **What to Validate**:
-- Domain types referenced (not redefined) from Overall Design
-- API endpoints referenced (not redefined) from Overall Design
-- Actors used match those defined in Overall Design
-- Capabilities align with Overall Design Section A
 
-**Reference Format**:
-- Use DML notation for type references (per adapter)
-- Use API paths for endpoint references
-- Link to Overall Design sections where appropriate
+**Domain Types** (CRITICAL):
+- ✅ All types referenced (not redefined) from Overall Design Section C
+- ❌ No new type definitions in feature DESIGN.md
+- ✅ Use DML notation per adapter (e.g., `<TypeName>`, `User`, etc.)
 
-**Expected Outcome**: Feature Design properly references Overall Design
+**API Endpoints** (CRITICAL):
+- ✅ All endpoints referenced from Overall Design Section C
+- ❌ No new endpoint definitions in feature DESIGN.md
+- ✅ Use API paths as defined in Overall Design
+
+**Actors** (CRITICAL):
+- ✅ Only actors defined in Overall Design Section A used
+- ❌ No new actors invented in feature
+- ✅ Actor roles match Overall Design
+
+**Capabilities**:
+- ✅ Feature aligns with capabilities in Overall Design Section A
+- ✅ Feature scope matches what Overall Design describes
+
+**References**:
+- ✅ Section A explicitly references Overall Design sections
+- ✅ Clear links to Overall Design domain model location
+- ✅ Clear links to Overall Design API contract location
+
+**Expected Outcome**: Feature Design is fully consistent with Overall Design
 
 **Validation Criteria**:
-- No type redefinitions (already checked in Requirement 7)
+- No type redefinitions (must pass Requirement 7)
 - No API endpoint redefinitions
-- Actor names consistent with Overall Design
+- Actor names match Overall Design exactly
+- Feature scope aligns with Overall Design capabilities
+- All references to Overall Design are valid
 - Clear traceability to Overall Design
+
+**Resolution if Failed**: 
+- If types missing → Add to Overall Design, re-validate with workflow 02
+- If actors missing → Add to Overall Design Section A
+- If inconsistent → Fix feature or Overall Design, then re-validate both
 
 ---
 
