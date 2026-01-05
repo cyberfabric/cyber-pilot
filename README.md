@@ -22,6 +22,164 @@ FDD helps teams build software by:
 
 ---
 
+## The AGENTS.md Foundation
+
+### Built on Industry Standard for AI Frameworks
+
+FDD is built on the **AGENTS.md approach** - an emerging industry standard for structuring AI-native frameworks and methodologies. This isn't just a documentation pattern; it's **the starting point** for any AI-assisted development framework.
+
+**What is AGENTS.md?**
+
+A standardized file (`AGENTS.md`) that serves as the **single source of truth** for AI agents, containing:
+- Complete methodology rules and constraints
+- Workflow references and execution patterns
+- Tool usage instructions
+- Project-specific context and conventions
+
+**Why AGENTS.md is the Superior Approach**:
+
+| Traditional Approach | AGENTS.md Approach |
+|---------------------|-------------------|
+| ❌ Scattered docs across README, wikis, comments | ✅ Single entry point for AI agents |
+| ❌ AI must search and piece together context | ✅ Complete context in one place |
+| ❌ Inconsistent interpretation of rules | ✅ Unambiguous, machine-readable instructions |
+| ❌ Manual workflow execution prone to errors | ✅ Workflows referenced and executable |
+| ❌ No separation of human vs AI documentation | ✅ Optimized specifically for AI consumption |
+| ❌ Changes require updating multiple locations | ✅ Update once, agents always have latest |
+
+**Industry Adoption - The Emerging Standard**:
+
+The AGENTS.md pattern is being adopted across major AI frameworks:
+
+1. **OpenSpec** (Fission AI)
+   - `openspec/AGENTS.md` - complete change management methodology
+   - Used by thousands of developers
+   - Standard pattern: human docs in README, AI docs in AGENTS.md
+
+2. **FDD** (This Framework)
+   - `spec/FDD/AGENTS.md` - core methodology
+   - `spec/FDD-Adapter/AGENTS.md` - project-specific extensions
+   - Two-level AGENTS.md hierarchy for universal + specific rules
+
+3. **Cursor AI** (`.cursorrules`)
+   - Early adopter of "rules file for AI" concept
+   - Single-file format (precursor to AGENTS.md)
+   - Proves demand for AI-specific instruction files
+
+4. **Anthropic Claude** (MCP protocol)
+   - Model Context Protocol servers expose resources
+   - Pattern: structured context for AI agents
+   - Aligns with AGENTS.md philosophy
+
+5. **Windsurf/Cline/Aider**
+   - All support agent-specific config files
+   - Moving toward standardized formats
+   - AGENTS.md provides that standardization
+
+**Why This is the Best Approach for AI Frameworks**:
+
+✅ **Instant Context Loading**
+```
+AI Agent starts → Reads AGENTS.md → Has complete methodology
+```
+No searching, no ambiguity, immediate understanding.
+
+✅ **Workflow Automation**
+```
+AGENTS.md references: workflows/05-init-feature.md
+AI Agent: Follows workflow step-by-step automatically
+```
+Workflows become executable, not just documentation.
+
+✅ **Version Control for AI Instructions**
+```
+git log spec/FDD/AGENTS.md
+→ See exactly when methodology rules changed
+→ Trace why AI behaves differently across versions
+```
+
+✅ **Composable Context**
+```
+FDD/AGENTS.md (universal rules)
+    ↓ extends
+FDD-Adapter/AGENTS.md (project-specific)
+    ↓ extends
+FDD-Adapter/workflows/AGENTS.md (workflow overrides)
+```
+Layered approach: core + extensions, never duplicated.
+
+✅ **Human + AI Harmony**
+- README.md → Human-readable overview
+- AGENTS.md → Machine-optimized instructions
+- Both reference same workflows, same structure
+- No duplication, no drift
+
+**FDD's AGENTS.md Architecture**:
+
+```
+spec/FDD/AGENTS.md                    # ← STARTING POINT
+├─ Core Methodology Rules             (immutable, validated)
+├─ Design Hierarchy                   (OVERALL → FEATURE → OpenSpec → CODE)
+├─ Workflow References                (14 universal workflows)
+└─ OpenSpec Integration               (atomic change management)
+    ↓ AI agent reads this FIRST
+    
+spec/FDD-Adapter/AGENTS.md            # ← PROJECT CONTEXT
+├─ Domain Model Technology            (GTS, JSON Schema, etc.)
+├─ API Contract Format                (OpenAPI, CLISPEC, etc.)
+├─ Project Conventions                (naming, structure, security)
+└─ Workflow Extensions                (project-specific steps)
+    ↓ Extends core, never contradicts
+    
+spec/FDD-Adapter/workflows/AGENTS.md  # ← WORKFLOW OVERRIDES
+└─ Custom workflow selection logic    (optional, project-specific)
+```
+
+**The Starting Point: Always AGENTS.md**
+
+When an AI agent encounters a project using FDD:
+
+```
+Step 1: Agent reads spec/FDD-Adapter/AGENTS.md
+        ↓
+        "READ FIRST: spec/FDD/AGENTS.md"
+        
+Step 2: Agent reads spec/FDD/AGENTS.md
+        ↓
+        Core methodology loaded
+        
+Step 3: Agent reads project adapter (FDD-Adapter/AGENTS.md)
+        ↓
+        Project-specific context loaded
+        
+Step 4: Agent is ready
+        ↓
+        Complete understanding: methodology + project + workflows
+```
+
+**No other file is needed before starting.** AGENTS.md is the root of everything.
+
+**Proof This Works: Real-World Results**
+
+FDD development using AGENTS.md approach:
+- ✅ **fdd-cli** built entirely with AI agents following FDD/AGENTS.md
+- ✅ Complete designs created in minutes (not hours)
+- ✅ Zero ambiguity - agent never "guesses" what to do
+- ✅ Consistent structure across all features
+- ✅ Workflows executed correctly without human intervention
+
+**The Future: AGENTS.md as Standard**
+
+We believe AGENTS.md will become the universal pattern for:
+- ✅ Development frameworks (FDD, OpenSpec, etc.)
+- ✅ Build tools (Maven, Gradle, npm with AI integration)
+- ✅ Testing frameworks (Jest, Pytest with agent runners)
+- ✅ CI/CD systems (GitHub Actions, GitLab CI with AI steps)
+
+**Every project will have AGENTS.md** - just like every project has README.md today.
+
+---
+
 ## Key Strengths
 
 ### 1. 🎯 Interactive Workflows - Your AI Pair Programmer
