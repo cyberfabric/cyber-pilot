@@ -74,11 +74,19 @@ CODE (implementation)
 **Mandatory Rules**:
 1. ✅ **Actor Flows are PRIMARY** - Section B drives everything, document all flows first
 2. ✅ **Use FDL for flows/algorithms/states** - NEVER write code in DESIGN.md, only plain English FDL
-3. ✅ **Never redefine types** - Reference domain model from Overall Design, never duplicate
-4. ✅ **Validate before proceeding** - Overall Design must score ≥90/100, Feature Design must score 100/100 + 100%
-5. ✅ **Feature size limits** - ≤3000 lines recommended, ≤4000 hard limit
-6. ✅ **OpenSpec changes are atomic** - One change = one deployable unit
-7. ✅ **Design is source of truth** - If code contradicts design, fix design first, then re-validate
+3. ✅ **FDL.md is the specification** - ALL content in `architecture/` that describes flows, algorithms, scenarios, or states MUST follow FDL syntax as defined in `FDL.md`. This includes:
+   - Section B (Actor Flows) in all DESIGN.md files
+   - Section C (Algorithms) in all DESIGN.md files
+   - Section D (States) in all DESIGN.md files
+   - Section G (Testing Scenarios) in Feature DESIGN.md files
+   - Any other behavioral descriptions
+   - **You MUST read `FDL.md` before generating or validating any FDL content**
+   - **Note**: Project adapters can override FDL with a custom behavior description language by providing alternative specification in `{adapter-directory}/FDD-Adapter/` (see Adapters section below)
+4. ✅ **Never redefine types** - Reference domain model from Overall Design, never duplicate
+5. ✅ **Validate before proceeding** - Overall Design must score ≥90/100, Feature Design must score 100/100 + 100%
+6. ✅ **Feature size limits** - ≤3000 lines recommended, ≤4000 hard limit
+7. ✅ **OpenSpec changes are atomic** - One change = one deployable unit
+8. ✅ **Design is source of truth** - If code contradicts design, fix design first, then re-validate
 
 **If Contradiction Found**:
 1. **STOP implementation immediately**
@@ -90,6 +98,8 @@ CODE (implementation)
 
 
 ## 🤖 AI AGENT INTERACTIVE MODE
+
+**CRITICAL**: When a workflow or document references another specification file (e.g., "see `../FDL.md`", "reference Overall Design"), you MUST read that file BEFORE proceeding. Specifications are the source of truth, not the workflow descriptions.
 
 **Workflows use dialog mode**: AI proposes answers based on context, user reviews/approves.
 
@@ -233,9 +243,8 @@ project-root/
 - Section C: Algorithms (in FDL)
 - Section D: States (in FDL, state machines if needed)
 - Section E: Technical Details (DB, API, security)
-- Section F: Validation & Implementation (test scenarios)
-- **Section G: Requirements** (formalized scope, references B-E via markdown anchors)
-- **Section H: Implementation Plan** (OpenSpec changes implementing requirements, with status)
+- **Section F: Requirements** (formalized scope, references B-E via markdown anchors, includes Testing Scenarios in FDL)
+- **Section G: Implementation Plan** (OpenSpec changes implementing requirements, with status)
 - Uses FDL for flows/algorithms/states, references Overall Design types
 - Workflows: 05-init-feature, 06-validate-feature, 08-fix-design
 
@@ -249,10 +258,16 @@ project-root/
 - Workflows: 03-init-features, 04-validate-features
 
 **Adapters** (`{adapter-directory}/FDD-Adapter/`):
-- Define: domain model format, API contracts, implementation details
-- Cannot override: design hierarchy, mandatory rules, file structure, validation scores
-- See: `ADAPTER_GUIDE.md`
-- Note: `{adapter-directory}` is configured by project owner (spec/, guidelines/, docs/, etc.)
+- **Define**: domain model format, API contracts, implementation details, **behavior specification language**
+- **Can override**: FDL specification by providing alternative behavior description language (e.g., replace `../FDL.md` with `../FDD-Adapter/CustomBDL.md`)
+- **Cannot override**: design hierarchy, mandatory rules, file structure, validation scores
+- **How to override FDL**: 
+  1. Create custom behavior specification in `{adapter-directory}/FDD-Adapter/` (e.g., `CustomBDL.md`)
+  2. Update workflows 05 and 06 to reference custom spec instead of `../FDL.md`
+  3. Update AGENTS.md Rule #3 to reference custom spec
+  4. Ensure custom spec defines: control flow keywords, syntax rules, validation criteria
+- **See**: `ADAPTER_GUIDE.md` for complete adapter creation guide
+- **Note**: `{adapter-directory}` is configured by project owner (spec/, guidelines/, docs/, etc.)
 
 ---
 

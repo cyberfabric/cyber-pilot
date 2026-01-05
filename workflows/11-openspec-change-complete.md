@@ -126,7 +126,7 @@
 
 **Command**:
 ```bash
-cd openspec/
+# Run from project root
 openspec archive {change-name} -y
 ```
 

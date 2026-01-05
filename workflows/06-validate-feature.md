@@ -5,6 +5,25 @@
 
 ---
 
+## AI Agent Instructions
+
+**MANDATORY**: Before executing this workflow, you MUST read the following specification files:
+
+1. **Read `../FDL.md`** - Complete FDL syntax specification
+   - Understand valid FDL keywords for flows, algorithms, and state machines
+   - Understand prohibited keywords and syntax patterns
+   - Use this as the source of truth for all FDL validation
+
+2. **When validating Sections B, C, D, G**:
+   - Apply FDL syntax rules from `../FDL.md` directly
+   - Do NOT add FDL syntax details to this workflow
+   - Do NOT duplicate FDL.md content
+   - Reference FDL.md for all syntax questions
+
+**Why**: This workflow references specifications. The agent MUST read referenced files to apply rules correctly.
+
+---
+
 ## Prerequisites
 
 - Feature directory exists: `architecture/features/feature-{slug}/`
@@ -40,7 +59,7 @@
 
 ### 2: Validate Section Structure
 
-**Requirement**: All required sections A-G must be present
+**Requirement**: All required sections A-F must be present
 
 **Required Sections**:
 - **Section A**: Feature Context
@@ -99,6 +118,10 @@
 **Validation Criteria**:
 - Section has substantial content (≥50 lines for standard features)
 - Flows use FDL syntax, not code
+- **FDL Keywords Check**: Only valid FDL keywords used (see `../FDL.md`):
+  - ✅ Allowed: **IF**, **ELSE IF**, **ELSE**, **FOR EACH**, **WHILE**, **TRY**, **CATCH**, **RETURN**, **PARALLEL**, **MATCH**, **CASE**, **GO TO**, **SKIP TO**, **FROM**, **TO**, **WHEN** (states only)
+  - ❌ Prohibited: **WHEN** (in flows/algorithms), **THEN**, **SET**, **VALIDATE**, **CHECK**, **LOAD**, **READ**, **WRITE**, **CREATE**, **ADD**, **AND** as bold keywords
+  - Plain English actions (not bold) are allowed: "Set variable", "Load template", "Check condition"
 - All major actors and interactions covered
 
 **Exceptions**:
@@ -126,6 +149,10 @@
 **Validation Criteria**:
 - Section has substantial content (≥100 lines for standard features)
 - Uses FDL syntax, not code
+- **FDL Keywords Check**: Only valid FDL keywords used (see `../FDL.md`):
+  - ✅ Allowed: **IF**, **ELSE IF**, **ELSE**, **FOR EACH**, **WHILE**, **TRY**, **CATCH**, **RETURN**, **PARALLEL**, **MATCH**, **CASE**, **GO TO**, **SKIP TO**
+  - ❌ Prohibited: **WHEN**, **THEN**, **SET**, **VALIDATE**, **CHECK**, **LOAD**, **READ**, **WRITE**, **CREATE**, **ADD**, **AND** as bold keywords
+  - Plain English actions (not bold) are allowed: "Set variable to value", "Load template from resource"
 - No code blocks with programming languages
 - Algorithms are clear and implementable
 
@@ -253,54 +280,64 @@ cat ../../DESIGN.md
 
 ---
 
-### 10: Validate Section G (Requirements)
+### 11: Validate Section F (Requirements)
 
-**Requirement**: Section G must contain formalized requirements with references to B-E
+**Requirement**: Section F must contain formalized requirements with references to B-E
 
 **Required Content**:
-- **Requirements**: Listed as "### Requirement R{NNN}: {Title}"
-  - Status field (⏳ NOT_STARTED, 🔄 IN_PROGRESS, ✅ IMPLEMENTED)
-  - Description: Clear description of what requirement addresses
-  - References: Markdown anchors to flows/algorithms/states in sections B-E
-  - Testing Scenarios: Written in FDL (numbered lists + bold keywords)
-  - Acceptance Criteria: Specific, testable criteria
-  - Scope details if needed
+- **Requirements**: Listed as "### {Title}" (simple title only, no numbering)
+  - **Status**: ⏳ NOT_STARTED, 🔄 IN_PROGRESS, or ✅ IMPLEMENTED
+  - **Description**: Clear description with SHALL/MUST statements
+  - **References**: Markdown anchors to flows/algorithms/states in sections B-E
+  - **Testing Scenarios** (in FDL): ≥1 test scenario written in FDL format
+  - **Acceptance Criteria**: ≥2 specific, testable criteria
 
 **Expected Outcome**: Formalized scope with clear traceability and testable scenarios
 
 **Validation Criteria**:
-- Section G contains ≥1 requirement
-- Each requirement has Status field
-- Each requirement has description
-- Each requirement has ≥1 reference to B-E (markdown anchors)
+- Section F contains ≥1 requirement
+- Each requirement has **Status** field (⏳🔄✅)
+- Each requirement has **Description** with SHALL/MUST statements
+- Each requirement has ≥1 **References** to B-E (markdown anchors)
 - References are valid (target sections exist)
-- Each requirement has ≥1 testing scenario in FDL
-- Testing scenarios use FDL format (numbered lists + bold keywords)
-- Acceptance criteria are specific and testable
+- Each requirement has ≥1 **Testing Scenarios** section
+- Testing scenarios use FDL format (numbered lists + plain English)
+- **NO Gherkin/BDD keywords**: ❌ Prohibited: **GIVEN**, **WHEN**, **THEN**, **AND** as bold keywords in Testing Scenarios
+- Testing scenarios use plain English: "User provides command", "System parses", "Verify output"
+- Each requirement has **Acceptance Criteria** section
+- Acceptance criteria are specific and testable (≥2 criteria)
 - Requirements define formalized scope
 
 ---
 
-### 11: Validate Section H (Implementation Plan)
+### 12: Validate Section G (Implementation Plan)
 
-**Requirement**: Section H must list implementation changes
+**Requirement**: Section G must list implementation changes
 
 **Required Content**:
-- **Changes**: Listed as "### Change {NNN}: {Title}"
-  - Change numbering (001, 002, etc.)
+- **Changes**: Listed as numbered items directly under Section F
+  - Format: "1. **change-name** [status]" (not "### Change NNN")
+  - Change numbering (1, 2, 3, 4, etc.)
   - Status field (⏳ NOT_STARTED, 🔄 IN_PROGRESS, ✅ COMPLETED)
   - Description of what will be implemented
-  - "Implements Requirements" list referencing Section G
+  - "Implements Requirements" list referencing Section F
   - Each change implements 1-5 requirements
   - Dependencies field (other changes or "None")
 
-**Expected Outcome**: Implementation plan is clear and traceable
+**Prohibited Content**:
+- Subsections like "### Active Changes", "### Planned Changes"
+- Grouping changes by status
+- Any ### headings within Section G (all changes must be at same level)
+
+**Expected Outcome**: Implementation plan is clear, traceable, and flat (no subsections)
 
 **Validation Criteria**:
-- Section H contains ≥1 change
-- Changes are numbered sequentially (001, 002, ...)
-- Each change lists 1-5 requirements from Section G
-- All requirements in Section G are referenced by ≥1 change
+- Section G contains ≥1 change
+- Changes are numbered sequentially (1, 2, 3, ...)
+- All changes are at the same level (no subsections)
+- Section G has no "### Active" or "### Planned" headings
+- Each change lists 1-5 requirements from Section F
+- All requirements in Section F are referenced by ≥1 change
 - Dependencies are valid (reference previous changes or "None")
 - Implementation plan is feasible
 
@@ -317,9 +354,8 @@ Validation complete when:
 - [ ] Section C ≥100 lines (or minimal for init), uses FDL
 - [ ] Section D uses FDL if applicable
 - [ ] Section E ≥200 lines
-- [ ] Section F: test scenarios present
-- [ ] Section G: ≥1 requirement with references to B-E
-- [ ] Section H: ≥1 change, all requirements from G covered
+- [ ] Section F: ≥1 requirement with references to B-E, Testing Scenarios in FDL
+- [ ] Section G: ≥1 change, all requirements from F covered
 - [ ] No type redefinitions
 - [ ] No TODO/TBD markers
 
@@ -334,6 +370,32 @@ Validation complete when:
 ### Issue: Code Blocks in Section C
 
 **Resolution**: Convert to FDL. See `../FDL.md`
+
+### Issue: Incorrect FDL Keywords
+
+**Problem**: Bold keywords like **WHEN**, **THEN**, **SET**, **VALIDATE** are not valid FDL
+
+**Resolution**: 
+- Use only valid FDL keywords: **IF**, **FOR EACH**, **WHILE**, **TRY/CATCH**, **RETURN**
+- Convert bold pseudo-keywords to plain English: "Set variable" instead of "**SET** variable"
+- See `../FDL.md` for complete keyword list
+- Remember: FDL = markdown lists + bold control flow + plain English descriptions
+
+### Issue: Gherkin/BDD Syntax in Testing Scenarios
+
+**Problem**: Testing Scenarios in Section F use **GIVEN/WHEN/THEN/AND** (Gherkin/BDD syntax)
+
+**Resolution**:
+- Testing Scenarios must use FDL format (numbered lists + plain English)
+- Remove Gherkin keywords: **GIVEN**, **WHEN**, **THEN**, **AND**
+- Use plain English instead:
+  - ❌ "**GIVEN** command `fdd init`"
+  - ✅ "User provides command `fdd init`"
+  - ❌ "**WHEN** system parses"
+  - ✅ "System parses arguments"
+  - ❌ "**THEN** output shows"
+  - ✅ "Verify output shows"
+- See `../FDL.md` - FDL uses numbered lists, not BDD keywords
 
 ### Issue: Type Definitions Found
 

@@ -231,7 +231,7 @@ Feature completion verified when:
 
 **Resolution**: Complete and archive remaining changes:
 ```bash
-cd openspec/
+# Run from project root
 openspec list  # Check active changes
 openspec archive {change-name} -y  # Archive completed change
 ```

@@ -5,6 +5,27 @@
 
 ---
 
+## AI Agent Instructions
+
+**MANDATORY**: Before executing this workflow, you MUST read the following specification files:
+
+1. **Read `../FDL.md`** - Complete FDL syntax specification
+   - Understand valid FDL keywords for flows, algorithms, and state machines
+   - Understand prohibited keywords and syntax patterns
+   - Use this as the source of truth when generating Sections B, C, D
+
+2. **When generating Feature DESIGN.md**:
+   - Section B (Actor Flows): Write in FDL format (numbered lists + plain English + FDL control flow keywords)
+   - Section C (Algorithms): Write in FDL format (numbered lists + plain English + FDL control flow keywords)
+   - Section D (States): Write in FDL format if state machines needed
+   - Section F (Testing Scenarios): Use FDL format, NOT Gherkin/BDD syntax (no **GIVEN/WHEN/THEN/AND**)
+   - Apply FDL syntax rules from `../FDL.md` directly
+   - Do NOT use incorrect keywords like **WHEN**, **THEN**, **SET**, **VALIDATE** as bold
+
+**Why**: This workflow generates FDL content. The agent MUST read FDL.md to generate correct syntax.
+
+---
+
 ## Prerequisites
 
 - Features manifest exists: `architecture/features/FEATURES.md`
@@ -274,7 +295,7 @@ N/A - This feature does not require state machine modeling.
 **Note**: Requirements formalize the scope by combining flows, algorithms, states, and technical details.
 
 {Generate 1-2 example requirements based on flows and Q6}
-### Requirement R{001}: {Requirement Name from Q6}
+### {Requirement Name from Q6}
 
 **Status**: ⏳ NOT_STARTED
 
@@ -431,9 +452,8 @@ Feature initialization complete when:
   - [ ] Section B: Actor Flows (initial flow descriptions from Q5)
   - [ ] Section C: Algorithms (placeholders based on flows)
   - [ ] Section E: Technical Details (placeholders)
-  - [ ] Section F: Validation & Implementation (test scenarios)
-  - [ ] Section G: Requirements (from Q6, references to B-E)
-  - [ ] Section H: Implementation Plan (changes from Q7, implementing requirements)
+  - [ ] Section F: Requirements (from Q6, references to B-E, includes Testing Scenarios in FDL)
+  - [ ] Section G: Implementation Plan (changes from Q7, implementing requirements)
 - [ ] Feature status updated: NOT_STARTED → IN_PROGRESS
 - [ ] No empty placeholders like "[TODO]" in generated content
 - [ ] Document ready for user to expand with detailed FDL and technical specs

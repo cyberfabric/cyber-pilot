@@ -209,8 +209,8 @@ Proceed with creation? (y/n)
 
 **Commands**:
 ```bash
-cd openspec/
-mkdir -p changes/{CHANGE_NAME}/specs/{SPEC_NAME}
+# Run from project root
+mkdir -p openspec/changes/{CHANGE_NAME}/specs/{SPEC_NAME}
 ```
 
 **What This Does**:
@@ -538,7 +538,7 @@ Progress:
 
 Next Steps:
 1. Review openspec/changes/{CHANGE_NAME}/ structure
-2. Validate: cd openspec/ && openspec validate {CHANGE_NAME} --strict
+2. Validate: openspec validate {CHANGE_NAME} --strict
 3. Start implementation: Run workflow 10-openspec-change-implement
 ```
 

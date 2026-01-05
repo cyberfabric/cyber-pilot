@@ -28,7 +28,7 @@
 
 **Command**:
 ```bash
-cd openspec/
+# Run from project root
 openspec show {change-name}
 ```
 

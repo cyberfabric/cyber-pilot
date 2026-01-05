@@ -24,7 +24,7 @@
 
 **Command**:
 ```bash
-cd openspec/
+# Run from project root (not from openspec/ directory)
 openspec validate --all --no-interactive
 ```
 
@@ -108,36 +108,113 @@ openspec show {change-id}
 
 ---
 
-### 5: Validate Changes Against Feature Design
+### 5: Validate Specs Against Feature Design
 
-**Requirement**: Verify OpenSpec changes implement feature DESIGN.md Section H
+**Requirement**: Auto-discover Feature DESIGN.md from spec names and validate against it
 
-**Load Feature Design**:
+**Step 1: Discover Feature Design Files**
+
+For each spec in `openspec list --specs`, extract feature slug and locate DESIGN.md:
+
 ```bash
-cat ../DESIGN.md
+# Get all specs
+openspec list --specs
+
+# For each spec starting with "fdd-":
+# Extract feature slug from format: fdd-{project-name}-feature-{feature-slug}
+# Example: fdd-fdd-cli-feature-init → feature-slug = "init"
+
+for spec in $(openspec list --specs | grep "^  fdd-" | awk '{print $1}'); do
+  # Extract feature slug (after last "feature-")
+  FEATURE_SLUG=$(echo "$spec" | sed 's/.*feature-//')
+  
+  # Locate Feature DESIGN.md
+  DESIGN_PATH="architecture/features/feature-${FEATURE_SLUG}/DESIGN.md"
+  
+  if [ -f "$DESIGN_PATH" ]; then
+    echo "✓ Found: $DESIGN_PATH for spec $spec"
+  else
+    echo "❌ Missing: $DESIGN_PATH for spec $spec"
+  fi
+done
+```
+
+**Step 2: Validate Spec Requirements Against Section G**
+
+For each discovered Feature DESIGN.md:
+
+```bash
+# Load Feature DESIGN.md Section G (Requirements)
+cat "$DESIGN_PATH" | sed -n '/^## Section G: Requirements/,/^## Section H:/p'
+
+# Check merged spec (source of truth)
+MERGED_SPEC="openspec/specs/$spec/spec.md"
+
+# Check delta specs in active changes
+DELTA_SPECS=$(find openspec/changes/*/specs/$spec/spec.md 2>/dev/null)
+```
+
+**What to Verify for Merged Specs** (`openspec/specs/$spec/spec.md`):
+- ✅ All requirements from Section G are present
+- ✅ Requirement IDs match between DESIGN.md and spec.md
+- ✅ No requirements that aren't in Section G
+- ✅ Requirement descriptions align with Section G
+
+**What to Verify for Delta Specs** (`openspec/changes/*/specs/$spec/spec.md`):
+- ✅ ADDED requirements align with new Section G requirements
+- ✅ MODIFIED requirements reference existing Section G requirements
+- ✅ REMOVED requirements exist in Section G (with deprecation reason)
+- ✅ RENAMED requirements maintain ID traceability
+- ✅ Delta spec changes match what's described in change `proposal.md`
+
+**Delta Spec Format Check**:
+```
+## ADDED Requirements
+{New requirements from Section G}
+
+## MODIFIED Requirements  
+{Changed requirements - full text with updates}
+
+## REMOVED Requirements
+{Deprecated requirements with reason}
+
+## RENAMED Requirements
+{Name changes only - ID must match}
+```
+
+**Step 3: Validate Changes Against Section H**
+
+For each Feature DESIGN.md:
+
+```bash
+# Load Feature DESIGN.md Section H (Implementation Plan)
+cat "$DESIGN_PATH" | sed -n '/^## Section H: Implementation Plan/,/^---/p'
 ```
 
 **What to Verify**:
-- All changes listed in Section H exist in `openspec/changes/` or `openspec/changes/archive/`
-- Change numbering matches Section H plan
-- Change scope matches what Section H describes
-- No extra changes that aren't in Section H
+- ✅ All changes from Section H exist in `openspec/changes/` or `openspec/changes/archive/`
+- ✅ Change numbering matches Section H plan
+- ✅ Change scope matches Section H descriptions
+- ✅ No extra changes that aren't in Section H
+- ✅ Each change `proposal.md` references Section G requirements
+- ✅ Change tasks align with Section E (Technical Details)
 
-**Cross-Reference Check**:
-- Each change `proposal.md` references specific requirements from Section G
-- Change tasks align with feature technical details (Section E)
-- Specs implement feature requirements, not unplanned work
-
-**Expected Outcome**: All changes traceable to feature design
+**Expected Outcome**: Complete traceability for all FDD specs
 
 **Validation Criteria**:
-- ✅ All planned changes from Section H are created
-- ✅ All active/archived changes are listed in Section H
-- ✅ Each change proposal references feature DESIGN.md sections
-- ✅ No orphaned changes that don't match feature plan
-- ❌ Changes that contradict feature design
+- ✅ All specs with `fdd-` prefix have corresponding Feature DESIGN.md
+- ✅ All Section G requirements present in spec.md
+- ✅ All Section H changes exist in OpenSpec
+- ✅ All active/archived changes listed in Section H
+- ✅ Each change proposal references DESIGN.md sections
+- ❌ Specs without Feature DESIGN.md
+- ❌ Requirements mismatch between Section G and spec.md
+- ❌ Orphaned changes not in Section H
 
-**Resolution if Failed**: Update feature DESIGN.md Section H or remove/modify misaligned changes
+**Resolution if Failed**:
+- Missing DESIGN.md → Create Feature Design (workflow 05, 06)
+- Requirements mismatch → Update Section G or spec.md
+- Changes mismatch → Update Section H or remove orphaned changes
 
 ---
 
