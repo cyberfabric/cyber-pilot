@@ -53,10 +53,14 @@ Your choice: ___
 **Store as**: `AGENT_LIST[]`
 
 **Built-in specifications**:
-- **Windsurf Cascade**: `.windsurf/rules.md`, `.windsurf/workflows/`
-- **Cursor AI**: `.cursorrules` (single file with rules and workflow references)
-- **Cline**: `.clinerules` (single file)
-- **Aider**: `.aider.conf.yml` (YAML config)
+- **Windsurf Cascade**: `.windsurf/rules.md`, `.windsurf/workflows/` (separate wrapper files)
+- **Cursor AI**: `.cursorrules` (single file with inline workflow references)
+- **Cline**: `.clinerules` (single file with inline workflow references)
+- **Aider**: `.aider.conf.yml` (YAML config with inline workflow references)
+
+**Wrapper Support**:
+- **Separate files**: Windsurf Cascade
+- **Inline references**: Cursor AI, Cline, Aider
 
 ---
 
@@ -66,8 +70,9 @@ Your choice: ___
 For custom agent, specify how to configure it:
 
 1. Rules file location: ___ (e.g., .myagent/rules.md or .myagentrules)
-2. Workflow wrappers location: ___ (e.g., .myagent/workflows/ or N/A if single file)
-3. Format: ___ (markdown / yaml / json / plain text)
+2. Supports separate workflow files? ___ (yes/no)
+3. Workflow wrappers location: ___ (e.g., .myagent/workflows/ or N/A if no)
+4. Format: ___ (markdown / yaml / json / plain text)
 
 Example configurations:
 - Windsurf: rules=.windsurf/rules.md, workflows=.windsurf/workflows/, format=markdown
@@ -89,19 +94,23 @@ Agent: {AGENT_NAME}
 Files to create:
 {If Windsurf}
 - .windsurf/rules.md (points to spec/FDD-Adapter/AGENTS.md)
-- .windsurf/workflows/ (16 workflow wrappers)
+- .windsurf/workflows/ (separate workflow wrappers for all FDD workflows)
 {End if}
 {If Cursor}
-- .cursorrules (includes workflow references)
+- .cursorrules (single file with inline workflow references)
 {End if}
 {If Cline}
-- .clinerules (includes workflow references)
+- .clinerules (single file with inline workflow references)
 {End if}
 {If Aider}
-- .aider.conf.yml (YAML config)
+- .aider.conf.yml (single YAML file with inline workflow references)
 {End if}
-{If Custom}
-- {files from AGENT_SPEC}
+{If Custom and supports separate files}
+- {rules_file} (points to spec/FDD-Adapter/AGENTS.md)
+- {workflows_dir}/ (separate workflow wrappers for all FDD workflows)
+{End if}
+{If Custom and single file}
+- {rules_file} (includes inline workflow references)
 {End if}
 {End for}
 
@@ -244,48 +253,64 @@ Follow `AGENT_SPEC[agent_name]` from Q2 to generate appropriate files.
 
 ---
 
-### Step 4: Generate Workflow Wrappers (Windsurf only)
+### Step 4: Generate Workflow Wrappers
 
-**Only for Windsurf Cascade** - create workflow wrappers in `.windsurf/workflows/`:
+**For agents with separate workflow file support** (Windsurf Cascade, Custom agents with wrapper support):
+
+**Discovery**: Scan `spec/FDD/workflows/` for all workflow files dynamically:
+```bash
+# Find all workflow .md files (exclude AGENTS.md and README.md)
+cd spec/FDD/workflows
+find . -maxdepth 1 -name "*.md" ! -name "AGENTS.md" ! -name "README.md" -type f | sort
+```
+
+**Mapping Rules** (workflow filename → wrapper filename):
+```bash
+# For each workflow file, generate wrapper name with "fdd-" prefix:
+# - Remove number prefix: "01-init-project.md" → "fdd-init-project.md"
+# - Keep name with prefix: "adapter-config.md" → "fdd-adapter-config.md"
+# - Handle sub-numbers: "10-1-openspec-code-validate.md" → "fdd-openspec-code-validate.md"
+
+# Bash logic:
+for file in $(find . -maxdepth 1 -name "*.md" ! -name "AGENTS.md" ! -name "README.md" -type f | sort); do
+  filename=$(basename "$file")
+  # Remove leading digits and hyphens (e.g., "01-", "10-1-"), then add "fdd-" prefix
+  base_name=$(echo "$filename" | sed 's/^[0-9]*-*[0-9]*-*//')
+  wrapper_name="fdd-$base_name"
+  echo "$wrapper_name → spec/FDD/workflows/$filename"
+done
+```
 
 **Template for each wrapper**:
 ```markdown
 # {WORKFLOW_TITLE}
 
-**FDD Workflow**: `spec/FDD/workflows/{workflow-id}.md`
+**FDD Workflow**: `spec/FDD/workflows/{workflow-filename}`
 
 ---
 
 ## Execute
 
 ```
-Follow @spec/FDD/workflows/{workflow-id}.md
+Follow @spec/FDD/workflows/{workflow-filename}
 ```
 
 ---
 
-**Note**: This wrapper calls FDD workflow. All logic is in `spec/FDD/workflows/{workflow-id}.md`
+**Note**: This wrapper calls FDD workflow. All logic is in `spec/FDD/workflows/{workflow-filename}`
 ```
 
-**Wrappers to create** (16 total):
-- `adapter-config.md` → `spec/FDD/workflows/adapter-config.md`
-- `config-agent-tools.md` → `spec/FDD/workflows/config-agent-tools.md`
-- `init-project.md` → `spec/FDD/workflows/01-init-project.md`
-- `validate-architecture.md` → `spec/FDD/workflows/02-validate-architecture.md`
-- `init-features.md` → `spec/FDD/workflows/03-init-features.md`
-- `validate-features.md` → `spec/FDD/workflows/04-validate-features.md`
-- `init-feature.md` → `spec/FDD/workflows/05-init-feature.md`
-- `validate-feature.md` → `spec/FDD/workflows/06-validate-feature.md`
-- `complete-feature.md` → `spec/FDD/workflows/07-complete-feature.md`
-- `fix-design.md` → `spec/FDD/workflows/08-fix-design.md`
-- `openspec-init.md` → `spec/FDD/workflows/09-openspec-init.md`
-- `openspec-change-implement.md` → `spec/FDD/workflows/10-openspec-change-implement.md`
-- `openspec-code-validate.md` → `spec/FDD/workflows/10-1-openspec-code-validate.md`
-- `openspec-change-complete.md` → `spec/FDD/workflows/11-openspec-change-complete.md`
-- `openspec-change-next.md` → `spec/FDD/workflows/12-openspec-change-next.md`
-- `openspec-validate.md` → `spec/FDD/workflows/13-openspec-validate.md`
+**Workflow Title Extraction**:
+```bash
+# Extract title from first markdown header in workflow file
+head -1 "spec/FDD/workflows/$filename" | sed 's/^# //'
+```
 
-**For other agents**: Skip this step (they use single file with workflow references)
+**Agent-Specific Wrapper Locations**:
+- **Windsurf Cascade**: `.windsurf/workflows/fdd-{workflow-name}.md`
+- **Custom with wrapper support**: `{AGENT_SPEC.workflows_dir}/fdd-{workflow-name}.md`
+
+**For agents without wrapper support** (Cursor AI, Cline, Aider): Skip this step - they use inline workflow references in single rules file
 
 ---
 
@@ -301,19 +326,23 @@ Agent Files Created:
 ✓ {AGENT_NAME}
   {If Windsurf}
   - Rules: .windsurf/rules.md
-  - Workflows: .windsurf/workflows/ (16 wrappers)
+  - Workflows: .windsurf/workflows/ ({WORKFLOW_COUNT} wrappers)
   {End if}
   {If Cursor}
-  - Rules: .cursorrules (includes workflow references)
+  - Rules: .cursorrules (inline workflow references)
   {End if}
   {If Cline}
-  - Rules: .clinerules
+  - Rules: .clinerules (inline workflow references)
   {End if}
   {If Aider}
-  - Config: .aider.conf.yml
+  - Config: .aider.conf.yml (inline workflow references)
   {End if}
-  {If Custom}
-  - Files: {as specified in AGENT_SPEC}
+  {If Custom and supports separate files}
+  - Rules: {rules_file}
+  - Workflows: {workflows_dir}/ ({WORKFLOW_COUNT} wrappers)
+  {End if}
+  {If Custom and single file}
+  - Rules: {rules_file} (inline workflow references)
   {End if}
 {End for}
 
@@ -334,7 +363,7 @@ Next Steps:
 - [ ] User confirmed configuration (Q3)
 - [ ] Agent directories created per spec
 - [ ] Rules file generated for each agent
-- [ ] Workflow wrappers generated (Windsurf only: 16 wrappers)
+- [ ] Workflow wrappers generated (for agents with separate file support: all FDD workflows)
 - [ ] Summary displayed with created files
 
 ---
