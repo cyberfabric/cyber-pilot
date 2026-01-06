@@ -185,15 +185,15 @@ openspec list --archived
 
 ---
 
-### 7: Update Feature DESIGN.md Section H Status
+### 7: Update Feature DESIGN.md Section G Status
 
-**Requirement**: Mark change as COMPLETED in Feature DESIGN.md Section H
+**Requirement**: Mark change as COMPLETED in Feature DESIGN.md Section G
 
-**Location**: `architecture/features/feature-{slug}/DESIGN.md` Section H
+**Location**: `architecture/features/feature-{slug}/DESIGN.md` Section G
 
-**Update Section H**:
+**Update Section G**:
 ```markdown
-## H. Implementation Plan
+## G. Implementation Plan
 
 ### Change {NUMBER}: {change-name}
 **Status**: ✅ COMPLETED
@@ -205,19 +205,19 @@ openspec list --archived
 {Keep remaining changes with their current status}
 ```
 
-**Expected Outcome**: Feature DESIGN.md Section H reflects change as COMPLETED
+**Expected Outcome**: Feature DESIGN.md Section G reflects change as COMPLETED
 
 ---
 
-### 8: Update Section G Requirements Status
+### 8: Update Section F Requirements Status
 
-**Requirement**: Mark requirements as COMPLETED in Section G for this change
+**Requirement**: Mark requirements as COMPLETED in Section F for this change
 
-**Location**: `architecture/features/feature-{slug}/DESIGN.md` Section G
+**Location**: `architecture/features/feature-{slug}/DESIGN.md` Section F
 
 **For each requirement implemented in this change**:
 ```markdown
-## G. Requirements
+## F. Requirements
 
 ### Requirement: {Requirement Title}
 
@@ -233,11 +233,11 @@ openspec list --archived
 ```
 
 **What to Update**:
-- Find requirements listed in Section H under "Implements Requirements" for this change
+- Find requirements listed in Section G under "Implements Requirements" for this change
 - Update each requirement's status from 🔄 IN_PROGRESS to ✅ COMPLETED
 - Requirements not in this change keep their existing status
 
-**Expected Outcome**: Requirements in Section G show COMPLETED for those in this change
+**Expected Outcome**: Requirements in Section F show COMPLETED for those in this change
 
 ---
 
@@ -273,7 +273,7 @@ openspec list
 
 **Status Assessment**:
 - **If more changes needed**: Feature implementation continues
-  - Next: Run `09-openspec-change-next.md` to create next changes done
+  - Next: Run `09-openspec-change-next.md` to create next change
   - Run `openspec list --archived` to see all completed work
 
 - **If changes remaining**: Continue implementation
@@ -299,8 +299,8 @@ Change completion verified when:
 - [ ] Change status updated to COMPLETED
 - [ ] Specs archived to `openspec/specs/`
 - [ ] Change archived with `openspec archive`
-- [ ] Feature DESIGN.md Section H updated (change marked COMPLETED)
-- [ ] Feature DESIGN.md Section G updated (requirements marked COMPLETED)
+- [ ] Feature DESIGN.md Section G updated (change marked COMPLETED)
+- [ ] Feature DESIGN.md Section F updated (requirements marked COMPLETED)
 - [ ] Feature status checked
 
 ---

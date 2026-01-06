@@ -109,6 +109,22 @@ CODE (implementation)
 3. Present for review - user approves/modifies/rejects
 4. Iterate in dialog until approved
 
+**Interactive Workflow Rules**:
+
+DO NOT:
+- ❌ Skip questions - ask all relevant questions one by one
+- ❌ Create empty placeholders like "[TODO]" or "[Description]"
+- ❌ Generate content without user input
+- ❌ Assume answers - always ask explicitly
+- ❌ Create files before user confirms summary
+
+DO:
+- ✅ Ask questions one at a time
+- ✅ Wait for answers before proceeding
+- ✅ Generate meaningful content from answers
+- ✅ Show clear summary before creating files
+- ✅ Allow user to review and cancel if needed
+
 **Domain Model & API Specs - CRITICAL**:
 - Must ensure COMPLETE specifications for validation
 - All types/schemas/objects defined in machine-readable format (GTS, JSON Schema, OpenAPI, etc.)

@@ -754,23 +754,21 @@ Adapter creation is complete when:
 
 ---
 
-## Important Rules
+**Interactive Mode**: See `../AGENTS.md` for general interactive workflow rules
 
-### DO NOT:
+**Adapter-Specific Rules**:
+
+DO NOT:
 - ❌ Add sections user didn't request
-- ❌ Include placeholder text for skipped features
+- ❌ Include placeholder text for skipped features  
 - ❌ Create example implementations
 - ❌ Add "nice to have" features without asking
 - ❌ Assume technology choices
 - ❌ Create files beyond AGENTS.md and workflows/AGENTS.md
 
-### DO:
-- ✅ Ask questions one at a time
-- ✅ Wait for answers before proceeding
+DO:
 - ✅ Create minimal, focused content
 - ✅ Include only what user specified
-- ✅ Show clear summary before creating files
-- ✅ Allow user to cancel or modify
 
 ---
 

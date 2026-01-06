@@ -43,7 +43,8 @@ architecture/
 - Section A: Business Context
 - Section B: Requirements & Principles
 - Section C: Technical Architecture
-- Section D: Project-Specific Details (optional)
+- Section D: Architecture Decision Records (ADR) - REQUIRED, MADR format
+- Section E: Project-Specific Details (optional)
 
 **Feature Design**:
 - Section A: Feature Overview
@@ -51,7 +52,8 @@ architecture/
 - Section C: Algorithms
 - Section D: States (optional)
 - Section E: Technical Details
-- Section F: Validation & Implementation
+- Section F: Requirements (formalized scope + Testing Scenarios in FDL)
+- Section G: Implementation Plan (OpenSpec changes with status)
 
 ### 5. Validation Scores
 - Overall Design: ≥90/100
@@ -67,18 +69,20 @@ Must follow OpenSpec specification exactly (see `openspec/AGENTS.md`).
 Everything else is adapter-specific. Define as needed:
 
 ### Domain Model Format
-- Technology (TypeScript, JSON Schema, Protobuf, etc.)
+- Technology (TypeScript, JSON Schema, Protobuf, GTS, etc.)
 - Location (`architecture/domain-model/`, per-feature, etc.)
-- DML syntax (`@DomainModel.TypeName`)
+- DML syntax (`@DomainModel.TypeName` for clickable references)
 - Validation commands
 - Naming conventions
+- Traceability requirements (clickable links from Feature→Overall)
 
 ### API Contract Format
 - Technology (OpenAPI, GraphQL, gRPC, CLISPEC, etc.)
 - Location (`architecture/api-specs/`, `architecture/cli-specs/`, etc.)
-- Linking syntax (`@API.GET:/path`, `@CLI.command-name`, `@Feature.{slug}`)
+- Linking syntax (`@API.GET:/path`, `@CLI.command-name`, `@Feature.{slug}` for clickable references)
 - Validation commands
 - API conventions
+- Traceability requirements (clickable links from Feature→Overall)
 
 **Note**: For CLI tools, consider using **CLISPEC** - a built-in, simple format for CLI command documentation. See `CLISPEC.md` for specification.
 
@@ -89,6 +93,14 @@ Everything else is adapter-specific. Define as needed:
 - Testing strategy (frameworks, locations)
 - Build/deployment commands
 - Code style and linting rules
+- Validation output format (MUST be chat output only, NO report files)
+
+### Behavior Description Language (Optional Override)
+- **Default**: FDL (Flow Description Language) for flows/algorithms/states
+- **Can override**: Create custom behavior specification in `{adapter-directory}/FDD-Adapter/`
+- **Example**: Replace `../FDL.md` with `../FDD-Adapter/CustomBDL.md`
+- **Requirements**: Define control flow keywords, syntax rules, validation criteria
+- **Note**: Must update workflows 05 and 06 to reference custom spec
 
 ### Additional Artifacts
 - Diagrams location and format
@@ -101,14 +113,16 @@ Everything else is adapter-specific. Define as needed:
 ## Adapter Structure
 
 ```bash
-guidelines/
+{adapter-directory}/             # Configurable: spec/, guidelines/, docs/
 ├── FDD/                         # Core (immutable rules)
-└── {project}-adapter/           # Your extensions
+└── FDD-Adapter/                 # Your project-specific extensions
     ├── AGENTS.md                # Extends: ../FDD/AGENTS.md
     └── workflows/
         ├── AGENTS.md            # Extends: ../FDD/workflows/AGENTS.md
         └── *.md                 # Extend specific workflows as needed
 ```
+
+**Note**: `{adapter-directory}` is configured by project owner (commonly `spec/`, `guidelines/`, or `docs/`)
 
 ---
 
@@ -118,6 +132,7 @@ guidelines/
 # AI Agent Instructions for {Project Name}
 
 **Extends**: `../FDD/AGENTS.md`
+**Status**: COMPLETE
 
 ---
 
@@ -125,15 +140,22 @@ guidelines/
 
 **Technology**: TypeScript
 **Location**: `architecture/domain-model/types.ts`
-**DML Syntax**: `@DomainModel.TypeName`
+**DML Syntax**: `@DomainModel.TypeName` (clickable references)
 **Validation**: `tsc --noEmit`
+**Traceability**: All Feature DESIGN.md must use clickable links to domain model
 
 ## API Contracts
 
 **Technology**: OpenAPI 3.1
 **Location**: `architecture/api-specs/openapi.yaml`
-**Linking**: `@API.GET:/path`
+**Linking**: `@API.GET:/path` (clickable references)
 **Validation**: `openapi validate`
+**Traceability**: All Feature DESIGN.md must use clickable links to API specs
+
+## Behavior Description Language
+
+**Language**: FDL (default, see `../FDL.md`)
+**Override**: Not used (keep default FDL)
 
 ## Implementation
 
@@ -141,6 +163,7 @@ guidelines/
 **Auth**: JWT + refresh tokens
 **Testing**: Jest (unit), Playwright (e2e)
 **Commands**: `npm test`, `npm run build`
+**Validation Output**: Chat only (NO report files)
 ```
 
 ---
@@ -150,7 +173,7 @@ guidelines/
 ```markdown
 # Workflow Instructions for {Project Name}
 
-**Extends**: `../FDD/workflows/AGENTS.md`
+**Extends**: `../../FDD/workflows/AGENTS.md`
 
 ---
 
@@ -161,4 +184,9 @@ guidelines/
 ## Validation
 - Domain model: `tsc --noEmit`
 - API specs: `openapi validate`
+- Validation output: Chat only (NO report files)
+
+## Traceability
+- All Feature DESIGN.md Section F must use clickable links to Overall DESIGN.md
+- All OpenSpec changes must reference Feature DESIGN.md sections
 ```

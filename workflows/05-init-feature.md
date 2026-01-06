@@ -3,26 +3,29 @@
 **Phase**: 3 - Feature Development  
 **Purpose**: Start work on a specific feature by initializing its design through guided questions
 
+**Structure Requirements**: See `../requirements/feature-design-structure.md` for complete Feature Design structure specification
+
 ---
 
 ## AI Agent Instructions
 
 **MANDATORY**: Before executing this workflow, you MUST read the following specification files:
 
-1. **Read `../FDL.md`** - Complete FDL syntax specification
+1. **Read `../requirements/feature-design-structure.md`** - Complete structure specification
+   - Understand all required sections (A-G) and their content requirements
+   - Understand size constraints and validation criteria
+   - Use this as the source of truth for structure
+
+2. **Read `../FDL.md`** - Complete FDL syntax specification
    - Understand valid FDL keywords for flows, algorithms, and state machines
-   - Understand prohibited keywords and syntax patterns
-   - Use this as the source of truth when generating Sections B, C, D
-
-2. **When generating Feature DESIGN.md**:
-   - Section B (Actor Flows): Write in FDL format (numbered lists + plain English + FDL control flow keywords)
-   - Section C (Algorithms): Write in FDL format (numbered lists + plain English + FDL control flow keywords)
-   - Section D (States): Write in FDL format if state machines needed
-   - Section F (Testing Scenarios): Use FDL format, NOT Gherkin/BDD syntax (no **GIVEN/WHEN/THEN/AND**)
+   - Use this when generating Sections B, C, D, F (Testing Scenarios)
    - Apply FDL syntax rules from `../FDL.md` directly
-   - Do NOT use incorrect keywords like **WHEN**, **THEN**, **SET**, **VALIDATE** as bold
 
-**Why**: This workflow generates FDL content. The agent MUST read FDL.md to generate correct syntax.
+**Key Points**:
+- Generate according to structure defined in `../requirements/feature-design-structure.md`
+- Use FDL syntax from `../FDL.md` for behavioral content
+- Reference Overall Design types (never redefine)
+- No placeholders - generate meaningful content
 
 ---
 
@@ -176,205 +179,31 @@ Options:
 
 **Required File**: `architecture/features/feature-{slug}/DESIGN.md`
 
-**Generated Content**:
-```markdown
-# {FEATURE_NAME from Q2} - Feature Design
-
-**Status**: 🔄 IN_PROGRESS  
-**Module**: {PROJECT_NAME from manifest}
-
----
-
-## A. Feature Context
-
-### Overview
-
-{FEATURE_NAME from Q2}: {Brief from FEATURES.md manifest}
-
-### Purpose
-
-{FEATURE_PURPOSE from Q3}
-
-### Actors
-
-{For each actor in ACTORS[] from Q4}
-- **{Actor Name}**: {Actor role from Q4}
-
-### References
-
-**MANDATORY Reading**:
-- Overall Design: `@/architecture/DESIGN.md`
-- FEATURES.md: `@/architecture/features/FEATURES.md`
-
-**Dependencies**:
-{If dependencies from manifest}
-- {List each dependent feature}
-{Else}
-- None
-
----
-
-## B. Actor Flows
-
-{For each flow in MAIN_FLOWS[] from Q5}
-### Flow: {Flow Name}
-
-**Actor**: {Primary actor from ACTORS[]}
-
-**Brief**: {Flow description from Q5}
-
-**Steps** (to be detailed in FDL):
-1. {First step based on flow description}
-2. System processes request
-3. {Result based on flow description}
-
-**Success Scenario**:
-- {Expected outcome}
-
-**Error Scenarios**:
-- To be defined during design
-
----
-
-## C. Algorithms
-
-**Note**: Algorithms will be defined in FDL during feature design.
-
-{Generate 1-2 algorithm placeholders based on MAIN_FLOWS}
-### Algorithm: {Derived from flow name}
-
-**Purpose**: {Based on flow description}
-
-**Steps** (in FDL): To be defined
-
----
-
-## D. States
-
-{If feature involves state transitions}
-**Note**: Define state machines if applicable.
-{Else}
-N/A - This feature does not require state machine modeling.
-
----
-
-## E. Technical Details
-
-### Database Schema
-
-**Tables/Entities**: To be defined
-
-### API Endpoints
-
-**Endpoints** (reference Overall Design API specification): To be defined
-
-### Security
-
-**Authorization**: {Reference security model from Overall Design}
-
-### Error Handling
-
-**Errors**: To be defined
-
----
-
-## F. Validation & Implementation
-
-### Testing Scenarios
-
-{For each flow, generate basic test scenario}
-1. **{Flow name} - Happy Path**:
-   - Given: {Initial state}
-   - When: {Action from flow}
-   - Then: {Expected result}
-
----
-
-## G. Requirements
-
-**Note**: Requirements formalize the scope by combining flows, algorithms, states, and technical details.
-
-{Generate 1-2 example requirements based on flows and Q6}
-### {Requirement Name from Q6}
-
-**Status**: ⏳ NOT_STARTED
-
-**Description**: {Requirement description from Q6}
-
-**References**:
-- [Flow: {Flow Name}](#flow-{flow-slug})
-- [Algorithm: {Algorithm Name}](#algorithm-{algo-slug})
-{If technical details referenced}
-- [Technical: {Detail}](#technical-details)
-
-**Testing Scenarios** (FDL):
-
-**Test: {Success case}**
-
-1. {Set up initial state}
-2. {Actor} performs {action}
-3. **IF** {operation succeeds}:
-   1. {Verify expected outcome}
-   2. {Verify side effects}
-4. {Assert result is correct}
-
-**Test: {Error case}**
-
-1. {Set up error condition}
-2. {Actor} performs {action}
-3. **TRY**:
-   1. {Execute operation}
-4. **CATCH** {ErrorType}:
-   1. {Verify error handling}
-   2. {Verify system state}
-
-**Acceptance Criteria**:
-- {Derive from requirement description}
-- {Add 1-2 more criteria}
-
-{Repeat for each requirement from Q6}
-
----
-
-## H. Implementation Plan
-
-**Total Changes**: {CHANGES_COUNT from Q7}
-
-{Generate placeholders for each change}
-### Change 001: {Infer name from first 1-2 requirements}
-
-**Status**: ⏳ NOT_STARTED
-
-**Description**: To be defined during detailed design
-
-**Implements Requirements**:
-- [R001: {Requirement name}](#requirement-r001)
-{If multiple requirements: add more}
-
-**Dependencies**: None
-
-**Effort**: To be estimated
-
-**Verification**: To be defined
-
----
-
-{Repeat for remaining changes}
-
----
-
-**Document Status**: Initial version - ready for detailed design
-
-**Next Steps**:
-1. Expand actor flows with detailed FDL (Section B)
-2. Define algorithms in FDL (Section C)
-3. Document technical details (Section E)
-4. Complete requirements with references and phases (Section G)
-5. Detail implementation changes (Section H)
-6. Validate design (workflow 06-validate-feature)
-```
-
-**Expected Result**: DESIGN.md with meaningful starter content
+**Structure Source**: `../requirements/feature-design-structure.md`
+
+**Instructions**:
+1. Read `../requirements/feature-design-structure.md` to understand complete Feature Design structure
+2. Generate DESIGN.md following the structure from requirements file
+3. Populate sections A-G with content derived from interactive answers (Q1-Q7)
+4. Use FDL syntax for sections B, C, D (reference `../FDL.md`)
+
+**Content Mapping**:
+- Q1 (FEATURE_SLUG) → Directory name, file metadata
+- Q2 (FEATURE_NAME) → Section A (Overview, Purpose)
+- Q3 (FEATURE_PURPOSE) → Section A (Purpose statement)
+- Q4 (ACTORS[]) → Section A (Actors list)
+- Q5 (MAIN_FLOWS[]) → Section B (Actor Flows in FDL)
+- Q6 (REQUIREMENTS[]) → Section G (Requirements with Testing Scenarios)
+- Q7 (CHANGES_COUNT, CHANGES[]) → Section H (Implementation Plan)
+
+**Generation Notes**:
+- Follow structure exactly as defined in `feature-design-structure.md`
+- Use FDL syntax for sections B, C, D (reference `../FDL.md`)
+- Keep initial content minimal but meaningful (not placeholders like "{To be designed}")
+- Generate realistic starter content derived from user answers
+- Mark status as 🔄 IN_PROGRESS
+
+**Expected Result**: DESIGN.md with complete structure and initial content ready for detailed design
 
 **Validation Criteria**:
 - File contains actual content from Q2-Q7

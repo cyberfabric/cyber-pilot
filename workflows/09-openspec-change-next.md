@@ -3,21 +3,25 @@
 **Phase**: 3 - Feature Implementation  
 **Purpose**: Create change from Feature DESIGN.md implementation plan (first or subsequent)
 
+**Structure Requirements**: See `../requirements/openspec-change-structure.md` for complete change structure specification
+
 ---
 
 ## Prerequisites
 
 - OpenSpec initialized at project root (`openspec/` directory exists)
 - Feature DESIGN.md validated (100/100 + 100%)
-- Feature DESIGN.md Section G has requirements defined
-- Feature DESIGN.md Section H has implementation plan with changes
+- Feature DESIGN.md Section F has requirements defined
+- Feature DESIGN.md Section G has implementation plan with changes
 - For subsequent changes: Previous change completed and archived
+
+**Note**: Before creating changes, read `../requirements/openspec-change-structure.md` to understand required change structure
 
 ---
 
 ## Overview
 
-This workflow is the **universal change creation workflow** for all OpenSpec changes (first or subsequent). It reads Feature DESIGN.md Section H to identify changes, displays status, and guides through creating the selected change.
+This workflow is the **universal change creation workflow** for all OpenSpec changes (first or subsequent). It reads Feature DESIGN.md Section G to identify changes, displays status, and guides through creating the selected change.
 
 **Key Principle**: Single workflow for all change creation. Read plan, show status, let user choose.
 
@@ -29,37 +33,41 @@ This workflow is the **universal change creation workflow** for all OpenSpec cha
 
 ## Interactive Questions
 
-### Q1: Project Name and Feature Slug
+### Q1: Feature Slug
 
-**Action**: Extract project name from `openspec/project.md`
+**Requirement**: Identify which feature to create the next OpenSpec change for
 
-**Detection**:
-```bash
-PROJECT_NAME=$(grep -E "^# " openspec/project.md 2>/dev/null | head -1 | sed 's/^# //' | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
-```
+**Note**: Project name is already known from FDD adapter configuration and project context
 
-**Store as**: `PROJECT_NAME` (kebab-case)
-
+**Question to User**:
 ```
 Which feature are you creating the next change for?
 Provide feature slug: ___
 
 Example: "user-auth", "payment-flow"
 ```
+
 **Store as**: `FEATURE_SLUG`
 
-**Computed**: `SPEC_NAME = {PROJECT_NAME}-{FEATURE_SLUG}`
+**Spec Name Format**: Follow naming convention defined in `../requirements/openspec-change-structure.md`:
+- Format: `fdd-{project-name}-{feature-slug}-feature`
+- Example: `fdd-payment-system-user-auth-feature`
 
 ### Q2: Verify OpenSpec Structure
 
-**Action**: Confirm OpenSpec exists at project root
+**Requirement**: Confirm OpenSpec directory structure exists at project root
 
-**Check**:
-```bash
-test -d openspec && test -d openspec/specs && test -d openspec/changes && test -f openspec/project.md
-```
+**Required Directories**:
+- `openspec/` (main directory)
+- `openspec/specs/` (merged specifications)
+- `openspec/changes/` (active changes)
 
-**If missing**: Run workflow 01-init-project first or create manually
+**Required Files**:
+- `openspec/project.md` (project metadata)
+
+**Validation**: All directories and files must exist
+
+**If Missing**: Run workflow `01-init-project.md` first or create structure manually
 
 **Expected Outcome**: OpenSpec structure verified
 
@@ -67,17 +75,17 @@ test -d openspec && test -d openspec/specs && test -d openspec/changes && test -
 
 ### Q3: Read and Display Change Status
 
-**Action**: Read `architecture/features/feature-{FEATURE_SLUG}/DESIGN.md` Section H
+**Action**: Read `architecture/features/feature-{FEATURE_SLUG}/DESIGN.md` Section G
 
 **Extract**:
-- List of all planned implementation changes from Section H
+- List of all planned implementation changes from Section G
 - Current status of each change (✅ COMPLETED, 🔄 IN_PROGRESS, ⏳ NOT_STARTED)
 - Check `openspec/changes/` for active changes
 - Check `openspec/changes/archive/` for completed changes
 
 **Display to User**:
 ```
-OpenSpec Changes Status (from DESIGN.md Section H):
+OpenSpec Changes Status (from DESIGN.md Section G):
 ────────────────────────────────────────────────────
 
 {For each change in Section H}
@@ -97,12 +105,12 @@ Completed: {count} | In Progress: {count} | Remaining: {count}
 ```
 No changes created yet. Creating first change.
 
-Available changes from Section H:
+Available changes from Section G:
 {List all planned changes}
 
 Which change should be created first?
 Options:
-{For each change in Section H}
+{For each change in Section G}
   {N}. Change {NNN}: {name}
      {brief description}
 
@@ -161,7 +169,7 @@ Will create:
 Change details:
 - Number: Change {CHANGE_NUMBER}
 - Description: {CHANGE_DESC}
-- Implements: {requirement IDs from Section H}
+- Implements: {requirement IDs from Section G}
 - Scope: {list CHANGE_SCOPE items}
 - Dependencies: {list or "None"}
 
@@ -176,13 +184,13 @@ Proceed with creation? (y/n)
 
 ### 1. Create Feature Spec (First Change Only)
 
-**Requirement**: Create initial spec.md for feature from DESIGN.md Section G
+**Requirement**: Create initial spec.md for feature from DESIGN.md Section F
 
 **Condition**: Only if `openspec/specs/fdd-{project-name}-feature-{feature-slug}/` does not exist (first change)
 
 **Location**: `openspec/specs/fdd-{project-name}-feature-{feature-slug}/spec.md`
 
-**Generated Content** (from Section G Requirements):
+**Generated Content** (from Section F Requirements):
 ```markdown
 # {FEATURE_NAME}
 
@@ -197,7 +205,7 @@ Proceed with creation? (y/n)
 - **THEN** {expected result from FDL scenario}
 ```
 
-**Expected Outcome**: Initial feature spec created from Section G (first change only)
+**Expected Outcome**: Initial feature spec created from Section F (first change only)
 
 **Validation**: If file exists, skip this step (subsequent changes)
 
@@ -234,7 +242,7 @@ mkdir -p openspec/changes/{CHANGE_NAME}/specs/{SPEC_NAME}
 # Change: {NEXT_CHANGE_DESC from Q3}
 
 ## Why
-{Extract "Why" from DESIGN.md Section H for this change if available, otherwise:}
+{Extract "Why" from DESIGN.md Section G for this change if available, otherwise:}
 This change implements Change {NEXT_CHANGE_NUMBER} of {FEATURE_NAME} feature.
 {NEXT_CHANGE_DESC}
 
@@ -252,8 +260,13 @@ This change implements Change {NEXT_CHANGE_NUMBER} of {FEATURE_NAME} feature.
 ```
 
 **Content Source**: 
-- Primary: User selection from Q3 + DESIGN.md Section H
+- Primary: User selection from Q3 + DESIGN.md Section G
 - All content from planned change in DESIGN.md
+
+**Clickable Links Required**:
+- **Change Name**: Must link to Feature DESIGN.md Section G
+- **Feature**: Must link to Feature DESIGN.md
+- **Implements Requirements**: Each requirement ID must link to Section F
 
 **Expected Outcome**: Proposal created with actual content from DESIGN.md
 
@@ -274,7 +287,7 @@ This change implements Change {NEXT_CHANGE_NUMBER} of {FEATURE_NAME} feature.
 **Generated Content** (OpenSpec standard):
 ```markdown
 ## 1. Implementation
-{Extract tasks from DESIGN.md Section H for this specific change}
+{Extract tasks from DESIGN.md Section G for this specific change}
 {If detailed tasks in DESIGN.md:}
 - [ ] 1.{N} {Task from DESIGN.md}
 
@@ -283,14 +296,14 @@ This change implements Change {NEXT_CHANGE_NUMBER} of {FEATURE_NAME} feature.
 - [ ] 1.{N} {Actionable task derived from scope item}
 
 ## 2. Testing
-{MANDATORY: Generate tests from Section G Testing Scenarios (FDL)}
+{MANDATORY: Generate tests from Section F Testing Scenarios (FDL)}
 {For each requirement being implemented in this change}
-{Extract all FDL test scenarios from DESIGN.md Section G}
+{Extract all FDL test scenarios from DESIGN.md Section F}
 {For each scenario, create test task}
-- [ ] 2.1 Implement test: {Test name from Section G}
-  - Test steps: {FDL numbered list from Section G}
+- [ ] 2.1 Implement test: {Test name from Section F}
+  - Test steps: {FDL numbered list from Section F}
 - [ ] 2.2 Implement test: {Next test name}
-  - Test steps: {FDL numbered list from Section G}
+  - Test steps: {FDL numbered list from Section F}
 
 {Add general validation tasks:}
 - [ ] 2.{N} Validate against Feature DESIGN.md Section B/C
@@ -298,10 +311,10 @@ This change implements Change {NEXT_CHANGE_NUMBER} of {FEATURE_NAME} feature.
 ```
 
 **Task Generation Guidelines**:
-- Primary: Extract from DESIGN.md Section H for this change
+- Primary: Extract from DESIGN.md Section G for this change
 - Fallback: Derive from NEXT_CHANGE_SCOPE items
-- **MANDATORY**: Extract all Testing Scenarios from Section G for requirements in this change
-- Each scenario from Section G → 1 test task with FDL steps
+- **MANDATORY**: Extract all Testing Scenarios from Section F for requirements in this change
+- Each scenario from Section F → 1 test task with FDL steps
 - Always include: validation, documentation
 - Number sequentially (1.1, 1.2, 2.1, 2.2, etc.)
 
@@ -309,8 +322,8 @@ This change implements Change {NEXT_CHANGE_NUMBER} of {FEATURE_NAME} feature.
 
 **Validation Criteria**:
 - Tasks from DESIGN.md or derived from scope
-- **All Testing Scenarios from Section G converted to test tasks**
-- Each test task includes FDL test steps from Section G
+- **All Testing Scenarios from Section F converted to test tasks**
+- Each test task includes FDL test steps from Section F
 - Validation included
 - All tasks actionable and specific
 
@@ -345,50 +358,36 @@ The system SHALL provide...
 - Use SHALL/MUST for normative requirements
 - For MODIFIED: copy full requirement from `openspec/specs/`, then edit
 
-**Content Source**: Extract from Feature DESIGN.md Section G (Requirements)
+**Content Source**: Extract from Feature DESIGN.md Section F (Requirements)
 
 **Expected Outcome**: Delta specs created per affected capability
 
 ---
 
-### 6. Create design.md (Optional)
+### 6. Create design.md (REQUIRED)
 
-**Requirement**: Create design.md only if needed
+**Requirement**: Create design.md as reference file to Feature DESIGN.md
 
 **Location**: `openspec/changes/{next-change-name}/design.md`
 
-**Create design.md if ANY apply**:
-- Cross-cutting change (multiple services/modules)
-- New external dependency
-- Significant data model changes
-- Security, performance, or migration complexity
-- Technical decisions needed before coding
+**Purpose**: Reference file linking to Feature DESIGN.md
 
-**Otherwise**: Skip this file
-
-**Minimal Structure**:
+**Required Content**:
 ```markdown
-## Context
-{Background, constraints}
+# Design Reference
 
-## Goals / Non-Goals
-- Goals: {...}
-- Non-Goals: {...}
+**MUST READ**: [Feature DESIGN.md](../../architecture/features/feature-{slug}/DESIGN.md)
 
-## Decisions
-- Decision: {What and why}
-- Alternatives: {Options + rationale}
+**Agent Instruction**: This change implements requirements from Feature DESIGN.md. Read the full design before implementation.
 
-## Risks / Trade-offs
-- {Risk} → Mitigation
+## Implementation Notes
 
-## Migration Plan
-{Steps, rollback}
+{Optional: Add any change-specific implementation notes if needed}
 ```
 
-**Note**: Feature DESIGN.md is at `../../DESIGN.md` - reference it, don't duplicate
+**Note**: This is a reference file, not a place for extensive new design. Feature DESIGN.md is the source of truth.
 
-**Expected Outcome**: design.md created only if complexity requires it
+**Expected Outcome**: design.md created with link to Feature DESIGN.md
 
 ---
 
@@ -414,15 +413,15 @@ openspec validate {next-change-name} --strict
 
 ---
 
-### 8. Update Feature DESIGN.md Section H Status
+### 8. Update Feature DESIGN.md Section G Status
 
-**Requirement**: Mark change as IN_PROGRESS in Feature DESIGN.md Section H
+**Requirement**: Mark change as IN_PROGRESS in Feature DESIGN.md Section G
 
-**Location**: `architecture/features/feature-{slug}/DESIGN.md` Section H
+**Location**: `architecture/features/feature-{slug}/DESIGN.md` Section G
 
-**Update Section H**:
+**Update Section G**:
 ```markdown
-## H. Implementation Plan
+## G. Implementation Plan
 
 ### Change {PREVIOUS_NUMBER}: {previous-change-name}
 **Status**: ✅ COMPLETED
@@ -439,19 +438,19 @@ openspec validate {next-change-name} --strict
 {Keep remaining changes}
 ```
 
-**Expected Outcome**: Feature DESIGN.md Section H reflects current change IN_PROGRESS
+**Expected Outcome**: Feature DESIGN.md Section G reflects current change IN_PROGRESS
 
 ---
 
-### 9. Update Section G Requirements Status
+### 9. Update Section F Requirements Status
 
-**Requirement**: Mark requirements as IN_PROGRESS in Section G for this change
+**Requirement**: Mark requirements as IN_PROGRESS in Section F for this change
 
-**Location**: `architecture/features/feature-{slug}/DESIGN.md` Section G
+**Location**: `architecture/features/feature-{slug}/DESIGN.md` Section F
 
 **For each requirement implemented in this change**:
 ```markdown
-## G. Requirements
+## F. Requirements
 
 ### Requirement: {Requirement Title}
 
@@ -467,11 +466,11 @@ openspec validate {next-change-name} --strict
 ```
 
 **What to Update**:
-- Find requirements listed in Section H under "Implements Requirements" for this change
+- Find requirements listed in Section G under "Implements Requirements" for this change
 - Update each requirement's status from ⏳ NOT_STARTED to 🔄 IN_PROGRESS
 - Leave other requirements with their existing status
 
-**Expected Outcome**: Requirements in Section G show IN_PROGRESS for those in this change
+**Expected Outcome**: Requirements in Section F show IN_PROGRESS for those in this change
 
 ---
 
@@ -514,15 +513,15 @@ Change Created!
 Feature: feature-{FEATURE_SLUG}
 
 Created:
-{If first change: "✓ openspec/specs/fdd-{project-name}-feature-{feature-slug}/spec.md (from Section G)"}
+{If first change: "✓ openspec/specs/fdd-{project-name}-feature-{feature-slug}/spec.md (from Section F)"}
 ✓ openspec/changes/{CHANGE_NAME}/
-  ✓ proposal.md (Why, What, Impact)
+  ✓ proposal.md (Why, What, Impact with clickable links)
   ✓ tasks.md ({N} implementation tasks)
   ✓ specs/fdd-{project-name}-feature-{feature-slug}/spec.md (delta specifications)
-  {If design.md created: "✓ design.md (technical decisions)"}
+  ✓ design.md (reference to Feature DESIGN.md)
 
-✓ Feature DESIGN.md Section H updated (Change {CHANGE_NUMBER} → IN_PROGRESS)
-✓ Feature DESIGN.md Section G updated (Requirements → IN_PROGRESS)
+✓ Feature DESIGN.md Section G updated (Change {CHANGE_NUMBER} → IN_PROGRESS)
+✓ Feature DESIGN.md Section F updated (Requirements → IN_PROGRESS)
 {If first change: "✓ FEATURES.md updated (feature → IN_PROGRESS)"}
 
 Change Details:
@@ -555,20 +554,21 @@ Change creation complete when:
 - [ ] Change status read from DESIGN.md Section H (Q3)
 - [ ] User selected change to create (Q4)
 - [ ] User confirmed creation (Q5)
-- [ ] `openspec/specs/fdd-{project-name}-feature-{feature-slug}/spec.md` created from Section G (first change only)
+- [ ] `openspec/specs/fdd-{project-name}-feature-{feature-slug}/spec.md` created from Section F (first change only)
 - [ ] `openspec/changes/{CHANGE_NAME}/` created manually
 - [ ] `proposal.md` generated with content from DESIGN.md:
   - [ ] Why, What Changes, Impact sections present
-  - [ ] Content from DESIGN.md Section H, not placeholders
+  - [ ] Content from DESIGN.md Section G, not placeholders
   - [ ] Dependencies documented
+  - [ ] **Change Name, Feature, Requirements are clickable links**
 - [ ] `tasks.md` generated with tasks from DESIGN.md or scope:
   - [ ] Tasks from DESIGN.md or derived from scope
   - [ ] Testing tasks included
   - [ ] Validation tasks included
 - [ ] Delta specs directory created (specs content added later)
-- [ ] `design.md` created if complexity requires it (optional)
-- [ ] Feature DESIGN.md Section H updated (change marked IN_PROGRESS)
-- [ ] Feature DESIGN.md Section G updated (requirements marked IN_PROGRESS)
+- [ ] `design.md` created as reference file (REQUIRED)
+- [ ] Feature DESIGN.md Section G updated (change marked IN_PROGRESS)
+- [ ] Feature DESIGN.md Section F updated (requirements marked IN_PROGRESS)
 - [ ] Summary displayed to user
 - [ ] Ready to create delta specs and validate
 
@@ -578,12 +578,12 @@ Change creation complete when:
 
 ### Issue: Unclear Which Change to Create Next
 
-**Resolution**: Review DESIGN.md Section H implementation plan. Changes should be ordered by dependencies. If order unclear, implement foundational changes first (data model, core logic, then UI/API).
+**Resolution**: Review DESIGN.md Section G implementation plan. Changes should be ordered by dependencies. If order unclear, implement foundational changes first (data model, core logic, then UI/API).
 
 ### Issue: Change Plan Changed Since Design
 
 **Resolution**: If implementation reveals changes need to be different:
-1. Use workflow 08 (fix-design) to update DESIGN.md Section H
+1. Use workflow 08 (fix-design) to update DESIGN.md Section G
 2. Re-validate Feature Design
 3. Then create change with updated plan
 
@@ -621,9 +621,14 @@ After creating next change:
 ## Best Practices
 
 **Change Extraction**:
-- Copy implementation details directly from DESIGN.md Section H
+- Copy implementation details directly from DESIGN.md Section G
 - Don't make up new requirements - follow design
 - If design is insufficient, fix design first (workflow 08)
+
+**Clickable Links**:
+- Always create clickable links in proposal.md for Change Name, Feature, Requirements
+- Format: `[id](../../architecture/features/feature-{slug}/DESIGN.md#section-x)`
+- This ensures full traceability from OpenSpec to Feature Design
 
 **Change Scope**:
 - Each change should be completable in 4-8 hours
@@ -640,7 +645,8 @@ After creating next change:
 ## References
 
 - **Core FDD**: `../AGENTS.md` - OpenSpec integration
-- **Feature Design**: `../../DESIGN.md` - Section H implementation plan
+- **Feature Design**: `../../DESIGN.md` - Section G implementation plan
+- **Requirements**: `../requirements/openspec-change-structure.md` - Change structure specification
 - **Previous Workflow**: `11-openspec-change-complete.md` - Complete previous change
 - **Next Workflow**: `10-openspec-change-implement.md` - Implement this change
 - **OpenSpec Docs**: `../openspec/AGENTS.md` - Full OpenSpec specification

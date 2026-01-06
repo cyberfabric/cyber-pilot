@@ -18,74 +18,63 @@ Run `01-init-project.md` workflow with these modifications:
 
 ### Pre-Workflow: Code Analysis
 
-Load adapter config:
-```bash
-cat spec/FDD-Adapter/AGENTS.md
-```
+**Load adapter config**: Read `spec/FDD-Adapter/AGENTS.md` to get:
+- `DOMAIN_MODEL_LOCATION`
+- `API_CONTRACT_LOCATION`
+- Project structure patterns
 
-Scan codebase:
-```bash
-# Entry points
-ls {PROJECT}/src/main.* {PROJECT}/src/app.*
+**Scan codebase**: Analyze project structure to identify:
+- **Entry points**: Main application files (main.*, app.*, index.*, server.*)
+- **Routes/API**: Route definitions, API endpoints, controllers
+- **Domain types**: Files at `DOMAIN_MODEL_LOCATION`
+- **API specifications**: Files at `API_CONTRACT_LOCATION`
 
-# Routes
-find {PROJECT}/src -path "*/routes/*" -path "*/api/*" | head -10
-
-# Types (from adapter location)
-ls {DOMAIN_MODEL_LOCATION} | head -10
-
-# API spec (from adapter location)
-cat {API_CONTRACT_LOCATION} | head -50
-```
-
-Extract: actors, capabilities, domain entities, API endpoints
+**Extract information**:
+- Actors (from auth/permission/role patterns)
+- Capabilities (from endpoint groups, service names)
+- Domain entities (from type definitions)
+- API endpoints (from route definitions or specs)
 
 ---
 
 ### Modified Questions
 
-**Q1: Project Name** → Propose from `package.json` / `go.mod` / etc.
+**Q1: Project Name** → Propose from project metadata
+- Source: package.json, go.mod, Cargo.toml, pom.xml, etc.
+- Extract: name field or module name
 
 **Q2: Vision** → Analyze README.md, propose based on capabilities
+- Source: README.md, project description
+- Synthesize: high-level project purpose from documentation and code structure
 
-**Q3: Actors** → Detect from:
-```bash
-grep -r "role\|permission\|auth" {PROJECT}/src --include="*.ts" | head -10
-```
-Propose: User, Admin, Guest, etc.
+**Q3: Actors** → Detect from code patterns
+- Source: authentication/authorization code, role definitions, permission checks
+- Patterns: "role", "permission", "auth", "user types"
+- Propose: User, Admin, Guest, System, etc.
 
-**Q4: Capabilities** → Extract from:
-- API endpoint groups
-- Service/controller names
-- Feature directories
-
-Propose: "User Management", "Content Publishing", etc.
+**Q4: Capabilities** → Extract from code organization
+- Sources: API endpoint groups, service/controller names, feature directories
+- Analyze: logical grouping of functionality
+- Propose: "User Management", "Content Publishing", "Payment Processing", etc.
 
 **Q5: Domain Model** → List from `{DOMAIN_MODEL_LOCATION}`
-```
-User (id, email, name, role)
-Post (id, title, content, authorId)
-Comment (id, postId, userId, text)
-```
+- Source: Files at location specified in adapter
+- Format: Entity name with key attributes
+- Example: User (id, email, name, role), Post (id, title, content, authorId)
 
 **Q6: API Contract** → Extract from `{API_CONTRACT_LOCATION}`
-```
-POST /api/users
-GET /api/users/:id
-POST /api/posts
-GET /api/posts
-```
+- Source: Files at location specified in adapter
+- Format: HTTP method and endpoint path
+- Example: POST /api/users, GET /api/users/:id, POST /api/posts
 
-**Q7: Existing Docs** (additional) → Check:
-```bash
-ls docs/ README.md architecture/ 2>/dev/null
-```
-If found, reference in Overall Design
+**Q7: Existing Docs** (additional) → Check for documentation
+- Sources: docs/, README.md, architecture/, DESIGN.md
+- Action: Reference existing docs in Overall Design if found
 
-**Q8: Code Quality** (additional) → Assess:
-- Test coverage: auto-detect or ask
-- Documentation: scan comments
-- Code style: GOOD/FAIR/POOR
+**Q8: Code Quality** (additional) → Assess implementation quality
+- Test coverage: detect from test files, coverage reports, or ask
+- Documentation: scan inline comments and doc comments
+- Code style: assess as GOOD/FAIR/POOR based on patterns
 
 ---
 
@@ -125,16 +114,14 @@ Add Section D:
 
 ### Feature Identification
 
-Scan:
-```bash
-ls {PROJECT}/src/features/
-ls {PROJECT}/src/modules/
-find {PROJECT}/src -name "*Service.ts" -o -name "*Controller.ts"
-```
+**Scan code structure**: Analyze project organization to identify features
+- Sources: feature directories, module directories, service/controller files
+- Patterns: `/features/`, `/modules/`, files ending with `Service.*`, `Controller.*`, etc.
+- Extract: logical feature groupings based on code organization
 
-Generate `FEATURES.md` with `status: reverse-engineered`
+**Generate `FEATURES.md`**: Create manifest with `status: reverse-engineered`
 
-For each feature: create dir + DESIGN.md from code
+**For each feature**: Create feature directory + DESIGN.md from code analysis
 
 ---
 

@@ -3,6 +3,8 @@
 **Phase**: 3 - Feature Development  
 **Purpose**: Validate OpenSpec directory structure and specifications consistency
 
+**Structure Requirements**: See `../requirements/openspec-change-structure.md` for complete change structure specification
+
 ---
 
 ## Prerequisites
@@ -13,6 +15,8 @@
 ## Input Parameters
 
 - **slug**: Feature identifier (lowercase, kebab-case)
+
+**Note**: Before validating, read `../requirements/openspec-change-structure.md` to understand expected change structure
 
 ---
 
@@ -114,63 +118,47 @@ openspec show {change-id}
 
 **Step 1: Discover Feature Design Files**
 
-For each spec in `openspec list --specs`, extract feature slug and locate DESIGN.md:
+For each spec in OpenSpec, extract feature slug and locate DESIGN.md:
 
-```bash
-# Get all specs
-openspec list --specs
+**Process**:
+1. List all specs using `openspec list --specs`
+2. For each spec starting with "fdd-":
+   - Extract feature slug from format: `fdd-{project-name}-feature-{feature-slug}`
+   - Example: `fdd-fdd-cli-feature-init` → feature-slug = `init`
+3. Locate Feature DESIGN.md at `architecture/features/feature-{slug}/DESIGN.md`
+4. Verify file exists
 
-# For each spec starting with "fdd-":
-# Extract feature slug from format: fdd-{project-name}-feature-{feature-slug}
-# Example: fdd-fdd-cli-feature-init → feature-slug = "init"
+**Expected Results**:
+- ✓ Found: Feature DESIGN.md for each spec
+- ❌ Missing: Report missing DESIGN.md files
 
-for spec in $(openspec list --specs | grep "^  fdd-" | awk '{print $1}'); do
-  # Extract feature slug (after last "feature-")
-  FEATURE_SLUG=$(echo "$spec" | sed 's/.*feature-//')
-  
-  # Locate Feature DESIGN.md
-  DESIGN_PATH="architecture/features/feature-${FEATURE_SLUG}/DESIGN.md"
-  
-  if [ -f "$DESIGN_PATH" ]; then
-    echo "✓ Found: $DESIGN_PATH for spec $spec"
-  else
-    echo "❌ Missing: $DESIGN_PATH for spec $spec"
-  fi
-done
-```
-
-**Step 2: Validate Spec Requirements Against Section G**
+**Step 2: Validate Spec Requirements Against Section F**
 
 For each discovered Feature DESIGN.md:
 
-```bash
-# Load Feature DESIGN.md Section G (Requirements)
-cat "$DESIGN_PATH" | sed -n '/^## Section G: Requirements/,/^## Section H:/p'
+**Load Requirements**: Read Feature DESIGN.md Section F (Requirements)
 
-# Check merged spec (source of truth)
-MERGED_SPEC="openspec/specs/$spec/spec.md"
+**Check Merged Spec**: `openspec/specs/$spec/spec.md` (source of truth)
 
-# Check delta specs in active changes
-DELTA_SPECS=$(find openspec/changes/*/specs/$spec/spec.md 2>/dev/null)
-```
+**Check Delta Specs**: Active changes in `openspec/changes/*/specs/$spec/spec.md`
 
 **What to Verify for Merged Specs** (`openspec/specs/$spec/spec.md`):
-- ✅ All requirements from Section G are present
+- ✅ All requirements from Section F are present
 - ✅ Requirement IDs match between DESIGN.md and spec.md
-- ✅ No requirements that aren't in Section G
-- ✅ Requirement descriptions align with Section G
+- ✅ No requirements that aren't in Section F
+- ✅ Requirement descriptions align with Section F
 
 **What to Verify for Delta Specs** (`openspec/changes/*/specs/$spec/spec.md`):
-- ✅ ADDED requirements align with new Section G requirements
-- ✅ MODIFIED requirements reference existing Section G requirements
-- ✅ REMOVED requirements exist in Section G (with deprecation reason)
+- ✅ ADDED requirements align with new Section F requirements
+- ✅ MODIFIED requirements reference existing Section F requirements
+- ✅ REMOVED requirements exist in Section F (with deprecation reason)
 - ✅ RENAMED requirements maintain ID traceability
 - ✅ Delta spec changes match what's described in change `proposal.md`
 
 **Delta Spec Format Check**:
 ```
 ## ADDED Requirements
-{New requirements from Section G}
+{New requirements from Section F}
 
 ## MODIFIED Requirements  
 {Changed requirements - full text with updates}
@@ -182,63 +170,79 @@ DELTA_SPECS=$(find openspec/changes/*/specs/$spec/spec.md 2>/dev/null)
 {Name changes only - ID must match}
 ```
 
-**Step 3: Validate Changes Against Section H**
+**Step 3: Validate Changes Against Section G**
 
 For each Feature DESIGN.md:
 
-```bash
-# Load Feature DESIGN.md Section H (Implementation Plan)
-cat "$DESIGN_PATH" | sed -n '/^## Section H: Implementation Plan/,/^---/p'
-```
+**Load Implementation Plan**: Read Feature DESIGN.md Section G (Implementation Plan)
 
 **What to Verify**:
-- ✅ All changes from Section H exist in `openspec/changes/` or `openspec/changes/archive/`
-- ✅ Change numbering matches Section H plan
-- ✅ Change scope matches Section H descriptions
-- ✅ No extra changes that aren't in Section H
-- ✅ Each change `proposal.md` references Section G requirements
+- ✅ All changes from Section G exist in `openspec/changes/` or `openspec/changes/archive/`
+- ✅ Change numbering matches Section G plan
+- ✅ Change scope matches Section G descriptions
+- ✅ No extra changes that aren't in Section G
+- ✅ Each change `proposal.md` references Section F requirements
 - ✅ Change tasks align with Section E (Technical Details)
 
 **Expected Outcome**: Complete traceability for all FDD specs
 
 **Validation Criteria**:
 - ✅ All specs with `fdd-` prefix have corresponding Feature DESIGN.md
-- ✅ All Section G requirements present in spec.md
-- ✅ All Section H changes exist in OpenSpec
-- ✅ All active/archived changes listed in Section H
+- ✅ All Section F requirements present in spec.md
+- ✅ All Section G changes exist in OpenSpec
+- ✅ All active/archived changes listed in Section G
 - ✅ Each change proposal references DESIGN.md sections
 - ❌ Specs without Feature DESIGN.md
-- ❌ Requirements mismatch between Section G and spec.md
-- ❌ Orphaned changes not in Section H
+- ❌ Requirements mismatch between Section F and spec.md
+- ❌ Orphaned changes not in Section G
 
 **Resolution if Failed**:
 - Missing DESIGN.md → Create Feature Design (workflow 05, 06)
-- Requirements mismatch → Update Section G or spec.md
-- Changes mismatch → Update Section H or remove orphaned changes
+- Requirements mismatch → Update Section F or spec.md
+- Changes mismatch → Update Section G or remove orphaned changes
 
 ---
 
-### 6: Generate Validation Report
+### 6: Output Validation Results
 
-**Requirement**: Document validation results
+**Requirement**: Display validation results in chat (DO NOT create report files)
 
-**Command**:
-```bash
-openspec validate --report
+**⚠️ CRITICAL**: Output results directly in chat, DO NOT create VALIDATION_REPORT.md or similar files
+
+**Output Format**:
+```markdown
+# OpenSpec Validation Results
+
+**Validation Date**: {timestamp}
+
+## Structure Status
+- Directory structure: ✅/❌
+- Required directories present: ✅/❌
+- Archive structure: ✅/❌
+
+## Changes Status
+- Active changes: {count}
+- Archived changes: {count}
+- All changes have required files: ✅/❌
+- Change numbering sequential: ✅/❌
+- Status consistency: ✅/❌
+
+## Specifications Status
+- Source of truth specs: {count}
+- Spec files valid: ✅/❌
+- No conflicts: ✅/❌
+
+## Traceability Status
+- All DESIGN.md changes exist: ✅/❌
+- All changes traceable: ✅/❌
+- No orphaned changes: ✅/❌
+
+## Validation Score: {X}/100
+
+{If issues found, list them here}
 ```
 
-**Report Contains**:
-- Validation timestamp
-- Structure status
-- Active changes count and list
-- Archived changes count
-- Source of truth spec count
-- All validation checks results
-- Any warnings or errors
-
-**Report Location**: `openspec/VALIDATION_REPORT.md` (auto-generated)
-
-**Expected Outcome**: Complete audit trail of validation
+**Expected Outcome**: Validation results displayed in chat with comprehensive information
 
 ---
 
@@ -263,7 +267,7 @@ openspec validate --report
    - No conflicting or duplicate specs
 
 4. **Traceability** (30 points)
-   - All changes from feature DESIGN.md Section H exist
+   - All changes from feature DESIGN.md Section G exist
    - All changes traceable to feature design
    - Change proposals reference design sections
    - No orphaned or unplanned changes
@@ -287,12 +291,12 @@ Validation complete when:
 - [ ] Status consistent across files
 - [ ] Spec files valid markdown (20 pts)
 - [ ] Source of truth specs valid
-- [ ] All planned changes from DESIGN.md Section H exist (30 pts)
+- [ ] All planned changes from DESIGN.md Section G exist (30 pts)
 - [ ] All changes traceable to feature design
 - [ ] Change proposals reference design sections
 - [ ] No orphaned or unplanned changes
 - [ ] No broken references (10 pts)
-- [ ] Validation report generated
+- [ ] Validation results output to chat (NO report files created)
 - [ ] Score: 100/100
 
 ---
@@ -301,7 +305,7 @@ Validation complete when:
 
 ### Issue: Missing Required Files
 
-**Resolution**: Create missing files following templates in `09-openspec-init.md`
+**Resolution**: Create missing files following templates in `09-openspec-change-next.md`
 
 ### Issue: Status Mismatch
 

@@ -35,7 +35,7 @@ openspec show {change-name}
 **What to Load**:
 - `proposal.md` - What this change does
 - `specs/**/*.md` - Technical specifications
-- `design.md` (if exists) - Technical decisions
+- `design.md` - Reference to Feature DESIGN.md (required)
 
 **Expected Outcome**: Clear understanding of requirements
 
@@ -45,10 +45,7 @@ openspec show {change-name}
 
 **Requirement**: Verify code implements all spec requirements
 
-**Load Adapter**:
-```bash
-cat ../../../FDD-Adapter/AGENTS.md
-```
+**Load Adapter**: Read project-specific adapter configuration for validation commands and patterns
 
 **What to Validate**:
 
@@ -79,10 +76,9 @@ cat ../../../FDD-Adapter/AGENTS.md
 
 **Use Adapter Commands**:
 Run project-specific validation commands from adapter:
-```bash
-# Get validation commands from adapter
-cat ../../../FDD-Adapter/AGENTS.md | grep -A 20 "Code Validation Commands"
-```
+- Read adapter configuration for validation commands
+- Execute commands per adapter specification
+- Validate against project-specific patterns
 
 **Expected Outcome**: Code fully implements spec
 
@@ -99,10 +95,7 @@ cat ../../../FDD-Adapter/AGENTS.md | grep -A 20 "Code Validation Commands"
 
 **Requirement**: Verify change aligns with feature DESIGN.md
 
-**Load Feature Design**:
-```bash
-cat ../DESIGN.md
-```
+**Load Feature Design**: Read `architecture/features/feature-{slug}/DESIGN.md`
 
 **What to Verify**:
 - Change implements part of Section B (Actor Flows) or Section C (Algorithms)
@@ -136,25 +129,26 @@ cat ../DESIGN.md
 - Test error responses
 
 **Use Adapter Test Commands**:
-```bash
-# Get test commands from adapter
-cat ../../../FDD-Adapter/AGENTS.md | grep -A 10 "Test Commands"
-```
+- Read adapter configuration for test commands
+- Execute test suite per adapter specification
+- Verify test coverage per adapter requirements
 
 **Expected Outcome**: 100% spec-related tests passing
 
 ---
 
-### 5: Generate Validation Report
+### 5: Output Validation Results
 
-**Requirement**: Document validation results
+**Requirement**: Display validation results in chat (DO NOT create report files)
 
-**Report Structure**:
+**⚠️ CRITICAL**: Output results directly in chat, DO NOT create VALIDATION_REPORT.md or similar files
+
+**Output Format**:
 ```markdown
-# Code Validation Report - {change-id}
+# Code Validation Results - {change-name}
 
 **Validation Date**: {timestamp}
-**Change**: {change-id}-{name}
+**Change**: {change-name}
 
 ## Specifications Coverage
 
@@ -193,9 +187,7 @@ cat ../../../FDD-Adapter/AGENTS.md | grep -A 10 "Test Commands"
 {If FAIL, list required fixes}
 ```
 
-**Report Location**: `openspec/changes/{change-id}-{name}/VALIDATION_REPORT.md`
-
-**Expected Outcome**: Complete validation audit trail
+**Expected Outcome**: Validation results displayed in chat with comprehensive information
 
 ---
 
@@ -239,7 +231,7 @@ Validation complete when:
 - [ ] No deviations or contradictions
 - [ ] Aligns with feature design (10 pts)
 - [ ] All spec tests passing (10 pts)
-- [ ] Validation report generated
+- [ ] Validation results output to chat (NO report files created)
 - [ ] Score: 100/100
 
 ---

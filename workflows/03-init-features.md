@@ -3,6 +3,8 @@
 **Phase**: 2 - Feature Planning  
 **Purpose**: Analyze Overall Design and generate feature list with dependencies through interactive review
 
+**Structure Requirements**: See `../requirements/features-manifest-structure.md` for complete FEATURES.md structure specification
+
 ---
 
 ## Prerequisites
@@ -10,6 +12,8 @@
 - Overall Design validated (run `02-validate-architecture.md` first)
 - `architecture/DESIGN.md` complete with all sections
 - `architecture/features/` directory exists
+
+**Note**: Before generating FEATURES.md, read `../requirements/features-manifest-structure.md` to understand manifest structure
 
 ---
 
@@ -121,9 +125,11 @@ Estimated Implementation Order: {init} → {feature2} → {feature3}...
 
 ---
 
-### 3. Review and Confirm Feature Breakdown
+### 3. User Review and Confirmation (MANDATORY)
 
-**Requirement**: User reviews and confirms or adjusts proposed features
+**Requirement**: User MUST review and explicitly approve feature breakdown before generation
+
+**⚠️ CRITICAL**: AI agent MUST NOT proceed to Step 4 (file generation) without explicit user approval. This is a mandatory checkpoint.
 
 **Interactive Review**:
 ```
@@ -137,27 +143,23 @@ Options:
 Your choice: ___
 ```
 
-**If option 2 (Suggest modifications)**:
-```
-Describe the modifications you'd like:
-- Add feature: ___
-- Remove feature: ___  
-- Modify feature {name}: ___
-- Change dependencies: ___
-- Change priorities: ___
-```
-
 **After modifications**:
 - Apply user changes to proposal
 - Show updated breakdown
-- Ask for confirmation again
+- Ask for confirmation again (loop until approved or cancelled)
 
-**Expected Outcome**: User-approved feature breakdown
+**If option 3 (Cancel)**:
+- Stop workflow immediately
+- Do not create any files
+- Exit workflow
+
+**Expected Outcome**: User explicitly typed "1" or "Approve" to confirm
 
 **Validation Criteria**:
-- User explicitly approved
+- User explicitly approved (option 1 selected)
 - feature-init remains first
 - Dependencies still form valid DAG
+- **BLOCKED**: Cannot proceed without approval
 
 ---
 
@@ -167,311 +169,58 @@ Describe the modifications you'd like:
 
 **Required File**: `architecture/features/FEATURES.md`
 
-**Required Content Structure**:
-
-**Header**:
-- Module name
-- Overall status (PLANNING initially)
-
-**For Each Feature**:
-- **Feature slug**: Unique identifier (e.g., `feature-init`)
-- **Status**: Current state (⏳ NOT_STARTED, 🔄 IN_PROGRESS, ✅ IMPLEMENTED)
-- **Priority**: Importance level (CRITICAL, HIGH, MEDIUM, LOW)
-- **Depends On**: List of prerequisite features or "None"
-- **Blocks**: List of features that depend on this feature or "None" (calculated from reverse "Depends On" relationships)
-- **Purpose**: One-line description of feature goal
-- **Scope**: Bulleted list of what feature creates/implements
-
-**Additional Sections**:
-- **Feature Dependencies**: Visual dependency graph
-- **Implementation Order**: Numbered list in execution order
+**Structure Specification**: See `../requirements/features-manifest-structure.md` for complete FEATURES.md structure requirements
 
 **Critical Requirements**:
 - `feature-init` MUST be feature #1
 - init MUST have "Depends On: None"
 - Dependencies must form valid DAG (no cycles)
-- Implementation order must respect dependencies
+- All features have clickable dependency links
 
-**Expected Outcome**: Complete feature manifest ready for implementation
-
-**Validation Criteria**:
-- File `architecture/features/FEATURES.md` exists
-- All features documented with required fields
-- init is first feature
-- Dependency graph is acyclic
-- Implementation order valid
+**Expected Outcome**: Complete feature manifest ready for implementation per requirements specification
 
 ---
 
-### 5. Initialize Init Design Document
+### 5. Create Feature DESIGN.md Stubs
 
-**Requirement**: Create design document for init feature
+**Requirement**: Create DESIGN.md stub for each feature using template from requirements
 
-**Required File**: `architecture/features/feature-init/DESIGN.md`
+**Source**: `../requirements/feature-design-structure.md`
 
-**Content Requirements**:
-- **Section A**: Feature context (minimal for init)
-- **Section B**: Actor flows (intentionally minimal - structural task, in FDL)
-- **Section C**: Algorithms (intentionally minimal - structural task, in FDL)
-- **Section D**: States (in FDL if needed, typically not applicable for init)
-- **Section E**: Technical details (structure being created)
-- **Section F**: Validation & implementation (compilation tests)
-- **Section G**: Requirements (minimal for init - structural requirements)
-- **Section H**: Implementation Plan (changes for init structure)
+**Process**:
+1. Read `../requirements/feature-design-structure.md` to understand Feature Design structure
+2. For each feature in the proposed list:
+   - Create directory: `architecture/features/feature-{slug}/`
+   - Create stub: `architecture/features/feature-{slug}/DESIGN.md`
+   - Use structure from requirements file
+   - Mark all sections as `{To be designed}` except basic metadata
 
-**Critical Constraints**:
+**Special Case - feature-init**:
 - Init is **structural only** - NO business logic
-- Minimal sections B and C acceptable for init
+- Sections B and C intentionally minimal
 - Focus on what structure is created, not what it does
+- See adapter documentation for framework-specific init templates
 
-**Note**: Framework-specific init templates defined in project adapter documentation
-
-**Expected Outcome**: Init design document exists
+**Expected Outcome**: Each feature has DESIGN.md stub following requirements structure
 
 **Validation Criteria**:
-- File `architecture/features/feature-init/DESIGN.md` exists
-- Contains all sections A-H
-- Clearly defines structural scope
-- No business logic described
-
-**Commands**:
-```bash
-mkdir -p features/feature-init
-
-# Generic init template
-cat > features/feature-init/DESIGN.md << 'EOF'
-# Init - Feature Design
-
-**Status**: ⏳ NOT_STARTED  
-**Module**: {Module Name}
+- Each feature directory has `DESIGN.md`
+- All DESIGN.md files follow structure from `feature-design-structure.md`
+- Stubs contain correct metadata (status, module name)
+- No duplication of requirements file content
 
 ---
 
-## A. Feature Context
+### 6. Summary and Next Steps
 
-### Overview
+**Requirement**: Confirm completion and guide next actions
 
-Create minimal project structure. This establishes the compilable skeleton for business features.
-
-**Critical Scope Constraint**: Init creates **structure only**, NO business logic.
-
-### Purpose
-
-Initialize the project with:
-- Empty compilable structure
-- Framework integration
-- Layer folders ready for features
-
-### Actors
-
-- **Developer/Architect**: Creates project structure
-
-### References
-
-- Overall Design: `@/architecture/DESIGN.md`
-
-### What Init IS vs IS NOT
-
-**Init creates** (✅):
-- Project structure
-- Configuration scaffolding
-- Empty layers/folders
-
-**Init does NOT create** (❌):
-- Business logic
-- API definitions
-- Database entities
-- Any domain-specific code
-
----
-
-## B. Actor Flows
-
-*Intentionally minimal for init.*
-
-Developer runs init → creates skeleton → verifies compilation.
-
----
-
-## C. Algorithms
-
-*Intentionally minimal for init.*
-
-See implementation for details.
-
----
-
-## D. States
-
-*Not applicable for init* (use FDL if needed - see `../FDL.md`)
-
----
-
-## E. Technical Details
-
-### Structure Created
-
-(Framework-specific - see adapter documentation)
-
----
-
-## F. Validation & Implementation
-
-### Testing
-
-1. **Compilation Test**: Verify structure compiles
-2. **Integration Test**: Verify framework registration
-
----
-
-## G. Requirements
-
-### Requirement R001: Project Structure Initialization
-
-**Status**: ⏳ NOT_STARTED
-
-**Description**: The system SHALL create compilable project structure with framework integration.
-
-**References**:
-- [Overall Design](../../DESIGN.md)
-
-**Testing Scenarios** (FDL):
-
-**Test: Successful Project Initialization**
-
-1. Developer opens empty project directory
-2. Developer runs init command
-3. **IF** command succeeds:
-   1. Project structure is created
-   2. All folders exist
-4. Developer runs build command
-5. **IF** build succeeds:
-   1. Project compiles successfully
-   2. No errors reported
-
-**Acceptance Criteria**:
-- Project compiles without errors
-- Framework properly configured
-- All structural folders created
-
----
-
-## H. Implementation Plan
-
-### Change 001: Initialize Project Structure
-
-**Status**: ⏳ NOT_STARTED
-
-**Description**: Create minimal compilable project structure
-
-**Implements Requirements**:
-- [R001: Project Structure Initialization](#requirement-r001-project-structure-initialization)
-
-**Dependencies**: None
-
----
-EOF
-```
-
-**Expected Result**: Init DESIGN.md created
-
-**Note**: For framework-specific init templates, see project adapter documentation
-
----
-
-### 6. Create Placeholder Design Documents
-
-**Requirement**: Initialize design documents for all other features
-
-**Required Files**:
-- One DESIGN.md per feature in `architecture/features/feature-{slug}/`
-- Exclude init (already created in previous requirement)
-
-**Content Requirements**:
-- Basic template with sections A-H
-- Status: ⏳ NOT_STARTED
-- Placeholder text indicating design pending
-- Reference to Overall Design
-
-**Purpose**: Establish feature structure, content filled during feature initialization workflow
-
-**Expected Outcome**: All feature directories have initial DESIGN.md
+**Expected Outcome**: User understands what was created and what to do next
 
 **Validation Criteria**:
-- Each feature has directory `architecture/features/feature-{slug}/`
-- Each directory contains `DESIGN.md`
-- Files have basic structure
-- Status marked as NOT_STARTED
-
-**Commands**:
-```bash
-# For each feature (except init)
-for FEATURE in feature-{name} feature-{name2}; do
-  mkdir -p features/$FEATURE
-  
-  cat > features/$FEATURE/DESIGN.md << EOF
-# {Feature Name} - Feature Design
-
-**Status**: ⏳ NOT_STARTED
-
-## A. Feature Context
-
-### Overview
-
-{To be designed after Overall Design is finalized}
-
-### Purpose
-
-{Define purpose}
-
----
-
-## B. Actor Flows
-
-{To be designed}
-
----
-
-## C. Algorithms
-
-{To be designed}
-
----
-
-## D. States
-
-{To be designed if needed - use FDL, see `../FDL.md`}
-
----
-
-## E. Technical Details
-
-{To be designed}
-
----
-
-## F. Validation & Implementation
-
-{To be designed}
-
----
-
-## G. Requirements
-
-{To be designed - formalized requirements with references to B-E}
-
----
-
-## H. Implementation Plan
-
-{To be designed - OpenSpec changes with status}
-
----
-EOF
-done
-```
-
-**Expected Result**: Placeholder designs created
+- All features have DESIGN.md stubs following `feature-design-structure.md`
+- FEATURES.md manifest is complete
+- User knows next workflow to run
 
 ---
 
@@ -515,23 +264,17 @@ Next Steps:
 
 ### 8. Validate Features Manifest Structure
 
-**Action**: Run validation on FEATURES.md
+**Action**: Validate FEATURES.md structure and ordering
 
-**Commands**:
-```bash
-# Check init is first
-FIRST_FEATURE=$(grep "^### [0-9]\." features/FEATURES.md | head -1)
-if ! echo "$FIRST_FEATURE" | grep -q "feature-init"; then
-  echo "ERROR: init must be first feature"
-  exit 1
-fi
+**Validation Requirements**:
+- **First feature check**: feature-init must be the first numbered feature entry
+- **Dependencies check**: All feature dependencies reference existing features
+- **Format check**: All features follow the structure defined in `../requirements/features-manifest-structure.md`
 
-# Check dependencies valid
-echo "✓ init is first feature"
-echo "✓ Features manifest created"
-```
-
-**Expected Result**: Validation passes
+**Expected Result**: 
+- ✓ feature-init is first feature in manifest
+- ✓ All dependencies are valid
+- ✓ Features manifest structure is correct
 
 ---
 

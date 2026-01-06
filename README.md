@@ -22,6 +22,22 @@ FDD helps teams build software by:
 
 ---
 
+## FDD Flow Overview
+
+![FDD Layered Flow](fdd-flow-layers.drawio.svg)
+
+**The flow**:
+- **Layer 0: Adapter** - Define tech stack and conventions (any language, any tools)
+- **Layer 1: Overall Design** - Architecture, domain model, API contracts (≥90/100 validation)
+- **Layer 2: Features** - Break system into independent features with dependencies
+- **Layer 3: Feature Design** - Actor flows in FDL, algorithms, requirements (100/100 validation)
+- **Layer 4: OpenSpec Changes** - Atomic implementation units (1 change = 1 deployable unit)
+- **Layer 5: Code** - Implementation validated against spec automatically
+
+**Key principle**: Each layer validated before proceeding. Design is source of truth, enforced by tooling.
+
+---
+
 ## The AGENTS.md Foundation
 
 ### Built on Industry Standard for AI Frameworks

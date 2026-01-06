@@ -3,6 +3,8 @@
 **Phase**: 1 - Architecture Design  
 **Purpose**: Create FDD project structure with Overall Design template through guided questions
 
+**Structure Requirements**: See `../requirements/overall-design-structure.md` for complete Overall Design structure specification
+
 ---
 
 ## Prerequisites
@@ -206,119 +208,41 @@ Describe context (or press Enter for defaults): ___
 **Requirement**: Create `architecture/DESIGN.md` with actual content based on collected answers
 
 **Required Content**:
-Generate `architecture/DESIGN.md` with the following structure and actual content from answers:
+Generate `architecture/DESIGN.md` according to structure defined in `../requirements/overall-design-structure.md`:
 
-```markdown
-# Overall Design: {MODULE_NAME}
+**Structure** (see requirements file for complete specification):
+- Section A: Business Context (vision, capabilities, actors)
+- Section B: Requirements & Principles (use cases, business rules, design principles)
+- Section C: Technical Architecture (5 subsections: C.1-C.5)
+- Section D: Project-Specific Details (optional)
 
-## A. Business Context
+**Content Mapping** (answers → sections):
+- **Section A**:
+  - System Vision ← Q2 (SYSTEM_VISION)
+  - Core Capabilities ← Q3 (CAPABILITIES list with descriptions)
+  - Actors ← Q4 (ACTORS list with roles)
+  
+- **Section B**:
+  - Use Cases ← Generate from actors + capabilities (2-3 per actor)
+  - Business Rules ← Q5 (BUSINESS_RULES list)
+  - Design Principles ← Auto-generate FDD principles
+  
+- **Section C**:
+  - C.1 (Architecture Overview) ← Q6 (ARCHITECTURE_STYLE + key components)
+  - C.2 (Domain Model) ← Adapter (DML_TECH, DML_LOCATION, syntax reference)
+  - C.3 (API Contracts) ← Adapter (API_TECH, API_LOCATION, spec reference)
+  - C.4 (Security Model) ← Adapter (SECURITY_MODEL)
+  - C.5 (Non-Functional Requirements) ← Adapter (NFR_LIST) + architecture style NFRs
+  
+- **Section D** (optional):
+  - Project-Specific Details ← Q7 (ADDITIONAL_CONTEXT, if provided)
 
-### System Vision
-
-{SYSTEM_VISION from Q2}
-
-### Core Capabilities
-
-{For each capability in CAPABILITIES[]}
-- **{Capability}**: {Description from user input}
-
-### Actors
-
-{For each actor in ACTORS[]}
-- **{Actor Name}**: {Role and responsibilities from user input}
-
-## B. Requirements & Principles
-
-### Use Cases
-
-{Generate placeholder based on actors and capabilities:}
-Primary use cases derived from actors and capabilities:
-
-{For each actor, list 2-3 example use cases based on their role}
-- {Actor} can {capability-related action}
-
-**Note**: Detailed actor flows will be designed in Feature Design documents.
-
-### Business Rules
-
-{For each rule in BUSINESS_RULES[]}
-- {Business rule from user input}
-
-### Design Principles
-
-{Auto-generate based on FDD principles:}
-- **Separation of Concerns**: Clear separation between domain model, API contracts, and implementation
-- **Design First**: All features designed before implementation
-- **Type Safety**: Strong typing through domain model
-- **Traceability**: All code traceable to design decisions
-
-## C. Technical Architecture
-
-### Architecture Overview
-
-**Style**: {ARCHITECTURE_STYLE from Q6}
-
-{If ARCHITECTURE_STYLE is recognized, add relevant details:}
-{For "Microservice": "Independent service with its own domain model and API contract."}
-{For "CLI tool": "Command-line interface following CLI design patterns."}
-{For "Library/SDK": "Reusable library with stable public API."}
-{etc.}
-
-**Key Components**:
-- Domain Model: Types and business logic ({DML_TECH from adapter})
-- API Layer: {API_TECH from adapter} contracts
-- Implementation: Following FDD workflows
-
-### Domain Model
-
-**Technology**: {DML_TECH from adapter}
-
-**Location**: {DML_LOCATION from adapter}
-
-**Specification**: See adapter for DML syntax and validation rules
-
-**Types**: To be defined during architecture development
-
-**Linking**: {DML_SYNTAX_REFERENCE from adapter}
-
-### API Contracts
-
-{If API_TECH is not "None"}
-**Technology**: {API_TECH from adapter}
-
-**Location**: {API_LOCATION from adapter}
-
-**Specification**: See adapter for API format and validation rules
-
-**Endpoints**: To be defined during architecture development
-
-### Security Model
-
-{SECURITY_MODEL from adapter}
-
-### Non-Functional Requirements
-
-{NFR_LIST from adapter}
-
-{If additional NFRs from architecture style}
-{Add relevant NFRs based on ARCHITECTURE_STYLE}
-
-## D. Project-Specific Details
-
-{Only include if ADDITIONAL_CONTEXT from Q7 is provided}
-
-{ADDITIONAL_CONTEXT}
-
----
-
-**Document Status**: Initial version - ready for detailed design
-
-**Next Steps**:
-1. Fill in domain model types
-2. Define API endpoints
-3. Validate architecture (workflow 02-validate-architecture)
-4. Generate features (workflow 03-init-features)
-```
+**Generation Instructions**:
+1. Read `../requirements/overall-design-structure.md` for complete structure specification
+2. Use answers from interactive questions to populate sections
+3. Follow section format exactly as specified in requirements
+4. Include "Document Status" and "Next Steps" at the end
+5. Ensure ≥200 lines with substantive content (no placeholders)
 
 **Expected Outcome**: DESIGN.md with meaningful initial content
 
@@ -489,68 +413,15 @@ Use descriptive kebab-case for spec names:
 
 ---
 
-## Change Proposal Guidelines
+## OpenSpec Change Guidelines
 
-### When to Create a Proposal
+**For complete OpenSpec change structure and requirements**, see:
+- `../requirements/openspec-change-structure.md` - Full specification of change directory structure, required files, and validation criteria
 
-Create OpenSpec change proposal for:
-- New features or capabilities
-- Breaking changes (API, schema, contracts)
-- Architecture or pattern changes
-- Performance optimizations that change behavior
-- Security pattern updates
-
-### When to Skip Proposal
-
-Skip proposal for:
-- Bug fixes (restore intended behavior)
-- Typos, formatting, comments
-- Dependency updates (non-breaking)
-- Configuration changes
-- Tests for existing behavior
-
-### Proposal Structure
-
-Every change must include:
-1. **proposal.md** - Why, what changes, impact
-2. **tasks.md** - Implementation checklist
-3. **specs/{spec-name}/spec.md** - Delta specifications (ADDED/MODIFIED/REMOVED)
-4. **design.md** (optional) - Technical decisions if complexity requires
-
----
-
-## Spec Writing Guidelines
-
-### Requirement Format
-
-- Use `SHALL` or `MUST` for normative requirements
-- Every requirement needs at least one `#### Scenario:`
-- Use `**WHEN**` and `**THEN**` in scenarios
-- Keep requirements atomic and testable
-
-### Delta Operations
-
-- `## ADDED Requirements` - New capabilities
-- `## MODIFIED Requirements` - Changed behavior (include full requirement)
-- `## REMOVED Requirements` - Deprecated features (with reason and migration)
-- `## RENAMED Requirements` - Name changes only
-
----
-
-## Integration with FDD
-
-### Feature Design Alignment
-
-- OpenSpec specs derive from Feature DESIGN.md Section G (Requirements)
-- OpenSpec changes implement Feature DESIGN.md Section H (Implementation Plan)
-- Always maintain traceability: Requirement → Change → Code
-
-### Validation Workflow
-
-1. Create change → `openspec validate {change-id} --strict`
-2. Implement change → Follow tasks.md checklist
-3. Complete change → `openspec archive {change-id} -y`
-4. Validate structure → `openspec validate --all --no-interactive`
+**Key points**:
+- All changes follow structure defined in requirements file
+- Changes are atomic and implement 1-5 requirements from Feature DESIGN.md
+- Integration with Feature Design Section F (Requirements) and Section G (Implementation Plan)
 
 ---
 
@@ -709,11 +580,10 @@ Project initialization is complete when:
     - [ ] `openspec/specs/` directory exists
     - [ ] `openspec/changes/` directory exists
     - [ ] `openspec/project.md` created with project conventions
-- [ ] `architecture/DESIGN.md` generated with actual content from answers:
-  - [ ] Section A: Business Context (vision, capabilities, actors)
-  - [ ] Section B: Requirements & Principles (use cases, business rules, design principles)
-  - [ ] Section C: Technical Architecture (overview, domain model, API contracts, security, NFRs)
-  - [ ] Section D: Project-Specific Details (if provided)
+- [ ] `architecture/DESIGN.md` generated per `../requirements/overall-design-structure.md`:
+  - [ ] All required sections (A-C) with actual content from answers
+  - [ ] Section C has all 5 subsections (C.1-C.5)
+  - [ ] Section D included if ADDITIONAL_CONTEXT provided
 - [ ] `architecture/features/FEATURES.md` placeholder created
 - [ ] No empty placeholders like "[TODO]" in generated content
 - [ ] Summary shown with created files
@@ -721,21 +591,7 @@ Project initialization is complete when:
 
 ---
 
-## Important Rules
-
-### DO NOT:
-- ❌ Skip questions - ask all relevant questions one by one
-- ❌ Create empty placeholders in DESIGN.md like "[TODO]" or "[Description]"
-- ❌ Generate content without user input
-- ❌ Assume answers - always ask explicitly
-- ❌ Create files before user confirms summary
-
-### DO:
-- ✅ Ask questions one at a time
-- ✅ Wait for answers before proceeding
-- ✅ Generate meaningful content from answers
-- ✅ Show clear summary before creating files
-- ✅ Allow user to review and cancel if needed
+**Interactive Mode**: See `../AGENTS.md` for interactive workflow rules (DO/DO NOT)
 
 ---
 

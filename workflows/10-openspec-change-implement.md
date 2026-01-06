@@ -7,7 +7,7 @@
 
 ## Prerequisites
 
-- OpenSpec initialized for feature (run `09-openspec-init.md` first)
+- OpenSpec initialized for feature (run `09-openspec-change-next.md` first)
 - Change directory exists: `openspec/changes/{change-name}/` (project root)
 - Proposal and specs reviewed
 
@@ -55,13 +55,13 @@ openspec show {change-name}
 
 **Review Checklist**:
 - **proposal.md**: Why this change exists, what problem it solves
-- **design.md** (if exists): Technical decisions and architecture
+- **design.md**: Reference to Feature DESIGN.md (required)
 - **tasks.md**: Checklist of implementation steps
 - **specs/{capability}/spec.md**: Delta specifications with requirements
 
 **Feature Context**:
 - **../../DESIGN.md**: Feature-level design (not in openspec/)
-- Check Feature DESIGN.md Section F for change context
+- Check Feature DESIGN.md Section F (Requirements) and Section G (Implementation Plan) for change context
 
 **Understanding Required**:
 - Implementation scope and boundaries
