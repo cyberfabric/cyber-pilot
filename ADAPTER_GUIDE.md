@@ -14,9 +14,16 @@ These are validated by tooling and cannot be changed:
 
 ### 1. Design Hierarchy
 ```
-OVERALL DESIGN → FEATURE DESIGN → OpenSpec CHANGES → CODE
+ADAPTER → BUSINESS CONTEXT → OVERALL DESIGN → FEATURE DESIGN → CHANGES → CODE
 ```
 Must reference parent level, never contradict.
+
+- **ADAPTER**: Defines tech stack, formats, conventions (first step, required)
+- **BUSINESS CONTEXT**: Defines actors, capabilities, business requirements
+- **OVERALL DESIGN**: Architecture, domain model, API contracts
+- **FEATURE DESIGN**: Actor flows, algorithms, requirements
+- **CHANGES**: Atomic implementation plan with tasks
+- **CODE**: Implementation following CHANGES
 
 ### 2. Mandatory FDD Rules
 - Actor Flows (Section B) are PRIMARY - always start from what actors do
@@ -24,7 +31,7 @@ Must reference parent level, never contradict.
 - Never redefine types - reference domain model from Overall Design
 - Validate before proceeding (Overall ≥90/100, Feature 100/100)
 - Feature size limits: ≤3000 lines (recommended), ≤4000 (hard limit)
-- OpenSpec changes are atomic - one change = one deployable unit
+- Implementation changes are atomic - one change = one deployable unit
 - Design is source of truth - if code contradicts design, fix design first
 
 ### 3. File Structure
@@ -35,7 +42,7 @@ architecture/
     ├── FEATURES.md              # Feature manifest
     └── feature-{slug}/
         ├── DESIGN.md            # Feature Design
-        └── openspec/            # OpenSpec changes
+        └── CHANGES.md           # Implementation plan
 ```
 
 ### 4. DESIGN.md Sections
@@ -58,9 +65,6 @@ architecture/
 ### 5. Validation Scores
 - Overall Design: ≥90/100
 - Feature Design: 100/100 + 100% completeness
-
-### 6. OpenSpec Structure
-Must follow OpenSpec specification exactly (see `openspec/AGENTS.md`).
 
 ---
 
@@ -118,10 +122,14 @@ Everything else is adapter-specific. Define as needed:
 {adapter-directory}/             # Configurable: spec/, guidelines/, docs/
 ├── FDD/                         # Core (immutable rules)
 └── FDD-Adapter/                 # Your project-specific extensions
-    ├── AGENTS.md                # Extends: ../FDD/AGENTS.md
-    └── workflows/
-        ├── AGENTS.md            # Extends: ../FDD/workflows/AGENTS.md
-        └── *.md                 # Extend specific workflows as needed
+    ├── AGENTS.md                # MUST WHEN navigation to specs
+    └── specs/                   # Detailed specifications
+        ├── domain-model.md      # Domain model format and location
+        ├── api-contracts.md     # API contract format and location
+        ├── testing.md           # Testing frameworks and commands
+        ├── build-deploy.md      # Build and deployment commands
+        ├── project-structure.md # Directory structure
+        └── conventions.md       # Coding standards and patterns
 ```
 
 **Note**: `{adapter-directory}` is configured by project owner (commonly `spec/`, `guidelines/`, or `docs/`)
@@ -131,64 +139,59 @@ Everything else is adapter-specific. Define as needed:
 ## Template: AGENTS.md
 
 ```markdown
-# AI Agent Instructions for {Project Name}
+# FDD Adapter: {Project Name}
 
-**Extends**: `../FDD/AGENTS.md`
-**Status**: COMPLETE
+**Extends**: `../../FDD/AGENTS.md`
+
+**Version**: 1.0  
+**Status**: COMPLETE  
+**Last Updated**: YYYY-MM-DD
 
 ---
 
-## Domain Model
+MUST read `specs/domain-model.md` WHEN working with domain types
 
-**Technology**: TypeScript
-**Location**: `architecture/domain-model/types.ts`
-**DML Syntax**: `@DomainModel.TypeName` (clickable references)
-**Validation**: `tsc --noEmit`
-**Traceability**: All Feature DESIGN.md must use clickable links to domain model
+MUST read `specs/api-contracts.md` WHEN working with API endpoints
 
-## API Contracts
+MUST read `specs/testing.md` WHEN writing or running tests
 
-**Technology**: OpenAPI 3.1
-**Location**: `architecture/api-specs/openapi.yaml`
-**Linking**: `@API.GET:/path` (clickable references)
-**Validation**: `openapi validate`
-**Traceability**: All Feature DESIGN.md must use clickable links to API specs
+MUST read `specs/build-deploy.md` WHEN building or deploying
 
-## Behavior Description Language
+MUST read `specs/project-structure.md` WHEN creating files or directories
 
-**Language**: FDL (default, see `../FDL.md`)
-**Override**: Not used (keep default FDL)
-
-## Implementation
-
-**Database**: Prisma
-**Auth**: JWT + refresh tokens
-**Testing**: Jest (unit), Playwright (e2e)
-**Commands**: `npm test`, `npm run build`
-**Validation Output**: Chat only (NO report files)
+MUST read `specs/conventions.md` WHEN writing code or documentation
 ```
 
----
-
-## Template: workflows/AGENTS.md
-
+**Example spec file** (`specs/domain-model.md`):
 ```markdown
-# Workflow Instructions for {Project Name}
+# Domain Model Specification
 
-**Extends**: `../../FDD/workflows/AGENTS.md`
+**Technology**: TypeScript  
+**Location**: `architecture/domain-model/types.ts`  
+**Format**: TypeScript interfaces and types
 
----
+## Type Identifier Syntax
 
-## Pre-Workflow Checks
-- [ ] npm dependencies installed
-- [ ] Database running
+Use `@DomainModel.TypeName` for clickable references in DESIGN.md files.
+
+**Example**:
+```typescript
+export interface User {
+  id: string;
+  name: string;
+}
+```
+
+Reference as: `@DomainModel.User`
 
 ## Validation
-- Domain model: `tsc --noEmit`
-- API specs: `openapi validate`
-- Validation output: Chat only (NO report files)
+
+**Command**: `tsc --noEmit`  
+**Expected**: No type errors
 
 ## Traceability
-- All Feature DESIGN.md Section F must use clickable links to Overall DESIGN.md
-- All OpenSpec changes must reference Feature DESIGN.md sections
+
+All Feature DESIGN.md files MUST use clickable links to domain model types.
 ```
+
+---

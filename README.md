@@ -73,154 +73,20 @@ FDD helps teams build software by:
 
 ## The AGENTS.md Foundation
 
-### Built on Industry Standard for AI Frameworks
+FDD is built on the **AGENTS.md approach** - a standardized file that serves as the single source of truth for AI agents. Instead of scattered documentation across README files, wikis, and comments, `AGENTS.md` provides complete methodology rules, workflow references, and project-specific context in one place.
 
-FDD is built on the **AGENTS.md approach** - an emerging industry standard for structuring AI-native frameworks and methodologies. This isn't just a documentation pattern; it's **the starting point** for any AI-assisted development framework.
+**Two-level hierarchy**:
+1. Core `AGENTS.md` - FDD methodology (universal, in FDD root)
+2. `{adapter-directory}/FDD-Adapter/AGENTS.md` - Project-specific adapter (your tech stack, conventions, workflows)
 
-**What is AGENTS.md?**
+**Key benefits**:
+- ✅ AI agents load complete context instantly (no searching)
+- ✅ Workflows become executable (agents follow step-by-step)
+- ✅ Version controlled (track methodology changes via git)
+- ✅ Composable (core + project extensions, no duplication)
+- ✅ Human + AI harmony (README for humans, AGENTS.md for AI)
 
-A standardized file (`AGENTS.md`) that serves as the **single source of truth** for AI agents, containing:
-- Complete methodology rules and constraints
-- Workflow references and execution patterns
-- Tool usage instructions
-- Project-specific context and conventions
-
-**Why AGENTS.md is the Superior Approach**:
-
-| Traditional Approach | AGENTS.md Approach |
-|---------------------|-------------------|
-| ❌ Scattered docs across README, wikis, comments | ✅ Single entry point for AI agents |
-| ❌ AI must search and piece together context | ✅ Complete context in one place |
-| ❌ Inconsistent interpretation of rules | ✅ Unambiguous, machine-readable instructions |
-| ❌ Manual workflow execution prone to errors | ✅ Workflows referenced and executable |
-| ❌ No separation of human vs AI documentation | ✅ Optimized specifically for AI consumption |
-| ❌ Changes require updating multiple locations | ✅ Update once, agents always have latest |
-
-**Industry Adoption - The Emerging Standard**:
-
-The AGENTS.md pattern is being adopted across major AI frameworks:
-
-1. **FDD** (This Framework)
-   - `spec/FDD/AGENTS.md` - core methodology
-   - `spec/FDD-Adapter/AGENTS.md` - project-specific extensions
-   - Two-level AGENTS.md hierarchy for universal + specific rules
-
-3. **Cursor AI** (`.cursorrules`)
-   - Early adopter of "rules file for AI" concept
-   - Single-file format (precursor to AGENTS.md)
-   - Proves demand for AI-specific instruction files
-
-4. **Anthropic Claude** (MCP protocol)
-   - Model Context Protocol servers expose resources
-   - Pattern: structured context for AI agents
-   - Aligns with AGENTS.md philosophy
-
-5. **Windsurf/Cline/Aider**
-   - All support agent-specific config files
-   - Moving toward standardized formats
-   - AGENTS.md provides that standardization
-
-**Why This is the Best Approach for AI Frameworks**:
-
-✅ **Instant Context Loading**
-```
-AI Agent starts → Reads AGENTS.md → Has complete methodology
-```
-No searching, no ambiguity, immediate understanding.
-
-✅ **Workflow Automation**
-```
-AGENTS.md references: workflows/feature.md
-AI Agent: Follows workflow step-by-step automatically
-```
-Workflows become executable, not just documentation.
-
-✅ **Version Control for AI Instructions**
-```
-git log spec/FDD/AGENTS.md
-→ See exactly when methodology rules changed
-→ Trace why AI behaves differently across versions
-```
-
-✅ **Composable Context**
-```
-FDD/AGENTS.md (universal rules)
-    ↓ extends
-FDD-Adapter/AGENTS.md (project-specific)
-    ↓ extends
-FDD-Adapter/workflows/AGENTS.md (workflow overrides)
-```
-Layered approach: core + extensions, never duplicated.
-
-✅ **Human + AI Harmony**
-- README.md → Human-readable overview
-- AGENTS.md → Machine-optimized instructions
-- Both reference same workflows, same structure
-- No duplication, no drift
-
-**FDD's AGENTS.md Architecture**:
-
-```
-spec/FDD/AGENTS.md                    # ← STARTING POINT
-├─ Core Methodology Rules             (immutable, validated)
-├─ Design Hierarchy                   (OVERALL → FEATURE → CHANGES → CODE)
-├─ Workflow References                (18 workflows)
-└─ Atomic Change Management           (implementation tracking)
-    ↓ AI agent reads this FIRST
-    
-spec/FDD-Adapter/AGENTS.md            # ← PROJECT CONTEXT
-├─ Domain Model Technology            (GTS, JSON Schema, etc.)
-├─ API Contract Format                (OpenAPI, CLISPEC, etc.)
-├─ Project Conventions                (naming, structure, security)
-└─ Workflow Extensions                (project-specific steps)
-    ↓ Extends core, never contradicts
-    
-spec/FDD-Adapter/workflows/AGENTS.md  # ← WORKFLOW OVERRIDES
-└─ Custom workflow selection logic    (optional, project-specific)
-```
-
-**The Starting Point: Always AGENTS.md**
-
-When an AI agent encounters a project using FDD:
-
-```
-Step 1: Agent reads spec/FDD-Adapter/AGENTS.md
-        ↓
-        "READ FIRST: spec/FDD/AGENTS.md"
-        
-Step 2: Agent reads spec/FDD/AGENTS.md
-        ↓
-        Core methodology loaded
-        
-Step 3: Agent reads project adapter (FDD-Adapter/AGENTS.md)
-        ↓
-        Project-specific context loaded
-        
-Step 4: Agent is ready
-        ↓
-        Complete understanding: methodology + project + workflows
-```
-
-**No other file is needed before starting.** AGENTS.md is the root of everything.
-
-**Proof This Works: Real-World Results**
-
-FDD development using AGENTS.md approach:
-- ✅ **fdd-cli** built entirely with AI agents following FDD/AGENTS.md
-- ✅ Complete designs created in minutes (not hours)
-- ✅ Zero ambiguity - agent never "guesses" what to do
-- ✅ Consistent structure across all features
-- ✅ Workflows executed correctly without human intervention
-
-**The Future: AGENTS.md as Standard**
-
-We believe AGENTS.md will become the universal pattern for:
-- ✅ Development frameworks (FDD, etc.)
-- ✅ Build tools (Maven, Gradle, npm with AI integration)
-- ✅ Testing frameworks (Jest, Pytest with agent runners)
-- ✅ CI/CD systems (GitHub Actions, GitLab CI with AI steps)
-
-**Every project will have AGENTS.md** - just like every project has README.md today.
+When an AI agent encounters FDD, it reads `FDD-Adapter/AGENTS.md` → which references `FDD/AGENTS.md` → complete understanding of methodology + project conventions + workflows.
 
 ---
 
@@ -240,13 +106,13 @@ All operation workflows automatically detect whether you're creating something n
 
 First time:
 ```
-Follow @spec/FDD/workflows/adapter.md
+Follow @guidelines/FDD/workflows/adapter.md
 → No adapter found → CREATE mode
 ```
 
 Later, to update:
 ```
-Follow @spec/FDD/workflows/adapter.md
+Follow @guidelines/FDD/workflows/adapter.md
 → Adapter exists → UPDATE mode
 → What to update?
    - Domain model specs
@@ -277,7 +143,7 @@ Q3: API contract format?
 **Example: Iterating on Feature Design**
 
 ```
-Follow @spec/FDD/workflows/feature.md
+Follow @guidelines/FDD/workflows/feature.md
 → Feature exists → UPDATE mode
 → What to update?
    - Add new actor flow
@@ -479,14 +345,11 @@ Ongoing: Update artifacts as project evolves
 
 **Key insight**: FDD includes change tracking via CHANGES.md. You get design artifacts + change tracking in one methodology. OpenSpec is optional if you need more sophisticated change management.
 
-### 5. �📝 FDL (FDD Description Language) - Logic Without Code
+### 5. 📝 FDL (FDD Description Language) - Logic Without Code
 
-FDD uses **FDL** - plain English pseudocode for describing algorithms, actor flows, and state machines. This is one of FDD's most powerful innovations.
+FDD uses **FDL** - plain English pseudocode for describing algorithms, actor flows, and state machines. It's readable by anyone (stakeholders, QA, developers), language-agnostic (works for any tech stack), and AI-friendly (clear instructions for code generation).
 
-**What is FDL?**
-
-Plain English syntax for describing logic that **anyone can read**, not just programmers:
-
+**Example**:
 ```
 1. User clicks "Add to Cart" button
 2. System checks if item is in stock
@@ -495,65 +358,9 @@ Plain English syntax for describing logic that **anyone can read**, not just pro
        2.1.2. STOP
 3. System adds item to cart
 4. System updates cart count
-5. Show success message "Item added"
 ```
 
-**Why FDL is a Game-Changer**:
-
-✅ **Stakeholders Can Review Logic**
-- Business analysts review actor flows
-- Product managers validate user experiences
-- QA designs test scenarios from flows
-- No programming knowledge needed
-
-✅ **Language-Agnostic Design**
-- Same design works for Python, JavaScript, Go, any language
-- Refactor implementation without changing design
-- Multiple teams can implement same design differently
-
-✅ **AI-Friendly**
-- AI agents convert FDL → code automatically
-- No ambiguity in instructions
-- Clear step-by-step logic
-
-✅ **Focus on Logic, Not Syntax**
-- Designers think about "what happens" not "how to code it"
-- No distractions from language-specific details
-- Catch logical errors before coding
-
-**Real Example: Authentication Flow**
-
-**FDL in DESIGN.md**:
-```
-### Flow: User Login
-
-1. User submits login form
-2. System validates email format
-   2.1. IF invalid format
-       2.1.1. Show error "Invalid email address"
-       2.1.2. STOP
-3. System checks credentials in database
-4. IF credentials match
-   4.1. Generate session token
-   4.2. Store token in cookies
-   4.3. Redirect to dashboard
-5. ELSE
-   5.1. Increment failed login counter
-   5.2. IF failed attempts >= 3
-       5.2.1. Lock account for 15 minutes
-       5.2.2. Send security email
-   5.3. Show error "Invalid credentials"
-```
-
-**Review Process**:
-- Product Manager reads → "Yes, this matches requirements"
-- Security Team reads → "Add rate limiting at step 5.2"
-- QA reads → "I'll test all branches: valid, invalid format, wrong password, account lock"
-- Developer reads → "Clear implementation path"
-
-**Then AI converts to code** - but the logic was reviewed and approved first.
-
-**FDL vs Code in Design Docs**:
+**FDL vs Code in Design**:
 
 | Code in DESIGN.md | FDL in DESIGN.md |
 |-------------------|------------------|
@@ -561,23 +368,8 @@ Plain English syntax for describing logic that **anyone can read**, not just pro
 | ❌ Couples design to language | ✅ Language-agnostic |
 | ❌ Syntax distracts from logic | ✅ Pure logic focus |
 | ❌ Outdates when refactored | ✅ Stable across refactors |
-| ❌ AI may misinterpret | ✅ Clear AI instructions |
 
-**Where FDL is Used**:
-
-1. **Actor Flows** (Section B) - PRIMARY
-   - What each actor does step-by-step
-   - All interactions and user journeys
-
-2. **Algorithms** (Section C)
-   - Business logic processing
-   - Data transformations
-   - Calculations and validations
-
-3. **State Machines** (Section D, optional)
-   - State transitions
-   - Conditions for state changes
-   - Actions on state entry/exit
+**Used in**: Actor Flows (Section B - primary), Algorithms (Section C), State Machines (Section D, optional). See `requirements/FDL.md` for complete syntax.
 
 **FDL Syntax Guide**:
 
@@ -639,7 +431,7 @@ Developer implements validated logic
 Bug caught before coding
 ```
 
-**See Full FDL Specification**: `spec/FDD/FDL.md`
+**See Full FDL Specification**: `requirements/FDL.md`
 
 ### 6. 🏗️ Structured Project Organization - Rules and Validation
 
@@ -806,7 +598,14 @@ FDD adds structure and validation. Skip it if:
 
 ## Core Components
 
-### 1. Three-Level Design Hierarchy
+### 1. Complete Design Hierarchy
+
+**Adapter** (`{adapter-directory}/FDD-Adapter/AGENTS.md`):
+- Tech stack definition (any language, any framework)
+- Domain model format (GTS, JSON Schema, TypeScript, etc.)
+- API contract format (OpenAPI, GraphQL, CLISPEC, etc.)
+- Testing frameworks and build tools
+- Project-specific conventions
 
 **Business Context** (`architecture/BUSINESS.md`):
 - System vision and purpose
@@ -901,9 +700,9 @@ This interactive workflow will:
 3. Choose domain model format (GTS, JSON Schema, TypeScript, etc.)
 4. Choose API contract format (OpenAPI, GraphQL, CLISPEC, etc.)
 5. Capture security model and non-functional requirements
-6. Generate or update `spec/FDD-Adapter/AGENTS.md` and spec files
+6. Generate or update `{adapter-directory}/FDD-Adapter/AGENTS.md` and spec files
 
-**Result**: Adapter created/updated at `spec/FDD-Adapter/` with status COMPLETE or INCOMPLETE
+**Result**: Adapter created/updated at `{adapter-directory}/FDD-Adapter/` with status COMPLETE or INCOMPLETE
 
 For manual setup, see: **`ADAPTER_GUIDE.md`**
 
@@ -924,7 +723,7 @@ All configs:
 - ✅ Provide FDD workflow references
 - ✅ Follow agent-specific format
 
-**Result**: Agent reads `spec/FDD-Adapter/AGENTS.md` automatically
+**Result**: Agent reads `{adapter-directory}/FDD-Adapter/AGENTS.md` automatically
 
 ### 5. Create Business Context & Design (2-4 hours) 🤖
 
@@ -982,87 +781,16 @@ Humans must:
 
 ## Team Workflow
 
-**Default**: FDD is designed for a **single expert** (typically an architect) who handles all design and implementation work. The roles below describe abstract responsibilities that can be delegated if desired.
+FDD is designed for a **single expert** (typically an architect or senior developer) working with AI assistants. The expert follows FDD workflows to create business context, design architecture, plan features, and implement changes. AI agents handle routine tasks like validation, file generation, and code implementation according to adapter conventions.
 
-### Roles (can be combined or delegated)
-
-**Technical Lead / Architect** (core role):
-- Creates Overall Design
-- Reviews all Feature Designs
-- Creates project adapter
-- Defines validation rules
-
-**Feature Owner** (optional delegation):
-- Creates Feature Design
-- Creates implementation plan (CHANGES.md)
-- Reviews implementation
-- Marks feature complete
-
-**Developer** (optional delegation):
-- Implements changes from CHANGES.md
-- Writes tests
-- Updates feature status
-
-**Stakeholder / QA** (optional review):
-- Reviews actor flows (plain English)
-- Reviews algorithms in FDL (reviewable)
-- Validates business logic
-
-### Process
-
-```
-1. Architect creates Overall Design
-   ↓ (validated by team)
-   
-2. Team reviews Overall Design
-   ↓ (approved)
-   
-3. Generate features from Overall Design
-   ↓ (FEATURES.md created)
-   
-4. For each feature:
-   4.1. Feature Owner creates DESIGN.md
-   4.2. Team reviews actor flows
-   4.3. Validate feature design
-   4.4. Create implementation plan (CHANGES.md)
-   4.5. Developers implement changes
-   4.6. Mark feature complete
-```
-
-### Design Reviews
-
-**Overall Design Review**:
-- All team members review
-- Stakeholders review vision and actors
-- Technical team validates architecture
-- Must score ≥90/100 before proceeding
-
-**Feature Design Review**:
-- Feature Owner presents
-- Team reviews actor flows (Section B is PRIMARY)
-- Algorithms in FDL reviewed by stakeholders
-- Technical details reviewed by developers
-- Must score 100/100 before implementation
-
-### Implementation
-
-**Change Implementation**:
-- Developers pick changes from CHANGES.md
-- Implement according to task checklist
-- Update status when tests pass
-
-**Feature Completion**:
-- All changes implemented
-- All tests pass
-- Code compiles
-- Feature marked ✅ in FEATURES.md
+For teams, work can be distributed: one person owns overall design and architecture decisions (BUSINESS.md, DESIGN.md, ADR.md), while others can own individual feature designs (FEATURES.md, feature/DESIGN.md) and implementation (CHANGES.md). All artifacts use plain English (FDL) for actor flows and algorithms, making them reviewable by non-technical stakeholders. Validation workflows ensure consistency and completeness before implementation.
 
 ---
 
 ## Directory Structure
 
 ```
-spec/FDD/                                       # Core FDD (standalone, universal)
+{adapter-directory}/FDD/                        # Core FDD (standalone, universal)
 ├── README.md                                   # This file - overview, getting started
 ├── QUICKSTART.md                               # 5-minute quick start guide
 ├── AGENTS.md                                   # AI agent instructions
@@ -1091,10 +819,12 @@ spec/FDD/                                       # Core FDD (standalone, universa
     ├── feature-change-validate.md              # Validate specific change
     └── feature-qa.md                           # Complete feature QA
 
-spec/FDD-Adapter/                               # Your project adapter (created by workflow)
+{adapter-directory}/FDD-Adapter/                # Your project adapter (created by workflow)
 ├── AGENTS.md                                   # AI instructions (project-specific)
-└── workflows/
-    └── AGENTS.md                              # Workflow extensions (project-specific)
+└── specs/                                      # Detailed specifications
+    ├── domain-model.md                         # Domain model format
+    ├── api-contracts.md                        # API contracts format
+    └── ...
 
 architecture/                                    # Your designs (created by workflows)
 ├── BUSINESS.md                                 # Business context
@@ -1259,34 +989,6 @@ Validation is done via checklists (manual review). AI assistants can help automa
 **Status**: In Progress
 **Assigned**: Developer Team
 ```
-
----
-
-## FDD CLI Tool
-
-**Status**: 🚀 **Active Development**
-
-The `fdd-cli` tool automates FDD workflows - structure initialization, design validation, feature management, and consistency checks.
-
-**Repository**: [https://github.com/ainetx/fdd-cli](https://github.com/ainetx/fdd-cli)
-
-**Why This Tool**:
-- Automate FDD workflow execution (init, validate, generate)
-- Enforce consistency across designs
-- Manage implementation changes (CHANGES.md)
-- Provide instant feedback on design quality
-
-**Example Usage** *(in development)*:
-```bash
-fdd init                    # Initialize FDD structure
-fdd validate architecture   # Validate Overall Design
-fdd feature init <slug>     # Initialize new feature
-fdd validate feature <slug> # Validate feature design
-```
-
-**Built with FDD**: The `fdd-cli` project itself is developed using FDD methodology - a real-world example of FDD in action. See the repository for complete designs, workflows, and implementation approach.
-
-For detailed documentation, architecture, and implementation status, visit the repository.
 
 ---
 

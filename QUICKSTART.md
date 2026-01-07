@@ -6,7 +6,7 @@
 
 ## What is FDD?
 
-FDD (Feature-Driven Development) is a design-first methodology that ensures your code matches your design through strict validation. It enforces a clear hierarchy: **Overall Design → Feature Design → OpenSpec Changes → Code**.
+FDD (Feature-Driven Development) is a design-first methodology that ensures your code matches your design through strict validation. It enforces a clear hierarchy: **Overall Design → Feature Design → Changes → Code**.
 
 **Core principle**: Design is source of truth. If code contradicts design, fix design first, then re-validate.
 
@@ -177,11 +177,15 @@ Follow workflows:
 ### Design Hierarchy (Never Violate)
 
 ```
+ADAPTER (tech stack, conventions)
+    ↓ defines formats and tools
+BUSINESS CONTEXT
+    ↓ defines actors and capabilities
 OVERALL DESIGN
     ↓ reference, never contradict
 FEATURE DESIGN
     ↓ reference, never contradict
-OPENSPEC CHANGES
+CHANGES (implementation plan)
     ↓ implement exactly
 CODE
 ```
