@@ -28,11 +28,6 @@
 
 **One missed issue = INVALID validation**
 
-**Model suitability is a hard gate**:
-- ✅ **MUST** follow `execution-protocol.md` Phase 2, Step 11 (Model Suitability Verification)
-- ✅ **MUST** stop if model identity/class is not proven (no guessing)
-- ✅ **MUST NOT** proceed with validation/checking tasks until user confirms the exact model (or class)
-
 ---
 
 ## Overview
