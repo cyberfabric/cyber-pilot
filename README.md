@@ -207,17 +207,57 @@ Deployment: Serverless
 - **Team flexibility** - Different teams, different stacks, same methodology
 - **Future-proof** - New tech? Just create new adapter
 
-### 3. Workflow-Driven Development - Everything Has a Process
+### 3. Skills System - Claude-Compatible AI Tools
+
+FDD provides **Claude-compatible skills** for automated artifact search and validation:
+
+**Available Skills**:
+
+**fdd-search** (Read-Only):
+- Search and query FDD artifacts deterministically
+- List sections, IDs, and items in any artifact
+- Find where FDD/ADR IDs are defined or used (repo-wide traceability)
+- Support for qualified IDs (`:ph-*`, `:inst-*`)
+- Text search across artifacts
+
+**fdd-artifact-validate** (Validation):
+- Validate BUSINESS.md, DESIGN.md, ADR.md structure
+- Validate FEATURES.md, feature DESIGN.md, feature CHANGES.md
+- Check against FDD structure requirements
+- Codebase traceability scan for features
+- Deterministic validation (no subjective scoring)
+
+**How Skills Work**:
+1. Agent discovers skills via `skills/SKILLS.md`
+2. Selects primary skill based on task (e.g., fdd-search for lookups)
+3. Enters "Skill Lock" - uses only that skill's commands
+4. Executes via Python scripts (requires `python3`)
+
+**Example Usage**:
+```bash
+# Search for an ID across the repository
+python3 skills/fdd-search/scripts/fdd-search.py where-used --id "fdd-example-req-001"
+
+# Validate feature design
+python3 skills/fdd-artifact-validate/scripts/fdd-artifact-validate.py validate-feature \
+  --design architecture/features/feature-login/DESIGN.md
+```
+
+Skills integrate with FDD workflows - validation workflows use fdd-artifact-validate as the Deterministic Gate.
+
+### 4. Workflow-Driven Development - Everything Has a Process
 
 In FDD, **every action is a workflow**. Development becomes predictable and repeatable.
 
 **Workflow Categories**:
 
-**Operation Workflows** (10 workflows - all support CREATE & UPDATE modes):
+**Operation Workflows** (13 workflows - all support CREATE & UPDATE modes):
 ```
 Adapter Configuration:
 ├─ adapter.md               → Create OR update project adapter
-├─ adapter-from-sources.md  → Create OR update adapter from codebase analysis
+├─ adapter-auto.md          → Auto-detect adapter from codebase
+├─ adapter-manual.md        → Manual adapter setup
+├─ adapter-bootstrap.md     → Bootstrap minimal adapter
 └─ adapter-agents.md        → Create OR update AI agent integration
 
 Architecture & Requirements:
@@ -232,15 +272,19 @@ Feature Management:
 └─ feature-change-implement.md → Implement changes (works with existing CHANGES.md)
 ```
 
-**Validation Workflows** (automated, read-only):
+**Validation Workflows** (7 automated, read-only):
 ```
+├─ adapter-validate.md      → Validate adapter completeness
 ├─ business-validate.md     → Validate BUSINESS.md structure
 ├─ adr-validate.md          → Validate ADR.md structure  
 ├─ design-validate.md       → Validate DESIGN.md (≥90/100)
 ├─ features-validate.md     → Validate FEATURES.md manifest
 ├─ feature-validate.md      → Validate feature DESIGN.md (100/100)
+├─ feature-changes-validate.md → Validate CHANGES.md structure
 └─ feature-code-validate.md → Validate entire feature code against design
 ```
+
+**Total**: 20 workflows (13 operation + 7 validation) + 2 skills
 
 **Key Principle**: All operation workflows are **independent and iterative** - run them anytime to create new or update existing artifacts.
 
@@ -346,57 +390,36 @@ Ongoing: Update artifacts as project evolves
 
 **Key insight**: FDD includes change tracking via CHANGES.md. You get design artifacts + change tracking in one methodology. OpenSpec is optional if you need more sophisticated change management.
 
-### 5. FDL (FDD Description Language) - Logic Without Code
+### 5. FDL (FDD Description Language) - Plain English Logic
 
-FDD uses **FDL** - plain English pseudocode for describing algorithms, actor flows, and state machines. It's readable by anyone (stakeholders, QA, developers), language-agnostic (works for any tech stack), and AI-friendly (clear instructions for code generation).
+FDD uses **FDL** to describe behavior in plain English - no code syntax, just numbered markdown lists with bold keywords.
 
-**Example**:
+**Why**: Anyone can review (stakeholders, QA, developers). Design stays valid across languages. Perfect for AI code generation.
+
+**Format**: Each step includes checkbox `[ ]`/`[x]`, phase `ph-N`, description, and instruction ID `inst-id`.
+
+**Example - User Authentication**:
+
+```markdown
+1. [x] - `ph-1` - User submits login form - `inst-submit-form`
+2. [x] - `ph-1` - System validates credentials - `inst-validate-creds`
+   1. [x] - `ph-1` - **IF** invalid: - `inst-if-invalid`
+      1. [x] - `ph-1` - Show error - `inst-show-error`
+      2. [x] - `ph-1` - **RETURN** error - `inst-return-error`
+3. [ ] - `ph-2` - **TRY**: - `inst-try`
+   1. [ ] - `ph-2` - Create session token - `inst-create-token`
+   2. [ ] - `ph-2` - Store in database - `inst-store-db`
+4. [ ] - `ph-2` - **CATCH** DatabaseError: - `inst-catch`
+   1. [ ] - `ph-2` - Log error - `inst-log-error`
+   2. [ ] - `ph-2` - **RETURN** 500 error - `inst-return-500`
+5. [ ] - `ph-1` - Redirect to dashboard - `inst-redirect`
 ```
-1. User clicks "Add to Cart" button
-2. System checks if item is in stock
-   2.1. IF out of stock
-       2.1.1. Show error "Item unavailable"
-       2.1.2. STOP
-3. System adds item to cart
-4. System updates cart count
-```
 
-**FDL vs Code in Design**:
+**Keywords**: **IF**/ELSE, **FOR EACH**, **WHILE**, **TRY**/CATCH, **PARALLEL**, **RETURN**, **MATCH**
 
-| Code in DESIGN.md | FDL in DESIGN.md |
-|-------------------|------------------|
-| Only programmers can review | Anyone can review |
-| Couples design to language | Language-agnostic |
-| Syntax distracts from logic | Pure logic focus |
-| Outdates when refactored | Stable across refactors |
+**Used in**: Actor Flows (Section B), Algorithms (Section C), State Machines (Section D)
 
-**Used in**: Actor Flows (Section B - primary), Algorithms (Section C), State Machines (Section D, optional). See `requirements/FDL.md` for complete syntax.
-
-**FDL Syntax Guide**:
-
-```
-Basic structure:
-1. Action or event
-2. Another action
-   2.1. Nested detail
-   2.2. Another detail
-3. Conditional
-   3.1. IF condition
-       3.1.1. Action if true
-   3.2. ELSE
-       3.2.1. Action if false
-4. Loops
-   4.1. FOR EACH item in list
-       4.1.1. Process item
-5. STOP - terminates flow
-
-Keywords (ALL CAPS):
-- IF / ELSE - conditions
-- FOR EACH - loops
-- STOP - terminate
-- AND / OR - logical operators
-- WHILE - conditional loops
-```
+**Full syntax**: See `requirements/FDL.md`
 
 **Why No Code in Designs**:
 
@@ -489,6 +512,14 @@ architecture/
 - API contracts documented (in chosen format)
 - No contradictions in architecture
 - Score ≥90/100 before proceeding
+
+**Features Manifest Validation** (workflow features-validate):
+- All features listed with unique IDs
+- Valid priorities (CRITICAL, HIGH, MEDIUM, LOW)
+- Valid status emojis (⏳ NOT_STARTED, 🔄 IN_PROGRESS, ✅ COMPLETE)
+- All feature directories exist
+- No orphaned feature directories
+- Dependencies are valid (no circular, no missing)
 
 **Feature Design Validation** (workflow feature-validate):
 - All sections present (A-G)
@@ -605,6 +636,13 @@ Completeness: 85% (minimum: 100%)
 - API contracts (formally specified)
 - Security model and NFRs
 - Architecture Decision Records (ADR.md)
+
+**Features Manifest** (`architecture/features/FEATURES.md`):
+- Complete list of all features
+- Feature priorities (CRITICAL, HIGH, MEDIUM, LOW)
+- Feature status (⏳ NOT_STARTED, 🔄 IN_PROGRESS, ✅ COMPLETE)
+- Dependencies between features
+- Auto-generated from feature designs
 
 **Feature Design** (`architecture/features/feature-{slug}/DESIGN.md`):
 - Feature overview and scope
@@ -748,44 +786,44 @@ FDD is designed to work with AI coding assistants (but doesn't require them).
 
 ### Recommended AI Setup (By Operation Type)
 
-FDD tasks vary greatly. Each operation class below lists strict, **validated** model options released **≤ 6 months** ago (Aug 2025 – Jan 2026).
+FDD tasks vary greatly. Each operation class below lists realistic model options as of 2024-2026.
 
-#### Model Classes (2025-2026)
+#### Model Classes
 - **Reasoning** – frontier-level logic, best for complex reasoning & strict validation.
 - **Flagship** – balanced capability & speed, strong generalists.
-- **Fast/Lite** – latency-optimised, high throughput, smaller context.
+- **Fast/Lite** – latency-optimized, high throughput, smaller context.
 
 #### 1. Documentation & Design (Writing)
 **Tasks**: Create/expand `BUSINESS.md`, `DESIGN.md`, `FEATURES.md`, `ADR.md`
-**Requirements**: Reasoning + Speed, long generation, strict templates
+**Requirements**: Long-context understanding, structured output, template following
 
-**Recommended (Aug 2025 – Jan 2026)**
-- **Cloud**: `GPT-5.2 (Flagship)`, `Claude 4.5 Opus (Reasoning)`, `Gemini 3 Flash (Fast Reasoning)`
-- **Local**: `DeepSeek-V3.2 (Reasoning)`, `Llama 4 Maverick 70B`
+**Recommended**
+- **Cloud**: `Claude 3.5 Sonnet`, `GPT-4o`, `Gemini 1.5 Pro`
+- **Local**: `DeepSeek-V3`, `Qwen2.5 72B`, `Llama 3.1 70B`
 
 #### 2. Validation & QA (Checking)
 **Tasks**: Score artifacts, detect contradictions, enforce checklists
-**Requirements**: **Top-Frontier Reasoning ONLY**, negative capability, zero hallucination
+**Requirements**: **Reasoning ONLY**, attention to detail, structured evaluation
 
-**Recommended (Aug 2025 – Jan 2026)**
-- **Cloud**: `OpenAI o3 (Reasoning)`, `OpenAI o1 (Reasoning)`, `Claude 4.5 Opus`
-- **Local**: `DeepSeek-R1 (Reasoning)` – other on-prem models currently fail strictness tests
+**Recommended**
+- **Cloud**: `Claude 3.5 Sonnet`, `GPT-4o`, `o1-preview` (for complex validation)
+- **Local**: `DeepSeek-R1`, `Qwen2.5-Coder 32B` – validation requires strong models
 
 #### 3. Implementation (Coding)
 **Tasks**: Write/refactor code & tests from `CHANGES.md`
-**Requirements**: High throughput, spec-following, moderate reasoning
+**Requirements**: Code generation, spec-following, moderate reasoning
 
-**Recommended (Aug 2025 – Jan 2026)**
-- **Cloud**: `Gemini 3 Flash`, `Claude 3.5 Haiku`, `GPT-5.2 Speed-tuned`
-- **Local**: `Qwen3-Coder`, `Mistral Large 3-Coder`, `Llama 4 Maverick-Code`
+**Recommended**
+- **Cloud**: `Claude 3.5 Sonnet`, `GPT-4o`, `Gemini 1.5 Flash`
+- **Local**: `DeepSeek-Coder V2`, `Qwen2.5-Coder 32B`, `CodeLlama 70B`
 
 #### 4. Adapter & Analysis (Scanning)
 **Tasks**: Project scanning, adapter setup, large file trees
-**Requirements**: Huge context window, good speed
+**Requirements**: Large context window (100k+ tokens)
 
-**Recommended (Aug 2025 – Jan 2026)**
-- **Cloud**: `Gemini 3 (2 M tokens)`, `GPT-5.2 (400 k)`
-- **Local**: `Llama 4 Maverick (256 k)`, `Mistral Large 3 (128 k)`
+**Recommended**
+- **Cloud**: `Claude 3.5 Sonnet (200k)`, `Gemini 1.5 Pro (2M)`, `GPT-4o (128k)`
+- **Local**: `Qwen2.5 72B (128k)`, `Llama 3.1 70B (128k)`
 
 
 ### AI Limitations
@@ -810,6 +848,12 @@ Humans must:
 
 FDD is designed for a **single expert** (typically an architect or senior developer) working with AI assistants. The expert follows FDD workflows to create business context, design architecture, plan features, and implement changes. AI agents handle routine tasks like validation, file generation, and code implementation according to adapter conventions.
 
+**With AI Assistants** (recommended for 2024-2026):
+- Use **Claude 3.5 Sonnet** or **GPT-4o** for most workflows
+- Use **o1-preview** or **Claude 3.5 Sonnet** for validation workflows
+- Skills system (`fdd-search`, `fdd-artifact-validate`) works with any AI assistant
+- Requires `python3` for skill execution
+
 For teams, work can be distributed: one person owns overall design and architecture decisions (BUSINESS.md, DESIGN.md, ADR.md), while others can own individual feature designs (FEATURES.md, feature/DESIGN.md) and implementation (CHANGES.md). All artifacts use plain English (FDL) for actor flows and algorithms, making them reviewable by non-technical stakeholders. Validation workflows ensure consistency and completeness before implementation.
 
 ---
@@ -821,15 +865,40 @@ For teams, work can be distributed: one person owns overall design and architect
 ├── README.md                                   # This file - overview, getting started
 ├── QUICKSTART.md                               # 5-minute quick start guide
 ├── AGENTS.md                                   # AI agent instructions
-├── FDL.md                                      # FDD Description Language syntax
+├── WORKFLOW.md                                 # Workflow system overview
+├── FDL.md                                      # FDD Description Language syntax (removed)
 ├── CLISPEC.md                                  # CLI command specification format
 ├── ADAPTER_GUIDE.md                            # How to create project adapter
-└── workflows/                                  # 18 workflows (10 operation + 8 validation)
+├── requirements/                               # All FDD requirements and structure specs
+│   ├── FDL.md                                  # FDD Description Language syntax
+│   ├── execution-protocol.md                   # Workflow execution protocol
+│   ├── workflow-execution.md                   # General workflow execution
+│   ├── business-context-structure.md           # BUSINESS.md structure
+│   ├── overall-design-structure.md             # DESIGN.md structure
+│   ├── adr-structure.md                        # ADR.md structure
+│   ├── features-manifest-structure.md          # FEATURES.md structure
+│   ├── feature-design-structure.md             # Feature DESIGN.md structure
+│   ├── feature-changes-structure.md            # Feature CHANGES.md structure
+│   └── adapter-structure.md                    # Adapter structure requirements
+├── skills/                                     # Claude-compatible AI skills
+│   ├── SKILLS.md                               # Skills discovery protocol
+│   ├── fdd-search/                             # Read-only search & traceability
+│   │   ├── SKILL.md                            # Skill definition
+│   │   ├── scripts/fdd-search.py               # Python script
+│   │   └── tests/                              # Unit tests
+│   └── fdd-artifact-validate/                  # Artifact validation
+│       ├── SKILL.md                            # Skill definition
+│       ├── scripts/fdd-artifact-validate.py    # Python script
+│       └── tests/                              # Unit tests
+└── workflows/                                  # 20 workflows (13 operation + 7 validation)
     ├── README.md                               # Workflow system overview
     ├── AGENTS.md                               # Workflow selection (for AI)
     ├── adapter.md                              # Create/update project adapter
-    ├── adapter-from-sources.md                 # Create/update adapter from codebase
+    ├── adapter-auto.md                         # Auto-detect adapter from codebase
+    ├── adapter-manual.md                       # Manual adapter setup
+    ├── adapter-bootstrap.md                    # Bootstrap minimal adapter
     ├── adapter-agents.md                       # Create/update AI agent config
+    ├── adapter-validate.md                     # Validate adapter completeness
     ├── business-context.md                     # Create/update BUSINESS.md
     ├── business-validate.md                    # Validate BUSINESS.md
     ├── adr.md                                  # Create/add/edit ADRs
@@ -841,15 +910,17 @@ For teams, work can be distributed: one person owns overall design and architect
     ├── feature.md                              # Create/update feature design
     ├── feature-validate.md                     # Validate feature design
     ├── feature-changes.md                      # Create/update CHANGES.md
-    ├── feature-code-validate.md                # Validate entire feature code against design
- 
+    ├── feature-changes-validate.md             # Validate CHANGES.md
+    ├── feature-change-implement.md             # Implement feature changes
+    └── feature-code-validate.md                # Validate entire feature code
 
 {adapter-directory}/FDD-Adapter/                # Your project adapter (created by workflow)
 ├── AGENTS.md                                   # AI instructions (project-specific)
 └── specs/                                      # Detailed specifications
     ├── domain-model.md                         # Domain model format
     ├── api-contracts.md                        # API contracts format
-    └── ...
+    ├── testing.md                              # Testing strategy
+    └── build.md                                # Build and deployment
 
 architecture/                                    # Your designs (created by workflows)
 ├── BUSINESS.md                                 # Business context
@@ -872,9 +943,11 @@ architecture/                                    # Your designs (created by work
 
 - **This File** (`README.md`) - Overview, getting started, team workflow
 - **`QUICKSTART.md`** - 5-minute quick start guide with examples
-- **`FDL.md`** - FDD Description Language syntax guide
+- **`WORKFLOW.md`** - Workflow system overview and best practices
+- **`requirements/FDL.md`** - FDD Description Language syntax guide
 - **`CLISPEC.md`** - CLI command specification format
-- **`workflows/README.md`** - All 18 workflows overview
+- **`workflows/README.md`** - All 20 workflows overview
+- **`skills/SKILLS.md`** - Skills discovery protocol for AI agents
 
 ### For AI Assistants
 
@@ -1044,16 +1117,18 @@ Validation is done via checklists (manual review). AI assistants can help automa
 **Structure**:
 - Core FDD (universal, framework-agnostic methodology)
 - Project adapters (technology-specific integration)
-- 18 workflows: 10 operation + 8 validation (IDE-agnostic guides)
+- 20 workflows: 13 operation + 7 validation (IDE-agnostic guides)
+- 2 Claude-compatible skills (fdd-search, fdd-artifact-validate)
 - Design requirements (formal specifications without technology lock-in)
 - Built-in formats (FDL, CLISPEC)
 
 **Documentation**:
 - Complete methodology guide (README.md)
 - Quick start guide (QUICKSTART.md)
-- 18 workflows: 10 operation + 8 validation (IDE-agnostic)
-- FDD Description Language spec (FDL.md)
+- 20 workflows: 13 operation + 7 validation (IDE-agnostic)
+- FDD Description Language spec (requirements/FDL.md)
 - CLI specification format (CLISPEC.md)
+- Skills system for AI agents (skills/)
 - Framework adapter templates
 
 ---
