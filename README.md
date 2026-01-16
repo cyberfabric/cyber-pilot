@@ -225,37 +225,34 @@ FDD provides **Claude-compatible skills** for automated artifact search and vali
 
 **Available Skills**:
 
-**fdd-search** (Read-Only):
-- Search and query FDD artifacts deterministically
-- List sections, IDs, and items in any artifact
-- Find where FDD/ADR IDs are defined or used (repo-wide traceability)
+**fdd** (Unified Tool):
+- **Validation**: Validate BUSINESS.md, DESIGN.md, ADR.md, FEATURES.md, feature DESIGN.md, feature CHANGES.md
+- **Search**: List sections, IDs, and items in any artifact
+- **Traceability**: Find where FDD/ADR IDs are defined or used (repo-wide traceability)
+- **Code Integration**: Codebase traceability scan (@fdd-* tags)
 - Support for qualified IDs (`:ph-*`, `:inst-*`)
-- Text search across artifacts
-
-**fdd-artifact-validate** (Validation):
-- Validate BUSINESS.md, DESIGN.md, ADR.md structure
-- Validate FEATURES.md, feature DESIGN.md, feature CHANGES.md
-- Check against FDD structure requirements
-- Codebase traceability scan for features
 - Deterministic validation (no subjective scoring)
 
 **How Skills Work**:
 1. Agent discovers skills via `skills/SKILLS.md`
-2. Selects primary skill based on task (e.g., fdd-search for lookups)
+2. Selects `fdd` skill for FDD-related tasks
 3. Enters "Skill Lock" - uses only that skill's commands
 4. Executes via Python scripts (requires `python3`)
 
 **Example Usage**:
 ```bash
 # Search for an ID across the repository
-python3 skills/fdd-search/scripts/fdd-search.py where-used --id "fdd-example-req-001"
+python3 skills/fdd/scripts/fdd.py where-used --id "fdd-example-req-001"
 
 # Validate feature design
-python3 skills/fdd-artifact-validate/scripts/fdd-artifact-validate.py validate-feature \
-  --design architecture/features/feature-login/DESIGN.md
+python3 skills/fdd/scripts/fdd.py validate \
+  --artifact architecture/features/feature-login/DESIGN.md
+
+# List all IDs in a document
+python3 skills/fdd/scripts/fdd.py list-ids --artifact architecture/DESIGN.md
 ```
 
-Skills integrate with FDD workflows - validation workflows use fdd-artifact-validate as the Deterministic Gate.
+Skills integrate with FDD workflows - validation workflows use `fdd` as the Deterministic Gate.
 
 ### 4. Workflow-Driven Development - Everything Has a Process
 
@@ -862,7 +859,7 @@ FDD is designed for a **single expert** (typically an architect or senior develo
 **With AI Assistants** (recommended for 2024-2026):
 - Use **Claude 3.5 Sonnet** or **GPT-4o** for most workflows
 - Use **o1-preview** or **Claude 3.5 Sonnet** for validation workflows
-- Skills system (`fdd-search`, `fdd-artifact-validate`) works with any AI assistant
+- Skills system (`fdd`) works with any AI assistant
 - Requires `python3` for skill execution
 
 For teams, work can be distributed: one person owns overall design and architecture decisions (BUSINESS.md, DESIGN.md, ADR.md), while others can own individual feature designs (FEATURES.md, feature/DESIGN.md) and implementation (CHANGES.md). All artifacts use plain English (FDL) for actor flows and algorithms, making them reviewable by non-technical stakeholders. Validation workflows ensure consistency and completeness before implementation.
@@ -893,13 +890,9 @@ For teams, work can be distributed: one person owns overall design and architect
 │   └── adapter-structure.md                    # Adapter structure requirements
 ├── skills/                                     # Claude-compatible AI skills
 │   ├── SKILLS.md                               # Skills discovery protocol
-│   ├── fdd-search/                             # Read-only search & traceability
-│   │   ├── SKILL.md                            # Skill definition
-│   │   ├── scripts/fdd-search.py               # Python script
-│   │   └── tests/                              # Unit tests
-│   └── fdd-artifact-validate/                  # Artifact validation
+│   └── fdd/                                    # Unified FDD tool
 │       ├── SKILL.md                            # Skill definition
-│       ├── scripts/fdd-artifact-validate.py    # Python script
+│       ├── scripts/fdd.py                      # Unified Python script
 │       └── tests/                              # Unit tests
 └── workflows/                                  # 20 workflows (13 operation + 7 validation)
     ├── README.md                               # Workflow system overview
@@ -1129,7 +1122,7 @@ Validation is done via checklists (manual review). AI assistants can help automa
 - Core FDD (universal, framework-agnostic methodology)
 - Project adapters (technology-specific integration)
 - 20 workflows: 13 operation + 7 validation (IDE-agnostic guides)
-- 2 Claude-compatible skills (fdd-search, fdd-artifact-validate)
+- Claude-compatible skill (`fdd` - unified validation, search & traceability)
 - Design requirements (formal specifications without technology lock-in)
 - Built-in formats (FDL, CLISPEC)
 

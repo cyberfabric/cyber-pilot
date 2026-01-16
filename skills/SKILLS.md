@@ -65,6 +65,26 @@ To run tests:
 
 ---
 
+## Available Skills
+
+### fdd
+
+**Name**: `fdd`  
+**Description**: Unified FDD tool for artifact validation, search, and traceability. Validates FDD artifacts (BUSINESS.md, DESIGN.md, ADR.md, FEATURES.md, feature DESIGN.md, CHANGES.md) against structure requirements, provides search and ID lookup across artifacts, and enables full bidirectional traceability between documentation and code.
+
+**Primary capabilities**:
+- Artifact validation with deterministic pass/fail
+- Search and query FDD artifacts
+- ID extraction and lookup (actors, capabilities, requirements, flows, etc.)
+- Repository-wide traceability (where-defined, where-used)
+- Code traceability scanning (@fdd-* tags)
+- Support for qualified IDs (:ph-N:inst-*)
+
+**Location**: `skills/fdd/`  
+**See**: `skills/fdd/SKILL.md` for complete documentation
+
+---
+
 ## References
 
 - Agent Skills specification: https://agentskills.io/specification

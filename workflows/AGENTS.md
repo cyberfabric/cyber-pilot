@@ -12,7 +12,9 @@ ALWAYS open and follow the specific workflow file from `workflows/` directory WH
 
 ALWAYS open and follow `../requirements/extension.md` WHEN workflow has **Extends**: {file}
 
-ALWAYS do check for `{adapter-directory}/FDD-Adapter/AGENTS.md` WHEN selecting which workflow to execute
+ALWAYS use `fdd adapter-info` skill to discover FDD-Adapter location WHEN starting any FDD work
+
+ALWAYS open and follow discovered `{adapter-directory}/AGENTS.md` WHEN adapter is found
 
 ---
 

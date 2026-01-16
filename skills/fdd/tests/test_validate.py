@@ -6,21 +6,21 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 
-def _load_validate_artifact_module():
+def _load_fdd_module():
     tests_dir = Path(__file__).resolve().parent
     skill_dir = tests_dir.parent
-    script_path = skill_dir / "scripts" / "validate_artifact.py"
+    script_path = skill_dir / "scripts" / "fdd.py"
 
-    spec = importlib.util.spec_from_file_location("validate_artifact", str(script_path))
+    spec = importlib.util.spec_from_file_location("fdd", str(script_path))
     if spec is None or spec.loader is None:
-        raise RuntimeError("Failed to create import spec for validate_artifact.py")
+        raise RuntimeError("Failed to create import spec for fdd.py")
 
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
 
 
-VA = _load_validate_artifact_module()
+VA = _load_fdd_module()
 
 
 def _req_text(*section_ids: str) -> str:

@@ -45,7 +45,9 @@ ALWAYS open and follow `requirements/extension.md` WHEN you see **Extends**: {fi
 
 ALWAYS open and follow `requirements/core.md` WHEN modifying any FDD core files
 
-ALWAYS open and follow `{adapter-directory}/FDD-Adapter/AGENTS.md` WHEN starting any FDD work
+ALWAYS use `fdd adapter-info` skill to discover FDD-Adapter location WHEN starting any FDD work
+
+ALWAYS open and follow `{adapter-directory}/AGENTS.md` WHEN starting any FDD work
 
 ALWAYS open and follow `requirements/FDL.md` WHEN you see FDL
 
@@ -91,12 +93,13 @@ ALWAYS open and follow `requirements/adapter-structure.md` WHEN creating or conf
 1. ❌ **Not reading execution-protocol.md** before starting workflow
 2. ❌ **Not reading workflow-execution.md** before executing workflow
 3. ❌ **Not reading workflow-execution-validations.md** for validation workflows
-4. ❌ **Not completing pre-flight checklist** in workflow files
-5. ❌ **Not running self-test** before reporting validation results
-6. ❌ **Not checking EVERY validation criterion individually**
-7. ❌ **Not using fdd-search for FDD artifact/FDD ID lookups**
-8. ❌ **Not using fdd-artifact-validate as Deterministic Gate**
-9. ❌ **Not cross-referencing EVERY FDD ID**
+4. ❌ **Not running fdd adapter-info** to discover project adapter
+5. ❌ **Not completing pre-flight checklist** in workflow files
+6. ❌ **Not running self-test** before reporting validation results
+7. ❌ **Not checking EVERY validation criterion individually**
+8. ❌ **Not using fdd skill for FDD artifact/FDD ID lookups**
+9. ❌ **Not using fdd validate as Deterministic Gate**
+10. ❌ **Not cross-referencing EVERY FDD ID**
 
 **One violation = entire workflow execution FAILED**
 

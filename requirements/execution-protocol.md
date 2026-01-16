@@ -51,26 +51,53 @@ I will NOT skip any steps.
 4. [ ] Note all validation criteria (for validation workflows)
 5. [ ] Verify ALL prerequisites are satisfied
 
+### Step 4: Discover FDD Adapter
+
+**ALWAYS run first**:
+```bash
+fdd adapter-info --root .
+```
+
+**Parse output**:
+- [ ] If `status: FOUND` → Load adapter AGENTS.md from `adapter_dir`
+- [ ] If `status: NOT_FOUND` → Use FDD core defaults only
+- [ ] Extract `adapter_dir`, `project_name`, `specs` list
+
+**If adapter found**:
+1. [ ] Open and follow `{adapter_dir}/AGENTS.md`
+2. [ ] Note all adapter-specific WHEN rules
+3. [ ] Note available specs in `specs/` directory
+4. [ ] Apply adapter conventions to all workflows
+
+**Adapter specs usage**:
+- Use adapter specs when workflow WHEN rule references them
+- Examples: `tech-stack.md`, `domain-model.md`, `conventions.md`, `testing.md`
+
+**If adapter NOT found**:
+- Proceed with FDD core methodology only
+- No project-specific conventions available
+
 ### Mandatory Skill Usage (CRITICAL)
 
-**Agent MUST use these skills without exceptions**:
+**Agent MUST use this skill without exceptions**:
 
-**1. FDD Artifact Search & Traceability (`skills/fdd-search`)**:
+**FDD Unified Tool (`skills/fdd`)**:
+- ALWAYS use for discovering FDD adapter configuration (adapter-info)
 - ALWAYS use for searching FDD artifacts (DESIGN.md, BUSINESS.md, FEATURES.md, CHANGES.md, ADR.md)
 - ALWAYS use for ID lookup (actors, capabilities, requirements, flows, algorithms, states, changes)
 - ALWAYS use for traceability scans (where-defined, where-used)
 - ALWAYS use for code traceability (@fdd-* tags)
 - ALWAYS use for cross-referencing IDs across artifacts and code
-
-**Commands**: `list-ids`, `list-items`, `find-id`, `where-defined`, `where-used`, `scan-ids`, `search`
-
-**2. FDD Artifact & Code Validation (`skills/fdd-artifact-validate`)**:
 - ALWAYS use for validating DESIGN.md and CHANGES.md structure and content
 - ALWAYS use for code traceability validation (@fdd-* markers in code)
 - ALWAYS use for systematic artifact validation before manual checks
 - ALWAYS run as Deterministic Gate (fail fast before LLM validation)
 
-**Commands**: `validate --artifact`, `validate --code-root`
+**Adapter Discovery**: `adapter-info --root {project-root}`
+
+**Search & Traceability Commands**: `list-ids`, `list-items`, `list-sections`, `find-id`, `where-defined`, `where-used`, `scan-ids`, `search`, `read-section`, `get-item`
+
+**Validation Commands**: `validate --artifact`
 
 **Skill Integrity (MANDATORY)**:
 - [ ] If a skill/validator returns **FAIL**, the agent MUST treat the output as authoritative.
@@ -145,20 +172,20 @@ I will NOT skip any steps.
 
 ### Preparation Verification
 8. ⚠️ **Do I have a plan for systematic verification?**
-   - [ ] YES - I will use fdd-search, fdd-artifact-validate, grep, read_file
+   - [ ] YES - I will use fdd skill, grep, read_file
    - [ ] NO - ALWAYS create verification plan
 
 9. ⚠️ **Do I know which mandatory skills to use?**
-   - [ ] YES - fdd-search for artifact/ID lookup, fdd-artifact-validate for validation
+   - [ ] YES - fdd skill for artifact/ID lookup and validation
    - [ ] NO - ALWAYS review Mandatory Skill Usage section
 
 10. ⚠️ **Am I prepared to report EVERY issue, no matter how small?**
     - [ ] YES - I will report all issues found
     - [ ] NO - ALWAYS adjust my mindset
 
-11. ⚠️ **Have I run fdd-artifact-validate as Deterministic Gate and did it PASS?**
+11. ⚠️ **Have I run fdd validate as Deterministic Gate and did it PASS?**
     - [ ] YES - Deterministic Gate PASS, safe to proceed to LLM-heavy validation
-    - [ ] NO - ALWAYS run fdd-artifact-validate now; if FAIL → STOP workflow
+    - [ ] NO - ALWAYS run fdd validate now; if FAIL → STOP workflow
 
 ---
 
@@ -167,7 +194,7 @@ I will NOT skip any steps.
 **Goal**: Fail fast using deterministic validators before spending time on LLM-heavy/manual validation.
 
 **Deterministic validators include**:
-- `fdd-artifact-validate` skill (artifact structure, ID format, code traceability)
+- `fdd` skill validate command (artifact structure, ID format, code traceability)
 - Build/lint/test commands that are explicitly required by the workflow or adapter specs
 - File existence/readability checks
 
@@ -177,8 +204,8 @@ I will NOT skip any steps.
 - Manual deep review beyond what deterministic validators report
 
 **MANDATORY rules**:
-1. Run `fdd-artifact-validate` as early as possible for validation workflows.
-2. If `fdd-artifact-validate` returns **FAIL**:
+1. Run `fdd validate` as early as possible for validation workflows.
+2. If `fdd validate` returns **FAIL**:
    - The workflow result is **FAIL**.
    - STOP immediately.
    - Do NOT proceed to any LLM-heavy/manual validation.
@@ -298,8 +325,8 @@ I will NOT skip any steps.
 ✅ Passed all 11 readiness questions
 ✅ Understood "Maximum Attention to Detail"
 ✅ Created complete validation checklist
-✅ Identified mandatory skills (fdd-search, fdd-artifact-validate)
-✅ Deterministic Gate PASS (fdd-artifact-validate)
+✅ Identified mandatory skill (fdd)
+✅ Deterministic Gate PASS (fdd validate)
 
 **Phase 3: Execution**
 ✅ Checked EVERY criterion individually
@@ -326,8 +353,8 @@ I will NOT skip any steps.
 4. ❌ **Not completing pre-flight checklist** in workflow files
 5. ❌ **Not running self-test** before reporting validation results
 6. ❌ **Not checking EVERY validation criterion individually**
-7. ❌ **Not using fdd-search for artifact/ID lookups**
-8. ❌ **Not using fdd-artifact-validate as Deterministic Gate**
+7. ❌ **Not using fdd skill for FDD artifact/FDD ID lookups**
+8. ❌ **Not using fdd validate as Deterministic Gate**
 9. ❌ **Not cross-referencing EVERY ID**
 
 **One violation = entire workflow execution FAILED**
