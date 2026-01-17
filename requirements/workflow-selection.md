@@ -1,8 +1,11 @@
+<!-- @fdd-change:fdd-fdd-feature-core-methodology-change-agents-navigation:ph-1 -->
+<!-- fdd-begin fdd-fdd-feature-core-methodology-algo-resolve-workflow:ph-1:inst-parse-request -->
 # Workflow Selection Guide
 
-**Version**: 2.0  
+**Version**: 2.1  
 **Purpose**: Select appropriate FDD workflow based on project state  
 **Scope**: All FDD workflow selection decisions
+<!-- fdd-end   fdd-fdd-feature-core-methodology-algo-resolve-workflow:ph-1:inst-parse-request -->
 
 ---
 
@@ -40,6 +43,7 @@ This guide helps you select the correct FDD workflow based on:
 
 ## Available Workflows
 
+<!-- fdd-begin fdd-fdd-feature-core-methodology-algo-resolve-workflow:ph-1:inst-check-adapter -->
 ### Phase 0: Adapter Setup
 
 **adapter.md** - Create or update FDD adapter
@@ -63,20 +67,28 @@ This guide helps you select the correct FDD workflow based on:
 - **Use when**: Adapter created or updated
 - **Validates**: File structure, AGENTS.md format, spec files
 - **Next**: `business-context` or `design`
+<!-- fdd-end   fdd-fdd-feature-core-methodology-algo-resolve-workflow:ph-1:inst-check-adapter -->
 
 ---
 
 ### Phase 1: Business & Architecture
 
-**business-context.md** - Create or update BUSINESS.md
+#<!-- fdd-begin fdd-fdd-feature-core-methodology-algo-resolve-workflow:ph-1:inst-check-business -->
+## Phase 1: Business & Architecture
+
+### Workflow: `business-context`
+<!-- fdd-end   fdd-fdd-feature-core-methodology-algo-resolve-workflow:ph-1:inst-check-business -->.md** - Create or update BUSINESS.md
 - **Use when**: Need to document business context
 - **Creates**: `architecture/BUSINESS.md`
 - **Sections**: Vision, Actors, Capabilities
 - **Modes**: CREATE or UPDATE
 - **Next**: `business-validate`
 
-**business-validate.md** - Validate business context
-- **Use when**: BUSINESS.md created or updated  
+**business-validate.md** - Validate business<!-- fdd-begin fdd-fdd-feature-core-methodology-algo-resolve-workflow:ph-1:inst-check-business -->
+### Workflow: `business-validate`
+
+**When**: After BUSINESS.md created or updated
+<!-- fdd-end   fdd-fdd-feature-core-methodology-algo-resolve-workflow:ph-1:inst-check-business -->  
 - **Validates**: Required sections, actor/capability IDs
 - **Score**: ≥90/100
 - **Next**: `design`
@@ -111,7 +123,11 @@ This guide helps you select the correct FDD workflow based on:
 
 ### Phase 2: Feature Planning
 
-**features.md** - Create or update features manifest
+#<!-- fdd-begin fdd-fdd-feature-core-methodology-algo-resolve-workflow:ph-1:inst-check-feature -->
+## Phase 2: Feature Planning
+
+### Workflow: `features`
+<!-- fdd-end   fdd-fdd-feature-core-methodology-algo-resolve-workflow:ph-1:inst-check-feature -->.md** - Create or update features manifest
 - **Use when**: Need to plan/list features
 - **Creates**: `architecture/FEATURES.md`
 - **Modes**: CREATE (from DESIGN.md) or UPDATE (manual)
@@ -198,8 +214,12 @@ START
 ├─ All changes done, validate code?
 │  └─> feature-code-validate.md
 │
-└─ Need to update existing doc?
-   └─> Use same workflow in UPDATE mode
+├─ Need to update existing doc?
+│  └─> Use same workflow in UPDATE mode
+│
+└─ Need to validate feature or design?
+   └─> feature-validate.md or design-validate.md
+```
 
 ---
 

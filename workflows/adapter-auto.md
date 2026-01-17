@@ -2,7 +2,7 @@
 
 **Type**: Operation  
 **Role**: Any  
-**Artifact**: `{adapter-directory}/FDD-Adapter/AGENTS.md` + `specs/` files
+**Artifact**: `{adapter-directory}/AGENTS.md` + `specs/` files
 
 ---
 
@@ -49,7 +49,7 @@ Extract:
 **Prerequisites**:
 - [ ] Project repository exists - validate: Check .git directory exists
 - [ ] Source code OR documentation exists - validate: Check src/ or docs/ directories exist
-- [ ] Adapter initialized - validate: Check {adapter-directory}/FDD-Adapter/AGENTS.md exists
+- [ ] Adapter initialized - validate: Check {adapter-directory}/AGENTS.md exists
 
 **If adapter NOT initialized**: Run `adapter-bootstrap` first
 

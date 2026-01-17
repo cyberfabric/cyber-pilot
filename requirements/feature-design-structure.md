@@ -1,3 +1,4 @@
+<!-- @fdd-change:fdd-fdd-feature-core-methodology-change-requirements-structure:ph-1 -->
 # Feature Design Structure Requirements
 
 **ALWAYS open and follow**: `../workflows/feature.md`

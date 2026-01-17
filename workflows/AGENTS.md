@@ -1,3 +1,4 @@
+<!-- @fdd-change:fdd-fdd-feature-core-methodology-change-agents-navigation:ph-1 -->
 # FDD Workflow Navigation
 
 **ALWAYS open and follow**: `../requirements/core.md` WHEN editing this file

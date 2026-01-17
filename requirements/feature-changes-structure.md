@@ -1,3 +1,4 @@
+<!-- @fdd-change:fdd-fdd-feature-core-methodology-change-requirements-structure:ph-1 -->
 # Feature Changes (Implementation Plan) Structure Requirements
 
 **ALWAYS open and follow**: `../workflows/feature-changes.md`
@@ -204,7 +205,9 @@
 
 ### Validation Criteria
 
-**Code validation** (MUST pass):
+**Target Score**: ≥90/100 for PASS status
+
+**Validations** (5 groups):
 - All tasks completed
 - All tests pass (including tests for all testing scenarios from DESIGN.md Section F)
 - Code follows adapter conventions
@@ -215,6 +218,8 @@
 - **Phase postfix**: All feature-scoped tags use `:ph-{N}` postfix; standalone phase tags MUST NOT exist
 - **Phase consistency**: Every `:ph-{N}` used in code tags MUST be listed in the change `**Phases**` field
 - **Testing scenarios implemented**: All testing scenarios from feature DESIGN.md Section F have corresponding tests
+- **FDL scope coverage**: All FDL scopes (flows/algos/states/tests) from DESIGN.md referenced in CHANGES.md
+- **FDL implementation complete**: If feature COMPLETED, all FDL instructions in DESIGN.md marked `[x]`
 
 ---
 ```
@@ -225,7 +230,32 @@
 
 **Purpose**: Enable traceability from code to change identifiers for auditing, debugging, and impact analysis
 
-**Tag Format**: `@fdd-change:fdd-{project}-{feature}-change-{slug}:ph-{N}` (ONLY full format allowed)
+**Code tag format** (paired fdd-begin/fdd-end blocks):
+```html
+<!-- fdd-begin fdd-x-feature-y-change-impl:ph-1:inst-check-title -->
+... implementation code ...
+<!-- fdd-end   fdd-x-feature-y-change-impl:ph-1:inst-check-title -->
+```
+
+**Other languages**:
+```python
+# fdd-begin fdd-x-feature-y-change-impl:ph-1:inst-validate
+def validate_input(data):
+    # implementation
+    return True
+# fdd-end   fdd-x-feature-y-change-impl:ph-1:inst-validate
+```
+
+```typescript
+// fdd-begin fdd-x-feature-y-change-impl:ph-1:inst-process
+function processData(input: Data): Result {
+    // implementation
+    return result;
+}
+// fdd-end   fdd-x-feature-y-change-impl:ph-1:inst-process
+```
+
+**IMPORTANT**: Tags MUST wrap non-empty code. Single-line unwrapped markers are prohibited. (ONLY full format allowed)
 
 **Phase Postfix Format**: `:ph-{N}` (phase is always a postfix of other FDD tags)
 
@@ -250,6 +280,7 @@
 - **Go**: `// @fdd-change:{change-id}:ph-{N}`
 - **Java/C#**: `// @fdd-change:{change-id}:ph-{N}`
 - **SQL**: `-- @fdd-change:{change-id}:ph-{N}`
+- **Markdown**: `<!-- @fdd-change:{change-id}:ph-{N} -->` (HTML comment in file header)
 
 **Examples**:
 

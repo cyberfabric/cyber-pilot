@@ -1,3 +1,4 @@
+<!-- @fdd-change:fdd-fdd-feature-core-methodology-change-core-workflows:ph-1 -->
 ---
 description: Create or update feature design document
 ---
@@ -38,7 +39,9 @@ Extract:
 
 ## Steps
 
+<!-- fdd-begin fdd-fdd-feature-core-methodology-flow-developer-implement:ph-1:inst-navigate-feature-workflow -->
 ### 1. Identify Feature
+<!-- fdd-end   fdd-fdd-feature-core-methodology-flow-developer-implement:ph-1:inst-navigate-feature-workflow -->
 
 Ask user: Which feature to design/update?
 

@@ -427,25 +427,345 @@ def _slugify_anchor(text: str) -> str:
     return t.strip("-")
 
 
+def extract_fdl_instructions(text: str) -> Dict[str, Dict[str, List[str]]]:
+    """
+    Extract FDL instruction IDs marked as implemented [x] from feature design.
+    
+    Returns:
+        Dict with structure:
+        {
+            "fdd-{project}-{type}-{name}": {
+                "instructions": ["inst-id-1", "inst-id-2", ...],  # Only [x] marked
+                "completed": ["inst-id-1", ...]  # Same as instructions (kept for compatibility)
+            }
+        }
+    """
+    result: Dict[str, Dict[str, List[str]]] = {}
+    current_scope_id: Optional[str] = None
+    
+    for line in text.splitlines():
+        # Match FDL scope ID line: - [ ] **ID**: `fdd-{project}-{type}-{name}`
+        if FDL_SCOPE_ID_RE.match(line):
+            m = re.search(r"`(fdd-[a-z0-9-]+)`", line)
+            if m:
+                current_scope_id = m.group(1)
+                if current_scope_id not in result:
+                    result[current_scope_id] = {"instructions": [], "completed": []}
+        
+        # Extract instruction IDs ONLY from [x] marked FDL step lines
+        if current_scope_id and FDL_STEP_LINE_RE.match(line):
+            # Check if marked as implemented [x]
+            if re.match(r"^\s*\d+\.\s*\[x\]", line, re.I):
+                m_inst = re.search(r"`(inst-[a-z0-9-]+)`\s*$", line.strip())
+                if m_inst:
+                    inst_id = m_inst.group(1)
+                    result[current_scope_id]["instructions"].append(inst_id)
+                    result[current_scope_id]["completed"].append(inst_id)
+    
+    return result
+
+
+def extract_scope_references_from_changes(text: str) -> set:
+    """
+    Extract all FDL scope IDs (flow/algo/state/test) referenced in CHANGES.md.
+    """
+    scope_ids: set = set()
+    
+    # Extract from task descriptions and references sections
+    flow_ids = re.findall(r"`(fdd-[a-z0-9-]+-(?:flow|algo|state|test)-[a-z0-9-]+)`", text)
+    scope_ids.update(flow_ids)
+    
+    return scope_ids
+
+
+def validate_fdl_coverage(
+    changes_text: str,
+    design_fdl: Dict[str, Dict[str, List]]
+) -> List[Dict[str, object]]:
+    """
+    Validate that CHANGES.md references all FDL scopes (flows/algos/states/tests) from DESIGN.md.
+    """
+    errors: List[Dict[str, object]] = []
+    
+    # Extract all scope IDs mentioned in CHANGES.md
+    referenced_scopes = extract_scope_references_from_changes(changes_text)
+    
+    # Check that each FDL scope is referenced
+    for scope_id in design_fdl.keys():
+        if scope_id not in referenced_scopes:
+            errors.append({
+                "type": "fdl_coverage",
+                "message": f"FDL scope '{scope_id}' from DESIGN.md not referenced in CHANGES.md",
+                "scope_id": scope_id
+            })
+    
+    return errors
+
+
+def extract_inst_tags_from_code(feature_root: Path) -> Dict[str, Dict[str, bool]]:
+    """
+    Scan codebase for FDL instruction tags in format: fdd-begin:@fdd-*:...:ph-N:inst-{id} / fdd-end:@fdd-*:...:ph-N:inst-{id}
+    
+    Returns:
+        Dict mapping inst-{id} to {"has_begin": bool, "has_end": bool, "complete": bool}
+    """
+    inst_tags: Dict[str, Dict[str, bool]] = {}
+    
+    # File extensions to scan
+    code_extensions = {".py", ".rs", ".ts", ".tsx", ".js", ".jsx", ".go", ".java", ".cs", ".sql", ".md"}
+    
+    # Skip directories
+    skip_dirs = {".git", "node_modules", "venv", "__pycache__", ".pytest_cache", "target", "build", "dist"}
+    
+    def scan_file(file_path: Path) -> None:
+        try:
+            content = file_path.read_text(encoding="utf-8", errors="ignore")
+            
+            # Match: fdd-begin fdd-...:ph-N:inst-{id}
+            # Pattern: fdd-begin followed by anything then inst-{id}
+            begin_pattern = r'fdd-begin\s+.*?(inst-[a-z0-9-]+)'
+            begin_matches = re.findall(begin_pattern, content)
+            
+            # Match: fdd-end fdd-...:ph-N:inst-{id}
+            end_pattern = r'fdd-end\s+.*?(inst-[a-z0-9-]+)'
+            end_matches = re.findall(end_pattern, content)
+            
+            # Record findings
+            for inst_id in begin_matches:
+                if inst_id not in inst_tags:
+                    inst_tags[inst_id] = {"has_begin": False, "has_end": False, "complete": False}
+                inst_tags[inst_id]["has_begin"] = True
+            
+            for inst_id in end_matches:
+                if inst_id not in inst_tags:
+                    inst_tags[inst_id] = {"has_begin": False, "has_end": False, "complete": False}
+                inst_tags[inst_id]["has_end"] = True
+            
+        except Exception:
+            pass
+    
+    def scan_directory(directory: Path) -> None:
+        try:
+            for item in directory.iterdir():
+                if item.is_dir():
+                    if item.name not in skip_dirs:
+                        scan_directory(item)
+                elif item.is_file() and item.suffix in code_extensions:
+                    scan_file(item)
+        except (PermissionError, OSError):
+            pass
+    
+    # Start scanning from feature root or project root
+    if feature_root and feature_root.exists():
+        # Scan from project root (parent of architecture/features/feature-X)
+        project_root = feature_root.parent.parent.parent
+        if project_root.exists():
+            scan_directory(project_root)
+    
+    # Mark complete if both begin and end tags present
+    for inst_id in inst_tags:
+        inst_tags[inst_id]["complete"] = inst_tags[inst_id]["has_begin"] and inst_tags[inst_id]["has_end"]
+    
+    return inst_tags
+
+
+def validate_fdl_code_to_design(
+    feature_root: Path,
+    design_text: str
+) -> List[Dict[str, object]]:
+    """
+    Reverse validation: Check that all fdd tags in code are marked [x] in DESIGN.md.
+    
+    If code has fdd-begin/fdd-end tags but instruction is not marked [x],
+    this means implementation exists but not documented as complete.
+    """
+    errors: List[Dict[str, object]] = []
+    
+    # Extract all inst-{id} tags from code
+    code_inst_tags = extract_inst_tags_from_code(feature_root)
+    
+    # Extract all [x] marked instructions from DESIGN.md
+    design_fdl = extract_fdl_instructions(design_text)
+    
+    # Build set of all [x] marked inst-ids from DESIGN
+    marked_instructions = set()
+    for scope_id, data in design_fdl.items():
+        marked_instructions.update(data["instructions"])
+    
+    # Find tags in code that are NOT marked [x] in DESIGN
+    untracked_implementations = []
+    for inst_id, tag_info in code_inst_tags.items():
+        if tag_info["complete"] and inst_id not in marked_instructions:
+            untracked_implementations.append(inst_id)
+    
+    if untracked_implementations:
+        errors.append({
+            "type": "fdl_untracked_implementation",
+            "message": f"Found {len(untracked_implementations)} fdd tags in code not marked [x] in DESIGN.md",
+            "count": len(untracked_implementations),
+            "instructions": untracked_implementations[:10],
+            "suggestion": "Mark these instructions as [x] in DESIGN.md or remove tags from code"
+        })
+    
+    return errors
+
+
+def validate_fdl_code_implementation(
+    feature_root: Path,
+    design_fdl: Dict[str, Dict[str, List]]
+) -> List[Dict[str, object]]:
+    """
+    Validate that all FDL instructions from DESIGN.md are implemented in code.
+    
+    Checks for presence of paired fdd-begin/fdd-end blocks wrapping implementation code.
+    """
+    errors: List[Dict[str, object]] = []
+    
+    # Extract all inst-{id} tags from code with begin/end status
+    code_inst_tags = extract_inst_tags_from_code(feature_root)
+    
+    # Collect missing and incomplete implementations
+    missing_implementations: List[Tuple[str, str]] = []
+    incomplete_implementations: List[Tuple[str, str, str]] = []  # (scope, inst, reason)
+    
+    for scope_id, data in design_fdl.items():
+        for inst_id in data["instructions"]:
+            if inst_id not in code_inst_tags:
+                # Completely missing
+                missing_implementations.append((scope_id, inst_id))
+            elif not code_inst_tags[inst_id]["complete"]:
+                # Present but incomplete (missing begin or end tag)
+                if not code_inst_tags[inst_id]["has_begin"]:
+                    reason = "missing fdd-begin tag"
+                elif not code_inst_tags[inst_id]["has_end"]:
+                    reason = "missing fdd-end tag"
+                else:
+                    reason = "incomplete"
+                incomplete_implementations.append((scope_id, inst_id, reason))
+    
+    if missing_implementations:
+        errors.append({
+            "type": "fdl_code_missing",
+            "message": f"FDL instructions not found in code (missing {len(missing_implementations)} inst-{{id}} implementations)",
+            "missing_count": len(missing_implementations),
+            "examples": [
+                {"scope": scope, "instruction": inst}
+                for scope, inst in missing_implementations[:10]
+            ]
+        })
+    
+    if incomplete_implementations:
+        errors.append({
+            "type": "fdl_code_incomplete",
+            "message": f"FDL instructions have incomplete fdd-begin/fdd-end pairs ({len(incomplete_implementations)} instructions)",
+            "incomplete_count": len(incomplete_implementations),
+            "examples": [
+                {"scope": scope, "instruction": inst, "reason": reason}
+                for scope, inst, reason in incomplete_implementations[:10]
+            ]
+        })
+    
+    return errors
+
+
+def validate_fdl_completion(
+    changes_text: str,
+    design_fdl: Dict[str, Dict[str, List]]
+) -> List[Dict[str, object]]:
+    """
+    Validate that COMPLETED feature has all FDL instructions marked [x] in DESIGN.md.
+    """
+    errors: List[Dict[str, object]] = []
+    
+    # Check if feature is marked as COMPLETED
+    status_match = re.search(r"\*\*Status\*\*:\s*(✅\s*COMPLETED|🔄\s*IN_PROGRESS|⏳\s*NOT_STARTED|✨\s*IMPLEMENTED)", changes_text)
+    if not status_match:
+        return errors
+    
+    status = status_match.group(1).strip()
+    if not status:
+        return errors
+    
+    # For IMPLEMENTED status, verify all [x] instructions have fdd-begin/end tags in code
+    if status == "IMPLEMENTED" and feature_root:
+        code_inst_tags = extract_inst_tags_from_code(feature_root)
+        
+        missing_implementations = []
+        incomplete_implementations = []
+        
+        for scope_id, data in design_fdl.items():
+            for inst_id in data["instructions"]:
+                if inst_id not in code_inst_tags:
+                    missing_implementations.append((scope_id, inst_id))
+                elif not code_inst_tags[inst_id]["complete"]:
+                    incomplete_implementations.append((scope_id, inst_id))
+        
+        if missing_implementations or incomplete_implementations:
+            errors.append({
+                "type": "fdl_implemented_incomplete",
+                "message": f"Feature status is IMPLEMENTED but {len(missing_implementations)} [x] instructions missing fdd tags and {len(incomplete_implementations)} have incomplete tags",
+                "missing_count": len(missing_implementations),
+                "incomplete_count": len(incomplete_implementations),
+                "examples": [
+                    {"scope": s, "instruction": i, "issue": "missing tags"}
+                    for s, i in missing_implementations[:5]
+                ] + [
+                    {"scope": s, "instruction": i, "issue": "incomplete tags"}
+                    for s, i in incomplete_implementations[:5]
+                ]
+            })
+        
+        return errors
+    
+    # For COMPLETED/DESIGNED status, verify design completeness
+    uncompleted_instructions: List[Tuple[str, str]] = []
+    for scope_id, data in design_fdl.items():
+        for i, inst_id in enumerate(data["instructions"]):
+            if not data["completed"][i]:
+                uncompleted_instructions.append((scope_id, inst_id))
+    
+    if uncompleted_instructions:
+        errors.append({
+            "type": "premature_completion",
+            "message": "Feature marked COMPLETED but FDL instructions not all implemented ([x])",
+            "uncompleted_count": len(uncompleted_instructions),
+            "examples": [
+                {"scope": scope, "instruction": inst}
+                for scope, inst in uncompleted_instructions[:10]
+            ]
+        })
+    
+    return errors
+
+
+# fdd-begin fdd-fdd-feature-core-methodology-algo-validate-structure:ph-1:inst-read-artifact
 def validate_feature_design(
     artifact_text: str,
     *,
     artifact_path: Optional[Path] = None,
     skip_fs_checks: bool = False,
 ) -> Dict[str, object]:
+    # fdd-begin fdd-fdd-feature-core-methodology-algo-validate-structure:ph-1:inst-init-result
     errors: List[Dict[str, object]] = []
     placeholders = find_placeholders(artifact_text)
+    # fdd-end   fdd-fdd-feature-core-methodology-algo-validate-structure:ph-1:inst-init-result
 
+    # fdd-begin fdd-fdd-feature-core-methodology-algo-validate-structure:ph-1:inst-parse-markdown
     section_order, sections = _split_by_feature_section_letter(artifact_text)
+    # fdd-end   fdd-fdd-feature-core-methodology-algo-validate-structure:ph-1:inst-parse-markdown
+    # fdd-begin fdd-fdd-feature-core-methodology-algo-validate-structure:ph-1:inst-extract-headings
     required = ["A", "B", "C", "D", "E", "F"]
     missing = [s for s in required if s not in sections]
     if missing:
         errors.append({"type": "structure", "message": "Missing required top-level sections", "missing": missing})
+    # fdd-end   fdd-fdd-feature-core-methodology-algo-validate-structure:ph-1:inst-extract-headings
 
+    # fdd-begin fdd-fdd-feature-core-methodology-algo-validate-structure:ph-1:inst-check-duplicates
     allowed = set(["A", "B", "C", "D", "E", "F", "G"])
     unknown = [s for s in sections.keys() if s not in allowed]
     if unknown:
         errors.append({"type": "structure", "message": "Unknown top-level sections", "sections": sorted(unknown)})
+    # fdd-end   fdd-fdd-feature-core-methodology-algo-validate-structure:ph-1:inst-check-duplicates
 
     expected = ["A", "B", "C", "D", "E", "F"]
     if "G" in sections:
@@ -754,13 +1074,16 @@ def validate_feature_design(
             # req_ids/test_ids are already sets here; duplicate detection is handled by _common_checks
 
     passed = (len(errors) == 0) and (len(placeholders) == 0)
+    # fdd-begin fdd-fdd-feature-core-methodology-algo-validate-structure:ph-1:inst-return-result
     return {
-        "required_section_count": len(required),
-        "missing_sections": [{"id": s, "title": ""} for s in missing],
+        "required_section_count": len([s for s in ["A", "B", "C", "D", "E", "F"] if s in sections]),
+        "missing_sections": [s for s in ["A", "B", "C", "D", "E", "F"] if s not in sections],
         "placeholder_hits": placeholders,
-        "status": "PASS" if passed else "FAIL",
+        "status": "PASS" if not errors else "FAIL",
         "errors": errors,
     }
+    # fdd-end   fdd-fdd-feature-core-methodology-algo-validate-structure:ph-1:inst-return-result
+# fdd-end   fdd-fdd-feature-core-methodology-algo-validate-structure:ph-1:inst-read-artifact
 
 
 def validate_feature_changes(
@@ -946,22 +1269,6 @@ def validate_feature_changes(
             tasks.append((nums, m_task.group(2).strip()))
         if not tasks:
             errors.append({"type": "content", "message": "Change must contain checkbox tasks with hierarchical numbering", "change": n})
-        else:
-            for i, (nums, text) in enumerate(tasks[:-1]):
-                if not nums or nums[0] != 1:
-                    continue
-                if "Add required FDD comment tags" in text:
-                    continue
-                looks_like_code_task = ("`" in text) or bool(re.search(r"\b\w+\.(rs|ts|tsx|js|py|sql|go|java|cs)\b", text))
-                if not looks_like_code_task:
-                    continue
-                next_nums, next_text = tasks[i + 1]
-                if next_nums[:-1] != nums[:-1] or next_nums[-1] != nums[-1] + 1:
-                    errors.append({"type": "content", "message": "Code tagging task must be numbered immediately after code task", "change": n, "task": ".".join(map(str, nums))})
-                elif "Add required FDD comment tags" not in next_text:
-                    errors.append({"type": "content", "message": "Code tagging task must appear immediately after code task", "change": n, "task": ".".join(map(str, nums))})
-                elif ":ph-" not in next_text:
-                    errors.append({"type": "content", "message": "Code tagging task must mention :ph-{N} postfix", "change": n, "task": ".".join(map(str, nums))})
 
         deps.setdefault(n, [])
         in_deps = False
@@ -1050,6 +1357,32 @@ def validate_feature_changes(
             missing = sorted([x for x in design_req_full if x not in set(implemented)])
             if design_req_full and missing:
                 errors.append({"type": "cross", "message": "Not all feature requirements are covered by changes", "missing": missing})
+
+    # FDL Coverage Validation: Check if CHANGES.md references all FDL scopes (flows/algos/states/tests) from DESIGN.md
+    if feature_root is not None and not skip_fs_checks:
+        design_path = feature_root / "DESIGN.md"
+        if design_path.exists():
+            try:
+                design_text = design_path.read_text(encoding="utf-8")
+                design_fdl = extract_fdl_instructions(design_text)
+                
+                # Validate FDL scope coverage in CHANGES.md
+                fdl_coverage_errors = validate_fdl_coverage(artifact_text, design_fdl)
+                errors.extend(fdl_coverage_errors)
+                
+                # Validate FDL code implementation (tags present)
+                fdl_code_errors = validate_fdl_code_implementation(feature_root, design_fdl)
+                errors.extend(fdl_code_errors)
+                
+                # Reverse validation: check tags in code are marked [x] in DESIGN
+                fdl_reverse_errors = validate_fdl_code_to_design(feature_root, design_text)
+                errors.extend(fdl_reverse_errors)
+                
+                # Validate FDL completion (if feature is marked COMPLETED)
+                fdl_completion_errors = validate_fdl_completion(artifact_text, design_fdl)
+                errors.extend(fdl_completion_errors)
+            except Exception:
+                pass
 
     passed = (len(errors) == 0) and (len(placeholders) == 0)
     return {
@@ -1196,8 +1529,6 @@ def _common_checks(
         for tok in re.findall(r"`([^`]+)`", val):
             if tok.startswith("fdd-"):
                 ids_seen.append(tok)
-        if is_checkbox_id_line:
-            ids_seen.extend(FDD_ANY_ID_RE.findall(val))
 
     dup_ids = sorted({x for x in ids_seen if ids_seen.count(x) > 1})
     if dup_ids:

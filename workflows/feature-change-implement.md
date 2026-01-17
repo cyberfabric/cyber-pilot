@@ -14,16 +14,18 @@ description: Implement specific change from implementation plan
 
 ALWAYS open and follow `../requirements/workflow-execution.md` WHEN executing this workflow
 
+<!-- fdd-begin fdd-fdd-feature-core-methodology-flow-developer-implement:ph-1:inst-read-requirements -->
 ## Requirements
 
 **ALWAYS open and follow**: 
 - `../requirements/feature-changes-structure.md` (change structure)
-- `{adapter-directory}/FDD-Adapter/AGENTS.md` (code conventions)
+- `{adapter-directory}/AGENTS.md` (code conventions)
 
 Extract:
 - Task format and execution model
 - Code conventions from adapter
 - Testing requirements from adapter
+<!-- fdd-end   fdd-fdd-feature-core-methodology-flow-developer-implement:ph-1:inst-read-requirements -->
 
 ---
 
@@ -41,11 +43,13 @@ Extract:
 
 ### 1. Select Change
 
+<!-- fdd-begin fdd-fdd-feature-core-methodology-flow-developer-implement:ph-1:inst-select-task -->
 Ask user: Which change to implement?
 
 Options: List NOT_STARTED or IN_PROGRESS changes from CHANGES.md
 
 Store change ID
+<!-- fdd-end   fdd-fdd-feature-core-methodology-flow-developer-implement:ph-1:inst-select-task -->
 
 ### 2. Read Change Specification
 
@@ -58,16 +62,18 @@ Extract for selected change:
 
 ### 3. Read Adapter Conventions
 
-Open `{adapter-directory}/FDD-Adapter/AGENTS.md`
+Open `{adapter-directory}/AGENTS.md`
 
 Follow MUST WHEN instructions for:
 - Code conventions
 - Testing requirements
 - Build requirements
 
-### 3.1 Code Tagging Requirements
+### 3.1 Code Tagging<!-- fdd-begin fdd-fdd-feature-core-methodology-flow-developer-implement:ph-1:inst-add-tags -->
+## Step 4: Add FDD Tags
 
-**MUST tag all code with IDs from both CHANGES and DESIGN**:
+**Action**: Tag code with @fdd-* markers
+<!-- fdd-end   fdd-fdd-feature-core-methodology-flow-developer-implement:ph-1:inst-add-tags -->
 
 **Rule**: Phase MUST be encoded as a postfix on feature-scoped tags. Standalone phase tags MUST NOT be used.
 
@@ -197,13 +203,23 @@ def convert_gts_to_json_schema(gts_schema):
 - `@fdd-change:` to list change-tagged files
 - `@fdd-flow:`, `@fdd-algo:`, `@fdd-state:`, `@fdd-req:`, `@fdd-test:` to confirm DESIGN coverage
 
+#<!-- fdd-begin fdd-fdd-feature-core-methodology-flow-developer-implement:ph-1:inst-run-tests -->
+## Step 5: Run Tests
+
+**Action**: Execute test suite
+<!-- fdd-end   fdd-fdd-feature-core-methodology-flow-developer-implement:ph-1:inst-run-tests -->
+
 ### 4. Implement Tasks
 
 **For each task in change**:
 1. Read task specification from CHANGES.md (hierarchical format: `1.1.1`, `1.2.1`, etc.)
 2. Implement according to adapter conventions
 3. Run task validation
-4. **Update CHANGES.md**: Change task checkbox from `- [ ]` to `- [x]`
+4.<!-- fdd-begin fdd-fdd-feature-core-methodology-flow-developer-implement:ph-1:inst-mark-complete -->
+## Step 6: Update CHANGES.md
+
+**Action**: Mark task as completed
+<!-- fdd-end   fdd-fdd-feature-core-methodology-flow-developer-implement:ph-1:inst-mark-complete -->ckbox from `- [ ]` to `- [x]`
    - Example: `- [ ] 1.1.1 Task description` → `- [x] 1.1.1 Task description`
 5. Proceed to next task
 

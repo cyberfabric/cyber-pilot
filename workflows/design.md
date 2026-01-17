@@ -1,3 +1,4 @@
+<!-- @fdd-change:fdd-fdd-feature-core-methodology-change-core-workflows:ph-1 -->
 ---
 description: Create or update overall design document
 ---
@@ -37,7 +38,9 @@ Extract:
 
 ## Steps
 
-### 1. Detect Mode
+<!-- fdd-begin fdd-fdd-feature-core-methodology-flow-architect-bootstrap:ph-1:inst-execute-workflow -->
+### 1. Determine Mode
+<!-- fdd-end   fdd-fdd-feature-core-methodology-flow-architect-bootstrap:ph-1:inst-execute-workflow -->
 
 Check if `architecture/DESIGN.md` exists:
 - **If exists**: UPDATE mode - Read and propose changes

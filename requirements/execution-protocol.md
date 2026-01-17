@@ -1,3 +1,4 @@
+<!-- @fdd-change:fdd-fdd-feature-core-methodology-change-agents-navigation:ph-1 -->
 # FDD Workflow Execution Protocol
 
 **Version**: 1.3  
@@ -8,6 +9,7 @@
 
 **ALWAYS open and follow**: `core.md` WHEN editing this file
 
+<!-- fdd-begin fdd-fdd-feature-core-methodology-flow-ai-execute:ph-1:inst-read-protocol -->
 ## ⚠️ MANDATORY PRE-EXECUTION PROTOCOL ⚠️
 
 **Before executing ANY workflow, agent ALWAYS follows this protocol**
@@ -15,6 +17,7 @@
 This protocol is **NON-NEGOTIABLE** and applies to **EVERY** workflow without exception.
 
 **One skipped step = INVALID execution = output DISCARDED**
+<!-- fdd-end   fdd-fdd-feature-core-methodology-flow-ai-execute:ph-1:inst-read-protocol -->
 
 ---
 
@@ -51,6 +54,7 @@ I will NOT skip any steps.
 4. [ ] Note all validation criteria (for validation workflows)
 5. [ ] Verify ALL prerequisites are satisfied
 
+<!-- fdd-begin fdd-fdd-feature-core-methodology-flow-ai-execute:ph-1:inst-discover-adapter -->
 ### Step 4: Discover FDD Adapter
 
 **ALWAYS run first**:
@@ -64,6 +68,7 @@ fdd adapter-info --root . --fdd-root {fdd-core-location}
 - [ ] If `status: FOUND` → Load adapter AGENTS.md from `adapter_dir`
 - [ ] If `status: NOT_FOUND` → Use FDD core defaults only
 - [ ] Extract `adapter_dir`, `project_name`, `specs` list
+<!-- fdd-end   fdd-fdd-feature-core-methodology-flow-ai-execute:ph-1:inst-discover-adapter -->
 
 **If adapter found**:
 1. [ ] Open and follow `{adapter_dir}/AGENTS.md`

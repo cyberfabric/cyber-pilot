@@ -2,7 +2,7 @@
 
 **Type**: Operation  
 **Role**: Any  
-**Artifact**: `{adapter-directory}/FDD-Adapter/AGENTS.md` (minimal)
+**Artifact**: `{adapter-directory}/AGENTS.md` (minimal)
 
 ---
 

@@ -1,4 +1,5 @@
-# Architecture Decision Records (ADR) Structure Requirements
+<!-- @fdd-change:fdd-fdd-feature-core-methodology-change-requirements-structure:ph-1 -->
+# ADR Structure Requirements
 
 **ALWAYS open and follow**: `../workflows/adr.md`
 **ALWAYS open and follow**: `requirements.md`

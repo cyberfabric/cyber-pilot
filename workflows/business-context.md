@@ -1,3 +1,4 @@
+<!-- @fdd-change:fdd-fdd-feature-core-methodology-change-core-workflows:ph-1 -->
 ---
 description: Create or update business context document
 ---
@@ -38,7 +39,9 @@ Extract:
 
 ## Steps
 
-### 1. Detect Mode
+<!-- fdd-begin fdd-fdd-feature-core-methodology-flow-architect-bootstrap:ph-1:inst-trigger-workflow -->
+### 1. Determine Mode
+<!-- fdd-end   fdd-fdd-feature-core-methodology-flow-architect-bootstrap:ph-1:inst-trigger-workflow -->
 
 Check if `architecture/BUSINESS.md` exists:
 - **If exists**: UPDATE mode - Read and propose changes

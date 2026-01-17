@@ -25,7 +25,7 @@ Extract adapter conventions if available
 ## Prerequisites
 
 **OPTIONAL**:
-- [ ] Adapter exists - validate: Check `{adapter-directory}/FDD-Adapter/AGENTS.md` exists
+- [ ] Adapter exists - validate: Check `{adapter-directory}/AGENTS.md` exists
 
 **Can run standalone** without adapter (will use FDD defaults)
 
@@ -110,7 +110,7 @@ Store as:
 ### 4. Check Adapter Status
 
 **If adapter exists**:
-- Read adapter location from `{adapter-directory}/FDD-Adapter/AGENTS.md`
+- Read adapter location from `{adapter-directory}/AGENTS.md`
 - Extract adapter path for rules
 - Use adapter-specific information
 

@@ -6,7 +6,7 @@ description: FDD Adapter Router - Choose adapter workflow mode
 
 **Type**: Operation  
 **Role**: Any  
-**Artifact**: `{adapter-directory}/FDD-Adapter/AGENTS.md` + specs
+**Artifact**: `{adapter-directory}/AGENTS.md` + specs
 
 ---
 

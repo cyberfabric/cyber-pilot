@@ -1,4 +1,5 @@
-# Technical Design (DESIGN.md) Structure Requirements
+<!-- @fdd-change:fdd-fdd-feature-core-methodology-change-requirements-structure:ph-1 -->
+# Overall Design Structure Requirements
 
 **ALWAYS open and follow**: `../workflows/design.md`
 **ALWAYS open and follow**: `requirements.md`

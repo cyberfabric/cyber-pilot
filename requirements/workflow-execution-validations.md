@@ -106,7 +106,7 @@
 **⚠️ ALWAYS open and follow ADAPTER SPECS**:
 
 **Mandatory reading**:
-1. ✅ **ALWAYS** open and follow `{adapter-directory}/FDD-Adapter/AGENTS.md`
+1. ✅ **ALWAYS** open and follow `{adapter-directory}/AGENTS.md`
 2. ✅ **ALWAYS** open and follow ALL specs listed as MANDATORY in adapter's AGENTS.md
 3. ✅ **ALWAYS** open and follow ALL specs relevant to artifact being validated (as specified by adapter)
 

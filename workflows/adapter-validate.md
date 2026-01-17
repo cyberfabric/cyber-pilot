@@ -55,7 +55,7 @@ Extract:
 ## Prerequisites
 
 **Prerequisites**:
-- [ ] Adapter exists - validate: Check {adapter-directory}/FDD-Adapter/AGENTS.md exists
+- [ ] Adapter exists - validate: Check {adapter-directory}/AGENTS.md exists
 
 **If adapter missing**: Suggest `adapter-bootstrap` workflow
 

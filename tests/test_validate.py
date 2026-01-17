@@ -1,15 +1,20 @@
+import sys
+import os
+from pathlib import Path
 import importlib.util
 import io
 import contextlib
 import unittest
-from pathlib import Path
 from tempfile import TemporaryDirectory
 
 
+# Add skills/fdd/scripts directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "fdd" / "scripts"))
+
 def _load_fdd_module():
     tests_dir = Path(__file__).resolve().parent
-    skill_dir = tests_dir.parent
-    script_path = skill_dir / "scripts" / "fdd.py"
+    fdd_root = tests_dir.parent
+    script_path = fdd_root / "skills" / "fdd" / "scripts" / "fdd.py"
 
     spec = importlib.util.spec_from_file_location("fdd", str(script_path))
     if spec is None or spec.loader is None:

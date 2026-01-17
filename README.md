@@ -1,4 +1,7 @@
+<!-- @fdd-change:fdd-fdd-feature-core-methodology-change-quickstart-docs:ph-1 -->
+<!-- fdd-begin fdd-fdd-feature-core-methodology-flow-user-onboard:ph-1:inst-open-readme -->
 # Feature-Driven Design (FDD)
+<!-- fdd-end   fdd-fdd-feature-core-methodology-flow-user-onboard:ph-1:inst-open-readme -->
 
 **Version**: 1.0  
 **Status**: Active  
@@ -10,9 +13,11 @@ Feature-Driven Design is a **universal methodology** for building software syste
 
 ---
 
+<!-- fdd-begin fdd-fdd-feature-core-methodology-flow-user-onboard:ph-1:inst-discover-fdd -->
 ## 🚀 Quick Start
 
 **New to FDD?** Start here: **[QUICKSTART.md](QUICKSTART.md)**
+<!-- fdd-end   fdd-fdd-feature-core-methodology-flow-user-onboard:ph-1:inst-discover-fdd -->
 
 Learn FDD in 10 minutes with:
 - **Exact prompts to copy-paste** into your AI chat
@@ -89,7 +94,7 @@ FDD is built on the **AGENTS.md approach** - a standardized file that serves as 
 
 **Two-level hierarchy**:
 1. Core `AGENTS.md` - FDD methodology (universal, in FDD root)
-2. `{adapter-directory}/FDD-Adapter/AGENTS.md` - Project-specific adapter (your tech stack, conventions, workflows)
+2. `{adapter-directory}/AGENTS.md` - Project-specific adapter (your tech stack, conventions, workflows)
 
 **Key benefits**:
 - AI agents load complete context instantly (no searching)
@@ -625,7 +630,7 @@ Completeness: 85% (minimum: 100%)
 
 ### 1. Complete Design Hierarchy
 
-**Adapter** (`{adapter-directory}/FDD-Adapter/AGENTS.md`):
+**Adapter** (`{adapter-directory}/AGENTS.md`):
 - Tech stack definition (any language, any framework)
 - Domain model format (GTS, JSON Schema, TypeScript, etc.)
 - API contract format (OpenAPI, GraphQL, CLISPEC, etc.)
@@ -731,9 +736,9 @@ This interactive workflow will:
 3. Choose domain model format (GTS, JSON Schema, TypeScript, etc.)
 4. Choose API contract format (OpenAPI, GraphQL, CLISPEC, etc.)
 5. Capture security model and non-functional requirements
-6. Generate or update `{adapter-directory}/FDD-Adapter/AGENTS.md` and spec files
+6. Generate or update `{adapter-directory}/AGENTS.md` and spec files
 
-**Result**: Adapter created/updated at `{adapter-directory}/FDD-Adapter/` with status COMPLETE or INCOMPLETE
+**Result**: Adapter created/updated at `{adapter-directory}/` with status COMPLETE or INCOMPLETE
 
 For manual setup, see: **`ADAPTER_GUIDE.md`**
 
@@ -754,7 +759,7 @@ All configs:
 - Provide FDD workflow references
 - Follow agent-specific format
 
-**Result**: Agent reads `{adapter-directory}/FDD-Adapter/AGENTS.md` automatically
+**Result**: Agent reads `{adapter-directory}/AGENTS.md` automatically
 
 ### 5. Create Business Context & Design (2-4 hours) 
 
@@ -918,7 +923,7 @@ For teams, work can be distributed: one person owns overall design and architect
     ├── feature-change-implement.md             # Implement feature changes
     └── feature-code-validate.md                # Validate entire feature code
 
-{adapter-directory}/FDD-Adapter/                # Your project adapter (created by workflow)
+{adapter-directory}/                # Your project adapter (created by workflow)
 ├── AGENTS.md                                   # AI instructions (project-specific)
 └── specs/                                      # Detailed specifications
     ├── domain-model.md                         # Domain model format

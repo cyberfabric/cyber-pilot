@@ -171,7 +171,7 @@ Everything else is adapter-specific. Define as needed:
 
 ### Behavior Description Language (Optional Override)
 - **Default**: FDL (Flow Description Language) for flows/algorithms/states
-- **Can override**: Create custom behavior specification in `{adapter-directory}/FDD-Adapter/`
+- **Can override**: Create custom behavior specification in `{adapter-directory}/`
 - **Example**: Replace `../FDL.md` with `../FDD-Adapter/CustomBDL.md`
 - **Requirements**: Define control flow keywords, syntax rules, validation criteria
 - **Note**: Must update workflows 05 and 06 to reference custom spec

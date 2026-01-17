@@ -23,7 +23,7 @@ This file defines requirements that are shared across multiple `*-structure.md` 
   - `architecture/features/feature-{slug}/DESIGN.md`
   - `architecture/features/feature-{slug}/CHANGES.md`
 - Adapter spec docs:
-  - `{adapter-directory}/FDD-Adapter/specs/*.md`
+  - `{adapter-directory}/specs/*.md`
 
 **Does NOT apply to**:
 - Agent instruction files (AGENTS.md, workflow navigation files)
@@ -200,22 +200,22 @@ This file defines requirements that are shared across multiple `*-structure.md` 
 ### Link Format (Adapter Specs)
 
 **Check**:
-- [ ] No occurrences of `@/` in adapter spec docs under `{adapter-directory}/FDD-Adapter/specs/`
-- [ ] No occurrences of `@DESIGN.md` in adapter spec docs under `{adapter-directory}/FDD-Adapter/specs/`
-- [ ] No occurrences of `@BUSINESS.md` in adapter spec docs under `{adapter-directory}/FDD-Adapter/specs/`
-- [ ] No occurrences of `@ADR.md` in adapter spec docs under `{adapter-directory}/FDD-Adapter/specs/`
+- [ ] No occurrences of `@/` in adapter spec docs under `{adapter-directory}/specs/`
+- [ ] No occurrences of `@DESIGN.md` in adapter spec docs under `{adapter-directory}/specs/`
+- [ ] No occurrences of `@BUSINESS.md` in adapter spec docs under `{adapter-directory}/specs/`
+- [ ] No occurrences of `@ADR.md` in adapter spec docs under `{adapter-directory}/specs/`
 
 ### Placeholders (Adapter Spec Docs)
 
 **Check**:
-- [ ] No occurrences of `TODO` in adapter spec docs under `{adapter-directory}/FDD-Adapter/specs/`
-- [ ] No occurrences of `[TODO]` in adapter spec docs under `{adapter-directory}/FDD-Adapter/specs/`
-- [ ] No occurrences of `TBD` in adapter spec docs under `{adapter-directory}/FDD-Adapter/specs/`
-- [ ] No occurrences of `[TBD]` in adapter spec docs under `{adapter-directory}/FDD-Adapter/specs/`
-- [ ] No occurrences of `FIXME` in adapter spec docs under `{adapter-directory}/FDD-Adapter/specs/`
-- [ ] No occurrences of `XXX` in adapter spec docs under `{adapter-directory}/FDD-Adapter/specs/`
-- [ ] No occurrences of `{placeholder}` content in adapter spec docs under `{adapter-directory}/FDD-Adapter/specs/`
-- [ ] No occurrences of HTML comment placeholders in adapter spec docs under `{adapter-directory}/FDD-Adapter/specs/`
+- [ ] No occurrences of `TODO` in adapter spec docs under `{adapter-directory}/specs/`
+- [ ] No occurrences of `[TODO]` in adapter spec docs under `{adapter-directory}/specs/`
+- [ ] No occurrences of `TBD` in adapter spec docs under `{adapter-directory}/specs/`
+- [ ] No occurrences of `[TBD]` in adapter spec docs under `{adapter-directory}/specs/`
+- [ ] No occurrences of `FIXME` in adapter spec docs under `{adapter-directory}/specs/`
+- [ ] No occurrences of `XXX` in adapter spec docs under `{adapter-directory}/specs/`
+- [ ] No occurrences of `{placeholder}` content in adapter spec docs under `{adapter-directory}/specs/`
+- [ ] No occurrences of HTML comment placeholders in adapter spec docs under `{adapter-directory}/specs/`
 
 ### Placeholders (Artifacts)
 

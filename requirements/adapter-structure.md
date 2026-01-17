@@ -122,7 +122,7 @@
 
 ### AGENTS.md
 
-**Location**: `{adapter-directory}/FDD-Adapter/AGENTS.md`
+**Location**: `{adapter-directory}/AGENTS.md`
 
 **Purpose**: Adapter-specific navigation for AI agents (MUST WHEN format)
 
@@ -262,7 +262,7 @@ Adapter validation depends on project phase:
 #### Structure
 
 **Check**:
-- [ ] AGENTS.md file exists at `{adapter-directory}/FDD-Adapter/AGENTS.md`
+- [ ] AGENTS.md file exists at `{adapter-directory}/AGENTS.md`
 - [ ] Contains project name heading (e.g., `# FDD Adapter: ProjectName`)
 - [ ] Contains `**Extends**: {path}/FDD/AGENTS.md` declaration
 

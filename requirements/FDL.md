@@ -1,3 +1,4 @@
+<!-- @fdd-change:fdd-fdd-feature-core-methodology-change-agents-navigation:ph-1 -->
 # FDL - FDD Description Language
 
 **Version**: 1.1  
@@ -193,6 +194,8 @@ Goal: Create new dashboard
 - Indentation for nested steps
 - Each step line includes `[ ]` or `[x]`, `ph-{N}`, and an instruction ID token `inst-{short-id}`
 - For codebase traceability, every implemented instruction marker (`...:ph-{N}:inst-...`) MUST be represented in code as a paired `fdd-begin`/`fdd-end` block wrapping non-empty code. Unwrapped single-line `...:inst-...` markers MUST NOT be used.
+  - Format: `// fdd-begin fdd-{full-tag}:ph-{N}:inst-{id}` ... code ... `// fdd-end fdd-{full-tag}:ph-{N}:inst-{id}`
+  - Example: `// fdd-begin fdd-project-feature-x-algo-validate:ph-1:inst-check-input`
 
 ### ❌ Prohibited
 
@@ -299,4 +302,4 @@ Goal: Create new dashboard
 
 - ALWAYS open and follow `overall-design-structure.md` WHEN specifying behavioral sections in root DESIGN.md
 - ALWAYS open and follow `feature-design-structure.md` WHEN specifying behavioral sections in feature DESIGN.md
-- ALWAYS open and follow `{adapter-directory}/FDD-Adapter/AGENTS.md` WHEN overriding the behavior description language
+- ALWAYS open and follow `{adapter-directory}/AGENTS.md` WHEN overriding the behavior description language

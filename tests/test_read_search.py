@@ -1,14 +1,18 @@
 import json
 import subprocess
 import sys
-import unittest
+import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest import TestCase
+
+# Add skills/fdd/scripts directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "fdd" / "scripts"))
 
 
-class TestFddArtifactEditorReadSearch(unittest.TestCase):
+class TestFddArtifactEditorReadSearch(TestCase):
     def _script_path(self) -> Path:
-        return (Path(__file__).resolve().parents[1] / "scripts" / "fdd.py").resolve()
+        return (Path(__file__).resolve().parent.parent / "skills" / "fdd" / "scripts" / "fdd.py").resolve()
 
     def _run(self, *, td: Path, args: list[str]) -> subprocess.CompletedProcess[str]:
         cmd = [sys.executable, str(self._script_path()), *args]

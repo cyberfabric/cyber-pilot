@@ -2,7 +2,7 @@
 
 **Version**: 1.0  
 **Purpose**: Define structural requirements for FDD AGENTS.md specification files  
-**Scope**: `FDD/AGENTS.md` and `{adapter-directory}/FDD-Adapter/AGENTS.md`
+**Scope**: `FDD/AGENTS.md` and `{adapter-directory}/AGENTS.md`
 
 ---
 
@@ -38,7 +38,7 @@
 - These sections MUST NOT duplicate requirements content from referenced files
 
 **Adapter AGENTS.md WHEN rule (mandatory)**:
-- For `{adapter-directory}/FDD-Adapter/AGENTS.md`, each navigation rule MUST use a WHEN clause that is ONLY a list of FDD workflows.
+- For `{adapter-directory}/AGENTS.md`, each navigation rule MUST use a WHEN clause that is ONLY a list of FDD workflows.
 - Canonical form:
   - `ALWAYS open and follow {spec-file} WHEN executing workflows: {workflow1.md}, {workflow2.md}, ...`
 - The workflow names MUST match files under `/FDD/workflows/`.

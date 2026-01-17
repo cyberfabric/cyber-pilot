@@ -1,9 +1,11 @@
+<!-- @fdd-change:fdd-fdd-feature-core-methodology-change-agents-navigation:ph-1 -->
 # FDD AI Agent Navigation
 
 **Version**: 1.1
 
 ---
 
+<!-- fdd-begin fdd-fdd-feature-core-methodology-flow-ai-execute:ph-1:inst-open-root-agents -->
 ## ⚠️ MUST Instruction Semantics ⚠️
 
 **MUST** = **MANDATORY**. NOT optional. NOT recommended. NOT suggested.
@@ -18,6 +20,7 @@
 **One skipped MUST = entire workflow FAILED**
 
 **All MUST instructions are CRITICAL without exception.**
+<!-- fdd-end   fdd-fdd-feature-core-methodology-flow-ai-execute:ph-1:inst-open-root-agents -->
 
 ---
 
@@ -37,9 +40,11 @@
 
 ---
 
+<!-- fdd-begin fdd-fdd-feature-core-methodology-flow-ai-execute:ph-1:inst-open-workflow-file -->
 ## Navigation Rules
 
 ALWAYS open and follow `workflows/AGENTS.md` WHEN receiving any task request
+<!-- fdd-end   fdd-fdd-feature-core-methodology-flow-ai-execute:ph-1:inst-open-workflow-file -->
 
 ALWAYS open and follow `requirements/extension.md` WHEN you see **Extends**: {file}
 

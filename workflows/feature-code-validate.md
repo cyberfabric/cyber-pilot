@@ -60,8 +60,8 @@ ALWAYS open and follow `../requirements/workflow-execution.md` WHEN executing th
 **ALWAYS open and follow**:
 - `../requirements/feature-design-structure.md` (feature design structure)
 - `../requirements/feature-changes-structure.md` (changes structure) — read for format; if CHANGES are absent or intentionally skipped, apply only relevant parts
-- `{adapter-directory}/FDD-Adapter/specs/testing.md` (test requirements)
-- `{adapter-directory}/FDD-Adapter/specs/feature-status-validation.md` (status validation)
+- `{adapter-directory}/specs/testing.md` (test requirements)
+- `{adapter-directory}/specs/feature-status-validation.md` (status validation)
 
 Extract:
 - Testing scenario requirements from feature DESIGN.md
@@ -188,7 +188,7 @@ Extract:
 ### 6. Execute Build Validation
 
 **Run build**:
-- Execute the build command from `{adapter-directory}/FDD-Adapter/specs/build-deploy.md`.
+- Execute the build command from `{adapter-directory}/specs/build-deploy.md`.
 
 **Check**:
 - ✅ Build succeeds
@@ -200,7 +200,7 @@ Extract:
 ### 7. Execute Linter Validation
 
 **Run linters**:
-- Execute the lint command(s) from `{adapter-directory}/FDD-Adapter/specs/conventions.md` or `{adapter-directory}/FDD-Adapter/specs/build-deploy.md`.
+- Execute the lint command(s) from `{adapter-directory}/specs/conventions.md` or `{adapter-directory}/specs/build-deploy.md`.
 
 **Check**:
 - ✅ Linter passes
@@ -212,7 +212,7 @@ Extract:
 ### 8. Execute Test Validation
 
 **Run all tests**:
-- Execute the test command(s) from `{adapter-directory}/FDD-Adapter/specs/testing.md`.
+- Execute the test command(s) from `{adapter-directory}/specs/testing.md`.
 
 **Check**:
 - All unit tests pass
@@ -464,5 +464,5 @@ Self-validating workflow
 
 - ALWAYS open and follow `feature-design-structure.md` WHEN interpreting feature DESIGN.md IDs and sections
 - ALWAYS open and follow `feature-changes-structure.md` WHEN interpreting change entry structure and tagging rules
-- ALWAYS open and follow `{adapter-directory}/FDD-Adapter/specs/testing.md` WHEN executing tests
-- ALWAYS open and follow `{adapter-directory}/FDD-Adapter/specs/feature-status-validation.md` WHEN validating code quality/status consistency
+- ALWAYS open and follow `{adapter-directory}/specs/testing.md` WHEN executing tests
+- ALWAYS open and follow `{adapter-directory}/specs/feature-status-validation.md` WHEN validating code quality/status consistency

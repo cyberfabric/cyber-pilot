@@ -2,7 +2,7 @@
 
 **Type**: Operation  
 **Role**: Any  
-**Artifact**: `{adapter-directory}/FDD-Adapter/AGENTS.md` + `specs/` files
+**Artifact**: `{adapter-directory}/AGENTS.md` + `specs/` files
 
 ---
 
@@ -36,7 +36,7 @@ Extract:
 ## Prerequisites
 
 **Prerequisites**:
-- [ ] Adapter initialized - validate: Check {adapter-directory}/FDD-Adapter/AGENTS.md exists
+- [ ] Adapter initialized - validate: Check {adapter-directory}/AGENTS.md exists
 
 **If adapter NOT initialized**: Run `adapter-bootstrap` first
 

@@ -1,3 +1,4 @@
+<!-- @fdd-change:fdd-fdd-feature-core-methodology-change-requirements-structure:ph-1 -->
 # Features Manifest (FEATURES.md) Structure Requirements
 
 **ALWAYS open and follow**: `../workflows/features.md`

@@ -15,7 +15,7 @@
 **BEFORE any FDD workflow execution**:
 
 ALWAYS do check that adapter exists:
-- Search for `{adapter-directory}/FDD-Adapter/AGENTS.md` in common locations:
+- Search for `{adapter-directory}/AGENTS.md` in common locations:
   - `/FDD-Adapter/AGENTS.md`
   - `spec/FDD-Adapter/AGENTS.md`
   - `docs/FDD-Adapter/AGENTS.md`

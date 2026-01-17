@@ -1,3 +1,4 @@
+<!-- @fdd-change:fdd-fdd-feature-core-methodology-change-agents-navigation:ph-1 -->
 # FDD Workflow Execution Instructions
 
 **Version**: 1.0  
@@ -39,7 +40,7 @@ ALWAYS open and follow `workflow-execution-validations.md` WHEN executing valida
    - Answer all readiness check questions
    - Verify protocol compliance before proceeding
 2. **Check Adapter Initialization** - MANDATORY
-   - Search for `{adapter-directory}/FDD-Adapter/AGENTS.md`
+   - Search for `{adapter-directory}/AGENTS.md`
    - If NOT found: STOP, propose bootstrap, run `adapter` workflow
    - If found: Continue
 3. Read workflow file completely
@@ -84,20 +85,26 @@ ALWAYS open and follow `workflow-execution-validations.md` WHEN executing valida
 3. Use requirements as source of truth (not workflow description)
 4. Never invent validation criteria
 
+<!-- fdd-begin fdd-fdd-feature-core-methodology-flow-ai-execute:ph-1:inst-read-steps -->
 ### Workflow Types
 
 **Operation workflow** - Has user interaction, creates/modifies files
 **Validation workflow** - Fully automated, outputs to chat only
 
 **Type indicator**: Check workflow file for `**Type**: Operation` or `**Type**: Validation`
+<!-- fdd-end   fdd-fdd-feature-core-methodology-flow-ai-execute:ph-1:inst-read-steps -->
 
 ### Output Requirements
 
+<!-- fdd-begin fdd-fdd-feature-core-methodology-flow-ai-execute:ph-1:inst-execute-steps -->
 **Operation workflows**:
 - Output to chat during interaction
 - Create files only after user confirmation
 - Show summary before creation
+<!-- fdd-begin fdd-fdd-feature-core-methodology-flow-ai-execute:ph-1:inst-run-auto-validation -->
 - Run validation after creation
+<!-- fdd-end   fdd-fdd-feature-core-methodology-flow-ai-execute:ph-1:inst-run-auto-validation -->
+<!-- fdd-end   fdd-fdd-feature-core-methodology-flow-ai-execute:ph-1:inst-execute-steps -->
 
 **Validation workflows**:
 - Output ONLY to chat (no report files)

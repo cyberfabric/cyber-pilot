@@ -8,7 +8,7 @@ from tempfile import TemporaryDirectory
 
 class TestFddArtifactEditorListApi(unittest.TestCase):
     def _script_path(self) -> Path:
-        return (Path(__file__).resolve().parents[1] / "scripts" / "fdd.py").resolve()
+        return (Path(__file__).resolve().parent.parent / "skills" / "fdd" / "scripts" / "fdd.py").resolve()
 
     def _run(self, *, td: Path, args: list[str]) -> subprocess.CompletedProcess[str]:
         cmd = [sys.executable, str(self._script_path()), *args]

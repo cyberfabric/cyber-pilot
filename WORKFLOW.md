@@ -1,3 +1,4 @@
+<!-- @fdd-change:fdd-fdd-feature-core-methodology-change-quickstart-docs:ph-1 -->
 # FDD Workflow System
 
 **Version**: 2.0  
@@ -24,7 +25,7 @@
 - Adapter auto-triggers when user touches customization details
 
 **Adapter Structure**:
-- Primary file: `{adapter-directory}/FDD-Adapter/AGENTS.md`
+- Primary file: `{adapter-directory}/AGENTS.md`
 - Format: ALWAYS ... WHEN instructions (like FDD/AGENTS.md)
 - Content: Navigation to adapter-specific configuration files
 - Purpose: Project-specific conventions, formats, paths

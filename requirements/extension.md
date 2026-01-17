@@ -65,7 +65,7 @@ Merged Result (base + modifications)
 ALWAYS open and follow `requirements/core.md` WHEN modifying FDD files
 ```
 
-**Extension**: `{adapter-directory}/FDD-Adapter/AGENTS.md`
+**Extension**: `{adapter-directory}/AGENTS.md`
 ```markdown
 # Project AI Agent Navigation
 

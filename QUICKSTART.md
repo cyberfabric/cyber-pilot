@@ -1,6 +1,9 @@
+<!-- @fdd-change:fdd-fdd-feature-core-methodology-change-quickstart-docs:ph-1 -->
+<!-- fdd-begin fdd-fdd-feature-core-methodology-flow-user-onboard:ph-1:inst-open-quickstart -->
 # FDD Quick Start
 
 **Learn FDD in 10 minutes with real prompts and examples**
+<!-- fdd-end   fdd-fdd-feature-core-methodology-flow-user-onboard:ph-1:inst-open-quickstart -->
 
 ---
 
@@ -37,6 +40,7 @@ FDD = **Design First, Code Second**
 
 ---
 
+<!-- fdd-begin fdd-fdd-feature-core-methodology-flow-user-onboard:ph-1:inst-check-prereqs -->
 ## Prerequisites
 
 Before starting with FDD, you need:
@@ -79,6 +83,16 @@ FDD requires an IDE with integrated AI coding assistant to execute workflows int
 **Option 4: JetBrains + AI Assistant**
 - IntelliJ IDEA, PyCharm, WebStorm with AI Assistant
 - Multiple model support
+
+<!-- fdd-end   fdd-fdd-feature-core-methodology-flow-user-onboard:ph-1:inst-check-prereqs -->
+
+---
+
+<!-- fdd-begin fdd-fdd-feature-core-methodology-flow-user-onboard:ph-1:inst-read-overview -->
+## What is FDD?
+
+**FDD (Feature-Driven Documentation)** is a methodology for architecting software through structured documentation.
+<!-- fdd-end   fdd-fdd-feature-core-methodology-flow-user-onboard:ph-1:inst-read-overview -->
 
 ---
 
@@ -138,17 +152,21 @@ ALWAYS open and follow `/FDD/AGENTS.md`
 
 ---
 
+<!-- fdd-begin fdd-fdd-feature-core-methodology-flow-user-onboard:ph-1:inst-follow-quickstart -->
 #### 🆕 New Project
 
 **Prompt**:
 ```
 fdd create business requirements for task management service
 ```
+<!-- fdd-end   fdd-fdd-feature-core-methodology-flow-user-onboard:ph-1:inst-follow-quickstart -->
 
+<!-- fdd-begin fdd-fdd-feature-core-methodology-flow-user-onboard:ph-1:inst-create-first-artifact -->
 **What happens**:
 - Agent runs `workflows/business-context.md`
 - Reads `requirements/business-context-structure.md`
 - Agent asks interactive questions with proposed answers:
+<!-- fdd-end   fdd-fdd-feature-core-methodology-flow-user-onboard:ph-1:inst-create-first-artifact -->
   - **Q1**: System vision - proposes from README.md if exists
   - **Q2**: Key actors (3-5) - proposes based on vision
   - **Q3**: Core capabilities (3-7) - proposes based on vision/actors
@@ -204,8 +222,20 @@ fdd analyze codebase and create business requirements
 
 **All scenarios use same prompt**:
 ```
-fdd validate business context
+fdd validate architecture/BUSINESS.md
 ```
+<!-- fdd-begin fdd-fdd-feature-core-methodology-flow-user-onboard:ph-1:inst-validate-artifact -->
+### Step 4: Validate Business Context (5 minutes)
+
+**What it does**: Ensures business requirements are complete and clear
+
+**Recommended model**: Reasoning model (e.g., GPT o1, GPT 4.5 Medium Reasoning Fast) - strictly follows validation instructions
+
+**All scenarios use same prompt**:
+```
+fdd validate architecture/BUSINESS.md
+```
+<!-- fdd-end   fdd-fdd-feature-core-methodology-flow-user-onboard:ph-1:inst-validate-artifact -->
 
 **What happens**:
 - Agent runs `workflows/business-validate.md`
