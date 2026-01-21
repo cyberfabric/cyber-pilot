@@ -44,6 +44,7 @@ Legend:
 | **🔀 Delta/patch spec format** | ❌ Out of scope | ✅ Native (ADDED/MODIFIED/REMOVED/RENAMED requirements) | ❌ Out of scope | ❌ Out of scope |
 | **📐 Formal requirement format constraints** | ✅ Native (FDL for behaviors; no code in designs) | ✅ Native (requirements + scenarios; SHALL/MUST) | ⚠️ Supported (templates; constitution; process) | ⚠️ Supported (English docs; defined test flows) |
 | **🔒 Artifact schema strictness (required sections/IDs)** | ✅ Native (requirements define exact structure per artifact) | ✅ Native (change folder + delta format are prescribed) | ⚠️ Supported (templates; constitution) | ⚠️ Supported (recommended doc layout; repo conventions) |
+| **🧾 Workflow spec strictness (prereqs/steps/criteria/checklists)** | ✅ Native (workflow file structure is prescribed; checklists + criteria) | ⚠️ Supported (strong checklists; less of a global workflow file schema) | ⚠️ Supported (phase pipeline + prerequisites; less of a formal workflow schema) | ⚠️ Supported (AGENTS.md + DoD/gates; less of a workflow file schema) |
 | **🔗 Cross-artifact integrity across a layered doc stack (IDs/refs/coverage)** | ✅ Native (ID conventions + cross-reference checks across layers) | ❌ Out of scope (change folder is the organizing unit; not a layered doc stack) | ❌ Out of scope | ⚠️ Supported (via repo discipline; not prescribed as a validator) |
 | **✅ Deterministic doc/schema validator (format/placeholders/required fields)** | ✅ Native (`fdd validate ...`) | ✅ Native (`openspec validate ... --strict`) | ⚠️ Supported (templates + structured analysis/checklists; not a strict doc validator) | ❌ Out of scope |
 | **🔍 Deterministic cross-reference validator (doc↔doc)** | ✅ Native (cascading dependency + cross-ref checks) | ❌ Out of scope | ❌ Out of scope | ❌ Out of scope |
@@ -74,43 +75,43 @@ This is an industry-standard linear weighting system for feature comparison matr
 
 | Framework | Native (×3) | Supported (×1) | Out of scope (×0) | Emerging (×0.5) | **Total Score** |
 |-----------|-------------|----------------|-------------------|-----------------|-----------------|
-| **FDD** | 15 × 3 = 45 | 6 × 1 = 6 | 6 × 0 = 0 | 0 × 0.5 = 0 | **51** |
-| **OpenSpec** | 9 × 3 = 27 | 8 × 1 = 8 | 9 × 0 = 0 | 1 × 0.5 = 0.5 | **35.5** |
-| **Spec Kit** | 4 × 3 = 12 | 13 × 1 = 13 | 10 × 0 = 0 | 0 × 0.5 = 0 | **25** |
-| **MCAF** | 8 × 3 = 24 | 11 × 1 = 11 | 8 × 0 = 0 | 0 × 0.5 = 0 | **35** |
+| **FDD** | 16 × 3 = 48 | 6 × 1 = 6 | 6 × 0 = 0 | 0 × 0.5 = 0 | **54** |
+| **OpenSpec** | 9 × 3 = 27 | 9 × 1 = 9 | 9 × 0 = 0 | 1 × 0.5 = 0.5 | **36.5** |
+| **Spec Kit** | 4 × 3 = 12 | 14 × 1 = 14 | 10 × 0 = 0 | 0 × 0.5 = 0 | **26** |
+| **MCAF** | 8 × 3 = 24 | 12 × 1 = 12 | 8 × 0 = 0 | 0 × 0.5 = 0 | **36** |
 
 **Breakdown by framework:**
 
-**FDD (51 points):**
-- Native: Greenfield fit, Brownfield fit, Business context, Architecture artifact, Feature catalog, Change management, Spec-as-source-of-truth, Formal requirements, Schema strictness, Cross-artifact integrity, Doc validator, Cross-reference validator, Code traceability validator, Scoring/thresholds, Phase gates
+**FDD (54 points):**
+- Native: Greenfield fit, Brownfield fit, Business context, Architecture artifact, Feature catalog, Change management, Spec-as-source-of-truth, Formal requirements, Schema strictness, Workflow spec strictness, Cross-artifact integrity, Doc validator, Cross-reference validator, Code traceability validator, Scoring/thresholds, Phase gates
 - Supported: Agent instructions, Repeatable automation, Executable gates, Integration testing, Governance, Multi-repo (out of scope core)
 - Strengths: Strongest in **artifact structure**, **traceability**, and **deterministic validation**
 
-**OpenSpec (35.5 points):**
+**OpenSpec (36.5 points):**
 - Native: Brownfield fit, Change management, Delta/patch format, Formal requirements, Schema strictness, Doc validator, Phase gates, Agent instructions
-- Supported: Greenfield fit, Architecture artifact, Spec-as-source-of-truth, Repeatable automation, Executable gates, Integration testing, Governance
+- Supported: Greenfield fit, Architecture artifact, Spec-as-source-of-truth, Workflow spec strictness, Repeatable automation, Executable gates, Integration testing, Governance
 - Emerging: Multi-repo/workspace planning
 - Strengths: Strongest in **change-centric workflows** and **delta tracking**
 
-**MCAF (35 points):**
+**MCAF (36 points):**
 - Native: Brownfield fit, Phase gates, Agent instructions, Repeatable automation, Executable gates, Integration testing, Mocks/fakes policy, Governance
-- Supported: Greenfield fit, Business context, Architecture artifact, Feature catalog, Change management, Spec-as-source-of-truth, Formal requirements, Schema strictness, Cross-artifact integrity
+- Supported: Greenfield fit, Business context, Architecture artifact, Feature catalog, Change management, Spec-as-source-of-truth, Formal requirements, Schema strictness, Workflow spec strictness, Cross-artifact integrity
 - Strengths: Strongest in **verification gates** and **testing discipline**
 
-**Spec Kit (25 points):**
+**Spec Kit (26 points):**
 - Native: Greenfield fit, Spec-as-source-of-truth, Phase gates
-- Supported: Brownfield fit, Business context, Architecture artifact, Feature catalog, Change management, Formal requirements, Schema strictness, Doc validator, Agent instructions, Repeatable automation, Executable gates, Integration testing, Governance
+- Supported: Brownfield fit, Business context, Architecture artifact, Feature catalog, Change management, Formal requirements, Schema strictness, Workflow spec strictness, Doc validator, Agent instructions, Repeatable automation, Executable gates, Integration testing, Governance
 - Strengths: Strongest in **bootstrap/setup** and **guided pipeline**
 
 **Key insights:**
 
-1. **FDD leads in total capability coverage** (51 points), particularly excelling in structured documentation, cross-artifact integrity, and multi-layer traceability.
+1. **FDD leads in total capability coverage** (54 points), particularly excelling in structured documentation, cross-artifact integrity, and multi-layer traceability.
 
-2. **OpenSpec and MCAF are tied in practical terms** (~35 points each), but with different specializations:
+2. **OpenSpec and MCAF are close in practical terms** (~36 points each), but with different specializations:
    - OpenSpec: Change management and evolution tracking
    - MCAF: Testing discipline and verification gates
 
-3. **Spec Kit has the broadest "Supported" coverage** (13 capabilities) but fewer "Native" features (4), indicating a generalist approach with less opinionated enforcement.
+3. **Spec Kit has the broadest "Supported" coverage** (14 capabilities) but fewer "Native" features (4), indicating a generalist approach with less opinionated enforcement.
 
 4. **Specialization vs. breadth trade-off:**
    - FDD: Deep native support for design-first methodology
@@ -185,6 +186,7 @@ This is an industry-standard linear weighting system for feature comparison matr
 
 ### 7) Where FDD is unusually strong
 - Layered artifacts are backed by explicit structure requirements and an execution protocol (workflows and requirements are first-class).
+- Workflows themselves are structured specs (prerequisites, ordered steps, validation criteria/checklists), which reduces ambiguity for AI agents.
 - Deterministic tooling is not only format checking: it includes cascading dependency validation and cross-artifact integrity checks.
 - Traceability is explicit and can be made instruction-level (phases + instruction IDs), enabling design→code auditability.
 - Scoring/threshold gates encourage consistent quality and make “done” more objective.
