@@ -151,6 +151,73 @@ python3 FDD/skills/fdd/scripts/fdd.py agent-workflows --agent windsurf
 python3 FDD/skills/fdd/scripts/fdd.py agent-skills --agent windsurf
 ```
 
+**After this step, you can use FDD directly from your agent chat**:
+
+**Workflow commands (from chat)**
+
+Once the workflow proxies are generated, you can trigger workflows by name from the chat (the exact UX depends on your IDE/agent).
+
+Examples:
+```text
+/fdd-adapter
+/fdd-business-context
+/fdd-design
+/fdd-features
+/fdd-feature
+/fdd-feature-changes
+```
+
+Each of these opens a small proxy file that redirects the agent to the canonical workflow under `FDD/workflows/`.
+
+**Tool/skill commands (from chat)**
+
+Once the skill proxy is generated, you can ask your agent to run `fdd` commands directly (validation + search are JSON-output, machine-friendly).
+
+Examples:
+```text
+fdd help
+fdd validate help
+
+fdd adapter info
+
+fdd validate skip code traceability
+
+fdd get ids from design 
+fdd search postgres in design
+
+fdd where-defined fdd-yourproj-req-some-id
+fdd where-used fdd-yourproj-req-some-id
+```
+
+**Why this is powerful (tool + agent together)**
+
+You type short intent like the examples above. The agent:
+- Runs the precise `fdd` command under the hood (with correct flags/paths)
+- Reads the JSON output
+- Turns it into next steps (what to fix, which workflow to run, where the ID lives)
+
+Examples:
+```text
+fdd validate
+# Agent reads FAIL report and tells you exactly which artifact/section failed and what workflow to run next.
+
+fdd where-defined fdd-yourproj-req-some-id
+# Agent finds the canonical definition and can open that section and help you edit it safely.
+
+fdd agent-workflows windsurf
+# Agent updates the workflow proxies after you updated the FDD submodule.
+```
+
+Your agent will execute these via the underlying Python entrypoint, but from chat you only need to type `fdd ...`.
+
+**Update agent workflow proxies via the tool/skill**
+
+If you update the FDD submodule (new workflows appear, names change, etc.), just regenerate the proxies:
+```text
+fdd agent-workflows windsurf
+fdd agent-skills windsurf
+```
+
 **Supported agents**:
 - `windsurf`
 - `cursor`
