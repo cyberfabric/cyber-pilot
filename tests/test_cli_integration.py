@@ -540,9 +540,8 @@ class TestCLITraceabilityCommands(unittest.TestCase):
             tmppath = Path(tmpdir)
             
             doc = tmppath / "doc.md"
-            doc.write_text("""
-**ID**: `fdd-test-actor-user`
-**ID**: `ADR-0001`
+            doc.write_text("""**ID**: `fdd-test-actor-user`
+ADR-0001
 """)
             
             stdout = io.StringIO()

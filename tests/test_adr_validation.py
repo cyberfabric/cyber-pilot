@@ -1362,33 +1362,27 @@ class TestADRStatusValidation(unittest.TestCase):
 
     def test_adr_with_proposed_status(self):
         """Test ADR with Proposed status."""
-        text = """# ADR Index
-
-## ADR-0001: Test
+        text = """# ADR-0001: Test
 
 **Date**: 2024-01-15
 
 **Status**: Proposed
 
-**ID**: `fdd-app-adr-0001`
+**ADR ID**: `fdd-app-adr-test`
 
-### Context and Problem Statement
+## Context and Problem Statement
 
 Context.
 
-### Decision Drivers
+## Considered Options
 
-Drivers.
+- A
 
-### Considered Options
+## Decision Outcome
 
-Options.
+Chosen option: "A", because test.
 
-### Decision Outcome
-
-Outcome.
-
-### Related Design Elements
+## Related Design Elements
 
 - `fdd-app-req-test`
 """
@@ -1399,33 +1393,27 @@ Outcome.
 
     def test_adr_with_deprecated_status(self):
         """Test ADR with Deprecated status."""
-        text = """# ADR Index
-
-## ADR-0001: Test
+        text = """# ADR-0001: Test
 
 **Date**: 2024-01-15
 
 **Status**: Deprecated
 
-**ID**: `fdd-app-adr-0001`
+**ADR ID**: `fdd-app-adr-test`
 
-### Context and Problem Statement
+## Context and Problem Statement
 
 Context.
 
-### Decision Drivers
+## Considered Options
 
-Drivers.
+- A
 
-### Considered Options
+## Decision Outcome
 
-Options.
+Chosen option: "A", because test.
 
-### Decision Outcome
-
-Outcome.
-
-### Related Design Elements
+## Related Design Elements
 
 - `fdd-app-req-test`
 """
@@ -1436,33 +1424,27 @@ Outcome.
 
     def test_adr_with_superseded_status(self):
         """Test ADR with Superseded status."""
-        text = """# ADR Index
-
-## ADR-0001: Test
+        text = """# ADR-0001: Test
 
 **Date**: 2024-01-15
 
 **Status**: Superseded
 
-**ID**: `fdd-app-adr-0001`
+**ADR ID**: `fdd-app-adr-test`
 
-### Context and Problem Statement
+## Context and Problem Statement
 
 Context.
 
-### Decision Drivers
+## Considered Options
 
-Drivers.
+- A
 
-### Considered Options
+## Decision Outcome
 
-Options.
+Chosen option: "A", because test.
 
-### Decision Outcome
-
-Outcome.
-
-### Related Design Elements
+## Related Design Elements
 
 - `fdd-app-req-test`
 """
