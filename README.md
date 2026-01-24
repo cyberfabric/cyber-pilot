@@ -22,6 +22,8 @@ Learn FDD in 10 minutes with:
 - **Common scenarios**: What to do when requirements change
 - **Working with existing docs**: Use what you already have
 
+**Live example**: [Taskman (FDD example project)](https://github.com/cyberfabric/fdd-examples-taskman) — a complete task management project with the full FDD artifact set and implementation.
+
 ---
 
 ## What is FDD?
@@ -1069,6 +1071,7 @@ Validation is done via checklists (manual review). AI assistants can help automa
 - **FDD GitHub**: https://github.com/ainetx/fdd
 - **GTS (Global Type System)**: https://github.com/GlobalTypeSystem/gts-spec
 - **CTI (Common Type Interface)**: https://github.com/acronis/go-cti
+- **Live example (Taskman)**: https://github.com/cyberfabric/fdd-examples-taskman
 
 ---
 

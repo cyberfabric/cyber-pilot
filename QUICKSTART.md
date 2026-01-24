@@ -42,6 +42,12 @@ Learn what each artifact means: [guides/TAXONOMY.md](guides/TAXONOMY.md)
 
 ---
 
+## Live Example
+
+[Taskman (FDD example project)](https://github.com/cyberfabric/fdd-examples-taskman) — a complete task management project with the full FDD artifact set and implementation.
+
+---
+
 ## Prerequisites
 
 Before starting with FDD, you need:
