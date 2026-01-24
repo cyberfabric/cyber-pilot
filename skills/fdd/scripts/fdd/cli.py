@@ -87,6 +87,152 @@ def _write_json_file(path: Path, data: dict) -> None:
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
+def _truncate_list(xs: object, limit: int) -> list:
+    if not isinstance(xs, list):
+        return []
+    return xs[: max(0, int(limit))]
+
+
+def _summarize_validate_report(report: Dict[str, object]) -> Dict[str, object]:
+    status = report.get("status")
+    out: Dict[str, object] = {
+        "status": status,
+    }
+    if "artifact_kind" in report:
+        out["artifact_kind"] = report.get("artifact_kind")
+    if "code_traceability_skipped" in report:
+        out["code_traceability_skipped"] = report.get("code_traceability_skipped")
+    if "path" in report:
+        out["path"] = report.get("path")
+    if "code_root" in report:
+        out["code_root"] = report.get("code_root")
+    if "feature_dir" in report:
+        out["feature_dir"] = report.get("feature_dir")
+
+    errs = list(report.get("errors", []) or [])
+    if status != "PASS" and errs:
+        out["error_count"] = len(errs)
+        out["errors"] = _truncate_list(errs, 50)
+
+    av = report.get("artifact_validation")
+    if isinstance(av, dict):
+        failures: Dict[str, object] = {}
+        pass_count = 0
+        fail_count = 0
+        for k, v in av.items():
+            if not isinstance(v, dict):
+                continue
+            st = v.get("status")
+            if st == "PASS":
+                pass_count += 1
+                continue
+            fail_count += 1
+            v_errs = list(v.get("errors", []) or [])
+            v_ph = list(v.get("placeholder_hits", []) or [])
+            item: Dict[str, object] = {
+                "status": st,
+                "error_count": len(v_errs),
+                "placeholder_count": len(v_ph),
+            }
+            if "path" in v:
+                item["path"] = v.get("path")
+            if v_errs:
+                item["errors"] = _truncate_list(v_errs, 50)
+            if v_ph:
+                item["placeholder_hits"] = _truncate_list(v_ph, 50)
+            failures[str(k)] = item
+        out["artifact_validation"] = {
+            "pass_count": pass_count,
+            "fail_count": fail_count,
+        }
+        if failures:
+            out["artifact_failures"] = failures
+
+    t = report.get("traceability")
+    if isinstance(t, dict):
+        t_out: Dict[str, object] = {
+            "feature_dir": t.get("feature_dir"),
+            "scan_root": t.get("scan_root"),
+            "feature_design": t.get("feature_design"),
+            "feature_changes": t.get("feature_changes"),
+            "scanned_file_count": t.get("scanned_file_count"),
+        }
+        missing = t.get("missing")
+        if status != "PASS" and isinstance(missing, dict):
+            scopes = missing.get("scopes")
+            inst = missing.get("instruction_tags")
+            if isinstance(scopes, dict):
+                t_out["missing_scopes"] = {
+                    str(k): _truncate_list(v, 20) for k, v in scopes.items() if isinstance(v, list) and v
+                }
+                t_out["missing_scope_count"] = sum(len(v) for v in scopes.values() if isinstance(v, list))
+            if isinstance(inst, list):
+                t_out["missing_instruction_tag_count"] = len(inst)
+                if inst:
+                    t_out["missing_instruction_tags"] = _truncate_list(inst, 20)
+        out["traceability"] = t_out
+
+    fr = report.get("feature_reports")
+    if isinstance(fr, list):
+        passed = 0
+        failed = 0
+        failing: List[Dict[str, object]] = []
+        for item in fr:
+            if not isinstance(item, dict):
+                continue
+            st = item.get("status")
+            if st == "PASS":
+                passed += 1
+                continue
+            failed += 1
+            item_errs = list(item.get("errors", []) or [])
+            item_trace = item.get("traceability")
+            trace_out: Optional[Dict[str, object]] = None
+            if isinstance(item_trace, dict):
+                t_out: Dict[str, object] = {
+                    "feature_dir": item_trace.get("feature_dir") or item.get("feature_dir"),
+                    "scan_root": item_trace.get("scan_root"),
+                    "feature_design": item_trace.get("feature_design"),
+                    "feature_changes": item_trace.get("feature_changes"),
+                    "scanned_file_count": item_trace.get("scanned_file_count"),
+                }
+                missing = item_trace.get("missing")
+                if st != "PASS" and isinstance(missing, dict):
+                    scopes = missing.get("scopes")
+                    inst = missing.get("instruction_tags")
+                    if isinstance(scopes, dict):
+                        t_out["missing_scopes"] = {
+                            str(k): _truncate_list(v, 20)
+                            for k, v in scopes.items()
+                            if isinstance(v, list) and v
+                        }
+                        t_out["missing_scope_count"] = sum(
+                            len(v) for v in scopes.values() if isinstance(v, list)
+                        )
+                    if isinstance(inst, list):
+                        t_out["missing_instruction_tag_count"] = len(inst)
+                        if inst:
+                            t_out["missing_instruction_tags"] = _truncate_list(inst, 20)
+                trace_out = t_out
+            failing.append(
+                {
+                    "feature_dir": item.get("feature_dir"),
+                    "status": st,
+                    "error_count": len(item_errs),
+                    "errors": _truncate_list(item_errs, 50) if item_errs else [],
+                    "traceability": trace_out,
+                }
+            )
+        out["feature_reports"] = {
+            "feature_count": report.get("feature_count"),
+            "pass_count": passed,
+            "fail_count": failed,
+            "failures": failing,
+        }
+
+    return out
+
+
 def _windsurf_default_agent_workflows_config() -> dict:
     return {
         "version": 1,
@@ -947,6 +1093,7 @@ def _cmd_validate(argv: List[str]) -> int:
     p.add_argument("--adr", default=None, help="Path to architecture/ADR/ for cross-references")
     p.add_argument("--skip-fs-checks", action="store_true", help="Skip filesystem checks")
     p.add_argument("--skip-code-traceability", action="store_true", help="Skip code traceability validation (only validate artifacts)")
+    p.add_argument("--verbose", action="store_true", help="Print full report (default: summary with errors only)")
     p.add_argument("--output", default=None, help="Write report to file instead of stdout")
     p.add_argument("--features", default=None, help="Comma-separated feature slugs for code-root traceability")
     args = p.parse_args(argv)
@@ -973,7 +1120,8 @@ def _cmd_validate(argv: List[str]) -> int:
                 artifact_path,
                 skip_fs_checks=bool(args.skip_fs_checks),
             )
-            out = json.dumps(report, indent=2, ensure_ascii=False) + "\n"
+            out_report = report if args.verbose else _summarize_validate_report(report)
+            out = json.dumps(out_report, indent=2, ensure_ascii=False) + "\n"
             if args.output:
                 Path(args.output).write_text(out, encoding="utf-8")
             else:
@@ -1034,7 +1182,8 @@ def _cmd_validate(argv: List[str]) -> int:
                 if artifacts_report.get("status") != "PASS":
                     report["status"] = "FAIL"
 
-        out = json.dumps(report, indent=2, ensure_ascii=False) + "\n"
+        out_report = report if args.verbose else _summarize_validate_report(report)
+        out = json.dumps(out_report, indent=2, ensure_ascii=False) + "\n"
         if args.output:
             Path(args.output).write_text(out, encoding="utf-8")
         else:
@@ -1068,7 +1217,8 @@ def _cmd_validate(argv: List[str]) -> int:
             skip_fs_checks=bool(args.skip_fs_checks),
         )
 
-    out = json.dumps(report, indent=2, ensure_ascii=False) + "\n"
+    out_report = report if args.verbose else _summarize_validate_report(report)
+    out = json.dumps(out_report, indent=2, ensure_ascii=False) + "\n"
 
     if args.output:
         Path(args.output).write_text(out, encoding="utf-8")

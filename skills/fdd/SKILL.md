@@ -173,6 +173,10 @@ python3 scripts/fdd.py validate
 python3 scripts/fdd.py validate --artifact .
 ```
 
+**Output**:
+- Default output is a **compact JSON summary** focused on failures.
+- Use `--verbose` to print the full report.
+
 This performs **cascading validation**:
 1. **BUSINESS.md** — validates business context structure
 2. **architecture/ADR/** — validates ADR structure, cross-refs to BUSINESS.md
@@ -203,6 +207,9 @@ python3 scripts/fdd.py validate --artifact {path} --requirements {path}
 
 # Skip filesystem checks
 python3 scripts/fdd.py validate --artifact {path} --skip-fs-checks
+
+# Print full report (includes traceability expected/found details when applicable)
+python3 scripts/fdd.py validate --artifact {path} --verbose
 
 # Save validation report
 python3 scripts/fdd.py validate --artifact {path} --output {path}
@@ -459,24 +466,19 @@ python3 scripts/fdd.py where-used --root . --id fdd-myapp-feature-auth-flow-logi
 
 ## Validation Output
 
-The validation report includes:
+Default validation output is a compact JSON summary. It includes high-level status and counts, and only includes detailed lists when something fails.
 
 ```json
 {
   "status": "PASS|FAIL",
   "artifact_kind": "codebase-trace",
-  "artifact_validation": {
-    "business-context": { "status": "PASS", ... },
-    "adr": { "status": "PASS", ... },
-    "overall-design": { "status": "PASS", ... },
-    "features-manifest": { "status": "PASS", ... },
-    "feature-design:feature-auth": { "status": "PASS", ... },
-    "feature-changes:feature-auth": { "status": "PASS", ... }
-  },
-  "feature_reports": [ ... ],  // code traceability (if not skipped)
-  "code_traceability_skipped": true  // when --skip-code-traceability
+  "code_root": "/path/to/repo",
+  "artifact_validation": { "pass_count": 25, "fail_count": 0 },
+  "feature_reports": { "feature_count": 20, "pass_count": 20, "fail_count": 0, "failures": [] }
 }
 ```
+
+Full validation output (`--verbose`) prints the complete report (including per-artifact sections and traceability `expected`/`found` details).
 
 ## Read-Only Guarantee
 

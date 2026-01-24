@@ -13,6 +13,7 @@ OPTIONS:
   --adr  <path>  Path to ADR directory (architecture/ADR/) for cross-reference validation
   --features  <string>  Comma-separated feature slugs for traceability scan filtering
   --skip-fs-checks  <boolean>  Skip filesystem checks during validation
+  --verbose  <boolean>  Print full validation report (default output is a compact summary focused on failures)
   --output  <path>  Save validation report to file (default: stdout)
 
 EXIT CODES:
