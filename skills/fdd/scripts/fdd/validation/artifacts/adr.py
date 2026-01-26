@@ -17,6 +17,7 @@ from ...constants import (
     ADR_STATUS_RE,
     ACTOR_ID_RE,
     CAPABILITY_ID_RE,
+    PRD_FR_ID_RE,
     PRINCIPLE_ID_RE,
     REQ_ID_RE,
 )
@@ -33,7 +34,7 @@ def validate_adr(
     artifact_text: str,
     *,
     artifact_path: Optional[Path] = None,
-    business_path: Optional[Path] = None,
+    prd_path: Optional[Path] = None,
     design_path: Optional[Path] = None,
     skip_fs_checks: bool = False,
 ) -> Dict[str, object]:
@@ -45,21 +46,21 @@ def validate_adr(
         errors.extend(issues)
 
         placeholders: List[Dict[str, object]] = []
-        business_actors: set = set()
-        business_caps: set = set()
+        prd_actors: set = set()
+        prd_caps: set = set()
         design_req: set = set()
         design_principle: set = set()
 
         if not skip_fs_checks:
-            bp = business_path or (artifact_path.parent / "BUSINESS.md")
+            bp = prd_path or (artifact_path.parent / "PRD.md")
             dp = design_path or (artifact_path.parent / "DESIGN.md")
 
             bt, berr = load_text(bp)
             if berr:
                 errors.append({"type": "cross", "message": berr})
             else:
-                business_actors = set(ACTOR_ID_RE.findall(bt or ""))
-                business_caps = set(CAPABILITY_ID_RE.findall(bt or ""))
+                prd_actors = set(ACTOR_ID_RE.findall(bt or ""))
+                prd_caps = set(CAPABILITY_ID_RE.findall(bt or "")) | set(PRD_FR_ID_RE.findall(bt or ""))
 
             dt, derr = load_text(dp)
             if derr:
@@ -85,8 +86,8 @@ def validate_adr(
                     t,
                     adr_ref=str(e.get("ref")),
                     require_h1=True,
-                    business_actors=business_actors,
-                    business_caps=business_caps,
+                    prd_actors=prd_actors,
+                    prd_caps=prd_caps,
                     design_req=design_req,
                     design_principle=design_principle,
                 )
@@ -105,21 +106,21 @@ def validate_adr(
 
     placeholders = find_placeholders(artifact_text)
 
-    business_actors: set = set()
-    business_caps: set = set()
+    prd_actors: set = set()
+    prd_caps: set = set()
     design_req: set = set()
     design_principle: set = set()
 
     if not skip_fs_checks and artifact_path is not None:
-        bp = business_path or (artifact_path.parent / "BUSINESS.md")
+        bp = prd_path or (artifact_path.parent / "PRD.md")
         dp = design_path or (artifact_path.parent / "DESIGN.md")
 
         bt, berr = load_text(bp)
         if berr:
             errors.append({"type": "cross", "message": berr})
         else:
-            business_actors = set(ACTOR_ID_RE.findall(bt or ""))
-            business_caps = set(CAPABILITY_ID_RE.findall(bt or ""))
+            prd_actors = set(ACTOR_ID_RE.findall(bt or ""))
+            prd_caps = set(CAPABILITY_ID_RE.findall(bt or "")) | set(PRD_FR_ID_RE.findall(bt or ""))
 
         dt, derr = load_text(dp)
         if derr:
@@ -132,8 +133,8 @@ def validate_adr(
         artifact_text,
         adr_ref=None,
         require_h1=True,
-        business_actors=business_actors,
-        business_caps=business_caps,
+        prd_actors=prd_actors,
+        prd_caps=prd_caps,
         design_req=design_req,
         design_principle=design_principle,
     )
@@ -159,8 +160,8 @@ def _validate_single_adr_text(
     *,
     adr_ref: Optional[str],
     require_h1: bool,
-    business_actors: Optional[set] = None,
-    business_caps: Optional[set] = None,
+    prd_actors: Optional[set] = None,
+    prd_caps: Optional[set] = None,
     design_req: Optional[set] = None,
     design_principle: Optional[set] = None,
 ) -> List[Dict[str, object]]:
@@ -209,18 +210,25 @@ def _validate_single_adr_text(
 
         rel = _related_block(text)
         if rel is not None:
-            referenced = set(ACTOR_ID_RE.findall(rel)) | set(CAPABILITY_ID_RE.findall(rel)) | set(REQ_ID_RE.findall(rel)) | set(PRINCIPLE_ID_RE.findall(rel))
+            referenced = (
+                set(ACTOR_ID_RE.findall(rel))
+                | set(CAPABILITY_ID_RE.findall(rel))
+                | set(PRD_FR_ID_RE.findall(rel))
+                | set(REQ_ID_RE.findall(rel))
+                | set(PRINCIPLE_ID_RE.findall(rel))
+            )
             if not referenced:
                 issues.append({"adr": adr_ref or "(file)", "message": "Related Design Elements must contain at least one ID"})
 
-            if business_actors:
-                bad = sorted([x for x in ACTOR_ID_RE.findall(rel) if x not in business_actors])
+            if prd_actors:
+                bad = sorted([x for x in ACTOR_ID_RE.findall(rel) if x not in prd_actors])
                 if bad:
                     issues.append({"adr": adr_ref or "(file)", "message": "Unknown actor IDs in Related Design Elements", "ids": bad})
-            if business_caps:
-                bad = sorted([x for x in CAPABILITY_ID_RE.findall(rel) if x not in business_caps])
+            if prd_caps:
+                rel_caps = set(CAPABILITY_ID_RE.findall(rel)) | set(PRD_FR_ID_RE.findall(rel))
+                bad = sorted([x for x in rel_caps if x not in prd_caps])
                 if bad:
-                    issues.append({"adr": adr_ref or "(file)", "message": "Unknown capability IDs in Related Design Elements", "ids": bad})
+                    issues.append({"adr": adr_ref or "(file)", "message": "Unknown PRD IDs in Related Design Elements", "ids": bad})
             if design_req:
                 bad = sorted([x for x in REQ_ID_RE.findall(rel) if x not in design_req])
                 if bad:

@@ -1,4 +1,4 @@
-# @fdd-change:fdd-fdd-feature-init-structure-change-infrastructure:ph-1
+# @fdd-algo:fdd-fdd-feature-init-structure-change-infrastructure:ph-1
 .PHONY: test test-verbose test-quick test-coverage validate validate-examples validate-feature validate-code validate-code-feature install install-pipx clean help check-pytest check-pytest-cov check-pipx
 
 PYTHON ?= python3
@@ -106,7 +106,7 @@ validate-feature:
 	fi
 	@echo "Validating feature: $(FEATURE)..."
 	@python3.11 skills/fdd/scripts/fdd.py validate \
-		--artifact architecture/features/$(FEATURE)/CHANGES.md
+		--artifact architecture/features/$(FEATURE)/DESIGN.md
 
 
 # Validate code traceability for specific feature

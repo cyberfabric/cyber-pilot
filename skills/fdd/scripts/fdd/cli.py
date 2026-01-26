@@ -40,7 +40,6 @@ from .utils.markdown import (
     find_id_line,
     list_items,
     list_section_entries,
-    read_change_block,
     read_feature_entry,
     read_heading_block_by_title,
     read_letter_section,
@@ -129,15 +128,24 @@ def _summarize_validate_report(report: Dict[str, object]) -> Dict[str, object]:
             fail_count += 1
             v_errs = list(v.get("errors", []) or [])
             v_ph = list(v.get("placeholder_hits", []) or [])
+            v_missing_sections = list(v.get("missing_sections", []) or [])
+            v_adr_issues = list(v.get("adr_issues", []) or [])
+            issue_count = len(v_errs) + len(v_missing_sections) + len(v_adr_issues)
             item: Dict[str, object] = {
                 "status": st,
-                "error_count": len(v_errs),
+                "error_count": issue_count,
                 "placeholder_count": len(v_ph),
             }
             if "path" in v:
                 item["path"] = v.get("path")
             if v_errs:
                 item["errors"] = _truncate_list(v_errs, 50)
+            if v_missing_sections:
+                item["missing_sections"] = _truncate_list(v_missing_sections, 50)
+                item["missing_section_count"] = len(v_missing_sections)
+            if v_adr_issues:
+                item["adr_issue_count"] = len(v_adr_issues)
+                item["adr_issues"] = _truncate_list(v_adr_issues, 50)
             if v_ph:
                 item["placeholder_hits"] = _truncate_list(v_ph, 50)
             failures[str(k)] = item
@@ -154,7 +162,6 @@ def _summarize_validate_report(report: Dict[str, object]) -> Dict[str, object]:
             "feature_dir": t.get("feature_dir"),
             "scan_root": t.get("scan_root"),
             "feature_design": t.get("feature_design"),
-            "feature_changes": t.get("feature_changes"),
             "scanned_file_count": t.get("scanned_file_count"),
         }
         missing = t.get("missing")
@@ -193,7 +200,6 @@ def _summarize_validate_report(report: Dict[str, object]) -> Dict[str, object]:
                     "feature_dir": item_trace.get("feature_dir") or item.get("feature_dir"),
                     "scan_root": item_trace.get("scan_root"),
                     "feature_design": item_trace.get("feature_design"),
-                    "feature_changes": item_trace.get("feature_changes"),
                     "scanned_file_count": item_trace.get("scanned_file_count"),
                 }
                 missing = item_trace.get("missing")
@@ -1089,7 +1095,7 @@ def _cmd_validate(argv: List[str]) -> int:
     p.add_argument("--artifact", default=".", help="Path to artifact to validate (default: current directory = validate all)")
     p.add_argument("--requirements", default=None, help="Path to requirements file (optional, auto-detected)")
     p.add_argument("--design", default=None, help="Path to DESIGN.md for cross-references")
-    p.add_argument("--business", default=None, help="Path to BUSINESS.md for cross-references")
+    p.add_argument("--prd", default=None, help="Path to PRD.md for cross-references")
     p.add_argument("--adr", default=None, help="Path to architecture/ADR/ for cross-references")
     p.add_argument("--skip-fs-checks", action="store_true", help="Skip filesystem checks")
     p.add_argument("--skip-code-traceability", action="store_true", help="Skip code traceability validation (only validate artifacts)")
@@ -1143,7 +1149,6 @@ def _cmd_validate(argv: List[str]) -> int:
                 report = validate_codebase_traceability(
                     artifact_path,
                     feature_design_path=Path(args.design).resolve() if args.design else None,
-                    feature_changes_path=None,
                     skip_fs_checks=bool(args.skip_fs_checks),
                 )
             report["artifact_kind"] = "codebase-trace"
@@ -1198,7 +1203,7 @@ def _cmd_validate(argv: List[str]) -> int:
             raise SystemExit(f"Requirements file not found: {requirements_path}")
         
         artifact_kind, _ = detect_requirements(artifact_path) if artifact_path.name in (
-            "BUSINESS.md", "ADR", "FEATURES.md", "CHANGES.md", "DESIGN.md"
+            "PRD.md", "ADR", "FEATURES.md", "DESIGN.md"
         ) else ("custom", None)
         
         report = validate(
@@ -1365,7 +1370,6 @@ def _cmd_read_section(argv: List[str]) -> int:
     g.add_argument("--section", help="Top-level letter section (e.g. A, B, C)")
     g.add_argument("--heading", help="Exact heading title to match")
     g.add_argument("--feature-id", help="Feature ID for FEATURES.md entry")
-    g.add_argument("--change", type=int, help="Change number for CHANGES.md")
     g.add_argument("--id", help="Any ID to locate, then return its block")
     args = p.parse_args(argv)
 
@@ -1390,18 +1394,6 @@ def _cmd_read_section(argv: List[str]) -> int:
             return 1
         start, end = rng
         print(json.dumps({"status": "FOUND", "feature_id": args.feature_id, "text": "\n".join(lines[start:end])}, indent=None, ensure_ascii=False))
-        return 0
-
-    if args.change is not None:
-        if kind != "feature-changes":
-            print(json.dumps({"status": "ERROR", "message": "--change is only supported for CHANGES.md"}, indent=None, ensure_ascii=False))
-            return 1
-        rng = read_change_block(lines, int(args.change))
-        if rng is None:
-            print(json.dumps({"status": "NOT_FOUND", "change": args.change}, indent=None, ensure_ascii=False))
-            return 1
-        start_idx, end = rng
-        print(json.dumps({"status": "FOUND", "change": args.change, "text": "\n".join(lines[start_idx:end])}, indent=None, ensure_ascii=False))
         return 0
 
     if args.section is not None:
@@ -1435,7 +1427,6 @@ def _cmd_get_item(argv: List[str]) -> int:
     g.add_argument("--section")
     g.add_argument("--heading")
     g.add_argument("--feature-id")
-    g.add_argument("--change", type=int)
     g.add_argument("--id")
     args = p.parse_args(argv)
 
@@ -1449,8 +1440,6 @@ def _cmd_get_item(argv: List[str]) -> int:
         sub.extend(["--heading", args.heading])
     elif args.feature_id is not None:
         sub.extend(["--feature-id", args.feature_id])
-    elif args.change is not None:
-        sub.extend(["--change", str(args.change)])
 
     return _cmd_read_section(sub)
 

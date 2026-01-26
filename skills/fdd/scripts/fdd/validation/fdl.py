@@ -49,43 +49,6 @@ def extract_fdl_instructions(text: str) -> Dict[str, Dict[str, List[str]]]:
     return result
 
 
-def extract_scope_references_from_changes(text: str) -> Set[str]:
-    """
-    Extract all FDL scope IDs (flow/algo/state/test) referenced in CHANGES.md.
-    """
-    scope_ids: Set[str] = set()
-    
-    # Extract from task descriptions and references sections
-    flow_ids = re.findall(r"`(fdd-[a-z0-9-]+-(?:flow|algo|state|test)-[a-z0-9-]+)`", text)
-    scope_ids.update(flow_ids)
-    
-    return scope_ids
-
-
-def validate_fdl_coverage(
-    changes_text: str,
-    design_fdl: Dict[str, Dict[str, List]]
-) -> List[Dict[str, object]]:
-    """
-    Validate that CHANGES.md references all FDL scopes (flows/algos/states/tests) from DESIGN.md.
-    """
-    errors: List[Dict[str, object]] = []
-    
-    # Extract all scope IDs mentioned in CHANGES.md
-    referenced_scopes = extract_scope_references_from_changes(changes_text)
-    
-    # Check that each FDL scope is referenced
-    for scope_id in design_fdl.keys():
-        if scope_id not in referenced_scopes:
-            errors.append({
-                "type": "fdl_coverage",
-                "message": f"FDL scope '{scope_id}' from DESIGN.md not referenced in CHANGES.md",
-                "scope_id": scope_id
-            })
-    
-    return errors
-
-
 def extract_inst_tags_from_code(feature_root: Path) -> Dict[str, Dict[str, object]]:
     """
     Scan codebase for FDL instruction tags (fdd-begin/fdd-end pairs). Extracts inst-{id} only.
@@ -106,9 +69,9 @@ def extract_inst_tags_from_code(feature_root: Path) -> Dict[str, Dict[str, objec
             lines = file_path.read_text(encoding="utf-8", errors="ignore").split('\n')
             
             # Match: fdd-begin fdd-{project}-feature-{slug}-...:ph-N:inst-{id}
-            begin_pattern = r'fdd-begin\s+(fdd-[a-z0-9-]+(?:-flow|-algo|-state|-req|-test|-change)-[a-z0-9-]+):ph-\d+:(inst-[a-z0-9-]+)'
+            begin_pattern = r'fdd-begin\s+(fdd-[a-z0-9-]+(?:-flow|-algo|-state|-req|-test)-[a-z0-9-]+):ph-\d+:(inst-[a-z0-9-]+)'
             # Match: fdd-end fdd-{project}-feature-{slug}-...:ph-N:inst-{id}
-            end_pattern = r'fdd-end\s+(fdd-[a-z0-9-]+(?:-flow|-algo|-state|-req|-test|-change)-[a-z0-9-]+):ph-\d+:(inst-[a-z0-9-]+)'
+            end_pattern = r'fdd-end\s+(fdd-[a-z0-9-]+(?:-flow|-algo|-state|-req|-test)-[a-z0-9-]+):ph-\d+:(inst-[a-z0-9-]+)'
             
             for line in lines:
                 # Check for fdd-begin

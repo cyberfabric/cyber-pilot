@@ -64,7 +64,7 @@ purpose: Define validation rules for FDD adapter files
   - Validation/CI expectations.
 
 **Should not contain**:
-- Business context (use `architecture/BUSINESS.md`).
+- PRD (use `architecture/PRD.md`).
 - Architecture decisions rationale (use ADRs).
 - Feature specs or implementation plans.
 
@@ -149,7 +149,7 @@ ALWAYS open and follow {spec-file} WHEN executing workflows: {workflow1.md}, {wo
 | Contains `**Extends**:` declaration | YES |
 
 **Content boundaries checks**:
-- [ ] No business context content included
+- [ ] No PRD content included
 - [ ] No architecture decision rationale included
 - [ ] No feature specs or implementation plans included
 

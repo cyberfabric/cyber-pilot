@@ -152,8 +152,8 @@ purpose: Define validation rules for ADR directory and per-record ADR files
 ### Related Design Elements (FDD Extension)
 
 **Categories**:
-- **Actors**: IDs from BUSINESS.md Section B
-- **Capabilities**: IDs from BUSINESS.md Section C
+- **Actors**: IDs from PRD.md Section B
+- **Capabilities**: IDs from PRD.md Section C
 - **Requirements**: IDs from DESIGN.md Section B
 - **Principles**: IDs from DESIGN.md Section B
 
@@ -167,8 +167,8 @@ purpose: Define validation rules for ADR directory and per-record ADR files
 
 ## Cross-Reference Validation
 
-1. **Actor IDs** — exist in BUSINESS.md Section B
-2. **Capability IDs** — exist in BUSINESS.md Section C
+1. **Actor IDs** — exist in PRD.md Section B
+2. **Capability IDs** — exist in PRD.md Section C
 3. **Requirement IDs** — exist in DESIGN.md Section B
 4. **Principle IDs** — exist in DESIGN.md Section B
 
@@ -229,5 +229,5 @@ purpose: Define validation rules for ADR directory and per-record ADR files
 - ADR Organization: https://github.com/joelparkerhenderson/architecture-decision-record
 
 **Related**:
-- `business-context-structure.md` — Actor/Capability IDs
+- `prd-structure.md` — Actor/Capability IDs
 - `overall-design-structure.md` — Requirement/Principle IDs

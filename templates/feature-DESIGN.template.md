@@ -38,12 +38,14 @@
 - {Error scenario 1}
 
 **Steps**:
-1. [ ] - `ph-1` - {Step description} - `inst-{step-id}`
-2. [ ] - `ph-1` - **IF** {condition} - `inst-{step-id}`
-   1. [ ] - `ph-1` - {Action if true} - `inst-{step-id}`
-3. [ ] - `ph-1` - **ELSE** - `inst-{step-id}`
-   1. [ ] - `ph-1` - {Action if false} - `inst-{step-id}`
-4. [ ] - `ph-1` - **RETURN** {result} - `inst-{step-id}`
+1. [ ] - `ph-1` - {Actor action} - `inst-{step-id}`
+2. [ ] - `ph-1` - {API: METHOD /path (request/response summary)} - `inst-{step-id}`
+3. [ ] - `ph-1` - {DB: OPERATION table(s) (key columns/filters)} - `inst-{step-id}`
+4. [ ] - `ph-1` - **IF** {condition} - `inst-{step-id}`
+   1. [ ] - `ph-1` - {Action if true (include API/DB/Integration details)} - `inst-{step-id}`
+5. [ ] - `ph-1` - **ELSE** - `inst-{step-id}`
+   1. [ ] - `ph-1` - {Action if false (include API/DB/Integration details)} - `inst-{step-id}`
+6. [ ] - `ph-1` - **RETURN** {result} - `inst-{step-id}`
 <!-- fdd-id-content -->
 
 <!-- TODO: Add more flows as needed -->
@@ -56,17 +58,20 @@
 
 <!-- fdd-id-content -->
 **Input**: {Input description}
+
 **Output**: {Output description}
 
 **Steps**:
-1. [ ] - `ph-1` - {Step description} - `inst-{step-id}`
-2. [ ] - `ph-1` - **FOR EACH** {item} in {collection} - `inst-{step-id}`
-   1. [ ] - `ph-1` - {Process item} - `inst-{step-id}`
-3. [ ] - `ph-1` - **TRY** - `inst-{step-id}`
-   1. [ ] - `ph-1` - {Risky operation} - `inst-{step-id}`
-4. [ ] - `ph-1` - **CATCH** {error} - `inst-{step-id}`
+1. [ ] - `ph-1` - {Parse/normalize input} - `inst-{step-id}`
+2. [ ] - `ph-1` - {DB: OPERATION table(s) (key columns/filters)} - `inst-{step-id}`
+3. [ ] - `ph-1` - {API: METHOD /path (request/response summary)} - `inst-{step-id}`
+4. [ ] - `ph-1` - **FOR EACH** {item} in {collection} - `inst-{step-id}`
+   1. [ ] - `ph-1` - {Process item (include API/DB/Integration details)} - `inst-{step-id}`
+5. [ ] - `ph-1` - **TRY** - `inst-{step-id}`
+   1. [ ] - `ph-1` - {Risky operation (include API/DB/Integration details)} - `inst-{step-id}`
+6. [ ] - `ph-1` - **CATCH** {error} - `inst-{step-id}`
    1. [ ] - `ph-1` - {Handle error} - `inst-{step-id}`
-5. [ ] - `ph-1` - **RETURN** {result} - `inst-{step-id}`
+7. [ ] - `ph-1` - **RETURN** {result} - `inst-{step-id}`
 <!-- fdd-id-content -->
 
 <!-- TODO: Add more algorithms as needed -->
@@ -79,6 +84,7 @@
 
 <!-- fdd-id-content -->
 **States**: {State1}, {State2}, {State3}
+
 **Initial State**: {State1}
 
 **Transitions**:
@@ -89,30 +95,7 @@
 <!-- TODO: Add more state machines as needed -->
 <!-- Note: This section is optional if feature has no state management -->
 
-## E. Technical Details
-
-### Database Schema
-
-<!-- TODO: Add tables/entities if applicable -->
-{Tables, columns, relationships or "Not applicable"}
-
-### API Endpoints
-
-<!-- TODO: Reference API specification from Overall Design -->
-- See [API Spec]({path/to/api-spec})
-
-### Security
-
-**Authorization**: {Authorization rules}
-**Access Control**: {Access control description}
-
-### Error Handling
-
-| Error Type | Handling Approach |
-|------------|-------------------|
-| {Error 1} | {How to handle} |
-
-## F. Requirements
+## E. Requirements
 
 ### {Requirement Title}
 
@@ -120,7 +103,13 @@
 
 <!-- fdd-id-content -->
 **Status**: ⏳ NOT_STARTED
+
 **Description**: {Clear description with SHALL/MUST statements}
+
+**Implementation details**:
+- {If this requirement touches API: specify endpoint/method + request/response}
+- {If this requirement touches DB: specify exact query shape and tables}
+- {If this requirement touches domain entities: list entity names and identifiers}
 
 **References**:
 - [{Flow Name}](#{flow-name})
@@ -132,35 +121,16 @@
 
 **Phases**:
 - [ ] `ph-1`: {What is implemented in this phase}
-
-**Tests Covered**:
-- `fdd-{project-name}-feature-{feature-slug}-test-{test-slug}`
-
-**Acceptance Criteria**:
-- {Criterion 1}
-- {Criterion 2}
 <!-- fdd-id-content -->
 
 <!-- TODO: Add more requirements as needed -->
 
-## G. Testing Scenarios
+## F. Additional Context (optional)
 
-### {Test Scenario Title}
+### {Context Item Title}
 
-- [ ] **ID**: `fdd-{project-name}-feature-{feature-slug}-test-{test-slug}`
+**ID**: `fdd-{project-name}-feature-{feature-slug}-context-{context-slug}`
 
 <!-- fdd-id-content -->
-**Validates**: `fdd-{project-name}-feature-{feature-slug}-req-{req-slug}`
-
-**Steps**:
-1. [ ] - `ph-1` - {Setup step} - `inst-{step-id}`
-2. [ ] - `ph-1` - {Action step} - `inst-{step-id}`
-3. [ ] - `ph-1` - {Verification step} - `inst-{step-id}`
+{Additional notes and context that inform implementation.}
 <!-- fdd-id-content -->
-
-<!-- TODO: Add more testing scenarios as needed -->
-
-## H. Additional Context
-
-<!-- TODO: Add dependencies, references, notes, diagrams if needed -->
-<!-- This section is optional -->

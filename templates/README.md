@@ -19,12 +19,11 @@ This directory contains templates for all FDD artifacts. Templates define the **
 
 | Template | Artifact | Location |
 |----------|----------|----------|
-| `BUSINESS.template.md` | Business Context | `architecture/BUSINESS.md` |
+| `PRD.template.md` | PRD | `architecture/PRD.md` |
 | `DESIGN.template.md` | Overall Design | `architecture/DESIGN.md` |
 | `ADR.template.md` | Architecture Decision Records | `architecture/ADR/` |
 | `FEATURES.template.md` | Features Manifest | `architecture/features/FEATURES.md` |
 | `feature-DESIGN.template.md` | Feature Design | `architecture/features/feature-{slug}/DESIGN.md` |
-| `feature-CHANGES.template.md` | Feature Changes | `architecture/features/feature-{slug}/CHANGES.md` |
 | `adapter-AGENTS.template.md` | Adapter AGENTS | `{adapter-directory}/AGENTS.md` |
 
 ---

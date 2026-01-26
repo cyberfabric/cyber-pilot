@@ -188,9 +188,9 @@ class TestFindAdapterDirectory(unittest.TestCase):
 
 class TestDetectRequirements(unittest.TestCase):
     def test_detect_requirements_known_artifacts(self):
-        kind, rp = detect_requirements(Path("/tmp/architecture/BUSINESS.md"))
-        self.assertEqual(kind, "business-context")
-        self.assertTrue(str(rp).endswith("requirements/business-context-structure.md"))
+        kind, rp = detect_requirements(Path("/tmp/architecture/PRD.md"))
+        self.assertEqual(kind, "prd")
+        self.assertTrue(str(rp).endswith("requirements/prd-structure.md"))
 
         kind, rp = detect_requirements(Path("/tmp/architecture/ADR"))
         self.assertEqual(kind, "adr")
@@ -198,17 +198,11 @@ class TestDetectRequirements(unittest.TestCase):
         kind, rp = detect_requirements(Path("/tmp/architecture/FEATURES.md"))
         self.assertEqual(kind, "features-manifest")
 
-        kind, rp = detect_requirements(Path("/tmp/architecture/features/feature-x/CHANGES.md"))
-        self.assertEqual(kind, "feature-changes")
-
         kind, rp = detect_requirements(Path("/tmp/architecture/DESIGN.md"))
         self.assertEqual(kind, "overall-design")
 
         kind, rp = detect_requirements(Path("/tmp/architecture/features/feature-x/DESIGN.md"))
         self.assertEqual(kind, "feature-design")
-
-        kind, rp = detect_requirements(Path("/tmp/2026-01-01-CHANGES.md"))
-        self.assertEqual(kind, "feature-changes")
 
     def test_detect_requirements_unsupported_raises(self):
         with self.assertRaises(ValueError):

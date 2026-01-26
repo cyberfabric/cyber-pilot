@@ -87,9 +87,7 @@ class TestCLIValidateCommand(unittest.TestCase):
 
             # Minimal artifacts for feature-a/feature-b so traceability runs.
             (root / "architecture" / "features" / "feature-a" / "DESIGN.md").write_text("# Feature: A\n", encoding="utf-8")
-            (root / "architecture" / "features" / "feature-a" / "CHANGES.md").write_text("# Implementation Plan: A\n", encoding="utf-8")
             (root / "architecture" / "features" / "feature-b" / "DESIGN.md").write_text("# Feature: B\n", encoding="utf-8")
-            (root / "architecture" / "features" / "feature-b" / "CHANGES.md").write_text("# Implementation Plan: B\n", encoding="utf-8")
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
@@ -130,7 +128,6 @@ class TestCLIValidateCommand(unittest.TestCase):
             (td / ".git").mkdir()
             (td / "architecture" / "features" / "feature-a").mkdir(parents=True)
             (td / "architecture" / "features" / "feature-a" / "DESIGN.md").write_text("# Feature: A\n", encoding="utf-8")
-            (td / "architecture" / "features" / "feature-a" / "CHANGES.md").write_text("# Implementation Plan: A\n", encoding="utf-8")
 
             out_path = td / "out.json"
             exit_code = main(["validate", "--artifact", str(td), "--output", str(out_path), "--skip-fs-checks"])
@@ -398,16 +395,6 @@ other
             self.assertEqual(out.get("count"), 1)
             self.assertEqual(out.get("ids")[0].get("id"), "fdd-test-actor-user")
 
-    def test_read_section_change_wrong_kind(self):
-        """Cover --change only valid for CHANGES.md."""
-        with TemporaryDirectory() as tmpdir:
-            doc = Path(tmpdir) / "doc.md"
-            doc.write_text("# Doc\n", encoding="utf-8")
-            stdout = io.StringIO()
-            with redirect_stdout(stdout):
-                exit_code = main(["read-section", "--artifact", str(doc), "--change", "1"])
-            self.assertEqual(exit_code, 1)
-
     def test_read_section_section_not_found(self):
         """Cover NOT_FOUND for --section."""
         with TemporaryDirectory() as tmpdir:
@@ -516,7 +503,7 @@ other
             wf_dir.mkdir(parents=True)
             fdd_root = Path(fdd_cli.__file__).resolve().parents[4]
 
-            dst = wf_dir / "fdd-business-context.md"
+            dst = wf_dir / "fdd-prd.md"
             dst.write_text("x\n", encoding="utf-8")
 
             orig = Path.read_text
@@ -559,11 +546,11 @@ other
     def test_list_items_under_heading_found(self):
         """Cover list-items --under-heading FOUND path."""
         with TemporaryDirectory() as tmpdir:
-            doc = Path(tmpdir) / "BUSINESS.md"
+            doc = Path(tmpdir) / "PRD.md"
             doc.write_text(
                 "\n".join(
                     [
-                        "# Business Context",
+                        "# PRD",
                         "",
                         "## B. Actors",
                         "",
@@ -1028,25 +1015,6 @@ class TestCLISubcommandErrorBranches(unittest.TestCase):
                     code = main(["read-section", "--artifact", str(p), "--feature-id", "fdd-x-feature-y"])
             self.assertEqual(code, 0)
 
-    def test_read_section_change_branches(self):
-        from fdd import cli as fdd_cli
-
-        with TemporaryDirectory() as tmpdir:
-            p = Path(tmpdir) / "CHANGES.md"
-            p.write_text("x\n", encoding="utf-8")
-
-            stdout = io.StringIO()
-            with unittest.mock.patch.object(fdd_cli, "read_change_block", return_value=None):
-                with redirect_stdout(stdout):
-                    code = main(["read-section", "--artifact", str(p), "--change", "1"])
-            self.assertEqual(code, 1)
-
-            stdout = io.StringIO()
-            with unittest.mock.patch.object(fdd_cli, "read_change_block", return_value=(0, 1)):
-                with redirect_stdout(stdout):
-                    code = main(["read-section", "--artifact", str(p), "--change", "1"])
-            self.assertEqual(code, 0)
-
     def test_read_section_heading_branch(self):
         from fdd import cli as fdd_cli
 
@@ -1075,8 +1043,6 @@ class TestCLISubcommandErrorBranches(unittest.TestCase):
             self.assertEqual(main(["get-item", "--artifact", "x", "--heading", "H"]), 0)
         with unittest.mock.patch.object(fdd_cli, "_cmd_read_section", return_value=0):
             self.assertEqual(main(["get-item", "--artifact", "x", "--feature-id", "fdd-x-feature-y"]), 0)
-        with unittest.mock.patch.object(fdd_cli, "_cmd_read_section", return_value=0):
-            self.assertEqual(main(["get-item", "--artifact", "x", "--change", "1"]), 0)
 
     def test_find_id_and_search_load_error(self):
         stdout = io.StringIO()
@@ -1211,14 +1177,14 @@ class TestCLISubcommandErrorBranches(unittest.TestCase):
             wf_dir.mkdir(parents=True)
 
             fdd_root = Path(fdd_cli.__file__).resolve().parents[4]
-            target = (fdd_root / "workflows" / "business-context.md").resolve()
+            target = (fdd_root / "workflows" / "prd.md").resolve()
             target_rel = fdd_cli._safe_relpath(target, root)
 
             misnamed = wf_dir / "foo.md"
             misnamed.write_text(
                 "\n".join(
                     [
-                        "# /fdd-business-context",
+                        "# /fdd-prd",
                         "",
                         f"ALWAYS open and follow `{target_rel}`",
                         "",
@@ -1249,7 +1215,7 @@ class TestCLISubcommandErrorBranches(unittest.TestCase):
             out = json.loads(stdout.getvalue())
             self.assertEqual(out.get("status"), "PASS")
 
-            expected_dst = wf_dir / "fdd-business-context.md"
+            expected_dst = wf_dir / "fdd-prd.md"
             self.assertTrue(expected_dst.exists())
             self.assertFalse(misnamed.exists())
 
@@ -1280,13 +1246,13 @@ class TestCLISubcommandErrorBranches(unittest.TestCase):
             wf_dir.mkdir(parents=True)
 
             fdd_root = Path(fdd_cli.__file__).resolve().parents[4]
-            target = (fdd_root / "workflows" / "business-context.md").resolve()
+            target = (fdd_root / "workflows" / "prd.md").resolve()
             target_rel = fdd_cli._safe_relpath(target, root)
 
             misnamed = wf_dir / "foo.md"
-            misnamed.write_text(f"# /fdd-business-context\n\nALWAYS open and follow `{target_rel}`\n", encoding="utf-8")
+            misnamed.write_text(f"# /fdd-prd\n\nALWAYS open and follow `{target_rel}`\n", encoding="utf-8")
 
-            dst = wf_dir / "fdd-business-context.md"
+            dst = wf_dir / "fdd-prd.md"
             dst.write_text("preexisting", encoding="utf-8")
 
             stdout = io.StringIO()

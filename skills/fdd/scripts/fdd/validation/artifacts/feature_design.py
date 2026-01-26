@@ -14,7 +14,7 @@ from ...constants import (
     FEATURE_ALGO_ID_RE,
     FEATURE_STATE_ID_RE,
     FEATURE_REQ_ID_RE,
-    FEATURE_TEST_ID_RE,
+    FEATURE_CONTEXT_ID_RE,
     LINK_RE,
 )
 
@@ -39,20 +39,20 @@ def validate_feature_design(
     Validate feature DESIGN.md structure and content.
     
     Checks:
-    - Section structure (A-G required, H optional)
-    - FDL syntax in flows, algorithms, state machines, testing scenarios
+    - Section structure (A-E required, F optional)
+    - FDL syntax in flows, algorithms, state machines
     - ID formatting and feature slug consistency
-    - Cross-references to BUSINESS.md and FEATURES.md
-    - Requirements fields with traceability to tests
-    - Testing scenarios in Section G with references to requirements
+    - Cross-references to PRD.md and FEATURES.md
+    - Requirements fields (including Implementation details)
+    - Optional Additional Context items
     """
     errors: List[Dict[str, object]] = []
     placeholders = find_placeholders(artifact_text)
     section_order, sections = split_by_feature_section_letter(artifact_text)
     
-    expected = ["A", "B", "C", "D", "E", "F", "G"]
-    if "H" in sections:
-        expected.append("H")
+    expected = ["A", "B", "C", "D", "E"]
+    if "F" in sections:
+        expected.append("F")
     if section_order and section_order[: len(expected)] != expected:
         errors.append({"type": "structure", "message": "Section order invalid", "required_order": expected, "found_order": section_order})
 
@@ -69,7 +69,7 @@ def validate_feature_design(
             "algo": re.compile(r"\bfdd-[a-z0-9-]+-feature-[a-z0-9-]+-algo-[a-z0-9-]+\b"),
             "state": re.compile(r"\bfdd-[a-z0-9-]+-feature-[a-z0-9-]+-state-[a-z0-9-]+\b"),
             "req": re.compile(r"\bfdd-[a-z0-9-]+-feature-[a-z0-9-]+-req-[a-z0-9-]+\b"),
-            "test": re.compile(r"\bfdd-[a-z0-9-]+-feature-[a-z0-9-]+-test-[a-z0-9-]+\b"),
+            "context": re.compile(r"\bfdd-[a-z0-9-]+-feature-[a-z0-9-]+-context-[a-z0-9-]+\b"),
         }[kind]
 
         for tok in re.findall(r"`([^`]+)`", line):
@@ -97,7 +97,7 @@ def validate_feature_design(
         for idx, line in enumerate(lines, start=1):
             if line.strip().startswith("```"):
                 in_code = not in_code
-                errors.append({"type": "fdl", "message": "Code blocks are not allowed in Section {section_letter}", "line": idx, "text": line.strip()})
+                errors.append({"type": "fdl", "message": f"Code blocks are not allowed in Section {section_letter}", "line": idx, "text": line.strip()})
                 continue
             if in_code:
                 continue
@@ -265,16 +265,16 @@ def validate_feature_design(
             actor_ids.append(m.group(1))
 
         if not skip_fs_checks and artifact_path is not None:
-            bp = artifact_path.parents[2] / "BUSINESS.md"
+            bp = artifact_path.parents[2] / "PRD.md"
             bt, berr = load_text(bp)
             if berr:
                 errors.append({"type": "cross", "message": berr})
             else:
                 if actor_ids:
-                    business_actor_ids = set(re.findall(r"`(fdd-[a-z0-9-]+-actor-[a-z0-9-]+)`", bt or ""))
-                    unknown_ids = sorted([a for a in actor_ids if a not in business_actor_ids])
-                    if business_actor_ids and unknown_ids:
-                        errors.append({"type": "cross", "message": "Actor IDs must match BUSINESS.md actor IDs", "section": "A", "actors": unknown_ids})
+                    prd_actor_ids = set(re.findall(r"`(fdd-[a-z0-9-]+-actor-[a-z0-9-]+)`", bt or ""))
+                    unknown_ids = sorted([a for a in actor_ids if a not in prd_actor_ids])
+                    if prd_actor_ids and unknown_ids:
+                        errors.append({"type": "cross", "message": "Actor IDs must match PRD.md actor IDs", "section": "A", "actors": unknown_ids})
 
             fp = artifact_path.parents[1] / "FEATURES.md"
             ft, ferr = load_text(fp)
@@ -288,46 +288,44 @@ def validate_feature_design(
                 if feature_id and feature_id not in ft:
                     errors.append({"type": "cross", "message": "Feature ID not found in FEATURES.md", "feature_id": feature_id})
 
-    if "F" in sections:
-        f_lines = sections["F"]
+    if "E" in sections:
+        e_lines = sections["E"]
         req_indices: List[int] = []
-        for idx, line in enumerate(f_lines):
+        for idx, line in enumerate(e_lines):
             if line.strip().startswith("### "):
                 req_indices.append(idx)
 
         if not req_indices:
-            errors.append({"type": "content", "message": "Section F must contain at least one requirement heading", "section": "F"})
+            errors.append({"type": "content", "message": "Section E must contain at least one requirement heading", "section": "E"})
         else:
             req_ids: set = set()
-            test_ids: set = set()
 
             for i, start in enumerate(req_indices):
-                end = req_indices[i + 1] if i + 1 < len(req_indices) else len(f_lines)
-                block = f_lines[start:end]
-                block_text = "\n".join(block)
+                end = req_indices[i + 1] if i + 1 < len(req_indices) else len(e_lines)
+                block = e_lines[start:end]
 
                 id_line = next((l for l in block if "**ID**:" in l), None)
                 if id_line is None:
-                    errors.append({"type": "id", "message": "Requirement missing ID line", "section": "F", "line": start + 1})
+                    errors.append({"type": "id", "message": "Requirement missing ID line", "section": "E", "line": start + 1})
                 else:
                     if not re.match(r"^\s*[-*]\s+\[[ xX]\]\s+\*\*ID\*\*:\s+", id_line):
-                        errors.append({"type": "id", "message": "Requirement ID line must be a checkbox list item", "section": "F", "line": start + 1, "text": id_line.strip()})
+                        errors.append({"type": "id", "message": "Requirement ID line must be a checkbox list item", "section": "E", "line": start + 1, "text": id_line.strip()})
 
                     for m in FEATURE_REQ_ID_RE.finditer(id_line):
                         if feature_slug is not None and m.group(1) != feature_slug:
-                            errors.append({"type": "id", "message": "Feature slug in requirement ID does not match directory slug", "section": "F", "expected": feature_slug, "found": m.group(1), "line": start + 1})
+                            errors.append({"type": "id", "message": "Feature slug in requirement ID does not match directory slug", "section": "E", "expected": feature_slug, "found": m.group(1), "line": start + 1})
                     for rid in _extract_full_ids(id_line, "req"):
                         req_ids.add(rid)
 
-                required_fields = ["Status", "Description", "References", "Implements", "Phases", "Tests Covered"]
+                required_fields = ["Status", "Description", "Implementation details", "References", "Implements", "Phases"]
                 for field in required_fields:
                     fb = field_block(block, field)
                     if fb is None:
-                        errors.append({"type": "content", "message": "Missing required field", "section": "F", "field": field, "line": start + 1})
+                        errors.append({"type": "content", "message": "Missing required field", "section": "E", "field": field, "line": start + 1})
                         continue
 
                     if not str(fb["value"]).strip() and not has_list_item(list(fb["tail"])):
-                        errors.append({"type": "content", "message": "Field must not be empty", "section": "F", "field": field, "line": start + 1})
+                        errors.append({"type": "content", "message": "Field must not be empty", "section": "E", "field": field, "line": start + 1})
 
                     if field == "Status":
                         status_val = str(fb["value"]).strip()
@@ -345,7 +343,7 @@ def validate_feature_design(
                             errors.append({
                                 "type": "content",
                                 "message": "Status must be one of: NOT_STARTED, IN_DESIGN, DESIGN_READY, IN_DEVELOPMENT, IMPLEMENTED",
-                                "section": "F",
+                                "section": "E",
                                 "field": "Status",
                                 "line": start + 1,
                                 "found": status_val,
@@ -358,12 +356,12 @@ def validate_feature_design(
                         for n in re.findall(r"`ph-(\d+)`", l):
                             phase_list.append(int(n))
                         if re.match(r"^\s*-\s+`ph-\d+`", l.strip()):
-                            errors.append({"type": "content", "message": "Phase lines must include a checkbox", "section": "F", "line": start + 1, "text": l.strip()})
+                            errors.append({"type": "content", "message": "Phase lines must include a checkbox", "section": "E", "line": start + 1, "text": l.strip()})
                     if 1 not in phase_list:
-                        errors.append({"type": "content", "message": "Requirement phases must include ph-1", "section": "F", "line": start + 1})
+                        errors.append({"type": "content", "message": "Requirement phases must include ph-1", "section": "E", "line": start + 1})
                     if phase_nums and any(p not in phase_nums for p in phase_list):
                         bad = sorted([p for p in phase_list if p not in phase_nums])
-                        errors.append({"type": "content", "message": "Requirement phases must be a subset of feature phases", "section": "F", "line": start + 1, "phases": bad})
+                        errors.append({"type": "content", "message": "Requirement phases must be a subset of feature phases", "section": "E", "line": start + 1, "phases": bad})
 
                 refs_field = field_block(block, "References")
                 if refs_field is not None:
@@ -374,7 +372,7 @@ def validate_feature_design(
                             continue
                         anchor = t[1:]
                         if anchor and anchor not in anchors:
-                            errors.append({"type": "link_target", "message": "Reference anchor does not exist", "section": "F", "line": start + 1, "anchor": anchor})
+                            errors.append({"type": "link_target", "message": "Reference anchor does not exist", "section": "E", "line": start + 1, "anchor": anchor})
 
                 impl_field = field_block(block, "Implements")
                 if impl_field is not None:
@@ -383,84 +381,35 @@ def validate_feature_design(
                     defined = flow_ids | algo_ids | state_ids
                     bad = sorted([x for x in impl_ids if x.startswith("fdd-") and defined and x not in defined])
                     if bad:
-                        errors.append({"type": "cross", "message": "Implements references unknown flow/algo/state IDs", "section": "F", "line": start + 1, "ids": bad})
+                        errors.append({"type": "cross", "message": "Implements references unknown flow/algo/state IDs", "section": "E", "line": start + 1, "ids": bad})
 
-                tc_field = field_block(block, "Tests Covered")
-                if tc_field is not None:
-                    tc_text = "\n".join([str(tc_field["value"])] + list(tc_field["tail"]))
-                    for tid in _extract_full_ids(tc_text, "test"):
-                        test_ids.add(tid)
+                # Content-quality heuristic: if the document mentions API/DB concepts, require explicit lines in Implementation details.
+                impl_details = field_block(block, "Implementation details")
+                impl_text = ""
+                if impl_details is not None:
+                    impl_text = "\n".join([str(impl_details["value"])] + list(impl_details["tail"]))
 
-                ac_field = field_block(block, "Acceptance Criteria")
-                if ac_field is None:
-                    errors.append({"type": "content", "message": "Missing Acceptance Criteria field", "section": "F", "line": start + 1})
-                else:
-                    if not has_list_item(list(ac_field["tail"])):
-                        errors.append({"type": "content", "message": "Acceptance Criteria must contain at least 2 list items", "section": "F", "line": start + 1})
-                    else:
-                        cnt = sum(1 for x in ac_field["tail"] if re.match(r"^\s*[-*]\s+\S+", x))
-                        if cnt < 2:
-                            errors.append({"type": "content", "message": "Acceptance Criteria must contain at least 2 list items", "section": "F", "line": start + 1})
+                doc_lower = ("\n".join(sections.get("B", []) + sections.get("C", []) + sections.get("D", []))).lower()
+                if any(x in doc_lower for x in ("/api/", " endpoint", " api", "http")):
+                    if "api" not in impl_text.lower():
+                        errors.append({"type": "content", "message": "Implementation details must explicitly describe impacted API when API is referenced in flows/algorithms/states", "section": "E", "line": start + 1})
+                if any(x in doc_lower for x in ("select ", "insert ", "update ", "delete ", " database", " db ", "postgres")):
+                    if "db" not in impl_text.lower() and "database" not in impl_text.lower():
+                        errors.append({"type": "content", "message": "Implementation details must explicitly describe impacted DB when DB is referenced in flows/algorithms/states", "section": "E", "line": start + 1})
 
-    # Section G: Testing Scenarios validation
-    if "G" in sections:
-        g_lines = sections["G"]
-        test_indices: List[int] = []
-        for idx, line in enumerate(g_lines):
-            if line.strip().startswith("### "):
-                test_indices.append(idx)
-
-        if not test_indices:
-            errors.append({"type": "content", "message": "Section G must contain at least one testing scenario heading", "section": "G"})
-        else:
-            g_test_ids: set = set()
-
-            for i, start in enumerate(test_indices):
-                end = test_indices[i + 1] if i + 1 < len(test_indices) else len(g_lines)
-                block = g_lines[start:end]
-                block_text = "\n".join(block)
-
-                id_line = next((l for l in block if "**ID**:" in l), None)
-                if id_line is None:
-                    errors.append({"type": "id", "message": "Testing scenario missing ID line", "section": "G", "line": start + 1})
-                else:
-                    if not re.match(r"^\s*[-*]\s+\[[ xX]\]\s+\*\*ID\*\*:\s+", id_line):
-                        errors.append({"type": "id", "message": "Testing scenario ID line must be a checkbox list item", "section": "G", "line": start + 1, "text": id_line.strip()})
-
-                    for m in FEATURE_TEST_ID_RE.finditer(id_line):
-                        if feature_slug is not None and m.group(1) != feature_slug:
-                            errors.append({"type": "id", "message": "Feature slug in test ID does not match directory slug", "section": "G", "expected": feature_slug, "found": m.group(1), "line": start + 1})
-                    for tid in _extract_full_ids(id_line, "test"):
-                        g_test_ids.add(tid)
-
-                validates_field = field_block(block, "Validates")
-                if validates_field is None:
-                    errors.append({"type": "content", "message": "Testing scenario missing Validates field", "section": "G", "line": start + 1})
-                else:
-                    val_text = "\n".join([str(validates_field["value"])] + list(validates_field["tail"]))
-                    val_req_ids = _extract_full_ids(val_text, "req")
-                    if not val_req_ids:
-                        errors.append({"type": "content", "message": "Validates field must reference at least one requirement ID", "section": "G", "line": start + 1})
-                    elif req_ids:
-                        bad = sorted([r for r in val_req_ids if r not in req_ids])
-                        if bad:
-                            errors.append({"type": "cross", "message": "Validates references unknown requirement IDs", "section": "G", "line": start + 1, "ids": bad})
-
-                # Check for Gherkin keywords
-                if "**GIVEN**" in block_text or "**THEN**" in block_text or re.search(r"^\s*(GIVEN|WHEN|THEN|AND)\b", block_text, re.MULTILINE):
-                    errors.append({"type": "fdl", "message": "Gherkin keywords are not allowed in Testing Scenarios", "section": "G", "line": start + 1})
-
-                # Validate FDL step lines
-                for lidx, l in enumerate(block, start=1):
-                    if re.match(r"^\s*(?:\d+\.|-)\s+", l.strip()):
-                        if "[" in l and "ph-" in l and not FDL_STEP_LINE_RE.match(l):
-                            errors.append({"type": "fdl", "message": "Invalid FDL step line format in Testing Scenarios", "section": "G", "line": start + lidx, "text": l.strip()})
-
-            # Cross-validate: check that all test IDs referenced in Section F exist in Section G
-            if test_ids and g_test_ids:
-                missing_tests = sorted([t for t in test_ids if t not in g_test_ids])
-                if missing_tests:
-                    errors.append({"type": "cross", "message": "Tests Covered references test IDs not defined in Section G", "section": "F", "ids": missing_tests})
+    if "F" in sections:
+        f_lines = sections["F"]
+        ctx_ids: set = set()
+        for idx, line in enumerate(f_lines, start=1):
+            if "**ID**:" not in line:
+                continue
+            for m in FEATURE_CONTEXT_ID_RE.finditer(line):
+                if feature_slug is not None and m.group(1) != feature_slug:
+                    errors.append({"type": "id", "message": "Feature slug in context ID does not match directory slug", "section": "F", "expected": feature_slug, "found": m.group(1), "line": idx, "text": line.strip()})
+            for cid in _extract_full_ids(line, "context"):
+                if cid in ctx_ids:
+                    errors.append({"type": "id", "message": "Duplicate context IDs", "section": "F", "line": idx, "id": cid})
+                ctx_ids.add(cid)
 
     passed = (len(errors) == 0) and (len(placeholders) == 0)
     
@@ -470,8 +419,8 @@ def validate_feature_design(
         status_value = "FAIL"
     
     return {
-        "required_section_count": len([s for s in ["A", "B", "C", "D", "E", "F", "G"] if s in sections]),
-        "missing_sections": [s for s in ["A", "B", "C", "D", "E", "F", "G"] if s not in sections],
+        "required_section_count": len([s for s in ["A", "B", "C", "D", "E"] if s in sections]),
+        "missing_sections": [s for s in ["A", "B", "C", "D", "E"] if s not in sections],
         "placeholder_hits": placeholders,
         "status": status_value,
         "errors": errors,

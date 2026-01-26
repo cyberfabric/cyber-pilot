@@ -246,7 +246,7 @@ python3 <FDD_ROOT>/skills/fdd/scripts/fdd.py <subcommand> [options]
 3. Reads workflow-execution-operations.md
 4. Checks all prerequisites
 5. Prerequisites pass
-6. Reads requirements/business-context-structure.md
+6. Reads requirements/prd-structure.md
 7. Asks questions one by one
 8. Proposes answers based on context
 9. Generates content following requirements

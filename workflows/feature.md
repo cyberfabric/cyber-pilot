@@ -174,6 +174,6 @@ Expected:
 
 ## Next Steps
 
-**If validation passes**: `feature-changes` workflow
+**If validation passes**: `implement` workflow
 
 **If validation fails**: Fix feature DESIGN.md, re-validate

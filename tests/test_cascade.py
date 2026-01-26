@@ -18,12 +18,11 @@ class TestArtifactDependencies(unittest.TestCase):
 
     def test_dependency_graph_structure(self):
         """Verify dependency graph has expected structure."""
-        self.assertEqual(ARTIFACT_DEPENDENCIES["feature-changes"], ["feature-design"])
         self.assertEqual(ARTIFACT_DEPENDENCIES["feature-design"], ["features-manifest", "overall-design"])
         self.assertEqual(ARTIFACT_DEPENDENCIES["features-manifest"], ["overall-design"])
-        self.assertEqual(ARTIFACT_DEPENDENCIES["overall-design"], ["business-context", "adr"])
-        self.assertEqual(ARTIFACT_DEPENDENCIES["adr"], ["business-context"])
-        self.assertEqual(ARTIFACT_DEPENDENCIES["business-context"], [])
+        self.assertEqual(ARTIFACT_DEPENDENCIES["overall-design"], ["prd", "adr"])
+        self.assertEqual(ARTIFACT_DEPENDENCIES["adr"], ["prd"])
+        self.assertEqual(ARTIFACT_DEPENDENCIES["prd"], [])
 
     def test_unknown_artifact_has_no_dependencies(self):
         """Unknown artifact kind returns empty list."""
@@ -34,25 +33,25 @@ class TestFindArtifactPath(unittest.TestCase):
     """Test artifact path discovery."""
 
     def test_find_feature_design_exists(self):
-        """Find DESIGN.md in same directory as CHANGES.md."""
+        """Find DESIGN.md in same directory as an arbitrary feature-local file."""
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
-            changes = tmp_path / "CHANGES.md"
+            anchor = tmp_path / "artifact.md"
             design = tmp_path / "DESIGN.md"
-            changes.write_text("# Changes")
+            anchor.write_text("# Artifact")
             design.write_text("# Design")
             
-            result = find_artifact_path("feature-design", changes)
+            result = find_artifact_path("feature-design", anchor)
             self.assertEqual(result, design)
 
     def test_find_feature_design_not_exists(self):
         """Return None if DESIGN.md not found."""
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
-            changes = tmp_path / "CHANGES.md"
-            changes.write_text("# Changes")
+            anchor = tmp_path / "artifact.md"
+            anchor.write_text("# Artifact")
             
-            result = find_artifact_path("feature-design", changes)
+            result = find_artifact_path("feature-design", anchor)
             self.assertIsNone(result)
 
     def test_find_features_manifest_exists(self):
@@ -105,29 +104,29 @@ class TestFindArtifactPath(unittest.TestCase):
             result = find_artifact_path("overall-design", artifact)
             self.assertIsNone(result)
 
-    def test_find_business_context_exists(self):
-        """Find BUSINESS.md in architecture/."""
+    def test_find_prd_exists(self):
+        """Find PRD.md in architecture/."""
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
             arch = tmp_path / "architecture"
             arch.mkdir()
-            business = arch / "BUSINESS.md"
-            business.write_text("# Business")
+            prd = arch / "PRD.md"
+            prd.write_text("# PRD")
             artifact = tmp_path / "some" / "path" / "artifact.md"
             artifact.parent.mkdir(parents=True)
             artifact.write_text("# Artifact")
             
-            result = find_artifact_path("business-context", artifact)
-            self.assertEqual(result, business)
+            result = find_artifact_path("prd", artifact)
+            self.assertEqual(result, prd)
 
-    def test_find_business_context_not_exists(self):
-        """Return None if BUSINESS.md not found."""
+    def test_find_prd_not_exists(self):
+        """Return None if PRD.md not found."""
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
             artifact = tmp_path / "artifact.md"
             artifact.write_text("# Artifact")
             
-            result = find_artifact_path("business-context", artifact)
+            result = find_artifact_path("prd", artifact)
             self.assertIsNone(result)
 
     def test_find_adr_exists(self):
@@ -170,45 +169,45 @@ class TestResolveDependencies(unittest.TestCase):
     """Test dependency resolution."""
 
     def test_resolve_no_dependencies(self):
-        """business-context has no dependencies."""
+        """prd has no dependencies."""
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
-            business = tmp_path / "BUSINESS.md"
-            business.write_text("# Business")
+            prd = tmp_path / "PRD.md"
+            prd.write_text("# PRD")
             
-            result = resolve_dependencies("business-context", business)
+            result = resolve_dependencies("prd", prd)
             self.assertEqual(result, {})
 
-    def test_resolve_adr_depends_on_business(self):
-        """ADR depends on business-context."""
+    def test_resolve_adr_depends_on_prd(self):
+        """ADR depends on prd."""
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
             arch = tmp_path / "architecture"
             arch.mkdir()
             adr = arch / "ADR"
-            business = arch / "BUSINESS.md"
+            prd = arch / "PRD.md"
             adr.mkdir()
-            business.write_text("# Business")
+            prd.write_text("# PRD")
             
             result = resolve_dependencies("adr", adr)
-            self.assertIn("business-context", result)
-            self.assertEqual(result["business-context"], business)
+            self.assertIn("prd", result)
+            self.assertEqual(result["prd"], prd)
 
     def test_resolve_overall_design_full_chain(self):
-        """overall-design depends on business-context and adr."""
+        """overall-design depends on prd and adr."""
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
             arch = tmp_path / "architecture"
             arch.mkdir()
             design = arch / "DESIGN.md"
-            business = arch / "BUSINESS.md"
+            prd = arch / "PRD.md"
             adr = arch / "ADR"
             design.write_text("# Design")
-            business.write_text("# Business")
+            prd.write_text("# PRD")
             adr.mkdir()
             
             result = resolve_dependencies("overall-design", design)
-            self.assertIn("business-context", result)
+            self.assertIn("prd", result)
             self.assertIn("adr", result)
 
     def test_resolve_already_resolved_skipped(self):
@@ -218,34 +217,34 @@ class TestResolveDependencies(unittest.TestCase):
             arch = tmp_path / "architecture"
             arch.mkdir()
             design = arch / "DESIGN.md"
-            business = arch / "BUSINESS.md"
+            prd = arch / "PRD.md"
             design.write_text("# Design")
-            business.write_text("# Business")
+            prd.write_text("# PRD")
             
             # Pre-populate resolved
-            existing = {"business-context": business}
+            existing = {"prd": prd}
             result = resolve_dependencies("overall-design", design, resolved=existing)
-            # Should still have business-context from pre-populated
-            self.assertIn("business-context", result)
+            # Should still have prd from pre-populated
+            self.assertIn("prd", result)
 
 
 class TestValidateWithDependencies(unittest.TestCase):
     """Test cascading validation."""
 
-    def test_validate_business_context_no_deps(self):
-        """Validate business-context with no dependencies."""
+    def test_validate_prd_no_deps(self):
+        """Validate prd with no dependencies."""
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
-            business = tmp_path / "BUSINESS.md"
-            business.write_text("""---
+            prd = tmp_path / "PRD.md"
+            prd.write_text("""---
 fdd: true
-type: business-context
-name: Test Business
+type: prd
+name: Test PRD
 version: "1.0"
 purpose: Test
 ---
 
-# FDD: Test Business Context
+# FDD: Test PRD
 
 ## Overview
 
@@ -272,8 +271,8 @@ Provided by `fdd-test-actor-user`.
 None yet.
 """)
             
-            report = validate_with_dependencies(business, skip_fs_checks=True)
-            self.assertEqual(report["artifact_kind"], "business-context")
+            report = validate_with_dependencies(prd, skip_fs_checks=True)
+            self.assertEqual(report["artifact_kind"], "prd")
             self.assertNotIn("dependency_validation", report)
 
     def test_validate_with_failing_dependency(self):
@@ -283,11 +282,11 @@ None yet.
             arch = tmp_path / "architecture"
             arch.mkdir()
             
-            # Create invalid BUSINESS.md (missing required content)
-            business = arch / "BUSINESS.md"
-            business.write_text("# Empty Business")
+            # Create invalid PRD.md (missing required content)
+            prd = arch / "PRD.md"
+            prd.write_text("# Empty PRD")
             
-            # Create ADR directory (depends on business-context)
+            # Create ADR directory (depends on prd)
             adr = arch / "ADR"
             adr.mkdir()
             (adr / "general").mkdir()
@@ -340,9 +339,9 @@ None.
 """
             
             report = validate_with_dependencies(adr, skip_fs_checks=True)
-            # ADR validation should fail due to failing business dependency
+            # ADR validation should fail due to failing prd dependency
             self.assertIn("dependency_validation", report)
-            self.assertIn("business-context", report["dependency_validation"])
+            self.assertIn("prd", report["dependency_validation"])
 
 
 class TestCrossArtifactIdentifierStatuses(unittest.TestCase):
@@ -354,15 +353,17 @@ class TestCrossArtifactIdentifierStatuses(unittest.TestCase):
             feature_a_dir = features_dir / "feature-a"
             feature_a_dir.mkdir(parents=True)
 
-            # BUSINESS.md: one capability marked IMPLEMENTED and linked to feature-a.
-            (arch / "BUSINESS.md").write_text(
+            # PRD.md: one functional requirement marked IMPLEMENTED and linked to feature-a.
+            (arch / "PRD.md").write_text(
                 "\n".join(
                     [
-                        "# Business Context",
+                        "# PRD",
                         "",
-                        "## A. Feature Context",
+                        "## A. VISION",
                         "",
-                        "**Purpose**: Test",
+                        "**Purpose**: Test.",
+                        "",
+                        "Second paragraph.",
                         "",
                         "**Target Users**:",
                         "- User",
@@ -371,7 +372,10 @@ class TestCrossArtifactIdentifierStatuses(unittest.TestCase):
                         "- Problem",
                         "",
                         "**Success Criteria**:",
-                        "- Success",
+                        "- Criterion",
+                        "",
+                        "**Capabilities**:",
+                        "- Capability",
                         "",
                         "## B. Actors",
                         "",
@@ -380,24 +384,20 @@ class TestCrossArtifactIdentifierStatuses(unittest.TestCase):
                         "#### User",
                         "",
                         "**ID**: `fdd-test-actor-user`",
-                        "<!-- fdd-id-content -->",
                         "**Role**: User",
-                        "<!-- fdd-id-content -->",
                         "",
                         "### System Actors",
                         "",
                         "#### System",
                         "",
                         "**ID**: `fdd-test-actor-system`",
-                        "<!-- fdd-id-content -->",
                         "**Role**: System",
-                        "<!-- fdd-id-content -->",
                         "",
-                        "## C. Capabilities",
+                        "## C. Functional Requirements",
                         "",
-                        "#### Capability A",
+                        "#### Requirement A",
                         "",
-                        "**ID**: `fdd-test-capability-a`",
+                        "**ID**: `fdd-test-fr-a`",
                         "<!-- fdd-id-content -->",
                         "**Status**: IMPLEMENTED",
                         "- Does something",
@@ -406,6 +406,27 @@ class TestCrossArtifactIdentifierStatuses(unittest.TestCase):
                         "  - [Feature A](feature-a/)",
                         "<!-- fdd-id-content -->",
                         "",
+                        "## D. Use Cases",
+                        "",
+                        "#### UC-001: Example",
+                        "",
+                        "**ID**: `fdd-test-usecase-a`",
+                        "<!-- fdd-id-content -->",
+                        "**Actor**: `fdd-test-actor-user`",
+                        "**Preconditions**: Ready",
+                        "**Flow**:",
+                        "1. Step",
+                        "**Postconditions**: Done",
+                        "<!-- fdd-id-content -->",
+                        "",
+                        "## E. Non-functional requirements",
+                        "",
+                        "#### Security",
+                        "",
+                        "**ID**: `fdd-test-nfr-security`",
+                        "<!-- fdd-id-content -->",
+                        "- Authentication MUST be required.",
+                        "<!-- fdd-id-content -->",
                     ]
                 )
                 + "\n",
@@ -430,7 +451,7 @@ class TestCrossArtifactIdentifierStatuses(unittest.TestCase):
                         "<!-- fdd-id-content -->",
                         "**Status**: IMPLEMENTED",
                         "",
-                        "**Capabilities**: `fdd-test-capability-a`",
+                        "**Capabilities**: `fdd-test-fr-a`",
                         "**Actors**: `fdd-test-actor-user`",
                         "",
                         "Some text.",
@@ -522,7 +543,7 @@ class TestCrossArtifactIdentifierStatuses(unittest.TestCase):
             self.assertIn("cross-artifact-status", av)
             cross = av["cross-artifact-status"]
             errs = cross.get("errors", [])
-            self.assertTrue(any("Capability status is IMPLEMENTED" in e.get("message", "") for e in errs))
+            self.assertTrue(any("Functional requirement status is IMPLEMENTED" in e.get("message", "") for e in errs))
             self.assertTrue(any("DESIGN requirement status is IMPLEMENTED" in e.get("message", "") for e in errs))
 
 

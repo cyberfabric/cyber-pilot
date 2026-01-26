@@ -74,7 +74,7 @@ Extract:
 **MUST validate**:
 - [ ] ADR directory exists - validate: Check directory at `architecture/ADR/`
 - [ ] DESIGN.md exists - validate: Check file at `architecture/DESIGN.md`
-- [ ] BUSINESS.md exists - validate: Check file at `architecture/BUSINESS.md`
+- [ ] PRD.md exists - validate: Check file at `architecture/PRD.md`
 
 **If missing**: Run prerequisite workflows first
 
@@ -84,11 +84,11 @@ Extract:
 
 ### 1. Read Dependencies
 
-Open `architecture/BUSINESS.md` and `architecture/DESIGN.md`
+Open `architecture/PRD.md` and `architecture/DESIGN.md`
 
 Extract:
-- All actor IDs (from BUSINESS.md Section B)
-- All capability IDs (from BUSINESS.md Section C)
+- All actor IDs (from PRD.md Section B)
+- All capability IDs (from PRD.md Section C)
 - All requirement IDs (from DESIGN.md Section B)
 - All principle IDs (from DESIGN.md Section B)
 

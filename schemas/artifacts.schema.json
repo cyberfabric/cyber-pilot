@@ -1,0 +1,250 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/fdd/artifacts.schema.json",
+  "title": "FDD Artifact Registry (artifacts.json)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "artifacts"],
+  "examples": [
+    {
+      "version": "1.0",
+      "artifacts": [
+        {
+          "kind": "PRD",
+          "system": "PlatformX",
+          "path": "architecture/PRD.md",
+          "format": "FDD",
+          "traceability_enabled": false
+        },
+        {
+          "kind": "DESIGN",
+          "system": "PlatformX",
+          "path": "architecture/DESIGN.md",
+          "format": "FDD",
+          "traceability_enabled": false
+        },
+        {
+          "kind": "ADR",
+          "system": "PlatformX",
+          "path": "architecture/ADR/general/0001-platformx-adr-initial-architecture.md",
+          "format": "FDD",
+          "traceability_enabled": false
+        },
+        {
+          "kind": "FEATURES",
+          "system": "PlatformX",
+          "path": "architecture/features/FEATURES.md",
+          "format": "FDD",
+          "traceability_enabled": false
+        },
+        {
+          "kind": "FEATURE",
+          "system": "Accounts",
+          "parent": "PlatformX",
+          "path": "modules/accounts/architecture/DESIGN.md",
+          "format": "FDD",
+          "traceability_enabled": true
+        },
+        {
+          "kind": "SRC",
+          "system": "PlatformX",
+          "path": "src",
+          "format": "CONTEXT",
+          "traceability_enabled": false,
+          "extensions": [".rs", ".ts"]
+        },
+        {
+          "kind": "CUSTOM",
+          "system": "PlatformX",
+          "path": "docs/CONTRIBUTING.md",
+          "format": "CONTEXT",
+          "traceability_enabled": false
+        },
+        {
+          "kind": "PRD",
+          "system": "Accounts",
+          "parent": "PlatformX",
+          "path": "modules/accounts/architecture/PRD.md",
+          "format": "FDD",
+          "traceability_enabled": false
+        },
+        {
+          "kind": "DESIGN",
+          "system": "Accounts",
+          "parent": "PlatformX",
+          "path": "modules/accounts/architecture/DESIGN.md",
+          "format": "FDD",
+          "traceability_enabled": false
+        },
+        {
+          "kind": "FEATURES",
+          "system": "Accounts",
+          "parent": "PlatformX",
+          "path": "modules/accounts/architecture/features/FEATURES.md",
+          "format": "FDD",
+          "traceability_enabled": false
+        },
+        {
+          "kind": "FEATURE",
+          "system": "Accounts",
+          "parent": "PlatformX",
+          "path": "modules/accounts/architecture/features/feature-auth/DESIGN.md",
+          "format": "FDD",
+          "traceability_enabled": true
+        },
+        {
+          "kind": "CUSTOM",
+          "system": "Accounts",
+          "parent": "PlatformX",
+          "path": "modules/accounts/README.md",
+          "format": "CONTEXT",
+          "traceability_enabled": false
+        },
+        {
+          "kind": "PRD",
+          "system": "IDP",
+          "parent": "PlatformX",
+          "path": "modules/idp/architecture/PRD.md",
+          "format": "FDD",
+          "traceability_enabled": false
+        },
+        {
+          "kind": "DESIGN",
+          "system": "IDP",
+          "parent": "PlatformX",
+          "path": "modules/idp/architecture/DESIGN.md",
+          "format": "FDD",
+          "traceability_enabled": false
+        },
+        {
+          "kind": "FEATURE",
+          "system": "IDP",
+          "parent": "PlatformX",
+          "path": "modules/idp/architecture/features/feature-sso/DESIGN.md",
+          "format": "FDD",
+          "traceability_enabled": true
+        },
+        {
+          "kind": "SRC",
+          "system": "IDP",
+          "parent": "PlatformX",
+          "path": "modules/idp/src",
+          "format": "CONTEXT",
+          "traceability_enabled": false,
+          "extensions": [".rs"]
+        },
+        {
+          "kind": "PRD",
+          "system": "Events",
+          "parent": "PlatformX",
+          "path": "modules/events/architecture/PRD.md",
+          "format": "FDD",
+          "traceability_enabled": false
+        },
+        {
+          "kind": "FEATURES",
+          "system": "Events",
+          "parent": "PlatformX",
+          "path": "modules/events/architecture/features/FEATURES.md",
+          "format": "FDD",
+          "traceability_enabled": false
+        },
+        {
+          "kind": "CUSTOM",
+          "system": "Events",
+          "parent": "PlatformX",
+          "path": "modules/events/docs/OPERATIONS.md",
+          "format": "CONTEXT",
+          "traceability_enabled": false
+        }
+      ]
+    }
+  ],
+  "properties": {
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/artifact" }
+    }
+  },
+  "definitions": {
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "system", "path", "format"],
+      "examples": [
+        {
+          "kind": "PRD",
+          "system": "FDD",
+          "path": "architecture/PRD.md",
+          "format": "FDD",
+          "traceability_enabled": false
+        },
+        {
+          "kind": "SRC",
+          "system": "FDD",
+          "path": "skills/fdd",
+          "format": "CONTEXT",
+          "traceability_enabled": false,
+          "extensions": [".py", ".rs"]
+        }
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["ADR", "DESIGN", "PRD", "FEATURE", "FEATURES", "SRC", "CUSTOM"]
+        },
+        "system": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parent": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional parent system/subsystem name for hierarchical composition."
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "format": {
+          "type": "string",
+          "enum": ["FDD", "CONTEXT"]
+        },
+        "traceability_enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "extensions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^\\.[A-Za-z0-9]+$"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "kind": { "const": "SRC" } },
+            "required": ["kind"]
+          },
+          "then": {
+            "required": ["extensions"],
+            "properties": {
+              "format": { "const": "CONTEXT" }
+            }
+          },
+          "else": {
+            "not": { "required": ["extensions"] }
+          }
+        }
+      ]
+    }
+  }
+ }

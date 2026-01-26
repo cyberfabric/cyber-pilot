@@ -9,13 +9,13 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "fdd" / "script
 
 from fdd.utils.helpers import (
     find_present_section_ids,
-    parse_business_model,
+    parse_prd_model,
     load_adr_entries,
     scan_adr_directory,
 )
 
 from fdd.utils.markdown import (
-    business_block_bounds,
+    prd_block_bounds,
     design_item_block_bounds,
     extract_id_payload_block,
     extract_heading_block,
@@ -23,7 +23,6 @@ from fdd.utils.markdown import (
     find_anchor_idx_for_id,
     list_items,
     list_section_entries,
-    read_change_block,
     read_feature_entry,
     read_heading_block_by_title,
     read_letter_section,
@@ -119,29 +118,29 @@ More content.
         self.assertEqual(result, ["C", "A", "B"])
 
 
-class TestParseBusinessModel(unittest.TestCase):
-    """Test parse_business_model function."""
+class TestParsePRDModel(unittest.TestCase):
+    """Test parse_prd_model function."""
 
-    def test_parse_business_model_basic(self):
-        """Test basic parsing of actors, capabilities, and use cases."""
-        text = """# Business Context
+    def test_parse_prd_model_basic(self):
+        """Test basic parsing of actors, functional requirements, and use cases."""
+        text = """# PRD
 
 ## B. Actors
 
 - **ID**: `fdd-app-actor-admin`
 - **ID**: `fdd-app-actor-user`
 
-## C. Capabilities
+## C. Functional Requirements
 
-### CAP-001: Manage Users
+### FR-001: Manage Users
 
-**ID**: `fdd-app-capability-manage-users`
+**ID**: `fdd-app-fr-manage-users`
 
 **Actors**: `fdd-app-actor-admin`
 
-### CAP-002: View Dashboard
+### FR-002: View Dashboard
 
-**ID**: `fdd-app-capability-view-dashboard`
+**ID**: `fdd-app-fr-view-dashboard`
 
 **Actors**: `fdd-app-actor-user`, `fdd-app-actor-admin`
 
@@ -150,111 +149,111 @@ class TestParseBusinessModel(unittest.TestCase):
 - **ID**: `fdd-app-usecase-login`
 - **ID**: `fdd-app-usecase-logout`
 """
-        actors, capabilities, usecases = parse_business_model(text)
+        actors, capabilities, usecases = parse_prd_model(text)
         
         # Verify actors
         self.assertIn("fdd-app-actor-admin", actors)
         self.assertIn("fdd-app-actor-user", actors)
         self.assertEqual(len(actors), 2)
         
-        # Verify capabilities
-        self.assertIn("fdd-app-capability-manage-users", capabilities)
-        self.assertIn("fdd-app-capability-view-dashboard", capabilities)
+        # Verify functional requirements
+        self.assertIn("fdd-app-fr-manage-users", capabilities)
+        self.assertIn("fdd-app-fr-view-dashboard", capabilities)
         
-        # Verify capability-actor mappings
-        self.assertIn("fdd-app-actor-admin", capabilities["fdd-app-capability-manage-users"])
-        self.assertIn("fdd-app-actor-user", capabilities["fdd-app-capability-view-dashboard"])
-        self.assertIn("fdd-app-actor-admin", capabilities["fdd-app-capability-view-dashboard"])
+        # Verify functional requirement-actor mappings
+        self.assertIn("fdd-app-actor-admin", capabilities["fdd-app-fr-manage-users"])
+        self.assertIn("fdd-app-actor-user", capabilities["fdd-app-fr-view-dashboard"])
+        self.assertIn("fdd-app-actor-admin", capabilities["fdd-app-fr-view-dashboard"])
         
         # Verify use cases
         self.assertIn("fdd-app-usecase-login", usecases)
         self.assertIn("fdd-app-usecase-logout", usecases)
         self.assertEqual(len(usecases), 2)
 
-    def test_parse_business_model_empty(self):
+    def test_parse_prd_model_empty(self):
         """Test parsing empty text."""
-        actors, capabilities, usecases = parse_business_model("")
+        actors, capabilities, usecases = parse_prd_model("")
         
         self.assertEqual(len(actors), 0)
         self.assertEqual(len(capabilities), 0)
         self.assertEqual(len(usecases), 0)
 
-    def test_parse_business_model_section_c_variations(self):
-        """Test that both 'Section C' and 'C. Capabilities' are recognized."""
-        text1 = """## C. Capabilities
+    def test_parse_prd_model_section_c_variations(self):
+        """Test that both 'Section C' and 'C. Functional Requirements' are recognized."""
+        text1 = """## C. Functional Requirements
 
-**ID**: `fdd-app-capability-test`
-
-**Actors**: `fdd-app-actor-test`
-"""
-        
-        text2 = """## Section C: Capabilities
-
-**ID**: `fdd-app-capability-test`
+**ID**: `fdd-app-fr-test`
 
 **Actors**: `fdd-app-actor-test`
 """
         
-        _, caps1, _ = parse_business_model(text1)
-        _, caps2, _ = parse_business_model(text2)
+        text2 = """## Section C: Functional Requirements
+
+**ID**: `fdd-app-fr-test`
+
+**Actors**: `fdd-app-actor-test`
+"""
         
-        self.assertIn("fdd-app-capability-test", caps1)
-        self.assertIn("fdd-app-capability-test", caps2)
+        _, caps1, _ = parse_prd_model(text1)
+        _, caps2, _ = parse_prd_model(text2)
+        
+        self.assertIn("fdd-app-fr-test", caps1)
+        self.assertIn("fdd-app-fr-test", caps2)
 
-    def test_parse_business_model_capability_without_actors(self):
-        """Test capability that doesn't reference any actors."""
-        text = """## C. Capabilities
+    def test_parse_prd_model_capability_without_actors(self):
+        """Test functional requirement that doesn't reference any actors."""
+        text = """## C. Functional Requirements
 
-### CAP-001: Generic Capability
+### FR-001: Generic Requirement
 
-**ID**: `fdd-app-capability-generic`
+**ID**: `fdd-app-fr-generic`
 
 No actors referenced.
 """
-        _, capabilities, _ = parse_business_model(text)
+        _, capabilities, _ = parse_prd_model(text)
         
-        self.assertIn("fdd-app-capability-generic", capabilities)
-        self.assertEqual(len(capabilities["fdd-app-capability-generic"]), 0)
+        self.assertIn("fdd-app-fr-generic", capabilities)
+        self.assertEqual(len(capabilities["fdd-app-fr-generic"]), 0)
 
-    def test_parse_business_model_multiple_actors_per_capability(self):
-        """Test capability with multiple actor references."""
-        text = """## C. Capabilities
+    def test_parse_prd_model_multiple_actors_per_capability(self):
+        """Test functional requirement with multiple actor references."""
+        text = """## C. Functional Requirements
 
-### CAP-001: Multi-Actor Capability
+### FR-001: Multi-Actor Requirement
 
-**ID**: `fdd-app-capability-multi`
+**ID**: `fdd-app-fr-multi`
 
 **Actors**: `fdd-app-actor-one`, `fdd-app-actor-two`, `fdd-app-actor-three`
 
 Additional line: `fdd-app-actor-four`
 """
-        _, capabilities, _ = parse_business_model(text)
+        _, capabilities, _ = parse_prd_model(text)
         
-        cap_actors = capabilities["fdd-app-capability-multi"]
+        cap_actors = capabilities["fdd-app-fr-multi"]
         self.assertEqual(len(cap_actors), 4)
         self.assertIn("fdd-app-actor-one", cap_actors)
         self.assertIn("fdd-app-actor-two", cap_actors)
         self.assertIn("fdd-app-actor-three", cap_actors)
         self.assertIn("fdd-app-actor-four", cap_actors)
 
-    def test_parse_business_model_stops_at_next_section(self):
+    def test_parse_prd_model_stops_at_next_section(self):
         """Test that capability parsing stops at next section."""
-        text = """## C. Capabilities
+        text = """## C. Functional Requirements
 
-**ID**: `fdd-app-capability-test`
+**ID**: `fdd-app-fr-test`
 
 **Actors**: `fdd-app-actor-test`
 
 ## D. Use Cases
 
-**ID**: `fdd-app-capability-not-in-c`
+**ID**: `fdd-app-fr-not-in-c`
 
 **Actors**: `fdd-app-actor-not-in-c`
 """
-        _, capabilities, _ = parse_business_model(text)
+        _, capabilities, _ = parse_prd_model(text)
         
-        self.assertIn("fdd-app-capability-test", capabilities)
-        self.assertNotIn("fdd-app-capability-not-in-c", capabilities)
+        self.assertIn("fdd-app-fr-test", capabilities)
+        self.assertNotIn("fdd-app-fr-not-in-c", capabilities)
 
 
 class TestAdrDirectoryHelpers(unittest.TestCase):
@@ -386,7 +385,7 @@ class TestMarkdownUtils(unittest.TestCase):
         idx = find_anchor_idx_for_id(lines, fid)
         self.assertEqual(idx, 1)
 
-    def test_business_block_bounds_returns_enclosing_heading_block(self) -> None:
+    def test_prd_block_bounds_returns_enclosing_heading_block(self) -> None:
         lines = [
             "## B. Actors\n",
             "\n",
@@ -397,7 +396,7 @@ class TestMarkdownUtils(unittest.TestCase):
             "**ID**: `fdd-app-actor-user`\n",
         ]
 
-        bounds = business_block_bounds(lines, section_start=0, section_end=len(lines), id_idx=3)
+        bounds = prd_block_bounds(lines, section_start=0, section_end=len(lines), id_idx=3)
         self.assertEqual(bounds, (2, 5))
 
     def test_design_item_block_bounds_respects_boundaries(self) -> None:
@@ -415,20 +414,6 @@ class TestMarkdownUtils(unittest.TestCase):
 
         start, end = design_item_block_bounds(lines, start=0, end=len(lines), id_idx=4)
         self.assertEqual((start, end), (2, 6))
-
-    def test_read_change_block_bounds(self) -> None:
-        lines = [
-            "# Implementation Plan\n",
-            "\n",
-            "## Change 1: First\n",
-            "x\n",
-            "## Change 2: Second\n",
-            "y\n",
-        ]
-
-        b = read_change_block(lines, 1)
-        self.assertEqual(b, (2, 4))
-        self.assertIsNone(read_change_block(lines, 3))
 
     def test_read_feature_entry_finds_bounds(self) -> None:
         fid = "fdd-app-feature-x"
@@ -525,32 +510,6 @@ class TestMarkdownUtils(unittest.TestCase):
         )
         self.assertEqual(len(items_rx), 2)
 
-    def test_list_items_feature_changes_summary(self) -> None:
-        fid = "fdd-app-feature-x-change-1"
-        lines = [
-            "# Implementation Plan: X\n",
-            "\n",
-            "## Change 1: First\n",
-            f"**ID**: `{fid}`\n",
-            "**Status**: Not Started\n",
-            "\n",
-        ]
-        items = list_items(
-            kind="feature-changes",
-            artifact_name="CHANGES.md",
-            lines=lines,
-            active_lines=lines,
-            base_offset=0,
-            lod="summary",
-            pattern=None,
-            regex=False,
-            type_filter=None,
-        )
-        self.assertEqual(len(items), 1)
-        self.assertEqual(items[0]["type"], "change")
-        self.assertEqual(items[0]["id"], fid)
-        self.assertEqual(items[0].get("status"), "Not Started")
-
     def test_read_letter_section_is_case_insensitive(self) -> None:
         lines = [
             "# Doc\n",
@@ -579,43 +538,6 @@ class TestMarkdownUtils(unittest.TestCase):
         self.assertEqual(entries[0]["emoji"], "✅")
         self.assertEqual(entries[0]["priority"], "HIGH")
 
-    def test_list_items_feature_changes_summary(self) -> None:
-        cid = "fdd-app-feature-x-change-first"
-        lines = [
-            "# Implementation Plan: X\n",
-            "\n",
-            "## Change 1: Do thing\n",
-            f"**ID**: `{cid}`\n",
-            "**Status**: IN_PROGRESS\n",
-            "\n",
-            "## Change 2: Another\n",
-            "**Status**: NOT_STARTED\n",
-        ]
-
-        items = list_items(
-            kind="feature-changes",
-            artifact_name="CHANGES.md",
-            lines=lines,
-            active_lines=lines,
-            base_offset=0,
-            lod="summary",
-            pattern=None,
-            regex=False,
-            type_filter=None,
-        )
-
-        self.assertEqual(len(items), 2)
-        by_change = {int(it["change"]): it for it in items}
-        self.assertEqual(set(by_change.keys()), {1, 2})
-
-        self.assertEqual(by_change[1]["type"], "change")
-        self.assertEqual(by_change[1]["id"], cid)
-        self.assertEqual(by_change[1]["title"], "Do thing")
-        self.assertEqual(by_change[1]["status"], "IN_PROGRESS")
-
-        self.assertEqual(by_change[2]["type"], "change")
-        self.assertEqual(by_change[2]["id"], "change-2")
-
     def test_list_items_generic_adr_summary(self) -> None:
         # ADR is directory-based; this helper does not have filesystem context.
         # Ensure it behaves deterministically and does not crash.
@@ -632,19 +554,19 @@ class TestMarkdownUtils(unittest.TestCase):
         )
         self.assertEqual(items, [])
 
-    def test_list_items_generic_business_summary(self) -> None:
+    def test_list_items_generic_prd_summary(self) -> None:
         a1 = "fdd-app-actor-admin"
-        c1 = "fdd-app-capability-manage"
+        c1 = "fdd-app-fr-manage"
         u1 = "fdd-app-usecase-login"
         lines = [
-            "# Business Context\n",
+            "# PRD\n",
             "\n",
             "## B. Actors\n",
             "\n",
             "#### Admin\n",
             f"**ID**: `{a1}`\n",
             "\n",
-            "## C. Capabilities\n",
+            "## C. Functional Requirements\n",
             "\n",
             "#### Manage\n",
             f"**ID**: `{c1}`\n",
@@ -657,7 +579,7 @@ class TestMarkdownUtils(unittest.TestCase):
 
         items = list_items(
             kind="generic",
-            artifact_name="BUSINESS.md",
+            artifact_name="PRD.md",
             lines=lines,
             active_lines=lines,
             base_offset=0,
@@ -667,7 +589,7 @@ class TestMarkdownUtils(unittest.TestCase):
             type_filter=None,
         )
 
-        self.assertEqual([it["type"] for it in items], ["actor", "capability", "usecase"])
+        self.assertEqual([it["type"] for it in items], ["actor", "functional-requirement", "usecase"])
         self.assertEqual([it["id"] for it in items], [a1, c1, u1])
         self.assertEqual(items[0]["title"], "Admin")
         self.assertEqual(items[0]["section"], "B")
@@ -818,23 +740,21 @@ class TestSearchUtils(unittest.TestCase):
             (td / "architecture" / "features" / "feature-x").mkdir(parents=True)
             (td / "architecture" / "features").mkdir(parents=True, exist_ok=True)
 
-            (td / "architecture" / "BUSINESS.md").write_text("# Biz\n", encoding="utf-8")
+            (td / "architecture" / "PRD.md").write_text("# Biz\n", encoding="utf-8")
             (td / "architecture" / "DESIGN.md").write_text("# Design\n", encoding="utf-8")
             (td / "architecture" / "ADR" / "general").mkdir(parents=True, exist_ok=True)
             (td / "architecture" / "ADR" / "general" / "0001-fdd-app-adr-0001.md").write_text("# ADR-0001: X\n\n**ADR ID**: `fdd-app-adr-0001`\n\n## Context and Problem Statement\n\nX\n\n## Considered Options\n\nX\n\n## Decision Outcome\n\nChosen option: \"X\", because X.\n\n## Related Design Elements\n\n- `fdd-app-req-login`\n", encoding="utf-8")
             (td / "architecture" / "features" / "FEATURES.md").write_text("# Features\n", encoding="utf-8")
             (td / "architecture" / "features" / "feature-x" / "DESIGN.md").write_text("# Feature\n", encoding="utf-8")
-            (td / "architecture" / "features" / "feature-x" / "CHANGES.md").write_text("# Implementation Plan: X\n", encoding="utf-8")
 
             actor = "fdd-app-actor-admin"
             req = "fdd-app-req-login"
             adr = "ADR-0001"
             f_adr = "fdd-app-adr-0001"
             algo = "fdd-app-feature-x-algo-do-thing"
-            change = "fdd-app-feature-x-change-first"
 
             actor_files = iter_candidate_definition_files(td, needle=actor)
-            self.assertTrue(any(str(p).endswith("architecture/BUSINESS.md") for p in actor_files))
+            self.assertTrue(any(str(p).endswith("architecture/PRD.md") for p in actor_files))
 
             req_files = iter_candidate_definition_files(td, needle=req)
             self.assertTrue(any(str(p).endswith("architecture/DESIGN.md") for p in req_files))
@@ -848,14 +768,11 @@ class TestSearchUtils(unittest.TestCase):
             algo_files = iter_candidate_definition_files(td, needle=algo)
             self.assertTrue(any("architecture/features/" in str(p) and str(p).endswith("/DESIGN.md") for p in algo_files))
 
-            change_files = iter_candidate_definition_files(td, needle=change)
-            self.assertTrue(any("/CHANGES.md" in str(p) for p in change_files))
-
-    def test_definition_hits_in_file_business_filters_by_section(self) -> None:
+    def test_definition_hits_in_file_prd_filters_by_section(self) -> None:
         with TemporaryDirectory() as tds:
             td = Path(tds)
             (td / "architecture").mkdir(parents=True)
-            p = td / "architecture" / "BUSINESS.md"
+            p = td / "architecture" / "PRD.md"
             fid = "fdd-app-actor-admin"
             p.write_text(
                 "\n".join(
@@ -880,7 +797,7 @@ class TestSearchUtils(unittest.TestCase):
             hits = definition_hits_in_file(path=p, root=td, needle=fid, include_tags=False)
             self.assertEqual(len(hits), 1)
             self.assertEqual(hits[0]["match"], "id_line")
-            self.assertEqual(hits[0]["path"], "architecture/BUSINESS.md")
+            self.assertEqual(hits[0]["path"], "architecture/PRD.md")
 
     def test_definition_hits_in_file_design_filters_by_subsection(self) -> None:
         with TemporaryDirectory() as tds:

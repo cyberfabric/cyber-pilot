@@ -454,7 +454,7 @@ Self-test passed: YES
 8. Compare to threshold from requirements
 ```
 
-**Example** (from business-context-structure.md):
+**Example** (from prd-structure.md):
 ```markdown
 ## Validation Criteria
 
@@ -505,7 +505,7 @@ Completeness validation:
 
 **Example**:
 ```
-BUSINESS.md has actor: `fdd-actor-admin`
+PRD.md has actor: `fdd-actor-admin`
 DESIGN.md references: `fdd-actor-administrator` ❌
 
 Issue: Actor ID mismatch
@@ -560,9 +560,9 @@ Should be: `fdd-actor-admin`
 **Valid execution** (PASS scenario):
 ```
 1. Read validation workflow file
-2. Target: architecture/BUSINESS.md
+2. Target: architecture/PRD.md
 3. Check file exists ✓
-4. Read requirements/business-context-structure.md
+4. Read requirements/prd-structure.md
 5. Extract validation criteria
 
 6. Structure validation:
@@ -590,7 +590,7 @@ Should be: `fdd-actor-admin`
 12. Status: PASS ✓
 
 13. Output to chat:
-## Validation: BUSINESS.md
+## Validation: PRD.md
 **Score**: 95/100
 **Status**: PASS
 ...
@@ -605,7 +605,7 @@ Should be: `fdd-actor-admin`
 2. Target: architecture/DESIGN.md
 3. Check file exists ✓
 4. Read requirements/overall-design-structure.md
-5. Read parent: BUSINESS.md
+5. Read parent: PRD.md
 
 6. Structure validation:
    - Section A missing ❌ (0 pts)
@@ -619,7 +619,7 @@ Should be: `fdd-actor-admin`
    - Total: 0/30 pts
 
 8. Non-Contradiction validation:
-   - References actor `fdd-actor-xyz` not in BUSINESS.md ❌
+   - References actor `fdd-actor-xyz` not in PRD.md ❌
    - Total: 15/25 pts
 
 9. Coverage validation:

@@ -48,7 +48,7 @@ Extract:
 
 **MUST validate**:
 - [ ] DESIGN.md exists - validate: Check file at `architecture/DESIGN.md`
-- [ ] BUSINESS.md exists - validate: Check file at `architecture/BUSINESS.md`
+- [ ] PRD.md exists - validate: Check file at `architecture/PRD.md`
 
 **If missing**: Run `design` workflow first
 
@@ -64,12 +64,12 @@ Check if `architecture/ADR/` exists and contains ADR files:
 
 ### 2. Read Design Context
 
-Open `architecture/DESIGN.md` and `architecture/BUSINESS.md`
+Open `architecture/DESIGN.md` and `architecture/PRD.md`
 
 Extract:
 - Architecture style and key decisions from DESIGN.md
-- All actor IDs (from BUSINESS.md Section B)
-- All capability IDs (from BUSINESS.md Section C)
+- All actor IDs (from PRD.md Section B)
+- All capability IDs (from PRD.md Section C)
 - All requirement IDs (from DESIGN.md Section B)
 - All principle IDs (from DESIGN.md Section B)
 
@@ -166,13 +166,13 @@ Extract:
 **Map decision to FDD elements**:
 
 **Actors affected**:
-- Review actor list from BUSINESS.md
+- Review actor list from PRD.md
 - **CREATE/ADD**: Ask which actors are affected (optional)
 - **EDIT**: Show current actors, ask to add/remove or keep
 - Store as: `RELATED_ACTORS[]`
 
 **Capabilities affected**:
-- Review capability list from BUSINESS.md
+- Review capability list from PRD.md
 - **CREATE/ADD**: Ask which capabilities are affected (≥1 required if actors empty)
 - **EDIT**: Show current capabilities, ask to add/remove or keep
 - Store as: `RELATED_CAPABILITIES[]`

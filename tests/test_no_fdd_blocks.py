@@ -57,18 +57,18 @@ example_code()
     def test_excluded_block_ignores_scope_tags(self):
         """Verify that @fdd-* tags in excluded blocks are ignored."""
         text = """
-# @fdd-change:fdd-real-feature-x-change-y:ph-1
+# @fdd-algo:fdd-real-feature-x-algo-y:ph-1
 
 # <!-- !no-fdd-begin -->
 # Example in docs:
-# @fdd-change:fdd-example-feature-z-change-w:ph-1
+# @fdd-algo:fdd-example-feature-z-algo-w:ph-1
 # <!-- !no-fdd-end -->
 """
         hits = fdd._code_tag_hits(text)
         
-        change_ids = [rid for rid, _ in hits["change"]]
-        self.assertIn("fdd-real-feature-x-change-y", change_ids)
-        self.assertNotIn("fdd-example-feature-z-change-w", change_ids)
+        algo_ids = [rid for rid, _ in hits["algo"]]
+        self.assertIn("fdd-real-feature-x-algo-y", algo_ids)
+        self.assertNotIn("fdd-example-feature-z-algo-w", algo_ids)
 
     def test_excluded_block_prevents_empty_block_error(self):
         """Verify that empty blocks inside excluded zones don't trigger errors."""

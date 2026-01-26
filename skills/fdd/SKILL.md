@@ -1,6 +1,6 @@
 ---
 name: fdd
-description: Unified FDD tool for validation and search. Validates FDD artifacts (BUSINESS.md, DESIGN.md, architecture/ADR/ directory, FEATURES.md, feature DESIGN.md, feature CHANGES.md) against FDD requirements with cascading dependency validation. Provides read-only search and traceability for FDD artifacts and FDD/ADR IDs with repo-wide scanning capabilities. Supports optional project-level configuration via .fdd-config.json.
+description: Unified FDD tool for validation and search. Validates FDD artifacts (PRD.md, DESIGN.md, architecture/ADR/ directory, FEATURES.md, feature DESIGN.md) against FDD requirements with cascading dependency validation. Provides read-only search and traceability for FDD artifacts and FDD/ADR IDs with repo-wide scanning capabilities. Supports optional project-level configuration via .fdd-config.json.
 ---
 
 # FDD Unified Tool
@@ -9,8 +9,8 @@ description: Unified FDD tool for validation and search. Validates FDD artifacts
 
 Provides comprehensive FDD artifact management:
 1. **Cascading Validation**: Automatically discovers and validates all artifact dependencies
-2. **Cross-Reference Validation**: Validates references between artifacts (BUSINESS → ADR → DESIGN → FEATURES → feature designs)
-3. **Code Traceability**: Codebase scanning to verify implemented DESIGN/CHANGES items are tagged in code
+2. **Cross-Reference Validation**: Validates references between artifacts (PRD → ADR → DESIGN → FEATURES → feature designs)
+3. **Code Traceability**: Codebase scanning to verify implemented DESIGN items are tagged in code
 4. **Search**: Read-only search and traceability across FDD artifacts and IDs
 
 ## Preconditions
@@ -178,13 +178,12 @@ python3 scripts/fdd.py validate --artifact .
 - Use `--verbose` to print the full report.
 
 This performs **cascading validation**:
-1. **BUSINESS.md** — validates business context structure
-2. **architecture/ADR/** — validates ADR structure, cross-refs to BUSINESS.md
-3. **DESIGN.md** — validates overall design, cross-refs to BUSINESS.md and ADRs
+1. **PRD.md** — validates PRD structure
+2. **architecture/ADR/** — validates ADR structure, cross-refs to PRD.md
+3. **DESIGN.md** — validates overall design, cross-refs to PRD.md and ADRs
 4. **FEATURES.md** — validates features manifest, cross-refs to DESIGN.md requirements
 5. **Feature DESIGN.md** — validates each feature design, cross-refs to overall DESIGN.md
-6. **Feature CHANGES.md** — validates each feature changes, cross-refs to feature DESIGN.md
-7. **Code Traceability** — scans code for `@fdd-` tags matching implemented scopes
+6. **Code Traceability** — scans code for `@fdd-` tags matching implemented scopes
 
 ### Artifact-Only Validation (Skip Code Tracing)
 
@@ -227,8 +226,8 @@ python3 scripts/fdd.py validate --features auth,payment
 When validating any artifact, the tool automatically discovers and validates its dependencies:
 
 ```
-feature-changes → feature-design → features-manifest → overall-design → (business-context, adr)
-                                                                         adr → business-context
+feature-design → features-manifest → overall-design → (prd, adr)
+                                                             adr → prd
 ```
 
 ### What Validation Checks
@@ -242,12 +241,11 @@ feature-changes → feature-design → features-manifest → overall-design → 
 **Cross-Reference Validation**:
 - FEATURES.md covers all DESIGN.md requirement IDs
 - Feature DESIGN.md status matches FEATURES.md status
-- ADR references valid business context items
+- ADR references valid PRD items
 
 **Code Traceability** (when enabled):
 - For each implemented scope (`- [x] **ID**: ...`), expects `@fdd-{kind}:...:ph-{N}` tag in code
 - For each implemented FDL step line (`[x] ... - `inst-...``), expects instruction-level marker
-- For each completed change (`**Status**: ✅ COMPLETED`), expects `@fdd-change:...:ph-{N}` tag
 - File extensions for scanning are configured via `.fdd-config.json` → `codeScanning.fileExtensions`
 - Default extensions: `.py`, `.md`, `.js`, `.ts`, `.tsx`, `.go`, `.rs`, `.java`, `.cs`, `.sql`
 
@@ -286,7 +284,6 @@ python3 scripts/fdd.py list-items --artifact {path} --under-heading "{Exact Head
 python3 scripts/fdd.py read-section --artifact {path} --section {A|B|C}
 python3 scripts/fdd.py read-section --artifact {path} --heading "{Exact Heading}"
 python3 scripts/fdd.py read-section --artifact {path-to-FEATURES.md} --feature-id {fdd-...-feature-...}
-python3 scripts/fdd.py read-section --artifact {path-to-CHANGES.md} --change {N}
 python3 scripts/fdd.py read-section --artifact {path} --id {any-id-substring}
 ```
 
@@ -400,11 +397,10 @@ python3 scripts/fdd.py where-used --root {repo-root} --id {id} --max-bytes 50000
 
 When `--requirements` is not provided, the tool automatically selects the appropriate requirements file:
 
-- `BUSINESS.md` → `requirements/business-context-structure.md`
+- `PRD.md` → `requirements/prd-structure.md`
 - `ADR/` → `requirements/adr-structure.md`
 - `FEATURES.md` → `requirements/features-manifest-structure.md`
 - `DESIGN.md` (feature scope) → `requirements/feature-design-structure.md`
-- `CHANGES.md` → `requirements/feature-changes-structure.md`
 - `DESIGN.md` (non-feature scope) → `requirements/overall-design-structure.md`
 
 ## Traceability Semantics
@@ -451,8 +447,8 @@ python3 scripts/fdd.py validate --features auth,payment
 # Discover FDD adapter in project
 python3 scripts/fdd.py adapter-info --root .
 
-# Find all actor IDs in BUSINESS.md
-python3 scripts/fdd.py list-ids --artifact architecture/BUSINESS.md --pattern "-actor-"
+# Find all actor IDs in PRD.md
+python3 scripts/fdd.py list-ids --artifact architecture/PRD.md --pattern "-actor-"
 
 # Scan all FDD IDs in the codebase
 python3 scripts/fdd.py scan-ids --root . --kind fdd

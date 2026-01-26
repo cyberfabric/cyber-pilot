@@ -4,46 +4,59 @@
 
 ### Architectural Vision
 
-FDD (Feature-Driven Design) employs a **layered architecture with plugin-based extensibility** to provide a technology-agnostic methodology framework. The core methodology layer defines universal workflows and validation rules, while the adapter layer enables project-specific customization without modifying core specifications. This separation ensures that FDD remains compatible with any technology stack while maintaining consistent design and validation patterns across all projects.
+FDD employs a **layered architecture with plugin-based extensibility** to provide a technology-agnostic methodology framework. The core methodology layer defines universal workflows and validation rules, while the adapter layer enables project-specific customization without modifying core specifications. This separation ensures that FDD remains compatible with any technology stack while maintaining consistent design and validation patterns across all projects.
 
-The architecture follows a **design-first approach** where artifacts are created and validated before implementation proceeds. Each layer builds upon validated artifacts from the previous layer, creating a traceable chain from business requirements through design to implementation. The validation layer uses a **deterministic gate pattern** where automated validators catch structural issues before expensive manual review, ensuring quality while maximizing efficiency.
+In this design, “FDD” means **Flow-Driven Development** (workflow-centered).
+
+The architecture follows a **flow-driven approach** where users may start from design, implementation, or validation workflows. If required design artifacts are missing, workflows MUST bootstrap them interactively (ask the minimal set of questions needed) and then continue.
+
+Once created, design artifacts become the authoritative traceability source. The validation layer uses a **deterministic gate pattern** where automated validators catch structural issues before expensive manual review, ensuring quality while maximizing efficiency.
 
 AI agent integration is achieved through machine-readable specifications (AGENTS.md navigation, workflow files, structure requirements) and a skills-based tooling system. The WHEN clause pattern in AGENTS.md files creates a discoverable navigation system where AI agents can autonomously determine which specifications to follow based on the current workflow context.
 
+### Architecture drivers
+
+#### Product requirements
+
+| FDD ID | Solution short description |
+|--------|----------------------------|
+| `fdd-fdd-fr-workflow-execution` | Implement operation/validation workflows as Markdown files in `workflows/*.md` (Type: Operation/Validation), executed under `requirements/workflow-execution.md` + `requirements/execution-protocol.md`; drive deterministic tool entrypoint via `python3 skills/fdd/scripts/fdd.py <subcommand>` (see `skills/fdd/fdd.clispec`). |
+| `fdd-fdd-fr-validation` | Implement deterministic validators in `skills/fdd/scripts/fdd/validation/**` (artifact validators under `validation/artifacts/*`); expose via `python3 skills/fdd/scripts/fdd.py validate` with JSON output and thresholds defined by `requirements/*-structure.md`. |
+| `fdd-fdd-fr-adapter-config` | Implement adapter discovery via `python3 skills/fdd/scripts/fdd.py adapter-info` (reads `.fdd-config.json` and/or discovers `.adapter`); apply adapter rules from `.adapter/AGENTS.md` + `.adapter/specs/*.md` to workflows/validation (no hardcoded paths). |
+| `fdd-fdd-fr-design-first` | Enforce prerequisites-first in workflow specs + execution protocol (`requirements/execution-protocol.md`): when a prerequisite artifact is missing, run the prerequisite workflow (Operation) instead of proceeding; then continue the original workflow (mode CREATE/UPDATE as defined in `workflows/*.md`). |
+| `fdd-fdd-fr-traceability` | Implement ID scanning and traceability queries in `skills/fdd/scripts/fdd.py` subcommands (`scan-ids`, `where-defined`, `where-used`); implement optional code traceability via `@fdd-*` tags validated by `skills/fdd/scripts/fdd/validation/traceability.py` using regexes in `skills/fdd/scripts/fdd/constants.py`. |
+| `fdd-fdd-fr-interactive-docs` | Provide CLI/agent-facing onboarding via `QUICKSTART.md` + `workflows/README.md` and keep agent navigation centralized in `AGENTS.md` + `workflows/AGENTS.md`; make docs executable by referencing requirements + templates + examples in each workflow. |
+| `fdd-fdd-fr-artifact-templates` | Provide generation scaffolds in `templates/*.template.md`; workflows MUST reference templates explicitly (e.g., `workflows/design.md` → `templates/DESIGN.template.md`) and validators enforce required section structure from requirements files. |
+| `fdd-fdd-fr-artifact-examples` | Provide canonical valid artifacts under `examples/requirements/**/valid.md`; validators use deterministic structure rules derived from `requirements/*-structure.md` and example patterns are used as reference for generation/review consistency. |
+| `fdd-fdd-fr-arch-decision-mgmt` | Store ADRs under `architecture/ADR/**`; validate format via `requirements/adr-structure.md` + `skills/fdd/scripts/fdd/validation/artifacts/adr.py`; resolve ADR references in design/feature artifacts via cross-reference checks in validators. |
+| `fdd-fdd-fr-prd-mgmt` | Create/update `architecture/PRD.md` via `workflows/prd.md`; validate via `requirements/prd-structure.md` + `skills/fdd/scripts/fdd/validation/artifacts/prd.py`; enforce stable actor/capability/usecase IDs via regex rules in `skills/fdd/scripts/fdd/constants.py`. |
+| `fdd-fdd-fr-overall-design-mgmt` | Create/update `architecture/DESIGN.md` via `workflows/design.md`; validate via `requirements/overall-design-structure.md` + `skills/fdd/scripts/fdd/validation/artifacts/overall_design.py` including PRD/ADR cross-reference validation. |
+| `fdd-fdd-fr-feature-manifest-mgmt` | Create/update `architecture/FEATURES.md` via `workflows/features.md`; validate via `requirements/features-manifest-structure.md` + `skills/fdd/scripts/fdd/validation/artifacts/features_manifest.py` (stable feature IDs, status, links to feature dirs). |
+| `fdd-fdd-fr-feature-design-mgmt` | Create/update `architecture/features/feature-{slug}/DESIGN.md` via `workflows/feature.md`; validate via `requirements/feature-design-structure.md` + `skills/fdd/scripts/fdd/validation/artifacts/feature_design.py` (flows/algos/states/requirements IDs and structure). |
+| `fdd-fdd-fr-feature-lifecycle` | Encode lifecycle via manifest status fields + validation gates: `workflows/features-validate.md` / `workflows/feature-validate.md` enforce allowed transitions and prerequisites (PRD/DESIGN/FEATURES dependencies). |
+| `fdd-fdd-fr-code-generation` | Implement “design-to-code” workflow in `workflows/code.md`; require adapter specs (`.adapter/specs/*`) to drive language/project structure, and use `@fdd-*` tags for traceability when marking scopes implemented. |
+| `fdd-fdd-fr-brownfield-support` | Support legacy projects via `workflows/adapter-from-sources.md` + `workflows/adapter-auto.md` (discovery) and allow validating artifacts without rigid repo layout using `adapter-info` + adapter-owned structure rules. |
+| `fdd-fdd-fr-fdl` | Use FDL markers in feature design (scope `**ID**` line + numbered steps with `ph-N`/`inst-*` tokens); parse via `skills/fdd/scripts/fdd/validation/fdl.py` and validate instruction/code alignment via traceability validation. |
+| `fdd-fdd-fr-ide-integration` | Generate agent integrations via `python3 skills/fdd/scripts/fdd.py agent-workflows` and `agent-skills`; rely on `.windsurf/skills/fdd/SKILL.md` proxies and `AGENTS.md` navigation to map IDE actions to workflows/validators. |
+| `fdd-fdd-nfr-validation-performance` | Keep validation fast via regex-based parsing in `skills/fdd/scripts/fdd/constants.py`, scoped filesystem scanning (include/exclude/max-bytes in `scan-ids`/`where-used`), and optional config to skip code traceability (`.fdd-config.json` / `--skip-code-traceability`). |
+
 ### Architecture Layers
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    AI Integration Layer                      │
-│  AGENTS.md Navigation • Skills System • Deterministic Gate   │
-└─────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────┐
-│                      Workflow Layer                          │
-│    Operation Workflows • Validation Workflows • FDL          │
-└─────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────┐
-│                    Validation Layer                          │
-│   Deterministic Validators • Scoring System • Traceability   │
-└─────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────┐
-│                      Adapter Layer                           │
-│    Tech Stack • Domain Model Format • Conventions • Specs    │
-└─────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────┐
-│                   Methodology Core Layer                     │
-│   Requirements Files • Workflow Specs • Core AGENTS.md       │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    AIL["AI Integration Layer<br/>AGENTS.md Navigation • Skills System • Deterministic Gate"]
+    WL["Workflow Layer<br/>Operation Workflows • Validation Workflows • FDL"]
+    VL["Validation Layer<br/>Deterministic Validators • Scoring System • Traceability"]
+    AL["Adapter Layer<br/>Tech Stack • Domain Model Format • Conventions • Specs"]
+    MCL["Methodology Core Layer<br/>Requirements Files • Workflow Specs • Core AGENTS.md"]
+    AIL --> WL --> VL --> AL --> MCL
 ```
 
 **Layer Responsibilities**:
 
 - **Methodology Core Layer**: Defines universal FDD structure requirements, workflow specifications, and base AGENTS.md navigation rules. Technology-agnostic and stable across all projects.
 
-- **Adapter Layer**: Project-specific customization through adapter AGENTS.md with Extends mechanism. Contains tech stack definitions, domain model format specs, API contract formats, testing strategies, and coding conventions.
+- **Adapter Layer**: Project-specific customization through adapter AGENTS.md with Extends mechanism. Contains tech stack definitions, domain model format specs, API contract formats, testing strategies, coding conventions, and the adapter-owned artifact registry for artifact discovery.
 
 - **Validation Layer**: Deterministic validators implemented in `fdd` skill for structural validation. Includes ID format checking, cross-reference validation, placeholder detection, and code traceability verification.
 
@@ -61,415 +74,83 @@ AI agent integration is achieved through machine-readable specifications (AGENTS
 
 ---
 
-## B. Requirements & Principles
+## B. Principles & Constraints
 
-### B.1: Functional Requirements
+### B.1: Design Principles
 
-#### FR-001: Executable Workflows
-
-**ID**: `fdd-fdd-req-executable-workflows`
-
-<!-- fdd-id-content -->
- 
-**Capabilities**: `fdd-fdd-capability-workflow-execution`
- 
-**Actors**: `fdd-fdd-actor-product-manager`, `fdd-fdd-actor-architect`, `fdd-fdd-actor-developer`, `fdd-fdd-actor-business-analyst`, `fdd-fdd-actor-ux-designer`, `fdd-fdd-actor-ai-assistant`
-
-**Use Cases**: `fdd-fdd-usecase-bootstrap-project`, `fdd-fdd-usecase-create-business-context`, `fdd-fdd-usecase-design-feature`, `fdd-fdd-usecase-plan-implementation`
- 
-The system MUST provide executable workflows for all phases of development lifecycle. Operation workflows MUST produce proposals under `architecture/changes/` and MUST NOT directly modify approved artifacts. Workflows MUST use interactive question-answer flow with context-based proposals. All artifact changes MUST be followed by automated validation. Workflows MUST be independent and executable in any order based on prerequisites.
- 
-<!-- fdd-id-content -->
-
-#### FR-002: Deterministic Validation
-
-**ID**: `fdd-fdd-req-deterministic-validation`
-
-<!-- fdd-id-content -->
- 
-**Capabilities**: `fdd-fdd-capability-validation`
- 
-**Actors**: `fdd-fdd-actor-architect`, `fdd-fdd-actor-developer`, `fdd-fdd-actor-qa-engineer`, `fdd-fdd-actor-security-engineer`, `fdd-fdd-actor-fdd-tool`, `fdd-fdd-actor-ci-pipeline`
-
-**Use Cases**: `fdd-fdd-usecase-validate-design`, `fdd-fdd-usecase-validate-implementation`, `fdd-fdd-usecase-realtime-validation`
- 
-The system MUST validate artifact structure deterministically before manual review. Validation MUST use 100-point scoring system with category breakdown. All artifacts MUST have pass thresholds (≥90 or 100/100). Validation MUST check cross-references (actor/capability IDs). The system MUST detect incomplete sections and unfinished content markers. Validation output MUST include detailed issue reporting with recommendations.
- 
-<!-- fdd-id-content -->
-
-#### FR-003: Adapter Configuration
-
-**ID**: `fdd-fdd-req-adapter-configuration`
-
-<!-- fdd-id-content -->
- 
-**Capabilities**: `fdd-fdd-capability-adapter-config`
- 
-**Actors**: `fdd-fdd-actor-technical-lead`, `fdd-fdd-actor-architect`, `fdd-fdd-actor-devops-engineer`, `fdd-fdd-actor-ai-assistant`
-
-**Use Cases**: `fdd-fdd-usecase-bootstrap-project`, `fdd-fdd-usecase-auto-generate-adapter`, `fdd-fdd-usecase-migrate-project`, `fdd-fdd-usecase-configure-cicd`
- 
-The system MUST support project-specific adapters without modifying core methodology. Adapters MUST define tech stack (languages, frameworks, tools). Adapters MUST specify domain model format (GTS, JSON Schema, Protobuf, etc.). Adapters MUST specify API contract format (OpenAPI, GraphQL, CLISPEC, etc.). The system MUST support auto-detection of tech stack from existing codebase. Adapter AGENTS.md MUST extend core AGENTS.md using Extends mechanism.
- 
-<!-- fdd-id-content -->
-
-#### FR-004: Design-First Development
-
-**ID**: `fdd-fdd-req-design-first`
-
-<!-- fdd-id-content -->
- 
-**Capabilities**: `fdd-fdd-capability-design-first`
- 
-**Actors**: `fdd-fdd-actor-product-manager`, `fdd-fdd-actor-architect`, `fdd-fdd-actor-developer`, `fdd-fdd-actor-business-analyst`, `fdd-fdd-actor-ux-designer`, `fdd-fdd-actor-security-engineer`
-
-**Use Cases**: `fdd-fdd-usecase-create-business-context`, `fdd-fdd-usecase-design-feature`, `fdd-fdd-usecase-update-feature-design`
- 
-The system MUST enforce design artifact creation before implementation. Design artifacts MUST be validated for completeness before coding begins. Design MUST be single source of truth with code following design specifications. The system MUST support design iteration through proposals under `architecture/changes/`. Design MUST clearly separate business context (BUSINESS.md), architecture (DESIGN.md), and features (feature DESIGN.md). Behavioral specifications MUST use FDL (plain-English algorithms).
- 
-<!-- fdd-id-content -->
-
-#### FR-005: Traceability Management
-
-**ID**: `fdd-fdd-req-traceability`
-
-<!-- fdd-id-content -->
- 
-**Capabilities**: `fdd-fdd-capability-traceability`
- 
-**Actors**: `fdd-fdd-actor-developer`, `fdd-fdd-actor-qa-engineer`, `fdd-fdd-actor-fdd-tool`
-
-**Use Cases**: `fdd-fdd-usecase-trace-requirement`, `fdd-fdd-usecase-implement-change`, `fdd-fdd-usecase-validate-implementation`
- 
-The system MUST assign unique IDs to all design elements using format `fdd-<project>-<kind>-<name>`. IDs MAY be versioned by appending a `-vN` suffix. When an identifier is replaced (REPLACE), the new identifier version MUST be incremented (no suffix → `-v1`, and versioned IDs MUST increment by 1, for example `-v1` → `-v2`), and all references MUST be updated across artifacts and code traceability tags (including qualified `:ph-N:inst-*` references). Once an identifier becomes versioned (e.g., after a REPLACE produces `-v1`), the version suffix MUST NOT be removed in future references (artifacts, proposals, and code tags). Code MUST use @fdd-* tags linking implementation to design. The system MUST support qualified IDs for phases and instructions (:ph-N:inst-name format). The system MUST provide repository-wide ID scanning and search. The system MUST provide where-defined and where-used commands. Validation MUST verify implemented items have corresponding code tags.
- 
-<!-- fdd-id-content -->
-
-#### FR-006: AI Agent Integration
-
-**ID**: `fdd-fdd-req-ai-integration`
-
-<!-- fdd-id-content -->
- 
-**Capabilities**: `fdd-fdd-capability-ai-integration`
- 
-**Actors**: `fdd-fdd-actor-ai-assistant`, `fdd-fdd-actor-technical-lead`
-
-**Use Cases**: `fdd-fdd-usecase-bootstrap-project`, `fdd-fdd-usecase-design-feature`, `fdd-fdd-usecase-implement-change`, `fdd-fdd-usecase-validate-design`
-
-The system MUST provide AGENTS.md navigation with WHEN clause rules. All workflow specifications MUST be machine-readable. The system MUST use structured prompts for AI interaction. The adapter system MUST support extension (core + project customization). The system MUST provide skills system for Claude-compatible tools. Validation MUST use deterministic gate pattern (fail fast before LLM validation).
-
-<!-- fdd-id-content -->
-
-#### FR-007: Interactive Documentation
-
-**ID**: `fdd-fdd-req-interactive-docs`
-
-<!-- fdd-id-content -->
- 
-**Capabilities**: `fdd-fdd-capability-interactive-docs`
- 
-**Actors**: `fdd-fdd-actor-documentation-writer`, `fdd-fdd-actor-product-manager`, `fdd-fdd-actor-release-manager`, `fdd-fdd-actor-ai-assistant`, `fdd-fdd-actor-doc-generator`
-
-**Use Cases**: `fdd-fdd-usecase-bootstrap-project`, `fdd-fdd-usecase-business-analysis`
- 
-All specifications MUST be executable by humans or AI. Artifact structure MUST be enforced by validation (self-documenting). Documentation MUST include valid/invalid pattern examples with ✅/❌ markers. The system MUST provide QUICKSTART guide with copy-paste prompts. Documentation MUST use progressive disclosure (README for humans, AGENTS.md for AI). Methodology MUST track version for evolution.
-
-<!-- fdd-id-content -->
-
-#### FR-008: ADR Management
-
-**ID**: `fdd-fdd-req-arch-decision-mgmt`
-
-<!-- fdd-id-content -->
- 
-**Capabilities**: `fdd-fdd-capability-arch-decision-mgmt`
- 
-**Actors**: `fdd-fdd-actor-architect`, `fdd-fdd-actor-technical-lead`, `fdd-fdd-actor-security-engineer`
-
-**Use Cases**: `fdd-fdd-usecase-record-adr`, `fdd-fdd-usecase-security-review`
-
-**ADRs**: `fdd-fdd-adr-initial-architecture-v1`
- 
-The system MUST support creation and tracking of architecture decisions with structured format. ADRs MUST link to affected design sections and features. The system MUST track decision status (PROPOSED, ACCEPTED, DEPRECATED, SUPERSEDED). The system MUST support impact analysis when ADR changes affect features. The system MUST provide ADR search by status, date, or affected components. ADRs MUST maintain version history for decision evolution.
-
-<!-- fdd-id-content -->
-
-#### FR-009: Feature Lifecycle Management
-
-**ID**: `fdd-fdd-req-feature-lifecycle`
-
-<!-- fdd-id-content -->
- 
-**Capabilities**: `fdd-fdd-capability-feature-lifecycle`
- 
-**Actors**: `fdd-fdd-actor-project-manager`, `fdd-fdd-actor-release-manager`, `fdd-fdd-actor-developer`, `fdd-fdd-actor-ai-assistant`
-
-**Use Cases**: `fdd-fdd-usecase-plan-release`, `fdd-fdd-usecase-track-feature-lifecycle`
- 
-The system MUST track feature status from NOT_STARTED through IN_PROGRESS to DONE. Status updates MUST be automated based on CHANGES.md completion. The system MUST manage feature dependencies and detect blocking. The system MUST integrate with milestone tracking and release planning. The system MUST track historical feature completion metrics and velocity. Status transitions MUST be validated (cannot skip states).
-
-<!-- fdd-id-content -->
-
-#### FR-010: Incremental Development Support
-
-**ID**: `fdd-fdd-req-incremental-development`
-
-<!-- fdd-id-content -->
- 
-**Capabilities**: `fdd-fdd-capability-incremental-development`
- 
-**Actors**: `fdd-fdd-actor-architect`, `fdd-fdd-actor-developer`, `fdd-fdd-actor-product-manager`, `fdd-fdd-actor-ai-assistant`
-
-**Use Cases**: `fdd-fdd-usecase-update-feature-design`, `fdd-fdd-usecase-plan-implementation`
- 
-All operation workflows MUST preserve existing approved content when refining artifacts through proposals. The system MUST support partial updates without full regeneration. Change history MUST be tracked through Git integration. Designs and features MUST support iterative refinement. Updates MUST NOT lose data (unchanged sections preserved).
-
-<!-- fdd-id-content -->
-
-#### FR-011: Code Generation from Design
-
-**ID**: `fdd-fdd-req-code-generation`
-<!-- fdd-id-content -->
- 
-**Capabilities**: `fdd-fdd-capability-code-generation`
- 
-**Actors**: `fdd-fdd-actor-developer`, `fdd-fdd-actor-ai-assistant`
- 
-**Use Cases**: `fdd-fdd-usecase-generate-code`, `fdd-fdd-usecase-implement-change`
- 
-The system MUST generate code scaffolding from feature DESIGN.md specifications. The system MUST create API endpoints from Section E (API Contracts). The system MUST generate domain types from Section C.2 (Domain Model). The system MUST produce test stubs from Section D (Test Cases). Code generation MUST use adapter specs for language-specific output. The system MUST add traceability tags automatically during generation.
-
-<!-- fdd-id-content -->
-
-#### FR-012: Cross-Project Patterns
-
-**ID**: `fdd-fdd-req-pattern-reusability`
-<!-- fdd-id-content -->
- 
-**Capabilities**: `fdd-fdd-capability-pattern-reusability`
- 
-**Actors**: `fdd-fdd-actor-technical-lead`, `fdd-fdd-actor-architect`, `fdd-fdd-actor-devops-engineer`
- 
-The system MUST support extracting common patterns from one project to another. Adapter specs MUST be reusable across similar projects. The system MUST support shared workflow customizations and templates. The system MUST manage pattern library with versioning. The system MUST provide template repositories for common architectures. The system MUST propagate organization-wide best practices.
-
-<!-- fdd-id-content -->
-
-#### FR-013: Migration and Integration
-
-**ID**: `fdd-fdd-req-migration`
-<!-- fdd-id-content -->
- 
-**Capabilities**: `fdd-fdd-capability-migration`
- 
-**Actors**: `fdd-fdd-actor-technical-lead`, `fdd-fdd-actor-architect`, `fdd-fdd-actor-ai-assistant`
-
-**Use Cases**: `fdd-fdd-usecase-migrate-project`, `fdd-fdd-usecase-auto-generate-adapter`
- 
-The system MUST add FDD to existing projects without disruption. The system MUST auto-detect existing architecture from code and configs. The system MUST reverse-engineer BUSINESS.md from requirements documentation. The system MUST extract DESIGN.md patterns from implementation. FDD adoption MUST be incremental (adapter → business → design → features). The system MUST integrate with legacy systems with minimal refactoring.
-
-<!-- fdd-id-content -->
-
-#### FR-014: Real-Time Validation Feedback
-
-**ID**: `fdd-fdd-req-realtime-validation`
-<!-- fdd-id-content -->
- 
-**Capabilities**: `fdd-fdd-capability-realtime-validation`
- 
-**Actors**: `fdd-fdd-actor-architect`, `fdd-fdd-actor-developer`, `fdd-fdd-actor-fdd-tool`
-
-**Use Cases**: `fdd-fdd-usecase-realtime-validation`, `fdd-fdd-usecase-ide-navigation`
- 
-The system MUST validate artifacts as they are edited in IDE. The system MUST provide instant feedback on ID format errors. The system MUST perform real-time cross-reference checking. The system MUST detect placeholders in real-time. Validation MUST be incremental (only changed sections). Validation MUST run in background without blocking editing.
-
-<!-- fdd-id-content -->
-
-#### FR-015: FDL Support
-
-**ID**: `fdd-fdd-req-fdl`
-<!-- fdd-id-content -->
- 
-**Capabilities**: `fdd-fdd-capability-fdl`
- 
-**Actors**: `fdd-fdd-actor-architect`, `fdd-fdd-actor-developer`, `fdd-fdd-actor-business-analyst`, `fdd-fdd-actor-ux-designer`
-
-**Use Cases**: `fdd-fdd-usecase-write-fdl-flow`, `fdd-fdd-usecase-design-feature`, `fdd-fdd-usecase-design-ui`
- 
-The system MUST provide plain English algorithm description language for actor flows. FDL MUST use structured numbered lists with bold keywords (**IF**, **ELSE**, **WHILE**, **FOR EACH**). FDL MUST support instruction markers with checkboxes (- [ ] Inst-label: description). FDL MUST organize by phases (ph-1, ph-2, etc.) for implementation tracking. FDL MUST be readable by non-programmers for validation and review. FDL MUST translate directly to code with traceability tags. FDL MUST support keywords: **AND**, **OR**, **NOT**, **MUST**, **REQUIRED**, **OPTIONAL**.
-
-<!-- fdd-id-content -->
-#### FR-016: IDE Integration
-
-**ID**: `fdd-fdd-req-ide-integration`
-
-<!-- fdd-id-content -->
-**Capabilities**: `fdd-fdd-capability-ide-integration`
-
-**Actors**: `fdd-fdd-actor-developer`, `fdd-fdd-actor-architect`, `fdd-fdd-actor-devops-engineer`
-
-**Use Cases**: `fdd-fdd-usecase-ide-navigation`, `fdd-fdd-usecase-realtime-validation`
-
-The system MUST generate IDE-specific configurations from adapter specs. The system MUST support click-to-navigate from ID references to definitions. The system MUST provide syntax highlighting for FDL in Markdown. The system MUST integrate with IDE file watchers for auto-validation. The system MUST generate .cursorrules and .windsurf/ configs. IDE integration MUST be optional and non-intrusive.
-
-<!-- fdd-id-content -->
-#### FR-017: Proposal-Driven Artifact Change Management
-
-**ID**: `fdd-fdd-req-artifact-change-management`
-
-<!-- fdd-id-content -->
-**ADRs**: `fdd-fdd-adr-proposal-only-changes-v1`
-
-**Capabilities**: `fdd-fdd-capability-change-management`
-
-**Actors**: `fdd-fdd-actor-product-manager`, `fdd-fdd-actor-architect`, `fdd-fdd-actor-technical-lead`, `fdd-fdd-actor-developer`, `fdd-fdd-actor-project-manager`, `fdd-fdd-actor-documentation-writer`, `fdd-fdd-actor-release-manager`, `fdd-fdd-actor-ai-assistant`, `fdd-fdd-actor-fdd-tool`
-
-**Use Cases**: `fdd-fdd-usecase-propose-artifact-change`
-
-The system MUST support proposal-driven change management for all FDD artifacts. The approved state MUST live under `architecture/`. Proposed changes MUST be captured under `architecture/changes/` and expressed as a deterministic changeset format with ordered operations (ADD, UPDATE, REMOVE) over precisely addressed artifact parts. Workflows MUST NOT directly modify approved artifacts. Approved artifacts MUST be modified only by applying approved proposals via `fdd` merge/archive operations. The system MUST support concurrent proposals and MUST apply changes to authoritative artifacts only after approval. After merge, the system MUST archive proposals and MUST re-validate all affected artifacts.
-
-<!-- fdd-id-content -->
-
-#### FR-018: Proposal (Changeset) Validation
-
-**ID**: `fdd-fdd-req-proposal-validation`
-
-<!-- fdd-id-content -->
-**ADRs**: `fdd-fdd-adr-proposal-only-changes-v1`
-
-**Capabilities**: `fdd-fdd-capability-validation`, `fdd-fdd-capability-change-management`
-
-**Actors**: `fdd-fdd-actor-architect`, `fdd-fdd-actor-developer`, `fdd-fdd-actor-ai-assistant`, `fdd-fdd-actor-fdd-tool`, `fdd-fdd-actor-ci-pipeline`
-
-**Use Cases**: `fdd-fdd-usecase-propose-artifact-change`
-
-Proposals under `architecture/changes/` MUST be validated deterministically before review and before merge. Proposal validation MUST verify changeset structure, selectors, and conflict detection data, and MUST fail fast on ambiguity or mismatched expected state.
-
-<!-- fdd-id-content -->
-
-#### FR-019: Core Artifact Status Management
-
-**ID**: `fdd-fdd-req-core-artifact-status`
-
-<!-- fdd-id-content -->
-**ADRs**: `fdd-fdd-adr-proposal-only-changes-v1`
-
-**Capabilities**: `fdd-fdd-capability-core-artifact-status`, `fdd-fdd-capability-validation`, `fdd-fdd-capability-change-management`
-
-**Actors**: `fdd-fdd-actor-product-manager`, `fdd-fdd-actor-architect`, `fdd-fdd-actor-technical-lead`, `fdd-fdd-actor-ai-assistant`, `fdd-fdd-actor-fdd-tool`, `fdd-fdd-actor-ci-pipeline`
-
-**Use Cases**: `fdd-fdd-usecase-create-business-context`, `fdd-fdd-usecase-validate-design`, `fdd-fdd-usecase-propose-artifact-change`
-
-The system MUST support deterministic status management for core artifacts including `architecture/BUSINESS.md` and `architecture/DESIGN.md`. Status values MUST be limited to `IN_PROGRESS` and `READY` and MUST be machine-readable in the artifact content. Transition to `READY` MUST require deterministic validation pass and MUST fail if there are any active proposals under `architecture/changes/` affecting the artifact. Status changes to approved artifacts MUST be proposed under `architecture/changes/` and applied only via `fdd` merge/archive operations.
-
-<!-- fdd-id-content -->
-#### FR-020: Requirements Catalog
-
-**ID**: `fdd-fdd-req-requirements-catalog`
-
-<!-- fdd-id-content -->
-**Capabilities**: `fdd-fdd-capability-requirements-catalog`, `fdd-fdd-capability-workflow-execution`
-
-**Actors**: `fdd-fdd-actor-architect`, `fdd-fdd-actor-technical-lead`, `fdd-fdd-actor-ai-assistant`, `fdd-fdd-actor-fdd-tool`
-
-**Use Cases**: `fdd-fdd-usecase-bootstrap-project`, `fdd-fdd-usecase-create-business-context`, `fdd-fdd-usecase-validate-design`
-
-The system MUST maintain an explicit and deterministic catalog of requirement specifications under `requirements/` and workflows MUST reference these documents as authoritative sources of rules and validation criteria.
-
-<!-- fdd-id-content -->
-#### FR-018: Performance
-
-**ID**: `fdd-fdd-nfr-performance`
-
-<!-- fdd-id-content -->
-Deterministic validators MUST complete in <5 seconds for typical artifacts (<2000 lines). ID scanning across repository MUST complete in <30 seconds for repositories with <10,000 files. Workflow execution overhead MUST be <10% of total development time. Real-time validation MUST provide feedback within 1 second of edit. Validation reports MUST be generated in JSON format for fast parsing.
-
-<!-- fdd-id-content -->
-#### NFR-002: Compatibility
-
-**ID**: `fdd-fdd-nfr-compatibility`
-
-<!-- fdd-id-content -->
-The methodology MUST work with any programming language through adapter system. The system MUST support any domain model format (GTS, JSON Schema, Protobuf, etc.). The system MUST support any API contract format (OpenAPI, GraphQL, gRPC, CLISPEC, etc.). The core MUST use only Python 3.6+ standard library (no external dependencies). All specifications MUST be plain Markdown (compatible with all editors).
-
-<!-- fdd-id-content -->
-#### NFR-003: Usability
-
-**ID**: `fdd-fdd-nfr-usability`
-
-<!-- fdd-id-content -->
-AI agents MUST execute workflows with ≥95% success rate without human intervention. QUICKSTART guide MUST enable new users to bootstrap project in <15 minutes. Workflow prompts MUST be copy-pasteable for immediate execution. Error messages MUST include specific fix suggestions. Documentation MUST use progressive disclosure (simple → advanced).
-
-<!-- fdd-id-content -->
-#### NFR-004: Maintainability
-
-**ID**: `fdd-fdd-nfr-maintainability`
-
-<!-- fdd-id-content -->
-Methodology updates MUST preserve existing artifact structure. Breaking changes MUST provide migration paths and version documentation. Core methodology MUST be decoupled from adapter specifications. Validation rules MUST be extracted to requirements files (not hardcoded). All workflows MUST follow standardized structure for consistency.
-
-<!-- fdd-id-content -->
-#### NFR-005: Extensibility
-
-**ID**: `fdd-fdd-nfr-extensibility`
-
-<!-- fdd-id-content -->
-Projects MUST adopt FDD incrementally (adapter → business → design → features). Adapter system MUST support adding new spec files without core changes. Skills system MUST support adding new tools via standard interface. Workflow system MUST support custom workflows via extension mechanism. Validation scoring MUST be configurable per project via adapter.
-
-<!-- fdd-id-content -->
-### B.2: Design Principles
-
-#### Principle 1: Technology Agnostic Core
+#### Technology-agnostic core
 
 **ID**: `fdd-fdd-principle-tech-agnostic`
 
 <!-- fdd-id-content -->
-**ADRs**: `fdd-fdd-adr-initial-architecture-v1`
-
-The core methodology MUST have zero technology dependencies. All technology choices MUST be in adapters, not core. The core MUST work equally well for Python, Rust, JavaScript, Java, Go, or any language. Domain model formats, API contract formats, and testing frameworks MUST be configurable per project. This principle ensures FDD remains universally applicable across all technology ecosystems.
-
+Keep the FDD core methodology and tooling independent of any particular programming language or framework. Project-specific technology choices belong in the adapter layer.
 <!-- fdd-id-content -->
-#### Principle 2: Design Before Code
+
+#### Design before code
 
 **ID**: `fdd-fdd-principle-design-first`
 
 <!-- fdd-id-content -->
-**ADRs**: `fdd-fdd-adr-initial-architecture-v1`
-
-All artifacts MUST be validated before implementation proceeds. Design is the single source of truth; code follows design specifications. Validation gates MUST prevent proceeding to next phase without passing quality threshold. This principle ensures thoughtful architecture and reduces technical debt by catching design issues before they become code issues.
-
+Treat validated design artifacts as the single source of truth. Workflows must validate prerequisites before proceeding, and bootstrap missing prerequisites when appropriate.
 <!-- fdd-id-content -->
-#### Principle 3: Machine-Readable Specifications
+
+#### Machine-readable specifications
 
 **ID**: `fdd-fdd-principle-machine-readable`
 
 <!-- fdd-id-content -->
-**ADRs**: `fdd-fdd-adr-initial-architecture-v1`
-
-Domain models MUST be in parseable formats (not plain text descriptions). API contracts MUST be in machine-readable formats for validation and code generation. Workflow specifications MUST be structured for AI agent consumption. ID formats MUST be regular expressions for deterministic validation. This principle enables automation, reduces manual effort, and ensures consistency.
-
+Prefer formats and conventions that can be parsed deterministically (stable IDs, structured headings, tables, payload blocks) so validation and traceability can be automated.
 <!-- fdd-id-content -->
-#### Principle 4: Progressive Validation
+
+#### Deterministic gate
 
 **ID**: `fdd-fdd-principle-deterministic-gate`
 
 <!-- fdd-id-content -->
-**ADRs**: `fdd-fdd-adr-initial-architecture-v1`
-
-Deterministic validators MUST run before manual review (Deterministic Gate pattern). Validators MUST fail fast on structural errors to save time. Manual validation MUST focus on design quality, not format checking. Validation layers (deterministic → manual → peer review) MUST be sequential. This principle maximizes efficiency by catching obvious errors immediately and reserving human attention for complex design decisions.
-
+Always run deterministic validation before manual review or implementation steps. Treat validator output as authoritative for structural correctness.
 <!-- fdd-id-content -->
-#### Principle 5: Traceability By Design
+
+#### Traceability by design
 
 **ID**: `fdd-fdd-principle-traceability`
 
 <!-- fdd-id-content -->
-**ADRs**: `fdd-fdd-adr-initial-architecture-v1`
+Use stable IDs and cross-references across artifacts (and optional code tags) to support impact analysis and auditing from PRD to design to implementation.
+<!-- fdd-id-content -->
 
-Every design element MUST have a unique ID assigned at creation. Code tags (@fdd-*) MUST link implementation to specifications. Qualified IDs (base:ph-N:inst-name) MUST enable granular traceability. Repository-wide scanning MUST verify design-code mapping. This principle maintains design-code coherence and enables impact analysis when designs change.
+#### Prefer deterministic gates before manual review
+
+**ID**: `fdd-fdd-principle-deterministic-gates`
 
 <!-- fdd-id-content -->
-### B.3: Constraints
+Prefer deterministic validation as the first gate before any manual review. Run automated structure and cross-reference checks early to fail fast, keep results reproducible, and avoid spending time on invalid artifacts.
+<!-- fdd-id-content -->
+
+#### Prefer stable, machine-readable, text-based artifacts
+
+**ID**: `fdd-fdd-principle-machine-readable-artifacts`
+
+<!-- fdd-id-content -->
+Keep normative artifacts as stable, plain-text sources of truth that can be parsed deterministically. Prefer Markdown + structured conventions (IDs, tables, payload blocks) so both humans and tools can reliably consume and validate the content.
+<!-- fdd-id-content -->
+
+#### Prefer variability isolation via adapters over core changes
+
+**ID**: `fdd-fdd-principle-adapter-variability-boundary`
+
+<!-- fdd-id-content -->
+Keep project-specific variability (tech stack, domain model format, API contracts, conventions) in the adapter layer. Avoid modifying core methodology/specs for project needs; instead, use Extends + adapter specs so the core remains generic and reusable.
+<!-- fdd-id-content -->
+
+#### Prefer composable CLI+JSON interfaces
+
+**ID**: `fdd-fdd-principle-cli-json-composability`
+
+<!-- fdd-id-content -->
+Expose deterministic tooling via a CLI with stable JSON output for composition in CI/CD and IDE integrations. Prefer small, single-purpose commands that can be chained and automated.
+<!-- fdd-id-content -->
+
+### B.2: Constraints
 
 #### Constraint 1: Python Standard Library Only
 
@@ -484,7 +165,7 @@ The `fdd` validation tool MUST use only Python 3.6+ standard library. No externa
 **ID**: `fdd-fdd-constraint-markdown`
 
 <!-- fdd-id-content -->
-All FDD artifacts (BUSINESS.md, DESIGN.md, ADR/, FEATURES.md, etc.) MUST be plain Markdown. No binary formats, proprietary tools, or custom file formats permitted. This constraint ensures artifacts are version-controllable, diffable, and editable in any text editor. Domain models and API contracts referenced by artifacts may be in any format (specified by adapter).
+All FDD artifacts (PRD, Overall Design, ADRs, Feature Manifest, etc.) MUST be plain Markdown. No binary formats, proprietary tools, or custom file formats permitted. This constraint ensures artifacts are version-controllable, diffable, and editable in any text editor. Domain models and API contracts referenced by artifacts may be in any format (specified by adapter).
 
 <!-- fdd-id-content -->
 #### Constraint 3: Git-Based Workflow
@@ -503,69 +184,68 @@ FDD assumes Git version control for artifact history and collaboration. Change t
 FDD core MUST NOT require specific IDEs, editors, or development tools. Validation MUST run from command line without GUI tools. IDE integrations are optional enhancements, not requirements. This constraint ensures FDD works in any development environment (local, remote, CI/CD, etc.).
 
 ---
-
+ 
 <!-- fdd-id-content -->
 ## C. Technical Architecture
 
-### C.1: Component Architecture
+### C.1: Domain Model
+
+**Technology**: Markdown-based artifacts (not code-level types) + JSON Schema (machine-readable contracts)
+
+**Location**:
+- Artifact structure: [`requirements/*-structure.md`](../requirements/)
+- ID format specification: [`.adapter/specs/domain-model.md`](../.adapter/specs/domain-model.md)
+- Artifact registry schema (machine-readable): [`schemas/artifacts.schema.json`](../schemas/artifacts.schema.json)
+- Artifact examples: [`examples/requirements/`](../examples/requirements/)
+
+**Core Entities**:
+
+**Artifacts**:
+- PRD: Vision, Actors, Capabilities, Use Cases
+- Overall Design: Architecture, Requirements, Technical Details
+- ADRs: MADR-formatted decision records
+- Feature Manifest: Feature list with status tracking
+- Feature Design: Feature specifications with flows, algorithms, states
+
+**IDs**:
+- Actor ID: `fdd-<project>-actor-<name>`
+- Capability ID: `fdd-<project>-capability-<name>`
+- Use Case ID: `fdd-<project>-usecase-<name>`
+- Requirement ID: `fdd-<project>-req-<name>`
+- Feature ID: `fdd-<project>-feature-<name>`
+- Flow ID: `fdd-<project>-feature-<feature>-flow-<name>`
+- Algorithm ID: `fdd-<project>-feature-<feature>-algo-<name>`
+- State ID: `fdd-<project>-feature-<feature>-state-<name>`
+- ADR ID: `ADR-<NNNN>` or `fdd-<project>-adr-<name>`
+ 
+All IDs MAY be versioned by appending a `-vN` suffix.
+
+**Workflows**:
+- Operation workflow (Type: Operation): Interactive artifact creation/update
+- Validation workflow (Type: Validation): Automated quality checks
+
+**Relationships**:
+- PRD defines Actors and Capabilities
+- Overall Design references Actors/Capabilities and defines Requirements
+- Feature Manifest references Requirements and lists Features
+- Feature Design references Actors and defines Flows/Algorithms/States
+- ADRs are referenced by Requirements, Principles, and Constraints
+
+**CRITICAL**: Domain model is Markdown-based artifact structure, not programming language types. Validation checks structure against requirements files, not type compilation.
+
+### C.2: Component Model
 
 The FDD system consists of 6 core components organized in a layered architecture:
 
-```
-┌──────────────────────────────────────────────────────────────────────┐
-│                      AI Integration Layer                            │
-│  ┌──────────────────────────────────────────────────────────────┐   │
-│  │ AGENTS.md Navigation: WHEN clause rules, Extends mechanism  │   │
-│  │ Skills System: fdd tool, future extensions                   │   │
-│  │ Deterministic Gate: Fast failure on structural issues        │   │
-│  └──────────────────────────────────────────────────────────────┘   │
-└──────────────────────────────────────────────────────────────────────┘
-                                  ↓
-┌──────────────────────────────────────────────────────────────────────┐
-│                         Workflow Engine                              │
-│  ┌──────────────────────────────────────────────────────────────┐   │
-│  │ Operation Workflows: Proposal generation, interactive Q&A    │   │
-│  │ Validation Workflows: Automated quality checks               │   │
-│  │ FDL Engine: Plain-English algorithm processing              │   │
-│  └──────────────────────────────────────────────────────────────┘   │
-└──────────────────────────────────────────────────────────────────────┘
-                                  ↓
-┌──────────────────────────────────────────────────────────────────────┐
-│                       Validation Engine                              │
-│  ┌──────────────────────────────────────────────────────────────┐   │
-│  │ Deterministic Validators: Structure, IDs, placeholders       │   │
-│  │ Scoring System: 100-point breakdown with thresholds          │   │
-│  │ Traceability Checks: Design-code mapping verification        │   │
-│  └──────────────────────────────────────────────────────────────┘   │
-└──────────────────────────────────────────────────────────────────────┘
-                                  ↓
-┌──────────────────────────────────────────────────────────────────────┐
-│                          ID Management                               │
-│  ┌──────────────────────────────────────────────────────────────┐   │
-│  │ ID Generation: fdd-<project>-<kind>-<name> format           │   │
-│  │ Qualified IDs: :ph-N:inst-name extensions                    │   │
-│  │ Cross-References: Actor/capability/requirement validation    │   │
-│  │ Repository Scanning: where-defined, where-used               │   │
-│  └──────────────────────────────────────────────────────────────┘   │
-└──────────────────────────────────────────────────────────────────────┘
-                                  ↓
-┌──────────────────────────────────────────────────────────────────────┐
-│                         Adapter System                               │
-│  ┌──────────────────────────────────────────────────────────────┐   │
-│  │ Adapter AGENTS.md: Extends core, WHEN clauses for specs     │   │
-│  │ Spec Files: tech-stack, domain-model, conventions, etc.     │   │
-│  │ Auto-Detection: Reverse-engineer from existing code         │   │
-│  └──────────────────────────────────────────────────────────────┘   │
-└──────────────────────────────────────────────────────────────────────┘
-                                  ↓
-┌──────────────────────────────────────────────────────────────────────┐
-│                       Methodology Core                               │
-│  ┌──────────────────────────────────────────────────────────────┐   │
-│  │ Requirements Files: *-structure.md specifications            │   │
-│  │ Workflow Specs: Markdown files with steps and validations    │   │
-│  │ Core AGENTS.md: Base navigation rules                        │   │
-│  └──────────────────────────────────────────────────────────────┘   │
-└──────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    AIL["AI Integration Layer<br/>AGENTS.md Navigation • Skills System • Deterministic Gate"]
+    WE["Workflow Engine<br/>Operation Workflows • Validation Workflows • FDL"]
+    VE["Validation Engine<br/>Deterministic Validators • Scoring System • Traceability"]
+    IDM["ID Management<br/>ID Generation • Qualified IDs • Cross-References • Repository Scanning"]
+    AS["Adapter System<br/>Adapter AGENTS.md • Spec Files • Auto-Detection"]
+    MC["Methodology Core<br/>Requirements Files • Workflow Specs • Core AGENTS.md"]
+    AIL --> WE --> VE --> IDM --> AS --> MC
 ```
 
 **Component Descriptions**:
@@ -581,8 +261,9 @@ The FDD system consists of 6 core components organized in a layered architecture
 - Project-specific customization layer
 - Adapter AGENTS.md extends core AGENTS.md via **Extends** mechanism
 - Spec files define tech stack, domain model format, API contracts, conventions
+- Adapter-owned `artifacts.json` defines artifact discovery rules as a flat list of artifact entries, with hierarchical composition expressed via `system` + optional `parent`
 - Auto-detection capability for existing codebases
- - Location: `<project>/.adapter/` or configured path
+- - Location: `<project>/.adapter/` or configured path
 
 **3. ID Management**
 - Generates and validates unique IDs for all design elements
@@ -625,77 +306,59 @@ The FDD system consists of 6 core components organized in a layered architecture
 6. **Validation Engine → Methodology Core**: Uses requirements files as validation rules
 7. **All Components → Methodology Core**: Reference requirements for specifications
 
-### C.2: Domain Model
+#### Workflow Execution Model
 
-**Technology**: Markdown-based artifacts (not code-level types)
+FDD treats the primary user interaction as **workflow execution**.
 
-**Location**: 
-- Artifact structure: `requirements/*-structure.md`
-- ID format specification: `.adapter/specs/domain-model.md`
-- Artifact examples: `architecture/BUSINESS.md`, workflow files
+The system provides two workflow types:
+- **Operation workflows**: interactively create/update artifacts using a question-answer loop with proposals and explicit user confirmation before writing.
+- **Validation workflows**: validate artifacts deterministically and output results to chat only (no file writes).
 
-**Core Entities**:
+Execution sequence (conceptual, shared across workflows):
+1. Resolve user intent to a workflow.
+2. Discover adapter configuration (if present).
+3. Validate prerequisites (required artifacts exist and are already validated to threshold).
+4. Execute the workflow:
+  - Operation: collect inputs → update artifact → run validation.
+  - Validation: deterministic gate first → manual/LLM-heavy checks next.
 
-**Artifacts**:
-- `BUSINESS.md` (business context): Vision, Actors, Capabilities, Use Cases
-- `DESIGN.md` (overall design): Architecture, Requirements, Technical Details
-- `ADR/{category}/NNNN-fdd-{slug}.md` (architecture decisions): MADR-formatted decision records
-- `FEATURES.md` (feature manifest): Feature list with status tracking
-- `DESIGN.md` (feature scope): Feature specifications with flows, algorithms, states
-- `CHANGES.md` (implementation plan): Atomic changes with task breakdown
-- `architecture/changes/` (proposal space): Proposed changes, reviews, and archived proposals
+The deterministic gate is provided by the `fdd` tool and MUST be treated as authoritative for structural validity.
 
-**IDs**:
-- Actor ID: `fdd-<project>-actor-<name>`
-- Capability ID: `fdd-<project>-capability-<name>`
-- Use Case ID: `fdd-<project>-usecase-<name>`
-- Requirement ID: `fdd-<project>-req-<name>`
-- Feature ID: `fdd-<project>-feature-<name>`
-- Flow ID: `fdd-<project>-feature-<feature>-flow-<name>`
-- Algorithm ID: `fdd-<project>-feature-<feature>-algo-<name>`
-- State ID: `fdd-<project>-feature-<feature>-state-<name>`
-- ADR ID: `ADR-<NNNN>` or `fdd-<project>-adr-<name>`
+#### Unix-way Alignment
 
- All IDs MAY be versioned by appending a `-vN` suffix.
+FDD follows Unix-way principles for tooling:
+- Prefer small, single-purpose commands (validate, list, search, trace).
+- Prefer composable interfaces (CLI + JSON output) for CI/CD and IDE integrations.
+- Keep stable, text-based, version-controlled inputs (Markdown artifacts, CLISPEC).
+- Keep project-specific variability isolated in the adapter layer, not in the core.
 
-**Workflows**:
-- Operation workflow (Type: Operation): Interactive artifact creation/update
-- Validation workflow (Type: Validation): Automated quality checks
+#### `fdd` Tool Execution Model
 
-**Relationships**:
-- BUSINESS.md defines Actors and Capabilities
-- DESIGN.md references Actors/Capabilities, defines Requirements
-- FEATURES.md references Requirements, lists Features
-- Feature DESIGN.md references Actors, defines Flows/Algorithms/States
-- CHANGES.md references Requirements from feature DESIGN.md
-- ADR directory referenced by Requirements/Principles/Constraints
+The `fdd` tool is the deterministic interface used by workflows, CI, and IDE integrations.
 
-**Proposal Format (Deterministic Changeset v1)**:
-- Proposals MUST live under `architecture/changes/` and MUST be machine-parseable
-- Proposals MUST define ordered operations (ADD, UPDATE, REMOVE)
-- Operations MUST target artifacts by path (e.g., `architecture/BUSINESS.md`) and MUST select targets by stable identifiers
-- Selectors MUST prefer stable IDs (e.g., `fdd-fdd-capability-change-management`) over positional matching
-- Each operation MUST include deterministic conflict detection (e.g., expected-before hash for the selected target)
-- Merge MUST be deterministic and MUST produce the same output given the same approved state and proposal
-- After merge, proposals MUST be archived for audit and traceability
-
-**CRITICAL**: Domain model is Markdown-based artifact structure, not programming language types. Validation checks structure against requirements files, not type compilation.
+Design contract:
+- Single, agent-safe entrypoint: `python3 skills/fdd/scripts/fdd.py`.
+- Command surface is specified in CLISPEC (`skills/fdd/fdd.clispec`).
+- Output is JSON for machine consumption.
+- The tool provides:
+  - Deterministic validation of artifacts and cross-references.
+  - Repository-wide search and traceability queries (`list-ids`, `where-defined`, `where-used`).
+  - Adapter discovery (`adapter-info`).
 
 ### C.3: API Contracts
 
 **Technology**: CLISPEC for command-line interface (fdd tool)
 
-**Location**: 
-- Format specification: `CLISPEC.md`
-- Command specification: `skills/fdd/fdd.clispec`
-- Implementation: `skills/fdd/scripts/fdd.py`
+**Location**:
+- Format specification: [`CLISPEC.md`](../CLISPEC.md)
+- Command specification: [`skills/fdd/fdd.clispec`](../skills/fdd/fdd.clispec)
+- Implementation: [`skills/fdd/scripts/fdd.py`](../skills/fdd/scripts/fdd.py)
 
 **Endpoints Overview**:
 
 **Validation Commands**:
 - `validate --artifact <path>`: Validate artifact structure
 - `validate --artifact <code-root>`: Code traceability scan
-- `validate --artifact <path>` MUST support validating proposal artifacts under `architecture/changes/` (changesets)
 
 **Search Commands**:
 - `list-sections --artifact <path>`: List document headings
@@ -716,43 +379,126 @@ The FDD system consists of 6 core components organized in a layered architecture
 
 **CRITICAL**: API contracts are CLISPEC format (command-line interface specification), not REST/HTTP. All commands output JSON for machine consumption.
 
-### C.4: Non-Functional Requirements
+### C.4: Interactions & Sequences
+
+#### Resolve user intent to a workflow (operation + deterministic gate)
+
+**ID**: `fdd-fdd-seq-intent-to-workflow`
 
 <!-- fdd-id-content -->
-#### NFR-006: Security
+**Use Cases**: `fdd-fdd-usecase-create-prd`, `fdd-fdd-usecase-create-overall-design`
 
-**ID**: `fdd-fdd-nfr-security`
+**Actors**: `fdd-fdd-actor-product-manager`, `fdd-fdd-actor-architect`, `fdd-fdd-actor-ai-assistant`, `fdd-fdd-actor-fdd-tool`
+
+```mermaid
+sequenceDiagram
+    participant PM as User
+    participant Agent as AI Coding Assistant
+    participant Nav as AGENTS.md Navigation
+    participant WF as Workflow Spec (workflows/*.md)
+    participant Tool as FDD Validation Tool (fdd)
+
+    PM->>Agent: Request (intent)
+    Agent->>Nav: Resolve intent to workflow + mode
+    Nav-->>Agent: Selected workflow + prerequisites
+    Agent->>WF: Read workflow + requirements
+    Agent->>Tool: Validate prerequisites (deterministic gate)
+    Tool-->>Agent: JSON report (PASS/FAIL)
+    Agent-->>PM: Ask questions / propose content
+    PM-->>Agent: Confirm proposal
+    Agent->>Tool: Validate updated artifact
+    Tool-->>Agent: JSON report (PASS/FAIL)
+    Agent-->>PM: Result + issues (if any)
+```
+<!-- fdd-id-content -->
+
+#### Discover adapter configuration (before applying project-specific conventions)
+
+**ID**: `fdd-fdd-seq-adapter-discovery`
 
 <!-- fdd-id-content -->
-The FDD tool MUST operate without authentication (local command-line tool). Authorization MUST rely on file system permissions only. The system MUST NOT collect or transmit sensitive data. All processing MUST be local to the developer machine with no network requests or external API calls. Git history MUST serve as the audit trail for all changes.
+**Use Cases**: `fdd-fdd-usecase-bootstrap-project`, `fdd-fdd-usecase-auto-generate-adapter`
 
-**Security Boundaries**:
-- Tool runs with user's file system permissions
-- No privilege escalation required
-- Read-only operations for search/traceability commands
-- Write operations only for validation (report generation)
-- Workflows create files only after user confirmation
+**Actors**: `fdd-fdd-actor-technical-lead`, `fdd-fdd-actor-ai-assistant`
+
+```mermaid
+sequenceDiagram
+    participant TL as User
+    participant Agent as AI Agent
+    participant CLI as fdd CLI
+    participant Cfg as .fdd-config.json
+    participant Adapter as .adapter/
+
+    TL->>Agent: Start workflow execution
+    Agent->>CLI: adapter-info --root <project>
+    CLI->>Cfg: Read config (if present)
+    CLI->>Adapter: Discover adapter + AGENTS/specs
+    Adapter-->>CLI: Adapter path + specs
+    CLI-->>Agent: Adapter info (paths, capabilities)
+    Agent-->>TL: Proceed using adapter conventions
+```
+<!-- fdd-id-content -->
+
+#### Validate overall design against requirements (deterministic validation workflow)
+
+**ID**: `fdd-fdd-seq-validate-overall-design`
 
 <!-- fdd-id-content -->
-#### NFR-007: Auditability
+**Use Cases**: `fdd-fdd-usecase-validate-design`
 
-**ID**: `fdd-fdd-nfr-auditability`
+**Actors**: `fdd-fdd-actor-architect`, `fdd-fdd-actor-fdd-tool`
+
+```mermaid
+sequenceDiagram
+    participant Arch as User
+    participant Tool as FDD Validation Tool
+    participant OD as Overall Design Validator
+    participant PRD as PRD Parser
+    participant ADR as ADR Loader
+
+    Arch->>Tool: validate --artifact architecture/DESIGN.md
+    Tool->>OD: validate_overall_design()
+    OD->>PRD: parse_prd_model(architecture/PRD.md)
+    OD->>ADR: load_adr_entries(architecture/ADR/**)
+    OD-->>Tool: issues (structure + cross references)
+    Tool-->>Arch: JSON report (score + errors)
+```
+<!-- fdd-id-content -->
+
+#### Trace requirement/use case to implementation (repository-wide queries)
+
+**ID**: `fdd-fdd-seq-traceability-query`
 
 <!-- fdd-id-content -->
-All artifact changes MUST be tracked through Git version control. Validation reports MUST be reproducible given the same input artifacts. The system MUST provide traceability from requirements through implementation via FDD ID cross-references.
+**Use Cases**: `fdd-fdd-usecase-trace-requirement`, `fdd-fdd-usecase-ide-navigation`
 
-<!-- fdd-id-content -->
-#### NFR-008: Portability
+**Actors**: `fdd-fdd-actor-developer`, `fdd-fdd-actor-fdd-tool`
 
-**ID**: `fdd-fdd-nfr-portability`
+```mermaid
+sequenceDiagram
+    participant Dev as User
+    participant Tool as FDD Validation Tool
+    participant Repo as Repository (docs + code)
 
-<!-- fdd-id-content -->
-The FDD tool MUST run on any platform with Python 3.6+ (Windows, macOS, Linux). No platform-specific dependencies are permitted. All artifacts MUST be plain text (Markdown) for universal accessibility. Note: FDD is a methodology framework for design documentation, not a security-critical system. Security considerations are minimal as all operations are local and user-controlled.
+    Dev->>Tool: where-defined --root . --id <fdd-id>
+    Tool->>Repo: Scan for normative definition
+    Repo-->>Tool: File + line location
+    Tool-->>Dev: Definition location
+    Dev->>Tool: where-used --root . --id <fdd-id>
+    Tool->>Repo: Scan usages (artifacts + optional code tags)
+    Repo-->>Tool: Usages list
+    Tool-->>Dev: Usage list
+```
 <!-- fdd-id-content -->
 
 ---
-
+ 
 ## D. Additional Context
+
+**ID**: `fdd-fdd-design-context-notes`
+<!-- fdd-id-content -->
+ 
+Additional notes and rationale for the FDD overall design.
 
 ### Technology Selection Rationale
 
@@ -768,17 +514,17 @@ The FDD tool MUST run on any platform with Python 3.6+ (Windows, macOS, Linux). 
 
 **Incremental Adoption Path**:
 1. Start with adapter (minimal: just Extends line)
-2. Add BUSINESS.md (business context)
-3. Add DESIGN.md (architecture)
-4. Optionally add ADRs under `architecture/ADR/` (decisions)
-5. Add FEATURES.md and feature designs
-6. Add CHANGES.md and implement
+2. Add PRD
+3. Add Overall Design
+4. Optionally add ADRs (decisions)
+5. Add Feature Manifest and Feature Designs
+6. Implement features using the primary implementation workflow
 7. Evolve adapter as patterns emerge
 
 **Migration from Existing Projects**:
 - Use `adapter-from-sources` workflow to auto-detect tech stack
-- Reverse-engineer BUSINESS.md from existing requirements/PRD
-- Extract DESIGN.md patterns from code structure and documentation
+- Reverse-engineer PRD content from existing requirements
+- Extract Overall Design patterns from code structure and documentation
 - Add traceability incrementally (new code first, legacy later)
 
 **AI Agent Best Practices**:
@@ -787,6 +533,29 @@ The FDD tool MUST run on any platform with Python 3.6+ (Windows, macOS, Linux). 
 - Follow execution-protocol.md for all workflow executions
 - Use fdd skill for artifact search and ID lookup
 - Never skip prerequisites validation
+
+### Artifact Lifecycle Map
+
+The following table summarizes which workflows create/update which artifacts, and which templates/examples are expected to be used during generation.
+
+| Artifact | Canonical location | Create/update workflows | Validation workflows | Template | Example |
+|---|---|---|---|---|---|
+| PRD | `architecture/PRD.md` | `workflows/prd.md` | `workflows/prd-validate.md` | `templates/PRD.template.md` | `examples/requirements/prd/valid.md` |
+| Overall Design | `architecture/DESIGN.md` | `workflows/design.md` | `workflows/design-validate.md` | `templates/DESIGN.template.md` | `examples/requirements/overall-design/valid.md` |
+| ADRs | `architecture/ADR/` | `workflows/adr.md` | `workflows/adr-validate.md` | `templates/ADR.template.md` | `examples/requirements/adr/valid.md` |
+| Feature Manifest | `architecture/features/FEATURES.md` | `workflows/features.md` | `workflows/features-validate.md` | `templates/FEATURES.template.md` | `examples/requirements/features-manifest/valid.md` |
+| Feature Design | `architecture/features/feature-{slug}/DESIGN.md` | `workflows/feature.md` | `workflows/feature-validate.md` | `templates/feature-DESIGN.template.md` | `examples/requirements/feature-design/valid.md` |
+
+### Global Specification Contracts
+
+FDD avoids duplicating requirements across artifacts. The following files are the authoritative contracts that workflows and artifacts MUST follow:
+
+- Workflow execution: [requirements/workflow-execution.md](../requirements/workflow-execution.md)
+- Operation workflows: [requirements/workflow-execution-operations.md](../requirements/workflow-execution-operations.md)
+- Validation workflows: [requirements/workflow-execution-validations.md](../requirements/workflow-execution-validations.md)
+- PRD structure: [requirements/prd-structure.md](../requirements/prd-structure.md)
+- Overall design structure: [requirements/overall-design-structure.md](../requirements/overall-design-structure.md)
+- Shared structural rules: [requirements/requirements.md](../requirements/requirements.md)
 
 ### Future Technical Improvements
 
@@ -811,3 +580,5 @@ The FDD tool MUST run on any platform with Python 3.6+ (Windows, macOS, Linux). 
 - Adapter composition (extend multiple adapters)
 - Adapter versioning and compatibility checking
 - Community-contributed patterns and templates
+
+<!-- fdd-id-content -->

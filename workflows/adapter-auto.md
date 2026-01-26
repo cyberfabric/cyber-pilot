@@ -297,45 +297,43 @@ Add MUST rules for each created spec:
 
 ---
 
-ALWAYS open and follow `specs/tech-stack.md` WHEN executing workflows: adapter.md, adapter-auto.md, adapter-manual.md, adapter-bootstrap.md, adapter-validate.md, design.md, design-validate.md, adr.md, adr-validate.md, feature-change-implement.md, feature-code-validate.md
+ALWAYS open and follow `specs/tech-stack.md` WHEN executing workflows: adapter.md, adapter-auto.md, adapter-manual.md, adapter-bootstrap.md, adapter-validate.md, design.md, design-validate.md, adr.md, adr-validate.md, code.md, code-validate.md
 
-ALWAYS open and follow `specs/domain-model.md` WHEN executing workflows: design.md, design-validate.md, adr.md, adr-validate.md, features.md, features-validate.md, feature.md, feature-validate.md, feature-changes.md, feature-changes-validate.md, feature-change-implement.md, feature-code-validate.md
+ALWAYS open and follow `specs/domain-model.md` WHEN executing workflows: design.md, design-validate.md, adr.md, adr-validate.md, features.md, features-validate.md, feature.md, feature-validate.md, code.md, code-validate.md
 
-ALWAYS open and follow `specs/api-contracts.md` WHEN executing workflows: design.md, design-validate.md, adr.md, adr-validate.md, feature.md, feature-validate.md, feature-changes.md, feature-changes-validate.md, feature-change-implement.md, feature-code-validate.md
+ALWAYS open and follow `specs/api-contracts.md` WHEN executing workflows: design.md, design-validate.md, adr.md, adr-validate.md, feature.md, feature-validate.md, code.md, code-validate.md
 
-ALWAYS open and follow `specs/patterns.md` WHEN executing workflows: design.md, design-validate.md, adr.md, adr-validate.md, feature.md, feature-validate.md, feature-change-implement.md, feature-code-validate.md
+ALWAYS open and follow `specs/patterns.md` WHEN executing workflows: design.md, design-validate.md, adr.md, adr-validate.md, feature.md, feature-validate.md, code.md, code-validate.md
 
-ALWAYS open and follow `specs/conventions.md` WHEN executing workflows: adapter.md, adapter-auto.md, adapter-manual.md, adapter-bootstrap.md, adapter-validate.md, feature-change-implement.md, feature-code-validate.md
+ALWAYS open and follow `specs/conventions.md` WHEN executing workflows: adapter.md, adapter-auto.md, adapter-manual.md, adapter-bootstrap.md, adapter-validate.md, code.md, code-validate.md
 
-ALWAYS open and follow `specs/build-deploy.md` WHEN executing workflows: feature-change-implement.md, feature-code-validate.md
+ALWAYS open and follow `specs/build-deploy.md` WHEN executing workflows: code.md, code-validate.md
 
-ALWAYS open and follow `specs/testing.md` WHEN executing workflows: feature-change-implement.md, feature-code-validate.md
+ALWAYS open and follow `specs/testing.md` WHEN executing workflows: code.md, code-validate.md
 ```
 
 ### 7. Show Summary
 
-```
-═══════════════════════════════════════════════
+```text
 Adapter Auto-Scan Complete
 
 Created:
-  ✓ specs/tech-stack.md
-  ✓ specs/domain-model.md
-  ✓ specs/api-contracts.md
-  ✓ specs/patterns.md
-  ✓ specs/conventions.md
-  ✓ specs/build-deploy.md
-  ✓ specs/testing.md
+- specs/tech-stack.md
+- specs/domain-model.md
+- specs/api-contracts.md
+- specs/patterns.md
+- specs/conventions.md
+- specs/build-deploy.md
+- specs/testing.md
 
 Updated:
-  ✓ AGENTS.md (added 7 MUST rules)
+- AGENTS.md (added 7 MUST rules)
 
 Sources:
-  - 11 ADRs
-  - 4 config files
-  - Code analysis (src/, tests/)
-  - Documentation
-═══════════════════════════════════════════════
+- ADRs
+- Config files
+- Code analysis
+- Documentation
 ```
 
 ### 8. Run Validation

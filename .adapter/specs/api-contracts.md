@@ -122,7 +122,7 @@ RELATED:
 **Validation workflows**:
 - `design-validate.md` - Uses `validate --artifact DESIGN.md`
 - `feature-validate.md` - Uses `validate --artifact feature-*/DESIGN.md`
-- `feature-code-validate.md` - Uses `validate --artifact .`
+- `code-validate.md` - Uses `validate --artifact .`
 
 **Traceability workflows**:
 - All implementation workflows use `where-defined` and `where-used`
@@ -200,7 +200,7 @@ Agent MUST verify before using fdd skill:
 **Used by workflows**:
 - `design-validate.md` - Validation command
 - `feature-validate.md` - Validation command  
-- `feature-code-validate.md` - Traceability validation
+- `code-validate.md` - Traceability validation
 - All implementation workflows - Traceability commands
 
 **Related files**:

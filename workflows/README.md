@@ -1,4 +1,3 @@
-<!-- @fdd-change:fdd-fdd-feature-init-structure-change-workflow-structure:ph-1 -->
 # FDD Workflows (IDE & Agent Agnostic)
 
 ## Overview
@@ -25,10 +24,10 @@ These workflows are **IDE and agent-agnostic** - they describe the FDD methodolo
 **adapter-agents.md** - Generate AI agent config from adapter
 **adapter-validate.md** - Validate adapter structure
 
-### Phase 1: Business & Architecture Design
+### Phase 1: PRD & Architecture Design
 
-**business-context.md** - Create or update business context document
-**business-validate.md** - Validate business context
+**prd.md** - Create or update PRD document
+**prd-validate.md** - Validate PRD
 
 **design.md** - Create or update overall design
 **design-validate.md** - Validate overall design
@@ -46,11 +45,7 @@ These workflows are **IDE and agent-agnostic** - they describe the FDD methodolo
 
 ### Phase 3: Feature Implementation
 
-**feature-changes.md** - Create or update implementation plan (CHANGES.md)
-**feature-changes-validate.md** - Validate implementation plan
-
-**feature-change-implement.md** - Implement specific change
-**feature-code-validate.md** - Validate feature code implementation
+**code-validate.md** - Validate feature code implementation
 
 ---
 

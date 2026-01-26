@@ -7,16 +7,15 @@ You can apply the same flow in any agent by opening the corresponding workflow f
 
 ## Goal
 
-Create a validated baseline (business context + architecture) before writing code.
+Create a validated baseline (PRD + architecture) before writing code.
 
 ## What You Will Produce
 
-- `architecture/BUSINESS.md` ([taxonomy](TAXONOMY.md#businessmd))
+- `architecture/PRD.md` ([taxonomy](TAXONOMY.md#prdmd))
 - `architecture/DESIGN.md` ([taxonomy](TAXONOMY.md#designmd))
 - `architecture/ADR/**` ([taxonomy](TAXONOMY.md#adr))
 - `architecture/features/FEATURES.md` ([taxonomy](TAXONOMY.md#featuresmd))
 - `architecture/features/feature-{slug}/DESIGN.md` ([taxonomy](TAXONOMY.md#feature-designmd))
-- `architecture/features/feature-{slug}/CHANGES.md` ([taxonomy](TAXONOMY.md#feature-changesmd)) (optional)
 
 ## How to Provide Context in Prompts
 
@@ -50,10 +49,10 @@ The agent should:
 
 ## Workflow Sequence (Greenfield)
 
-### 1. `/fdd-business-context`
+### 1. `/fdd-prd`
 
 **What it does**:
-- Creates or updates `architecture/BUSINESS.md` ([taxonomy](TAXONOMY.md#businessmd)).
+- Creates or updates `architecture/PRD.md` ([taxonomy](TAXONOMY.md#prdmd)).
 
 **Provide context**:
 - Product vision, target users, key capabilities
@@ -61,27 +60,27 @@ The agent should:
 
 **Prompt example**:
 ```text
-/fdd-business-context
+/fdd-prd
 Context:
 - Product: Task management API
 - Users: individual users + teams
 - Key capabilities: create tasks, assign tasks, due dates, comments
 ```
 
-### 2. `/fdd-business-validate`
+### 2. `/fdd-prd-validate`
 
 **What it does**:
-- Validates `architecture/BUSINESS.md` deterministically.
+- Validates `architecture/PRD.md` deterministically.
 
 **Provide context**:
-- If your BUSINESS artifact is not in the standard location, provide the exact path to validate
+- If your PRD artifact is not in the standard location, provide the exact path to validate
 
 **Result**:
 - PASS/FAIL with issues to fix.
 
 Prompt example:
 ```text
-/fdd-business-validate
+/fdd-prd-validate
 ```
 
 ### 3. `/fdd-design` (ADR + Overall Design)
@@ -201,7 +200,7 @@ Context:
 - Feature: task-crud
 ```
 
-### 9. `/fdd-feature-implement`
+### 9. `/fdd-code`
 
 **What it does**:
 - Implements the feature directly from `DESIGN.md` (default path).
@@ -212,62 +211,12 @@ Context:
 
 Prompt example:
 ```text
-/fdd-feature-implement
+/fdd-code
 Context:
 - Feature: task-crud
 ```
 
-### 10. `/fdd-feature-changes` (optional)
-
-**What it does**:
-- Creates or updates feature implementation plan: `architecture/features/feature-{slug}/CHANGES.md` ([taxonomy](TAXONOMY.md#feature-changesmd)).
-
-**Provide context**:
-- Repo structure expectations
-- Implementation constraints (DB migrations, framework)
-- Release / rollout constraints (feature flags, backward compatibility)
-- Testing expectations (unit vs integration, required scenarios)
-
-Prompt example:
-```text
-/fdd-feature-changes
-Context:
-- Feature: task-crud
-- Use small atomic changes (<= 1 day each)
-```
-
-### 11. `/fdd-feature-changes-validate` (optional)
-
-**Provide context**:
-- Feature slug to validate (or the changes file path)
-
-Prompt example:
-```text
-/fdd-feature-changes-validate
-Context:
-- Feature: task-crud
-```
-
-### 12. `/fdd-feature-change-implement` (optional)
-
-**What it does**:
-- Implements a selected change from `CHANGES.md` into code.
-
-**Provide context**:
-- Change number
-- Where to place code, naming conventions, test strategy
-- If the repo has multiple services/apps: which one to change
-- Any constraints that must not be broken (API compatibility, migrations)
-
-Prompt example:
-```text
-/fdd-feature-change-implement
-Context:
-- Feature: task-crud
-- Change: 001
-```
-
-### 13. `/fdd-feature-code-validate`
+### 10. `/fdd-code-validate`
 
 **What it does**:
 - Validates implementation against the feature design and traceability expectations.
@@ -278,7 +227,7 @@ Context:
 
 Prompt example:
 ```text
-/fdd-feature-code-validate
+/fdd-code-validate
 Context:
 - Feature: task-crud
 ```

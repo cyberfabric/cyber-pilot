@@ -8,7 +8,7 @@
 
 ## Context and Problem Statement
 
-FDD (Feature-Driven Design) is a universal methodology framework for building software systems with complete traceability from business requirements to implementation. The methodology must be technology-agnostic to support any tech stack, while providing structured workflows that can be executed by both human teams and AI coding assistants.
+FDD (Feature-Driven Design) is a universal methodology framework for building software systems with complete traceability from product requirements to implementation. The methodology must be technology-agnostic to support any tech stack, while providing structured workflows that can be executed by both human teams and AI coding assistants.
 
 The architecture must enable incremental adoption, support design-first development, and maintain design-code coherence through systematic traceability.
 
@@ -16,7 +16,7 @@ Key requirements driving this decision:
 * Support any programming language, framework, or technology stack
 * Enable AI agents to execute workflows autonomously with minimal human intervention
 * Provide deterministic validation to fail fast on structural issues
-* Maintain complete traceability from business requirements through design to implementation
+* Maintain complete traceability from product requirements through design to implementation
 * Support incremental methodology adoption without disrupting existing projects
 
 ## Decision Drivers
@@ -36,12 +36,12 @@ Key requirements driving this decision:
    - Reduce manual validation effort through deterministic checking
    - Support code generation from validated designs
 
-4. **Incremental Adoption** (from `fdd-fdd-capability-migration`, `fdd-fdd-req-migration`)
+4. **Incremental Adoption** (from `fdd-fdd-fr-brownfield-support`, `fdd-fdd-req-migration`)
    - Projects must adopt FDD progressively without disruption
    - Support legacy system integration with minimal refactoring
    - Adapter-first approach enables starting with lightweight configuration
 
-5. **Complete Traceability** (from `fdd-fdd-capability-traceability`, `fdd-fdd-req-traceability`)
+5. **Complete Traceability** (from `fdd-fdd-fr-traceability`, `fdd-fdd-req-traceability`)
    - Every design element needs unique ID for tracking
    - Code tags must link implementation to specifications
    - Support impact analysis when designs change
@@ -148,7 +148,7 @@ FDD uses **Layered Architecture with Plugin-Based Adapter System** with the foll
 * **Extends Mechanism**: Adapter AGENTS.md extends core without duplication
 * **Deterministic Gate**: Automated validators run before expensive manual review
 * **Layered Validation**: Deterministic → Manual → Peer review (sequential)
-* **Incremental Adoption**: Adapter → Business → Design → Features → Implementation
+* **Incremental Adoption**: Adapter → PRD → Design → Features → Implementation
 
 **Technology Choices for FDD Implementation**:
 * **Core Tooling**: Python 3.6+ standard library only (no external dependencies)
@@ -191,12 +191,12 @@ FDD uses **Layered Architecture with Plugin-Based Adapter System** with the foll
 * `fdd-fdd-actor-developer` - Implements features following design-first approach
 
 **Capabilities**:
-* `fdd-fdd-capability-workflow-execution` - Enabled by workflow engine component
-* `fdd-fdd-capability-validation` - Enabled by validation engine component
-* `fdd-fdd-capability-adapter-config` - Enabled by adapter system component
-* `fdd-fdd-capability-design-first` - Enforced by validation gates
-* `fdd-fdd-capability-traceability` - Enabled by ID management component
-* `fdd-fdd-capability-ai-integration` - Enabled by AI integration layer
+* `fdd-fdd-fr-workflow-execution` - Enabled by workflow engine component
+* `fdd-fdd-fr-validation` - Enabled by validation engine component
+* `fdd-fdd-fr-adapter-config` - Enabled by adapter system component
+* `fdd-fdd-fr-design-first` - Enforced by validation gates
+* `fdd-fdd-fr-traceability` - Enabled by ID management component
+* `fdd-fdd-fr-brownfield-support` - Enabled by incremental adoption support
 
 **Requirements**:
 * `fdd-fdd-req-executable-workflows` - Implemented by workflow engine
@@ -204,7 +204,6 @@ FDD uses **Layered Architecture with Plugin-Based Adapter System** with the foll
 * `fdd-fdd-req-adapter-configuration` - Implemented by adapter system
 * `fdd-fdd-req-design-first` - Enforced by architecture design
 * `fdd-fdd-req-traceability` - Implemented by ID management
-* `fdd-fdd-req-ai-integration` - Implemented by AI integration layer
 
 **Principles**:
 * `fdd-fdd-principle-tech-agnostic` - Core architectural principle

@@ -100,7 +100,7 @@ SELECT 1;
 
 **Valid examples**:
 ```python
-# @fdd-change:fdd-project-feature-x-change-y:ph-1
+# @fdd-flow:fdd-project-feature-x-flow-y:ph-1
 ```
 
 ```javascript

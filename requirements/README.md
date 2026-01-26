@@ -1,4 +1,4 @@
-<!-- @fdd-change:fdd-fdd-feature-init-structure-change-requirements-structure:ph-1 -->
+<!-- @fdd-algo:fdd-fdd-feature-init-structure-change-requirements-structure:ph-1 -->
 # FDD Requirements Directory
 
 This directory contains structure specifications for FDD artifacts.
@@ -9,8 +9,7 @@ All requirement specification files follow the naming pattern: `*-structure.md`
 
 Examples:
 - `feature-design-structure.md` - Structure spec for feature DESIGN.md
-- `feature-changes-structure.md` - Structure spec for feature CHANGES.md
-- `business-context-structure.md` - Structure spec for BUSINESS.md
+- `prd-structure.md` - Structure spec for PRD.md
 
 ## File Categories
 

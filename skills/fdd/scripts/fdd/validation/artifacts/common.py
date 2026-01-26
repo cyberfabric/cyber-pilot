@@ -8,6 +8,8 @@ import re
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
+from ...constants import LINK_RE
+
 from ...utils import parse_required_sections, find_present_section_ids, find_placeholders
 
 
@@ -107,7 +109,7 @@ def common_checks(
                 break
 
     # Check for disallowed link notation
-    disallowed_pattern = re.compile(r"(@/|@DESIGN\.md|@BUSINESS\.md|@ADR\.md)")
+    disallowed_pattern = re.compile(r"(@/|@DESIGN\.md|@PRD\.md|@ADR\.md)")
     for match in disallowed_pattern.finditer(artifact_text):
         errors.append({"type": "link_format", "message": "Disallowed IDE-specific link notation", "token": match.group(0)})
 
@@ -176,7 +178,7 @@ def common_checks(
     # Enforce that FDD IDs used as values in artifact docs are wrapped in backticks.
     # This is intentionally narrower than "any occurrence" to avoid breaking
     # canonical markdown link labels (e.g. FEATURES.md headings with [fdd-...](...)).
-    if artifact_kind in {"business-context", "overall-design", "adr", "features-manifest", "feature-design", "feature-changes"}:
+    if artifact_kind in {"prd", "overall-design", "adr", "features-manifest", "feature-design"}:
         fdd_id_re = re.compile(r"\bfdd-[a-z0-9-]+\b")
         md_link_re = re.compile(r"\[[^\]]+\]\([^)]+\)")
         inline_code_re = re.compile(r"`[^`]*`")
@@ -220,7 +222,7 @@ def common_checks(
     # and require that no non-empty lines exist outside the payload within the enclosing element.
     # Enclosing element is computed as the range between headings of the same level
     # (stop at next heading with level <= the element's heading level).
-    if artifact_kind in {"business-context", "overall-design", "features-manifest", "feature-design", "feature-changes"}:
+    if artifact_kind in {"prd", "overall-design", "features-manifest", "feature-design"}:
         id_line_start_re = re.compile(r"^\s*(?:[-*]\s*)?(?:\[[ xX]\]\s*)?\*\*ID\*\*:\s*(.+)$", re.IGNORECASE)
         heading_re = re.compile(r"^(#{1,6})\s+")
 
@@ -381,6 +383,42 @@ def common_checks(
             errors.append({"type": "section_heading", "message": "Disallowed section heading format (use '## A. Title')", "line": idx, "text": line.strip()})
 
     return errors, placeholder_hits
+
+
+def _normalize_feature_relpath(path: str) -> str:
+    p = path.strip()
+    if not p.endswith("/"):
+        p = p + "/"
+    return p
+
+
+def _extract_feature_links(text: str) -> List[str]:
+    links: List[str] = []
+    for _, target in LINK_RE.findall(text):
+        t = target.strip()
+        if not t.startswith("feature-"):
+            continue
+        links.append(_normalize_feature_relpath(t))
+    return links
+
+
+def _extract_id_list(field_block: Dict[str, object]) -> List[str]:
+    raw: List[str] = []
+    inline = str(field_block["value"]).strip()
+    if inline:
+        raw.extend([p.strip() for p in inline.split(",") if p.strip()])
+    for line in list(field_block["tail"]):
+        m = re.match(r"^\s*[-*]\s+(.+?)\s*$", line)
+        if not m:
+            continue
+        raw.append(m.group(1).strip())
+
+    ids: List[str] = []
+    for item in raw:
+        cleaned = item.strip().strip("`")
+        if cleaned:
+            ids.append(cleaned)
+    return ids
 
 
 __all__ = ["validate_generic_sections", "common_checks"]

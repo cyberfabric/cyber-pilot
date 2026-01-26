@@ -1,4 +1,3 @@
-<!-- @fdd-change:fdd-fdd-feature-init-structure-change-infrastructure:ph-1 -->
 # Feature-Driven Design (FDD)
 FDD project overview.
 
@@ -33,7 +32,7 @@ FDD helps teams build software by:
 1. **Designing before coding**: Document what you're building in clear, reviewable formats
 2. **Breaking work into features**: Each feature is independent and testable
 3. **Using plain English**: Algorithms described in FDL (not code), reviewable by non-programmers
-4. **Tracking changes atomically**: Implementation changes ensure every change is traceable
+4. **Ensuring traceability**: Requirements remain traceable to implementation
 5. **Validating designs**: Catch issues before implementation
 
 ---
@@ -42,15 +41,15 @@ FDD helps teams build software by:
 
 ![FDD Layered Flow](fdd-flow-layers.drawio.svg)
 
-**The 7-layer flow** (each layer builds on validated previous layer):
+**The 6-layer flow** (each layer builds on validated previous layer):
 
 **Layer 0: Project Adapter** (Architect, Project Manager)
 - Define tech stack & conventions (any language, any tools)
 - Workflows: `adapter`, `adapter-agents`, `adapter-from-source`
 
-**Layer 1: Business Context** (Product Owner, Project Manager)
-- Define business requirements, use cases, capabilities
-- Workflows: `business-context`, `business-validate`
+**Layer 1: PRD** (Product Owner, Project Manager)
+- Define product requirements, use cases, capabilities
+- Workflows: `prd`, `prd-validate`
 - ✅ Validated before proceeding
 
 **Layer 2: Overall Design** (Architect, Project Manager)
@@ -69,20 +68,14 @@ FDD helps teams build software by:
 - Workflows: `feature`, `feature-validate`
 - ✅ Validated (100/100) before proceeding
 
-**Layer 5: Feature Changes** (Developer/QA, Project Manager)
-- Atomic implementation changes with tasks
-- Specs validated against feature design
-- Workflows: `feature-changes`, `feature-code-validate`
-- Validated before proceeding
-
-**Layer 6: Implementation** (Developer/QA, Project Manager)
-- Code validated against spec automatically
-- Workflows: `feature-change-implement`, `feature-code-validate`
+**Layer 5: Implementation** (Developer/QA, Project Manager)
+- Implement feature directly from feature design
+- Workflows: `implement`, `code-validate`
 
 **Key principles**: 
 - Each layer validated before proceeding to next
 - Design is source of truth, enforced by tooling
-- Business Context → Design → Features → Implementation
+- PRD → Design → Features → Implementation
 - All workflows support CREATE & UPDATE modes for iteration
 
 ---
@@ -230,7 +223,7 @@ FDD provides **Claude-compatible skills** for automated artifact search and vali
 **Available Skills**:
 
 **fdd** (Unified Tool):
-- **Validation**: Validate BUSINESS.md, DESIGN.md, architecture/ADR/ directory, FEATURES.md, feature DESIGN.md, feature CHANGES.md
+- **Validation**: Validate PRD.md, DESIGN.md, architecture/ADR/ directory, FEATURES.md, feature DESIGN.md
 - **Search**: List sections, IDs, and items in any artifact
 - **Traceability**: Find where FDD/ADR IDs are defined or used (repo-wide traceability)
 - **Code Integration**: Codebase traceability scan (@fdd-* tags)
@@ -274,27 +267,25 @@ Adapter Configuration:
 └─ adapter-agents.md        → Create OR update AI agent integration
 
 Architecture & Requirements:
-├─ business-context.md      → Create OR update business context (BUSINESS.md)
+├─ prd.md      → Create OR update PRD (PRD.md)
 ├─ adr.md                   → Create/add/edit Architecture Decision Records
 └─ design.md                → Create OR update overall design (DESIGN.md)
 
 Feature Management:
 ├─ features.md              → Create OR update features manifest (FEATURES.md)
 ├─ feature.md               → Create OR update feature design
-├─ feature-changes.md       → Create OR update feature implementation plan
-└─ feature-change-implement.md → Implement changes (works with existing CHANGES.md)
+└─ code.md     → Implement feature directly from DESIGN.md
 ```
 
 **Validation Workflows** (7 automated, read-only):
 ```
 ├─ adapter-validate.md      → Validate adapter completeness
-├─ business-validate.md     → Validate BUSINESS.md structure
+├─ prd-validate.md     → Validate PRD.md structure
 ├─ adr-validate.md          → Validate ADR directory structure  
 ├─ design-validate.md       → Validate DESIGN.md (≥90/100)
 ├─ features-validate.md     → Validate FEATURES.md manifest
 ├─ feature-validate.md      → Validate feature DESIGN.md (100/100)
-├─ feature-changes-validate.md → Validate CHANGES.md structure
-└─ feature-code-validate.md → Validate entire feature code against design
+└─ code-validate.md → Validate entire feature code against design
 ```
 
 **Total**: 20 workflows (13 operation + 7 validation) + 2 skills
@@ -308,9 +299,9 @@ Day 1: Create adapter
        → CREATE mode detected (no adapter exists)
        → 10 minutes, adapter ready
 
-Day 2: Create business context & design
-       Run: business-context.md workflow
-       → CREATE mode, 30 min, BUSINESS.md complete
+Day 2: Create PRD & design
+       Run: prd.md workflow
+       → CREATE mode, 30 min, PRD.md complete
        
        Run: design.md workflow  
        → CREATE mode, 2-3 hours, DESIGN.md complete
@@ -335,14 +326,10 @@ Week 1-2: Develop features (iterative)
           Run: feature-validate.md
           → 100/100 score required 
           
-          Run: feature-changes.md workflow
-          → CREATE: Implementation plan
-          → UPDATE: Add/edit changes as needed
+          Run: code.md
+          → Code implementation (directly from design)
           
-          Run: feature-change-implement.md
-          → Code implementation
-          
-          Run: feature-code-validate.md
+          Run: code-validate.md
           → Validate complete feature code
 
 Ongoing: Update artifacts as project evolves
@@ -446,7 +433,7 @@ FDD enforces **consistent structure and validation** across your entire project.
 
 ```
 architecture/
-├── BUSINESS.md                  # Business context (required)
+├── PRD.md                  # PRD (required)
 │   ├── Section A: Vision & Purpose
 │   ├── Section B: Actors
 │   ├── Section C: Capabilities
@@ -472,15 +459,13 @@ architecture/
         │   ├── Section C: Algorithms
         │   ├── Section D: States (optional)
         │   ├── Section E: Technical Details
-        │   ├── Section F: Requirements
-        │   └── Section G: Implementation Plan
+        │   └── Section F: Requirements
         │
-        └── CHANGES.md          # Implementation changes
 ```
 
 **Validation Rules Enforced**:
 
-**Business Context Validation** (workflow business-validate):
+**PRD Validation** (workflow prd-validate):
 - All sections present (A, B, C, D)
 - Vision and purpose clearly defined
 - All actors identified
@@ -549,7 +534,7 @@ Completeness: 85% (minimum: 100%)
 **For Single Expert / Architect**:
 - AI does 80% of the work: Design → validation → implementation automated
 - Living documentation: Designs stay up-to-date with code (enforced by validation)
-- Full traceability: From business requirement → design → code change
+- Full traceability: From product requirement → design → code change
 - Faster delivery: AI handles boilerplate, you focus on business logic
 - Catch issues early: Validation happens before coding
 
@@ -604,7 +589,7 @@ Completeness: 85% (minimum: 100%)
 - Testing frameworks and build tools
 - Project-specific conventions
 
-**Business Context** (`architecture/BUSINESS.md`):
+**PRD** (`architecture/PRD.md`):
 - System vision and purpose
 - Key actors (users, systems, services)
 - Core capabilities (what system can do)
@@ -632,24 +617,6 @@ Completeness: 85% (minimum: 100%)
 - States (optional state machines)
 - Technical details (database, operations, errors)
 - Requirements (formalized scope + testing)
-- Implementation plan (CHANGES.md)
-
-### 2. Implementation Changes (Change Management)
-
-Break features into atomic, traceable changes in CHANGES.md:
-
-```
-feature-login/
-└── CHANGES.md          # Implementation changes with tasks
-    ├── Change 001: Authentication
-    │   ├── Purpose
-    │   ├── Tasks checklist
-    │   └── Status
-    └── Change 002: Authorization
-        ├── Purpose
-        ├── Tasks checklist
-        └── Status
-```
 
 ### 3. Formal Specifications
 
@@ -727,15 +694,15 @@ This optional workflow uses the `fdd` skill generators to create/update agent-sp
 
 **Result**: Your agent has local files that redirect back to the canonical FDD workflows/skill.
 
-### 5. Create Business Context & Design (2-4 hours) 
+### 5. Create PRD & Design (2-4 hours) 
 
 **AI agent workflows**: 
 ```
-Follow @/FDD/workflows/business-context.md
+Follow @/FDD/workflows/prd.md
 Follow @/FDD/workflows/design.md
 ```
 
-These workflows guide you through creating BUSINESS.md and DESIGN.md with interactive questions.
+These workflows guide you through creating PRD.md and DESIGN.md with interactive questions.
 
 ### 6. Start First Feature (1-2 hours) 
 
@@ -773,7 +740,7 @@ FDD tasks vary greatly. Each operation class below lists realistic model options
 - **Fast/Lite** – latency-optimized, high throughput, smaller context.
 
 #### 1. Documentation & Design (Writing)
-**Tasks**: Create/expand `BUSINESS.md`, `DESIGN.md`, `FEATURES.md`, `architecture/ADR/`
+**Tasks**: Create/expand `PRD.md`, `DESIGN.md`, `FEATURES.md`, `architecture/ADR/`
 **Requirements**: Long-context understanding, structured output, template following
 
 **Recommended**
@@ -789,7 +756,7 @@ FDD tasks vary greatly. Each operation class below lists realistic model options
 - **Local**: `DeepSeek-R1`, `Qwen2.5-Coder 32B` – validation requires strong models
 
 #### 3. Implementation (Coding)
-**Tasks**: Write/refactor code & tests from `CHANGES.md`
+**Tasks**: Write/refactor code & tests from validated feature design
 **Requirements**: Code generation, spec-following, moderate reasoning
 
 **Recommended**
@@ -811,11 +778,11 @@ AI assistants can:
 - Initialize structures
 - Generate design templates
 - Validate against checklists
-- Implement changes from CHANGES.md
+- Implement features from validated designs
 - Write tests
 
 Humans must:
-- Define business requirements
+- Define product requirements
 - Make architectural decisions
 - Review actor flows
 - Approve designs
@@ -825,7 +792,7 @@ Humans must:
 
 ## Team Workflow
 
-FDD is designed for a **single expert** (typically an architect or senior developer) working with AI assistants. The expert follows FDD workflows to create business context, design architecture, plan features, and implement changes. AI agents handle routine tasks like validation, file generation, and code implementation according to adapter conventions.
+FDD is designed for a **single expert** (typically an architect or senior developer) working with AI assistants. The expert follows FDD workflows to create PRD, design architecture, plan features, and code features. AI agents handle routine tasks like validation, file generation, and code implementation according to adapter conventions.
 
 **With AI Assistants** (recommended for 2024-2026):
 - Use **Claude 3.5 Sonnet** or **GPT-4o** for most workflows
@@ -833,7 +800,7 @@ FDD is designed for a **single expert** (typically an architect or senior develo
 - Skills system (`fdd`) works with any AI assistant
 - Requires `python3` for skill execution
 
-For teams, work can be distributed: one person owns overall design and architecture decisions (BUSINESS.md, DESIGN.md, architecture/ADR/), while others can own individual feature designs (FEATURES.md, feature/DESIGN.md) and implementation (CHANGES.md). All artifacts use plain English (FDL) for actor flows and algorithms, making them reviewable by non-technical stakeholders. Validation workflows ensure consistency and completeness before implementation.
+For teams, work can be distributed: one person owns overall design and architecture decisions (PRD.md, DESIGN.md, architecture/ADR/), while others can own individual feature designs (FEATURES.md, feature/DESIGN.md) and implementation. All artifacts use plain English (FDL) for actor flows and algorithms, making them reviewable by non-technical stakeholders. Validation workflows ensure consistency and completeness before implementation.
 
 
 ---
@@ -853,12 +820,12 @@ For teams, work can be distributed: one person owns overall design and architect
 │   ├── FDL.md                                  # FDD Description Language syntax
 │   ├── execution-protocol.md                   # Workflow execution protocol
 │   ├── workflow-execution.md                   # General workflow execution
-│   ├── business-context-structure.md           # BUSINESS.md structure
+│   ├── prd-structure.md           # PRD.md structure
 │   ├── overall-design-structure.md             # DESIGN.md structure
 │   ├── adr-structure.md                        # ADR directory structure
 │   ├── features-manifest-structure.md          # FEATURES.md structure
 │   ├── feature-design-structure.md             # Feature DESIGN.md structure
-│   ├── feature-changes-structure.md            # Feature CHANGES.md structure
+│   
 │   └── adapter-structure.md                    # Adapter structure requirements
 ├── skills/                                     # Claude-compatible AI skills
 │   ├── SKILLS.md                               # Skills discovery protocol
@@ -875,8 +842,8 @@ For teams, work can be distributed: one person owns overall design and architect
     ├── adapter-bootstrap.md                    # Bootstrap minimal adapter
     ├── adapter-agents.md                       # Create/update AI agent config
     ├── adapter-validate.md                     # Validate adapter completeness
-    ├── business-context.md                     # Create/update BUSINESS.md
-    ├── business-validate.md                    # Validate BUSINESS.md
+    ├── prd.md                     # Create/update PRD.md
+    ├── prd-validate.md                    # Validate PRD.md
     ├── adr.md                                  # Create/add/edit ADRs
     ├── adr-validate.md                         # Validate ADR
     ├── design.md                               # Create/update DESIGN.md
@@ -885,10 +852,8 @@ For teams, work can be distributed: one person owns overall design and architect
     ├── features-validate.md                    # Validate FEATURES.md
     ├── feature.md                              # Create/update feature design
     ├── feature-validate.md                     # Validate feature design
-    ├── feature-changes.md                      # Create/update CHANGES.md
-    ├── feature-changes-validate.md             # Validate CHANGES.md
-    ├── feature-change-implement.md             # Implement feature changes
-    └── feature-code-validate.md                # Validate entire feature code
+    ├── code.md                    # Implement feature directly from DESIGN.md
+    └── code-validate.md                # Validate entire feature code
 
 {adapter-directory}/                # Your project adapter (created by workflow)
 ├── AGENTS.md                                   # AI instructions (project-specific)
@@ -899,15 +864,14 @@ For teams, work can be distributed: one person owns overall design and architect
     └── build.md                                # Build and deployment
 
 architecture/                                    # Your designs (created by workflows)
-├── BUSINESS.md                                 # Business context
+├── PRD.md                                 # PRD
 ├── DESIGN.md                                   # Overall Design
 ├── ADR/{category}/NNNN-fdd-id-{slug}.md        # Architecture Decision Records
 ├── diagrams/                                   # Architecture diagrams
 └── features/                                   # Feature designs
     ├── FEATURES.md                            # Feature manifest
     └── feature-{slug}/                        # Individual features
-        ├── DESIGN.md                          # Feature design
-        └── CHANGES.md                         # Implementation changes
+        └── DESIGN.md                          # Feature design
 ```
 
 
@@ -953,7 +917,7 @@ architecture/                                    # Your designs (created by work
 - Single expert (architect) can handle entire workflow
 - AI follows workflows automatically
 - Faster design generation and validation
-- AI implements changes from CHANGES.md
+- AI implements features from validated designs
 
 ### What tech stack do I need?
 
@@ -992,7 +956,7 @@ Follow the onboarding checklist:
 ### How do I validate designs?
 
 Follow validation workflows:
-- **Business Context**: `workflows/business-validate.md`
+- **PRD**: `workflows/prd-validate.md`
 - **Overall Design**: `workflows/design-validate.md`
 - **Feature Design**: `workflows/feature-validate.md`
 
@@ -1004,7 +968,7 @@ Validation is done via checklists (manual review). AI assistants can help automa
 
 ### Example: Login Feature
 
-**Business Context** (`architecture/BUSINESS.md`):
+**PRD** (`architecture/PRD.md`):
 ```markdown
 ## B. Actors
 - **End User**: Person accessing the system
@@ -1043,27 +1007,6 @@ Validation is done via checklists (manual review). AI assistants can help automa
    6.2. User remains on login page
 ```
 
-**Implementation Changes** (`architecture/features/feature-login/CHANGES.md`):
-```markdown
-# Feature Login - Implementation Changes
-
-## Change 001: User Authentication
-
-**Purpose**: Implement user authentication with email/password.
-
-**Tasks**:
-- [ ] Create User model (email, passwordHash fields)
-- [ ] Create authentication endpoint POST /auth/login
-- [ ] Add password hashing with bcrypt
-- [ ] Add session management (JWT tokens)
-- [ ] Create login page UI
-- [ ] Add unit tests for auth logic
-- [ ] Add e2e tests for login flow
-
-**Status**: In Progress
-**Assigned**: Developer Team
-```
-
 ---
 
 ## References
@@ -1082,8 +1025,7 @@ Validation is done via checklists (manual review). AI assistants can help automa
 **Features**:
 - Core + Adapters architecture (technology-agnostic core, framework-specific adapters)
 - Universal Workflows (18 workflows: 10 operation + 8 validation)
-- 7-layer design flow (Business Context → Design → Features → Implementation)
-- Implementation change management (CHANGES.md)
+- 7-layer design flow (PRD → Design → Features → Implementation)
 - FDD Description Language (FDL)
 - CLISPEC format (CLI command specification)
 - Design Requirements (formal specifications without prescribing technologies)

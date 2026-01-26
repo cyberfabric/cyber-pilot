@@ -43,7 +43,7 @@ FDD/
 - **Purpose**: Structure requirements for all FDD artifacts
 - **Pattern**: `{artifact}-structure.md`
 - **Examples**: 
-  - `business-context-structure.md`
+  - `prd-structure.md`
   - `overall-design-structure.md`
   - `feature-design-structure.md`
   - `adapter-structure.md`

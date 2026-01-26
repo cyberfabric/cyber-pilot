@@ -23,8 +23,8 @@ def test_parse_workflow_extracts_all_sections():
     workflows_dir = Path(__file__).parent.parent / "workflows"
     assert workflows_dir.exists(), "workflows/ directory not found"
     
-    # Test business-context.md workflow
-    workflow_path = workflows_dir / "business-context.md"
+    # Test prd.md workflow
+    workflow_path = workflows_dir / "prd.md"
     assert workflow_path.exists(), f"{workflow_path} not found"
     
     # Load workflow file

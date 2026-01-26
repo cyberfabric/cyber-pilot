@@ -23,8 +23,8 @@ TaskFlow adapter configures FDD for a Node.js/TypeScript task management applica
 
 ## Navigation Rules
 
-ALWAYS open and follow `specs/api-contracts.md` WHEN executing workflows: feature.md, feature-changes.md
+ALWAYS open and follow `specs/api-contracts.md` WHEN executing workflows: feature.md, code.md
 
 ALWAYS open and follow `specs/conventions.md` WHEN executing workflows: feature.md, adapter.md
 
-ALWAYS open and follow `specs/testing.md` WHEN executing workflows: feature-changes.md
+ALWAYS open and follow `specs/testing.md` WHEN executing workflows: code.md

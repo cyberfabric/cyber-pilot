@@ -23,12 +23,11 @@ This file defines requirements that are shared across multiple `*-structure.md` 
 
 **Applies to**:
 - Artifact docs:
-  - `architecture/BUSINESS.md`
+  - `architecture/PRD.md`
   - `architecture/DESIGN.md`
   - `architecture/ADR/`
   - `architecture/features/FEATURES.md`
   - `architecture/features/feature-{slug}/DESIGN.md`
-  - `architecture/features/feature-{slug}/CHANGES.md`
 - Adapter spec docs:
   - `{adapter-directory}/specs/*.md`
 
@@ -51,7 +50,7 @@ This file defines requirements that are shared across multiple `*-structure.md` 
 - Use IDE-specific link notations:
   - `@/path/to/file`
   - `@DESIGN.md`
-  - `@BUSINESS.md`
+  - `@PRD.md`
   - `@ADR/`
 
 ### Links (Adapter Spec Docs)
@@ -65,7 +64,7 @@ This file defines requirements that are shared across multiple `*-structure.md` 
 - Use IDE-specific link notations:
   - `@/path/to/file`
   - `@DESIGN.md`
-  - `@BUSINESS.md`
+  - `@PRD.md`
   - `@ADR/`
 
 ### Link Target Validity (Artifacts)
@@ -212,7 +211,7 @@ This file defines requirements that are shared across multiple `*-structure.md` 
 **Check**:
 - [ ] No occurrences of `@/` in artifact docs
 - [ ] No occurrences of `@DESIGN.md` in artifact docs
-- [ ] No occurrences of `@BUSINESS.md` in artifact docs
+- [ ] No occurrences of `@PRD.md` in artifact docs
 - [ ] No occurrences of `@ADR/` in artifact docs
 
 ### Link Target Validity (Artifacts)
@@ -226,7 +225,7 @@ This file defines requirements that are shared across multiple `*-structure.md` 
 **Check**:
 - [ ] No occurrences of `@/` in adapter spec docs under `{adapter-directory}/specs/`
 - [ ] No occurrences of `@DESIGN.md` in adapter spec docs under `{adapter-directory}/specs/`
-- [ ] No occurrences of `@BUSINESS.md` in adapter spec docs under `{adapter-directory}/specs/`
+- [ ] No occurrences of `@PRD.md` in adapter spec docs under `{adapter-directory}/specs/`
 - [ ] No occurrences of `@ADR/` in adapter spec docs under `{adapter-directory}/specs/`
 
 ### Placeholders (Adapter Spec Docs)
@@ -315,14 +314,14 @@ This file defines requirements that are shared across multiple `*-structure.md` 
 
 **Valid**:
 ```markdown
-See [BUSINESS.md](BUSINESS.md)
+See [PRD.md](PRD.md)
 See [ADR](ADR/)
 See [api.json](../../../docs/api/api.json)
 ```
 
 **Invalid**:
 ```markdown
-See `@/architecture/BUSINESS.md`
+See `@/architecture/PRD.md`
 See `@ADR/`
 ```
 

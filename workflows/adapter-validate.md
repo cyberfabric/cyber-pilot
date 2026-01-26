@@ -237,7 +237,7 @@ Specs will be added through:
 
 ### Next Steps
 
-**If PASS**: Continue with FDD workflows (business-context, design)
+**If PASS**: Continue with FDD workflows (prd, design)
 **If FAIL**: Fix AGENTS.md structure
 ```
 

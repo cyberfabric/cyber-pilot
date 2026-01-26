@@ -9,7 +9,7 @@ purpose: Validate overall design document
 # Validate Overall Design
 
 **Type**: Validation  
-**Role**: Architect, Product Manager (for business alignment)  
+**Role**: Architect, Product Manager (for PRD alignment)  
 **Artifact**: Validation report (output to chat)
 
 ---
@@ -72,8 +72,8 @@ Extract:
 
 **MUST validate**:
 - [ ] DESIGN.md exists - validate: Check file at `architecture/DESIGN.md`
-- [ ] BUSINESS.md exists - validate: Check file at `architecture/BUSINESS.md`
-- [ ] BUSINESS.md validated - validate: Score ≥90/100
+- [ ] PRD.md exists - validate: Check file at `architecture/PRD.md`
+- [ ] PRD.md validated - validate: Score ≥90/100
 
 **If missing**: Run prerequisite workflows first
 
@@ -83,20 +83,20 @@ Extract:
 
 ### 1. Read Dependencies
 
-Open `architecture/BUSINESS.md`
+Open `architecture/PRD.md`
 
 Extract:
 - All actor IDs
-- All capability IDs
+- All use case IDs
 - Vision statement
 
 ### 2. Execute Validation
 
 Follow validation criteria from `overall-design-structure.md`:
-- Structure (20 pts): Sections A-D present, correct order
-- Completeness (25 pts): No placeholders, all IDs valid
-- Business Alignment (30 pts): No contradictions, all actors/capabilities addressed
-- Technical Coherence (25 pts): Architecture consistent, NFRs appropriate
+- Structure: Required sections/subsections present, correct order
+- Completeness: No placeholders, required ID payload blocks present
+- Cross-References: All referenced actor/use case/ADR IDs exist
+- Domain Model & API Contracts: Links/locations present as required
 
 Calculate total score
 
@@ -120,10 +120,10 @@ Calculate total score
 **Completeness** ({X}/25):
 ✅ | ❌ {item}
 
-**Business Alignment** ({X}/30):
+**Cross-References** ({X}/{points}):
 ✅ | ❌ {item}
 
-**Technical Coherence** ({X}/25):
+**Domain Model & API Contracts** ({X}/{points}):
 ✅ | ❌ {item}
 
 ---

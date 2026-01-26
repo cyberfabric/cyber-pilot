@@ -167,6 +167,6 @@ Self-validating workflow
 
 ## Next Steps
 
-**If PASS**: `feature-changes` workflow (create implementation plan)
+**If PASS**: `implement` workflow
 
 **If FAIL**: Fix feature DESIGN.md issues, re-run `feature-validate`

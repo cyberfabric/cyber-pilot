@@ -7,7 +7,7 @@ Functions for extracting and navigating markdown document structures.
 import re
 from typing import Dict, List, Optional, Tuple
 
-from ..constants import SECTION_FEATURE_RE, CHANGE_HEADING_RE, FEATURE_HEADING_RE, SECTION_BUSINESS_RE
+from ..constants import SECTION_FEATURE_RE, FEATURE_HEADING_RE, SECTION_PRD_RE
 
 
 def get_heading_level(line: str) -> Optional[int]:
@@ -65,23 +65,6 @@ def read_feature_entry(lines: List[str], feature_id: str) -> Optional[Tuple[int,
                 end += 1
             return start, end
     return None
-
-
-def read_change_block(lines: List[str], change_number: int) -> Optional[Tuple[int, int]]:
-    want = int(change_number)
-    start_idx: Optional[int] = None
-    for i, line in enumerate(lines):
-        m = re.match(r"^##\s+Change\s+(\d+):", line.strip())
-        if m and int(m.group(1)) == want:
-            start_idx = i
-            break
-    if start_idx is None:
-        return None
-
-    end = start_idx + 1
-    while end < len(lines) and not re.match(r"^##\s+Change\s+\d+:", lines[end].strip()):
-        end += 1
-    return start_idx, end
 
 
 def read_letter_section(lines: List[str], letter: str) -> Optional[Tuple[int, int]]:
@@ -147,30 +130,10 @@ def list_items(
                 it.update({"index": int(m.group(1)), "dir": m.group(3), "emoji": m.group(4), "priority": m.group(5)})
             items.append(it)
 
-    elif kind == "feature-changes":
-        blocks = get_changes_blocks(active_lines)
-        for b in blocks:
-            start = int(b["start"])
-            end = int(b["end"])
-            block_lines = active_lines[start:end]
-            title_m = constants.CHANGE_HEADING_RE.match(active_lines[start].strip()) if start < len(active_lines) else None
-            title = title_m.group(2) if title_m else None
-
-            id_line = next((l for l in block_lines if l.strip().startswith("**ID**:")), None)
-            status_line = next((l for l in block_lines if l.strip().startswith("**Status**:")), None)
-            ids: List[str] = []
-            if id_line is not None:
-                ids = [h["id"] for h in extract_ids([id_line]) if str(h.get("kind")) == "fdd"]
-            cid = ids[0] if ids else f"change-{int(b['number'])}"
-            it = {"type": "change", "id": cid, "change": int(b["number"]), "line": base_offset + start + 1}
-            if lod == "summary":
-                it.update({"title": title, "status": status_line.strip().split("**Status**:", 1)[1].strip() if status_line else None})
-            items.append(it)
-
-    elif kind == "generic" and artifact_name == "BUSINESS.md":
+    elif kind == "generic" and artifact_name == "PRD.md":
         section: Optional[str] = None
         for idx, line in enumerate(active_lines):
-            m = SECTION_BUSINESS_RE.match(line.strip())
+            m = SECTION_PRD_RE.match(line.strip())
             if m:
                 section = m.group(1)
             if not line.strip().startswith("#### "):
@@ -189,9 +152,13 @@ def list_items(
             if section == "B":
                 itype = "actor"
             elif section == "C":
-                itype = "capability"
+                itype = "functional-requirement"
             elif section == "D":
                 itype = "usecase"
+            elif section == "E":
+                itype = "nfr"
+            elif section == "F":
+                itype = "prd-context"
             abs_idx = base_offset + idx
             it = {"type": itype, "id": iid, "line": abs_idx + 1}
             if lod == "summary":
@@ -392,29 +359,6 @@ def get_feature_sections(lines: List[str]) -> Dict[str, Tuple[int, int]]:
     return out
 
 
-def get_changes_blocks(lines: List[str]) -> List[Dict[str, object]]:
-    """
-    Get change blocks from feature CHANGES.md.
-    
-    Args:
-        lines: Document lines
-    
-    Returns:
-        List of dicts with block info
-    """
-    starts: List[Tuple[int, int]] = []
-    for i, line in enumerate(lines):
-        m = CHANGE_HEADING_RE.match(line.strip())
-        if m:
-            starts.append((int(m.group(1)), i))
-    
-    blocks: List[Dict[str, object]] = []
-    for i, (num, start) in enumerate(starts):
-        end = starts[i + 1][1] if i + 1 < len(starts) else len(lines)
-        blocks.append({"number": num, "start": start, "end": end})
-    return blocks
-
-
 def get_design_subsections(lines: List[str], *, start: int, end: int) -> Dict[int, Tuple[int, int]]:
     """
     Get subsection indices within design section.
@@ -609,9 +553,9 @@ def extract_id_block(lines: List[str], *, anchor_idx: int, id_value: str, kind: 
     return extract_heading_block(lines, anchor_idx)
 
 
-def business_block_bounds(lines: List[str], *, section_start: int, section_end: int, id_idx: int) -> Optional[Tuple[int, int]]:
+def prd_block_bounds(lines: List[str], *, section_start: int, section_end: int, id_idx: int) -> Optional[Tuple[int, int]]:
     """
-    Get business block bounds.
+    Get PRD block bounds.
     
     Args:
         lines: Document lines
@@ -667,14 +611,12 @@ __all__ = [
     "list_section_entries",
     "list_items",
     "read_feature_entry",
-    "read_change_block",
     "read_letter_section",
     "read_heading_block_by_title",
     "extract_heading_block",
     "extract_block",
     "get_section_indices",
     "get_feature_sections",
-    "get_changes_blocks",
     "get_design_subsections",
     "find_nearest_prev_heading",
     "resolve_heading",
@@ -684,6 +626,6 @@ __all__ = [
     "extract_id_block",
     "extract_payload_block",
     "extract_id_payload_block",
-    "business_block_bounds",
+    "prd_block_bounds",
     "design_item_block_bounds",
 ]

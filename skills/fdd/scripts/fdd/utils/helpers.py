@@ -12,6 +12,7 @@ from ..constants import (
     HEADING_ID_RE,
     ACTOR_ID_RE,
     CAPABILITY_ID_RE,
+    PRD_FR_ID_RE,
     USECASE_ID_RE,
     LINK_RE,
     REQ_ID_RE,
@@ -37,9 +38,9 @@ def find_present_section_ids(artifact_text: str) -> List[str]:
     return present
 
 
-def parse_business_model(text: str) -> Tuple[Set[str], Dict[str, Set[str]], Set[str]]:
+def parse_prd_model(text: str) -> Tuple[Set[str], Dict[str, Set[str]], Set[str]]:
     """
-    Parse BUSINESS.md and extract actors, capabilities, and use cases.
+    Parse PRD.md and extract actors, capabilities, and use cases.
     
     Returns:
         - Set of actor IDs
@@ -49,32 +50,51 @@ def parse_business_model(text: str) -> Tuple[Set[str], Dict[str, Set[str]], Set[
     actor_ids: Set[str] = set(ACTOR_ID_RE.findall(text))
     capability_to_actors: Dict[str, Set[str]] = {}
     usecase_ids: Set[str] = set(USECASE_ID_RE.findall(text))
-    
-    # Parse capability sections to map capabilities to actors
+
     lines = text.splitlines()
-    in_capability_section = False
-    current_capability_id: Optional[str] = None
-    
+
+    # Parse "Capabilities" blocks (or legacy "Functional Requirements") and map ID -> referenced actors.
+    in_c_section = False
+    current_id: Optional[str] = None
+
     for line in lines:
-        if "## C. Capabilities" in line or "## Section C" in line:
-            in_capability_section = True
+        s = line.strip()
+
+        if s.startswith("## "):
+            # Enter Section C variants:
+            # - lettered: "## C. ..." / "## Section C: ..."
+            # - content named: "## Capabilities" / "## B. Capabilities"
+            # - legacy: "## C. Functional Requirements"
+            in_c_section = bool(
+                re.search(r"^##\s+(?:Section\s+)?C\b", s, re.IGNORECASE)
+                or re.search(r"^##\s+C\.\s+", s, re.IGNORECASE)
+                or re.search(r"capabilities", s, re.IGNORECASE)
+                or re.search(r"functional\s+requirements", s, re.IGNORECASE)
+            )
+            current_id = None
             continue
-        if in_capability_section and line.strip().startswith("## "):
-            in_capability_section = False
-        
-        if in_capability_section:
-            # Look for capability ID
-            cap_matches = CAPABILITY_ID_RE.findall(line)
-            if cap_matches:
-                current_capability_id = cap_matches[0]
-                capability_to_actors[current_capability_id] = set()
-            
-            # Look for actor references in current capability
-            if current_capability_id:
-                actor_matches = ACTOR_ID_RE.findall(line)
-                for actor_id in actor_matches:
-                    capability_to_actors[current_capability_id].add(actor_id)
-    
+
+        if not in_c_section:
+            continue
+
+        # Detect new block ID (capability preferred, but allow legacy fr IDs)
+        cap_matches = CAPABILITY_ID_RE.findall(s)
+        fr_matches = PRD_FR_ID_RE.findall(s)
+
+        if cap_matches:
+            current_id = cap_matches[0]
+            capability_to_actors.setdefault(current_id, set())
+            continue
+        if fr_matches:
+            current_id = fr_matches[0]
+            capability_to_actors.setdefault(current_id, set())
+            continue
+
+        # Collect actor references within the current block
+        if current_id:
+            for aid in ACTOR_ID_RE.findall(s):
+                capability_to_actors[current_id].add(aid)
+
     return actor_ids, capability_to_actors, usecase_ids
 
 
@@ -205,12 +225,12 @@ def scan_adr_directory(adr_dir: Path) -> Tuple[List[Dict[str, object]], List[Dic
     return adrs, issues
 
 
-def parse_business_capability_statuses(text: str) -> Dict[str, Dict[str, object]]:
+def parse_prd_capability_statuses(text: str) -> Dict[str, Dict[str, object]]:
     lines = text.splitlines()
 
     start_idx: Optional[int] = None
     for i, line in enumerate(lines):
-        if line.strip() == "## C. Capabilities":
+        if line.strip() == "## C. Functional Requirements":
             start_idx = i
             break
     if start_idx is None:
@@ -239,7 +259,7 @@ def parse_business_capability_statuses(text: str) -> Dict[str, Dict[str, object]
         if not m:
             continue
         cap_id = m.group(1).strip()
-        if not CAPABILITY_ID_RE.fullmatch(cap_id):
+        if not PRD_FR_ID_RE.fullmatch(cap_id):
             continue
 
         payload = extract_id_payload_block(lines, id_idx=idx)
@@ -306,9 +326,9 @@ def parse_design_requirement_statuses(text: str) -> Dict[str, str]:
 
 __all__ = [
     "find_present_section_ids",
-    "parse_business_model",
+    "parse_prd_model",
     "load_adr_entries",
     "scan_adr_directory",
-    "parse_business_capability_statuses",
+    "parse_prd_capability_statuses",
     "parse_design_requirement_statuses",
 ]

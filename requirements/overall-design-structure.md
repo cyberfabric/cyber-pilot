@@ -42,7 +42,7 @@ purpose: Define validation rules for DESIGN.md files
 - Hard limit: ≤2000 lines
 
 **Related**:
-- `business-context-structure.md` — BUSINESS.md structure
+- `prd-structure.md` — PRD.md structure
 - `adr-structure.md` — ADR directory structure
 
 ---
@@ -55,8 +55,8 @@ purpose: Define validation rules for DESIGN.md files
 
 **Contains**: 
 - Section A: Architecture Overview
-- Section B: Requirements & Principles
-- Section C: Technical Architecture (C.1-C.4)
+- Section B: Principles & Constraints
+- Section C: Technical Architecture (C.1-C.4, optional C.5-C.7)
 - Section D: Additional Context (optional)
 
 ---
@@ -70,7 +70,7 @@ purpose: Define validation rules for DESIGN.md files
 
 **Should not contain**:
 - Feature-level flows/algorithms/states (use feature `DESIGN.md`).
-- Implementation tasks (use feature `CHANGES.md`).
+- Implementation tasks or task breakdowns (track implementation status directly in feature `DESIGN.md`).
 - Decision rationale debates (use ADRs).
 
 ---
@@ -87,44 +87,54 @@ purpose: Define validation rules for DESIGN.md files
 
 1. **All required sections present**
    - Section A: Architecture Overview
-   - Section B: Requirements & Principles (B.1-B.3)
-   - Section C: Technical Architecture (C.1-C.4)
+   - Section B: Principles & Constraints (B.1-B.2)
+   - Section C: Technical Architecture (C.1-C.4, optional C.5-C.7)
    - Section D: Additional Context (optional)
 
 2. **Section order correct**: A → B → C → D
 
 3. **No prohibited sections**
    - Only A-D allowed at top level
-   - Section C has exactly 4 subsections (C.1-C.4)
+   - Section C has required subsections C.1-C.4
+   - Section C MAY include optional subsections C.5-C.7
 
-4. **Headers use proper levels**
+4. **Section A includes Architecture drivers**
+    - Section A MUST include a subsection titled `### Architecture drivers`
+    - `### Architecture drivers` MUST include `#### Product requirements`
+    - `#### Product requirements` MUST include a Markdown table with columns:
+      - `FDD ID`
+      - `Solution short description`
+
+5. **Headers use proper levels**
    - `##` for sections A-D
-   - `###` for subsections B.1-B.3, C.1-C.4
-   - Subsection headers MUST use `:` or `.` after the number (examples: `### B.1: Functional Requirements`, `### C.3: API Contracts`)
+   - `###` for subsections B.1-B.2, C.1-C.7
+   - Subsection headers MUST use `:` or `.` after the number (examples: `### B.1: Design Principles`, `### C.3: API Contracts`)
 
 ### Content Boundaries Validation
 
 **Check**:
 - [ ] No feature-level flows/algorithms/states are authored here (those belong in feature `DESIGN.md`)
-- [ ] No implementation tasks or task breakdowns are authored here (those belong in feature `CHANGES.md`)
+- [ ] No implementation tasks or task breakdowns are authored here (track implementation status directly in feature `DESIGN.md`)
 - [ ] No ADR-style decision rationale debates are authored here (use ADR files for decision records)
 
 ### Section B Subsections
 
 | Subsection | Content | Expected Content |
 |------------|---------|------------------|
-| B.1 | Functional Requirements | A list of requirement blocks written at overall-system scope (not feature-level FDL). Each requirement MUST have a stable requirement heading and include at least: `**ID**: \`fdd-{project}-req-{name}\`` plus traceability fields (e.g., `**Capabilities**:`, `**Actors**:`, optionally `**Use Cases**:` / `**ADRs**:`). Describe behavior and acceptance intent in plain language; avoid implementation tasks. |
-| B.2 | Design Principles | A list of architectural/design principles that shape decisions across the system. Each principle should be expressed as a short rule with rationale and practical implications, and include `**ID**: \`fdd-{project}-principle-{name}\``. Principles should be stable, reusable, and not duplicate constraints or requirements. |
-| B.3 | Constraints | A list of hard constraints that limit solution space (regulatory, platform, compatibility, vendor, data residency, legacy integration). Each constraint should include `**ID**: \`fdd-{project}-constraint-{name}\`` and a clear statement of what is NOT allowed / must be adhered to, plus any rationale and verification approach. |
+| B.1 | Design Principles | A list of architectural/design principles that shape decisions across the system. Each principle should include `**ID**: \`fdd-{project}-principle-{name}\`` and MAY include `**ADRs**:` references. |
+| B.2 | Constraints | A list of hard constraints that limit solution space (regulatory, platform, compatibility, vendor, data residency, legacy integration). Each constraint should include `**ID**: \`fdd-{project}-constraint-{name}\`` and MAY include `**ADRs**:` references. |
 
 ### Section C Subsections
 
 | Subsection | Content | Expected Content |
 |------------|---------|------------------|
-| C.1 | Component Model | High-level decomposition of the system into components/services/modules with responsibilities, boundaries, and key interactions. Include at least one diagram (image, Mermaid, or ASCII) and describe major data/control flows between components. |
-| C.2 | Domain Model | The authoritative domain model: entities/aggregates/value objects and their relationships, core invariants, and how they map to schemas. MUST provide clickable links to machine-readable schema sources (e.g., JSON Schema, TypeScript types, OpenAPI schemas) and indicate where they live in the repo. |
+| C.1 | Domain Model | The authoritative domain model: entities/aggregates/value objects and their relationships, core invariants, and how they map to schemas. MUST provide clickable links to machine-readable schema sources (e.g., JSON Schema, TypeScript types, OpenAPI schemas) and indicate where they live in the repo. |
+| C.2 | Component Model | High-level decomposition of the system into components/services/modules with responsibilities, boundaries, and key interactions. Include at least one diagram (image, Mermaid, or ASCII) and describe major data/control flows between components. |
 | C.3 | API Contracts | The authoritative API contract surface (external and/or internal). MUST provide clickable links to machine-readable contracts (OpenAPI/CLISPEC/proto/GraphQL). For CLI tools, CLISPEC is the canonical and authoritative interface specification format and MUST be treated as machine-readable by validators and agents. Describe key endpoints/operations, request/response shapes at a high level, error handling expectations, authn/authz entry points, and versioning strategy if applicable. |
-| C.4 | Non-Functional Requirements | A consolidated list of NFRs (including security and runtime/operations concerns). Each NFR should be stated as a measurable constraint/target (latency/throughput/SLO, availability, durability, auditability, access control, secrets handling, observability, rollout/rollback, cost). Use stable IDs like `**ID**: \`fdd-{project}-nfr-{name}\`` and link to supporting configs/docs where relevant. |
+| C.4 | Interactions & Sequences | Sequence diagrams for the most important flows. Use cases and actors referenced here MUST be referenced by ID only and MUST exist in PRD.md. |
+| C.5 | Database schemas & tables (optional) | Optional. If present, database tables MUST use stable IDs: `fdd-{project}-db-table-{name}`. |
+| C.6 | Topology (optional) | Optional physical view (files, pods, containers, VMs, etc). If present, include stable ID: `fdd-{project}-topology-{name}`. |
+| C.7 | Tech stack (optional) | Optional. If present, include stable ID: `fdd-{project}-tech-{name}`. |
 
 ### Content Validation
 
@@ -140,7 +150,7 @@ purpose: Define validation rules for DESIGN.md files
    - References are clickable Markdown links
 
 3. **Component diagram present**
-   - At least one diagram in Section C.1
+   - At least one diagram in Section C.2
    - Can be embedded image, Mermaid code, or ASCII art
 
 ---
@@ -149,11 +159,13 @@ purpose: Define validation rules for DESIGN.md files
 
 | ID Type | Format | Example |
 |---------|--------|---------|
-| Requirement | `fdd-{project}-req-{name}` | `fdd-analytics-req-multi-tenant` |
-| NFR | `fdd-{project}-nfr-{name}` | `fdd-analytics-nfr-performance` |
 | Principle | `fdd-{project}-principle-{name}` | `fdd-analytics-principle-plugin-based` |
 | Constraint | `fdd-{project}-constraint-{name}` | `fdd-analytics-constraint-api-dep` |
 | ADR | `fdd-{project}-adr-{name}` | `fdd-analytics-adr-event-sourcing` |
+| DB Table (optional) | `fdd-{project}-db-table-{name}` | `fdd-analytics-db-table-users` |
+| Topology (optional) | `fdd-{project}-topology-{name}` | `fdd-analytics-topology-local-dev` |
+| Tech (optional) | `fdd-{project}-tech-{name}` | `fdd-analytics-tech-python` |
+| Design Context (optional) | `fdd-{project}-design-context-{name}` | `fdd-analytics-design-context-migration-notes` |
 
 **ID Rules**:
 - All IDs wrapped in backticks
@@ -163,46 +175,24 @@ purpose: Define validation rules for DESIGN.md files
 
 ---
 
-## Traceability Field Requirements
-
-Each Functional Requirement (FR) MUST include:
-
-| Field | Format | Mandatory |
-|-------|--------|-----------|
-| **Capabilities** | `**Capabilities**: \`{cap-id}\`` | YES |
-| **Actors** | `**Actors**: \`{actor-id}\`` | YES |
-| **Use Cases** | `**Use Cases**: \`{uc-id}\`` | If applicable |
-| **ADRs** | `**ADRs**: \`{adr-id}\`` | If applicable |
-
----
-
 ## Cross-Reference Validation
 
-### BUSINESS.md → DESIGN.md Traceability
+### PRD.md → DESIGN.md References
 
-1. **Capability Coverage (MANDATORY)**
-   - Every capability ID from BUSINESS.md Section C MUST be referenced
-   - No orphaned capabilities
+1. **Actor References (MANDATORY)**
+   - If DESIGN.md references any actor IDs, each referenced actor ID MUST exist in PRD.md
 
-2. **Use Case Coverage (MANDATORY)**
-   - Every use case ID from BUSINESS.md Section D MUST be referenced
-   - No orphaned use cases
+2. **Use Case References (MANDATORY)**
+   - If DESIGN.md references any use case IDs, each referenced use case ID MUST exist in PRD.md
 
-3. **Actor References (MANDATORY)**
-   - Every FR MUST have `**Actors**:` field
-   - Actor IDs MUST match capability actors from BUSINESS.md
-
-4. **ADR Coverage (MANDATORY)**
-   - All ADRs from `architecture/ADR/` MUST appear in at least one DESIGN.md requirement
-   - No orphaned ADRs
+3. **ADR References (MANDATORY)**
+   - If DESIGN.md references any ADR IDs, each referenced ADR ID MUST exist in `architecture/ADR/`
 
 ### Validation Checks
 
-- Every capability ID from BUSINESS.md appears in FR `**Capabilities**` field
-- Every use case ID from BUSINESS.md appears in FR `**Use Cases**` field
-- Every FR has Capabilities and Actors fields
-- All referenced IDs are valid (exist in source documents)
-- All ADRs from `architecture/ADR/` are referenced
+- All referenced actor IDs exist in PRD.md
+- All referenced use case IDs exist in PRD.md
+- All referenced ADR IDs exist in `architecture/ADR/` (when ADR directory exists)
 
 ---
 
@@ -210,18 +200,16 @@ Each Functional Requirement (FR) MUST include:
 
 | Category | Points |
 |----------|--------|
-| Structure | 30 |
-| Domain Model | 25 |
-| API Contracts | 25 |
-| Content Quality | 20 |
+| Structure | 35 |
+| Domain Model & API Contracts | 35 |
+| Cross-References | 20 |
+| Content Quality | 10 |
 | **Total** | **100** |
 
 **Penalties**:
-- Missing capability coverage: **-15 points** per orphaned capability
-- Missing use case coverage: **-15 points** per orphaned use case
-- Orphaned ADR: **-15 points** per ADR
-- Missing Capabilities/Actors field: **-10 points** per FR
-- Invalid ID reference: **-5 points** per invalid ID
+- Invalid referenced actor ID: **-5 points** per ID
+- Invalid referenced use case ID: **-5 points** per ID
+- Invalid referenced ADR ID: **-5 points** per ID
 
 ---
 
@@ -229,8 +217,6 @@ Each Functional Requirement (FR) MUST include:
 
 - Missing required top-level sections (A/B/C)
 - Missing required C.1-C.4 subsections
-- Missing functional requirement IDs
-- Orphaned capabilities/use cases (not referenced in DESIGN.md)
 - Domain model/API references not clickable links
 
 ---
@@ -252,6 +238,6 @@ Each Functional Requirement (FR) MUST include:
 **Example**: `../examples/requirements/overall-design/valid.md`
 
 **Related**:
-- `business-context-structure.md` — BUSINESS.md structure
+- `prd-structure.md` — PRD.md structure
 - `adr-structure.md` — ADR directory structure
 - `feature-design-structure.md` — Feature DESIGN.md structure

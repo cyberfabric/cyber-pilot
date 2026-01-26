@@ -24,13 +24,12 @@ FDD artifacts form a dependency chain. The higher layer is allowed to be more sp
 
 ```
 AGENTS/Adapter
-  -> BUSINESS
+  -> PRD
     -> ADR
       -> DESIGN
         -> FEATURES
           -> feature DESIGN
-            -> feature CHANGES
-              -> code (traceability)
+            -> code (traceability)
 ```
 
 **Practical rule**:
@@ -46,12 +45,11 @@ AGENTS/Adapter
   - [Artifact Index](#artifact-index)
   - [AGENTS.md](#agentsmd)
   - [Project Adapter (FDD-Adapter)](#project-adapter-fdd-adapter)
-  - [BUSINESS.md](#businessmd)
+  - [PRD.md](#prdmd)
   - [DESIGN.md](#designmd)
   - [ADR](#adr)
   - [FEATURES.md](#featuresmd)
   - [Feature DESIGN.md](#feature-designmd)
-  - [Feature CHANGES.md](#feature-changesmd)
   - [Templates & Examples](#templates--examples)
   - [Validation (Deterministic Gate)](#validation-deterministic-gate)
   - [Mapping to Common Document Names](#mapping-to-common-document-names)
@@ -141,7 +139,7 @@ AGENTS/Adapter
   - Validation/CI expectations.
 
 **Should not contain**:
-- Business context (use `architecture/BUSINESS.md`).
+- PRD (use `architecture/PRD.md`).
 - Architecture decisions rationale (use ADRs).
 - Feature specs or implementation plans.
 
@@ -151,24 +149,24 @@ AGENTS/Adapter
 
 ---
 
-<a id="artifact-business"></a>
-## BUSINESS.md
+<a id="artifact-prd"></a>
+## PRD.md
 
 **Path**:
-- `architecture/BUSINESS.md`
+- `architecture/PRD.md`
 
 **Template**:
-- [templates/BUSINESS.template.md](../templates/BUSINESS.template.md)
+- [templates/PRD.template.md](../templates/PRD.template.md)
 
 **Examples**:
-- [valid](../examples/requirements/business-context/valid.md)
-- [invalid](../examples/requirements/business-context/invalid.md)
+- [valid](../examples/requirements/prd/valid.md)
+- [invalid](../examples/requirements/prd/invalid.md)
 
 **Purpose**:
-- Define the business context: vision, actors, capabilities.
+- Define the PRD: vision, actors, capabilities.
 
 **What it is**:
-- Stable business vocabulary with IDs (actors, capabilities, and optionally use cases).
+- Stable prd vocabulary with IDs (actors, capabilities, and optionally use cases).
 - The baseline that downstream design and features reference for scope and meaning.
 
 **What it is not**:
@@ -182,7 +180,7 @@ AGENTS/Adapter
 
 **Should not contain**:
 - Technical architecture (use `architecture/DESIGN.md`).
-- Implementation steps or tasks (use feature `CHANGES.md`).
+- Implementation steps or tasks.
 - API endpoint specs or schemas.
 
 **Inputs** (typical):
@@ -222,7 +220,7 @@ AGENTS/Adapter
 
 **What it is not**:
 - Not a per-feature behavioral spec (use feature `DESIGN.md`).
-- Not an implementation task list (use feature `CHANGES.md`).
+- Not an implementation task list.
 - Not a code tutorial.
 
 **Should contain**:
@@ -232,7 +230,7 @@ AGENTS/Adapter
 
 **Should not contain**:
 - Feature-level flows/algorithms/states (use feature `DESIGN.md`).
-- Implementation tasks (use feature `CHANGES.md`).
+- Implementation tasks.
 - Decision rationale debates (use ADRs).
 
 **Typical structure inside**:
@@ -358,7 +356,7 @@ AGENTS/Adapter
 
 **What it is not**:
 - Not a system-wide architecture baseline.
-- Not an implementation plan (use `CHANGES.md`).
+- Not an implementation plan.
 - Not the code.
 
 **Should contain**:
@@ -371,7 +369,7 @@ AGENTS/Adapter
 - Test scenarios and edge cases.
 
 **Should not contain**:
-- Sprint/task breakdowns (use `CHANGES.md`).
+- Sprint/task breakdowns.
 - System-level type redefinitions (use `architecture/DESIGN.md`).
 - Code diffs or code snippets.
 
@@ -383,51 +381,7 @@ AGENTS/Adapter
 - **Human**: reviewable behavior and edge cases before coding.
 
 **Notes**:
-- Prefer keeping all feature-level behavior and acceptance criteria here, and keep implementation detail in `CHANGES.md`.
-
----
-
-<a id="artifact-feature-changes"></a>
-## Feature CHANGES.md
-
-**Path**:
-- `architecture/features/feature-{slug}/CHANGES.md`
-
-**Template**:
-- [templates/feature-CHANGES.template.md](../templates/feature-CHANGES.template.md)
-
-**Examples**:
-- [valid](../examples/requirements/feature-changes/valid.md)
-- [invalid](../examples/requirements/feature-changes/invalid.md)
-
-**Purpose**:
-- Break a feature into atomic changes with tasks.
-
-**What it is**:
-- A reviewable plan of small, atomic changes that implement the feature design.
-- A task breakdown with explicit validation criteria and code traceability expectations.
-
-**What it is not**:
-- Not a replacement for feature behavior spec (use feature `DESIGN.md`).
-- Not a generic sprint plan.
-- Not a changelog of what already happened.
-
-**Should contain**:
-- Small, atomic changes that implement subsets of feature requirements.
-- Per-change tasks with explicit validation criteria.
-- Expected code traceability tags and testing expectations.
-
-**Should not contain**:
-- New requirements or new feature behavior (put those in feature `DESIGN.md`).
-- Large design narratives.
-- Raw code dumps.
-
-**Notes**:
-- Treat this file as an implementation contract and checklist, not as a spec.
-
-**Why this helps**:
-- **Agent**: concrete implementation steps and traceability markers.
-- **Human**: planning granularity; parallelizable work; reviewable scope.
+- Prefer keeping feature-level behavior and acceptance criteria here.
 
 ---
 
@@ -435,7 +389,7 @@ AGENTS/Adapter
 
 FDD does not require you to create BRD/PRD as separate artifacts.
 
-- **BRD/PRD**: typically maps to `architecture/BUSINESS.md` and the requirements/principles part of `architecture/DESIGN.md`.
+- **BRD/PRD**: typically maps to `architecture/PRD.md` and the requirements/principles part of `architecture/DESIGN.md`.
 - **ADR**: maps to `architecture/ADR/**`.
 - **SCENARIOS**: live inside feature `DESIGN.md` (feature-level acceptance criteria and edge cases).
 
@@ -448,31 +402,28 @@ Use templates for **authoritative structure** and examples for **minimal valid c
 
 **Templates** (structure source of truth):
 - `templates/README.md`: [Template index](../templates/README.md)
-- BUSINESS: [template](../templates/BUSINESS.template.md)
+- PRD: [template](../templates/PRD.template.md)
 - Overall DESIGN: [template](../templates/DESIGN.template.md)
 - ADR: [template](../templates/ADR.template.md)
 - FEATURES: [template](../templates/FEATURES.template.md)
 - Feature DESIGN: [template](../templates/feature-DESIGN.template.md)
-- Feature CHANGES: [template](../templates/feature-CHANGES.template.md)
 - Adapter AGENTS: [template](../templates/adapter-AGENTS.template.md)
 
 **Examples** (minimal “valid/invalid” snapshots):
 - Adapter: [valid](../examples/requirements/adapter/valid.md), [invalid](../examples/requirements/adapter/invalid.md)
-- BUSINESS: [valid](../examples/requirements/business-context/valid.md), [invalid](../examples/requirements/business-context/invalid.md)
+- PRD: [valid](../examples/requirements/prd/valid.md), [invalid](../examples/requirements/prd/invalid.md)
 - Overall DESIGN: [valid](../examples/requirements/overall-design/valid.md), [invalid](../examples/requirements/overall-design/invalid.md)
 - ADR: [valid](../examples/requirements/adr/valid.md), [invalid](../examples/requirements/adr/invalid.md)
 - FEATURES: [valid](../examples/requirements/features-manifest/valid.md), [invalid](../examples/requirements/features-manifest/invalid.md)
 - Feature DESIGN: [valid](../examples/requirements/feature-design/valid.md), [invalid](../examples/requirements/feature-design/invalid.md)
-- Feature CHANGES: [valid](../examples/requirements/feature-changes/valid.md), [invalid](../examples/requirements/feature-changes/invalid.md)
 
 **Real artifacts in this repository (as reference implementations)**:
-- BUSINESS: [architecture/BUSINESS.md](../architecture/BUSINESS.md)
+- PRD: [architecture/PRD.md](../architecture/PRD.md)
 - Overall DESIGN: [architecture/DESIGN.md](../architecture/DESIGN.md)
 - ADRs: [architecture/ADR/general/](../architecture/ADR/general/)
 - Features manifest: [architecture/features/FEATURES.md](../architecture/features/FEATURES.md)
-- Example feature (DESIGN + CHANGES):
+- Example feature (DESIGN):
   - [architecture/features/feature-init-structure/DESIGN.md](../architecture/features/feature-init-structure/DESIGN.md)
-  - [architecture/features/feature-init-structure/CHANGES.md](../architecture/features/feature-init-structure/CHANGES.md)
 
 ---
 
@@ -503,6 +454,6 @@ FDD assumes you validate artifacts deterministically before moving “up” the 
 - **Lower retrieval ambiguity**: search/where-defined/where-used results are cleaner when each concept has one obvious home.
 - **Enable deterministic gates**: validators can target a specific artifact kind with stable structure expectations.
 - **Minimize blast radius**: a change to one feature plan or ADR does not force rewriting the entire architecture narrative.
-- **Preserve abstraction boundaries**: business vs architecture vs feature behavior vs implementation plan stay separated and auditable.
+- **Preserve abstraction boundaries**: prd vs architecture vs feature behavior vs implementation plan stay separated and auditable.
 - **Improve review ergonomics**: diffs are smaller, code review is faster, and regression risk is easier to reason about.
 - **Support parallel work**: multiple contributors (or agents) can work on different artifacts without stepping on each other.

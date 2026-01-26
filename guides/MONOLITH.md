@@ -19,12 +19,11 @@ A practical convention is:
 - Module code lives under `src/modules/{module}/`.
 - Module architecture lives under `src/modules/{module}/architecture/`.
 - The module architecture is a full set of FDD artifacts (module-level scope):
-  - `src/modules/{module}/architecture/BUSINESS.md`
+  - `src/modules/{module}/architecture/PRD.md`
   - `src/modules/{module}/architecture/DESIGN.md`
   - `src/modules/{module}/architecture/ADR/**`
   - `src/modules/{module}/architecture/features/FEATURES.md`
   - `src/modules/{module}/architecture/features/feature-{slug}/DESIGN.md`
-  - `src/modules/{module}/architecture/features/feature-{slug}/CHANGES.md` (optional)
 
 ## Recommended Structure (Example)
 
@@ -34,17 +33,16 @@ Monolith repo example:
 - `src/modules/notifications/`
 
 FDD artifacts:
-- `architecture/BUSINESS.md`
+- `architecture/PRD.md`
 - `architecture/DESIGN.md`
 - `architecture/ADR/**`
 - `architecture/features/FEATURES.md` (project-level features)
 - `architecture/features/feature-{slug}/DESIGN.md`
-- `architecture/features/feature-{slug}/CHANGES.md` (optional)
-- `src/modules/auth/architecture/BUSINESS.md`
+- `src/modules/auth/architecture/PRD.md`
 - `src/modules/auth/architecture/DESIGN.md`
 - `src/modules/auth/architecture/ADR/**`
 - `src/modules/auth/architecture/features/FEATURES.md`
-- `src/modules/billing/architecture/BUSINESS.md`
+- `src/modules/billing/architecture/PRD.md`
 - `src/modules/billing/architecture/DESIGN.md`
 - `src/modules/billing/architecture/ADR/**`
 - `src/modules/billing/architecture/features/FEATURES.md`
@@ -90,10 +88,10 @@ This is a two-level workflow:
 - Project-level artifacts describe the full system and cross-module rules.
 - Module-level artifacts describe one module in isolation, but must stay compatible with the project architecture.
 
-### 1. `/fdd-business-context`
+### 1. `/fdd-prd`
 
 **What it does**:
-- Creates or updates `architecture/BUSINESS.md` ([taxonomy](TAXONOMY.md#businessmd)).
+- Creates or updates `architecture/PRD.md` ([taxonomy](TAXONOMY.md#prdmd)).
 
 **Provide context**:
 - Product vision + actors/capabilities
@@ -101,17 +99,17 @@ This is a two-level workflow:
 
 Prompt example:
 ```text
-/fdd-business-context
+/fdd-prd
 Context:
 - Product: SaaS platform
 - Architecture style: modular monolith
 - Core modules: auth, billing, notifications
 ```
 
-### 2. `/fdd-business-validate`
+### 2. `/fdd-prd-validate`
 
 ```text
-/fdd-business-validate
+/fdd-prd-validate
 ```
 
 ### 3. `/fdd-design` (Project-level Overall Design + ADRs)
@@ -189,21 +187,21 @@ Context:
 
 ## Module-Level Architecture (Repeat per Module)
 
-Use this section when you want a module to have a fully self-contained architecture (including module-level BUSINESS/DESIGN/ADR/FEATURES).
+Use this section when you want a module to have a fully self-contained architecture (including module-level PRD/DESIGN/ADR/FEATURES).
 
 Notes:
 - Module-level `FEATURES.md` describes features inside that module.
 - Module features are not the same as project-level features.
 
-### 7. `/fdd-business-context` (Module)
+### 7. `/fdd-prd` (Module)
 
 **What it does**:
-- Creates or updates module business context:
-  - `src/modules/{module}/architecture/BUSINESS.md`
+- Creates or updates module PRD:
+  - `src/modules/{module}/architecture/PRD.md`
 
 Prompt example:
 ```text
-/fdd-business-context
+/fdd-prd
 Context:
 - Scope: module
 - Module: auth
@@ -289,14 +287,14 @@ Context:
 - Feature: sessions
 ```
 
-### 12. `/fdd-feature-implement`
+### 12. `/fdd-code`
 
 **What it does**:
 - Implements the feature directly from `DESIGN.md` (default path).
 
 Prompt example:
 ```text
-/fdd-feature-implement
+/fdd-code
 Context:
 - Scope: module
 - Module: auth
@@ -305,66 +303,10 @@ Context:
 - Module architecture root: src/modules/auth/architecture/
 ```
 
-### 13. `/fdd-feature-changes` (optional)
-
-**What it does**:
-- Creates or updates module feature implementation plan:
-  - `src/modules/{module}/architecture/features/feature-{slug}/CHANGES.md` ([taxonomy](TAXONOMY.md#feature-changesmd)).
-
-**Provide context**:
-- Target module
-- Migration rules (shared DB, module-owned tables)
-- Rollout constraints (feature flags, backwards compatibility)
-
-Prompt example:
-```text
-/fdd-feature-changes
-Context:
-- Scope: module
-- Module: auth
-- Feature: sessions
-- Module architecture root: src/modules/auth/architecture/
-- Constraints:
-  - Do not break existing session/token flows
-  - Any schema change must be backward compatible
-```
-
-### 14. `/fdd-feature-changes-validate` (optional)
+### 16. `/fdd-code-validate`
 
 ```text
-/fdd-feature-changes-validate
-Context:
-- Scope: module
-- Module: auth
-- Feature: sessions
-```
-
-### 15. `/fdd-feature-change-implement` (optional)
-
-**What it does**:
-- Implements a selected change from `CHANGES.md`.
-
-**Provide context**:
-- Target module
-- Change number
-- Where to implement (module code path)
-
-Prompt example:
-```text
-/fdd-feature-change-implement
-Context:
-- Scope: module
-- Module: auth
-- Feature: sessions
-- Change: 001
-- Where to implement:
-  - src/modules/auth/
-```
-
-### 16. `/fdd-feature-code-validate`
-
-```text
-/fdd-feature-code-validate
+/fdd-code-validate
 Context:
 - Scope: module
 - Module: auth
@@ -388,12 +330,11 @@ WHEN working in this repo:
 - This is a modular monolith.
 - Each module MUST have its architecture co-located with module code.
 - Module architecture path convention:
-  - `src/modules/{module}/architecture/BUSINESS.md`
+  - `src/modules/{module}/architecture/PRD.md`
   - `src/modules/{module}/architecture/DESIGN.md`
   - `src/modules/{module}/architecture/ADR/**`
   - `src/modules/{module}/architecture/features/FEATURES.md`
   - `src/modules/{module}/architecture/features/feature-{slug}/DESIGN.md`
-  - `src/modules/{module}/architecture/features/feature-{slug}/CHANGES.md`
 - Module boundaries are enforced by code structure and dependency rules.
 
 WHEN asked to generate/validate feature artifacts:

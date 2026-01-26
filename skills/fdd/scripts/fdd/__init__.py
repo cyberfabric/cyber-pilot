@@ -23,8 +23,6 @@ from .validation.traceability import (
 
 from .validation.fdl import (
     extract_fdl_instructions,
-    extract_scope_references_from_changes,
-    validate_fdl_coverage,
     validate_fdl_completion,
     extract_inst_tags_from_code,
     validate_fdl_code_to_design,
@@ -35,8 +33,7 @@ from .validation.artifacts import (
     validate,
     validate_feature_design,
     validate_overall_design,
-    validate_feature_changes,
-    validate_business_context,
+    validate_prd,
     validate_adr,
     validate_features_manifest,
 )
@@ -71,8 +68,7 @@ __all__ = [
     "validate",
     "validate_feature_design",
     "validate_overall_design",
-    "validate_feature_changes",
-    "validate_business_context",
+    "validate_prd",
     "validate_adr",
     "validate_features_manifest",
     "validate_codebase_traceability",
@@ -80,8 +76,6 @@ __all__ = [
     
     # FDL validation
     "extract_fdl_instructions",
-    "extract_scope_references_from_changes",
-    "validate_fdl_coverage",
     "validate_fdl_completion",
     "extract_inst_tags_from_code",
     "validate_fdl_code_to_design",

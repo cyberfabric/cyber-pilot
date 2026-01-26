@@ -1,4 +1,3 @@
-# @fdd-change:fdd-fdd-feature-init-structure-change-pytest-tests:ph-1
 # @fdd-req:fdd-fdd-feature-init-structure-req-base-file-structure:ph-1
 """
 Tests for FDD project core structure validation.
@@ -35,7 +34,6 @@ class TestDirectoriesExist:
         "workflows",
         "skills",
         "architecture",
-        "architecture/features",
         "tests",
         "examples",
     ]

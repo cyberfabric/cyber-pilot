@@ -45,60 +45,10 @@ class TestFddArtifactEditorListApi(unittest.TestCase):
             ]
         )
 
-    def _minimal_changes(self) -> str:
+    def _minimal_prd(self) -> str:
         return "\n".join(
             [
-                "# Implementation Plan: Example",
-                "",
-                "**Feature**: `x`",
-                "**Version**: 0.1",
-                "**Last Updated**: 2026-01-01",
-                "**Status**: ⏳ NOT_STARTED",
-                "**Feature DESIGN**: [DESIGN](DESIGN.md)",
-                "",
-                "## Summary",
-                "",
-                "**Total Changes**: 1",
-                "**Completed**: 0",
-                "**In Progress**: 0",
-                "**Not Started**: 1",
-                "",
-                "## Change 1: First",
-                "",
-                "**ID**: `fdd-example-feature-x-change-first`",
-                "**Status**: ⏳ NOT_STARTED",
-                "**Priority**: HIGH",
-                "**Effort**: S",
-                "**Implements**: `fdd-example-feature-x-req-do-thing`",
-                "**Phases**: ph-1",
-                "",
-                "### Objective",
-                "Do.",
-                "",
-                "### Requirements Coverage",
-                "- `fdd-example-feature-x-req-do-thing`",
-                "",
-                "### Tasks",
-                "- [ ] 1.1 Implement something in code",
-                "- [ ] 1.2 Add required FDD comment tags: `@fdd-change:fdd-example-feature-x-change-first:ph-1`",
-                "",
-                "### Specification",
-                "- Update docs.",
-                "",
-                "### Dependencies",
-                "**Depends on**: None",
-                "**Blocks**: None",
-                "",
-                "### Testing",
-                "- Run tests.",
-                "",
-            ]
-        )
-
-    def _minimal_business(self) -> str:
-        return "\n".join(
-            [
-                "# Business Context",
+                "# PRD",
                 "",
                 "## A. VISION",
                 "",
@@ -215,26 +165,12 @@ class TestFddArtifactEditorListApi(unittest.TestCase):
             self.assertEqual(payload["count"], 1)
             self.assertEqual(payload["items"][0]["id"], "fdd-example-feature-alpha")
 
-    def test_list_items_changes(self) -> None:
+    def test_list_items_prd(self) -> None:
         with TemporaryDirectory() as tds:
             td = Path(tds)
-            feat = td / "architecture" / "features" / "feature-x"
-            feat.mkdir(parents=True)
-            art = feat / "CHANGES.md"
-            art.write_text(self._minimal_changes(), encoding="utf-8")
-
-            proc = self._run(td=td, args=["list-items", "--artifact", str(art), "--type", "change", "--lod", "summary"])
-            self.assertEqual(proc.returncode, 0, msg=proc.stdout + "\n" + proc.stderr)
-            payload = json.loads(proc.stdout)
-            self.assertEqual(payload["count"], 1)
-            self.assertEqual(payload["items"][0]["change"], 1)
-
-    def test_list_items_business(self) -> None:
-        with TemporaryDirectory() as tds:
-            td = Path(tds)
-            art = td / "architecture" / "BUSINESS.md"
+            art = td / "architecture" / "PRD.md"
             art.parent.mkdir(parents=True, exist_ok=True)
-            art.write_text(self._minimal_business(), encoding="utf-8")
+            art.write_text(self._minimal_prd(), encoding="utf-8")
 
             proc = self._run(td=td, args=["list-items", "--artifact", str(art), "--lod", "summary"])
             self.assertEqual(proc.returncode, 0, msg=proc.stdout + "\n" + proc.stderr)

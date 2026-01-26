@@ -264,11 +264,11 @@ No IDs here.
             arch = root / "architecture"
             arch.mkdir()
 
-            business = arch / "BUSINESS.md"
-            business.write_text(
+            prd = arch / "PRD.md"
+            prd.write_text(
                 "\n".join(
                     [
-                        "# Business Context",
+                        "# PRD",
                         "",
                         "## B. Actors",
                         "",
@@ -343,7 +343,7 @@ No IDs here.
             report = validate_adr(
                 "",
                 artifact_path=arch / "ADR",
-                business_path=business,
+                prd_path=prd,
                 design_path=design,
                 skip_fs_checks=False,
             )
@@ -351,7 +351,7 @@ No IDs here.
         self.assertEqual(report["status"], "FAIL")
         msgs = [str(i.get("message")) for i in report.get("adr_issues", [])]
         self.assertTrue(any("Unknown actor" in m for m in msgs))
-        self.assertTrue(any("Unknown capability" in m for m in msgs))
+        self.assertTrue(any("Unknown PRD IDs" in m for m in msgs))
         self.assertTrue(any("Unknown requirement" in m for m in msgs))
         self.assertTrue(any("Unknown principle" in m for m in msgs))
 
@@ -613,16 +613,16 @@ Chosen option: "A", because test.
 class TestADRCrossReferences(unittest.TestCase):
     """Test ADR cross-reference validation."""
 
-    def test_cross_reference_with_business_and_design(self):
-        """Test ADR validates against BUSINESS.md and DESIGN.md."""
+    def test_cross_reference_with_prd_and_design(self):
+        """Test ADR validates against PRD.md and DESIGN.md."""
         with TemporaryDirectory() as tmpdir:
             tmppath = Path(tmpdir)
             arch = tmppath / "architecture"
             arch.mkdir()
             
-            # Create BUSINESS.md
-            business = arch / "BUSINESS.md"
-            business.write_text("""# Business Context
+            # Create PRD.md
+            prd = arch / "PRD.md"
+            prd.write_text("""# PRD
 
 ## B. Actors
 
@@ -693,7 +693,7 @@ class TestADRCrossReferences(unittest.TestCase):
             report = validate_adr(
                 "",
                 artifact_path=arch / "ADR",
-                business_path=business,
+                prd_path=prd,
                 design_path=design,
                 skip_fs_checks=False,
             )
@@ -708,8 +708,8 @@ class TestADRCrossReferences(unittest.TestCase):
             arch = tmppath / "architecture"
             arch.mkdir()
             
-            business = arch / "BUSINESS.md"
-            business.write_text("""# Business Context
+            prd = arch / "PRD.md"
+            prd.write_text("""# PRD
 
 ## B. Actors
 
@@ -764,7 +764,7 @@ class TestADRCrossReferences(unittest.TestCase):
             report = validate_adr(
                 "",
                 artifact_path=arch / "ADR",
-                business_path=business,
+                prd_path=prd,
                 design_path=design,
                 skip_fs_checks=False,
             )
@@ -979,8 +979,8 @@ class TestADRPlaceholders(unittest.TestCase):
 class TestADRFileSystemChecks(unittest.TestCase):
     """Test ADR validation with file system checks."""
 
-    def test_missing_business_file_adds_error(self):
-        """Test that missing BUSINESS.md file adds cross-reference error."""
+    def test_missing_prd_file_adds_error(self):
+        """Test that missing PRD.md file adds cross-reference error."""
         with TemporaryDirectory() as tmpdir:
             tmppath = Path(tmpdir)
             arch = tmppath / "architecture"
@@ -1022,7 +1022,7 @@ class TestADRFileSystemChecks(unittest.TestCase):
 
             report = validate_adr("", artifact_path=arch / "ADR", skip_fs_checks=False)
             
-            # Should have cross-reference error for missing BUSINESS.md
+            # Should have cross-reference error for missing PRD.md
             cross_errors = [e for e in report["errors"] if e.get("type") == "cross"]
             self.assertGreater(len(cross_errors), 0)
 
@@ -1033,9 +1033,9 @@ class TestADRFileSystemChecks(unittest.TestCase):
             arch = tmppath / "architecture"
             arch.mkdir()
             
-            # Create ADR directory and BUSINESS.md but no DESIGN.md
-            business = arch / "BUSINESS.md"
-            business.write_text("# Business Context\n\n## B. Actors\n\n- **ID**: `fdd-app-actor-user`")
+            # Create ADR directory and PRD.md but no DESIGN.md
+            prd = arch / "PRD.md"
+            prd.write_text("# PRD\n\n## B. Actors\n\n- **ID**: `fdd-app-actor-user`")
             
             adr_dir = arch / "ADR" / "general"
             adr_dir.mkdir(parents=True)
@@ -1084,8 +1084,8 @@ class TestADRFileSystemChecks(unittest.TestCase):
             arch = tmppath / "architecture"
             arch.mkdir()
             
-            business = arch / "BUSINESS.md"
-            business.write_text("""# Business Context
+            prd = arch / "PRD.md"
+            prd.write_text("""# PRD
 
 ## B. Actors
 
@@ -1147,15 +1147,14 @@ class TestADRFileSystemChecks(unittest.TestCase):
             report = validate_adr(
                 "",
                 artifact_path=arch / "ADR",
-                business_path=business,
+                prd_path=prd,
                 design_path=design,
                 skip_fs_checks=False,
             )
             
             self.assertEqual(report["status"], "FAIL")
-            unknown_cap = [i for i in report["adr_issues"]
-                          if "Unknown capability" in i.get("message", "")]
-            self.assertGreater(len(unknown_cap), 0)
+            unknown_prd = [i for i in report["adr_issues"] if "Unknown PRD IDs" in i.get("message", "")]
+            self.assertGreater(len(unknown_prd), 0)
 
     def test_unknown_requirement_reference_fails(self):
         """Test that unknown requirement in Related Elements fails."""
@@ -1164,8 +1163,8 @@ class TestADRFileSystemChecks(unittest.TestCase):
             arch = tmppath / "architecture"
             arch.mkdir()
             
-            business = arch / "BUSINESS.md"
-            business.write_text("# Business Context\n\n## B. Actors\n\n- **ID**: `fdd-app-actor-user`")
+            prd = arch / "PRD.md"
+            prd.write_text("# PRD\n\n## B. Actors\n\n- **ID**: `fdd-app-actor-user`")
             
             design = arch / "DESIGN.md"
             design.write_text("""# Technical Design
@@ -1214,7 +1213,7 @@ class TestADRFileSystemChecks(unittest.TestCase):
             report = validate_adr(
                 "",
                 artifact_path=arch / "ADR",
-                business_path=business,
+                prd_path=prd,
                 design_path=design,
                 skip_fs_checks=False,
             )
@@ -1231,8 +1230,8 @@ class TestADRFileSystemChecks(unittest.TestCase):
             arch = tmppath / "architecture"
             arch.mkdir()
             
-            business = arch / "BUSINESS.md"
-            business.write_text("# Business Context\n\n## B. Actors\n\n- **ID**: `fdd-app-actor-user`")
+            prd = arch / "PRD.md"
+            prd.write_text("# PRD\n\n## B. Actors\n\n- **ID**: `fdd-app-actor-user`")
             
             design = arch / "DESIGN.md"
             design.write_text("""# Technical Design
@@ -1281,7 +1280,7 @@ Real principle.
             report = validate_adr(
                 "",
                 artifact_path=arch / "ADR",
-                business_path=business,
+                prd_path=prd,
                 design_path=design,
                 skip_fs_checks=False,
             )
@@ -1455,7 +1454,7 @@ Chosen option: "A", because test.
 
 
 class TestADRCoverageBranches(unittest.TestCase):
-    def test_file_mode_fs_checks_business_missing_design_present(self) -> None:
+    def test_file_mode_fs_checks_prd_missing_design_present(self) -> None:
         with TemporaryDirectory() as tmpdir:
             tmppath = Path(tmpdir)
             arch = tmppath / "architecture"
@@ -1517,7 +1516,7 @@ class TestADRCoverageBranches(unittest.TestCase):
             self.assertEqual(report["status"], "FAIL")
             self.assertTrue(any(e.get("type") == "cross" for e in report.get("errors", [])))
 
-    def test_file_mode_fs_checks_business_present_design_missing(self) -> None:
+    def test_file_mode_fs_checks_prd_present_design_missing(self) -> None:
         with TemporaryDirectory() as tmpdir:
             tmppath = Path(tmpdir)
             arch = tmppath / "architecture"
@@ -1554,10 +1553,10 @@ class TestADRCoverageBranches(unittest.TestCase):
             )
             adr_file.write_text(adr_text, encoding="utf-8")
 
-            (arch / "BUSINESS.md").write_text(
+            (arch / "PRD.md").write_text(
                 "\n".join(
                     [
-                        "# Business Context",
+                        "# PRD",
                         "",
                         "## B. Actors",
                         "",

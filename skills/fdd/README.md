@@ -45,7 +45,7 @@ Unified FDD tool for artifact validation, search, and traceability.
 **Script size**: 4082 lines
 
 **Validation capabilities**:
-- ✅ All validation functions (business, design, features, ADR, changes)
+- ✅ All validation functions (PRD, design, features, ADR)
 - ✅ Codebase traceability scanning
 - ✅ Cross-reference validation
 - ✅ All helper functions and regex patterns

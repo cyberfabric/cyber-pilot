@@ -9,8 +9,7 @@ from typing import Dict, Optional
 
 from .feature_design import validate_feature_design
 from .overall_design import validate_overall_design
-from .changes import validate_feature_changes
-from .business import validate_business_context
+from .prd import validate_prd
 from .adr import validate_adr
 from .features import validate_features_manifest
 from .common import validate_generic_sections, common_checks
@@ -22,7 +21,7 @@ def validate(
     artifact_kind: str,
     *,
     design_path: Optional[Path] = None,
-    business_path: Optional[Path] = None,
+    prd_path: Optional[Path] = None,
     adr_path: Optional[Path] = None,
     skip_fs_checks: bool = False,
 ) -> Dict[str, object]:
@@ -47,8 +46,8 @@ def validate(
             design_path=design_path,
             skip_fs_checks=skip_fs_checks,
         )
-    elif artifact_kind == "business-context":
-        report = validate_business_context(artifact_text)
+    elif artifact_kind == "prd":
+        report = validate_prd(artifact_text)
     elif artifact_kind == "adr":
         report = validate_adr(
             artifact_text,
@@ -61,17 +60,11 @@ def validate(
             artifact_path=artifact_path,
             skip_fs_checks=skip_fs_checks,
         )
-    elif artifact_kind == "feature-changes":
-        report = validate_feature_changes(
-            artifact_text,
-            artifact_path=artifact_path,
-            skip_fs_checks=skip_fs_checks,
-        )
     elif artifact_kind == "overall-design":
         report = validate_overall_design(
             artifact_text,
             artifact_path=artifact_path,
-            business_path=business_path,
+            prd_path=prd_path,
             adr_path=adr_path,
             skip_fs_checks=skip_fs_checks,
         )
@@ -107,8 +100,7 @@ __all__ = [
     "validate",
     "validate_feature_design",
     "validate_overall_design",
-    "validate_feature_changes",
-    "validate_business_context",
+    "validate_prd",
     "validate_adr",
     "validate_features_manifest",
 ]

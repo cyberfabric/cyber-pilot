@@ -39,7 +39,7 @@ ALWAYS open and follow `../requirements/workflow-execution.md` WHEN executing th
 **ALWAYS open and follow**: `../templates/DESIGN.template.md` WHEN generating content
 
 Extract:
-- Required sections (A: Architecture Overview, B: Requirements & Principles, C: Technical Architecture, D: Additional Context)
+- Required sections (A: Architecture Overview, B: Principles & Constraints, C: Technical Architecture, D: Additional Context)
 - Content requirements per section
 - Validation criteria
 
@@ -48,10 +48,10 @@ Extract:
 ## Prerequisites
 
 **MUST validate**:
-- [ ] BUSINESS.md exists - validate: Check file at `architecture/BUSINESS.md`
-- [ ] BUSINESS.md validated - validate: Score ≥90/100
+- [ ] PRD.md exists - validate: Check file at `architecture/PRD.md`
+- [ ] PRD.md validated - validate: Score ≥90/100
 
-**If missing**: Run `business-context` and `business-validate` first
+**If missing**: Run `prd` and `prd-validate` first
 
 ---
 
@@ -65,9 +65,9 @@ Check if `architecture/DESIGN.md` exists:
 - **If exists**: UPDATE mode - Read and propose changes
 - **If NOT exists**: CREATE mode - Generate from scratch
 
-### 2. Read Business Context
+### 2. Read PRD
 
-Open `architecture/BUSINESS.md`
+Open `architecture/PRD.md`
 
 Extract:
 - Vision (Section A)
@@ -83,15 +83,14 @@ Extract:
 - Read existing DESIGN.md
 - Extract current content:
   - Section A: Architecture Overview
-  - Section B: Requirements & Principles
+  - Section B: Principles & Constraints
   - Section C: Technical Architecture
   - Section D: Additional Context
 - Ask user: What to update?
   - Update architecture style/layers
-  - Add/edit/remove requirements
   - Add/edit/remove principles
+  - Add/edit/remove constraints
   - Update technical architecture
-  - Update NFRs
   - Update components
 - Proceed to Step 4 with appropriate questions
 
@@ -125,22 +124,11 @@ Extract:
 - **UPDATE**: Show current principles, ask to add/edit/remove or keep
 - Store as: `PRINCIPLES[]`
 
-**Q5: NFRs**
-- Context: Non-functional requirements (performance, security, scalability)
-- **CREATE**: Propose based on architecture style
-- **UPDATE**: Show current NFRs, ask to add/edit/remove or keep
-- Store as: `NFRS[]`
-
-### 5. Generate/Update Requirements
-
-**CREATE mode**: Map business capabilities to technical requirements
-- For each capability: 1-3 technical requirements
-- Generate requirement IDs: `fdd-{project}-req-{kebab-case}`
-
-**UPDATE mode**: Update requirements based on changes
-- Add new requirements for new capabilities
-- Update existing requirements if modified
-- Remove requirements if no longer needed
+**Q5: Constraints**
+- Context: Hard constraints that bound the solution space
+- **CREATE**: Propose initial constraints based on PRD + context
+- **UPDATE**: Show current constraints, ask to add/edit/remove or keep
+- Store as: `CONSTRAINTS[]`
 
 ### 6. Generate Content
 
@@ -149,14 +137,13 @@ Extract:
 **UPDATE mode**: Update existing DESIGN.md with changes
 
 Generate content following `overall-design-structure.md`:
-- Section A: Architecture Overview (architectural vision, layers)
-- Section B: Requirements & Principles (requirements, principles)
-- Section C: Technical Architecture (components, domain model, API contracts, security, NFRs)
+- Section A: Architecture Overview (architectural vision, architecture drivers, layers)
+- Section B: Principles & Constraints
+- Section C: Technical Architecture (domain model, components, API contracts, interactions)
 - Section D: Additional Context (optional)
 
 Ensure:
-- No contradictions with BUSINESS.md
-- All actors/capabilities from BUSINESS.md referenced
+- No contradictions with PRD.md
 - No type redefinitions
 - All IDs formatted correctly
 
@@ -169,7 +156,7 @@ Show:
 - Components: {count} ({added}/{modified}/{removed})
 - Requirements: {count} ({added}/{modified}/{removed})
 - Principles: {count} ({added}/{modified}/{removed})
-- References to BUSINESS.md
+- References to PRD.md
 - Changes summary (for UPDATE mode)
 
 Ask: Proceed? [yes/no/modify]
@@ -224,7 +211,7 @@ Run: `design-validate`
 Expected:
 - Score: ≥90/100
 - Status: PASS
-- No contradictions with BUSINESS.md
+- No contradictions with PRD.md
 
 Then run: `adr-validate`
 

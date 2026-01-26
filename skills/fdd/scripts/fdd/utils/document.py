@@ -24,8 +24,6 @@ def detect_artifact_kind(artifact_path: Path) -> str:
         return "adr"
     if name == "FEATURES.md":
         return "features-manifest"
-    if name == "CHANGES.md" or name.endswith("-CHANGES.md"):
-        return "feature-changes"
     if name == "DESIGN.md" and "features" in artifact_path.parts and any(p.startswith("feature-") for p in artifact_path.parts):
         return "feature-design"
     if name == "DESIGN.md":

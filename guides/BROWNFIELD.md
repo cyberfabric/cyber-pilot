@@ -16,20 +16,19 @@ Use this track when you have an existing codebase (with or without existing docs
 **Goal**: produce validated baseline artifacts so future changes are controlled.
 
 - Use the codebase and any existing docs as input.
-- Create `architecture/BUSINESS.md` ([taxonomy](TAXONOMY.md#businessmd)).
+- Create `architecture/PRD.md` ([taxonomy](TAXONOMY.md#prdmd)).
 - Create `architecture/DESIGN.md` ([taxonomy](TAXONOMY.md#designmd)).
 - Capture stable decisions as ADRs when needed ([taxonomy](TAXONOMY.md#adr)).
 - Validate baseline artifacts before feature work.
 
 ### Add a New Feature (Existing System)
 
-Use this when baseline exists and you want to implement a new capability.
+Use this when baseline exists and you want to code a new capability.
 
 - Update `architecture/features/FEATURES.md` ([taxonomy](TAXONOMY.md#featuresmd)).
 - Create/update feature `DESIGN.md` ([taxonomy](TAXONOMY.md#feature-designmd)).
-- Implement with `feature-implement`.
-- Create/update feature `CHANGES.md` ([taxonomy](TAXONOMY.md#feature-changesmd)) (optional).
-- Implement with `feature-change-implement` (optional).
+- Implement with `implement`.
+
 
 ## How to Provide Context in Prompts
 
@@ -62,10 +61,10 @@ Context:
 Goal:
 - Produce validated baseline artifacts before you add or refactor features.
 
-#### 1. `/fdd-business-context`
+#### 1. `/fdd-prd`
 
 **What it does**:
-- Creates or updates `architecture/BUSINESS.md` ([taxonomy](TAXONOMY.md#businessmd)).
+- Creates or updates `architecture/PRD.md` ([taxonomy](TAXONOMY.md#prdmd)).
 
 **Provide context**:
 - If docs exist: paths and what is reliable
@@ -73,7 +72,7 @@ Goal:
 
 Prompt example:
 ```text
-/fdd-business-context
+/fdd-prd
 Context:
 - Source of truth: code
 - Code entry points:
@@ -81,10 +80,10 @@ Context:
   - src/controllers/
 ```
 
-#### 2. `/fdd-business-validate`
+#### 2. `/fdd-prd-validate`
 
 ```text
-/fdd-business-validate
+/fdd-prd-validate
 ```
 
 #### 3. `/fdd-design` (ADR + Overall Design)
@@ -180,60 +179,31 @@ Context:
 - Feature: notifications
 ```
 
-#### 4. `/fdd-feature-implement`
+#### 4. `/fdd-code`
 ```text
-/fdd-feature-implement
+/fdd-code
 Context:
 - Feature: notifications
 - Where to implement:
   - src/notifications/
 ```
 
-#### 5. `/fdd-feature-changes` (optional)
+#### 5. `/fdd-code-validate`
 ```text
-/fdd-feature-changes
-Context:
-- Feature: notifications
-- Keep changes atomic and reversible
-- Constraints:
-  - Backward compatible API
-  - Prefer feature flag rollout
-```
-
-#### 6. `/fdd-feature-changes-validate` (optional)
-```text
-/fdd-feature-changes-validate
-Context:
-- Feature: notifications
-```
-
-#### 7. `/fdd-feature-change-implement` (optional)
-```text
-/fdd-feature-change-implement
-Context:
-- Feature: notifications
-- Change: 001
-- Where to implement:
-  - src/notifications/
-- Test strategy: integration tests for provider outage + retries
-```
-
-#### 8. `/fdd-feature-code-validate`
-```text
-/fdd-feature-code-validate
+/fdd-code-validate
 Context:
 - Feature: notifications
 ```
 
 ## Common Scenarios (Brownfield)
 
-### Scenario 1: Requirements Changed (Business Context)
+### Scenario 1: Requirements Changed (PRD)
 
-When you need to change business capabilities:
+When you need to change PRD capabilities:
 
 ```text
-/fdd-business-context
-/fdd-business-validate
+/fdd-prd
+/fdd-prd-validate
 ```
 
 Then update design and affected features as needed.
@@ -256,8 +226,7 @@ When feature behavior changes:
 ```text
 /fdd-feature
 /fdd-feature-validate
-/fdd-feature-implement
-# Optional: /fdd-feature-changes, /fdd-feature-changes-validate
+/fdd-code
 ```
 
 ## Quick Reference
@@ -269,13 +238,12 @@ When feature behavior changes:
 /fdd-features-validate
 /fdd-feature
 /fdd-feature-validate
-/fdd-feature-implement
-# Optional: /fdd-feature-changes, /fdd-feature-changes-validate, /fdd-feature-change-implement
-/fdd-feature-code-validate
+/fdd-code
+/fdd-code-validate
 ```
 
 ## Keeping Features Actual After Code Changes
 
 - If code changes affect a feature behavior, update the feature `DESIGN.md` first.
 - Re-validate the feature design.
-- Run `feature-code-validate` to ensure design and code remain consistent.
+- Run `code-validate` to ensure design and code remain consistent.

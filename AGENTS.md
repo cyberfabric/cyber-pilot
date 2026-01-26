@@ -1,4 +1,3 @@
-<!-- @fdd-change:fdd-fdd-feature-init-structure-change-agents-structure:ph-1 -->
 # FDD AI Agent Navigation
 
 **Version**: 1.1
@@ -66,9 +65,9 @@ ALWAYS open and follow `requirements/requirements.md` WHEN extracting shared req
 
 ALWAYS open and follow `.adapter/specs/patterns.md` WHEN creating or modifying AGENTS.md files
 
-ALWAYS open and follow `requirements/business-context-structure.md` WHEN working with BUSINESS.md
+ALWAYS open and follow `requirements/prd-structure.md` WHEN working with PRD.md
 
-ALWAYS open and follow `templates/BUSINESS.template.md` WHEN generating BUSINESS.md
+ALWAYS open and follow `templates/PRD.template.md` WHEN generating PRD.md
 
 ALWAYS open and follow `requirements/overall-design-structure.md` WHEN working with DESIGN.md
 
@@ -85,10 +84,6 @@ ALWAYS open and follow `templates/FEATURES.template.md` WHEN generating FEATURES
 ALWAYS open and follow `requirements/feature-design-structure.md` WHEN working with feature DESIGN.md
 
 ALWAYS open and follow `templates/feature-DESIGN.template.md` WHEN generating feature DESIGN.md
-
-ALWAYS open and follow `requirements/feature-changes-structure.md` WHEN working with feature CHANGES.md
-
-ALWAYS open and follow `templates/feature-CHANGES.template.md` WHEN generating feature CHANGES.md
 
 ALWAYS open and follow `requirements/adapter-structure.md` WHEN creating or configuring FDD adapter
 

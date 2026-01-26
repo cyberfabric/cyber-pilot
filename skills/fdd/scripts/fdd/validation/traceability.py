@@ -18,22 +18,26 @@ from ..utils import (
     build_no_fdd_begin_regex,
     build_no_fdd_end_regex,
 )
-from ..validation.fdl import extract_fdl_instructions, extract_scope_references_from_changes
-from ..validation.artifacts import validate_feature_design, validate_feature_changes
+from ..validation.fdl import extract_fdl_instructions
+from ..validation.artifacts import validate_feature_design
 from ..constants import (
-    UNWRAPPED_INST_TAG_RE,
-    FDD_TAG_CHANGE_RE,
     FDD_TAG_FLOW_RE,
     FDD_TAG_ALGO_RE,
     FDD_TAG_STATE_RE,
     FDD_TAG_REQ_RE,
     FDD_TAG_TEST_RE,
-    SCOPE_ID_BY_KIND_RE,
+    FDD_BEGIN_LINE_RE,
+    FDD_END_LINE_RE,
+    UNWRAPPED_INST_TAG_RE,
+    NO_FDD_BLOCK_BEGIN_RE,
+    NO_FDD_BLOCK_END_RE,
+    FDL_SCOPE_ID_RE,
     FDL_STEP_LINE_RE,
     ADR_ID_RE,
     ACTOR_ID_RE,
-    CAPABILITY_ID_RE,
+    PRD_FR_ID_RE,
     USECASE_ID_RE,
+    SCOPE_ID_BY_KIND_RE,
 )
 
 
@@ -238,7 +242,7 @@ def unwrapped_inst_tag_hits_in_text(text: str, lang_config: Optional['LanguageCo
 
 def code_tag_hits(text: str, lang_config: Optional['LanguageConfig'] = None) -> Dict[str, List[Tuple[str, str]]]:
     """
-    Extract all @fdd-* tags from text (change, flow, algo, state, req, test).
+    Extract all @fdd-* tags from text (flow, algo, state, req, test).
     
     Returns dict mapping tag kind to list of (scope_id, phase) tuples.
     """
@@ -246,7 +250,6 @@ def code_tag_hits(text: str, lang_config: Optional['LanguageConfig'] = None) -> 
         lang_config = load_language_config()
     
     hits: Dict[str, List[Tuple[str, str]]] = {
-        "change": [],
         "flow": [],
         "algo": [],
         "state": [],
@@ -265,9 +268,6 @@ def code_tag_hits(text: str, lang_config: Optional['LanguageConfig'] = None) -> 
     
     filtered_text = "\n".join(filtered_lines)
     filtered_text = re.sub(r"`[^`]*`", "", filtered_text)
-    
-    for rid, ph in FDD_TAG_CHANGE_RE.findall(filtered_text):
-        hits["change"].append((rid, ph))
     for rid, ph in FDD_TAG_FLOW_RE.findall(filtered_text):
         hits["flow"].append((rid, ph))
     for rid, ph in FDD_TAG_ALGO_RE.findall(filtered_text):
@@ -314,7 +314,13 @@ def iter_code_files(root: Path, lang_config: Optional['LanguageConfig'] = None) 
 
 def extract_scope_ids(line: str, kind: str) -> List[str]:
     """Extract scope IDs of specific kind from line."""
-    pat = SCOPE_ID_BY_KIND_RE.get(kind)
+    try:
+        pat = SCOPE_ID_BY_KIND_RE.get(kind)
+    except NameError:
+        # Defensive: avoid rare partial-import states or stale module state.
+        from ..constants import SCOPE_ID_BY_KIND_RE as _SCOPE_ID_BY_KIND_RE
+
+        pat = _SCOPE_ID_BY_KIND_RE.get(kind)
     if pat is None:
         return []
     # Use finditer and group(0) to get full match, not capture groups
@@ -323,7 +329,6 @@ def validate_codebase_traceability(
     artifact_dir: Path,
     *,
     feature_design_path: Optional[Path] = None,
-    feature_changes_path: Optional[Path] = None,
     scan_root_override: Optional[Path] = None,
     skip_fs_checks: bool = False,
 ) -> Dict[str, object]:
@@ -344,37 +349,22 @@ def validate_codebase_traceability(
     if not dp.exists() or not dp.is_file():
         errors.append({"type": "cross", "message": "Feature DESIGN.md not found for codebase traceability", "path": str(dp)})
 
-    cp = feature_changes_path or (feature_dir / "CHANGES.md")
-    if (not cp.exists() or not cp.is_file()) and not skip_fs_checks:
-        latest = latest_archived_changes(feature_dir)
-        if latest is not None:
-            cp = latest
-
     design_text, derr = load_text(dp)
     if derr:
         errors.append({"type": "cross", "message": derr})
         design_text = ""
-    changes_text: str = ""
-    if cp is not None and cp.exists() and cp.is_file():
-        changes_text, _ = load_text(cp)
-        changes_text = changes_text or ""
 
     artifacts_validation: Dict[str, object] = {
         "feature_design": None,
-        "feature_changes": None,
     }
 
     if dp.exists() and dp.is_file():
-        drep, crep = _validate_feature_artifacts_for_traceability(
+        drep = _validate_feature_design_for_traceability(
             feature_design_path=dp,
-            feature_changes_path=cp if (cp is not None and cp.exists() and cp.is_file()) else None,
             skip_fs_checks=skip_fs_checks,
         )
         artifacts_validation["feature_design"] = _summarize_validation_report(drep)
-        if crep is not None:
-            artifacts_validation["feature_changes"] = _summarize_validation_report(crep)
-
-        if (drep.get("status") != "PASS") or (crep is not None and crep.get("status") != "PASS"):
+        if drep.get("status") != "PASS":
             return {
                 "required_section_count": 0,
                 "missing_sections": [],
@@ -385,7 +375,6 @@ def validate_codebase_traceability(
                     "feature_dir": str(feature_dir),
                     "scan_root": str(scan_root_override or feature_dir),
                     "feature_design": str(dp),
-                    "feature_changes": str(cp) if cp else None,
                     "scanned_file_count": 0,
                     "artifact_validation": artifacts_validation,
                 },
@@ -398,7 +387,6 @@ def validate_codebase_traceability(
         "state": set(),
         "req": set(),
         "test": set(),
-        "change": set(),
     }
     expected_inst_tags: set = set()
 
@@ -441,23 +429,6 @@ def validate_codebase_traceability(
         if not (m_ph and m_inst and current_scope):
             continue
         expected_inst_tags.add(f"{current_scope}:ph-{m_ph.group(1)}:{m_inst.group(1)}")
-
-    # CHANGES completed changes -> expect change tags in code
-    for m in re.finditer(r"^##\s+Change\s+\d+:.*$", changes_text, re.MULTILINE):
-        pass
-    if changes_text:
-        # naive split by change headings
-        blocks = re.split(r"^##\s+Change\s+\d+:.*$", changes_text, flags=re.MULTILINE)
-        headings = re.findall(r"^##\s+Change\s+\d+:.*$", changes_text, flags=re.MULTILINE)
-        for i, head in enumerate(headings):
-            body = blocks[i + 1] if i + 1 < len(blocks) else ""
-            m_id = re.search(r"\*\*ID\*\*:\s*`([^`]+)`", body)
-            m_status = re.search(r"\*\*Status\*\*:\s*(.+)$", body, re.MULTILINE)
-            if not (m_id and m_status):
-                continue
-            if m_status.group(1).strip() != "✅ COMPLETED":
-                continue
-            expected_scope_ids["change"].add(m_id.group(1).strip())
 
     # Scan code - always from project root to include requirements/ and other shared files
     if scan_root_override:
@@ -504,7 +475,7 @@ def validate_codebase_traceability(
                 elif eb.get("type") == "end_without_begin":
                     msg = "fdd-end without matching fdd-begin"
                 errors.append({"type": "code_tag", "message": msg, "path": rel_fp, **eb})
-        for k in ("change", "flow", "algo", "state", "req", "test"):
+        for k in ("flow", "algo", "state", "req", "test"):
             for rid, _ph in hits[k]:
                 found_scope_ids[k].add(rid)
 
@@ -545,7 +516,6 @@ def validate_codebase_traceability(
             "feature_dir": str(feature_dir),
             "scan_root": str(scan_root),
             "feature_design": str(dp) if dp else None,
-            "feature_changes": str(cp) if cp else None,
             "scanned_file_count": len(scanned_files),
             "artifact_validation": artifacts_validation,
             "expected": {
@@ -640,7 +610,7 @@ def validate_code_root_traceability(
     }
 
 
-def _parse_business_model(text: str) -> Tuple[set, Dict[str, set], set]:
+def _parse_prd_model(text: str) -> Tuple[set, Dict[str, set], set]:
     actor_ids: set = set(ACTOR_ID_RE.findall(text))
     capability_to_actors: Dict[str, set] = {}
     usecase_ids: set = set(USECASE_ID_RE.findall(text))
@@ -651,7 +621,7 @@ def _parse_business_model(text: str) -> Tuple[set, Dict[str, set], set]:
         if line.strip().startswith("#### "):
             current_cap = None
         if "**ID**:" in line:
-            for cid in extract_backticked_ids(line, CAPABILITY_ID_RE):
+            for cid in extract_backticked_ids(line, PRD_FR_ID_RE):
                 current_cap = cid
                 capability_to_actors.setdefault(cid, set())
         if current_cap and "**Actors**:" in line:
@@ -663,25 +633,15 @@ def _parse_business_model(text: str) -> Tuple[set, Dict[str, set], set]:
 
 
 
-def latest_archived_changes(feature_dir: Path) -> Optional[Path]:
-    """Find the latest archived CHANGES file."""
-    ap = feature_dir / "archive"
-    if not ap.exists() or not ap.is_dir():
-        return None
-    candidates = sorted(ap.glob("CHANGES-*.md"), reverse=True)
-    return candidates[0] if candidates else None
-
-
-def _validate_feature_artifacts_for_traceability(
+def _validate_feature_design_for_traceability(
     *,
     feature_design_path: Path,
-    feature_changes_path: Optional[Path],
     skip_fs_checks: bool,
-) -> Tuple[Dict[str, object], Optional[Dict[str, object]]]:
-    """Validate feature artifacts for traceability checking."""
+) -> Dict[str, object]:
+    """Validate feature DESIGN.md for traceability checking."""
     from ..utils import detect_requirements
     from ..validation.artifacts import validate
-    
+
     dk, dr = detect_requirements(feature_design_path)
     drep = validate(
         feature_design_path,
@@ -690,20 +650,7 @@ def _validate_feature_artifacts_for_traceability(
         skip_fs_checks=skip_fs_checks,
     )
     drep["artifact_kind"] = dk
-
-    crep: Optional[Dict[str, object]] = None
-    if feature_changes_path is not None and feature_changes_path.exists() and feature_changes_path.is_file():
-        ck, cr = detect_requirements(feature_changes_path)
-        crep = validate(
-            feature_changes_path,
-            cr,
-            ck,
-            design_path=feature_design_path,
-            skip_fs_checks=skip_fs_checks,
-        )
-        crep["artifact_kind"] = ck
-
-    return drep, crep
+    return drep
 
 
 def _summarize_validation_report(report: Dict[str, object], *, max_errors: int = 50) -> Dict[str, object]:

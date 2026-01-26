@@ -165,5 +165,5 @@ All agent-specific file paths and templates are defined in:
 - Will reference adapter conventions
 
 **Start FDD work**:
-- `business-context` - Define business requirements
+- `prd` - Define product requirements
 - `adapter` - Configure adapter (if not yet done)

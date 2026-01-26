@@ -207,13 +207,13 @@ What should the vision be?
 
 **Use available context**:
 - Project name and structure
-- Existing artifacts (BUSINESS.md, DESIGN.md)
+- Existing artifacts (PRD.md, DESIGN.md)
 - Code structure (if visible)
 - Previous answers in this workflow
 - FDD Adapter specifications
 
 **Show reasoning**:
-- "Based on existing BUSINESS.md actors..."
+- "Based on existing PRD.md actors..."
 - "Following domain model from adapter..."
 - "Consistent with previous answer about..."
 
@@ -240,7 +240,7 @@ What should the vision be?
 - ID formats
 - Content requirements per section
 
-**Example** (from business-context-structure.md):
+**Example** (from prd-structure.md):
 - Section A: Vision
 - Section B: Actors (with IDs `fdd-actor-{name}`)
 - Section C: Capabilities (with IDs `fdd-capability-{name}`)
@@ -355,15 +355,15 @@ What should the vision be?
 **Valid execution sequence**:
 ```
 1. Read workflow file
-2. Check prerequisites (Adapter COMPLETE, BUSINESS.md ≥90)
+2. Check prerequisites (Adapter COMPLETE, PRD.md ≥90)
 3. Prerequisites pass
 4. Read requirements/overall-design-structure.md
-5. Read BUSINESS.md (parent)
+5. Read PRD.md (parent)
 6. Read adapter domain model spec
 
 7. Ask Q1: Architecture style?
    Propose: "Layered architecture"
-   Reasoning: "Based on BUSINESS.md capabilities"
+   Reasoning: "Based on PRD.md capabilities"
    User: Approve
 
 8. Ask Q2: Key components?

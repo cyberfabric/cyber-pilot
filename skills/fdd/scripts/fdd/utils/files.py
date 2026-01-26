@@ -271,25 +271,19 @@ def detect_requirements(artifact_path: Path) -> Tuple[str, Path]:
     Returns tuple of (artifact_kind, requirements_path).
     """
     name = artifact_path.name
-
-    if re.match(r"^\d{4}-\d{2}-\d{2}-CHANGES\.md$", name):
-        return "feature-changes", fdd_root_from_this_file() / "requirements" / "feature-changes-structure.md"
     fdd_root = fdd_root_from_this_file()
 
     def req(rel: str) -> Path:
         return (fdd_root / rel).resolve()
 
-    if name == "BUSINESS.md":
-        return "business-context", req("requirements/business-context-structure.md")
+    if name == "PRD.md":
+        return "prd", req("requirements/prd-structure.md")
 
     if name == "ADR":
         return "adr", req("requirements/adr-structure.md")
 
     if name == "FEATURES.md":
         return "features-manifest", req("requirements/features-manifest-structure.md")
-
-    if name == "CHANGES.md":
-        return "feature-changes", req("requirements/feature-changes-structure.md")
 
     if name == "DESIGN.md":
         parts = list(artifact_path.parts)

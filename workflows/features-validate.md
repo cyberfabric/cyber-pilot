@@ -73,7 +73,7 @@ Extract:
 **MUST validate**:
 - [ ] FEATURES.md exists - validate: Check file at `architecture/features/FEATURES.md`
 - [ ] DESIGN.md exists - validate: Check file at `architecture/DESIGN.md`
-- [ ] DESIGN.md validated - validate: Deterministic validator PASS (`fdd validate`, including traceability with BUSINESS.md and `architecture/ADR/`) and score threshold met (≥90/100 if scoring is reported)
+- [ ] DESIGN.md validated - validate: Deterministic validator PASS (`fdd validate`, including traceability with PRD.md and `architecture/ADR/`) and score threshold met (≥90/100 if scoring is reported)
 
 **If missing**: Run prerequisite workflows
 
@@ -94,7 +94,7 @@ Run the deterministic validator for prerequisites and the target artifact.
 
 **Commands** (run from repo root):
 ```bash
-python3 skills/fdd/scripts/fdd.py validate --artifact architecture/DESIGN.md --business architecture/BUSINESS.md --adr ADR
+python3 skills/fdd/scripts/fdd.py validate --artifact architecture/DESIGN.md --prdarchitecture/PRD.md --adr ADR
 python3 skills/fdd/scripts/fdd.py validate --artifact architecture/features/FEATURES.md --design architecture/DESIGN.md
 ```
 

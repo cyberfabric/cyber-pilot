@@ -203,6 +203,8 @@ def infer_fdd_type(id_value: str) -> str:
     """
     if "-actor-" in id_value:
         return "actor"
+    if "-fr-" in id_value:
+        return "functional-requirement"
     if "-capability-" in id_value:
         return "capability"
     if "-usecase-" in id_value:
@@ -211,6 +213,8 @@ def infer_fdd_type(id_value: str) -> str:
         return "principle"
     if "-nfr-" in id_value:
         return "nfr"
+    if "-prd-context-" in id_value:
+        return "prd-context"
     if "-constraint-" in id_value:
         return "constraint"
     if "-feature-" in id_value and "-flow-" in id_value:
@@ -219,6 +223,8 @@ def infer_fdd_type(id_value: str) -> str:
         return "algo"
     if "-feature-" in id_value and "-state-" in id_value:
         return "state"
+    if "-feature-" in id_value and "-context-" in id_value:
+        return "feature-context"
     if "-feature-" in id_value and "-test-" in id_value:
         return "test"
     if "-feature-" in id_value and "-req-" in id_value:
@@ -239,18 +245,18 @@ def iter_candidate_definition_files(root, *, needle: str) -> List[Path]:
         want_suffixes = ["architecture/ADR/*.md", "architecture/ADR/*/*.md"]
     elif "-adr-" in needle:
         want_suffixes = ["architecture/ADR/*.md", "architecture/ADR/*/*.md"]
-    elif kind in {"actor", "capability", "usecase"}:
-        want_suffixes = ["architecture/BUSINESS.md"]
-    elif kind in {"requirement", "principle", "nfr", "constraint"}:
+    elif kind in {"actor", "capability", "functional-requirement", "usecase", "prd-context"}:
+        want_suffixes = ["architecture/PRD.md"]
+    elif kind in {"requirement", "principle", "constraint"}:
         want_suffixes = ["architecture/DESIGN.md"]
+    elif kind in {"nfr"}:
+        want_suffixes = ["architecture/PRD.md", "architecture/DESIGN.md"]
     elif kind == "feature":
         want_suffixes = ["architecture/features/FEATURES.md"]
-    elif kind in {"flow", "algo", "state", "test", "feature-requirement"} or "-td-" in needle:
+    elif kind in {"flow", "algo", "state", "test", "feature-requirement", "feature-context"} or "-td-" in needle:
         want_suffixes = ["architecture/features/feature-*/DESIGN.md"]
-    elif "-feature-" in needle and "-change-" in needle:
-        want_suffixes = ["architecture/features/feature-*/CHANGES.md", "architecture/features/feature-*/archive/*.md"]
     else:
-        want_suffixes = ["architecture/DESIGN.md", "architecture/BUSINESS.md", "architecture/ADR/*.md", "architecture/ADR/*/*.md"]
+        want_suffixes = ["architecture/DESIGN.md", "architecture/PRD.md", "architecture/ADR/*.md", "architecture/ADR/*/*.md"]
 
     expanded: List[str] = []
     seen: set = set()
@@ -276,7 +282,7 @@ def iter_candidate_definition_files(root, *, needle: str) -> List[Path]:
 
 def definition_hits_in_file(*, path: Path, root: Path, needle: str, include_tags: bool) -> List[Dict[str, object]]:
     from .document import read_text_safe, to_relative_posix
-    from .markdown import get_section_indices, get_design_subsections, business_block_bounds, design_item_block_bounds
+    from .markdown import get_section_indices, get_design_subsections, prd_block_bounds, design_item_block_bounds
     from .. import constants
 
     lines = read_text_safe(path)
@@ -294,20 +300,24 @@ def definition_hits_in_file(*, path: Path, root: Path, needle: str, include_tags
         return hits
 
     section_idx: Optional[Dict[str, Tuple[int, int]]] = None
-    if is_markdown and rel.endswith("architecture/BUSINESS.md"):
-        section_idx = get_section_indices(lines, constants.SECTION_BUSINESS_RE)
+    if is_markdown and rel.endswith("architecture/PRD.md"):
+        section_idx = get_section_indices(lines, constants.SECTION_PRD_RE)
     if is_markdown and rel.endswith("architecture/DESIGN.md"):
         section_idx = get_section_indices(lines, re.compile(r"^##\s+([A-D])\.\s+(.+?)\s*$"))
 
-    expected_business_section: Optional[str] = None
+    expected_prd_section: Optional[str] = None
     itype = infer_fdd_type(needle)
-    if rel.endswith("architecture/BUSINESS.md"):
+    if rel.endswith("architecture/PRD.md"):
         if itype == "actor":
-            expected_business_section = "B"
-        elif itype == "capability":
-            expected_business_section = "C"
+            expected_prd_section = "B"
+        elif itype == "capability" or itype == "functional-requirement":
+            expected_prd_section = "C"
         elif itype == "usecase":
-            expected_business_section = "D"
+            expected_prd_section = "D"
+        elif itype == "nfr":
+            expected_prd_section = "E"
+        elif itype == "prd-context":
+            expected_prd_section = "F"
 
     expected_design_subsection: Optional[int] = None
     if rel.endswith("architecture/DESIGN.md"):
@@ -325,14 +335,14 @@ def definition_hits_in_file(*, path: Path, root: Path, needle: str, include_tags
             continue
         if is_markdown and ("**ID**:" in line or (itype == "adr" and "**ADR ID**:" in line)):
             idx0 = i - 1
-            if expected_business_section is not None and section_idx is not None:
-                rng = section_idx.get(expected_business_section)
+            if expected_prd_section is not None and section_idx is not None:
+                rng = section_idx.get(expected_prd_section)
                 if rng is None:
                     continue
                 sec_s, sec_e = rng
                 if not (sec_s <= idx0 < sec_e):
                     continue
-                bnd = business_block_bounds(lines, section_start=sec_s, section_end=sec_e, id_idx=idx0)
+                bnd = prd_block_bounds(lines, section_start=sec_s, section_end=sec_e, id_idx=idx0)
                 if bnd is None:
                     continue
                 bs, be = bnd

@@ -9,14 +9,9 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
 from ...constants import (
-    REQ_ID_RE,
-    NFR_ID_RE,
-    PRINCIPLE_ID_RE,
-    CONSTRAINT_ID_RE,
     ADR_ID_RE,
     ADR_NUM_RE,
     ACTOR_ID_RE,
-    CAPABILITY_ID_RE,
     USECASE_ID_RE,
 )
 
@@ -24,7 +19,7 @@ from ...utils import (
     find_placeholders,
     load_text,
     find_present_section_ids,
-    parse_business_model,
+    parse_prd_model,
     load_adr_entries,
 )
 
@@ -34,7 +29,7 @@ def validate_overall_design(
     artifact_text: str,
     *,
     artifact_path: Optional[Path] = None,
-    business_path: Optional[Path] = None,
+    prd_path: Optional[Path] = None,
     adr_path: Optional[Path] = None,
     skip_fs_checks: bool = False,
 ) -> Dict[str, object]:
@@ -48,34 +43,54 @@ def validate_overall_design(
         errors.append({"type": "structure", "message": "Missing required top-level sections", "missing": missing})
 
     b_subs = [m.group(1) for m in re.finditer(r"^###\s+B\.(\d+)\s*[:.]", artifact_text, re.MULTILINE)]
-    expected_b = ["1", "2", "3"]
+    expected_b = ["1", "2"]
     if not b_subs:
-        errors.append({"type": "structure", "message": "Section B must include subsections B.1..B.3", "expected": expected_b})
+        errors.append({"type": "structure", "message": "Section B must include subsections B.1..B.2", "expected": expected_b})
     elif b_subs != expected_b:
-        errors.append({"type": "structure", "message": "Section B must have exactly B.1..B.3 in order", "found": b_subs, "expected": expected_b})
+        errors.append({"type": "structure", "message": "Section B must have exactly B.1..B.2 in order", "found": b_subs, "expected": expected_b})
 
     c_subs = [m.group(1) for m in re.finditer(r"^###\s+C\.(\d+)\s*[:.]", artifact_text, re.MULTILINE)]
-    expected_c = ["1", "2", "3", "4"]
+    required_c = ["1", "2", "3", "4"]
+    optional_c = {"5", "6", "7"}
     if not c_subs:
-        errors.append({"type": "structure", "message": "Section C must include subsections C.1..C.4", "expected": expected_c})
-    elif c_subs != expected_c:
-        errors.append({"type": "structure", "message": "Section C must have exactly C.1..C.4 in order", "found": c_subs, "expected": expected_c})
+        errors.append({"type": "structure", "message": "Section C must include subsections C.1..C.4", "expected": required_c})
+    else:
+        if len(c_subs) < len(required_c) or c_subs[:4] != required_c:
+            errors.append({"type": "structure", "message": "Section C must include C.1..C.4 in order", "found": c_subs, "expected": required_c})
+        else:
+            tail = c_subs[4:]
+            bad_tail = [x for x in tail if x not in optional_c]
+            if bad_tail:
+                errors.append({"type": "structure", "message": "Section C optional subsections may only include C.5..C.7", "found": tail, "bad": bad_tail})
+            else:
+                ordered_tail = sorted(tail, key=lambda s: int(s))
+                if tail != ordered_tail:
+                    errors.append({"type": "structure", "message": "Section C optional subsections must be in ascending order", "found": tail})
 
-    business_actors: set = set()
-    business_caps_to_actors: Dict[str, set] = {}
-    business_usecases: set = set()
+    has_arch_drivers = re.search(r"^###\s+Architecture drivers\s*$", artifact_text, re.MULTILINE) is not None
+    if not has_arch_drivers:
+        errors.append({"type": "structure", "message": "Section A must include '### Architecture drivers'"})
+    else:
+        if re.search(r"^####\s+Product requirements\s*$", artifact_text, re.MULTILINE) is None:
+            errors.append({"type": "structure", "message": "Architecture drivers must include '#### Product requirements'"})
+        header_re = re.compile(r"^\|\s*FDD ID\s*\|\s*Solution short description\s*\|\s*$", re.MULTILINE)
+        if header_re.search(artifact_text) is None:
+            errors.append({"type": "structure", "message": "Product requirements must include a table with columns: FDD ID | Solution short description"})
+
+    prd_actors: set = set()
+    prd_usecases: set = set()
     adr_ids: set = set()
     adr_num_to_id: Dict[int, str] = {}
 
     if not skip_fs_checks and artifact_path is not None:
-        bp = business_path or (artifact_path.parent / "BUSINESS.md")
+        bp = prd_path or (artifact_path.parent / "PRD.md")
         ap = adr_path or (artifact_path.parent / "ADR")
 
         bt, berr = load_text(bp)
         if berr:
             errors.append({"type": "cross", "message": berr})
         else:
-            business_actors, business_caps_to_actors, business_usecases = parse_business_model(bt or "")
+            prd_actors, _prd_caps_to_actors, prd_usecases = parse_prd_model(bt or "")
 
         if ap.exists() and ap.is_dir():
             adr_entries, adr_issues = load_adr_entries(ap)
@@ -86,104 +101,39 @@ def validate_overall_design(
                 if "num" in e and "id" in e and e.get("id"):
                     adr_num_to_id[int(e["num"])] = str(e["id"])  # type: ignore[arg-type]
 
-    req_blocks: List[Dict[str, object]] = []
-    lines = artifact_text.splitlines()
-    idxs = [i for i, l in enumerate(lines) if "**ID**:" in l and REQ_ID_RE.search(l)]
-    for i, start in enumerate(idxs):
-        end = idxs[i + 1] if i + 1 < len(idxs) else len(lines)
-        block = lines[start:end]
-        id_line = lines[start]
-        req_id = next(iter(REQ_ID_RE.findall(id_line)), None)
-        if not req_id:
-            continue
-        block_text = "\n".join(block)
-        caps = set(CAPABILITY_ID_RE.findall(block_text))
-        actors = set(ACTOR_ID_RE.findall(block_text))
-        usecases = set(USECASE_ID_RE.findall(block_text))
-        adr_refs: set = set(ADR_ID_RE.findall(block_text))
-        for n in ADR_NUM_RE.findall(block_text):
-            mapped = adr_num_to_id.get(int(n))
-            if mapped:
-                adr_refs.add(mapped)
-        req_blocks.append({"id": req_id, "caps": caps, "actors": actors, "usecases": usecases, "adr_ids": adr_refs})
+    reference_issues: List[Dict[str, object]] = []
 
-    req_issues: List[Dict[str, object]] = []
-    if not req_blocks:
-        req_issues.append({"message": "No functional requirement IDs found"})
+    if prd_actors:
+        referenced_actors = sorted(set(ACTOR_ID_RE.findall(artifact_text)))
+        bad = [a for a in referenced_actors if a not in prd_actors]
+        if bad:
+            reference_issues.append({"message": "Unknown actor IDs", "ids": bad})
 
-    cap_covered: set = set()
-    uc_covered: set = set()
-    adr_covered: set = set()
+    if prd_usecases:
+        referenced_usecases = sorted(set(USECASE_ID_RE.findall(artifact_text)))
+        bad = [u for u in referenced_usecases if u not in prd_usecases]
+        if bad:
+            reference_issues.append({"message": "Unknown use case IDs", "ids": bad})
 
-    for rb in req_blocks:
-        rid = rb["id"]
-        caps = rb["caps"]
-        actors = rb["actors"]
-
-        if not caps:
-            req_issues.append({"requirement": rid, "message": "Missing capability references"})
-        if not actors:
-            req_issues.append({"requirement": rid, "message": "Missing actor references"})
-
-        cap_covered |= set(caps)
-        uc_covered |= set(rb["usecases"])
-        adr_covered |= set(rb["adr_ids"])
-
-        if business_actors:
-            bad = sorted([a for a in actors if a not in business_actors])
-            if bad:
-                req_issues.append({"requirement": rid, "message": "Unknown actor IDs", "ids": bad})
-
-        if business_caps_to_actors:
-            bad = sorted([c for c in caps if c not in business_caps_to_actors])
-            if bad:
-                req_issues.append({"requirement": rid, "message": "Unknown capability IDs", "ids": bad})
-            allowed: set = set()
-            for c in caps:
-                allowed |= set(business_caps_to_actors.get(c, set()))
-            if allowed and actors and not set(actors).issubset(allowed):
-                req_issues.append({"requirement": rid, "message": "Actors must match actors of referenced capabilities", "actors": sorted(list(actors)), "allowed": sorted(list(allowed))})
-
-        if business_usecases and rb["usecases"]:
-            bad = sorted([u for u in rb["usecases"] if u not in business_usecases])
-            if bad:
-                req_issues.append({"requirement": rid, "message": "Unknown use case IDs", "ids": bad})
-
-        if adr_ids and rb["adr_ids"]:
-            bad = sorted([a for a in rb["adr_ids"] if a not in adr_ids])
-            if bad:
-                req_issues.append({"requirement": rid, "message": "Unknown ADR references", "ids": bad})
-
-    if business_caps_to_actors:
-        missing_caps = sorted([c for c in business_caps_to_actors.keys() if c not in cap_covered])
-        if missing_caps:
-            errors.append({"type": "traceability", "message": "Orphaned capabilities (not referenced in DESIGN.md requirements)", "ids": missing_caps})
-
-    if business_usecases:
-        missing_uc = sorted([u for u in business_usecases if u not in uc_covered])
-        if missing_uc:
-            errors.append({"type": "traceability", "message": "Orphaned use cases (not referenced in DESIGN.md requirements)", "ids": missing_uc})
-
-    # ADR coverage is computed across the entire DESIGN.md (requirements + principles + constraints + NFRs)
     if adr_ids:
-        covered: set = set(ADR_ID_RE.findall(artifact_text))
+        referenced_adrs: Set[str] = set(ADR_ID_RE.findall(artifact_text))
         for n in ADR_NUM_RE.findall(artifact_text):
             mapped = adr_num_to_id.get(int(n))
             if mapped:
-                covered.add(mapped)
-        missing_adrs = sorted([a for a in adr_ids if a not in covered])
-        if missing_adrs:
-            errors.append({"type": "traceability", "message": "Orphaned ADRs (not referenced in DESIGN.md)", "ids": missing_adrs})
+                referenced_adrs.add(mapped)
+        bad = sorted([a for a in referenced_adrs if a not in adr_ids])
+        if bad:
+            reference_issues.append({"message": "Unknown ADR references", "ids": bad})
 
-    passed = (len(errors) == 0) and (len(req_issues) == 0) and (len(placeholders) == 0)
+    passed = (len(errors) == 0) and (len(reference_issues) == 0) and (len(placeholders) == 0)
     return {
         "required_section_count": 3,
         "missing_sections": [{"id": s, "title": ""} for s in missing],
         "placeholder_hits": placeholders,
         "status": "PASS" if passed else "FAIL",
         "errors": errors,
-        "requirement_issues": req_issues,
-        "requirement_count": len(req_blocks),
+        "requirement_issues": reference_issues,
+        "requirement_count": 0,
     }
 
 

@@ -1,7 +1,7 @@
 COMMAND validate
 SYNOPSIS: python3 scripts/fdd.py validate --artifact <path> [options]
 DESCRIPTION: Validate FDD artifacts against requirements or perform codebase traceability scan
-WORKFLOW: design-validate, features-validate, feature-validate, feature-changes-validate, feature-code-validate
+WORKFLOW: design-validate, features-validate, feature-validate, code-validate
 
 ARGUMENTS:
   artifact  <path>  required  Path to FDD artifact or code root directory
@@ -9,7 +9,7 @@ ARGUMENTS:
 OPTIONS:
   --requirements  <path>  Requirements file to validate against (auto-detected if not provided)
   --design  <path>  Path to DESIGN.md for cross-reference validation
-  --business  <path>  Path to BUSINESS.md for cross-reference validation
+  --prd <path>  Path to PRD.md for cross-reference validation
   --adr  <path>  Path to ADR directory (architecture/ADR/) for cross-reference validation
   --features  <string>  Comma-separated feature slugs for traceability scan filtering
   --skip-fs-checks  <boolean>  Skip filesystem checks during validation
@@ -25,7 +25,7 @@ EXAMPLE:
   $ python3 scripts/fdd.py validate --artifact architecture/DESIGN.md
   $ python3 scripts/fdd.py validate --artifact architecture/features/feature-auth/DESIGN.md
   $ python3 scripts/fdd.py validate --artifact . --features auth,payment
-  $ python3 scripts/fdd.py validate --artifact architecture/BUSINESS.md --output report.json
+  $ python3 scripts/fdd.py validate --artifact architecture/PRD.md --output report.json
 
 RELATED:
   - @CLI.list-sections
@@ -50,7 +50,7 @@ EXIT CODES:
 
 EXAMPLE:
   $ python3 scripts/fdd.py list-sections --artifact architecture/DESIGN.md
-  $ python3 scripts/fdd.py list-sections --artifact architecture/BUSINESS.md --under-heading "Section B"
+  $ python3 scripts/fdd.py list-sections --artifact architecture/PRD.md --under-heading "Section B"
 
 RELATED:
   - @CLI.list-ids
@@ -75,7 +75,7 @@ EXIT CODES:
   1  File system error or artifact not found
 
 EXAMPLE:
-  $ python3 scripts/fdd.py list-ids --artifact architecture/BUSINESS.md
+  $ python3 scripts/fdd.py list-ids --artifact architecture/PRD.md
   $ python3 scripts/fdd.py list-ids --artifact architecture/DESIGN.md --pattern "-actor-"
   $ python3 scripts/fdd.py list-ids --artifact architecture/features/FEATURES.md --pattern "feature-.*" --regex
   $ python3 scripts/fdd.py list-ids --artifact architecture/ADR --under-heading "Section B"
@@ -94,7 +94,7 @@ ARGUMENTS:
   artifact  <path>  required  Path to FDD artifact file
 
 OPTIONS:
-  --type  <string>  Filter by item type (actor|capability|usecase|requirement|feature|flow|algo|state|test|change|adr)
+  --type  <string>  Filter by item type (actor|capability|usecase|requirement|feature|flow|algo|state|test|adr)
   --lod  <string>  [default: summary]  Level of detail (id|summary)
   --pattern  <string>  Filter items by substring in ID or description
   --under-heading  <string>  Filter items under specific heading (exact match)
@@ -104,10 +104,9 @@ EXIT CODES:
   1  File system error or artifact not found
 
 EXAMPLE:
-  $ python3 scripts/fdd.py list-items --artifact architecture/BUSINESS.md
+  $ python3 scripts/fdd.py list-items --artifact architecture/PRD.md
   $ python3 scripts/fdd.py list-items --artifact architecture/DESIGN.md --type requirement
   $ python3 scripts/fdd.py list-items --artifact architecture/features/FEATURES.md --lod id
-  $ python3 scripts/fdd.py list-items --artifact architecture/features/feature-auth/CHANGES.md --type change
 
 RELATED:
   - @CLI.get-item
@@ -125,7 +124,6 @@ OPTIONS:
   --section  <string>  Section letter (A|B|C|etc.)
   --heading  <string>  Exact heading text to read
   --feature-id  <string>  Feature ID (for FEATURES.md)
-  --change  <number>  Change number (for CHANGES.md)
   --id  <string>  Any FDD ID substring to locate section
 
 EXIT CODES:
@@ -135,9 +133,8 @@ EXIT CODES:
 
 EXAMPLE:
   $ python3 scripts/fdd.py read-section --artifact architecture/DESIGN.md --section B
-  $ python3 scripts/fdd.py read-section --artifact architecture/BUSINESS.md --heading "Section A: Vision"
+  $ python3 scripts/fdd.py read-section --artifact architecture/PRD.md --heading "Section A: Vision"
   $ python3 scripts/fdd.py read-section --artifact architecture/features/FEATURES.md --feature-id fdd-myapp-feature-auth
-  $ python3 scripts/fdd.py read-section --artifact architecture/features/feature-auth/CHANGES.md --change 1
 
 RELATED:
   - @CLI.get-item
@@ -162,7 +159,7 @@ EXIT CODES:
   2  Item not found
 
 EXAMPLE:
-  $ python3 scripts/fdd.py get-item --artifact architecture/BUSINESS.md --id fdd-myapp-actor-admin
+  $ python3 scripts/fdd.py get-item --artifact architecture/PRD.md --id fdd-myapp-actor-admin
   $ python3 scripts/fdd.py get-item --artifact architecture/DESIGN.md --heading "Authentication System"
   $ python3 scripts/fdd.py get-item --artifact architecture/ADR --section A
 
@@ -213,7 +210,7 @@ EXIT CODES:
 
 EXAMPLE:
   $ python3 scripts/fdd.py search --artifact architecture/DESIGN.md --query "authentication"
-  $ python3 scripts/fdd.py search --artifact architecture/BUSINESS.md --query "user.*login" --regex
+  $ python3 scripts/fdd.py search --artifact architecture/PRD.md --query "user.*login" --regex
 
 RELATED:
   - @CLI.find-id

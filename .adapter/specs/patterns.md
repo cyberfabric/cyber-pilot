@@ -30,9 +30,9 @@
 
 **Examples**:
 ```markdown
-ALWAYS open and follow `specs/tech-stack.md` WHEN executing workflows: design.md, feature-change-implement.md
+ALWAYS open and follow `specs/tech-stack.md` WHEN executing workflows: design.md, code.md
 
-ALWAYS open and follow `specs/conventions.md` WHEN executing workflows: adapter-validate.md, feature-code-validate.md
+ALWAYS open and follow `specs/conventions.md` WHEN executing workflows: adapter-validate.md, code-validate.md
 ```
 
 **Rules**:
@@ -228,12 +228,11 @@ python3 skills/fdd/scripts/fdd.py validate --artifact {code-root}
 ### Layered Structure
 
 **Layer 0**: Adapter (tech stack, conventions)
-**Layer 1**: Business context (actors, capabilities)
+**Layer 1**: PRD (actors, capabilities)
 **Layer 2**: Overall design (architecture, domain model)
 **Layer 3**: Features (feature list)
 **Layer 4**: Feature designs (detailed specs)
-**Layer 5**: Changes (implementation plans)
-**Layer 6**: Code (implementation)
+**Layer 5**: Code (implementation)
 
 **Rule**: Each layer validated before proceeding to next
 
@@ -244,9 +243,7 @@ architecture/features/
 ├── FEATURES.md              # Feature manifest
 └── feature-{slug}/          # One directory per feature
     ├── DESIGN.md           # Feature specification
-    ├── CHANGES.md          # Current implementation plan
-    └── archive/            # Historical changes
-        └── YYYY-MM-DD-CHANGES.md
+    └── src/                # Implementation
 ```
 
 ---

@@ -19,7 +19,7 @@ from ...constants import (
 
 from ...utils import find_placeholders, load_text, field_block, has_list_item
 
-from .changes import _extract_feature_links, _extract_id_list
+from .common import _extract_feature_links, _extract_id_list
 
 
 __all__ = ["validate_features_manifest"]

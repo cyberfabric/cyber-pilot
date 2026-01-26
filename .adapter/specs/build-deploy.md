@@ -40,7 +40,7 @@ python3 skills/fdd/scripts/fdd.py adapter-info --root .
 python3 skills/fdd/scripts/fdd.py validate --artifact architecture/DESIGN.md
 
 # Search IDs
-python3 skills/fdd/scripts/fdd.py list-ids --artifact architecture/BUSINESS.md
+python3 skills/fdd/scripts/fdd.py list-ids --artifact architecture/PRD.md
 ```
 
 ---

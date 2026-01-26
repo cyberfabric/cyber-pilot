@@ -67,12 +67,12 @@ class TestFddArtifactEditorReadSearch(TestCase):
     def test_read_section_lettered(self) -> None:
         with TemporaryDirectory() as tds:
             td = Path(tds)
-            p = td / "architecture" / "BUSINESS.md"
+            p = td / "architecture" / "PRD.md"
             p.parent.mkdir(parents=True, exist_ok=True)
             p.write_text(
                 "\n".join(
                     [
-                        "# Business Context",
+                        "# PRD",
                         "",
                         "## A. VISION",
                         "",
@@ -235,14 +235,14 @@ class TestFddArtifactEditorReadSearch(TestCase):
             (td / "src").mkdir(parents=True)
 
             (td / "docs" / "doc.md").write_text("**ID**: `fdd-example-actor-user`\n", encoding="utf-8")
-            (td / "src" / "lib.rs").write_text("// @fdd-change:fdd-example-feature-x-change-a:ph-1\n", encoding="utf-8")
+            (td / "src" / "lib.rs").write_text("// @fdd-algo:fdd-example-feature-x-algo-a:ph-1\n", encoding="utf-8")
 
             proc = self._run(td=td, args=["scan-ids", "--root", str(td)])
             self.assertEqual(proc.returncode, 0, msg=proc.stdout + "\n" + proc.stderr)
             payload = json.loads(proc.stdout)
             ids = [h["id"] for h in payload["ids"]]
             self.assertIn("fdd-example-actor-user", ids)
-            self.assertIn("fdd-example-feature-x-change-a", ids)
+            self.assertIn("fdd-example-feature-x-algo-a", ids)
 
     def test_scan_ids_file_with_pattern(self) -> None:
         with TemporaryDirectory() as tds:
@@ -428,7 +428,7 @@ class TestFddArtifactEditorReadSearch(TestCase):
             self.assertIn("src/lib.rs", paths)
             self.assertNotIn("architecture/features/feature-x/DESIGN.md", paths)
 
-    def test_where_defined_business_actor_only_in_section_b_and_heading_block(self) -> None:
+    def test_where_defined_prd_actor_only_in_section_b_and_heading_block(self) -> None:
         with TemporaryDirectory() as tds:
             td = Path(tds)
             (td / "architecture").mkdir(parents=True)
@@ -436,11 +436,11 @@ class TestFddArtifactEditorReadSearch(TestCase):
             actor_id = "fdd-example-actor-analyst"
             cap_id = "fdd-example-capability-view"
 
-            p = td / "architecture" / "BUSINESS.md"
+            p = td / "architecture" / "PRD.md"
             p.write_text(
                 "\n".join(
                     [
-                        "# Business Context",
+                        "# PRD",
                         "",
                         "## A. VISION",
                         "Text.",
@@ -469,13 +469,13 @@ class TestFddArtifactEditorReadSearch(TestCase):
             self.assertEqual(proc.returncode, 0, msg=proc.stdout + "\n" + proc.stderr)
             payload = json.loads(proc.stdout)
             self.assertEqual(payload["status"], "FOUND")
-            self.assertEqual(payload["definitions"][0]["path"], "architecture/BUSINESS.md")
+            self.assertEqual(payload["definitions"][0]["path"], "architecture/PRD.md")
 
             proc_cap = self._run(td=td, args=["where-defined", "--root", str(td), "--id", cap_id])
             self.assertEqual(proc_cap.returncode, 0, msg=proc_cap.stdout + "\n" + proc_cap.stderr)
             payload_cap = json.loads(proc_cap.stdout)
             self.assertEqual(payload_cap["status"], "FOUND")
-            self.assertEqual(payload_cap["definitions"][0]["path"], "architecture/BUSINESS.md")
+            self.assertEqual(payload_cap["definitions"][0]["path"], "architecture/PRD.md")
 
     def test_where_defined_design_requirement_only_in_section_b(self) -> None:
         with TemporaryDirectory() as tds:

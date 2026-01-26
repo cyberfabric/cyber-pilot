@@ -12,7 +12,7 @@ from ..constants import (
     SECTION_RE,
     HEADING_ID_RE,
     SECTION_FEATURE_RE,
-    SECTION_BUSINESS_RE,
+    SECTION_PRD_RE,
     FIELD_HEADER_RE,
     KNOWN_FIELD_NAMES,
 )
@@ -80,13 +80,13 @@ def split_by_section_letter(text: str, section_re: re.Pattern) -> Tuple[List[str
 
 
 def split_by_feature_section_letter(text: str) -> Tuple[List[str], Dict[str, List[str]]]:
-    """Split feature DESIGN.md by section letters (A-G)."""
+    """Split feature DESIGN.md by section letters (A-F)."""
     return split_by_section_letter(text, SECTION_FEATURE_RE)
 
 
-def split_by_business_section_letter(text: str) -> Tuple[List[str], Dict[str, List[str]]]:
-    """Split BUSINESS.md by section letters (A-E)."""
-    return split_by_section_letter(text, SECTION_BUSINESS_RE)
+def split_by_prd_section_letter(text: str) -> Tuple[List[str], Dict[str, List[str]]]:
+    """Split PRD.md by section letters (A-E)."""
+    return split_by_section_letter(text, SECTION_PRD_RE)
 
 
 def field_block(lines: List[str], field_name: str) -> Optional[Dict[str, object]]:

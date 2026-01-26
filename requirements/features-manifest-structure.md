@@ -84,7 +84,7 @@ purpose: Define validation rules for FEATURES.md files
 
 **Check**:
 - [ ] No feature flows/algorithms/states are authored here (keep behavior in feature `DESIGN.md`)
-- [ ] No task breakdowns are authored here (keep implementation detail in `CHANGES.md`)
+- [ ] No task breakdowns are authored here (keep implementation detail in feature `DESIGN.md`)
 - [ ] No code-level details are authored here
 
 ### Required Fields Per Feature
@@ -153,7 +153,7 @@ purpose: Define validation rules for FEATURES.md files
    - No orphaned requirements
 
 2. **Principles Coverage (RECOMMENDED)**
-   - Principle IDs from DESIGN.md Section B.2 SHOULD appear in features that implement them
+   - Principle IDs from DESIGN.md Section B.2 SHOULD appear in features that code them
 
 3. **Constraints Coverage (RECOMMENDED)**
    - Constraint IDs from DESIGN.md Section B.3 SHOULD appear in affected features

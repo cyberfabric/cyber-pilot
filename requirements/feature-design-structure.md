@@ -2,7 +2,7 @@
 fdd: true
 type: requirement
 name: Feature Design Structure
-version: 1.1
+version: 1.2
 purpose: Define validation rules for feature DESIGN.md files
 ---
 
@@ -56,11 +56,12 @@ purpose: Define validation rules for feature DESIGN.md files
   - Actor flows
   - Algorithms
   - States
-- Feature requirements, phases, acceptance criteria.
-- Test scenarios and edge cases.
+- Feature requirements and phases.
+- Implementation guidance for developers/agents.
+- Explicit technical interactions where applicable (API calls, database operations, external integrations).
 
 **Should not contain**:
-- Sprint/task breakdowns (use `CHANGES.md`).
+- Sprint/task breakdowns.
 - System-level type redefinitions (use `architecture/DESIGN.md`).
 - Code diffs or code snippets.
 
@@ -74,12 +75,10 @@ purpose: Define validation rules for feature DESIGN.md files
 | B | Actor Flows (FDL) | YES |
 | C | Algorithms (FDL) | YES |
 | D | States (FDL) | YES (can be minimal) |
-| E | Technical Details | YES |
-| F | Requirements | YES |
-| G | Testing Scenarios | YES |
-| H | Additional Context | Optional |
+| E | Requirements | YES |
+| F | Additional Context | Optional |
 
-**Order**: A → B → C → D → E → F → G → [H]
+**Order**: A → B → C → D → E → [F]
 
 ---
 
@@ -92,14 +91,14 @@ purpose: Define validation rules for feature DESIGN.md files
 
 ### Structure Validation
 
-- All required sections A-G present
+- All required sections A-E present
 - Correct section order
 - No duplicate sections
 
 ### Content Boundaries Validation
 
 **Check**:
-- [ ] No sprint/task breakdowns are authored here (those belong in `CHANGES.md`)
+- [ ] No sprint/task breakdowns are authored here
 - [ ] No system-level type redefinitions are authored here (reference `architecture/DESIGN.md` instead)
 - [ ] No code diffs or code snippets are authored here
 
@@ -107,13 +106,12 @@ purpose: Define validation rules for feature DESIGN.md files
 
 | Section | Min Lines | Key Requirement |
 |---------|-----------|-----------------|
-| A | — | Feature ID, Status, Actors from BUSINESS.md |
-| B | 50 | FDL syntax, flow IDs, checkboxes |
-| C | 100 | FDL syntax, algo IDs, no code blocks |
+| A | — | Feature ID, Status, Actors from PRD.md |
+| B | 50 | FDL syntax, flow IDs, checkboxes, explicit API/DB/integration interactions when applicable |
+| C | 100 | FDL syntax, algo IDs, explicit API/DB/integration interactions when applicable |
 | D | — | FDL syntax with **WHEN** keyword |
-| E | 200 | DB, API, Security, Error Handling |
-| F | — | ≥1 requirement with all fields |
-| G | — | ≥1 test with FDL steps |
+| E | — | ≥1 requirement with all required fields |
+| F | — | If present: context IDs and payload blocks |
 
 ---
 
@@ -125,7 +123,7 @@ purpose: Define validation rules for feature DESIGN.md files
 | Algorithm | `fdd-{project}-feature-{slug}-algo-{name}` |
 | State | `fdd-{project}-feature-{slug}-state-{name}` |
 | Requirement | `fdd-{project}-feature-{slug}-req-{name}` |
-| Test | `fdd-{project}-feature-{slug}-test-{name}` |
+| Context | `fdd-{project}-feature-{slug}-context-{name}` |
 
 **ID Rules**:
 - All IDs wrapped in backticks
@@ -137,7 +135,7 @@ purpose: Define validation rules for feature DESIGN.md files
 
 ## FDL Requirements
 
-### Mandatory for Sections B, C, D, G
+### Mandatory for Sections B, C, D
 
 **Step format**:
 ```
@@ -148,6 +146,13 @@ purpose: Define validation rules for feature DESIGN.md files
 - Checkbox: `[ ]` or `[x]`
 - Phase token: `ph-{N}`
 - Instruction ID: `inst-{short-id}` (unique within section)
+
+**Technical detail requirement (B and C)**:
+- Actor flows and algorithms **MUST** include explicit interaction details when the step implies them:
+  - API: method + path (example: `API: POST /api/tasks`)
+  - DB: operation + table(s) (example: `DB: INSERT tasks(...)` or `DB: SELECT tasks WHERE id=?`)
+  - Integrations: system name + action (example: `Integration: notify Slack channel #ops`)
+- If the feature reuses system-level endpoints or schemas, steps **MUST** reference them rather than redefine them.
 
 ### FDL Keywords
 
@@ -165,7 +170,7 @@ purpose: Define validation rules for feature DESIGN.md files
 
 ---
 
-## Section F: Requirements Validation
+## Section E: Requirements Validation
 
 **Required fields per requirement**:
 
@@ -174,23 +179,12 @@ purpose: Define validation rules for feature DESIGN.md files
 | **ID** | Unique requirement ID with checkbox |
 | **Status** | ⏳ NOT_STARTED, 🔄 IN_PROGRESS, ✅ IMPLEMENTED |
 | **Description** | SHALL/MUST statements |
+| **Implementation details** | Guidance and constraints for implementation |
 | **References** | Anchors to sections B-E |
 | **Implements** | Flow/algo/state IDs |
 | **Phases** | Phase decomposition with checkboxes |
-| **Tests Covered** | Test IDs from Section G |
-| **Acceptance Criteria** | ≥2 testable criteria |
 
----
-
-## Section G: Testing Validation
-
-**Required fields per test**:
-
-| Field | Description |
-|-------|-------------|
-| **ID** | Unique test ID with checkbox |
-| **Validates** | Requirement IDs from Section F |
-| **Steps** | FDL syntax (NOT Gherkin) |
+**Implementation details** is the authoritative place to specify API/DB/domain entity impact when relevant.
 
 ---
 
@@ -205,7 +199,7 @@ purpose: Define validation rules for feature DESIGN.md files
 - ❌ No new endpoint definitions
 
 ### Actor Alignment
-- ✅ Only actors from BUSINESS.md
+- ✅ Only actors from PRD.md
 - Actor IDs must match
 
 ---
@@ -214,32 +208,30 @@ purpose: Define validation rules for feature DESIGN.md files
 
 | Category | Points |
 |----------|--------|
-| Structure (A-G present) | 15 |
-| FDL Compliance (B, C, D, G) | 30 |
-| Technical Details (E) | 20 |
-| Requirements (F) | 20 |
-| Testing Scenarios (G) | 15 |
+| Structure (A-E present) | 20 |
+| FDL Compliance (B, C, D) | 35 |
+| Requirements (E) | 35 |
+| Additional Context (F, if present) | 10 |
 | **Total** | **100** |
 
 ---
 
 ## Common Issues
 
-- Missing required sections (A-G)
+- Missing required sections (A-E)
 - Invalid section order
 - Missing or invalid FDL step format
 - Missing required requirement fields
 - Missing `<!-- fdd-id-content -->` payload blocks
-- Using Gherkin keywords instead of FDL
 - Type redefinitions instead of references
 
 ---
 
 ## Validation Checklist (Final)
 
-- [ ] Document follows required structure (A-G)
+- [ ] Document follows required structure (A-E)
 - [ ] All validation criteria pass
-- [ ] FDL syntax correct in B, C, D, G
+- [ ] FDL syntax correct in B, C, D
 - [ ] Cross-validation with Overall Design passes
 - [ ] Agent used template for generation
 - [ ] Agent referenced example for validation
@@ -256,4 +248,3 @@ purpose: Define validation rules for feature DESIGN.md files
 **Related**:
 - `FDL.md` — FDL syntax specification
 - `overall-design-structure.md` — Overall Design structure
-- `feature-changes-structure.md` — CHANGES.md structure

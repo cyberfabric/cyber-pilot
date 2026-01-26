@@ -16,14 +16,14 @@ from fdd.utils.parsing import (
     find_present_section_ids,
     split_by_section_letter,
     split_by_feature_section_letter,
-    split_by_business_section_letter,
+    split_by_prd_section_letter,
     field_block,
     has_list_item,
     extract_backticked_ids,
 )
 from fdd.constants import (
     SECTION_FEATURE_RE,
-    SECTION_BUSINESS_RE,
+    SECTION_PRD_RE,
     ACTOR_ID_RE,
     CAPABILITY_ID_RE,
 )
@@ -149,13 +149,13 @@ Design details
         self.assertIn("C", sections)
 
 
-class TestSplitByBusinessSectionLetter(unittest.TestCase):
-    """Test split_by_business_section_letter function."""
+class TestSplitByPRDSectionLetter(unittest.TestCase):
+    """Test split_by_prd_section_letter function."""
 
-    def test_split_business_sections(self):
-        """Test splitting BUSINESS.md."""
+    def test_split_prd_sections(self):
+        """Test splitting PRD.md."""
         text = """
-## A. Business Context
+## A. PRD
 
 Context
 
@@ -168,7 +168,7 @@ Actors list
 Capabilities
 """
         
-        order, sections = split_by_business_section_letter(text)
+        order, sections = split_by_prd_section_letter(text)
         
         self.assertEqual(order, ["A", "B", "C"])
         self.assertIn("A", sections)

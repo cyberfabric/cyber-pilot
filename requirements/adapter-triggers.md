@@ -108,39 +108,7 @@ Add to adapter specs/patterns.md? [Yes] [No]
 
 ---
 
-### 3. Breaking Changes
-
-**Trigger**: CHANGES.md created with Type: BREAKING or MAJOR
-
-**Check**:
-- CHANGES.md Type field
-- CHANGES.md Section F (Implementation Plan)
-- Changes to API endpoints
-- Changes to domain model structure
-
-**Scan for**:
-- API breaking changes
-- Domain model structure changes
-- Deprecated patterns
-- Migration requirements
-
-**Propose IF**:
-- Breaking change affects adapter specs
-- API contract format changed
-- Domain model format changed
-- Pattern deprecated
-
-**Action**:
-```
-Breaking change detected:
-  - API endpoint /v1/workflow → /v2/workflow
-  
-Update adapter specs + add migration guide? [Yes] [No]
-```
-
----
-
-### 4. Implementation Code
+### 3. Implementation Code
 
 **Trigger**: Code committed AND tests passed
 
@@ -171,7 +139,7 @@ Add to adapter specs/snippets/error-handling.md? [Yes] [No]
 
 ---
 
-### 5. User Decisions
+### 4. User Decisions
 
 **Trigger**: User explicitly states technical decision in conversation
 
@@ -183,7 +151,7 @@ Add to adapter specs/snippets/error-handling.md? [Yes] [No]
 - User answers technical questions
 
 **Propose IF**:
-- Decision is technical (not business)
+- Decision is technical (not prd)
 - Decision affects implementation
 - Decision not yet in adapter
 
@@ -197,7 +165,7 @@ Capture in adapter specs/tech-stack.md? [Yes] [No]
 
 ---
 
-### 6. Existing Project Discovery
+### 5. Existing Project Discovery
 
 **Trigger**: First FDD workflow run in existing codebase
 
@@ -227,7 +195,7 @@ Run adapter discovery to capture existing decisions? [Yes] [No]
 At ANY workflow step:
 
 1. Monitor for triggers:
-   - File created/updated (DESIGN.md, CHANGES.md, *.py, *.ts, etc.)
+   - File created/updated (DESIGN.md, feature DESIGN.md, *.py, *.ts, etc.)
    - Validation completed (design-validate, feature-validate)
    - Tests passed
    - User stated decision
@@ -241,7 +209,7 @@ At ANY workflow step:
    → Show proposal to user
    → IF user accepts:
      → Run adapter workflow (appropriate mode)
-     → Capture changes
+     → Capture updates
      → Update adapter specs
    → IF user rejects:
      → Continue workflow

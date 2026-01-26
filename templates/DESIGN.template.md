@@ -6,6 +6,14 @@
 
 {2-3 paragraphs describing the technical approach, key architectural decisions, and design philosophy}
 
+### Architecture drivers
+
+#### Product requirements
+
+| FDD ID | Solution short description |
+|--------|----------------------------|
+| `fdd-{project-name}-{kind}-{slug}` | {short description of how to solve} |
+
 ### Architecture Layers
 
 <!-- TODO: Add architecture diagram (draw.io, Mermaid, or embedded image) -->
@@ -17,26 +25,9 @@
 | Domain | {description} | {tech} |
 | Infrastructure | {description} | {tech} |
 
-## B. Requirements & Principles
+## B. Principles & Constraints
 
-### B.1: Functional Requirements
-
-#### FR-{NNN}: {Requirement Title}
-
-**ID**: `fdd-{project-name}-req-{requirement-slug}`
-
-<!-- fdd-id-content -->
-**Priority**: {HIGH | MEDIUM | LOW}
-**Capabilities**: `fdd-{project-name}-capability-{cap1}`, `fdd-{project-name}-capability-{cap2}`
-**Use Cases**: `fdd-{project-name}-usecase-{uc1}`
-**Actors**: `fdd-{project-name}-actor-{actor1}`, `fdd-{project-name}-actor-{actor2}`
-
-{Description of what the system must do}
-<!-- fdd-id-content -->
-
-<!-- TODO: Add more functional requirements as needed -->
-
-### B.2: Design Principles
+### B.1: Design Principles
 
 #### {Principle Name}
 
@@ -50,7 +41,7 @@
 
 <!-- TODO: Add more design principles as needed -->
 
-### B.3: Constraints
+### B.2: Constraints
 
 #### {Constraint Name}
 
@@ -66,18 +57,7 @@
 
 ## C. Technical Architecture
 
-### C.1: Component Model
-
-<!-- TODO: Add component diagram (draw.io, Mermaid, or ASCII) -->
-
-**Components**:
-- **{Component 1}**: {Purpose and responsibility}
-- **{Component 2}**: {Purpose and responsibility}
-
-**Interactions**:
-- {Component 1} → {Component 2}: {Description of interaction}
-
-### C.2: Domain Model
+### C.1: Domain Model
 
 **Technology**: {GTS | JSON Schema | OpenAPI | TypeScript}
 **Location**: [{domain-model-file}]({path/to/domain-model})
@@ -88,6 +68,17 @@
 **Relationships**:
 - {Entity1} → {Entity2}: {Relationship description}
 
+### C.2: Component Model
+
+<!-- TODO: Add component diagram (draw.io, Mermaid, or ASCII) -->
+
+**Components**:
+- **{Component 1}**: {Purpose and responsibility}
+- **{Component 2}**: {Purpose and responsibility}
+
+**Interactions**:
+- {Component 1} → {Component 2}: {Description of interaction}
+
 ### C.3: API Contracts
 
 **Technology**: {REST/OpenAPI | GraphQL | gRPC | CLISPEC}
@@ -96,55 +87,50 @@
 **Endpoints Overview**:
 - `{METHOD} {/path}` - {Description}
 
-### C.4: Non-Functional Requirements
+### C.4: Interactions & Sequences
 
-#### NFR: Performance
+Sequence diagrams for the most important flows.
 
-**ID**: `fdd-{project-name}-nfr-performance`
+Use cases: FDD ID from PRD.
 
-<!-- fdd-id-content -->
-- {Performance requirement 1}
-<!-- fdd-id-content -->
+Actors: FDD ID from PRD.
 
-#### NFR: Scalability
+### C.5 Database schemas & tables (optional)
 
-**ID**: `fdd-{project-name}-nfr-scalability`
+#### Table {name}
 
-<!-- fdd-id-content -->
-- {Scalability requirement 1}
-<!-- fdd-id-content -->
+ID: `fdd-{project-name}-db-table-{slug}`
 
-#### NFR: Reliability
+Schema
 
-**ID**: `fdd-{project-name}-nfr-reliability`
+| Column | Type | Description |
+|--------|------|-------------|
 
-<!-- fdd-id-content -->
-- {Reliability requirement 1}
-<!-- fdd-id-content -->
+PK:
 
-#### NFR: Runtime & Operations
+Constraints
 
-**ID**: `fdd-{project-name}-nfr-runtime-operations`
+Additional info
 
-<!-- fdd-id-content -->
-- Deployment: {Local CLI | CI | Server | Desktop App}
-- Execution context: {Where it runs, constraints}
-- Observability: {Logs/metrics}
-- Failure modes: {Common failure cases}
-<!-- fdd-id-content -->
+Example
 
-#### NFR: Security
+| Col name A | B | C |
+|------------|---|---|
+| values     |   |   |
 
-**ID**: `fdd-{project-name}-nfr-security`
+### C.6: Topology (optional)
 
-<!-- fdd-id-content -->
-- Authentication: {Approach description}
-- Authorization: {Approach description}
-- Data protection: {Approach description}
-- Security boundaries: {Description}
-<!-- fdd-id-content -->
+Physical view, files, pods, containers, DC, virtual machines, etc.
+
+**ID**: `fdd-{project-name}-topology-{slug}`
+
+### C.7: Tech stack (optional)
+
+**ID**: `fdd-{project-name}-tech-{slug}`
 
 ## D. Additional Context
+
+**ID**: `fdd-{project-name}-design-context-{slug}`
 
 <!-- TODO: Add any additional technical context, architect notes, rationale, etc. -->
 <!-- This section is optional and not validated by FDD -->

@@ -14,16 +14,15 @@ These are validated by tooling and cannot be changed:
 
 ### 1. Design Hierarchy
 ```
-ADAPTER → BUSINESS CONTEXT → OVERALL DESIGN → FEATURE DESIGN → CHANGES → CODE
+ADAPTER → PRD CONTEXT → OVERALL DESIGN → FEATURE DESIGN → CODE
 ```
 Must reference parent level, never contradict.
 
 - **ADAPTER**: Defines tech stack, formats, conventions (first step, required)
-- **BUSINESS CONTEXT**: Defines actors, capabilities, business requirements
+- **PRD CONTEXT**: Defines actors, capabilities, product requirements
 - **OVERALL DESIGN**: Architecture, domain model, API contracts
 - **FEATURE DESIGN**: Actor flows, algorithms, requirements
-- **CHANGES**: Atomic implementation plan with tasks
-- **CODE**: Implementation following CHANGES
+- **CODE**: Implementation following feature design
 
 ### 2. Mandatory FDD Rules
 - Actor Flows (Section B) are PRIMARY - always start from what actors do
@@ -31,7 +30,6 @@ Must reference parent level, never contradict.
 - Never redefine types - reference domain model from Overall Design
 - Validate before proceeding (Overall ≥90/100, Feature 100/100)
 - Feature size limits: ≤3000 lines (recommended), ≤4000 (hard limit)
-- Implementation changes are atomic - one change = one deployable unit
 - Design is source of truth - if code contradicts design, fix design first
 
 ### 3. File Structure
@@ -42,12 +40,11 @@ architecture/
     ├── FEATURES.md              # Feature manifest
     └── feature-{slug}/
         ├── DESIGN.md            # Feature Design
-        └── CHANGES.md           # Implementation plan
 ```
 
 ### 4. DESIGN.md Sections
 **Overall Design**:
-- Section A: Business Context
+- Section A: PRD
 - Section B: Requirements & Principles
 - Section C: Technical Architecture
 - Section D: Architecture Decision Records (ADR) - REQUIRED, MADR format
@@ -60,7 +57,6 @@ architecture/
 - Section D: States (optional)
 - Section E: Technical Details
 - Section F: Requirements (formalized scope + Testing Scenarios in FDL)
-- Section G: Implementation Plan (implementation changes with status)
 
 ### 5. Validation Scores
 - Overall Design: ≥90/100
@@ -235,17 +231,17 @@ Everything else is adapter-specific. Define as needed:
 
 ---
 
-ALWAYS open and follow `specs/domain-model.md` WHEN executing workflows: design.md, design-validate.md, adr.md, adr-validate.md, features.md, features-validate.md, feature.md, feature-validate.md, feature-changes.md, feature-changes-validate.md, feature-change-implement.md, feature-code-validate.md
+ALWAYS open and follow `specs/domain-model.md` WHEN executing workflows: design.md, design-validate.md, adr.md, adr-validate.md, features.md, features-validate.md, feature.md, feature-validate.md, code-validate.md
 
-ALWAYS open and follow `specs/api-contracts.md` WHEN executing workflows: design.md, design-validate.md, adr.md, adr-validate.md, feature.md, feature-validate.md, feature-changes.md, feature-changes-validate.md, feature-change-implement.md, feature-code-validate.md
+ALWAYS open and follow `specs/api-contracts.md` WHEN executing workflows: design.md, design-validate.md, adr.md, adr-validate.md, feature.md, feature-validate.md, code-validate.md
 
-ALWAYS open and follow `specs/testing.md` WHEN executing workflows: feature-change-implement.md, feature-code-validate.md
+ALWAYS open and follow `specs/testing.md` WHEN executing workflows: code-validate.md
 
-ALWAYS open and follow `specs/build-deploy.md` WHEN executing workflows: feature-change-implement.md, feature-code-validate.md
+ALWAYS open and follow `specs/build-deploy.md` WHEN executing workflows: code-validate.md
 
-ALWAYS open and follow `specs/project-structure.md` WHEN executing workflows: adapter.md, adapter-auto.md, adapter-manual.md, adapter-bootstrap.md, adapter-agents.md, adapter-validate.md, business-context.md, business-validate.md, design.md, design-validate.md, adr.md, adr-validate.md, features.md, features-validate.md, feature.md, feature-validate.md, feature-changes.md, feature-changes-validate.md
+ALWAYS open and follow `specs/project-structure.md` WHEN executing workflows: adapter.md, adapter-auto.md, adapter-manual.md, adapter-bootstrap.md, adapter-agents.md, adapter-validate.md, prd.md, prd-validate.md, design.md, design-validate.md, adr.md, adr-validate.md, features.md, features-validate.md, feature.md, feature-validate.md
 
-ALWAYS open and follow `specs/conventions.md` WHEN executing workflows: adapter.md, adapter-auto.md, adapter-manual.md, adapter-bootstrap.md, adapter-validate.md, feature-change-implement.md, feature-code-validate.md
+ALWAYS open and follow `specs/conventions.md` WHEN executing workflows: adapter.md, adapter-auto.md, adapter-manual.md, adapter-bootstrap.md, adapter-validate.md, code-validate.md
 ```
 
 **Example spec file** (`specs/domain-model.md`):

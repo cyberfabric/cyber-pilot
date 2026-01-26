@@ -102,12 +102,12 @@ python3 <FDD_ROOT>/skills/fdd/scripts/fdd.py adapter-info --root <PROJECT_ROOT> 
 
 **FDD Unified Tool (`<FDD_ROOT>/skills/fdd`)**:
 - ALWAYS use for discovering FDD adapter configuration (adapter-info)
-- ALWAYS use for searching FDD artifacts (DESIGN.md, BUSINESS.md, FEATURES.md, CHANGES.md, ADR directory)
-- ALWAYS use for ID lookup (actors, capabilities, requirements, flows, algorithms, states, changes)
+- ALWAYS use for searching FDD artifacts (DESIGN.md, PRD.md, FEATURES.md, ADR directory)
+- ALWAYS use for ID lookup (actors, capabilities, requirements, flows, algorithms, states)
 - ALWAYS use for traceability scans (where-defined, where-used)
 - ALWAYS use for code traceability (fdd-* tags)
 - ALWAYS use for cross-referencing IDs across artifacts and code
-- ALWAYS use for validating DESIGN.md and CHANGES.md structure and content
+- ALWAYS use for validating DESIGN.md structure and content
 - ALWAYS use for code traceability validation (fdd-* markers in code)
 - ALWAYS use for systematic artifact validation before manual checks
 - ALWAYS run as Deterministic Gate (fail fast before LLM validation)

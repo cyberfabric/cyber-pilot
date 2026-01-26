@@ -70,7 +70,7 @@ Open `architecture/DESIGN.md`
 
 Extract:
 - All requirements (Section B)
-- All capabilities (from BUSINESS.md reference)
+- All capabilities (from PRD.md reference)
 - Architecture components (Section C)
 
 ### 3. Mode-Specific Actions

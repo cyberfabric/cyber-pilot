@@ -37,7 +37,7 @@ tests/
 ### Test Files
 
 **test_validate.py**:
-- Artifact validation (BUSINESS.md, DESIGN.md, etc.)
+- Artifact validation (PRD.md, DESIGN.md, etc.)
 - Code traceability scanning
 - ID format validation
 - Cross-reference checks

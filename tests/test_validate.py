@@ -14,19 +14,19 @@ from typing import List
 sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "fdd" / "scripts"))
 
 from fdd.validation.traceability import (
-    _parse_business_model,
+    _parse_prd_model,
     compute_excluded_line_ranges,
     is_effective_code_line,
     extract_scope_ids,
     iter_code_files,
-    latest_archived_changes,
     paired_inst_tags_in_text,
 )
 
 from fdd.validation.artifacts import validate as validate_artifact
 
-from fdd.validation.artifacts.common import common_checks, validate_generic_sections
-from fdd.validation.artifacts.changes import (
+from fdd.validation.artifacts.common import (
+    common_checks,
+    validate_generic_sections,
     _extract_feature_links,
     _extract_id_list,
     _normalize_feature_relpath,
@@ -330,15 +330,9 @@ class TestDetectRequirements(unittest.TestCase):
         self.assertEqual(kind, "feature-design")
         self.assertTrue(str(req_path).endswith("/FDD/requirements/feature-design-structure.md"))
 
-    def test_detect_requirements_archived_feature_changes(self):
-        """Test detection of requirements for archived CHANGES.md.
-        
-        Given: /architecture/features/feature-x/archive/2026-01-08-CHANGES.md path
-        Expects: kind='feature-changes', req_path ends with 'feature-changes-structure.md'
-        """
-        kind, req_path = VA.detect_requirements(Path("/tmp/architecture/features/feature-x/archive/2026-01-08-CHANGES.md"))
-        self.assertEqual(kind, "feature-changes")
-        self.assertTrue(str(req_path).endswith("/FDD/requirements/feature-changes-structure.md"))
+    def test_detect_requirements_unknown_file_is_unsupported(self):
+        with self.assertRaises(ValueError):
+            VA.detect_requirements(Path("/tmp/architecture/features/feature-x/PLAN.md"))
 
 
 class TestArtifactsValidateDispatcher(unittest.TestCase):
@@ -441,10 +435,7 @@ class TestFeatureDesignValidation(unittest.TestCase):
                 "1. [ ] - `ph-1` - **FROM** A **TO** B **WHEN** ok - `inst-transition-a-to-b`",
                 "<!-- fdd-id-content -->",
                 "",
-                "## E. Technical Details",
-                "ok.",
-                "",
-                "## F. Requirements",
+                "## E. Requirements",
                 "### Req",
                 "",
                 "- [ ] **ID**: `fdd-example-feature-x-req-do-thing`",
@@ -452,6 +443,8 @@ class TestFeatureDesignValidation(unittest.TestCase):
                 "<!-- fdd-id-content -->",
                 "**Status**: 🔄 IN_PROGRESS",
                 "**Description**: Must do.",
+                "**Implementation details**:",
+                "- API: GET /api/x",
                 "**References**:",
                 "- [User does thing](#user-does-thing)",
                 "**Implements**:",
@@ -459,21 +452,6 @@ class TestFeatureDesignValidation(unittest.TestCase):
                 "- `fdd-example-feature-x-algo-do-thing`",
                 "**Phases**:",
                 "- [ ] `ph-1`: initial",
-                "**Tests Covered**:",
-                "- `fdd-example-feature-x-test-do-thing`",
-                "**Acceptance Criteria**:",
-                "- A",
-                "- B",
-                "<!-- fdd-id-content -->",
-                "",
-                "## G. Testing Scenarios",
-                "### Test do thing",
-                "",
-                "- [ ] **ID**: `fdd-example-feature-x-test-do-thing`",
-                "",
-                "<!-- fdd-id-content -->",
-                "**Validates**: `fdd-example-feature-x-req-do-thing`",
-                "1. [ ] - `ph-1` - Do something - `inst-do-something`",
                 "<!-- fdd-id-content -->",
             ]
         ) + "\n"
@@ -613,24 +591,20 @@ class TestFeatureDesignValidation(unittest.TestCase):
             self.assertTrue(any(e.get("type") == "content" and "Phase lines" in str(e.get("message")) for e in report.get("errors", [])))
             self.assertTrue(any(e.get("type") == "link_target" for e in report.get("errors", [])))
 
-    def test_feature_design_testing_scenarios_gherkin_and_acceptance_criteria_fail(self):
+    def test_feature_design_missing_implementation_details_fails(self):
         with TemporaryDirectory() as td:
             root = Path(td)
             feat = root / "architecture" / "features" / "feature-x"
             feat.mkdir(parents=True)
             art = feat / "DESIGN.md"
-            text = self._feature_design_minimal()
-            text = text.replace("**Acceptance Criteria**:\n- A\n- B", "**Acceptance Criteria**:\n- OnlyOne")
-            # Inject Gherkin keyword in Section G Testing Scenarios
-            text = text.replace("1. [ ] - `ph-1` - Do something - `inst-do-something`", "**GIVEN** bad\n1. [ ] - `ph-1` - Do something - `inst-do-something`")
+            text = self._feature_design_minimal().replace("**Implementation details**:\n- API: GET /api/x\n", "")
             art.write_text(text, encoding="utf-8")
             req = root / "req.md"
             req.write_text("### Section A: a\n", encoding="utf-8")
 
             report = VA.validate(art, req, "feature-design", skip_fs_checks=True)
             self.assertEqual(report["status"], "FAIL")
-            self.assertTrue(any(e.get("type") == "fdl" and "Gherkin" in str(e.get("message")) for e in report.get("errors", [])))
-            self.assertTrue(any(e.get("type") == "content" and "Acceptance Criteria" in str(e.get("message")) for e in report.get("errors", [])))
+            self.assertTrue(any(e.get("type") == "content" and e.get("field") == "Implementation details" for e in report.get("errors", [])))
 
     def test_feature_design_section_order_invalid_fails(self):
         with TemporaryDirectory() as td:
@@ -702,25 +676,19 @@ class TestFeatureDesignValidation(unittest.TestCase):
                     "### State",
                     "- [ ] **ID**: fdd-example-feature-x-state-entity",
                     "1. [ ] - `ph-1` - **FROM** A **TO** B **WHEN** ok - `inst-s`",
-                    "## E. Technical Details",
-                    "ok",
-                    "## F. Requirements",
+                    "## E. Requirements",
                     "### Req",
                     "- [ ] **ID**: fdd-example-feature-x-req-do-thing",
                     "**Status**: 🔄 IN_PROGRESS",
                     "**Description**: d",
+                    "**Implementation details**:",
+                    "- API: GET /api/x",
                     "**References**:",
                     "- [Flow](#flow)",
                     "**Implements**:",
                     "- `fdd-example-feature-x-flow-user-does-thing`",
                     "**Phases**:",
                     "- [ ] `ph-1`: x",
-                    "**Testing Scenarios (FDL)**:",
-                    "- [ ] **ID**: fdd-example-feature-x-test-scenario-one",
-                    "  1. [ ] - `ph-1` - step - `inst-t`",
-                    "**Acceptance Criteria**:",
-                    "- a",
-                    "- b",
                 ]
             )
             art.write_text(text + "\n", encoding="utf-8")
@@ -744,11 +712,11 @@ class TestFeatureDesignValidation(unittest.TestCase):
             )
             art.write_text(text, encoding="utf-8")
 
-            # BUSINESS exists but does not include any relevant IDs; it's only needed so
+            # PRD exists but does not include any relevant IDs; it's only needed so
             # validator can run FS cross-check paths without file-not-found noise.
-            bp = root / "architecture" / "BUSINESS.md"
+            bp = root / "architecture" / "PRD.md"
             bp.parent.mkdir(parents=True, exist_ok=True)
-            bp.write_text("# Business Context\n", encoding="utf-8")
+            bp.write_text("# PRD\n", encoding="utf-8")
 
             # FEATURES exists but does not include the Feature ID
             fp = root / "architecture" / "features" / "FEATURES.md"
@@ -763,7 +731,7 @@ class TestFeatureDesignValidation(unittest.TestCase):
             self.assertTrue(any(e.get("type") == "cross" for e in report.get("errors", [])))
             self.assertTrue(any(e.get("type") == "cross" and e.get("message") == "Feature ID not found in FEATURES.md" for e in report.get("errors", [])))
 
-    def test_feature_design_requirement_phase_subset_and_testing_errors(self):
+    def test_feature_design_requirement_phase_subset_and_implements_errors(self):
         with TemporaryDirectory() as td:
             root = Path(td)
             feat = root / "architecture" / "features" / "feature-x"
@@ -775,12 +743,6 @@ class TestFeatureDesignValidation(unittest.TestCase):
                 "- `fdd-example-feature-x-flow-user-does-thing`",
                 "- `fdd-example-feature-x-flow-missing`",
             )
-            # Inject bad FDL format in Section G Testing Scenarios
-            text = text.replace(
-                "1. [ ] - `ph-1` - Do something - `inst-do-something`",
-                "1. [ ] ph-1 bad format",
-            )
-            text = text.replace("**Acceptance Criteria**:\n- A\n- B", "")
             art.write_text(text, encoding="utf-8")
             req = root / "req.md"
             req.write_text("### Section A: a\n", encoding="utf-8")
@@ -789,8 +751,29 @@ class TestFeatureDesignValidation(unittest.TestCase):
             self.assertEqual(report["status"], "FAIL")
             self.assertTrue(any(e.get("type") == "content" and e.get("message") == "Requirement phases must be a subset of feature phases" for e in report.get("errors", [])))
             self.assertTrue(any(e.get("type") == "cross" and e.get("message") == "Implements references unknown flow/algo/state IDs" for e in report.get("errors", [])))
-            self.assertTrue(any(e.get("type") == "fdl" and "Invalid FDL step line format" in str(e.get("message")) for e in report.get("errors", [])))
-            self.assertTrue(any(e.get("type") == "content" and e.get("message") == "Missing Acceptance Criteria field" for e in report.get("errors", [])))
+
+    def test_feature_design_context_id_duplicate_fails(self):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            feat = root / "architecture" / "features" / "feature-x"
+            feat.mkdir(parents=True)
+            art = feat / "DESIGN.md"
+
+            text = self._feature_design_minimal() + "\n".join(
+                [
+                    "## F. Additional Context",
+                    "",
+                    "**ID**: `fdd-example-feature-x-context-note`",
+                    "**ID**: `fdd-example-feature-x-context-note`",
+                ]
+            )
+            art.write_text(text + "\n", encoding="utf-8")
+            req = root / "req.md"
+            req.write_text("### Section A: a\n", encoding="utf-8")
+
+            report = VA.validate(art, req, "feature-design", skip_fs_checks=True)
+            self.assertEqual(report["status"], "FAIL")
+            self.assertTrue(any(e.get("type") == "id" and e.get("message") == "Duplicate context IDs" for e in report.get("errors", [])))
 
     def test_feature_design_flow_when_keyword_fails(self):
         """Test that WHEN keyword in flow steps causes failure.
@@ -855,86 +838,10 @@ class TestFeatureDesignValidation(unittest.TestCase):
             self.assertEqual(report["status"], "FAIL")
             self.assertTrue(any(e.get("type") == "cross" and "Implements" in e.get("message", "") for e in report.get("errors", [])))
 
-    def test_feature_design_section_g_missing_validates_field_fails(self):
-        """Test that Section G test without Validates field causes failure."""
-        with TemporaryDirectory() as td:
-            root = Path(td)
-            feat = root / "architecture" / "features" / "feature-x"
-            feat.mkdir(parents=True)
-            art = feat / "DESIGN.md"
-            text = self._feature_design_minimal().replace(
-                "**Validates**: `fdd-example-feature-x-req-do-thing`",
-                "",
-            )
-            art.write_text(text, encoding="utf-8")
-            req = root / "req.md"
-            req.write_text("### Section A: a\n", encoding="utf-8")
-
-            report = VA.validate(art, req, "feature-design", skip_fs_checks=True)
-            self.assertEqual(report["status"], "FAIL")
-            self.assertTrue(any(e.get("type") == "content" and "Validates" in e.get("message", "") for e in report.get("errors", [])))
-
-    def test_feature_design_section_g_validates_unknown_req_fails(self):
-        """Test that Section G test referencing unknown requirement causes failure."""
-        with TemporaryDirectory() as td:
-            root = Path(td)
-            feat = root / "architecture" / "features" / "feature-x"
-            feat.mkdir(parents=True)
-            art = feat / "DESIGN.md"
-            text = self._feature_design_minimal().replace(
-                "**Validates**: `fdd-example-feature-x-req-do-thing`",
-                "**Validates**: `fdd-example-feature-x-req-unknown`",
-            )
-            art.write_text(text, encoding="utf-8")
-            req = root / "req.md"
-            req.write_text("### Section A: a\n", encoding="utf-8")
-
-            report = VA.validate(art, req, "feature-design", skip_fs_checks=True)
-            self.assertEqual(report["status"], "FAIL")
-            self.assertTrue(any(e.get("type") == "cross" and "Validates" in e.get("message", "") for e in report.get("errors", [])))
-
-    def test_feature_design_tests_covered_unknown_test_fails(self):
-        """Test that Tests Covered referencing unknown test ID causes failure."""
-        with TemporaryDirectory() as td:
-            root = Path(td)
-            feat = root / "architecture" / "features" / "feature-x"
-            feat.mkdir(parents=True)
-            art = feat / "DESIGN.md"
-            text = self._feature_design_minimal().replace(
-                "- `fdd-example-feature-x-test-do-thing`",
-                "- `fdd-example-feature-x-test-missing`",
-            )
-            art.write_text(text, encoding="utf-8")
-            req = root / "req.md"
-            req.write_text("### Section A: a\n", encoding="utf-8")
-
-            report = VA.validate(art, req, "feature-design", skip_fs_checks=True)
-            self.assertEqual(report["status"], "FAIL")
-            self.assertTrue(any(e.get("type") == "cross" and "Tests Covered" in e.get("message", "") for e in report.get("errors", [])))
-
-    def test_feature_design_section_g_test_id_no_checkbox_fails(self):
-        """Test that Section G test ID without checkbox causes failure."""
-        with TemporaryDirectory() as td:
-            root = Path(td)
-            feat = root / "architecture" / "features" / "feature-x"
-            feat.mkdir(parents=True)
-            art = feat / "DESIGN.md"
-            text = self._feature_design_minimal().replace(
-                "- [ ] **ID**: `fdd-example-feature-x-test-do-thing`",
-                "- **ID**: `fdd-example-feature-x-test-do-thing`",
-            )
-            art.write_text(text, encoding="utf-8")
-            req = root / "req.md"
-            req.write_text("### Section A: a\n", encoding="utf-8")
-
-            report = VA.validate(art, req, "feature-design", skip_fs_checks=True)
-            self.assertEqual(report["status"], "FAIL")
-            self.assertTrue(any(e.get("type") == "id" and "checkbox" in e.get("message", "") for e in report.get("errors", [])))
-
-    def test_feature_design_actor_name_mismatch_vs_business_fails(self):
-        """Test that actor name mismatch with BUSINESS.md causes failure.
+    def test_feature_design_actor_name_mismatch_vs_prd_fails(self):
+        """Test that actor name mismatch with PRD.md causes failure.
         
-        BUSINESS.md defines actor as 'Analyst', DESIGN.md uses different name.
+        PRD.md defines actor as 'Analyst', DESIGN.md uses different name.
         Expects: status=FAIL with error about actor name/title mismatch.
         """
         with TemporaryDirectory() as td:
@@ -943,11 +850,11 @@ class TestFeatureDesignValidation(unittest.TestCase):
             feat = arch / "features" / "feature-x"
             feat.mkdir(parents=True)
 
-            business = arch / "BUSINESS.md"
-            business.write_text(
+            prd = arch / "PRD.md"
+            prd.write_text(
                 "\n".join(
                     [
-                        "# Business Context",
+                        "# PRD",
                         "## B. Actors",
                         "**Human Actors**:",
                         "#### Analyst",
@@ -961,7 +868,7 @@ class TestFeatureDesignValidation(unittest.TestCase):
             )
 
             art = feat / "DESIGN.md"
-            art.write_text(self._feature_design_minimal(actor="`fdd-example-actor-not-in-business`"), encoding="utf-8")
+            art.write_text(self._feature_design_minimal(actor="`fdd-example-actor-not-in-prd`"), encoding="utf-8")
             req = root / "req.md"
             req.write_text("### Section A: a\n", encoding="utf-8")
 
@@ -1091,439 +998,8 @@ class TestFeatureDesignValidation(unittest.TestCase):
             self.assertTrue(any(e.get("type") == "content" and "Feature Status must be one of" in e.get("message", "") for e in report.get("errors", [])))
 
 
-class TestFeatureChangesValidation(unittest.TestCase):
-    """Tests for feature CHANGES.md validation."""
-    def _feature_changes_minimal(self, *, status: str = "🔄 IN_PROGRESS", completed: int = 0, in_progress: int = 1, not_started: int = 0) -> str:
-        return "\n".join(
-            [
-                "# Implementation Plan: Example",
-                "",
-                "**Feature**: `x`",
-                "**Version**: 1.0",
-                "**Last Updated**: 2026-01-14",
-                f"**Status**: {status}",
-                "",
-                "**Feature DESIGN**: [DESIGN.md](DESIGN.md)",
-                "",
-                "---",
-                "",
-                "## Summary",
-                "",
-                "**Total Changes**: 1",
-                f"**Completed**: {completed}",
-                f"**In Progress**: {in_progress}",
-                f"**Not Started**: {not_started}",
-                "",
-                "**Estimated Effort**: 1 story points",
-                "",
-                "---",
-                "",
-                "## Change 1: First",
-                "",
-                "**ID**: `fdd-example-feature-x-change-first`",
-                "",
-                "<!-- fdd-id-content -->",
-                f"**Status**: {status}",
-                "**Priority**: HIGH",
-                "**Effort**: 1 story points",
-                "**Implements**: `fdd-example-feature-x-req-do-thing`",
-                "**Phases**: `ph-1`",
-                "",
-                "### Objective",
-                "Do it.",
-                "",
-                "### Requirements Coverage",
-                "",
-                "**Implements**:",
-                "- **`fdd-example-feature-x-req-do-thing`**: Must do",
-                "",
-                "**References**:",
-                "- Actor Flow: `fdd-example-feature-x-flow-user-does-thing`",
-                "",
-                "### Tasks",
-                "",
-                "### 1. Implementation",
-                "",
-                "#### 1.1 Work",
-                "- [ ] 1.1.1 Change code in `src/lib.rs` - validate: file updated",
-                "- [ ] 1.1.2 Add required FDD comment tags (with `:ph-1` postfix) at the exact code location changed in 1.1.1 - validate: tags present",
-                "",
-                "### 2. Testing",
-                "",
-                "#### 2.1 Tests",
-                "- [ ] 2.1.1 Add unit test in `tests/test.rs` - validate: test added",
-                "",
-                "### Specification",
-                "",
-                "**Domain Model Changes**:",
-                "- Type: `t`",
-                "- Fields: f",
-                "- Relationships: r",
-                "",
-                "**API Changes**:",
-                "- Endpoint: `/x`",
-                "- Method: GET",
-                "- Request: r",
-                "- Response: r",
-                "",
-                "**Database Changes**:",
-                "- Table/Collection: `t`",
-                "- Schema: s",
-                "- Migrations: m",
-                "",
-                "**Code Changes**:",
-                "- Module: `m`",
-                "- Functions: f",
-                "- Implementation: i",
-                "- **Code Tagging**: MUST tag all code with `@fdd-change:fdd-example-feature-x-change-first:ph-1`",
-                "",
-                "### Dependencies",
-                "",
-                "**Depends on**:",
-                "- None",
-                "",
-                "**Blocks**:",
-                "- None",
-                "",
-                "### Testing",
-                "",
-                "**Unit Tests**:",
-                "- Test: t",
-                "- File: `tests/test.rs`",
-                "- Validates: v",
-                "<!-- fdd-id-content -->",
-            ]
-        ) + "\n"
-
-    def test_feature_changes_archive_resolves_design_in_feature_root(self):
-        """Test that archived CHANGES.md can resolve DESIGN.md in parent feature directory.
-        
-        Creates /feature-x/archive/CHANGES.md that references ../DESIGN.md.
-        Expects: status=PASS with skip_fs_checks=False (file system resolution works).
-        """
-        with TemporaryDirectory() as td:
-            root = Path(td)
-            feat = root / "architecture" / "features" / "feature-x"
-            (feat / "archive").mkdir(parents=True)
-            (feat / "DESIGN.md").write_text(
-                "\n".join(
-                    [
-                        "# Feature: Example",
-                        "## A. Feature Context",
-                        "### 1. Overview",
-                        "ok",
-                        "`fdd-example-feature-x-req-do-thing`",
-                    ]
-                )
-                + "\n",
-                encoding="utf-8",
-            )
-
-            art = feat / "archive" / "2026-01-07-CHANGES.md"
-            art.write_text(self._feature_changes_minimal().replace("[DESIGN.md](DESIGN.md)", "[DESIGN.md](../DESIGN.md)"), encoding="utf-8")
-            req = root / "req.md"
-            req.write_text("### Section A: a\n", encoding="utf-8")
-
-            report = VA.validate(art, req, "feature-changes", skip_fs_checks=False)
-            self.assertEqual(report["status"], "PASS")
-
-    def test_feature_changes_minimal_pass(self):
-        """Test that minimal valid CHANGES.md passes validation.
-        
-        Creates CHANGES.md with required header, summary, and one change entry.
-        Expects: status=PASS.
-        """
-        with TemporaryDirectory() as td:
-            root = Path(td)
-            feat = root / "architecture" / "features" / "feature-x"
-            feat.mkdir(parents=True)
-            art = feat / "CHANGES.md"
-            art.write_text(self._feature_changes_minimal(), encoding="utf-8")
-            req = root / "req.md"
-            req.write_text("### Section A: a\n", encoding="utf-8")
-
-            report = VA.validate(art, req, "feature-changes", skip_fs_checks=True)
-            self.assertEqual(report["status"], "PASS")
-
-    def test_feature_changes_invalid_overall_status_fails(self):
-        with TemporaryDirectory() as td:
-            root = Path(td)
-            feat = root / "architecture" / "features" / "feature-x"
-            feat.mkdir(parents=True)
-            art = feat / "CHANGES.md"
-            art.write_text(self._feature_changes_minimal().replace("**Status**: 🔄 IN_PROGRESS", "**Status**: BAD"), encoding="utf-8")
-            req = root / "req.md"
-            req.write_text("### Section A: a\n", encoding="utf-8")
-
-            report = VA.validate(art, req, "feature-changes", skip_fs_checks=True)
-            self.assertEqual(report["status"], "FAIL")
-            self.assertTrue(any(e.get("type") == "header" and "invalid overall" in e.get("message", "").lower() for e in report.get("errors", [])))
-
-    def test_feature_changes_summary_missing_estimated_effort_fails(self):
-        with TemporaryDirectory() as td:
-            root = Path(td)
-            feat = root / "architecture" / "features" / "feature-x"
-            feat.mkdir(parents=True)
-            art = feat / "CHANGES.md"
-            text = self._feature_changes_minimal().replace("**Estimated Effort**: 1 story points\n", "")
-            art.write_text(text, encoding="utf-8")
-            req = root / "req.md"
-            req.write_text("### Section A: a\n", encoding="utf-8")
-
-            report = VA.validate(art, req, "feature-changes", skip_fs_checks=True)
-            self.assertEqual(report["status"], "FAIL")
-            self.assertTrue(any(e.get("type") == "structure" and "estimated effort" in e.get("message", "").lower() for e in report.get("errors", [])))
-
-    def test_feature_changes_testing_section_missing_headings_fails(self):
-        with TemporaryDirectory() as td:
-            root = Path(td)
-            feat = root / "architecture" / "features" / "feature-x"
-            feat.mkdir(parents=True)
-            art = feat / "CHANGES.md"
-            base = self._feature_changes_minimal()
-            base = base.replace(
-                "**Unit Tests**:\n- Test: t\n- File: `tests/test.rs`\n- Validates: v\n",
-                "ok\n",
-            )
-            art.write_text(base, encoding="utf-8")
-            req = root / "req.md"
-            req.write_text("### Section A: a\n", encoding="utf-8")
-
-            report = VA.validate(art, req, "feature-changes", skip_fs_checks=True)
-            self.assertEqual(report["status"], "FAIL")
-            self.assertTrue(any(e.get("type") == "content" and "testing section must specify" in e.get("message", "").lower() for e in report.get("errors", [])))
-
-    def test_feature_changes_duplicate_change_id_fails(self):
-        """Test that duplicate change IDs cause validation failure.
-        
-        Creates CHANGES.md with duplicate "Change 1" entries.
-        Expects: status=FAIL with "Duplicate change IDs" error.
-        """
-        with TemporaryDirectory() as td:
-            root = Path(td)
-            feat = root / "architecture" / "features" / "feature-x"
-            feat.mkdir(parents=True)
-            art = feat / "CHANGES.md"
-
-            base = self._feature_changes_minimal()
-            base = base.replace("**Total Changes**: 1", "**Total Changes**: 2")
-            base = base.replace("**Completed**: 0", "**Completed**: 0")
-            base = base.replace("**In Progress**: 1", "**In Progress**: 2")
-            base = base.replace("**Not Started**: 0", "**Not Started**: 0")
-
-            second_change = "\n".join(
-                [
-                    "---",
-                    "",
-                    "## Change 2: Second",
-                    "",
-                    "**ID**: `fdd-example-feature-x-change-first`",
-                    "**Status**: 🔄 IN_PROGRESS",
-                    "**Priority**: HIGH",
-                    "**Effort**: 1 story points",
-                    "**Implements**: `fdd-example-feature-x-req-do-thing`",
-                    "**Phases**: `ph-1`",
-                    "",
-                    "---",
-                    "",
-                    "### Objective",
-                    "Do it.",
-                    "",
-                    "### Requirements Coverage",
-                    "",
-                    "**Implements**:",
-                    "- **`fdd-example-feature-x-req-do-thing`**: Must do",
-                    "",
-                    "**References**:",
-                    "- Actor Flow: `fdd-example-feature-x-flow-user-does-thing`",
-                    "",
-                    "### Tasks",
-                    "",
-                    "## 1. Implementation",
-                    "",
-                    "### 1.1 Work",
-                    "- [ ] 1.1.1 Change code in `src/lib.rs`",
-                    "- [ ] 1.1.2 Add required FDD comment tags (with `:ph-1` postfix) at the exact code location changed in 1.1.1",
-                    "",
-                    "## 2. Testing",
-                    "",
-                    "### 2.1 Tests",
-                    "- [ ] 2.1.1 Add unit test in `tests/test.rs`",
-                    "",
-                    "### Specification",
-                    "",
-                    "**Domain Model Changes**:",
-                    "- Type: `t`",
-                    "- Fields: f",
-                    "- Relationships: r",
-                    "",
-                    "**API Changes**:",
-                    "- Endpoint: `/x`",
-                    "- Method: GET",
-                    "- Request: r",
-                    "- Response: r",
-                    "",
-                    "**Database Changes**:",
-                    "- Table/Collection: `t`",
-                    "- Schema: s",
-                    "- Migrations: m",
-                    "",
-                    "**Code Changes**:",
-                    "- Module: `m`",
-                    "- Functions: f",
-                    "- Implementation: i",
-                    "- **Code Tagging**: MUST tag all code with `@fdd-change:fdd-example-feature-x-change-first`",
-                    "",
-                    "### Dependencies",
-                    "",
-                    "**Depends on**:",
-                    "- None",
-                    "",
-                    "**Blocks**:",
-                    "- None",
-                    "",
-                    "### Testing",
-                    "",
-                    "**Unit Tests**:",
-                    "- Test: t",
-                    "- File: `tests/test.rs`",
-                    "- Validates: v",
-                ]
-            )
-
-            art.write_text(base + second_change + "\n", encoding="utf-8")
-            req = root / "req.md"
-            req.write_text("### Section A: a\n", encoding="utf-8")
-
-            report = VA.validate(art, req, "feature-changes", skip_fs_checks=True)
-            self.assertEqual(report["status"], "FAIL")
-            self.assertTrue(any(e.get("message") == "Duplicate change IDs" for e in report.get("errors", [])))
-
-    def test_feature_changes_summary_mismatch_fails(self):
-        """Test that summary count mismatch causes validation failure.
-        
-        Creates CHANGES.md where Summary counts don't add up correctly.
-        Expects: status=FAIL with "Summary counts do not add up" error.
-        """
-        with TemporaryDirectory() as td:
-            root = Path(td)
-            feat = root / "architecture" / "features" / "feature-x"
-            feat.mkdir(parents=True)
-            art = feat / "CHANGES.md"
-            art.write_text(self._feature_changes_minimal(completed=1, in_progress=1, not_started=0), encoding="utf-8")
-
-            req = root / "req.md"
-            req.write_text("### Section A: a\n", encoding="utf-8")
-
-            report = VA.validate(art, req, "feature-changes", skip_fs_checks=True)
-            self.assertEqual(report["status"], "FAIL")
-            self.assertTrue(any(e.get("type") == "structure" and e.get("message") == "Summary counts do not add up" for e in report.get("errors", [])))
-
-    def test_feature_changes_summary_status_counts_mismatch_fails(self):
-        with TemporaryDirectory() as td:
-            root = Path(td)
-            feat = root / "architecture" / "features" / "feature-x"
-            feat.mkdir(parents=True)
-            art = feat / "CHANGES.md"
-
-            base = self._feature_changes_minimal(completed=0, in_progress=0, not_started=1)
-            art.write_text(base, encoding="utf-8")
-            req = root / "req.md"
-            req.write_text("### Section A: a\n", encoding="utf-8")
-
-            report = VA.validate(art, req, "feature-changes", skip_fs_checks=True)
-            self.assertEqual(report["status"], "FAIL")
-            self.assertTrue(any(e.get("message") == "Summary status counts must match statuses of change entries" for e in report.get("errors", [])))
-
-    def test_feature_changes_runs_fdl_checks_when_fs_enabled(self):
-        with TemporaryDirectory() as td:
-            root = Path(td)
-            feat = root / "architecture" / "features" / "feature-x"
-            feat.mkdir(parents=True)
-            art = feat / "CHANGES.md"
-            art.write_text(self._feature_changes_minimal(), encoding="utf-8")
-
-            design = feat / "DESIGN.md"
-            dtext = TestFeatureDesignValidation()._feature_design_minimal()
-            dtext = dtext.replace("1. [ ] - `ph-1` - **RETURN** ok - `inst-return-ok`", "1. [x] - `ph-1` - **RETURN** ok - `inst-return-ok`")
-            design.write_text(dtext, encoding="utf-8")
-
-            req = root / "req.md"
-            req.write_text("### Section A: a\n", encoding="utf-8")
-
-            report = VA.validate(art, req, "feature-changes", skip_fs_checks=False)
-            self.assertEqual(report["status"], "FAIL")
-            self.assertTrue(any(str(e.get("type", "")).startswith("fdl") for e in report.get("errors", [])))
-
-    def test_feature_changes_dependencies_blocks_and_cycle_detected(self):
-        with TemporaryDirectory() as td:
-            root = Path(td)
-            feat = root / "architecture" / "features" / "feature-x"
-            feat.mkdir(parents=True)
-            art = feat / "CHANGES.md"
-
-            base = self._feature_changes_minimal().replace("**Total Changes**: 1", "**Total Changes**: 2")
-            base = base.replace("**In Progress**: 1", "**In Progress**: 2")
-            second = "\n".join(
-                [
-                    "## Change 2: Second",
-                    "",
-                    "**ID**: `fdd-example-feature-x-change-second`",
-                    "",
-                    "---",
-                    "**Status**: 🔄 IN_PROGRESS",
-                    "**Priority**: HIGH",
-                    "**Effort**: 1 story points",
-                    "**Implements**: `fdd-example-feature-x-req-do-thing`",
-                    "**Phases**: `ph-1`",
-                    "",
-                    "### Objective",
-                    "Do it.",
-                    "",
-                    "### Requirements Coverage",
-                    "",
-                    "### Tasks",
-                    "- [ ] 1.1.1 Task",
-                    "",
-                    "### Specification",
-                    "ok",
-                    "",
-                    "### Dependencies",
-                    "",
-                    "**Depends on**:",
-                    "- Change 1: First",
-                    "",
-                    "**Blocks**:",
-                    "- Change 1: First",
-                    "",
-                    "### Testing",
-                    "ok",
-                ]
-            )
-            art.write_text(base + "\n" + second + "\n", encoding="utf-8")
-            req = root / "req.md"
-            req.write_text("### Section A: a\n", encoding="utf-8")
-
-            report = VA.validate(art, req, "feature-changes", skip_fs_checks=True)
-            self.assertEqual(report["status"], "FAIL")
-            self.assertTrue(any(e.get("type") == "content" and e.get("message") == "Dependency graph contains a cycle" for e in report.get("errors", [])))
-
-    def test_feature_changes_fdl_coverage_exception_is_swallowed(self):
-        with TemporaryDirectory() as td:
-            root = Path(td)
-            feat = root / "architecture" / "features" / "feature-x"
-            feat.mkdir(parents=True)
-            art = feat / "CHANGES.md"
-            art.write_text(self._feature_changes_minimal(), encoding="utf-8")
-            (feat / "DESIGN.md").write_text("# x\n", encoding="utf-8")
-            req = root / "req.md"
-            req.write_text("### Section A: a\n", encoding="utf-8")
-
-            with patch("fdd.validation.artifacts.changes.extract_fdl_instructions", side_effect=RuntimeError("boom")):
-                report = VA.validate(art, req, "feature-changes", skip_fs_checks=False)
-            self.assertIn(report["status"], ("PASS", "FAIL"))
-
-    def test_changes_helpers_extract_links_and_ids(self):
+class TestArtifactsCommonHelpers(unittest.TestCase):
+    def test_common_helpers_extract_links_and_ids(self):
         self.assertEqual(_normalize_feature_relpath("feature-x"), "feature-x/")
         self.assertEqual(_normalize_feature_relpath("feature-x/"), "feature-x/")
 
@@ -1536,15 +1012,11 @@ class TestFeatureChangesValidation(unittest.TestCase):
         fb = {"value": "`a`, b", "tail": ["- `c`", "- d"]}
         self.assertEqual(_extract_id_list(fb), ["a", "b", "c", "d"])
 
-        # Cover non-matching tail lines and empty tokens
         fb2 = {"value": "", "tail": ["x", "- `e`", "- "]}
         self.assertEqual(_extract_id_list(fb2), ["e"])
 
 
 class TestCommonChecks(unittest.TestCase):
-    def _feature_changes_minimal(self, *args, **kwargs) -> str:
-        return TestFeatureChangesValidation()._feature_changes_minimal(*args, **kwargs)
-
     def test_validate_generic_sections_unparseable_requirements_fails(self) -> None:
         with TemporaryDirectory() as td:
             root = Path(td)
@@ -1674,236 +1146,6 @@ class TestCommonChecks(unittest.TestCase):
             )
             self.assertTrue(any(e.get("type") == "section_heading" for e in errs5))
 
-    def test_feature_changes_missing_code_tagging_task_fails(self):
-        """Test that missing code tagging task still passes validation.
-        
-        Creates CHANGES.md without the '1.1.2 Add required FDD comment tags' task.
-        Expects: status=PASS (requirement was removed, tagging enforced via fdd-begin/end).
-        """
-        with TemporaryDirectory() as td:
-            root = Path(td)
-            feat = root / "architecture" / "features" / "feature-x"
-            feat.mkdir(parents=True)
-            art = feat / "CHANGES.md"
-            text = self._feature_changes_minimal().replace(
-                "- [ ] 1.1.2 Add required FDD comment tags (with `:ph-1` postfix) at the exact code location changed in 1.1.1\n",
-                "",
-            )
-            art.write_text(text, encoding="utf-8")
-            req = root / "req.md"
-            req.write_text("### Section A: a\n", encoding="utf-8")
-
-            report = VA.validate(art, req, "feature-changes", skip_fs_checks=True)
-            # Code tagging task requirement was removed - validation passes without it
-            self.assertEqual(report["status"], "PASS")
-
-    def test_feature_changes_unknown_requirement_vs_design_fails(self):
-        """Test that requirement ID mismatch between CHANGES and DESIGN causes failure.
-        
-        DESIGN.md has req-something, CHANGES.md references req-missing.
-        Expects: status=FAIL with unknown requirement ID error.
-        """
-        with TemporaryDirectory() as td:
-            root = Path(td)
-            feat = root / "architecture" / "features" / "feature-x"
-            feat.mkdir(parents=True)
-            (feat / "DESIGN.md").write_text(
-                "\n".join(
-                    [
-                        "# Feature: Example",
-                        "## A. Feature Context",
-                        "### 1. Overview",
-                        "ok",
-                        "### 2. Purpose",
-                        "ok",
-                        "### 3. Actors",
-                        "- Analyst",
-                        "### 4. References",
-                        "- Overall Design: [DESIGN](../../DESIGN.md)",
-                        "## B. Actor Flows (FDL)",
-                        "### Flow",
-                        "- [ ] **ID**: `fdd-example-feature-x-flow-user-does-thing`",
-                        "1. [ ] - `ph-1` - step",
-                        "## C. Algorithms (FDL)",
-                        "### Algo",
-                        "- [ ] **ID**: `fdd-example-feature-x-algo-do-thing`",
-                        "1. [ ] - `ph-1` - **RETURN** ok",
-                        "## D. States (FDL)",
-                        "### State",
-                        "- [ ] **ID**: `fdd-example-feature-x-state-entity`",
-                        "1. [ ] - `ph-1` - **FROM** A **TO** B **WHEN** ok",
-                        "## E. Technical Details",
-                        "ok",
-                        "## F. Requirements",
-                        "### Req",
-                        "- [ ] **ID**: `fdd-example-feature-x-req-do-thing`",
-                        "**Status**: 🔄 IN_PROGRESS",
-                        "**Description**: d",
-                        "**References**:",
-                        "- [Flow](#flow)",
-                        "**Implements**:",
-                        "- `fdd-example-feature-x-flow-user-does-thing`",
-                        "**Phases**:",
-                        "- [ ] `ph-1`: x",
-                        "**Testing Scenarios (FDL)**:",
-                        "- [ ] **ID**: `fdd-example-feature-x-test-scenario-one`",
-                        "  1. [ ] - `ph-1` - step",
-                        "**Acceptance Criteria**:",
-                        "- a",
-                        "- b",
-                    ]
-                )
-                + "\n",
-                encoding="utf-8",
-            )
-            art = feat / "CHANGES.md"
-            art.write_text(self._feature_changes_minimal().replace("`fdd-example-feature-x-req-do-thing`", "`fdd-example-feature-x-req-unknown`"), encoding="utf-8")
-            req = root / "req.md"
-            req.write_text("### Section A: a\n", encoding="utf-8")
-
-            report = VA.validate(art, req, "feature-changes", skip_fs_checks=False)
-            self.assertEqual(report["status"], "FAIL")
-            self.assertTrue(any(e.get("type") == "cross" and "unknown" in e.get("message", "").lower() for e in report.get("errors", [])))
-
-    def test_feature_changes_header_slug_mismatch_fails(self):
-        """Cover header slug mismatch (directory slug vs **Feature** field)."""
-        with TemporaryDirectory() as td:
-            root = Path(td)
-            feat = root / "architecture" / "features" / "feature-x"
-            feat.mkdir(parents=True)
-            art = feat / "CHANGES.md"
-            art.write_text(self._feature_changes_minimal().replace("**Feature**: `x`", "**Feature**: `y`"), encoding="utf-8")
-            req = root / "req.md"
-            req.write_text("### Section A: a\n", encoding="utf-8")
-
-            report = VA.validate(art, req, "feature-changes", skip_fs_checks=True)
-            self.assertEqual(report["status"], "FAIL")
-            self.assertTrue(any(e.get("type") == "header" and "slug" in e.get("message", "").lower() for e in report.get("errors", [])))
-
-    def test_feature_changes_no_change_entries_fails(self):
-        """Cover 'no change entries found' structure error."""
-        with TemporaryDirectory() as td:
-            root = Path(td)
-            feat = root / "architecture" / "features" / "feature-x"
-            feat.mkdir(parents=True)
-            art = feat / "CHANGES.md"
-
-            # Keep valid header + summary but remove all change entries.
-            base = self._feature_changes_minimal()
-            base = base.split("## Change 1:", 1)[0]
-            art.write_text(base + "\n", encoding="utf-8")
-            req = root / "req.md"
-            req.write_text("### Section A: a\n", encoding="utf-8")
-
-            report = VA.validate(art, req, "feature-changes", skip_fs_checks=True)
-            self.assertEqual(report["status"], "FAIL")
-            self.assertTrue(any(e.get("message", "").startswith("No change entries") for e in report.get("errors", [])))
-
-    def test_feature_changes_dependency_cycle_fails(self):
-        """Cover dependency cycle detection in change dependencies graph."""
-        with TemporaryDirectory() as td:
-            root = Path(td)
-            feat = root / "architecture" / "features" / "feature-x"
-            feat.mkdir(parents=True)
-            art = feat / "CHANGES.md"
-
-            base = self._feature_changes_minimal()
-            base = base.replace("**Total Changes**: 1", "**Total Changes**: 2")
-            base = base.replace("**In Progress**: 1", "**In Progress**: 2")
-
-            # Change 1 depends on Change 2
-            base = base.replace(
-                "**Depends on**:\n- None",
-                "**Depends on**:\n- Change 2: Second",
-            )
-
-            second_change = "\n".join(
-                [
-                    "---",
-                    "",
-                    "## Change 2: Second",
-                    "",
-                    "**ID**: `fdd-example-feature-x-change-second`",
-                    "**Status**: 🔄 IN_PROGRESS",
-                    "**Priority**: HIGH",
-                    "**Effort**: 1 story points",
-                    "**Implements**: `fdd-example-feature-x-req-do-thing`",
-                    "**Phases**: `ph-1`",
-                    "",
-                    "---",
-                    "",
-                    "### Objective",
-                    "Do it.",
-                    "",
-                    "### Requirements Coverage",
-                    "",
-                    "**Implements**:",
-                    "- **`fdd-example-feature-x-req-do-thing`**: Must do",
-                    "",
-                    "**References**:",
-                    "- Actor Flow: `fdd-example-feature-x-flow-user-does-thing`",
-                    "",
-                    "### Tasks",
-                    "",
-                    "## 1. Implementation",
-                    "",
-                    "### 1.1 Work",
-                    "- [ ] 1.1.1 Change code in `src/lib.rs`",
-                    "",
-                    "## 2. Testing",
-                    "",
-                    "### 2.1 Tests",
-                    "- [ ] 2.1.1 Add unit test in `tests/test.rs`",
-                    "",
-                    "### Specification",
-                    "",
-                    "**Domain Model Changes**:",
-                    "- Type: `t`",
-                    "- Fields: f",
-                    "- Relationships: r",
-                    "",
-                    "**API Changes**:",
-                    "- Endpoint: `/x`",
-                    "- Method: GET",
-                    "- Request: r",
-                    "- Response: r",
-                    "",
-                    "**Database Changes**:",
-                    "- Table/Collection: `t`",
-                    "- Schema: s",
-                    "- Migrations: m",
-                    "",
-                    "**Code Changes**:",
-                    "- Module: `m`",
-                    "- Functions: f",
-                    "- Implementation: i",
-                    "- **Code Tagging**: MUST tag all code with `@fdd-change:fdd-example-feature-x-change-second`",
-                    "",
-                    "### Dependencies",
-                    "",
-                    "**Depends on**:",
-                    "- Change 1: First",
-                    "",
-                    "**Blocks**:",
-                    "- None",
-                    "",
-                    "### Testing",
-                    "",
-                    "**Unit Tests**:",
-                    "- Test: t",
-                    "- File: `tests/test.rs`",
-                    "- Validates: v",
-                ]
-            )
-
-            art.write_text(base + "\n" + second_change + "\n", encoding="utf-8")
-            req = root / "req.md"
-            req.write_text("### Section A: a\n", encoding="utf-8")
-
-            report = VA.validate(art, req, "feature-changes", skip_fs_checks=True)
-            self.assertEqual(report["status"], "FAIL")
-            self.assertTrue(any(e.get("message") == "Dependency graph contains a cycle" for e in report.get("errors", [])))
-
 
 class TestCodebaseTraceability(unittest.TestCase):
     """Tests for codebase traceability validation (fdd-begin/end tags)."""
@@ -1913,9 +1155,6 @@ class TestCodebaseTraceability(unittest.TestCase):
         base = base.replace("- [ ] **ID**: `fdd-example-feature-{}-algo-do-thing`".format(feature_slug), "- [x] **ID**: `fdd-example-feature-{}-algo-do-thing`".format(feature_slug))
         base = base.replace("1. [ ] - `ph-1` - **RETURN** ok - `inst-return-ok`", "1. [x] - `ph-1` - **RETURN** ok - `inst-return-ok`")
         return base
-
-    def _feature_changes_valid_minimal(self) -> str:
-        return TestFeatureChangesValidation()._feature_changes_minimal()
 
     def test_codebase_traceability_pass_when_tags_present(self):
         """Test that properly tagged code passes traceability validation.
@@ -1929,7 +1168,6 @@ class TestCodebaseTraceability(unittest.TestCase):
             feat.mkdir(parents=True)
 
             (feat / "DESIGN.md").write_text(self._feature_design_one_algo_one_step_completed(), encoding="utf-8")
-            (feat / "CHANGES.md").write_text(self._feature_changes_valid_minimal(), encoding="utf-8")
 
             code = feat / "src" / "lib.rs"
             code.parent.mkdir(parents=True)
@@ -1962,7 +1200,6 @@ class TestCodebaseTraceability(unittest.TestCase):
             feat.mkdir(parents=True)
 
             (feat / "DESIGN.md").write_text(self._feature_design_one_algo_one_step_completed(), encoding="utf-8")
-            (feat / "CHANGES.md").write_text(self._feature_changes_valid_minimal(), encoding="utf-8")
 
             code = feat / "src" / "lib.rs"
             code.parent.mkdir(parents=True)
@@ -1997,7 +1234,6 @@ class TestCodebaseTraceability(unittest.TestCase):
             feat.mkdir(parents=True)
 
             (feat / "DESIGN.md").write_text(self._feature_design_one_algo_one_step_completed(), encoding="utf-8")
-            (feat / "CHANGES.md").write_text(self._feature_changes_valid_minimal(), encoding="utf-8")
 
             code = feat / "src" / "lib.rs"
             code.parent.mkdir(parents=True)
@@ -2031,7 +1267,6 @@ class TestCodebaseTraceability(unittest.TestCase):
             feat.mkdir(parents=True)
 
             (feat / "DESIGN.md").write_text(self._feature_design_one_algo_one_step_completed(), encoding="utf-8")
-            (feat / "CHANGES.md").write_text(self._feature_changes_valid_minimal(), encoding="utf-8")
 
             code = feat / "src" / "lib.rs"
             code.parent.mkdir(parents=True)
@@ -2065,7 +1300,6 @@ class TestCodebaseTraceability(unittest.TestCase):
             feat.mkdir(parents=True)
 
             (feat / "DESIGN.md").write_text(self._feature_design_one_algo_one_step_completed(), encoding="utf-8")
-            (feat / "CHANGES.md").write_text(self._feature_changes_valid_minimal(), encoding="utf-8")
 
             code = feat / "src" / "lib.rs"
             code.parent.mkdir(parents=True)
@@ -2073,7 +1307,6 @@ class TestCodebaseTraceability(unittest.TestCase):
                 "\n".join(
                     [
                         "// @fdd-algo:fdd-example-feature-x-algo-do-thing:ph-1",
-                        "// @fdd-change:fdd-example-feature-x-change-first:ph-1",
                         "fn x() {}",
                     ]
                 )
@@ -2098,7 +1331,6 @@ class TestCodebaseTraceability(unittest.TestCase):
             feat.mkdir(parents=True)
 
             (feat / "DESIGN.md").write_text(self._feature_design_one_algo_one_step_completed(), encoding="utf-8")
-            (feat / "CHANGES.md").write_text(self._feature_changes_valid_minimal(), encoding="utf-8")
 
             # Code is outside feature dir (module root), so traceability must scan root automatically.
             code = root / "analytics" / "src" / "lib.rs"
@@ -2132,7 +1364,6 @@ class TestCodebaseTraceability(unittest.TestCase):
             feat.mkdir(parents=True)
 
             (feat / "DESIGN.md").write_text(self._feature_design_one_algo_one_step_completed(), encoding="utf-8")
-            (feat / "CHANGES.md").write_text(self._feature_changes_valid_minimal(), encoding="utf-8")
 
             code = feat / "src" / "lib.rs"
             code.parent.mkdir(parents=True)
@@ -2160,7 +1391,7 @@ class TestCodebaseTraceability(unittest.TestCase):
     def test_codebase_traceability_fails_if_design_invalid(self):
         """Test that broken DESIGN.md causes traceability validation to fail.
         
-        Creates minimal broken DESIGN.md and valid CHANGES.md with code tags.
+        Creates minimal broken DESIGN.md and tagged code.
         Expects: status=FAIL because DESIGN.md structure is invalid.
         """
         with TemporaryDirectory() as td:
@@ -2168,7 +1399,6 @@ class TestCodebaseTraceability(unittest.TestCase):
             feat = root / "architecture" / "features" / "feature-x"
             feat.mkdir(parents=True)
             (feat / "DESIGN.md").write_text("# broken\n", encoding="utf-8")
-            (feat / "CHANGES.md").write_text(self._feature_changes_valid_minimal(), encoding="utf-8")
 
             code = root / "src" / "lib.rs"
             code.parent.mkdir(parents=True)
@@ -2195,12 +1425,6 @@ class TestCodeRootTraceability(unittest.TestCase):
         )
         return base
 
-    def _changes_valid(self, feature_slug: str) -> str:
-        base = TestFeatureChangesValidation()._feature_changes_minimal()
-        base = base.replace("**Feature**: `x`", f"**Feature**: `{feature_slug}`")
-        base = base.replace("fdd-example-feature-x-", f"fdd-example-feature-{feature_slug}-")
-        return base
-
     def test_code_root_traceability_filters_features(self):
         """Test that code root traceability can filter by feature slug.
         
@@ -2216,9 +1440,7 @@ class TestCodeRootTraceability(unittest.TestCase):
             b.mkdir(parents=True)
 
             (a / "DESIGN.md").write_text(self._design_completed("a"), encoding="utf-8")
-            (a / "CHANGES.md").write_text(self._changes_valid("a"), encoding="utf-8")
             (b / "DESIGN.md").write_text(self._design_completed("b"), encoding="utf-8")
-            (b / "CHANGES.md").write_text(self._changes_valid("b"), encoding="utf-8")
 
             # Code has tags only for feature-a
             code = root / "src" / "lib.rs"
@@ -2227,7 +1449,6 @@ class TestCodeRootTraceability(unittest.TestCase):
                 "\n".join(
                     [
                         "// @fdd-algo:fdd-example-feature-a-algo-do-thing:ph-1",
-                        "// @fdd-change:fdd-example-feature-a-change-first:ph-1",
                         "// fdd-begin fdd-example-feature-a-algo-do-thing:ph-1:inst-return-ok",
                         "fn x() {}",
                         "// fdd-end fdd-example-feature-a-algo-do-thing:ph-1:inst-return-ok",
@@ -2259,23 +1480,23 @@ class TestTraceabilityInternals(unittest.TestCase):
         ranges = compute_excluded_line_ranges(text, lang_config=None)
         self.assertEqual(ranges, [(0, 2)])
 
-    def test_parse_business_model_extracts_capability_to_actors(self):
-        """Cover _parse_business_model capability->actors mapping."""
+    def test_parse_prd_model_extracts_capability_to_actors(self):
+        """Cover _parse_prd_model capability->actors mapping."""
         text = "\n".join(
             [
-                "# Business Context",
-                "## A. Actors",
+                "# PRD",
+                "## B. Actors",
                 "- **ID**: `fdd-example-actor-user`",
-                "## B. Capabilities",
-                "#### Capability",
-                "- **ID**: `fdd-example-capability-login`",
+                "## C. Functional Requirements",
+                "#### Requirement",
+                "**ID**: `fdd-example-fr-login`",
                 "- **Actors**: `fdd-example-actor-user`",
             ]
         )
-        actor_ids, cap_to_actors, usecase_ids = _parse_business_model(text)
+        actor_ids, cap_to_actors, usecase_ids = _parse_prd_model(text)
         self.assertIn("fdd-example-actor-user", actor_ids)
-        self.assertIn("fdd-example-capability-login", cap_to_actors)
-        self.assertIn("fdd-example-actor-user", cap_to_actors["fdd-example-capability-login"])
+        self.assertIn("fdd-example-fr-login", cap_to_actors)
+        self.assertIn("fdd-example-actor-user", cap_to_actors["fdd-example-fr-login"])
         self.assertIsInstance(usecase_ids, set)
 
     def test_scan_adr_directory_errors_and_missing_adr_id(self):
@@ -2310,18 +1531,6 @@ class TestTraceabilityInternals(unittest.TestCase):
             self.assertTrue(any(i.get("message") == "ADR-0001 must exist" for i in issues))
             self.assertTrue(any("ADR missing or invalid" in str(i.get("message")) for i in issues))
 
-    def test_latest_archived_changes_picks_latest(self):
-        """Cover latest_archived_changes() selecting newest CHANGES-*.md."""
-        with TemporaryDirectory() as td:
-            feat = Path(td) / "feature-x"
-            arch = feat / "archive"
-            arch.mkdir(parents=True)
-            (arch / "CHANGES-2026-01-01.md").write_text("# x\n", encoding="utf-8")
-            (arch / "CHANGES-2026-02-01.md").write_text("# y\n", encoding="utf-8")
-            lp = latest_archived_changes(feat)
-            self.assertIsNotNone(lp)
-            self.assertEqual(lp.name, "CHANGES-2026-02-01.md")
-
     def test_iter_code_files_skips_markdown_without_tags(self):
         with TemporaryDirectory() as td:
             root = Path(td)
@@ -2346,7 +1555,6 @@ class TestTraceabilityInternals(unittest.TestCase):
             a = features_dir / "feature-a"
             a.mkdir(parents=True)
             (a / "DESIGN.md").write_text(TestCodeRootTraceability()._design_completed("a"), encoding="utf-8")
-            (a / "CHANGES.md").write_text(TestCodeRootTraceability()._changes_valid("a"), encoding="utf-8")
 
             code = root / "src" / "lib.rs"
             code.parent.mkdir(parents=True)
@@ -2354,7 +1562,6 @@ class TestTraceabilityInternals(unittest.TestCase):
                 "\n".join(
                     [
                         "// @fdd-algo:fdd-example-feature-a-algo-do-thing:ph-1",
-                        "// @fdd-change:fdd-example-feature-a-change-first:ph-1",
                         "// fdd-begin fdd-example-feature-a-algo-do-thing:ph-1:inst-return-ok",
                         "fn x() {}",
                         "// fdd-end fdd-example-feature-a-algo-do-thing:ph-1:inst-return-ok",
@@ -2368,13 +1575,13 @@ class TestTraceabilityInternals(unittest.TestCase):
             self.assertEqual(rep["status"], "PASS")
 
 
-class TestBusinessValidation(unittest.TestCase):
-    """Tests for BUSINESS.md validation."""
+class TestPRDValidation(unittest.TestCase):
+    """Tests for PRD.md validation."""
     
-    def _business_minimal(self) -> str:
+    def _prd_minimal(self) -> str:
         return "\n".join(
             [
-                "# Business Context",
+                "# PRD",
                 "",
                 "## A. VISION",
                 "",
@@ -2390,6 +1597,9 @@ class TestBusinessValidation(unittest.TestCase):
                 "",
                 "**Success Criteria**:",
                 "- Criterion",
+                "",
+                "**Capabilities**:",
+                "- Capability",
                 "",
                 "## B. Actors",
                 "",
@@ -2407,62 +1617,80 @@ class TestBusinessValidation(unittest.TestCase):
                 "**ID**: `fdd-example-actor-ui-app`",
                 "**Role**: UI",
                 "",
-                "## C. Capabilities",
+                "## C. Functional Requirements",
                 "",
                 "#### Reporting",
                 "",
-                "**ID**: `fdd-example-capability-reporting`",
-                "- Feature 1",
+                "**ID**: `fdd-example-fr-reporting`",
+                "- The system MUST provide reporting.",
                 "",
                 "**Actors**: `fdd-example-actor-analyst`, `fdd-example-actor-ui-app`",
+                "",
+                "## D. Use Cases",
+                "",
+                "#### Use Case",
+                "",
+                "**ID**: `fdd-example-usecase-one`",
+                "**Actor**: `fdd-example-actor-analyst`",
+                "**Preconditions**: Ready",
+                "**Flow**:",
+                "1. Step",
+                "**Postconditions**: Done",
+                "",
+                "## E. Non-functional requirements",
+                "",
+                "#### Security",
+                "",
+                "**ID**: `fdd-example-nfr-security`",
+                "- Authentication MUST be required.",
             ]
         )
     
-    def test_business_minimal_pass(self):
-        """Test that minimal valid BUSINESS.md passes validation.
+    def test_prd_minimal_pass(self):
+        """Test that minimal valid PRD.md passes validation.
         
-        Creates BUSINESS.md with all required sections B, C, D.
+        Creates PRD.md with all required sections B, C, D.
         Expects: status=PASS.
         """
-        text = self._business_minimal()
-        report = VA.validate_business_context(text)
+        text = self._prd_minimal()
+        report = VA.validate_prd(text)
         self.assertEqual(report["status"], "PASS")
 
-    def test_business_duplicate_actor_ids_fails(self):
+    def test_prd_duplicate_actor_ids_fails(self):
         """Test that duplicate actor IDs cause failure.
         
         Two actors with same ID: fdd-example-actor-analyst.
         Expects: status=FAIL with duplicate actor IDs error.
         """
-        text = self._business_minimal().replace(
-            "## C. Capabilities",
-            "\n#### Analyst2\n\n**ID**: `fdd-example-actor-analyst`\n**Role**: Duplicate\n\n## C. Capabilities"
-        ) + "\n\n## D. Use Cases\n\n#### Example\n\n**ID**: `fdd-example-usecase-1`\n**Actor**: `fdd-example-actor-analyst`\n**Preconditions**: Ready\n**Flow**:\n1. Step\n**Postconditions**: Done\n"
-        report = VA.validate_business_context(text)
+        text = self._prd_minimal().replace(
+            "## C. Functional Requirements",
+            "\n#### Analyst2\n\n**ID**: `fdd-example-actor-analyst`\n**Role**: Duplicate\n\n## C. Functional Requirements"
+        )
+        report = VA.validate_prd(text)
         self.assertEqual(report["status"], "FAIL")
         self.assertTrue(any("duplicate actor" in i.get("message", "").lower() for i in report.get("issues", [])))
 
-    def test_business_capability_references_unknown_actor_fails(self):
+    def test_prd_capability_references_unknown_actor_fails(self):
         """Test that capability referencing unknown actor causes failure.
         
         Capability references fdd-example-actor-missing which doesn't exist.
         Expects: status=FAIL with 'unknown actor IDs' issue.
         """
-        text = self._business_minimal().replace(
+        text = self._prd_minimal().replace(
             "**Actors**: `fdd-example-actor-analyst`, `fdd-example-actor-ui-app`",
             "**Actors**: `fdd-example-actor-missing`",
         )
-        report = VA.validate_business_context(text)
+        report = VA.validate_prd(text)
         self.assertEqual(report["status"], "FAIL")
         self.assertTrue(any("unknown actor" in i.get("message", "").lower() for i in report.get("issues", [])))
 
-    def test_business_usecase_references_unknown_actor_fails(self):
+    def test_prd_usecase_references_unknown_actor_fails(self):
         """Test that use case referencing unknown actor causes failure.
         
         Use case references fdd-example-actor-missing which doesn't exist.
         Expects: status=FAIL with 'unknown actor IDs' issue.
         """
-        text = self._business_minimal() + "\n".join(
+        text = self._prd_minimal() + "\n".join(
             [
                 "",
                 "## D. Use Cases",
@@ -2477,17 +1705,17 @@ class TestBusinessValidation(unittest.TestCase):
                 "**Postconditions**: Done",
             ]
         )
-        report = VA.validate_business_context(text)
+        report = VA.validate_prd(text)
         self.assertEqual(report["status"], "FAIL")
         self.assertTrue(any("unknown actor" in i.get("message", "").lower() for i in report.get("issues", [])))
 
-    def test_business_usecase_references_unknown_usecase_fails(self):
+    def test_prd_usecase_references_unknown_usecase_fails(self):
         """Test that use case referencing unknown use case ID causes failure.
         
         Use case flow triggers fdd-example-usecase-missing which doesn't exist.
         Expects: status=FAIL with 'unknown use case ID' issue.
         """
-        text = self._business_minimal() + "\n".join(
+        text = self._prd_minimal() + "\n".join(
             [
                 "",
                 "## D. Use Cases",
@@ -2502,7 +1730,7 @@ class TestBusinessValidation(unittest.TestCase):
                 "**Postconditions**: Done",
             ]
         )
-        report = VA.validate_business_context(text)
+        report = VA.validate_prd(text)
         self.assertEqual(report["status"], "FAIL")
         self.assertTrue(any(i.get("message") == "Use case references unknown use case ID" for i in report.get("issues", [])))
 
@@ -3131,9 +2359,7 @@ class TestRequirementExamples(unittest.TestCase):
         mapping = {
             "adapter-structure.md": "adapter",
             "adr-structure.md": "adr",
-            "artifact-changes-proposal-structure.md": "artifact-changes-proposal",
-            "business-context-structure.md": "business-context",
-            "feature-changes-structure.md": "feature-changes",
+            "prd-structure.md": "prd",
             "feature-design-structure.md": "feature-design",
             "features-manifest-structure.md": "features-manifest",
             "overall-design-structure.md": "overall-design",
@@ -3160,12 +2386,11 @@ class TestRequirementExamples(unittest.TestCase):
 
         cases = [
             # (example_slug, relative_artifact_path)
-            ("business-context", Path("architecture/BUSINESS.md")),
+            ("prd", Path("architecture/PRD.md")),
             ("overall-design", Path("architecture/DESIGN.md")),
             ("adr", Path("architecture/ADR")),
             ("features-manifest", Path("architecture/features/FEATURES.md")),
             ("feature-design", Path("architecture/features/feature-task-crud/DESIGN.md")),
-            ("feature-changes", Path("architecture/features/feature-task-crud/CHANGES.md")),
         ]
 
         for slug, rel_artifact_path in cases:

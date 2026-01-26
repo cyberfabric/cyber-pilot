@@ -2,7 +2,7 @@
 Test overall DESIGN.md validation.
 
 Critical validator that ensures system design integrity,
-requirements traceability, and cross-references to BUSINESS.md and ADR/{category}/NNNN-fdd-{slug}.md.
+requirements traceability, and cross-references to PRD.md and ADR/{category}/NNNN-fdd-{slug}.md.
 """
 
 import unittest
@@ -26,23 +26,17 @@ class TestOverallDesignStructure(unittest.TestCase):
 
 Architecture content here.
 
-## B. Requirements & Principles
+### Architecture drivers
 
-### B.1: Functional Requirements
+#### Product requirements
 
-#### FR-001: First Requirement
+| FDD ID | Solution short description |
+|--------|----------------------------|
+| `fdd-myapp-capability-test` | Minimal solution mapping. |
 
-**ID**: `fdd-myapp-req-first`
+## B. Principles & Constraints
 
-**Capabilities**: `fdd-myapp-capability-test`
-
-**Actors**: `fdd-myapp-actor-user`
-
-**Use Cases**: `fdd-myapp-usecase-test`
-
-Requirement description.
-
-### B.2: Design Principles
+### B.1: Design Principles
 
 #### Principle: Simple
 
@@ -50,7 +44,7 @@ Requirement description.
 
 Principle description.
 
-### B.3: Constraints
+### B.2: Constraints
 
 #### Constraint: Limits
 
@@ -60,11 +54,11 @@ Constraint description.
 
 ## C. Technical Architecture
 
-### C.1: Component Model
+### C.1: Domain Model
 
 Content.
 
-### C.2: Domain Model
+### C.2: Component Model
 
 Content.
 
@@ -72,9 +66,11 @@ Content.
 
 Content.
 
-### C.4: Non-Functional Requirements
+### C.4: Interactions & Sequences
 
-Content.
+Use cases: `fdd-myapp-usecase-test`
+
+Actors: `fdd-myapp-actor-user`
 """
         report = validate_overall_design(text, skip_fs_checks=True)
         
@@ -87,27 +83,23 @@ Content.
         """Test that missing Section A fails validation."""
         text = """# Technical Design
 
-## B. Requirements & Principles
+## B. Principles & Constraints
 
-### B.1: Functional Requirements
-
-Content.
-
-### B.2: Design Principles
+### B.1: Design Principles
 
 Content.
 
-### B.3: Constraints
+### B.2: Constraints
 
 Content.
 
 ## C. Technical Architecture
 
-### C.1: Component Model
+### C.1: Domain Model
 
 Content.
 
-### C.2: Domain Model
+### C.2: Component Model
 
 Content.
 
@@ -115,7 +107,7 @@ Content.
 
 Content.
 
-### C.4: Non-Functional Requirements
+### C.4: Interactions & Sequences
 
 Content.
 """
@@ -133,13 +125,21 @@ Content.
 
 Content.
 
+### Architecture drivers
+
+#### Product requirements
+
+| FDD ID | Solution short description |
+|--------|----------------------------|
+| `fdd-app-capability-test` | Minimal solution mapping. |
+
 ## C. Technical Architecture
 
-### C.1: Component Model
+### C.1: Domain Model
 
 Content.
 
-### C.2: Domain Model
+### C.2: Component Model
 
 Content.
 
@@ -147,7 +147,7 @@ Content.
 
 Content.
 
-### C.4: Non-Functional Requirements
+### C.4: Interactions & Sequences
 
 Content.
 """
@@ -164,25 +164,21 @@ Content.
 
 Content.
 
-## B. Requirements & Principles
+### Architecture drivers
 
-### B.1: Functional Requirements
+#### Product requirements
 
-#### FR-001: Requirement
+| FDD ID | Solution short description |
+|--------|----------------------------|
+| `fdd-app-actor-user` | Minimal solution mapping. |
 
-**ID**: `fdd-app-req-test`
+## B. Principles & Constraints
 
-**Capabilities**: `fdd-app-capability-test`
-
-**Actors**: `fdd-app-actor-user`
-
-Content.
-
-### B.2: Design Principles
+### B.1: Design Principles
 
 Content.
 
-### B.3: Constraints
+### B.2: Constraints
 
 Content.
 
@@ -201,25 +197,21 @@ Content.
 
 Content.
 
-## B. Requirements & Principles
+### Architecture drivers
 
-### B.1: Functional Requirements
+#### Product requirements
 
-#### FR-001: Requirement
+| FDD ID | Solution short description |
+|--------|----------------------------|
+| `fdd-app-capability-test` | Minimal solution mapping. |
 
-**ID**: `fdd-app-req-test`
+## B. Principles & Constraints
 
-**Capabilities**: `fdd-app-capability-test`
-
-**Actors**: `fdd-app-actor-user`
-
-Content.
-
-### B.2: Design Principles
+### B.1: Design Principles
 
 Content.
 
-### B.3: Constraints
+### B.2: Constraints
 
 Content.
 
@@ -256,25 +248,21 @@ Content.
 
 Content.
 
-## B. Requirements & Principles
+### Architecture drivers
 
-### B.1: Functional Requirements
+#### Product requirements
 
-#### FR-001: Requirement
+| FDD ID | Solution short description |
+|--------|----------------------------|
+| `fdd-app-capability-test` | Minimal solution mapping. |
 
-**ID**: `fdd-app-req-test`
+## B. Principles & Constraints
 
-**Capabilities**: `fdd-app-capability-test`
-
-**Actors**: `fdd-app-actor-user`
-
-Content.
-
-### B.2: Design Principles
+### B.1: Design Principles
 
 Content.
 
-### B.3: Constraints
+### B.2: Constraints
 
 Content.
 
@@ -307,38 +295,34 @@ Content.
             pass
 
 
-class TestOverallDesignRequirements(unittest.TestCase):
-    """Test overall DESIGN.md requirements validation."""
+class TestOverallDesignArchitectureDrivers(unittest.TestCase):
+    """Test Architecture drivers validation."""
 
-    def test_no_requirements_fails(self):
-        """Test that design with no requirements fails."""
+    def test_missing_architecture_drivers_fails(self):
+        """Test that missing Architecture drivers fails."""
         text = """# Technical Design
 
 ## A. Architecture
 
 Content.
 
-## B. Requirements & Principles
+## B. Principles & Constraints
 
-### B.1: Functional Requirements
-
-No requirement IDs here.
-
-### B.2: Design Principles
+### B.1: Design Principles
 
 Content.
 
-### B.3: Constraints
+### B.2: Constraints
 
 Content.
 
 ## C. Technical Architecture
 
-### C.1: Component Model
+### C.1: Domain Model
 
 Content.
 
-### C.2: Domain Model
+### C.2: Component Model
 
 Content.
 
@@ -346,52 +330,44 @@ Content.
 
 Content.
 
-### C.4: Non-Functional Requirements
+### C.4: Interactions & Sequences
 
 Content.
 """
         report = validate_overall_design(text, skip_fs_checks=True)
         
         self.assertEqual(report["status"], "FAIL")
-        req_issues = report["requirement_issues"]
-        self.assertGreater(len(req_issues), 0)
-        self.assertIn("No functional requirement", req_issues[0]["message"])
+        structure_errors = [e for e in report["errors"] if e.get("type") == "structure"]
+        msgs = [e.get("message", "") for e in structure_errors]
+        self.assertTrue(any("Architecture drivers" in m for m in msgs))
 
-    def test_requirement_missing_capabilities_fails(self):
-        """Test that requirement without capabilities fails."""
+    def test_missing_product_requirements_fails(self):
+        """Test that missing Product requirements subsection fails."""
         text = """# Technical Design
 
 ## A. Architecture
 
 Content.
 
-## B. Requirements & Principles
+### Architecture drivers
 
-### B.1: Functional Requirements
+## B. Principles & Constraints
 
-#### FR-001: Requirement
-
-**ID**: `fdd-app-req-test`
-
-**Actors**: `fdd-app-actor-user`
-
-No capabilities listed.
-
-### B.2: Design Principles
+### B.1: Design Principles
 
 Content.
 
-### B.3: Constraints
+### B.2: Constraints
 
 Content.
 
 ## C. Technical Architecture
 
-### C.1: Component Model
+### C.1: Domain Model
 
 Content.
 
-### C.2: Domain Model
+### C.2: Component Model
 
 Content.
 
@@ -399,52 +375,50 @@ Content.
 
 Content.
 
-### C.4: Non-Functional Requirements
+### C.4: Interactions & Sequences
 
 Content.
 """
         report = validate_overall_design(text, skip_fs_checks=True)
         
         self.assertEqual(report["status"], "FAIL")
-        req_issues = report["requirement_issues"]
-        missing_caps = [i for i in req_issues if "capability" in i["message"].lower()]
-        self.assertGreater(len(missing_caps), 0)
+        structure_errors = [e for e in report["errors"] if e.get("type") == "structure"]
+        msgs = [e.get("message", "") for e in structure_errors]
+        self.assertTrue(any("Product requirements" in m for m in msgs))
 
-    def test_requirement_missing_actors_fails(self):
-        """Test that requirement without actors fails."""
+    def test_missing_product_requirements_table_header_fails(self):
+        """Test that Product requirements without required table header fails."""
         text = """# Technical Design
 
 ## A. Architecture
 
 Content.
 
-## B. Requirements & Principles
+### Architecture drivers
 
-### B.1: Functional Requirements
+#### Product requirements
 
-#### FR-001: Requirement
+| Something else | Wrong |
+|---------------|-------|
+| x | y |
 
-**ID**: `fdd-app-req-test`
+## B. Principles & Constraints
 
-**Capabilities**: `fdd-app-capability-test`
-
-No actors listed.
-
-### B.2: Design Principles
+### B.1: Design Principles
 
 Content.
 
-### B.3: Constraints
+### B.2: Constraints
 
 Content.
 
 ## C. Technical Architecture
 
-### C.1: Component Model
+### C.1: Domain Model
 
 Content.
 
-### C.2: Domain Model
+### C.2: Component Model
 
 Content.
 
@@ -452,54 +426,36 @@ Content.
 
 Content.
 
-### C.4: Non-Functional Requirements
+### C.4: Interactions & Sequences
 
 Content.
 """
         report = validate_overall_design(text, skip_fs_checks=True)
         
         self.assertEqual(report["status"], "FAIL")
-        req_issues = report["requirement_issues"]
-        missing_actors = [i for i in req_issues if "actor" in i["message"].lower()]
-        self.assertGreater(len(missing_actors), 0)
+        structure_errors = [e for e in report["errors"] if e.get("type") == "structure"]
+        msgs = [e.get("message", "") for e in structure_errors]
+        self.assertTrue(any("Product requirements must include a table" in m for m in msgs))
 
-    def test_multiple_requirements_with_proper_references_pass(self):
-        """Test multiple requirements with all references."""
+    def test_optional_c_subsections_pass(self):
+        """Test Section C with optional subsections C.5-C.7."""
         text = """# Technical Design
 
 ## A. Architecture
 
 Content.
 
-## B. Requirements & Principles
+### Architecture drivers
 
-### B.1: Functional Requirements
+#### Product requirements
 
-#### FR-001: First Requirement
+| FDD ID | Solution short description |
+|--------|----------------------------|
+| `fdd-app-capability-manage` | Minimal solution mapping. |
 
-**ID**: `fdd-app-req-first`
+## B. Principles & Constraints
 
-**Capabilities**: `fdd-app-capability-manage`
-
-**Actors**: `fdd-app-actor-admin`
-
-**Use Cases**: `fdd-app-usecase-manage`
-
-Description.
-
-#### FR-002: Second Requirement
-
-**ID**: `fdd-app-req-second`
-
-**Capabilities**: `fdd-app-capability-view`, `fdd-app-capability-edit`
-
-**Actors**: `fdd-app-actor-user`, `fdd-app-actor-admin`
-
-**Use Cases**: `fdd-app-usecase-view`, `fdd-app-usecase-edit`
-
-Description.
-
-### B.2: Design Principles
+### B.1: Design Principles
 
 #### Principle: Simple
 
@@ -507,7 +463,7 @@ Description.
 
 Content.
 
-### B.3: Constraints
+### B.2: Constraints
 
 #### Constraint: Limits
 
@@ -517,11 +473,11 @@ Content.
 
 ## C. Technical Architecture
 
-### C.1: Component Model
+### C.1: Domain Model
 
 Content.
 
-### C.2: Domain Model
+### C.2: Component Model
 
 Content.
 
@@ -529,9 +485,21 @@ Content.
 
 Content.
 
-### C.4: Non-Functional Requirements
+### C.4: Interactions & Sequences
 
 Content.
+
+### C.5 Database schemas & tables (optional)
+
+ID: `fdd-app-db-table-users`
+
+### C.6: Topology (optional)
+
+**ID**: `fdd-app-topology-local`
+
+### C.7: Tech stack (optional)
+
+**ID**: `fdd-app-tech-python`
 """
         report = validate_overall_design(text, skip_fs_checks=True)
         
@@ -540,18 +508,18 @@ Content.
 
 
 class TestOverallDesignCrossReferences(unittest.TestCase):
-    """Test cross-reference validation with BUSINESS.md and ADR directory."""
+    """Test cross-reference validation with PRD.md and ADR directory."""
 
-    def test_cross_reference_validation_with_business(self):
-        """Test validation with BUSINESS.md cross-references."""
+    def test_cross_reference_validation_with_prd(self):
+        """Test validation with PRD.md cross-references."""
         with TemporaryDirectory() as tmpdir:
             tmppath = Path(tmpdir)
             arch = tmppath / "architecture"
             arch.mkdir()
             
-            # Create BUSINESS.md
-            business = arch / "BUSINESS.md"
-            business.write_text("""# Business Context
+            # Create PRD.md
+            prd = arch / "PRD.md"
+            prd.write_text("""# PRD
 
 ## B. Actors
 
@@ -578,37 +546,31 @@ class TestOverallDesignCrossReferences(unittest.TestCase):
 
 Content.
 
-## B. Requirements & Principles
+### Architecture drivers
 
-### B.1: Functional Requirements
+#### Product requirements
 
-#### FR-001: Requirement
+| FDD ID | Solution short description |
+|--------|----------------------------|
+| `fdd-app-usecase-manage` | Minimal solution mapping. |
 
-**ID**: `fdd-app-req-first`
+## B. Principles & Constraints
 
-**Capabilities**: `fdd-app-capability-manage`
-
-**Actors**: `fdd-app-actor-admin`
-
-**Use Cases**: `fdd-app-usecase-manage`
-
-Description.
-
-### B.2: Design Principles
+### B.1: Design Principles
 
 Content.
 
-### B.3: Constraints
+### B.2: Constraints
 
 Content.
 
 ## C. Technical Architecture
 
-### C.1: Component Model
+### C.1: Domain Model
 
 Content.
 
-### C.2: Domain Model
+### C.2: Component Model
 
 Content.
 
@@ -616,16 +578,20 @@ Content.
 
 Content.
 
-### C.4: Non-Functional Requirements
+### C.4: Interactions & Sequences
 
 Content.
+
+Use cases: `fdd-app-usecase-manage`
+
+Actors: `fdd-app-actor-admin`
 """
             design.write_text(design_text)
             
             report = validate_overall_design(
                 design_text,
                 artifact_path=design,
-                business_path=business,
+                prd_path=prd,
                 skip_fs_checks=False
             )
             
@@ -640,8 +606,8 @@ Content.
             arch = tmppath / "architecture"
             arch.mkdir()
             
-            business = arch / "BUSINESS.md"
-            business.write_text("""# Business Context
+            prd = arch / "PRD.md"
+            prd.write_text("""# PRD
 
 ## B. Actors
 
@@ -663,35 +629,31 @@ Content.
 
 Content.
 
-## B. Requirements & Principles
+### Architecture drivers
 
-### B.1: Functional Requirements
+#### Product requirements
 
-#### FR-001: Requirement
+| FDD ID | Solution short description |
+|--------|----------------------------|
+| `fdd-app-usecase-manage` | Minimal solution mapping. |
 
-**ID**: `fdd-app-req-test`
+## B. Principles & Constraints
 
-**Capabilities**: `fdd-app-capability-test`
-
-**Actors**: `fdd-app-actor-unknown`
-
-Unknown actor!
-
-### B.2: Design Principles
+### B.1: Design Principles
 
 Content.
 
-### B.3: Constraints
+### B.2: Constraints
 
 Content.
 
 ## C. Technical Architecture
 
-### C.1: Component Model
+### C.1: Domain Model
 
 Content.
 
-### C.2: Domain Model
+### C.2: Component Model
 
 Content.
 
@@ -699,16 +661,16 @@ Content.
 
 Content.
 
-### C.4: Non-Functional Requirements
+### C.4: Interactions & Sequences
 
-Content.
+Actors: `fdd-app-actor-unknown`
 """
             design.write_text(design_text)
             
             report = validate_overall_design(
                 design_text,
                 artifact_path=design,
-                business_path=business,
+                prd_path=prd,
                 skip_fs_checks=False
             )
             
@@ -717,27 +679,23 @@ Content.
                                    if "Unknown actor" in i.get("message", "")]
             self.assertGreater(len(unknown_actor_issues), 0)
 
-    def test_unknown_capability_reference_fails(self):
-        """Test that unknown capability reference fails."""
+    def test_unknown_usecase_reference_fails(self):
+        """Test that unknown use case reference fails."""
         with TemporaryDirectory() as tmpdir:
             tmppath = Path(tmpdir)
             arch = tmppath / "architecture"
             arch.mkdir()
             
-            business = arch / "BUSINESS.md"
-            business.write_text("""# Business Context
+            prd = arch / "PRD.md"
+            prd.write_text("""# PRD
 
 ## B. Actors
 
 - **ID**: `fdd-app-actor-user`
 
-## C. Capabilities
+## D. Use Cases
 
-### CAP-001: Real Capability
-
-**ID**: `fdd-app-capability-real`
-
-**Actors**: `fdd-app-actor-user`
+- **ID**: `fdd-app-usecase-real`
 """)
             
             design = arch / "DESIGN.md"
@@ -747,35 +705,31 @@ Content.
 
 Content.
 
-## B. Requirements & Principles
+### Architecture drivers
 
-### B.1: Functional Requirements
+#### Product requirements
 
-#### FR-001: Requirement
+| FDD ID | Solution short description |
+|--------|----------------------------|
+| `fdd-app-usecase-real` | Minimal solution mapping. |
 
-**ID**: `fdd-app-req-test`
+## B. Principles & Constraints
 
-**Capabilities**: `fdd-app-capability-unknown`
-
-**Actors**: `fdd-app-actor-user`
-
-Unknown capability!
-
-### B.2: Design Principles
+### B.1: Design Principles
 
 Content.
 
-### B.3: Constraints
+### B.2: Constraints
 
 Content.
 
 ## C. Technical Architecture
 
-### C.1: Component Model
+### C.1: Domain Model
 
 Content.
 
-### C.2: Domain Model
+### C.2: Component Model
 
 Content.
 
@@ -783,51 +737,36 @@ Content.
 
 Content.
 
-### C.4: Non-Functional Requirements
+### C.4: Interactions & Sequences
 
-Content.
+Use cases: `fdd-app-usecase-unknown`
 """
             design.write_text(design_text)
             
             report = validate_overall_design(
                 design_text,
                 artifact_path=design,
-                business_path=business,
+                prd_path=prd,
                 skip_fs_checks=False
             )
             
             self.assertEqual(report["status"], "FAIL")
-            unknown_cap_issues = [i for i in report["requirement_issues"]
-                                 if "Unknown capability" in i.get("message", "")]
-            self.assertGreater(len(unknown_cap_issues), 0)
+            unknown_uc_issues = [i for i in report["requirement_issues"] if "Unknown use case" in i.get("message", "")]
+            self.assertGreater(len(unknown_uc_issues), 0)
 
-    def test_orphaned_capabilities_detected(self):
-        """Test that orphaned capabilities (not referenced) are detected."""
+    def test_disallowed_optional_c_subsection_fails(self):
+        """Test that disallowed optional C subsection fails."""
         with TemporaryDirectory() as tmpdir:
             tmppath = Path(tmpdir)
             arch = tmppath / "architecture"
             arch.mkdir()
             
-            business = arch / "BUSINESS.md"
-            business.write_text("""# Business Context
+            prd = arch / "PRD.md"
+            prd.write_text("""# PRD
 
 ## B. Actors
 
 - **ID**: `fdd-app-actor-user`
-
-## C. Capabilities
-
-### CAP-001: Used Capability
-
-**ID**: `fdd-app-capability-used`
-
-**Actors**: `fdd-app-actor-user`
-
-### CAP-002: Orphaned Capability
-
-**ID**: `fdd-app-capability-orphaned`
-
-**Actors**: `fdd-app-actor-user`
 """)
             
             design = arch / "DESIGN.md"
@@ -837,35 +776,31 @@ Content.
 
 Content.
 
-## B. Requirements & Principles
+### Architecture drivers
 
-### B.1: Functional Requirements
+#### Product requirements
 
-#### FR-001: Requirement
+| FDD ID | Solution short description |
+|--------|----------------------------|
+| `fdd-app-actor-user` | Minimal solution mapping. |
 
-**ID**: `fdd-app-req-test`
+## B. Principles & Constraints
 
-**Capabilities**: `fdd-app-capability-used`
-
-**Actors**: `fdd-app-actor-user`
-
-Only references 'used' capability.
-
-### B.2: Design Principles
+### B.1: Design Principles
 
 Content.
 
-### B.3: Constraints
+### B.2: Constraints
 
 Content.
 
 ## C. Technical Architecture
 
-### C.1: Component Model
+### C.1: Domain Model
 
 Content.
 
-### C.2: Domain Model
+### C.2: Component Model
 
 Content.
 
@@ -873,24 +808,28 @@ Content.
 
 Content.
 
-### C.4: Non-Functional Requirements
+### C.4: Interactions & Sequences
 
 Content.
+
+### C.8: Something else
+
+Not allowed.
 """
             design.write_text(design_text)
             
             report = validate_overall_design(
                 design_text,
                 artifact_path=design,
-                business_path=business,
+                prd_path=prd,
                 skip_fs_checks=False
             )
             
             self.assertEqual(report["status"], "FAIL")
-            orphan_errors = [e for e in report["errors"]
-                           if e.get("type") == "traceability" and "Orphaned capabilities" in e.get("message", "")]
-            self.assertGreater(len(orphan_errors), 0)
-            self.assertIn("fdd-app-capability-orphaned", orphan_errors[0]["ids"])
+            self.assertEqual(report["status"], "FAIL")
+            structure_errors = [e for e in report["errors"] if e.get("type") == "structure"]
+            msgs = [e.get("message", "") for e in structure_errors]
+            self.assertTrue(any("optional subsections" in m for m in msgs))
 
 
 class TestOverallDesignADRReferences(unittest.TestCase):
@@ -944,37 +883,33 @@ class TestOverallDesignADRReferences(unittest.TestCase):
 
 Content.
 
-## B. Requirements & Principles
+### Architecture drivers
 
-### B.1: Functional Requirements
+#### Product requirements
 
-#### FR-001: Requirement
+| FDD ID | Solution short description |
+|--------|----------------------------|
+| `fdd-app-adr-use-python` | Minimal solution mapping. |
 
-**ID**: `fdd-app-req-test`
+## B. Principles & Constraints
 
-**Capabilities**: `fdd-app-capability-test`
-
-**Actors**: `fdd-app-actor-user`
+### B.1: Design Principles
 
 **ADRs**: ADR-0001
 
-References ADR-0001.
-
-### B.2: Design Principles
-
 Content.
 
-### B.3: Constraints
+### B.2: Constraints
 
 Content.
 
 ## C. Technical Architecture
 
-### C.1: Component Model
+### C.1: Domain Model
 
 Content.
 
-### C.2: Domain Model
+### C.2: Component Model
 
 Content.
 
@@ -982,7 +917,7 @@ Content.
 
 Content.
 
-### C.4: Non-Functional Requirements
+### C.4: Interactions & Sequences
 
 Content.
 """
@@ -1050,37 +985,33 @@ Content.
 
 Content.
 
-## B. Requirements & Principles
+### Architecture drivers
 
-### B.1: Functional Requirements
+#### Product requirements
 
-#### FR-001: Requirement
+| FDD ID | Solution short description |
+|--------|----------------------------|
+| `fdd-app-adr-real` | Minimal solution mapping. |
 
-**ID**: `fdd-app-req-test`
+## B. Principles & Constraints
 
-**Capabilities**: `fdd-app-capability-test`
-
-**Actors**: `fdd-app-actor-user`
+### B.1: Design Principles
 
 **ADRs**: `fdd-app-adr-unknown`
 
 Unknown ADR!
 
-### B.2: Design Principles
-
-Content.
-
-### B.3: Constraints
+### B.2: Constraints
 
 Content.
 
 ## C. Technical Architecture
 
-### C.1: Component Model
+### C.1: Domain Model
 
 Content.
 
-### C.2: Domain Model
+### C.2: Component Model
 
 Content.
 
@@ -1088,7 +1019,7 @@ Content.
 
 Content.
 
-### C.4: Non-Functional Requirements
+### C.4: Interactions & Sequences
 
 Content.
 """
@@ -1118,37 +1049,31 @@ class TestOverallDesignPlaceholders(unittest.TestCase):
 
 TODO: Add architecture details
 
-## B. Requirements & Principles
+### Architecture drivers
 
-### B.1: Functional Requirements
+#### Product requirements
 
-### FR-001: Requirement
+| FDD ID | Solution short description |
+|--------|----------------------------|
+| `fdd-app-actor-user` | TBD |
 
-**ID**: `fdd-app-req-test`
+## B. Principles & Constraints
 
-**ID**: `fdd-app-req-test`
-
-**Capabilities**: `fdd-app-capability-test`
-
-**Actors**: `fdd-app-actor-user`
-
-TBD: Add requirement description
-
-### B.2: Design Principles
+### B.1: Design Principles
 
 Content.
 
-### B.3: Constraints
+### B.2: Constraints
 
 Content.
 
 ## C. Technical Architecture
 
-### C.1: Component Model
+### C.1: Domain Model
 
 Content.
 
-### C.2: Domain Model
+### C.2: Component Model
 
 Content.
 
@@ -1156,7 +1081,7 @@ Content.
 
 Content.
 
-### C.4: Non-Functional Requirements
+### C.4: Interactions & Sequences
 
 Content.
 """
@@ -1164,123 +1089,6 @@ Content.
         
         self.assertEqual(report["status"], "FAIL")
         self.assertGreater(len(report["placeholder_hits"]), 0)
-
-
-class TestRequirementBlocks(unittest.TestCase):
-    """Test requirement block parsing and validation."""
-
-    def test_requirement_with_all_fields(self):
-        """Test requirement with actors, capabilities, use cases, ADRs."""
-        text = """# DESIGN.md
-
-## A. Purpose
-
-Purpose here.
-
-## B. Requirements & Principles
-
-### B.1: Functional Requirements
-
-#### FR-001: Requirement
-
-**ID**: `fdd-app-req-001`
-
-**Actors**: `fdd-app-actor-user`
-
-**Capabilities**: `fdd-app-capability-auth`
-
-**Use Cases**: `fdd-app-usecase-login`
-
-**ADRs**: `fdd-app-adr-0001`
-
-### B.2: Design Principles
-
-Content.
-
-### B.3: Constraints
-
-Content.
-
-## C. Technical Architecture
-
-### C.1: Component Model
-
-Content.
-
-### C.2: Domain Model
-
-Content.
-
-### C.3: API Contracts
-
-Content.
-
-### C.4: Non-Functional Requirements
-
-Content.
-"""
-        report = validate_overall_design(text, skip_fs_checks=True)
-        
-        # Should parse requirement block
-        self.assertEqual(report["requirement_count"], 1)
-
-    def test_multiple_requirements(self):
-        """Test multiple requirements."""
-        text = """# DESIGN.md
-
-## A. Purpose
-
-Purpose.
-
-## B. Requirements & Principles
-
-### B.1: Functional Requirements
-
-#### FR-001: Requirement
-
-**ID**: `fdd-app-req-001`
-
-**Actors**: `fdd-app-actor-user`
-
-**Capabilities**: `fdd-app-capability-test`
-
-#### FR-002: Requirement
-
-**ID**: `fdd-app-req-002`
-
-**Actors**: `fdd-app-actor-admin`
-
-**Capabilities**: `fdd-app-capability-admin`
-
-### B.2: Design Principles
-
-Content.
-
-### B.3: Constraints
-
-Content.
-
-## C. Technical Architecture
-
-### C.1: Component Model
-
-Content.
-
-### C.2: Domain Model
-
-Content.
-
-### C.3: API Contracts
-
-Content.
-
-### C.4: Non-Functional Requirements
-
-Content.
-"""
-        report = validate_overall_design(text, skip_fs_checks=True)
-        
-        self.assertEqual(report["requirement_count"], 2)
 
 
 class TestSectionCSubsections(unittest.TestCase):
@@ -1294,21 +1102,17 @@ class TestSectionCSubsections(unittest.TestCase):
 
 Purpose.
 
-## B. Requirements & Principles
+### Architecture drivers
 
-### B.1: Functional Requirements
+#### Product requirements
 
-#### FR-001: Requirement
+| FDD ID | Solution short description |
+|--------|----------------------------|
+| `fdd-app-actor-user` | Minimal solution mapping. |
 
-**ID**: `fdd-app-req-001`
+## B. Principles & Constraints
 
-**Actors**: `fdd-app-actor-user`
-
-**Capabilities**: `fdd-app-capability-test`
-
-Functional.
-
-### B.2: Design Principles
+### B.1: Design Principles
 
 #### Principle: Simple
 
@@ -1316,7 +1120,7 @@ Functional.
 
 Principles.
 
-### B.3: Constraints
+### B.2: Constraints
 
 #### Constraint: Limits
 
@@ -1326,21 +1130,21 @@ Constraints.
 
 ## C. Technical Architecture
 
-### C.1: Component Model
-
-Component.
-
-### C.2: Domain Model
+### C.1: Domain Model
 
 Domain.
+
+### C.2: Component Model
+
+Component.
 
 ### C.3: API Contracts
 
 API.
 
-### C.4: Non-Functional Requirements
+### C.4: Interactions & Sequences
 
-NFR.
+Content.
 """
         report = validate_overall_design(text, skip_fs_checks=True)
         

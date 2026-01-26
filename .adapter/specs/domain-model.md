@@ -20,24 +20,22 @@ FDD uses **Markdown-based artifacts** for design documentation, not code-level t
 
 | Artifact | Location | Purpose |
 |----------|----------|---------|
-| `BUSINESS.md` | `architecture/` | Business context, actors, capabilities |
+| `PRD.md` | `architecture/` | PRD, actors, capabilities |
 | `DESIGN.md` | `architecture/` | Overall system design |
 | `ADR/{category}/NNNN-fdd-id-{slug}.md` | `architecture/` | Architecture Decision Records |
 | `FEATURES.md` | `architecture/` | Feature manifest |
 | `DESIGN.md` | `architecture/features/feature-{slug}/` | Feature design |
-| `CHANGES.md` | `architecture/features/feature-{slug}/` | Implementation changes |
 
 ### Validation Requirements
 
 Each artifact type has structure requirements in:
 ```
 requirements/
-├── business-context-structure.md
+├── prd-structure.md
 ├── overall-design-structure.md
 ├── adr-structure.md
 ├── features-manifest-structure.md
-├── feature-design-structure.md
-└── feature-changes-structure.md
+└── feature-design-structure.md
 ```
 
 ---
@@ -96,12 +94,6 @@ requirements/
 **ID**: `fdd-myapp-feature-auth-state-user-session`
 ```
 
-**Changes**: Numeric within CHANGES.md
-```markdown
-## Change 1
-**ID**: 1
-```
-
 ### Qualified IDs (Code Traceability)
 
 **Phase qualifiers**: `{base-id}:ph-{N}`
@@ -148,10 +140,10 @@ def validate_credentials(username, password):
 
 ## Structure Patterns
 
-### Business Context (BUSINESS.md)
+### PRD (PRD.md)
 
 ```markdown
-# Business Context: {Project Name}
+# PRD: {Project Name}
 
 ## Section A: Vision
 {Vision statement}

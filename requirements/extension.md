@@ -67,7 +67,7 @@ Merged Result (base + modifications)
 
 **Base**: `FDD/AGENTS.md`
 ```markdown
-See [BUSINESS.md](BUSINESS.md)
+See [PRD.md](PRD.md)
 See [ADR](ADR/)
 See [api.json](../../../docs/api/api.json)
 ```

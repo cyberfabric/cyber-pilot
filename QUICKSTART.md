@@ -21,7 +21,7 @@ You can apply the same flow in any agent by opening the corresponding workflow f
 FDD = **Design First, Code Second**
 
 ```
-1. Business Context
+1. PRD
    ↓ (validated)
 2. ADR + Overall Design
    ↓ (validated)
@@ -29,11 +29,9 @@ FDD = **Design First, Code Second**
    ↓ (validated)
 4. Feature Design
    ↓ (validated)
-5. Implementation plan (optional)
+5. Implementation
    ↓ (validated)
-6. Implementation
-   ↓ (validated)
-7. Code
+6. Code
 ```
 
 **Key principle**: If code contradicts design, fix design first, then regenerate code.
@@ -166,12 +164,11 @@ Once the workflow proxies are generated, you can trigger workflows by name from 
 Examples:
 ```text
 /fdd-adapter
-/fdd-business-context
+/fdd-prd
 /fdd-design
 /fdd-features
 /fdd-feature
-/fdd-feature-implement
-/fdd-feature-changes
+/fdd-code
 ```
 
 Each of these opens a small proxy file that redirects the agent to the canonical workflow under `FDD/workflows/`.

@@ -55,7 +55,7 @@ This guide helps you select the correct FDD workflow based on:
 - **Creates**: `{project-root}/FDD-Adapter/AGENTS.md` + spec files
 - **Location**: Project root level (not nested in subdirectories)
 - **Modes**: CREATE or UPDATE
-- **Next**: `business-context` or `adapter-validate`
+- **Next**: `prd` or `adapter-validate`
 
 **adapter-from-sources.md** - Extract adapter from existing codebase
 - **Use when**: Legacy project, want to reverse-engineer adapter
@@ -70,28 +70,28 @@ This guide helps you select the correct FDD workflow based on:
 **adapter-validate.md** - Validate adapter structure
 - **Use when**: Adapter created or updated
 - **Validates**: File structure, AGENTS.md format, spec files
-- **Next**: `business-context` or `design`
+- **Next**: `prd` or `design`
 
 ---
 
-### Phase 1: Business & Architecture
+### Phase 1: PRD & Architecture
 
-## Phase 1: Business & Architecture
+## Phase 1: PRD & Architecture
 
-### Workflow: `business-context`
+### Workflow: `prd`
 
-**business-context.md** - Create or update BUSINESS.md
-- **Use when**: Need to document business context
-- **Creates**: `architecture/BUSINESS.md`
+**prd.md** - Create or update PRD.md
+- **Use when**: Need to document PRD
+- **Creates**: `architecture/PRD.md`
 - **Sections**: Vision, Actors, Capabilities
 - **Modes**: CREATE or UPDATE
-- **Next**: `business-validate`
+- **Next**: `prd-validate`
 
-### Workflow: `business-validate`
+### Workflow: `prd-validate`
 
-**business-validate.md** - Validate business
+**prd-validate.md** - Validate prd
 
-**When**: After BUSINESS.md created or updated
+**When**: After PRD.md created or updated
 - **Validates**: Required sections, actor/capability IDs
 - **Score**: ≥90/100
 - **Next**: `design`
@@ -153,38 +153,19 @@ This guide helps you select the correct FDD workflow based on:
 - **Use when**: Feature DESIGN.md created or updated
 - **Validates**: All sections, actor flows, FDL, no type redefinitions
 - **Score**: 100/100 + 100% completeness
-- **Next**: `feature-implement` (default) or `feature-changes` (optional)
+- **Next**: `implement`
 
 ---
 
 ### Phase 3: Implementation
 
-**feature-implement.md** - Implement feature directly from design
-- **Use when**: Feature validated, ready to implement without CHANGES.md
+**code.md** - Implement feature directly from design
+- **Use when**: Feature validated, ready to code from `DESIGN.md`
 - **Implements**: Feature requirements directly from `DESIGN.md`
 - **Updates**: Feature DESIGN.md checkboxes/statuses iteratively during coding
-- **Next**: `feature-code-validate`
+- **Next**: `code-validate`
 
-**feature-changes.md** - Create or update implementation plan
-- **Use when**: Want an explicit task plan before implementation (optional)
-- **Creates**: `architecture/features/feature-{slug}/CHANGES.md`
-- **Content**: Atomic changes (1-5 requirements each), task breakdown
-- **Modes**: CREATE or UPDATE
-- **Next**: `feature-changes-validate`
-
-**feature-changes-validate.md** - Validate implementation plan
-- **Use when**: CHANGES.md created or updated
-- **Validates**: Structure, requirements mapping, tasks
-- **Score**: ≥90/100
-- **Next**: `feature-change-implement`
-
-**feature-change-implement.md** - Implement specific change
-- **Use when**: Ready to code a change from CHANGES.md
-- **Implements**: Tasks for one change, updates checkboxes
-- **Updates**: Change status (NOT_STARTED → 🔄 IN_PROGRESS → ✅ COMPLETED)
-- **Next**: `feature-code-validate`
-
-**feature-code-validate.md** - Validate feature code
+**code-validate.md** - Validate feature code
 - **Use when**: Feature implementation is in progress or complete
 - **Validates**: Code compiles, tests pass, requirements and test scenarios implemented
 - **Next**: Update FEATURES.md: Mark feature status as COMPLETE
@@ -199,10 +180,10 @@ START
 ├─ No adapter?
 │  └─> adapter.md (or adapter-from-sources.md for legacy)
 │
-├─ Adapter exists, no BUSINESS.md?
-│  └─> business-context.md → business-validate.md
+├─ Adapter exists, no PRD.md?
+│  └─> prd.md → prd-validate.md
 │
-├─ BUSINESS.md exists, no DESIGN.md?
+├─ PRD.md exists, no DESIGN.md?
 │  └─> design.md → design-validate.md
 │
 ├─ Need to document decisions?
@@ -215,16 +196,10 @@ START
 │  └─> feature.md → feature-validate.md
 │
 ├─ Feature validated, ready to code?
-│  └─> feature-implement.md
-│
-├─ Want a CHANGES.md implementation plan (optional)?
-│  └─> feature-changes.md → feature-changes-validate.md
-│
-├─ CHANGES.md validated, ready to code?
-│  └─> feature-change-implement.md (repeat for each change)
+│  └─> code.md
 │
 ├─ All changes done, validate code?
-│  └─> feature-code-validate.md
+│  └─> code-validate.md
 │
 ├─ Need to update existing doc?
 │  └─> Use same workflow in UPDATE mode
@@ -241,7 +216,7 @@ START
 ```
 adapter → adapter-validate
   ↓
-business-context → business-validate
+prd → prd-validate
   ↓
 design → design-validate
   ↓
@@ -251,9 +226,9 @@ features → features-validate
   ↓
 feature → feature-validate (for each feature)
   ↓
-feature-implement
+implement
   ↓
-feature-code-validate
+code-validate
 ```
 
 ### Legacy project integration
@@ -275,9 +250,9 @@ features → features-validate (update manifest)
   ↓
 feature → feature-validate
   ↓
-feature-implement
+implement
   ↓
-feature-code-validate
+code-validate
 ```
 
 ### Update existing design
@@ -298,8 +273,8 @@ feature (UPDATE mode) → feature-validate
 **Set up FDD for my project**
 → `adapter.md` (or `adapter-from-sources.md` for legacy code)
 
-**Document business context**
-→ `business-context.md` → `business-validate.md`
+**Document PRD**
+→ `prd.md` → `prd-validate.md`
 
 **Design system architecture**
 → `design.md` → `design-validate.md`
@@ -314,16 +289,10 @@ feature (UPDATE mode) → feature-validate
 → `feature.md` → `feature-validate.md`
 
 **Implement feature directly from design**
-→ `feature-implement.md`
-
-**Plan feature implementation**
-→ `feature-changes.md` → `feature-changes-validate.md` (optional)
-
-**Implement a change**
-→ `feature-change-implement.md` (repeat for each change)
+→ `code.md`
 
 **Validate feature code**
-→ `feature-code-validate.md`
+→ `code-validate.md`
 
 **Update existing document**
 → Use same workflow in UPDATE mode
@@ -369,4 +338,4 @@ Algorithm for resolving user request to workflow file path is implemented throug
 Key steps:
 - Extract keywords from request
 - Initialize workflow candidates
-- Return appropriate workflow based on request type (adapter, business, design, feature, validate, changes, implement)
+- Return appropriate workflow based on request type (adapter, prd, design, feature, validate, implement)

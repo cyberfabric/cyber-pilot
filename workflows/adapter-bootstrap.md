@@ -246,7 +246,7 @@ Automatically runs `adapter-validate` at completion
 ## Next Steps
 
 **Recommended**:
-- `business-context` - Start business requirements
+- `prd` - Start product requirements
 - `design` - Start architecture design
   - When design completed → Adapter evolution triggered
   
