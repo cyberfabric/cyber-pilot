@@ -93,7 +93,7 @@ AGENTS/Adapter
 
 **Should not contain**:
 - Architecture specifications or decisions.
-- Templates or example content (keep those in `templates/` and `examples/`).
+- Templates or example content (keep those in `templates/` and `templates/examples/`).
 - Long-form tutorials (use [**`guides/ADAPTER.md`**](../guides/ADAPTER.md) for tutorials).
 
 **Why this helps**:
@@ -115,8 +115,7 @@ AGENTS/Adapter
 - [templates/adapter-AGENTS.template.md](../templates/adapter-AGENTS.template.md)
 
 **Examples**:
-- [valid](../examples/requirements/adapter/valid.md)
-- [invalid](../examples/requirements/adapter/invalid.md)
+- [valid](../templates/examples/adapter/AGENTS-EXAMPLE.md)
 
 **Purpose**:
 - Specify project-specific conventions (tech stack, domain model format, API contracts, testing).
@@ -159,8 +158,7 @@ AGENTS/Adapter
 - [templates/PRD.template.md](../templates/PRD.template.md)
 
 **Examples**:
-- [valid](../examples/requirements/prd/valid.md)
-- [invalid](../examples/requirements/prd/invalid.md)
+- [valid](../templates/examples/PRD.md)
 
 **Purpose**:
 - Define the PRD: vision, actors, capabilities.
@@ -206,8 +204,7 @@ AGENTS/Adapter
 - [templates/DESIGN.template.md](../templates/DESIGN.template.md)
 
 **Examples**:
-- [valid](../examples/requirements/overall-design/valid.md)
-- [invalid](../examples/requirements/overall-design/invalid.md)
+- [valid](../templates/examples/DESIGN.md)
 
 **Purpose**:
 - Define the overall system architecture.
@@ -254,8 +251,7 @@ AGENTS/Adapter
 - [templates/ADR.template.md](../templates/ADR.template.md)
 
 **Examples**:
-- [valid](../examples/requirements/adr/valid.md)
-- [invalid](../examples/requirements/adr/invalid.md)
+- [valid](../templates/examples/ADR/example-adr.md)
 
 **Purpose**:
 - Capture architectural decisions and trade-offs.
@@ -299,8 +295,7 @@ AGENTS/Adapter
 - [templates/FEATURES.template.md](../templates/FEATURES.template.md)
 
 **Examples**:
-- [valid](../examples/requirements/features-manifest/valid.md)
-- [invalid](../examples/requirements/features-manifest/invalid.md)
+- [valid](../templates/examples/FEATURES.md)
 
 **Purpose**:
 - Maintain the feature list, priorities, statuses, and dependencies.
@@ -344,8 +339,7 @@ AGENTS/Adapter
 - [templates/feature-DESIGN.template.md](../templates/feature-DESIGN.template.md)
 
 **Examples**:
-- [valid](../examples/requirements/feature-design/valid.md)
-- [invalid](../examples/requirements/feature-design/invalid.md)
+- [valid](../templates/examples/features/feature-task-crud/DESIGN.md)
 
 **Purpose**:
 - Specify a single feature in detail (flows, algorithms, technical details, requirements).
@@ -410,12 +404,12 @@ Use templates for **authoritative structure** and examples for **minimal valid c
 - Adapter AGENTS: [template](../templates/adapter-AGENTS.template.md)
 
 **Examples** (minimal “valid/invalid” snapshots):
-- Adapter: [valid](../examples/requirements/adapter/valid.md), [invalid](../examples/requirements/adapter/invalid.md)
-- PRD: [valid](../examples/requirements/prd/valid.md), [invalid](../examples/requirements/prd/invalid.md)
-- Overall DESIGN: [valid](../examples/requirements/overall-design/valid.md), [invalid](../examples/requirements/overall-design/invalid.md)
-- ADR: [valid](../examples/requirements/adr/valid.md), [invalid](../examples/requirements/adr/invalid.md)
-- FEATURES: [valid](../examples/requirements/features-manifest/valid.md), [invalid](../examples/requirements/features-manifest/invalid.md)
-- Feature DESIGN: [valid](../examples/requirements/feature-design/valid.md), [invalid](../examples/requirements/feature-design/invalid.md)
+- Adapter: [valid](../templates/examples/adapter/AGENTS-EXAMPLE.md)
+- PRD: [valid](../templates/examples/PRD.md)
+- Overall DESIGN: [valid](../templates/examples/DESIGN.md)
+- ADR: [valid](../templates/examples/ADR/example-adr.md)
+- FEATURES: [valid](../templates/examples/FEATURES.md)
+- Feature DESIGN: [valid](../templates/examples/features/feature-task-crud/DESIGN.md)
 
 **Real artifacts in this repository (as reference implementations)**:
 - PRD (FDD repo default): [architecture/PRD.md](../architecture/PRD.md)

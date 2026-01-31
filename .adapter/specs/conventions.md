@@ -16,7 +16,7 @@ When modifying FDD framework sources (requirements, workflows, AGENTS, and the `
 
 **Requirements and workflows** (`requirements/*.md`, `workflows/*.md`):
 - **MUST** preserve YAML frontmatter and required fields for all FDD spec files.
-- **MUST** keep file naming conventions (requirements: `*-structure.md`, workflows: `kebab-case.md`).
+- **MUST** keep file naming conventions (requirements: `*-content.md` except adapter, workflows: `kebab-case.md`).
 - **MUST** run deterministic validation using `python3 skills/fdd/scripts/fdd.py validate --artifact .` after edits.
 
 **AGENTS.md files** (`AGENTS.md`, `workflows/AGENTS.md`, `.adapter/AGENTS.md`):

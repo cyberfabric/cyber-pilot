@@ -231,7 +231,7 @@ feature-design → features-manifest → overall-design → (prd, adr)
 ### What Validation Checks
 
 **Artifact Structure**:
-- Required sections (derived from requirements/*-structure.md)
+- Required sections (derived from requirements/*-content.md)
 - Placeholder markers: `TODO`, `TBD`, `FIXME`, `XXX`, `TBA`
 - Cross-references between artifacts
 - ID format and uniqueness
@@ -249,21 +249,15 @@ feature-design → features-manifest → overall-design → (prd, adr)
 
 ## Search Commands
 
-### List Sections/Headings
-
-```bash
-python3 scripts/fdd.py list-sections --artifact {path}
-python3 scripts/fdd.py list-sections --artifact {path} --under-heading "{Exact Heading}"
-```
-
 ### List IDs
 
 ```bash
-python3 scripts/fdd.py list-ids --artifact {path}
-python3 scripts/fdd.py list-ids --artifact {path} --pattern "{substring}"
-python3 scripts/fdd.py list-ids --artifact {path} --pattern "{regex}" --regex
-python3 scripts/fdd.py list-ids --artifact {path} --under-heading "{Exact Heading}"
-python3 scripts/fdd.py list-ids --artifact {path} --all  # Include duplicates
+python3 scripts/fdd.py list-ids  # Scan all FDD artifacts from adapter
+python3 scripts/fdd.py list-ids --artifact {path}  # Scan specific artifact
+python3 scripts/fdd.py list-ids --pattern "{substring}"
+python3 scripts/fdd.py list-ids --pattern "{regex}" --regex
+python3 scripts/fdd.py list-ids --kind {requirement|feature|actor|...}  # Filter by ID kind
+python3 scripts/fdd.py list-ids --all  # Include duplicates
 ```
 
 ### List Items
@@ -395,11 +389,11 @@ python3 scripts/fdd.py where-used --root {repo-root} --id {id} --max-bytes 50000
 
 When `--requirements` is not provided, the tool automatically selects the appropriate requirements file:
 
-- `PRD.md` → `requirements/prd-structure.md`
-- `ADR/` → `requirements/adr-structure.md`
-- `FEATURES.md` → `requirements/features-manifest-structure.md`
-- `DESIGN.md` (feature scope) → `requirements/feature-design-structure.md`
-- `DESIGN.md` (non-feature scope) → `requirements/overall-design-structure.md`
+- `PRD.md` → `requirements/prd-content.md`
+- `ADR/` → `requirements/adr-content.md`
+- `FEATURES.md` → `requirements/features-manifest-content.md`
+- `DESIGN.md` (feature scope) → `requirements/feature-design-content.md`
+- `DESIGN.md` (non-feature scope) → `requirements/overall-design-content.md`
 
 ## Traceability Semantics
 
@@ -425,7 +419,7 @@ All commands output JSON to stdout for machine consumption:
 ## Progressive Disclosure
 
 - Use this skill to generate machine reports
-- Use the referenced `requirements/*-structure.md` files only for deeper manual inspection
+- Use the referenced `requirements/*-content.md` files only for deeper manual inspection
 
 ## Usage Examples
 

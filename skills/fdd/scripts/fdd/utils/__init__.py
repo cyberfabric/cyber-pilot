@@ -1,13 +1,8 @@
 """
 FDD Validator - Utility Functions
 
-Utility modules for text processing, file operations, and markdown parsing.
+Utility modules for file operations and markdown parsing.
 """
-
-from .text import (
-    slugify_anchor,
-    find_placeholders,
-)
 
 from .files import (
     cfg_get_str,
@@ -37,14 +32,6 @@ from .parsing import (
     extract_backticked_ids,
 )
 
-from .helpers import (
-    parse_prd_model,
-    parse_prd_capability_statuses,
-    load_adr_entries,
-    scan_adr_directory,
-    parse_design_requirement_statuses,
-)
-
 from .language_config import (
     LanguageConfig,
     load_language_config,
@@ -55,10 +42,26 @@ from .language_config import (
     DEFAULT_FILE_EXTENSIONS,
 )
 
+from .artifacts_meta import (
+    ArtifactsMeta,
+    SystemNode,
+    Artifact,
+    CodebaseEntry,
+    load_artifacts_meta,
+)
+
+from .codebase import (
+    CodeFile,
+    ScopeMarker,
+    BlockMarker,
+    CodeReference,
+    load_code_file,
+    validate_code_file,
+    scan_directory as scan_code_directory,
+    cross_validate_code,
+)
+
 __all__ = [
-    # Text utilities
-    "slugify_anchor",
-    "find_placeholders",
     # File operations
     "cfg_get_str",
     "find_project_root",
@@ -83,12 +86,6 @@ __all__ = [
     "field_block",
     "has_list_item",
     "extract_backticked_ids",
-    # Helper functions
-    "parse_prd_model",
-    "parse_prd_capability_statuses",
-    "load_adr_entries",
-    "scan_adr_directory",
-    "parse_design_requirement_statuses",
     # Language configuration
     "LanguageConfig",
     "load_language_config",
@@ -97,4 +94,19 @@ __all__ = [
     "build_no_fdd_begin_regex",
     "build_no_fdd_end_regex",
     "DEFAULT_FILE_EXTENSIONS",
+    # Artifacts metadata
+    "ArtifactsMeta",
+    "SystemNode",
+    "Artifact",
+    "CodebaseEntry",
+    "load_artifacts_meta",
+    # Codebase parsing
+    "CodeFile",
+    "ScopeMarker",
+    "BlockMarker",
+    "CodeReference",
+    "load_code_file",
+    "validate_code_file",
+    "scan_code_directory",
+    "cross_validate_code",
 ]

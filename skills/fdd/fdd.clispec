@@ -1,220 +1,251 @@
-COMMAND validate
-SYNOPSIS: python3 scripts/fdd.py validate --artifact <path> [options]
-DESCRIPTION: Validate FDD artifacts against requirements or perform codebase traceability scan
-WORKFLOW: design-validate, features-validate, feature-validate, code-validate
+COMMAND init
+SYNOPSIS: python3 scripts/fdd.py init [options]
+DESCRIPTION: Initialize FDD config and minimal adapter for a project
+WORKFLOW: adapter
 
 ARGUMENTS:
-  artifact  <path>  required  Path to FDD artifact or code root directory
 
 OPTIONS:
-  --requirements  <path>  Requirements file to validate against (auto-detected if not provided)
-  --design  <path>  Path to DESIGN.md for cross-reference validation
-  --prd <path>  Path to PRD.md for cross-reference validation
-  --adr  <path>  Path to ADR directory (architecture/ADR/) for cross-reference validation
-  --features  <string>  Comma-separated feature slugs for traceability scan filtering
-  --skip-fs-checks  <boolean>  Skip filesystem checks during validation
-  --verbose  <boolean>  Print full validation report (default output is a compact summary focused on failures)
+  --project-root  <path>  Project root directory to create .fdd-config.json in (default: parent of FDD core)
+  --fdd-root  <path>  Explicit FDD core root (optional override)
+  --adapter-path  <path>  Adapter directory path relative to project root (default: FDD-Adapter)
+  --project-name  <string>  Project name used in adapter AGENTS.md (default: project root folder name)
+  --yes  <boolean>  Do not prompt; accept defaults
+  --dry-run  <boolean>  Compute changes without writing files
+  --force  <boolean>  Overwrite existing files
+
+EXIT CODES:
+  0  Initialization successful
+  1  Error (conflicts, invalid paths, etc.)
+
+EXAMPLE:
+  $ python3 scripts/fdd.py init
+  $ python3 scripts/fdd.py init --yes
+  $ python3 scripts/fdd.py init --project-root . --adapter-path FDD-Adapter --yes
+  $ python3 scripts/fdd.py init --dry-run
+  $ python3 scripts/fdd.py init --force
+
+RELATED:
+  - @CLI.adapter-info
+  - @CLI.agent-workflows
+  - @CLI.agent-skills
+  - @Workflow.adapter
+---
+
+COMMAND validate
+SYNOPSIS: python3 scripts/fdd.py validate [--artifact <path>] [options]
+DESCRIPTION: Validate FDD artifacts using template-based parsing. Validates structure against template, cross-references between artifacts, and task statuses.
+WORKFLOW: design-validate, features-validate, feature-validate, prd-validate, adr-validate
+
+ARGUMENTS:
+
+OPTIONS:
+  --artifact  <path>  Path to specific FDD artifact (if omitted, validates all registered FDD artifacts)
+  --verbose  <boolean>  Print full validation report (default: compact summary)
   --output  <path>  Save validation report to file (default: stdout)
 
 EXIT CODES:
-  0  Validation passed (score 100/100)
-  1  File system error or artifact not found
-  2  Validation failed (score < 100/100)
+  0  Validation passed
+  1  File system error or no adapter found
+  2  Validation failed
+
+OUTPUT:
+  JSON object with:
+  - status: PASS or FAIL
+  - artifacts_validated: Number of artifacts checked
+  - structure_errors: Template structure violations
+  - reference_errors: Cross-reference issues (undefined IDs, broken links)
+  - status_errors: Task status inconsistencies
+  - traceability: Artifact traceability mode (FULL or DOCS-ONLY)
 
 EXAMPLE:
-  $ python3 scripts/fdd.py validate --artifact architecture/DESIGN.md
-  $ python3 scripts/fdd.py validate --artifact architecture/features/feature-auth/DESIGN.md
-  $ python3 scripts/fdd.py validate --artifact . --features auth,payment
-  $ python3 scripts/fdd.py validate --artifact architecture/PRD.md --output report.json
+  $ python3 scripts/fdd.py validate
+  $ python3 scripts/fdd.py validate --artifact architecture/PRD.md
+  $ python3 scripts/fdd.py validate --verbose
+  $ python3 scripts/fdd.py validate --output report.json
 
 RELATED:
-  - @CLI.list-sections
   - @CLI.list-ids
+  - @CLI.where-defined
+  - @CLI.where-used
+  - @CLI.validate-rules
   - @Workflow.design-validate
   - @Workflow.feature-validate
 ---
 
-COMMAND list-sections
-SYNOPSIS: python3 scripts/fdd.py list-sections --artifact <path> [options]
-DESCRIPTION: List all sections and headings in an FDD artifact
+COMMAND validate-rules
+SYNOPSIS: python3 scripts/fdd.py validate-rules [--rule <id>] [--template <path>] [options]
+DESCRIPTION: Validate FDD rules configuration and template files. Checks rule definitions in artifacts.json and validates template frontmatter, paired markers, and valid marker types/attributes.
+WORKFLOW: rules
 
 ARGUMENTS:
-  artifact  <path>  required  Path to FDD artifact file
 
 OPTIONS:
-  --under-heading  <string>  Filter sections under specific heading (exact match)
+  --rule  <id>  Rule ID to validate (if omitted, validates all rules)
+  --template  <path>  Path to specific template file to validate
+  --verbose  <boolean>  Print full validation report
 
 EXIT CODES:
-  0  Success
-  1  File system error or artifact not found
+  0  Validation passed
+  1  File system error or no adapter found
+  2  Validation failed
+
+OUTPUT:
+  JSON object with:
+  - status: PASS or FAIL
+  - rules_validated: Number of rules checked
+  - templates_validated: Number of templates checked
+  - error_count: Total errors found
+  - errors: List of validation errors (config issues, structure issues, unclosed markers, etc.)
 
 EXAMPLE:
-  $ python3 scripts/fdd.py list-sections --artifact architecture/DESIGN.md
-  $ python3 scripts/fdd.py list-sections --artifact architecture/PRD.md --under-heading "Section B"
+  $ python3 scripts/fdd.py validate-rules
+  $ python3 scripts/fdd.py validate-rules --rule fdd-sdlc
+  $ python3 scripts/fdd.py validate-rules --template templates/PRD.template.md
+  $ python3 scripts/fdd.py validate-rules --verbose
 
 RELATED:
+  - @CLI.validate
+  - @CLI.validate-code
+  - @Workflow.rules
+---
+
+COMMAND validate-code
+SYNOPSIS: python3 scripts/fdd.py validate-code [path] [options]
+DESCRIPTION: Validate FDD traceability markers in code files. Checks marker pairing (@fdd-begin/@fdd-end), empty blocks, orphaned markers (code refs IDs not in artifacts), and coverage (to_code="true" IDs without code markers). Respects traceability mode (FULL vs DOCS-ONLY).
+WORKFLOW: code-validate
+
+ARGUMENTS:
+  path  <path>  optional  Path to code file or directory (defaults to codebase entries from artifacts.json)
+
+OPTIONS:
+  --system  <string>  System name to validate (if omitted, validates all systems)
+  --verbose  <boolean>  Print full validation report
+  --output  <path>  Save validation report to file (default: stdout)
+
+EXIT CODES:
+  0  Validation passed
+  1  File system error or no adapter found
+  2  Validation failed (orphaned markers, missing coverage, etc.)
+
+OUTPUT:
+  JSON object with:
+  - status: PASS or FAIL
+  - code_files_scanned: Number of code files checked
+  - artifact_ids_total: Total IDs defined in artifacts
+  - to_code_ids_total: IDs marked to_code="true"
+  - code_ids_found: IDs found in code markers
+  - coverage: Coverage ratio (found/required)
+  - error_count: Total errors
+  - errors: List of validation errors (orphaned markers, missing coverage, etc.)
+  - next_step: Hint for agent on what to do next (when PASS)
+
+EXAMPLE:
+  $ python3 scripts/fdd.py validate-code
+  $ python3 scripts/fdd.py validate-code skills/fdd/scripts/
+  $ python3 scripts/fdd.py validate-code --system FDD --verbose
+  $ python3 scripts/fdd.py validate-code --output code-report.json
+
+RELATED:
+  - @CLI.validate
   - @CLI.list-ids
-  - @CLI.read-section
+  - @Workflow.code-validate
 ---
 
 COMMAND list-ids
-SYNOPSIS: python3 scripts/fdd.py list-ids --artifact <path> [options]
-DESCRIPTION: List all FDD IDs found in an artifact with filtering options
+SYNOPSIS: python3 scripts/fdd.py list-ids [--artifact <path>] [options]
+DESCRIPTION: List all FDD IDs from artifacts using template-based parsing. If no artifact is specified, scans all FDD-format artifacts registered in the adapter. Use --include-code to also scan code files for FDD marker references.
 
 ARGUMENTS:
-  artifact  <path>  required  Path to FDD artifact file
 
 OPTIONS:
+  --artifact  <path>  Path to FDD artifact file (optional - if omitted, scans all registered FDD artifacts)
   --pattern  <string>  Filter IDs by substring or regex pattern
   --regex  <boolean>  Treat pattern as regular expression
-  --under-heading  <string>  Filter IDs under specific heading (exact match)
+  --kind  <string>  Filter by ID kind from template markers (e.g., 'requirement', 'feature', 'actor')
   --all  <boolean>  Include duplicate IDs in results
+  --include-code  <boolean>  Also scan code files for FDD marker references
 
 EXIT CODES:
   0  Success
-  1  File system error or artifact not found
+  1  File system error, artifact not found, or no adapter found
+
+OUTPUT:
+  JSON object with:
+  - count: Number of IDs found
+  - artifacts_scanned: Number of artifacts scanned
+  - code_files_scanned: Number of code files scanned (when --include-code)
+  - ids: List of ID objects with id, kind, type, artifact_type, line, artifact, checked
 
 EXAMPLE:
+  $ python3 scripts/fdd.py list-ids
   $ python3 scripts/fdd.py list-ids --artifact architecture/PRD.md
-  $ python3 scripts/fdd.py list-ids --artifact architecture/DESIGN.md --pattern "-actor-"
-  $ python3 scripts/fdd.py list-ids --artifact architecture/features/FEATURES.md --pattern "feature-.*" --regex
-  $ python3 scripts/fdd.py list-ids --artifact architecture/ADR --under-heading "Section B"
+  $ python3 scripts/fdd.py list-ids --pattern "-actor-"
+  $ python3 scripts/fdd.py list-ids --kind requirement
+  $ python3 scripts/fdd.py list-ids --include-code
+  $ python3 scripts/fdd.py list-ids --artifact architecture/DESIGN.md --pattern "feature-.*" --regex
 
 RELATED:
-  - @CLI.find-id
-  - @CLI.scan-ids
   - @CLI.where-defined
+  - @CLI.get-content
+  - @CLI.validate-code
 ---
 
-COMMAND list-items
-SYNOPSIS: python3 scripts/fdd.py list-items --artifact <path> [options]
-DESCRIPTION: List structured items (actors, capabilities, requirements, etc.) from an artifact
+COMMAND list-id-kinds
+SYNOPSIS: python3 scripts/fdd.py list-id-kinds [--artifact <path>]
+DESCRIPTION: List ID kinds that actually exist in artifacts. Parses artifacts against their templates and returns only kinds that have at least one ID definition.
 
 ARGUMENTS:
-  artifact  <path>  required  Path to FDD artifact file
 
 OPTIONS:
-  --type  <string>  Filter by item type (actor|capability|usecase|requirement|feature|flow|algo|state|test|adr)
-  --lod  <string>  [default: summary]  Level of detail (id|summary)
-  --pattern  <string>  Filter items by substring in ID or description
-  --under-heading  <string>  Filter items under specific heading (exact match)
+  --artifact  <path>  Scan specific artifact (if omitted, scans all registered FDD artifacts)
 
 EXIT CODES:
   0  Success
-  1  File system error or artifact not found
+  1  File system error, no adapter found, or artifact not in registry
+
+OUTPUT:
+  JSON object with:
+  - kinds: List of ID kinds found in artifact(s)
+  - kind_counts: Mapping of kind -> count of IDs
+  - kind_to_templates: Mapping of kind -> list of template types where found
+  - template_to_kinds: Mapping of template type -> list of kinds found
+  - artifacts_scanned: Number of artifacts scanned
 
 EXAMPLE:
-  $ python3 scripts/fdd.py list-items --artifact architecture/PRD.md
-  $ python3 scripts/fdd.py list-items --artifact architecture/DESIGN.md --type requirement
-  $ python3 scripts/fdd.py list-items --artifact architecture/features/FEATURES.md --lod id
-
-RELATED:
-  - @CLI.get-item
-  - @CLI.read-section
----
-
-COMMAND read-section
-SYNOPSIS: python3 scripts/fdd.py read-section --artifact <path> [options]
-DESCRIPTION: Read specific section content from an artifact using various selectors
-
-ARGUMENTS:
-  artifact  <path>  required  Path to FDD artifact file
-
-OPTIONS:
-  --section  <string>  Section letter (A|B|C|etc.)
-  --heading  <string>  Exact heading text to read
-  --feature-id  <string>  Feature ID (for FEATURES.md)
-  --id  <string>  Any FDD ID substring to locate section
-
-EXIT CODES:
-  0  Success
-  1  File system error or artifact not found
-  2  Section not found
-
-EXAMPLE:
-  $ python3 scripts/fdd.py read-section --artifact architecture/DESIGN.md --section B
-  $ python3 scripts/fdd.py read-section --artifact architecture/PRD.md --heading "Section A: Vision"
-  $ python3 scripts/fdd.py read-section --artifact architecture/features/FEATURES.md --feature-id fdd-myapp-feature-auth
-
-RELATED:
-  - @CLI.get-item
-  - @CLI.list-sections
----
-
-COMMAND get-item
-SYNOPSIS: python3 scripts/fdd.py get-item --artifact <path> [options]
-DESCRIPTION: Get complete item details (actor, requirement, feature, etc.) by ID, heading, or section
-
-ARGUMENTS:
-  artifact  <path>  required  Path to FDD artifact file
-
-OPTIONS:
-  --id  <string>  FDD ID substring to search for
-  --heading  <string>  Exact heading text
-  --section  <string>  Section letter (A|B|C|etc.)
-
-EXIT CODES:
-  0  Success
-  1  File system error or artifact not found
-  2  Item not found
-
-EXAMPLE:
-  $ python3 scripts/fdd.py get-item --artifact architecture/PRD.md --id fdd-myapp-actor-admin
-  $ python3 scripts/fdd.py get-item --artifact architecture/DESIGN.md --heading "Authentication System"
-  $ python3 scripts/fdd.py get-item --artifact architecture/ADR --section A
-
-RELATED:
-  - @CLI.list-items
-  - @CLI.find-id
----
-
-COMMAND find-id
-SYNOPSIS: python3 scripts/fdd.py find-id --artifact <path> --id <substring>
-DESCRIPTION: Find and display context for a specific FDD ID within an artifact
-
-ARGUMENTS:
-  artifact  <path>  required  Path to FDD artifact file
-  id  <string>  required  FDD ID substring to search for
-
-OPTIONS:
-
-EXIT CODES:
-  0  Success (ID found)
-  1  File system error or artifact not found
-  2  ID not found in artifact
-
-EXAMPLE:
-  $ python3 scripts/fdd.py find-id --artifact architecture/DESIGN.md --id fdd-myapp-req-user-auth
-  $ python3 scripts/fdd.py find-id --artifact architecture/features/FEATURES.md --id feature-auth
+  $ python3 scripts/fdd.py list-id-kinds
+  $ python3 scripts/fdd.py list-id-kinds --artifact architecture/PRD.md
 
 RELATED:
   - @CLI.list-ids
-  - @CLI.where-defined
 ---
 
-COMMAND search
-SYNOPSIS: python3 scripts/fdd.py search --artifact <path> --query <string> [options]
-DESCRIPTION: Full-text search within an FDD artifact with literal or regex matching
+COMMAND get-content
+SYNOPSIS: python3 scripts/fdd.py get-content (--artifact <path> | --code <path>) --id <string> [--inst <string>]
+DESCRIPTION: Get content block for a specific FDD ID. Works with both artifacts (template-based parsing) and code files (FDD marker parsing).
 
 ARGUMENTS:
-  artifact  <path>  required  Path to FDD artifact file
-  query  <string>  required  Search query (literal text or regex pattern)
 
 OPTIONS:
-  --regex  <boolean>  Treat query as regular expression
+  --artifact  <path>  Path to FDD artifact file (mutually exclusive with --code)
+  --code  <path>  Path to code file (mutually exclusive with --artifact)
+  --id  <string>  required  FDD ID to retrieve content for
+  --inst  <string>  Instruction ID for code blocks (e.g., 'inst-validate-input')
 
 EXIT CODES:
-  0  Success (matches found)
-  1  File system error or artifact not found
-  2  No matches found
+  0  Success
+  1  File system error or file not found
+  2  ID not found
 
 EXAMPLE:
-  $ python3 scripts/fdd.py search --artifact architecture/DESIGN.md --query "authentication"
-  $ python3 scripts/fdd.py search --artifact architecture/PRD.md --query "user.*login" --regex
+  $ python3 scripts/fdd.py get-content --artifact architecture/PRD.md --id fdd-myapp-actor-admin
+  $ python3 scripts/fdd.py get-content --artifact architecture/DESIGN.md --id fdd-myapp-req-auth
+  $ python3 scripts/fdd.py get-content --code src/auth.py --id fdd-myapp-feature-auth-flow-login
+  $ python3 scripts/fdd.py get-content --code src/auth.py --id fdd-myapp-feature-auth-flow-login --inst inst-validate-creds
 
 RELATED:
-  - @CLI.find-id
-  - @CLI.list-items
+  - @CLI.list-ids
+  - @CLI.validate-code
 ---
 
 COMMAND adapter-info
@@ -238,107 +269,65 @@ EXAMPLE:
   $ python3 scripts/fdd.py adapter-info --root . --fdd-root ../FDD
 
 RELATED:
-  - @Workflow.adapter-auto
-  - @Workflow.adapter-validate
----
-
-COMMAND scan-ids
-SYNOPSIS: python3 scripts/fdd.py scan-ids --root <path> [options]
-DESCRIPTION: Scan repository for all FDD/ADR ID occurrences with filtering
-
-ARGUMENTS:
-  root  <path>  required  Root directory or file to scan
-
-OPTIONS:
-  --pattern  <string>  Filter IDs by substring or regex pattern
-  --regex  <boolean>  Treat pattern as regular expression
-  --kind  <string>  [default: all]  Filter by ID kind (all|fdd|adr)
-  --all  <boolean>  Include duplicate occurrences
-  --include  <string>  Glob pattern for files to include (repeatable)
-  --exclude  <string>  Glob pattern for files to exclude (repeatable)
-  --max-bytes  <number>  [default: 10000000]  Skip files larger than specified bytes
-
-EXIT CODES:
-  0  Success
-  1  File system error or root path not found
-
-EXAMPLE:
-  $ python3 scripts/fdd.py scan-ids --root .
-  $ python3 scripts/fdd.py scan-ids --root src/ --kind fdd
-  $ python3 scripts/fdd.py scan-ids --root . --pattern "-actor-"
-  $ python3 scripts/fdd.py scan-ids --root . --include "**/*.rs" --exclude "target/**"
-  $ python3 scripts/fdd.py scan-ids --root . --pattern=-actor-
-
-RELATED:
-  - @CLI.list-ids
-  - @CLI.where-defined
-  - @CLI.where-used
+  - @Workflow.adapter
 ---
 
 COMMAND where-defined
-SYNOPSIS: python3 scripts/fdd.py where-defined --root <path> --id <id> [options]
-DESCRIPTION: Find normative definition location for an FDD/ADR ID with support for qualified IDs
+SYNOPSIS: python3 scripts/fdd.py where-defined --id <id> [options]
+DESCRIPTION: Find where an FDD ID is defined using template-based parsing. Scans all registered FDD artifacts.
 
 ARGUMENTS:
-  root  <path>  required  Repository root directory to search
-  id  <string>  required  FDD ID, ADR ID, or qualified ID (base-id:ph-N:inst-name)
+  id  <string>  required  FDD ID to find definition for
 
 OPTIONS:
-  --include-tags  <boolean>  Treat code tags (@fdd-*) as definitions
-  --include  <string>  Glob pattern for files to include (repeatable)
-  --exclude  <string>  Glob pattern for files to exclude (repeatable)
+  --artifact  <path>  Limit search to specific artifact (optional)
 
 EXIT CODES:
   0  Exactly one definition found
-  1  File system error or root path not found
-  2  Ambiguous (multiple definitions found)
-  3  Not found
+  1  File system error or no adapter found
+  2  ID not found or ambiguous (multiple definitions)
 
 EXAMPLE:
-  $ python3 scripts/fdd.py where-defined --root . --id fdd-myapp-actor-admin
-  $ python3 scripts/fdd.py where-defined --root . --id fdd-myapp-flow-login:ph-1
-  $ python3 scripts/fdd.py where-defined --root . --id fdd-myapp-flow-login:ph-1:inst-validate-user
-  $ python3 scripts/fdd.py where-defined --root . --id ADR-0001
-  $ python3 scripts/fdd.py where-defined --root . --id fdd-myapp-req-auth --include "modules/**"
+  $ python3 scripts/fdd.py where-defined --id fdd-myapp-actor-admin
+  $ python3 scripts/fdd.py where-defined --id fdd-myapp-req-auth
+  $ python3 scripts/fdd.py where-defined --id fdd-myapp-feature-auth --artifact architecture/features/FEATURES.md
 
 RELATED:
   - @CLI.where-used
-  - @CLI.find-id
-  - @CLI.scan-ids
+  - @CLI.list-ids
+  - @CLI.get-content
 ---
 
 COMMAND where-used
-SYNOPSIS: python3 scripts/fdd.py where-used --root <path> --id <id> [options]
-DESCRIPTION: Find all usage locations for an FDD/ADR ID excluding normative definitions
+SYNOPSIS: python3 scripts/fdd.py where-used --id <id> [options]
+DESCRIPTION: Find all references to an FDD ID using template-based parsing. Scans all registered FDD artifacts.
 
 ARGUMENTS:
-  root  <path>  required  Repository root directory to search
-  id  <string>  required  FDD ID, ADR ID, or qualified ID
+  id  <string>  required  FDD ID to find references for
 
 OPTIONS:
-  --include  <string>  Glob pattern for files to include (repeatable)
-  --exclude  <string>  Glob pattern for files to exclude (repeatable)
-  --max-bytes  <number>  [default: 10000000]  Skip files larger than specified bytes
+  --artifact  <path>  Limit search to specific artifact (optional)
+  --include-definitions  <boolean>  Include definitions in results (default: references only)
 
 EXIT CODES:
-  0  Success (usages found or not found)
-  1  File system error or root path not found
+  0  Success (references found or not found)
+  1  File system error or no adapter found
 
 EXAMPLE:
-  $ python3 scripts/fdd.py where-used --root . --id fdd-myapp-feature-auth-flow-login
-  $ python3 scripts/fdd.py where-used --root . --id ADR-0002
-  $ python3 scripts/fdd.py where-used --root . --id fdd-myapp-req-auth --include "**/*.rs"
-  $ python3 scripts/fdd.py where-used --root . --id fdd-myapp-flow-login:ph-1 --exclude "target/**"
+  $ python3 scripts/fdd.py where-used --id fdd-myapp-actor-admin
+  $ python3 scripts/fdd.py where-used --id fdd-myapp-req-auth
+  $ python3 scripts/fdd.py where-used --id fdd-myapp-feature-auth --artifact architecture/DESIGN.md
 
 RELATED:
   - @CLI.where-defined
-  - @CLI.scan-ids
+  - @CLI.list-ids
+  - @CLI.get-content
 ---
 
 COMMAND agent-workflows
 SYNOPSIS: python3 scripts/fdd.py agent-workflows --agent <name> [options]
 DESCRIPTION: Generate/update agent-specific workflow proxy files (e.g. Windsurf .windsurf/workflows) that redirect to existing FDD workflows
-WORKFLOW: adapter-agents
+WORKFLOW: adapter
 
 ARGUMENTS:
 
@@ -359,14 +348,14 @@ EXAMPLE:
   $ python3 scripts/fdd.py agent-workflows --agent windsurf --dry-run
 
 RELATED:
-  - @Workflow.adapter-agents
+  - @Workflow.adapter
 
 ---
 
 COMMAND agent-skills
 SYNOPSIS: python3 scripts/fdd.py agent-skills --agent <name> [options]
 DESCRIPTION: Generate/update agent-specific skill outputs (e.g. Windsurf .windsurf/skills/<skill-name>/SKILL.md, Cursor .cursor/rules/*.mdc, Claude .claude/commands/*.md, Copilot .github/copilot-instructions.md)
-WORKFLOW: adapter-agents
+WORKFLOW: adapter
 
 ARGUMENTS:
 
@@ -387,5 +376,5 @@ EXAMPLE:
 
 RELATED:
   - @CLI.agent-workflows
-  - @Workflow.adapter-agents
+  - @Workflow.adapter
 

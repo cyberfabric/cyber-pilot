@@ -16,7 +16,7 @@ FDD/
 │   ├── AGENTS.md         # Adapter navigation
 │   └── specs/            # Adapter specifications
 ├── architecture/          # Architecture artifacts
-├── examples/              # Reference examples
+├── templates/examples/     # Reference examples
 ├── requirements/          # 22 structure requirement files
 ├── workflows/            # 22 workflow definition files
 ├── skills/               # FDD skills/tools
@@ -40,12 +40,12 @@ FDD/
 ## Core Directories
 
 ### `/requirements/`
-- **Purpose**: Structure requirements for all FDD artifacts
-- **Pattern**: `{artifact}-structure.md`
+- **Purpose**: Content requirements for FDD artifacts
+- **Pattern**: `{artifact}-content.md` (except adapter)
 - **Examples**: 
-  - `prd-structure.md`
-  - `overall-design-structure.md`
-  - `feature-design-structure.md`
+  - `prd-content.md`
+  - `overall-design-content.md`
+  - `feature-design-content.md`
   - `adapter-structure.md`
 - **Count**: 22 files
 

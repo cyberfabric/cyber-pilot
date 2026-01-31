@@ -16,7 +16,7 @@ purpose: Define validation rules for FDD adapter files
 
 **ALWAYS open and follow**: `../templates/adapter-AGENTS.template.md` WHEN generating adapter AGENTS.md
 
-**ALWAYS open**: `../examples/requirements/adapter/valid.md` WHEN reviewing valid artifact structure
+**ALWAYS open**: `../templates/examples/adapter/AGENTS-EXAMPLE.md` WHEN reviewing valid artifact structure
 
 **ALWAYS open and follow**: `requirements.md` WHEN extracting shared requirements
 
@@ -26,8 +26,6 @@ purpose: Define validation rules for FDD adapter files
 
 - [ ] Agent has read and understood this requirement
 - [ ] Agent will follow the rules defined here
-- [ ] Agent will use template for generation
-- [ ] Agent will reference example for structure validation
 
 ---
 
@@ -64,7 +62,7 @@ purpose: Define validation rules for FDD adapter files
   - Validation/CI expectations.
 
 **Should not contain**:
-- PRD (use `architecture/PRD.md`).
+- PRD content (use PRD artifact).
 - Architecture decisions rationale (use ADRs).
 - Feature specs or implementation plans.
 
@@ -113,8 +111,6 @@ ALWAYS open and follow {spec-file} WHEN executing workflows: {workflow1.md}, {wo
 **Extends**: `{path}/FDD/AGENTS.md`
 ```
 
-**Scoring**: 100/100 if all checks pass, 0/100 if any fails
-
 ### Phase 2: Evolved Adapter
 
 **When**: Project with DESIGN.md OR discovered codebase
@@ -153,45 +149,24 @@ ALWAYS open and follow {spec-file} WHEN executing workflows: {workflow1.md}, {wo
 - [ ] No architecture decision rationale included
 - [ ] No feature specs or implementation plans included
 
-**Pass threshold**: 100/100 (all checks)
-
 ### Phase 2: Evolved Adapter
 
-| Category | Points |
-|----------|--------|
-| Structure | 25 |
-| Completeness | 30 |
-| Clarity | 20 |
-| Integration | 25 |
-| **Total** | **100** |
-
-**Structure (25 points)**:
-- [ ] AGENTS.md exists with Extends (5)
-- [ ] Version and Last Updated fields (5)
-- [ ] Tech Stack summary (5)
-- [ ] MUST rules for each spec file (5)
-- [ ] No orphaned MUST rules (5)
-
-**Completeness (30 points)**:
-- [ ] tech-stack.md complete (5)
-- [ ] domain-model.md complete (5)
-- [ ] api-contracts.md complete (5)
-- [ ] patterns.md has ≥1 pattern (5)
-- [ ] conventions.md complete (5)
-- [ ] build-deploy.md complete (5)
-
-**Clarity (20 points)**:
-- [ ] Clear format descriptions (5)
-- [ ] Concrete examples (5)
-- [ ] Cross-platform commands (5)
-- [ ] Examples match technology (5)
-
-**Integration (25 points)**:
-- [ ] Each spec references source (10)
-- [ ] All references valid (10)
-- [ ] Consistent with DESIGN.md (5)
-
-**Pass threshold**: ≥80/100
+**Checks**:
+- [ ] AGENTS.md exists with Extends
+- [ ] Version and Last Updated fields present
+- [ ] Tech Stack summary present
+- [ ] MUST rules for each spec file
+- [ ] No orphaned MUST rules
+- [ ] tech-stack.md complete
+- [ ] domain-model.md complete
+- [ ] api-contracts.md complete
+- [ ] patterns.md has ≥1 pattern
+- [ ] conventions.md complete
+- [ ] build-deploy.md complete
+- [ ] testing.md complete (if present/required by adapter)
+- [ ] Each spec references source
+- [ ] All references valid
+- [ ] Consistent with DESIGN (when applicable)
 
 ---
 
@@ -230,7 +205,7 @@ Each spec file MUST include:
 
 **Template**: `../templates/adapter-AGENTS.template.md`
 
-**Example**: `../examples/requirements/adapter/valid.md`
+**Example**: `../templates/examples/adapter/AGENTS-EXAMPLE.md`
 
 **Related**:
 - `../AGENTS.md` — Core FDD requirements

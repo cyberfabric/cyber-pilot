@@ -4,6 +4,26 @@
 
 ---
 
+## ⚠️ SCOPE LIMITATION (OPT-IN) ⚠️
+
+**MUST** treat FDD as opt-in.
+
+**MUST NOT** apply FDD navigation rules unless the user explicitly enables FDD.
+
+FDD is considered disabled ONLY when at least one is true:
+- User explicitly requests disabling FDD (for example: `/fdd off`)
+
+FDD disable MUST take precedence over FDD enable.
+
+FDD is considered enabled ONLY when at least one is true:
+- User explicitly asks to use FDD (mentions `fdd` or `FDD`) and confirms intent
+- User explicitly requests executing an FDD workflow (for example: `fdd validate`, `fdd generate`, `fdd rules`, `fdd adapter`)
+- User explicitly requests the `fdd` entrypoint workflow (`/fdd`)
+
+If FDD is disabled OR NOT enabled:
+- **MUST** ignore the rest of this file
+- **MUST** behave as a normal coding assistant
+
 ## ⚠️ MUST Instruction Semantics ⚠️
 
 **MUST** = **MANDATORY**. NOT optional. NOT recommended. NOT suggested.
@@ -39,96 +59,8 @@
 
 ## Navigation Rules
 
-ALWAYS open and follow `workflows/AGENTS.md` WHEN receiving any task request
-
 ALWAYS open and follow `requirements/extension.md` WHEN you see **Extends**: {file}
-
-ALWAYS open and follow `.adapter/specs/conventions.md` WHEN modifying any FDD core files
-
-ALWAYS use `fdd adapter-info` skill to discover FDD-Adapter location WHEN starting any FDD work
 
 ALWAYS open and follow `{adapter-directory}/AGENTS.md` WHEN starting any FDD work
 
-ALWAYS open and follow `requirements/FDL.md` WHEN you see FDL
-
-ALWAYS open and follow `requirements/workflow-selection.md` WHEN selecting which workflow to execute
-
-ALWAYS open and follow `requirements/execution-protocol.md` WHEN executing any workflow (FIRST)
-
-ALWAYS open and follow `requirements/workflow-execution.md` WHEN executing any workflow
-
-ALWAYS open and follow `.adapter/specs/patterns.md` WHEN creating or modifying workflow files
-
-ALWAYS open and follow `.adapter/specs/patterns.md` WHEN creating or modifying requirements files
-
-ALWAYS open and follow `requirements/requirements.md` WHEN extracting shared requirements or removing duplication across requirements files
-
-ALWAYS open and follow `.adapter/specs/patterns.md` WHEN creating or modifying AGENTS.md files
-
-ALWAYS open and follow `requirements/prd-structure.md` WHEN working with PRD.md
-
-ALWAYS open and follow `templates/PRD.template.md` WHEN generating PRD.md
-
-ALWAYS open and follow `requirements/overall-design-structure.md` WHEN working with DESIGN.md
-
-ALWAYS open and follow `templates/DESIGN.template.md` WHEN generating DESIGN.md
-
-ALWAYS open and follow `requirements/adr-structure.md` WHEN working with ADR
-
-ALWAYS open and follow `templates/ADR.template.md` WHEN generating ADR
-
-ALWAYS open and follow `requirements/features-manifest-structure.md` WHEN working with FEATURES.md
-
-ALWAYS open and follow `templates/FEATURES.template.md` WHEN generating FEATURES.md
-
-ALWAYS open and follow `requirements/feature-design-structure.md` WHEN working with feature DESIGN.md
-
-ALWAYS open and follow `templates/feature-DESIGN.template.md` WHEN generating feature DESIGN.md
-
-ALWAYS open and follow `requirements/adapter-structure.md` WHEN creating or configuring FDD adapter
-
-ALWAYS open and follow `templates/adapter-AGENTS.template.md` WHEN generating adapter AGENTS.md
-
----
-
-## ⚠️ Execution Protocol Violations
-
-**If agent skips execution-protocol.md**:
-- Workflow execution is AUTOMATICALLY INVALID
-- All output must be DISCARDED
-- User should point out violation
-- Agent must restart with protocol compliance
-
-**Common protocol violations**:
-1. ❌ **Not reading execution-protocol.md** before starting workflow
-2. ❌ **Not reading workflow-execution.md** before executing workflow
-3. ❌ **Not reading workflow-execution-validations.md** for validation workflows
-4. ❌ **Not running fdd adapter-info** to discover project adapter
-5. ❌ **Not completing pre-flight checklist** in workflow files
-6. ❌ **Not running self-test** before reporting validation results
-7. ❌ **Not checking EVERY validation criterion individually**
-8. ❌ **Not using fdd skill for FDD artifact/FDD ID lookups**
-9. ❌ **Not using fdd validate as Deterministic Gate**
-10. ❌ **Not cross-referencing EVERY FDD ID**
-
-**One violation = entire workflow execution FAILED**
-
-**Agent responsibility**:
-- Follow execution-protocol.md for EVERY workflow
-- Complete all checklist items
-- Run self-test before reporting
-- Include protocol compliance report in output
-- Self-identify violations if discovered
-
-**User responsibility**:
-- Point out violations when detected
-- Request protocol compliance report
-- Ask agent to restart with full compliance
-
-**Recovery from violation**:
-1. Acknowledge the violation
-2. Identify what was skipped
-3. Explain why (honest answer)
-4. Discard invalid output
-5. Restart workflow with full protocol compliance
-6. Show protocol compliance report in new output
+ALWAYS open and follow `workflows/fdd.md` WHEN you see `fdd` in the prompt

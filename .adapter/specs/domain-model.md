@@ -28,14 +28,14 @@ FDD uses **Markdown-based artifacts** for design documentation, not code-level t
 
 ### Validation Requirements
 
-Each artifact type has structure requirements in:
+Each artifact type has content requirements in:
 ```
 requirements/
-├── prd-structure.md
-├── overall-design-structure.md
-├── adr-structure.md
-├── features-manifest-structure.md
-└── feature-design-structure.md
+├── prd-content.md
+├── overall-design-content.md
+├── adr-content.md
+├── features-manifest-content.md
+└── feature-design-content.md
 ```
 
 ---
@@ -222,7 +222,7 @@ python3 skills/fdd/scripts/fdd.py scan-ids --root . --kind fdd
 ## Source
 
 **Discovered from**:
-- `requirements/*-structure.md` files
+- `requirements/*-content.md` files
 - FDD artifact examples in documentation
 - `skills/fdd/scripts/fdd.py` - ID regex patterns
 - README.md - FDD ID format descriptions

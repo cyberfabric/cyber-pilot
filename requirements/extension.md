@@ -136,7 +136,7 @@ DO NOT read requirements files
 
 ## Validation Criteria
 
-### Structure (20 points)
+### Structure
 
 **Check**:
 - [ ] **Extends** directive present in header
@@ -144,7 +144,7 @@ DO NOT read requirements files
 - [ ] Path format is correct (relative or absolute)
 - [ ] Extension file has proper header
 
-### Base File Accessibility (30 points)
+### Base File Accessibility
 
 **Check**:
 - [ ] Base file exists at specified path
@@ -152,7 +152,7 @@ DO NOT read requirements files
 - [ ] Base file path is correct relative to extension file location
 - [ ] No broken references
 
-### Merge Correctness (30 points)
+### Merge Correctness
 
 **Check**:
 - [ ] Extension adds new content (not just duplicates)
@@ -160,17 +160,13 @@ DO NOT read requirements files
 - [ ] Extension doesn't remove base content
 - [ ] Extension complements base appropriately
 
-### Dependency Validation (20 points)
+### Dependency Validation
 
 **Check**:
 - [ ] No circular dependencies (A→B→A)
 - [ ] Base file is loaded before extension
 - [ ] Extension chain is finite
 - [ ] All base files in chain are accessible
-
-**Total**: 100/100
-
-**Pass threshold**: ≥95/100
 
 ---
 

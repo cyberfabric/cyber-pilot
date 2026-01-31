@@ -8,54 +8,30 @@ import sys
 import os
 import json
 import re
-import fnmatch
 import argparse
 from pathlib import Path
 from typing import List, Optional, Dict, Set, Tuple
 
-from .validation.artifacts import validate
-from .validation.traceability import (
-    validate_codebase_traceability,
-    validate_code_root_traceability,
-)
-from .validation.fdl import validate_fdl_completion
-from .utils import (
-    detect_requirements,
-    load_text,
-    parse_required_sections,
-    split_by_section_letter,
-)
 from .utils.files import (
     find_project_root,
     load_project_config,
     find_adapter_directory,
     load_adapter_config,
     load_artifacts_registry,
-    iter_registry_entries,
 )
-from .utils.document import detect_artifact_kind
-from .utils.markdown import (
-    extract_block,
-    extract_id_block,
-    extract_id_payload_block,
-    find_anchor_idx_for_id,
-    find_id_line,
-    list_items,
-    list_section_entries,
-    read_feature_entry,
-    read_heading_block_by_title,
-    read_letter_section,
-    resolve_under_heading,
+from .utils.artifacts_meta import (
+    create_backup,
+    generate_default_registry,
 )
-from .utils.search import (
-    list_ids,
-    parse_trace_query,
-    scan_ids,
-    search_lines,
-    where_defined_internal,
-    where_used,
+from .utils.template import (
+    Template,
+    Artifact as TemplateArtifact,
 )
-from . import constants
+from .utils.codebase import (
+    CodeFile,
+    scan_directory as scan_code_directory,
+    cross_validate_code,
+)
 
 
 def _safe_relpath(path: Path, base: Path) -> str:
@@ -80,165 +56,12 @@ def _load_json_file(path: Path) -> Optional[dict]:
         raw = path.read_text(encoding="utf-8")
         data = json.loads(raw)
         return data if isinstance(data, dict) else None
-    except Exception:
+    except (json.JSONDecodeError, OSError, IOError):
         return None
 
 
 def _write_json_file(path: Path, data: dict) -> None:
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-
-
-def _truncate_list(xs: object, limit: int) -> list:
-    if not isinstance(xs, list):
-        return []
-    return xs[: max(0, int(limit))]
-
-
-def _summarize_validate_report(report: Dict[str, object]) -> Dict[str, object]:
-    status = report.get("status")
-    out: Dict[str, object] = {
-        "status": status,
-    }
-    if "artifact_kind" in report:
-        out["artifact_kind"] = report.get("artifact_kind")
-    if "code_traceability_skipped" in report:
-        out["code_traceability_skipped"] = report.get("code_traceability_skipped")
-    if "path" in report:
-        out["path"] = report.get("path")
-    if "code_root" in report:
-        out["code_root"] = report.get("code_root")
-    if "feature_dir" in report:
-        out["feature_dir"] = report.get("feature_dir")
-
-    errs = list(report.get("errors", []) or [])
-    if status != "PASS" and errs:
-        out["error_count"] = len(errs)
-        out["errors"] = _truncate_list(errs, 50)
-
-    av = report.get("artifact_validation")
-    if isinstance(av, dict):
-        failures: Dict[str, object] = {}
-        pass_count = 0
-        fail_count = 0
-        for k, v in av.items():
-            if not isinstance(v, dict):
-                continue
-            st = v.get("status")
-            if st == "PASS":
-                pass_count += 1
-                continue
-            fail_count += 1
-            v_errs = list(v.get("errors", []) or [])
-            v_ph = list(v.get("placeholder_hits", []) or [])
-            v_missing_sections = list(v.get("missing_sections", []) or [])
-            v_adr_issues = list(v.get("adr_issues", []) or [])
-            issue_count = len(v_errs) + len(v_missing_sections) + len(v_adr_issues)
-            item: Dict[str, object] = {
-                "status": st,
-                "error_count": issue_count,
-                "placeholder_count": len(v_ph),
-            }
-            if "path" in v:
-                item["path"] = v.get("path")
-            if v_errs:
-                item["errors"] = _truncate_list(v_errs, 50)
-            if v_missing_sections:
-                item["missing_sections"] = _truncate_list(v_missing_sections, 50)
-                item["missing_section_count"] = len(v_missing_sections)
-            if v_adr_issues:
-                item["adr_issue_count"] = len(v_adr_issues)
-                item["adr_issues"] = _truncate_list(v_adr_issues, 50)
-            if v_ph:
-                item["placeholder_hits"] = _truncate_list(v_ph, 50)
-            failures[str(k)] = item
-        out["artifact_validation"] = {
-            "pass_count": pass_count,
-            "fail_count": fail_count,
-        }
-        if failures:
-            out["artifact_failures"] = failures
-
-    t = report.get("traceability")
-    if isinstance(t, dict):
-        t_out: Dict[str, object] = {
-            "feature_dir": t.get("feature_dir"),
-            "scan_root": t.get("scan_root"),
-            "feature_design": t.get("feature_design"),
-            "scanned_file_count": t.get("scanned_file_count"),
-        }
-        missing = t.get("missing")
-        if status != "PASS" and isinstance(missing, dict):
-            scopes = missing.get("scopes")
-            inst = missing.get("instruction_tags")
-            if isinstance(scopes, dict):
-                t_out["missing_scopes"] = {
-                    str(k): _truncate_list(v, 20) for k, v in scopes.items() if isinstance(v, list) and v
-                }
-                t_out["missing_scope_count"] = sum(len(v) for v in scopes.values() if isinstance(v, list))
-            if isinstance(inst, list):
-                t_out["missing_instruction_tag_count"] = len(inst)
-                if inst:
-                    t_out["missing_instruction_tags"] = _truncate_list(inst, 20)
-        out["traceability"] = t_out
-
-    fr = report.get("feature_reports")
-    if isinstance(fr, list):
-        passed = 0
-        failed = 0
-        failing: List[Dict[str, object]] = []
-        for item in fr:
-            if not isinstance(item, dict):
-                continue
-            st = item.get("status")
-            if st == "PASS":
-                passed += 1
-                continue
-            failed += 1
-            item_errs = list(item.get("errors", []) or [])
-            item_trace = item.get("traceability")
-            trace_out: Optional[Dict[str, object]] = None
-            if isinstance(item_trace, dict):
-                t_out: Dict[str, object] = {
-                    "feature_dir": item_trace.get("feature_dir") or item.get("feature_dir"),
-                    "scan_root": item_trace.get("scan_root"),
-                    "feature_design": item_trace.get("feature_design"),
-                    "scanned_file_count": item_trace.get("scanned_file_count"),
-                }
-                missing = item_trace.get("missing")
-                if st != "PASS" and isinstance(missing, dict):
-                    scopes = missing.get("scopes")
-                    inst = missing.get("instruction_tags")
-                    if isinstance(scopes, dict):
-                        t_out["missing_scopes"] = {
-                            str(k): _truncate_list(v, 20)
-                            for k, v in scopes.items()
-                            if isinstance(v, list) and v
-                        }
-                        t_out["missing_scope_count"] = sum(
-                            len(v) for v in scopes.values() if isinstance(v, list)
-                        )
-                    if isinstance(inst, list):
-                        t_out["missing_instruction_tag_count"] = len(inst)
-                        if inst:
-                            t_out["missing_instruction_tags"] = _truncate_list(inst, 20)
-                trace_out = t_out
-            failing.append(
-                {
-                    "feature_dir": item.get("feature_dir"),
-                    "status": st,
-                    "error_count": len(item_errs),
-                    "errors": _truncate_list(item_errs, 50) if item_errs else [],
-                    "traceability": trace_out,
-                }
-            )
-        out["feature_reports"] = {
-            "feature_count": report.get("feature_count"),
-            "pass_count": passed,
-            "fail_count": failed,
-            "failures": failing,
-        }
-
-    return out
 
 
 def _windsurf_default_agent_workflows_config() -> dict:
@@ -390,20 +213,6 @@ def _render_template(lines: List[str], variables: Dict[str, str]) -> str:
     return "\n".join(out).rstrip() + "\n"
 
 
-def _looks_like_generated_proxy(text: str, target_workflow_rel: str) -> bool:
-    # Heuristic: file contains ALWAYS open and follow with the expected target path.
-    # This avoids hardcoding tool-specific markers in generated files.
-    needle = f"ALWAYS open and follow `{target_workflow_rel}`"
-    return needle in text
-
-
-def _list_fdd_workflows(fdd_root: Path) -> List[str]:
-    workflows_dir = fdd_root / "workflows"
-    if not workflows_dir.is_dir():
-        raise SystemExit(f"FDD workflows dir not found: {workflows_dir}")
-    return [Path(p).stem for p in _list_workflow_files(fdd_root)]
-
-
 def _cmd_agent_workflows(argv: List[str]) -> int:
     p = argparse.ArgumentParser(prog="agent-workflows", description="Generate/update agent-specific workflow proxy files")
     p.add_argument("--agent", required=True, help="Agent/IDE key (e.g., windsurf)")
@@ -514,7 +323,7 @@ def _cmd_agent_workflows(argv: List[str]) -> int:
 
     desired: Dict[str, Dict[str, str]] = {}
     for wf_name in fdd_workflow_names:
-        command = f"{prefix}{wf_name}"
+        command = "fdd" if wf_name == "fdd" else f"{prefix}{wf_name}"
         filename = filename_fmt.format(command=command, workflow_name=wf_name)
         desired_path = (workflow_dir / filename).resolve()
         target_workflow_path = (fdd_root / "workflows" / f"{wf_name}.md").resolve()
@@ -620,7 +429,7 @@ def _cmd_agent_workflows(argv: List[str]) -> int:
         target_rel = m.group(1)
         # Only delete if it points to a workflow under fdd_root/workflows/ that no longer exists.
         # If it's pointing elsewhere, leave it alone.
-        if "/workflows/" not in target_rel:
+        if "workflows/" not in target_rel and "/workflows/" not in target_rel:
             continue
         expected = (project_root / target_rel).resolve() if not target_rel.startswith("/") else Path(target_rel)
         # If expected is inside fdd_root/workflows, treat as managed candidate.
@@ -634,7 +443,7 @@ def _cmd_agent_workflows(argv: List[str]) -> int:
         if not args.dry_run:
             try:
                 pth.unlink()
-            except Exception:
+            except (PermissionError, FileNotFoundError, OSError):
                 pass
 
     print(json.dumps({
@@ -660,6 +469,117 @@ def _cmd_agent_workflows(argv: List[str]) -> int:
         "deleted": deleted,
     }, indent=2, ensure_ascii=False))
     return 0
+
+
+def _cmd_self_check(argv: List[str]) -> int:
+    p = argparse.ArgumentParser(prog="self-check", description="Validate registered template examples against templates")
+    p.add_argument("--root", default=".", help="Project root to search from (default: current directory)")
+    p.add_argument("--verbose", action="store_true", help="Include full per-template error/warning lists")
+    args = p.parse_args(argv)
+
+    start_path = Path(args.root).resolve()
+    project_root = find_project_root(start_path)
+    if project_root is None:
+        print(json.dumps({"status": "ERROR", "message": "Project root not found"}, indent=2, ensure_ascii=False))
+        return 1
+
+    adapter_dir = find_adapter_directory(project_root)
+    if adapter_dir is None:
+        print(json.dumps({"status": "ERROR", "message": "Adapter directory not found"}, indent=2, ensure_ascii=False))
+        return 1
+
+    reg, reg_err = load_artifacts_registry(adapter_dir)
+    if reg_err or reg is None:
+        print(json.dumps({"status": "ERROR", "message": reg_err or "Missing artifacts registry"}, indent=2, ensure_ascii=False))
+        return 1
+
+    templates = reg.get("templates") if isinstance(reg, dict) else None
+    if not isinstance(templates, dict):
+        print(json.dumps({"status": "ERROR", "message": "Registry templates catalog missing or invalid"}, indent=2, ensure_ascii=False))
+        return 1
+
+    def _resolve_registry_path(p_raw: object) -> Optional[Path]:
+        if not isinstance(p_raw, str) or not p_raw.strip():
+            return None
+        s = p_raw.strip()
+        if s.startswith("./"):
+            s = s[2:]
+        if s.startswith("/"):
+            return Path(s).resolve()
+        return (project_root / s).resolve()
+
+    try:
+        from .utils.template import validate_artifact_file_against_template
+    except Exception:
+        validate_artifact_file_against_template = None  # type: ignore[assignment]
+
+    if validate_artifact_file_against_template is None:
+        print(json.dumps({"status": "ERROR", "message": "Template validation module not available"}, indent=2, ensure_ascii=False))
+        return 1
+
+    results: List[Dict[str, object]] = []
+    overall_status = "PASS"
+
+    for kind, tmpl_list in templates.items():
+        if not isinstance(tmpl_list, list):
+            continue
+        for t in tmpl_list:
+            if not isinstance(t, dict):
+                continue
+            level = str(t.get("validation_level") or "STRICT").strip().upper()
+            if level != "STRICT":
+                continue
+
+            template_path = _resolve_registry_path(t.get("template_path"))
+            example_path = _resolve_registry_path(t.get("example_path"))
+
+            item: Dict[str, object] = {
+                "kind": str(kind),
+                "id": t.get("id"),
+                "validation_level": level,
+                "template_path": str(template_path) if template_path is not None else None,
+                "example_path": str(example_path) if example_path is not None else None,
+                "status": "PASS",
+            }
+
+            errs: List[Dict[str, object]] = []
+            warns: List[Dict[str, object]] = []
+
+            if template_path is None or not template_path.exists():
+                errs.append({"type": "file", "message": "Template path not found", "path": str(template_path) if template_path is not None else ""})
+            if example_path is None or not example_path.exists():
+                errs.append({"type": "file", "message": "Example path not found", "path": str(example_path) if example_path is not None else ""})
+
+            if not errs and template_path is not None and example_path is not None:
+                rep = validate_artifact_file_against_template(
+                    artifact_path=example_path,
+                    template_path=template_path,
+                    expected_kind=str(kind),
+                )
+                errs.extend(list(rep.get("errors", []) or []))
+                warns.extend(list(rep.get("warnings", []) or []))
+
+            if errs:
+                item["status"] = "FAIL"
+                item["error_count"] = len(errs)
+                overall_status = "FAIL"
+            if warns:
+                item["warning_count"] = len(warns)
+            if bool(args.verbose):
+                item["errors"] = errs
+                item["warnings"] = warns
+
+            results.append(item)
+
+    out = {
+        "status": overall_status,
+        "project_root": project_root.as_posix(),
+        "adapter_dir": adapter_dir.as_posix(),
+        "count": len(results),
+        "results": results,
+    }
+    print(json.dumps(out, indent=2, ensure_ascii=False))
+    return 0 if overall_status == "PASS" else 2
 
 
 def _cmd_agent_skills(argv: List[str]) -> int:
@@ -1021,24 +941,35 @@ def _cmd_init(argv: List[str]) -> int:
     workflow_files = _list_workflow_files(fdd_root)
     workflow_list = ", ".join(workflow_files)
     artifacts_when = f"ALWAYS open and follow `artifacts.json` WHEN executing workflows: {workflow_list}" if workflow_list else "ALWAYS open and follow `artifacts.json` WHEN executing workflows"
+    schema_rel = _safe_relpath_from_dir(fdd_root / "schemas" / "artifacts.schema.json", adapter_dir)
+    registry_spec_rel = _safe_relpath_from_dir(fdd_root / "requirements" / "artifacts-registry.md", adapter_dir)
     desired_agents = "\n".join([
         f"# FDD Adapter: {project_name}",
         "",
         f"**Extends**: `{extends_rel}`",
         "",
+        f"ALWAYS open and follow `{schema_rel}` WHEN working with artifacts.json",
+        "",
+        f"ALWAYS open and follow `{registry_spec_rel}` WHEN working with artifacts.json",
+        "",
         artifacts_when,
         "",
     ])
 
-    desired_registry = {
-        "version": "1.0",
-        "artifacts": [],
-    }
+    # Generate default artifacts.json using the new hierarchical format
+    desired_registry = generate_default_registry(project_name, core_rel)
 
     desired_cfg = _default_project_config(core_rel, adapter_rel)
 
     actions: Dict[str, str] = {}
     errors: List[Dict[str, str]] = []
+    backups: List[str] = []
+
+    # Create backup of adapter directory before --force overwrites
+    if args.force and adapter_dir.exists() and not args.dry_run:
+        backup_path = create_backup(adapter_dir)
+        if backup_path:
+            backups.append(backup_path.as_posix())
 
     config_existed_before = config_path.exists()
     if config_existed_before and not config_path.is_file():
@@ -1105,7 +1036,7 @@ def _cmd_init(argv: List[str]) -> int:
         actions["artifacts_registry"] = "updated" if registry_existed_before else "created"
 
     if errors:
-        print(json.dumps({
+        err_result: Dict[str, object] = {
             "status": "ERROR",
             "message": "Init failed",
             "project_root": project_root.as_posix(),
@@ -1114,10 +1045,13 @@ def _cmd_init(argv: List[str]) -> int:
             "adapter_dir": adapter_dir.as_posix(),
             "dry_run": bool(args.dry_run),
             "errors": errors,
-        }, indent=2, ensure_ascii=False))
+        }
+        if backups:
+            err_result["backups"] = backups
+        print(json.dumps(err_result, indent=2, ensure_ascii=False))
         return 1
 
-    print(json.dumps({
+    result: Dict[str, object] = {
         "status": "PASS",
         "project_root": project_root.as_posix(),
         "fdd_root": fdd_root.as_posix(),
@@ -1125,684 +1059,1205 @@ def _cmd_init(argv: List[str]) -> int:
         "adapter_dir": adapter_dir.as_posix(),
         "dry_run": bool(args.dry_run),
         "actions": actions,
-    }, indent=2, ensure_ascii=False))
+    }
+    if backups:
+        result["backups"] = backups
+    print(json.dumps(result, indent=2, ensure_ascii=False))
     return 0
 
 
 # =============================================================================
 def _cmd_validate(argv: List[str]) -> int:
+    """Validate FDD artifacts using template-based parsing.
+
+    Validates structure against template, cross-references between artifacts,
+    and task statuses.
     """
-    Validation command handler - wraps validate() function.
-    """
-    p = argparse.ArgumentParser(prog="validate")
-    p.add_argument("--artifact", default=".", help="Path to artifact to validate (default: current directory = validate all)")
-    p.add_argument("--requirements", default=None, help="Path to requirements file (optional, auto-detected)")
-    p.add_argument("--design", default=None, help="Path to DESIGN.md for cross-references")
-    p.add_argument("--prd", default=None, help="Path to PRD.md for cross-references")
-    p.add_argument("--adr", default=None, help="Path to architecture/ADR/ for cross-references")
-    p.add_argument("--skip-fs-checks", action="store_true", help="Skip filesystem checks")
-    p.add_argument("--verbose", action="store_true", help="Print full report (default: summary with errors only)")
+    from .utils.template import cross_validate_artifacts
+
+    p = argparse.ArgumentParser(prog="validate", description="Validate FDD artifacts using template-based parsing")
+    p.add_argument("--artifact", default=None, help="Path to specific FDD artifact (if omitted, validates all registered FDD artifacts)")
+    p.add_argument("--verbose", action="store_true", help="Print full validation report")
     p.add_argument("--output", default=None, help="Write report to file instead of stdout")
-    p.add_argument("--features", default=None, help="Comma-separated feature slugs for code-root traceability")
     args = p.parse_args(argv)
 
-    artifact_path = Path(args.artifact).resolve()
-
-    if args.requirements:
-        requirements_path = Path(args.requirements).resolve()
-        if not requirements_path.exists() or not requirements_path.is_file():
-            raise SystemExit(f"Requirements file not found: {requirements_path}")
-
-    if artifact_path.is_dir() and (artifact_path / "DESIGN.md").exists() and args.features:
-        raise SystemExit("--features is only supported when --artifact is a code root directory")
-
-    start_dir = artifact_path if artifact_path.is_dir() else artifact_path.parent
-    project_root = find_project_root(start_dir)
-    if project_root is None:
-        print(json.dumps({"status": "ERROR", "message": "Project root not found"}, indent=2, ensure_ascii=False))
-        return 1
-    adapter_dir = find_adapter_directory(project_root)
-    if adapter_dir is None:
-        print(json.dumps({"status": "ERROR", "message": "Adapter directory not found"}, indent=2, ensure_ascii=False))
-        return 1
-    reg, reg_err = load_artifacts_registry(adapter_dir)
-    if reg_err or reg is None:
-        print(json.dumps({"status": "ERROR", "message": reg_err or "Missing artifacts registry"}, indent=2, ensure_ascii=False))
+    # Find adapter and load registry
+    adapter_dir = find_adapter_directory(Path.cwd())
+    if not adapter_dir:
+        print(json.dumps({"status": "ERROR", "message": "No adapter found. Run 'init' first."}, indent=None, ensure_ascii=False))
         return 1
 
-    def _traceability_enabled(entry: Optional[Dict[str, object]]) -> bool:
-        if not isinstance(entry, dict):
-            return False
-        v = entry.get("traceability_enabled")
-        if v is False:
-            return False
-        # Default: enabled
-        return True
+    registry, reg_err = load_artifacts_registry(adapter_dir)
+    if not registry or reg_err:
+        print(json.dumps({"status": "ERROR", "message": reg_err or "Could not load artifacts.json"}, indent=None, ensure_ascii=False))
+        return 1
 
-    def _src_scan_root(registry: Dict[str, object]) -> Tuple[Optional[Path], bool]:
-        artifacts = registry.get("artifacts")
-        if not isinstance(artifacts, list):
-            return None, False
-        for a in artifacts:
-            if not isinstance(a, dict):
-                continue
-            if a.get("kind") != "SRC":
-                continue
-            enabled = _traceability_enabled(a)
-            p = a.get("path")
-            if not isinstance(p, str) or not p.strip():
-                continue
-            base = Path(p)
-            abs_path = base if base.is_absolute() else (project_root / base)
-            return abs_path.resolve(), enabled
-        return None, False
+    from .utils.artifacts_meta import ArtifactsMeta
+    meta = ArtifactsMeta.from_dict(registry)
+    project_root = (adapter_dir / meta.project_root).resolve()
 
-    src_scan_root, src_traceability_enabled = _src_scan_root(reg)
+    # Collect artifacts to validate: (artifact_path, template_path, artifact_type, traceability)
+    artifacts_to_validate: List[Tuple[Path, Path, str, str]] = []
 
-    if args.features and not src_traceability_enabled:
-        raise SystemExit("--features requires SRC traceability_enabled=true in artifacts.json")
-
-    if artifact_path.is_dir():
-        from .validation.cascade import validate_all_artifacts
-        
-        if artifact_path.name == "ADR" or (artifact_path / "general").exists():
-            from .validation.cascade import validate_with_dependencies
-            report = validate_with_dependencies(
-                artifact_path,
-                skip_fs_checks=bool(args.skip_fs_checks),
-            )
-            out_report = report if args.verbose else _summarize_validate_report(report)
-            out = json.dumps(out_report, indent=2, ensure_ascii=False) + "\n"
-            if args.output:
-                Path(args.output).write_text(out, encoding="utf-8")
-            else:
-                print(out, end="")
-            return 0 if report.get("status") == "PASS" else 2
-        
-        if (artifact_path / "DESIGN.md").exists():
-            from .validation.cascade import validate_with_dependencies
-
-            feature_design_path = Path(args.design).resolve() if args.design else (artifact_path / "DESIGN.md")
-            artifacts_report = validate_with_dependencies(
-                feature_design_path,
-                skip_fs_checks=bool(args.skip_fs_checks),
-            )
-
-            # Code traceability is a cross-artifact check between SRC and FEATURE.
-            # It runs only when both sides have traceability_enabled=true.
-            feature_entry = None
-            try:
-                rel = feature_design_path.resolve().relative_to(project_root.resolve()).as_posix()
-            except Exception:
-                rel = ""
-            for e in iter_registry_entries(reg):
-                p = e.get("path")
-                if isinstance(p, str) and p.strip() and p.strip().lstrip("./") == rel.lstrip("./"):
-                    feature_entry = e
-                    break
-
-            feature_traceability_enabled = _traceability_enabled(feature_entry)
-
-            if src_traceability_enabled and feature_traceability_enabled and src_scan_root is not None:
-                code_report = validate_codebase_traceability(
-                    artifact_path,
-                    feature_design_path=feature_design_path,
-                    scan_root_override=src_scan_root,
-                    skip_fs_checks=bool(args.skip_fs_checks),
-                )
-                report = {
-                    "status": "PASS" if (artifacts_report.get("status") == "PASS" and code_report.get("status") == "PASS") else "FAIL",
-                    "artifact_kind": "codebase-trace",
-                    "artifact_validation": artifacts_report,
-                    "code_traceability": code_report.get("traceability"),
-                    "errors": (artifacts_report.get("errors", []) or []) + (code_report.get("errors", []) or []),
-                }
-            else:
-                report = {
-                    "status": artifacts_report.get("status"),
-                    "artifact_kind": "codebase-trace",
-                    "artifact_validation": artifacts_report,
-                    "code_traceability_skipped": True,
-                }
-        else:
-            # First validate all FDD artifacts
-            artifacts_report = validate_all_artifacts(
-                artifact_path,
-                skip_fs_checks=bool(args.skip_fs_checks),
-            )
-
-            # Code traceability (code tags) is a cross-artifact check between SRC and FEATURE.
-            # It runs only when SRC traceability is enabled AND at least one FEATURE artifact has traceability_enabled.
-            feature_slugs_from_registry: List[str] = []
-            for e in iter_registry_entries(reg):
-                if not isinstance(e, dict):
-                    continue
-                if e.get("kind") != "FEATURE":
-                    continue
-                if not _traceability_enabled(e):
-                    continue
-                if e.get("format") != "FDD":
-                    continue
-                p = e.get("path")
-                if not isinstance(p, str):
-                    continue
-                parts = [x for x in p.replace("\\", "/").split("/") if x]
-                slug = next((seg[len("feature-") :] for seg in parts if seg.startswith("feature-")), "")
-                if slug:
-                    feature_slugs_from_registry.append(slug)
-
-            wanted_slugs: Optional[List[str]] = None
-            if args.features:
-                wanted_slugs = [x.strip() for x in str(args.features).split(",") if x.strip()]
-
-            if not src_traceability_enabled or src_scan_root is None:
-                report = {
-                    "status": artifacts_report.get("status", "PASS"),
-                    "artifact_kind": "codebase-trace",
-                    "artifact_validation": artifacts_report.get("artifact_validation", {}),
-                    "code_traceability_skipped": True,
-                }
-            else:
-                slugs = feature_slugs_from_registry
-                if wanted_slugs is not None:
-                    wanted_set = {s[len("feature-") :] if s.startswith("feature-") else s for s in wanted_slugs}
-                    slugs = [s for s in slugs if s in wanted_set]
-
-                if not slugs:
-                    report = {
-                        "status": artifacts_report.get("status", "PASS"),
-                        "artifact_kind": "codebase-trace",
-                        "artifact_validation": artifacts_report.get("artifact_validation", {}),
-                        "code_traceability_skipped": True,
-                    }
-                else:
-                    trace_report = validate_code_root_traceability(
-                        src_scan_root,
-                        feature_slugs=slugs,
-                        skip_fs_checks=bool(args.skip_fs_checks),
-                    )
-
-                    report = trace_report
-                    report["artifact_kind"] = "codebase-trace"
-                    report["artifact_validation"] = artifacts_report.get("artifact_validation", {})
-                    if artifacts_report.get("status") != "PASS":
-                        report["status"] = "FAIL"
-
-        out_report = report if args.verbose else _summarize_validate_report(report)
-        out = json.dumps(out_report, indent=2, ensure_ascii=False) + "\n"
-        if args.output:
-            Path(args.output).write_text(out, encoding="utf-8")
-        else:
-            print(out, end="")
-
-        return 0 if report["status"] == "PASS" else 2
-
-    if args.requirements:
-        requirements_path = Path(args.requirements).resolve()
-        entries = iter_registry_entries(reg)
-        entry = None
+    if args.artifact:
+        artifact_path = Path(args.artifact).resolve()
+        if not artifact_path.exists():
+            print(json.dumps({"status": "ERROR", "message": f"Artifact not found: {artifact_path}"}, indent=None, ensure_ascii=False))
+            return 1
         try:
-            rel = artifact_path.resolve().relative_to(project_root.resolve()).as_posix()
-        except Exception:
-            rel = ""
-        for e in entries:
-            p = e.get("path")
-            if isinstance(p, str) and p.strip() and p.strip().lstrip("./") == rel.lstrip("./"):
-                entry = e
-                break
-
-        # Unix-way: if an artifact is not registered, validation MUST be skipped.
-        # The tool must not report FAIL for unregistered artifacts.
-        if entry is None:
-            report = {
-                "status": "PASS",
-                "artifact_kind": "unregistered",
-                "skipped": True,
-                "skipped_reason": "Artifact is not registered in artifacts.json",
-                "path": str(artifact_path),
-                "placeholder_hits": [],
-                "missing_sections": [],
-                "required_section_count": 0,
-            }
-        # If the artifact is registered but not format=FDD, ignore the requirements file
-        # and only perform content-only validation.
-        elif entry.get("format") != "FDD":
-            from .validation.artifacts import validate_content_only
-
-            report = validate_content_only(artifact_path, skip_fs_checks=bool(args.skip_fs_checks))
-            report["artifact_kind"] = "content-only"
-            report["registry_format"] = entry.get("format")
-            report.setdefault("errors", [])
-            report["errors"].append(
-                {
-                    "type": "registry",
-                    "message": "Artifact registry entry is not format=FDD; performed content-only validation",
-                    "path": str(artifact_path),
-                    "format": entry.get("format"),
-                }
-            )
-        else:
-            # Determine artifact kind from registry.
-            k = entry.get("kind")
-            m = {"PRD": "prd", "ADR": "adr", "DESIGN": "overall-design", "FEATURES": "features-manifest", "FEATURE": "feature-design"}
-            artifact_kind = m.get(k) if isinstance(k, str) else None
-            if artifact_kind is None:
-                raise SystemExit("Unsupported artifact kind in artifacts.json")
-
-            design_path = Path(args.design).resolve() if args.design else None
-            prd_path = Path(args.prd).resolve() if args.prd else None
-            adr_path = Path(args.adr).resolve() if args.adr else None
-
-            report = validate(
-                artifact_path,
-                requirements_path,
-                artifact_kind,
-                design_path=design_path,
-                prd_path=prd_path,
-                adr_path=adr_path,
-                skip_fs_checks=bool(args.skip_fs_checks),
-            )
-            report["artifact_kind"] = artifact_kind
+            rel_path = artifact_path.relative_to(project_root).as_posix()
+        except ValueError:
+            rel_path = None
+        if rel_path:
+            result = meta.get_artifact_by_path(rel_path)
+            if result:
+                artifact_meta, system_node = result
+                pkg = meta.get_rule(system_node.rules)
+                if pkg and pkg.is_fdd_format():
+                    template_path_str = pkg.get_template_path(artifact_meta.kind)
+                    template_path = (project_root / template_path_str).resolve()
+                    artifacts_to_validate.append((artifact_path, template_path, artifact_meta.kind, artifact_meta.traceability))
+        if not artifacts_to_validate:
+            print(json.dumps({"status": "ERROR", "message": f"Artifact not in FDD registry: {args.artifact}"}, indent=None, ensure_ascii=False))
+            return 1
     else:
-        from .validation.cascade import validate_with_dependencies
+        # Validate all FDD artifacts
+        for artifact_meta, system_node in meta.iter_all_artifacts():
+            pkg = meta.get_rule(system_node.rules)
+            if not pkg or not pkg.is_fdd_format():
+                continue
+            template_path_str = pkg.get_template_path(artifact_meta.kind)
+            artifact_path = (project_root / artifact_meta.path).resolve()
+            template_path = (project_root / template_path_str).resolve()
+            if artifact_path.exists() and template_path.exists():
+                artifacts_to_validate.append((artifact_path, template_path, artifact_meta.kind, artifact_meta.traceability))
 
-        report = validate_with_dependencies(
-            artifact_path,
-            skip_fs_checks=bool(args.skip_fs_checks),
-        )
+    if not artifacts_to_validate:
+        print(json.dumps({"status": "ERROR", "message": "No FDD artifacts found in registry"}, indent=None, ensure_ascii=False))
+        return 1
 
-    out_report = report if args.verbose else _summarize_validate_report(report)
-    out = json.dumps(out_report, indent=2, ensure_ascii=False) + "\n"
+    # Validate each artifact
+    all_errors: List[Dict[str, object]] = []
+    all_warnings: List[Dict[str, object]] = []
+    artifact_reports: List[Dict[str, object]] = []
+    parsed_artifacts: List[TemplateArtifact] = []
+
+    for artifact_path, template_path, artifact_type, traceability in artifacts_to_validate:
+        tmpl, tmpl_errs = Template.from_path(template_path)
+        if tmpl_errs or tmpl is None:
+            all_errors.append({
+                "type": "template",
+                "message": f"Failed to load template for {artifact_type}",
+                "artifact": str(artifact_path),
+                "template": str(template_path),
+                "errors": tmpl_errs,
+            })
+            continue
+
+        artifact: TemplateArtifact = tmpl.parse(artifact_path)
+        parsed_artifacts.append(artifact)
+
+        # Structure validation
+        result = artifact.validate()
+        errors = result.get("errors", [])
+        warnings = result.get("warnings", [])
+
+        artifact_report: Dict[str, object] = {
+            "artifact": str(artifact_path),
+            "artifact_type": artifact_type,
+            "traceability": traceability,
+            "status": "PASS" if not errors else "FAIL",
+            "error_count": len(errors),
+            "warning_count": len(warnings),
+        }
+
+        if args.verbose:
+            artifact_report["errors"] = errors
+            artifact_report["warnings"] = warnings
+            artifact_report["id_definitions"] = len(artifact.id_definitions)
+            artifact_report["id_references"] = len(artifact.id_references)
+
+        artifact_reports.append(artifact_report)
+        all_errors.extend(errors)
+        all_warnings.extend(warnings)
+
+    # Cross-reference validation across all artifacts
+    if len(parsed_artifacts) > 1:
+        cross_result = cross_validate_artifacts(parsed_artifacts)
+        cross_errors = cross_result.get("errors", [])
+        cross_warnings = cross_result.get("warnings", [])
+        all_errors.extend(cross_errors)
+        all_warnings.extend(cross_warnings)
+
+    # Build final report
+    overall_status = "PASS" if not all_errors else "FAIL"
+
+    report: Dict[str, object] = {
+        "status": overall_status,
+        "artifacts_validated": len(artifact_reports),
+        "error_count": len(all_errors),
+        "warning_count": len(all_warnings),
+    }
+
+    # Add next step hint for agent
+    if overall_status == "PASS":
+        report["next_step"] = "Deterministic validation passed. Now perform semantic validation: review content quality against checklist.md criteria."
+
+    if args.verbose:
+        report["artifacts"] = artifact_reports
+        report["errors"] = all_errors
+        report["warnings"] = all_warnings
+    else:
+        # Compact summary
+        if all_errors:
+            report["errors"] = all_errors[:20]  # Limit for readability
+            if len(all_errors) > 20:
+                report["errors_truncated"] = len(all_errors) - 20
+
+        failed_artifacts = [r for r in artifact_reports if r.get("status") == "FAIL"]
+        if failed_artifacts:
+            report["failed_artifacts"] = [
+                {"artifact": r.get("artifact"), "error_count": r.get("error_count")}
+                for r in failed_artifacts
+            ]
+
+    out = json.dumps(report, indent=2 if args.verbose else None, ensure_ascii=False)
+    if args.verbose:
+        out += "\n"
 
     if args.output:
         Path(args.output).write_text(out, encoding="utf-8")
     else:
-        print(out, end="")
+        print(out)
 
-    return 0 if report["status"] == "PASS" else 2
+    return 0 if overall_status == "PASS" else 2
 
 
 # =============================================================================
 # SEARCH COMMANDS
 # =============================================================================
 
-def _cmd_list_sections(argv: List[str]) -> int:
-    p = argparse.ArgumentParser(prog="list-sections")
-    p.add_argument("--artifact", required=True)
-    p.add_argument("--under-heading", default=None)
-    args = p.parse_args(argv)
-
-    artifact_path = Path(args.artifact).resolve()
-    text, err = load_text(artifact_path)
-    if err:
-        print(json.dumps({"status": "ERROR", "message": err}, indent=None, ensure_ascii=False))
-        return 1
-    lines = text.splitlines()
-    kind = detect_artifact_kind(artifact_path)
-    entries = list_section_entries(lines, kind=kind)
-    print(json.dumps({"kind": kind, "count": len(entries), "entries": entries}, indent=None, ensure_ascii=False))
-    return 0
-
-
 def _cmd_list_ids(argv: List[str]) -> int:
+    """List FDD IDs from artifacts using template-based parsing.
+
+    If no artifact is specified, scans all FDD-format artifacts from the adapter registry.
+    """
     p = argparse.ArgumentParser(prog="list-ids")
-    p.add_argument("--artifact", required=True)
-    p.add_argument("--under-heading", default=None)
-    p.add_argument("--pattern", default=None)
-    p.add_argument("--regex", action="store_true")
-    p.add_argument("--all", action="store_true")
+    p.add_argument("--artifact", default=None, help="Path to FDD artifact file (if omitted, scans all registered FDD artifacts)")
+    p.add_argument("--pattern", default=None, help="Filter IDs by substring or regex pattern")
+    p.add_argument("--regex", action="store_true", help="Treat pattern as regular expression")
+    p.add_argument("--kind", default=None, help="Filter by ID kind from template markers (e.g., 'requirement', 'feature')")
+    p.add_argument("--all", action="store_true", help="Include duplicate IDs in results")
+    p.add_argument("--include-code", action="store_true", help="Also scan code files for FDD marker references")
     args = p.parse_args(argv)
 
-    artifact_path = Path(args.artifact).resolve()
-    text, err = load_text(artifact_path)
-    if err:
-        print(json.dumps({"status": "ERROR", "message": err}, indent=None, ensure_ascii=False))
-        return 1
-    lines = text.splitlines()
+    # Collect artifacts to scan: (artifact_path, template_path, artifact_type)
+    artifacts_to_scan: List[Tuple[Path, Path, str]] = []
 
-    base_offset = 0
-    if args.under_heading:
-        resolved = resolve_under_heading(lines, args.under_heading)
-        if resolved is None:
-            print(json.dumps({"status": "NOT_FOUND", "heading": args.under_heading}, indent=None, ensure_ascii=False))
+    if args.artifact:
+        # Single artifact specified
+        artifact_path = Path(args.artifact).resolve()
+        if not artifact_path.exists():
+            print(json.dumps({"status": "ERROR", "message": f"Artifact not found: {artifact_path}"}, indent=None, ensure_ascii=False))
             return 1
-        start, end, _ = resolved
-        base_offset = start
-        lines = lines[start:end]
 
-    hits = list_ids(lines=lines, base_offset=base_offset, pattern=args.pattern, regex=bool(args.regex), all_ids=bool(args.all))
-    print(json.dumps({"kind": detect_artifact_kind(artifact_path), "count": len(hits), "ids": hits}, indent=None, ensure_ascii=False))
+        # Try to find template from adapter registry
+        adapter_dir = find_adapter_directory(artifact_path.parent)
+        if adapter_dir:
+            registry, reg_err = load_artifacts_registry(adapter_dir)
+            if registry and not reg_err:
+                from .utils.artifacts_meta import ArtifactsMeta
+                meta = ArtifactsMeta.from_dict(registry)
+                project_root = (adapter_dir / meta.project_root).resolve()
+
+                # Find artifact in registry
+                try:
+                    rel_path = artifact_path.relative_to(project_root).as_posix()
+                except ValueError:
+                    rel_path = None
+
+                if rel_path:
+                    result = meta.get_artifact_by_path(rel_path)
+                    if result:
+                        artifact_meta, system_node = result
+                        pkg = meta.get_rule(system_node.rules)
+                        if pkg and pkg.is_fdd_format():
+                            template_path_str = pkg.get_template_path(artifact_meta.kind)
+                            template_path = (project_root / template_path_str).resolve()
+                            artifacts_to_scan.append((artifact_path, template_path, artifact_meta.kind))
+
+        if not artifacts_to_scan:
+            print(json.dumps({"status": "ERROR", "message": "Could not find template for artifact. Ensure artifact is registered in adapter."}, indent=None, ensure_ascii=False))
+            return 1
+    else:
+        # No artifact specified - scan all FDD-format artifacts from registry
+        adapter_dir = find_adapter_directory(Path.cwd())
+        if not adapter_dir:
+            print(json.dumps({"status": "ERROR", "message": "No adapter found. Run 'init' first or specify --artifact."}, indent=None, ensure_ascii=False))
+            return 1
+
+        registry, reg_err = load_artifacts_registry(adapter_dir)
+        if not registry or reg_err:
+            print(json.dumps({"status": "ERROR", "message": reg_err or "Could not load artifacts.json from adapter."}, indent=None, ensure_ascii=False))
+            return 1
+
+        from .utils.artifacts_meta import ArtifactsMeta
+        meta = ArtifactsMeta.from_dict(registry)
+        project_root = (adapter_dir / meta.project_root).resolve()
+
+        for artifact_meta, system_node in meta.iter_all_artifacts():
+            pkg = meta.get_rule(system_node.rules)
+            if not pkg or not pkg.is_fdd_format():
+                continue
+            template_path_str = pkg.get_template_path(artifact_meta.kind)
+            artifact_path = (project_root / artifact_meta.path).resolve()
+            template_path = (project_root / template_path_str).resolve()
+            if artifact_path.exists() and template_path.exists():
+                artifacts_to_scan.append((artifact_path, template_path, artifact_meta.kind))
+
+        if not artifacts_to_scan:
+            print(json.dumps({"status": "ERROR", "message": "No FDD-format artifacts found in registry."}, indent=None, ensure_ascii=False))
+            return 1
+
+    # Parse artifacts and collect IDs
+    hits: List[Dict[str, object]] = []
+
+    for artifact_path, template_path, artifact_type in artifacts_to_scan:
+        tmpl, errs = Template.from_path(template_path)
+        if errs or tmpl is None:
+            continue
+
+        parsed: TemplateArtifact = tmpl.parse(artifact_path)
+        parsed._extract_ids_and_refs()  # Populate id_definitions and id_references
+
+        # Collect ID definitions
+        for id_def in parsed.id_definitions:
+            block_kind = id_def.block.template_block.name if id_def.block else None
+            h: Dict[str, object] = {
+                "id": id_def.id,
+                "kind": block_kind,
+                "type": "definition",
+                "artifact_type": artifact_type,
+                "line": id_def.line,
+                "artifact": str(artifact_path),
+                "checked": id_def.checked,
+            }
+            if id_def.priority:
+                h["priority"] = id_def.priority
+            hits.append(h)
+
+        # Collect ID references
+        for id_ref in parsed.id_references:
+            block_kind = id_ref.block.template_block.name if id_ref.block else None
+            h = {
+                "id": id_ref.id,
+                "kind": block_kind,
+                "type": "reference",
+                "artifact_type": artifact_type,
+                "line": id_ref.line,
+                "artifact": str(artifact_path),
+                "checked": id_ref.checked,
+            }
+            if id_ref.priority:
+                h["priority"] = id_ref.priority
+            hits.append(h)
+
+    # Scan code files if requested
+    code_files_scanned = 0
+    if args.include_code and not args.artifact:
+        # Find adapter and scan codebase entries
+        adapter_dir = find_adapter_directory(Path.cwd())
+        if adapter_dir:
+            registry, _ = load_artifacts_registry(adapter_dir)
+            if registry:
+                from .utils.artifacts_meta import ArtifactsMeta
+                meta = ArtifactsMeta.from_dict(registry)
+                project_root = (adapter_dir / meta.project_root).resolve()
+
+                for cb_entry, system_node in meta.iter_all_codebase():
+                    code_path = (project_root / cb_entry.path).resolve()
+                    extensions = cb_entry.extensions or [".py"]
+
+                    if not code_path.exists():
+                        continue
+
+                    if code_path.is_file():
+                        files = [code_path]
+                    else:
+                        files = []
+                        for ext in extensions:
+                            files.extend(code_path.rglob(f"*{ext}"))
+
+                    for file_path in files:
+                        cf, errs = CodeFile.from_path(file_path)
+                        if errs or cf is None:
+                            continue
+
+                        code_files_scanned += 1
+
+                        # Add code references
+                        for ref in cf.references:
+                            h: Dict[str, object] = {
+                                "id": ref.id,
+                                "kind": ref.kind or "code",
+                                "type": "code_reference",
+                                "artifact_type": "CODE",
+                                "line": ref.line,
+                                "artifact": str(file_path),
+                                "marker_type": ref.marker_type,
+                            }
+                            if ref.phase is not None:
+                                h["phase"] = ref.phase
+                            if ref.inst:
+                                h["inst"] = ref.inst
+                            hits.append(h)
+
+    # Apply filters
+    if args.kind:
+        kind_filter = str(args.kind)
+        hits = [h for h in hits if str(h.get("kind", "")) == kind_filter]
+
+    if args.pattern:
+        pat = str(args.pattern)
+        if args.regex:
+            rx = re.compile(pat)
+            hits = [h for h in hits if rx.search(str(h.get("id", ""))) is not None]
+        else:
+            hits = [h for h in hits if pat in str(h.get("id", ""))]
+
+    if not args.all:
+        seen: Set[str] = set()
+        uniq: List[Dict[str, object]] = []
+        for h in hits:
+            id_val = str(h.get("id", ""))
+            if id_val in seen:
+                continue
+            seen.add(id_val)
+            uniq.append(h)
+        hits = uniq
+
+    hits = sorted(hits, key=lambda h: (str(h.get("id", "")), int(h.get("line", 0))))
+
+    result: Dict[str, object] = {
+        "count": len(hits),
+        "artifacts_scanned": len(artifacts_to_scan),
+        "ids": hits
+    }
+    if code_files_scanned > 0:
+        result["code_files_scanned"] = code_files_scanned
+
+    print(json.dumps(result, indent=None, ensure_ascii=False))
     return 0
 
 
-def _cmd_list_items(argv: List[str]) -> int:
-    p = argparse.ArgumentParser(prog="list-items", description="List structured items in an artifact")
-    p.add_argument("--artifact", required=True)
-    p.add_argument("--type", default=None, help="Filter by item type (e.g., actor, capability, requirement, flow)")
-    p.add_argument("--lod", default="summary", choices=["id", "summary"], help="Level of detail")
-    p.add_argument("--under-heading", default=None, help="Only search/list items inside the specified heading block")
-    p.add_argument("--pattern", default=None, help="Substring filter (applied to id)")
-    p.add_argument("--regex", action="store_true", help="Treat --pattern as regex")
+def _cmd_list_id_kinds(argv: List[str]) -> int:
+    """List ID kinds that actually exist in artifacts.
+
+    Parses artifacts against their templates and returns only kinds
+    that have at least one ID definition in the artifact(s).
+    """
+    p = argparse.ArgumentParser(prog="list-id-kinds", description="List ID kinds found in FDD artifacts")
+    p.add_argument("--artifact", default=None, help="Scan specific artifact (if omitted, scans all registered FDD artifacts)")
     args = p.parse_args(argv)
 
-    artifact_path = Path(args.artifact).resolve()
-    kind = detect_artifact_kind(artifact_path)
-
-    if kind == "adr" and artifact_path.exists() and artifact_path.is_dir():
-        from .utils.helpers import scan_adr_directory
-
-        adrs, issues = scan_adr_directory(artifact_path)
-        items: List[Dict[str, object]] = []
-        for a in adrs:
-            it: Dict[str, object] = {"type": "adr", "id": str(a.get("ref")), "line": 0}
-            if args.lod == "summary":
-                it.update(
-                    {
-                        "title": a.get("title"),
-                        "date": a.get("date"),
-                        "status": a.get("status"),
-                        "adr_id": a.get("id"),
-                        "path": a.get("path"),
-                    }
-                )
-            items.append(it)
-
-        if args.pattern:
-            if args.regex:
-                rx = re.compile(str(args.pattern))
-                items = [it for it in items if rx.search(str(it.get("id", ""))) is not None]
-            else:
-                items = [it for it in items if str(args.pattern) in str(it.get("id", ""))]
-        if args.type:
-            items = [it for it in items if str(it.get("type")) == str(args.type)]
-
-        items = sorted(items, key=lambda it: str(it.get("id", "")))
-        print(json.dumps({"kind": kind, "count": len(items), "items": items, "issues": issues}, indent=None, ensure_ascii=False))
-        return 0
-
-    text, err = load_text(artifact_path)
-    if err:
-        print(json.dumps({"status": "ERROR", "message": err}, indent=None, ensure_ascii=False))
+    # Find adapter and load registry
+    adapter_dir = find_adapter_directory(Path.cwd())
+    if not adapter_dir:
+        print(json.dumps({"status": "ERROR", "message": "No adapter found. Run 'init' first."}, indent=None, ensure_ascii=False))
         return 1
-    lines = text.splitlines()
 
-    active_lines = lines
-    base_offset = 0
-    if args.under_heading:
-        resolved = resolve_under_heading(lines, args.under_heading)
-        if resolved is None:
-            print(json.dumps({"status": "NOT_FOUND", "kind": kind, "heading": args.under_heading}, indent=None, ensure_ascii=False))
+    registry, reg_err = load_artifacts_registry(adapter_dir)
+    if not registry or reg_err:
+        print(json.dumps({"status": "ERROR", "message": reg_err or "Could not load artifacts.json"}, indent=None, ensure_ascii=False))
+        return 1
+
+    from .utils.artifacts_meta import ArtifactsMeta
+    meta = ArtifactsMeta.from_dict(registry)
+    project_root = (adapter_dir / meta.project_root).resolve()
+
+    # Collect artifacts to scan: (artifact_path, template_path, artifact_type)
+    artifacts_to_scan: List[Tuple[Path, Path, str]] = []
+
+    if args.artifact:
+        artifact_path = Path(args.artifact).resolve()
+        if not artifact_path.exists():
+            print(json.dumps({"status": "ERROR", "message": f"Artifact not found: {artifact_path}"}, indent=None, ensure_ascii=False))
             return 1
-        start, end, _ = resolved
-        base_offset = start
-        active_lines = lines[start:end]
 
-    items = list_items(
-        kind=kind,
-        artifact_name=artifact_path.name,
-        lines=lines,
-        active_lines=active_lines,
-        base_offset=base_offset,
-        lod=str(args.lod),
-        pattern=args.pattern,
-        regex=bool(args.regex),
-        type_filter=args.type,
-    )
-    print(json.dumps({"kind": kind, "count": len(items), "items": items}, indent=None, ensure_ascii=False))
+        try:
+            rel_path = artifact_path.relative_to(project_root).as_posix()
+        except ValueError:
+            rel_path = None
+
+        if rel_path:
+            result = meta.get_artifact_by_path(rel_path)
+            if result:
+                artifact_meta, system_node = result
+                pkg = meta.get_rule(system_node.rules)
+                if pkg and pkg.is_fdd_format():
+                    template_path_str = pkg.get_template_path(artifact_meta.kind)
+                    template_path = (project_root / template_path_str).resolve()
+                    artifacts_to_scan.append((artifact_path, template_path, artifact_meta.kind))
+
+        if not artifacts_to_scan:
+            print(json.dumps({"status": "ERROR", "message": f"Artifact not found in registry: {args.artifact}"}, indent=None, ensure_ascii=False))
+            return 1
+    else:
+        # Scan all FDD artifacts
+        for artifact_meta, system_node in meta.iter_all_artifacts():
+            pkg = meta.get_rule(system_node.rules)
+            if not pkg or not pkg.is_fdd_format():
+                continue
+            template_path_str = pkg.get_template_path(artifact_meta.kind)
+            artifact_path = (project_root / artifact_meta.path).resolve()
+            template_path = (project_root / template_path_str).resolve()
+            if artifact_path.exists() and template_path.exists():
+                artifacts_to_scan.append((artifact_path, template_path, artifact_meta.kind))
+
+        if not artifacts_to_scan:
+            print(json.dumps({"status": "ERROR", "message": "No FDD-format artifacts found in registry."}, indent=None, ensure_ascii=False))
+            return 1
+
+    # Parse artifacts and collect kinds that have actual IDs
+    template_to_kinds: Dict[str, Set[str]] = {}
+    kind_to_templates: Dict[str, Set[str]] = {}
+    kind_counts: Dict[str, int] = {}
+
+    for artifact_path, template_path, artifact_type in artifacts_to_scan:
+        tmpl, errs = Template.from_path(template_path)
+        if errs or tmpl is None:
+            continue
+
+        parsed: TemplateArtifact = tmpl.parse(artifact_path)
+        parsed._extract_ids_and_refs()  # Populate id_definitions
+
+        # Collect kinds from actual ID definitions in artifact
+        for id_def in parsed.id_definitions:
+            if id_def.block:
+                kind_name = id_def.block.template_block.name
+                # Track kind -> templates
+                if kind_name not in kind_to_templates:
+                    kind_to_templates[kind_name] = set()
+                kind_to_templates[kind_name].add(artifact_type)
+                # Track template -> kinds
+                if artifact_type not in template_to_kinds:
+                    template_to_kinds[artifact_type] = set()
+                template_to_kinds[artifact_type].add(kind_name)
+                # Count
+                kind_counts[kind_name] = kind_counts.get(kind_name, 0) + 1
+
+    # Build output
+    all_kinds = sorted(kind_to_templates.keys())
+
+    if args.artifact and artifacts_to_scan:
+        artifact_path, _, artifact_type = artifacts_to_scan[0]
+        kinds_in_artifact = sorted(template_to_kinds.get(artifact_type, set()))
+        print(json.dumps({
+            "artifact": str(artifact_path),
+            "artifact_type": artifact_type,
+            "kinds": kinds_in_artifact,
+            "kind_counts": {k: kind_counts.get(k, 0) for k in kinds_in_artifact},
+        }, indent=None, ensure_ascii=False))
+    else:
+        print(json.dumps({
+            "kinds": all_kinds,
+            "kind_counts": {k: kind_counts.get(k, 0) for k in all_kinds},
+            "kind_to_templates": {k: sorted(v) for k, v in sorted(kind_to_templates.items())},
+            "template_to_kinds": {k: sorted(v) for k, v in sorted(template_to_kinds.items())},
+            "artifacts_scanned": len(artifacts_to_scan),
+        }, indent=None, ensure_ascii=False))
     return 0
 
 
-def _cmd_read_section(argv: List[str]) -> int:
-    p = argparse.ArgumentParser(prog="read-section", description="Read a section of an artifact")
-    p.add_argument("--artifact", required=True)
-    g = p.add_mutually_exclusive_group(required=True)
-    g.add_argument("--section", help="Top-level letter section (e.g. A, B, C)")
-    g.add_argument("--heading", help="Exact heading title to match")
-    g.add_argument("--feature-id", help="Feature ID for FEATURES.md entry")
-    g.add_argument("--id", help="Any ID to locate, then return its block")
+def _cmd_get_content(argv: List[str]) -> int:
+    """Get content block for a specific FDD ID using template-based parsing."""
+    p = argparse.ArgumentParser(prog="get-content", description="Get content block for a specific FDD ID")
+    p.add_argument("--artifact", default=None, help="Path to FDD artifact file")
+    p.add_argument("--code", default=None, help="Path to code file (alternative to --artifact)")
+    p.add_argument("--id", required=True, help="FDD ID to retrieve content for")
+    p.add_argument("--inst", default=None, help="Instruction ID for code blocks (e.g., 'inst-validate-input')")
     args = p.parse_args(argv)
+
+    # Handle code file path
+    if args.code:
+        code_path = Path(args.code).resolve()
+        if not code_path.is_file():
+            print(json.dumps({"status": "ERROR", "message": f"Code file not found: {code_path}"}, indent=None, ensure_ascii=False))
+            return 1
+
+        cf, errs = CodeFile.from_path(code_path)
+        if errs or cf is None:
+            print(json.dumps({"status": "ERROR", "message": f"Failed to parse code file: {errs}"}, indent=None, ensure_ascii=False))
+            return 1
+
+        # Try to get content by ID or inst
+        content = None
+        if args.inst:
+            content = cf.get_by_inst(args.inst)
+        if content is None:
+            content = cf.get(args.id)
+
+        if content is None:
+            print(json.dumps({"status": "NOT_FOUND", "id": args.id, "inst": args.inst}, indent=None, ensure_ascii=False))
+            return 2
+
+        print(json.dumps({"status": "FOUND", "id": args.id, "inst": args.inst, "text": content}, indent=None, ensure_ascii=False))
+        return 0
+
+    # Handle artifact path
+    if not args.artifact:
+        print(json.dumps({"status": "ERROR", "message": "Either --artifact or --code must be specified"}, indent=None, ensure_ascii=False))
+        return 1
 
     artifact_path = Path(args.artifact).resolve()
-    text, err = load_text(artifact_path)
-    if err:
-        print(json.dumps({"status": "ERROR", "message": err}, indent=None, ensure_ascii=False))
+    if not artifact_path.is_file():
+        print(json.dumps({"status": "ERROR", "message": f"Artifact not found: {artifact_path}"}, indent=None, ensure_ascii=False))
         return 1
-    lines = text.splitlines()
-    kind = detect_artifact_kind(artifact_path)
 
-    if args.id is not None:
-        return _cmd_find_id(["--artifact", str(artifact_path), "--id", args.id])
+    from .utils.artifacts_meta import load_artifacts_meta
 
-    if args.feature_id is not None:
-        if kind != "features-manifest":
-            print(json.dumps({"status": "ERROR", "message": "--feature-id is only supported for FEATURES.md"}, indent=None, ensure_ascii=False))
-            return 1
-        rng = read_feature_entry(lines, args.feature_id)
-        if rng is None:
-            print(json.dumps({"status": "NOT_FOUND", "feature_id": args.feature_id}, indent=None, ensure_ascii=False))
-            return 1
-        start, end = rng
-        print(json.dumps({"status": "FOUND", "feature_id": args.feature_id, "text": "\n".join(lines[start:end])}, indent=None, ensure_ascii=False))
-        return 0
-
-    if args.section is not None:
-        letter = args.section.strip().upper()
-        rng = read_letter_section(lines, letter)
-        if rng is None:
-            print(json.dumps({"status": "NOT_FOUND", "section": letter}, indent=None, ensure_ascii=False))
-            return 1
-        start_idx, end = rng
-        print(json.dumps({"status": "FOUND", "section": letter, "text": "\n".join(lines[start_idx:end])}, indent=None, ensure_ascii=False))
-        return 0
-
-    if args.heading is not None:
-        title = args.heading.strip()
-        rng = read_heading_block_by_title(lines, title)
-        if rng is None:
-            print(json.dumps({"status": "NOT_FOUND", "heading": title}, indent=None, ensure_ascii=False))
-            return 1
-        start, end = rng
-        print(json.dumps({"status": "FOUND", "heading": title, "text": "\n".join(lines[start:end])}, indent=None, ensure_ascii=False))
-        return 0
-
-    print(json.dumps({"status": "ERROR", "message": "No selector provided"}, indent=None, ensure_ascii=False))
-    return 1
-
-
-def _cmd_get_item(argv: List[str]) -> int:
-    p = argparse.ArgumentParser(prog="get-item", description="Get a structured block by id/heading/section/feature/change")
-    p.add_argument("--artifact", required=True)
-    g = p.add_mutually_exclusive_group(required=True)
-    g.add_argument("--section")
-    g.add_argument("--heading")
-    g.add_argument("--feature-id")
-    g.add_argument("--id")
-    args = p.parse_args(argv)
-
-    if args.id is not None:
-        return _cmd_find_id(["--artifact", args.artifact, "--id", args.id])
-
-    sub: List[str] = ["--artifact", args.artifact]
-    if args.section is not None:
-        sub.extend(["--section", args.section])
-    elif args.heading is not None:
-        sub.extend(["--heading", args.heading])
-    elif args.feature_id is not None:
-        sub.extend(["--feature-id", args.feature_id])
-
-    return _cmd_read_section(sub)
-
-
-def _cmd_find_id(argv: List[str]) -> int:
-    p = argparse.ArgumentParser(prog="find-id")
-    p.add_argument("--artifact", required=True)
-    p.add_argument("--id", required=True)
-    args = p.parse_args(argv)
-
-    artifact_path = Path(args.artifact).resolve()
-    text, err = load_text(artifact_path)
-    if err:
-        print(json.dumps({"status": "ERROR", "message": err}, indent=None, ensure_ascii=False))
+    # Find adapter and load artifacts meta
+    adapter_dir = find_adapter_directory(artifact_path.parent)
+    if adapter_dir is None:
+        print(json.dumps({"status": "ERROR", "message": "No adapter found"}, indent=None, ensure_ascii=False))
         return 1
-    lines = text.splitlines()
 
-    kind = detect_artifact_kind(artifact_path)
+    meta, err = load_artifacts_meta(adapter_dir)
+    if err or meta is None:
+        print(json.dumps({"status": "ERROR", "message": err or "Failed to load artifacts meta"}, indent=None, ensure_ascii=False))
+        return 1
 
-    idx = find_id_line(lines, args.id)
-    if idx is None:
+    # Get project root from meta
+    project_root = (adapter_dir / meta.project_root).resolve()
+
+    # Find artifact in registry to get its template
+    try:
+        rel_path = artifact_path.relative_to(project_root).as_posix()
+    except ValueError:
+        print(json.dumps({"status": "ERROR", "message": f"Artifact not under project root: {artifact_path}"}, indent=None, ensure_ascii=False))
+        return 1
+
+    artifact_entry = meta.get_artifact_by_path(rel_path)
+    if artifact_entry is None:
+        print(json.dumps({"status": "ERROR", "message": f"Artifact not registered: {rel_path}"}, indent=None, ensure_ascii=False))
+        return 1
+
+    artifact_meta, system = artifact_entry
+    template_path_str = meta.get_template_for_artifact(artifact_meta, system)
+    if template_path_str is None:
+        print(json.dumps({"status": "ERROR", "message": f"No template found for artifact type: {artifact_meta.type}"}, indent=None, ensure_ascii=False))
+        return 1
+
+    # Load template and parse artifact
+    template_path = meta.resolve_template_path(template_path_str, adapter_dir)
+    tmpl, errs = Template.from_path(template_path)
+    if errs or tmpl is None:
+        print(json.dumps({"status": "ERROR", "message": f"Failed to load template: {errs}"}, indent=None, ensure_ascii=False))
+        return 1
+
+    artifact = tmpl.parse(artifact_path)
+    content = artifact.get(args.id)
+
+    if content is None:
         print(json.dumps({"status": "NOT_FOUND", "id": args.id}, indent=None, ensure_ascii=False))
-        return 1
+        return 2
 
-    anchor = find_anchor_idx_for_id(lines, args.id) or idx
-    start, end = extract_id_block(lines, anchor_idx=anchor, id_value=args.id, kind=kind)
-    payload = extract_id_payload_block(lines, id_idx=idx)
-    payload_out: Optional[Dict[str, object]] = None
-    if payload is not None:
-        payload_out = {
-            "open_line": int(payload["open_idx"]) + 1,
-            "close_line": int(payload["close_idx"]) + 1,
-            "text": str(payload["text"]),
-        }
-    print(json.dumps({
-        "status": "FOUND",
-        "id": args.id,
-        "line": idx + 1,
-        "payload": payload_out,
-        "block_start_line": start + 1,
-        "block_end_line": end,
-        "text": "\n".join(lines[start:end]),
-    }, indent=None, ensure_ascii=False))
-    return 0
-
-
-def _cmd_search(argv: List[str]) -> int:
-    p = argparse.ArgumentParser(prog="search")
-    p.add_argument("--artifact", required=True)
-    p.add_argument("--query", required=True)
-    p.add_argument("--regex", action="store_true")
-    args = p.parse_args(argv)
-
-    artifact_path = Path(args.artifact).resolve()
-    text, err = load_text(artifact_path)
-    if err:
-        print(json.dumps({"status": "ERROR", "message": err}, indent=None, ensure_ascii=False))
-        return 1
-    lines = text.splitlines()
-
-    hits = search_lines(lines=lines, query=str(args.query), regex=bool(args.regex))
-    print(json.dumps({"count": len(hits), "hits": hits}, indent=None, ensure_ascii=False))
-    return 0
-
-
-def _cmd_scan_ids(argv: List[str]) -> int:
-    p = argparse.ArgumentParser(prog="scan-ids")
-    p.add_argument("--root", required=True)
-    p.add_argument("--pattern", default=None)
-    p.add_argument("--regex", action="store_true")
-    p.add_argument("--kind", default="all", choices=["all", "fdd", "adr"])
-    p.add_argument("--all", action="store_true")
-    p.add_argument("--include", action="append", default=None)
-    p.add_argument("--exclude", action="append", default=None)
-    p.add_argument("--max-bytes", type=int, default=1_000_000)
-    args = p.parse_args(argv)
-
-    root = Path(args.root).resolve()
-    hits = scan_ids(
-        root=root,
-        pattern=args.pattern,
-        regex=bool(args.regex),
-        kind=str(args.kind),
-        include=args.include,
-        exclude=args.exclude,
-        max_bytes=int(args.max_bytes),
-        all_ids=bool(args.all),
-    )
-    print(json.dumps({"root": root.as_posix(), "count": len(hits), "ids": hits}, indent=None, ensure_ascii=False))
+    print(json.dumps({"status": "FOUND", "id": args.id, "text": content}, indent=None, ensure_ascii=False))
     return 0
 
 
 def _cmd_where_defined(argv: List[str]) -> int:
-    p = argparse.ArgumentParser(prog="where-defined", description="Find where an ID is defined")
-    p.add_argument("--id", required=True)
-    p.add_argument("--root", default=".", help="Root directory to search (default: current working directory)")
-    p.add_argument("--include-tags", action="store_true", help="Also treat @fdd-* code tags as definitions")
-    p.add_argument("--include", action="append", default=None, help="Glob include filter over relative paths (repeatable)")
-    p.add_argument("--exclude", action="append", default=None, help="Glob exclude filter over relative paths (repeatable)")
-    p.add_argument("--max-bytes", type=int, default=1_000_000, help="Skip files larger than this size")
+    """Find where an FDD ID is defined using template-based parsing."""
+    p = argparse.ArgumentParser(prog="where-defined", description="Find where an FDD ID is defined")
+    p.add_argument("--id", required=True, help="FDD ID to find definition for")
+    p.add_argument("--artifact", default=None, help="Limit search to specific artifact (optional)")
     args = p.parse_args(argv)
 
-    raw_id = str(args.id).strip()
-    base, phase, inst = parse_trace_query(raw_id)
-    root = Path(args.root).resolve()
-
-    _base2, defs, ctx_defs = where_defined_internal(
-        root=root,
-        raw_id=raw_id,
-        include_tags=bool(args.include_tags),
-        includes=args.include,
-        excludes=args.exclude,
-        max_bytes=int(args.max_bytes),
-    )
-
-    _ = _base2
-
-    if not defs:
-        print(json.dumps(
-            {
-                "status": "NOT_FOUND",
-                "id": raw_id,
-                "base_id": base,
-                "phase": phase,
-                "inst": inst,
-                "root": root.as_posix(),
-                "count": 0,
-                "definitions": [],
-                "context_definitions": ctx_defs,
-            },
-            indent=None,
-            ensure_ascii=False,
-        ))
+    target_id = str(args.id).strip()
+    if not target_id:
+        print(json.dumps({"status": "ERROR", "message": "ID cannot be empty"}, indent=None, ensure_ascii=False))
         return 1
-    status = "FOUND" if len(defs) == 1 else "AMBIGUOUS"
-    print(json.dumps(
-        {
-            "status": status,
-            "id": raw_id,
-            "base_id": base,
-            "phase": phase,
-            "inst": inst,
-            "root": root.as_posix(),
-            "count": len(defs),
-            "definitions": defs,
-            "context_definitions": ctx_defs,
-        },
-        indent=None,
-        ensure_ascii=False,
-    ))
+
+    # Find adapter and load registry
+    adapter_dir = find_adapter_directory(Path.cwd())
+    if not adapter_dir:
+        print(json.dumps({"status": "ERROR", "message": "No adapter found. Run 'init' first."}, indent=None, ensure_ascii=False))
+        return 1
+
+    registry, reg_err = load_artifacts_registry(adapter_dir)
+    if not registry or reg_err:
+        print(json.dumps({"status": "ERROR", "message": reg_err or "Could not load artifacts.json"}, indent=None, ensure_ascii=False))
+        return 1
+
+    from .utils.artifacts_meta import ArtifactsMeta
+    meta = ArtifactsMeta.from_dict(registry)
+    project_root = (adapter_dir / meta.project_root).resolve()
+
+    # Collect artifacts to scan
+    artifacts_to_scan: List[Tuple[Path, Path, str]] = []
+
+    if args.artifact:
+        artifact_path = Path(args.artifact).resolve()
+        if not artifact_path.exists():
+            print(json.dumps({"status": "ERROR", "message": f"Artifact not found: {artifact_path}"}, indent=None, ensure_ascii=False))
+            return 1
+        try:
+            rel_path = artifact_path.relative_to(project_root).as_posix()
+        except ValueError:
+            rel_path = None
+        if rel_path:
+            result = meta.get_artifact_by_path(rel_path)
+            if result:
+                artifact_meta, system_node = result
+                pkg = meta.get_rule(system_node.rules)
+                if pkg and pkg.is_fdd_format():
+                    template_path_str = pkg.get_template_path(artifact_meta.kind)
+                    template_path = (project_root / template_path_str).resolve()
+                    artifacts_to_scan.append((artifact_path, template_path, artifact_meta.kind))
+        if not artifacts_to_scan:
+            print(json.dumps({"status": "ERROR", "message": f"Artifact not in FDD registry: {args.artifact}"}, indent=None, ensure_ascii=False))
+            return 1
+    else:
+        # Scan all FDD artifacts
+        for artifact_meta, system_node in meta.iter_all_artifacts():
+            pkg = meta.get_rule(system_node.rules)
+            if not pkg or not pkg.is_fdd_format():
+                continue
+            template_path_str = pkg.get_template_path(artifact_meta.kind)
+            artifact_path = (project_root / artifact_meta.path).resolve()
+            template_path = (project_root / template_path_str).resolve()
+            if artifact_path.exists() and template_path.exists():
+                artifacts_to_scan.append((artifact_path, template_path, artifact_meta.kind))
+
+    if not artifacts_to_scan:
+        print(json.dumps({"status": "ERROR", "message": "No FDD artifacts found in registry"}, indent=None, ensure_ascii=False))
+        return 1
+
+    # Search for definitions
+    definitions: List[Dict[str, object]] = []
+
+    for artifact_path, template_path, artifact_type in artifacts_to_scan:
+        tmpl, errs = Template.from_path(template_path)
+        if errs or tmpl is None:
+            continue
+
+        parsed: TemplateArtifact = tmpl.parse(artifact_path)
+        parsed._extract_ids_and_refs()  # Populate id_definitions
+
+        for id_def in parsed.id_definitions:
+            if id_def.id == target_id:
+                block_kind = id_def.block.template_block.name if id_def.block else None
+                definitions.append({
+                    "artifact": str(artifact_path),
+                    "artifact_type": artifact_type,
+                    "line": id_def.line,
+                    "kind": block_kind,
+                    "checked": id_def.checked,
+                })
+
+    if not definitions:
+        print(json.dumps({
+            "status": "NOT_FOUND",
+            "id": target_id,
+            "artifacts_scanned": len(artifacts_to_scan),
+            "count": 0,
+            "definitions": [],
+        }, indent=None, ensure_ascii=False))
+        return 2
+
+    status = "FOUND" if len(definitions) == 1 else "AMBIGUOUS"
+    print(json.dumps({
+        "status": status,
+        "id": target_id,
+        "artifacts_scanned": len(artifacts_to_scan),
+        "count": len(definitions),
+        "definitions": definitions,
+    }, indent=None, ensure_ascii=False))
     return 0 if status == "FOUND" else 2
 
 
 def _cmd_where_used(argv: List[str]) -> int:
-    p = argparse.ArgumentParser(prog="where-used", description="Find where an ID is referenced across a repository")
-    p.add_argument("--id", required=True)
-    p.add_argument("--root", default=".", help="Root directory to search (default: current working directory)")
-    p.add_argument("--include", action="append", default=None, help="Glob include filter over relative paths (repeatable)")
-    p.add_argument("--exclude", action="append", default=None, help="Glob exclude filter over relative paths (repeatable)")
-    p.add_argument("--max-bytes", type=int, default=1_000_000, help="Skip files larger than this size")
+    """Find all references to an FDD ID using template-based parsing."""
+    p = argparse.ArgumentParser(prog="where-used", description="Find all references to an FDD ID")
+    p.add_argument("--id", required=True, help="FDD ID to find references for")
+    p.add_argument("--artifact", default=None, help="Limit search to specific artifact (optional)")
+    p.add_argument("--include-definitions", action="store_true", help="Include definitions in results")
     args = p.parse_args(argv)
 
-    raw_id = str(args.id).strip()
-    root = Path(args.root).resolve()
+    target_id = str(args.id).strip()
+    if not target_id:
+        print(json.dumps({"status": "ERROR", "message": "ID cannot be empty"}, indent=None, ensure_ascii=False))
+        return 1
 
-    base, phase, inst, hits = where_used(
-        root=root,
-        raw_id=raw_id,
-        include=args.include,
-        exclude=args.exclude,
-        max_bytes=int(args.max_bytes),
-    )
-    print(json.dumps({"id": raw_id, "base_id": base, "phase": phase, "inst": inst, "root": root.as_posix(), "count": len(hits), "hits": hits}, indent=None, ensure_ascii=False))
+    # Find adapter and load registry
+    adapter_dir = find_adapter_directory(Path.cwd())
+    if not adapter_dir:
+        print(json.dumps({"status": "ERROR", "message": "No adapter found. Run 'init' first."}, indent=None, ensure_ascii=False))
+        return 1
+
+    registry, reg_err = load_artifacts_registry(adapter_dir)
+    if not registry or reg_err:
+        print(json.dumps({"status": "ERROR", "message": reg_err or "Could not load artifacts.json"}, indent=None, ensure_ascii=False))
+        return 1
+
+    from .utils.artifacts_meta import ArtifactsMeta
+    meta = ArtifactsMeta.from_dict(registry)
+    project_root = (adapter_dir / meta.project_root).resolve()
+
+    # Collect artifacts to scan
+    artifacts_to_scan: List[Tuple[Path, Path, str]] = []
+
+    if args.artifact:
+        artifact_path = Path(args.artifact).resolve()
+        if not artifact_path.exists():
+            print(json.dumps({"status": "ERROR", "message": f"Artifact not found: {artifact_path}"}, indent=None, ensure_ascii=False))
+            return 1
+        try:
+            rel_path = artifact_path.relative_to(project_root).as_posix()
+        except ValueError:
+            rel_path = None
+        if rel_path:
+            result = meta.get_artifact_by_path(rel_path)
+            if result:
+                artifact_meta, system_node = result
+                pkg = meta.get_rule(system_node.rules)
+                if pkg and pkg.is_fdd_format():
+                    template_path_str = pkg.get_template_path(artifact_meta.kind)
+                    template_path = (project_root / template_path_str).resolve()
+                    artifacts_to_scan.append((artifact_path, template_path, artifact_meta.kind))
+        if not artifacts_to_scan:
+            print(json.dumps({"status": "ERROR", "message": f"Artifact not in FDD registry: {args.artifact}"}, indent=None, ensure_ascii=False))
+            return 1
+    else:
+        # Scan all FDD artifacts
+        for artifact_meta, system_node in meta.iter_all_artifacts():
+            pkg = meta.get_rule(system_node.rules)
+            if not pkg or not pkg.is_fdd_format():
+                continue
+            template_path_str = pkg.get_template_path(artifact_meta.kind)
+            artifact_path = (project_root / artifact_meta.path).resolve()
+            template_path = (project_root / template_path_str).resolve()
+            if artifact_path.exists() and template_path.exists():
+                artifacts_to_scan.append((artifact_path, template_path, artifact_meta.kind))
+
+    if not artifacts_to_scan:
+        print(json.dumps({"status": "ERROR", "message": "No FDD artifacts found in registry"}, indent=None, ensure_ascii=False))
+        return 1
+
+    # Search for references
+    references: List[Dict[str, object]] = []
+
+    for artifact_path, template_path, artifact_type in artifacts_to_scan:
+        tmpl, errs = Template.from_path(template_path)
+        if errs or tmpl is None:
+            continue
+
+        parsed: TemplateArtifact = tmpl.parse(artifact_path)
+        parsed._extract_ids_and_refs()  # Populate id_definitions and id_references
+
+        # Collect references
+        for id_ref in parsed.id_references:
+            if id_ref.id == target_id:
+                block_kind = id_ref.block.template_block.name if id_ref.block else None
+                references.append({
+                    "artifact": str(artifact_path),
+                    "artifact_type": artifact_type,
+                    "line": id_ref.line,
+                    "kind": block_kind,
+                    "type": "reference",
+                    "checked": id_ref.checked,
+                })
+
+        # Optionally include definitions
+        if args.include_definitions:
+            for id_def in parsed.id_definitions:
+                if id_def.id == target_id:
+                    block_kind = id_def.block.template_block.name if id_def.block else None
+                    references.append({
+                        "artifact": str(artifact_path),
+                        "artifact_type": artifact_type,
+                        "line": id_def.line,
+                        "kind": block_kind,
+                        "type": "definition",
+                        "checked": id_def.checked,
+                    })
+
+    # Sort by artifact and line
+    references = sorted(references, key=lambda r: (str(r.get("artifact", "")), int(r.get("line", 0))))
+
+    print(json.dumps({
+        "id": target_id,
+        "artifacts_scanned": len(artifacts_to_scan),
+        "count": len(references),
+        "references": references,
+    }, indent=None, ensure_ascii=False))
     return 0
+
+
+# =============================================================================
+# CODE VALIDATION COMMAND
+# =============================================================================
+
+def _cmd_validate_code(argv: List[str]) -> int:
+    """Validate FDD traceability markers in code files.
+
+    Checks that:
+    - All @fdd-begin markers have matching @fdd-end
+    - Block markers are not empty
+    - Code markers reference IDs that exist in artifacts
+    - All to_code="true" IDs have code markers (coverage)
+    - Respects traceability mode (FULL vs DOCS-ONLY)
+    """
+    p = argparse.ArgumentParser(prog="validate-code", description="Validate FDD code traceability markers")
+    p.add_argument("path", nargs="?", default=None, help="Path to code file or directory (defaults to codebase from artifacts.json)")
+    p.add_argument("--system", default=None, help="System name to validate (if omitted, validates all systems)")
+    p.add_argument("--verbose", action="store_true", help="Print full validation report")
+    p.add_argument("--output", default=None, help="Output file for JSON report")
+    args = p.parse_args(argv)
+
+    # Find project root and adapter
+    project_root = find_project_root(Path.cwd())
+    if not project_root:
+        print(json.dumps({"status": "ERROR", "message": "Not in FDD project"}, indent=None, ensure_ascii=False))
+        return 1
+
+    adapter_dir = find_adapter_directory(project_root)
+    if not adapter_dir:
+        print(json.dumps({"status": "ERROR", "message": "Adapter directory not found"}, indent=None, ensure_ascii=False))
+        return 1
+
+    reg, reg_err = load_artifacts_registry(adapter_dir)
+    if reg_err or not isinstance(reg, dict):
+        print(json.dumps({"status": "ERROR", "message": reg_err or "Invalid artifacts registry"}, indent=None, ensure_ascii=False))
+        return 1
+
+    # Collect artifact IDs and to_code IDs from all artifacts
+    from .utils.template import Template, cross_validate_artifacts
+
+    artifact_ids: Set[str] = set()
+    to_code_ids: Set[str] = set()
+    parsed_artifacts: List[TemplateArtifact] = []
+
+    rules = reg.get("rules", {})
+    systems = reg.get("systems", [])
+    project_root_from_reg = reg.get("project_root", "..")
+
+    def resolve_path(p: str) -> Path:
+        rel = Path(project_root_from_reg) / p
+        return (adapter_dir / rel).resolve()
+
+    def process_system(system: dict, filter_system: Optional[str]) -> None:
+        system_name = system.get("name", "")
+        if filter_system and system_name != filter_system:
+            for child in system.get("children", []):
+                process_system(child, filter_system)
+            return
+
+        rules_name = system.get("rules", "")
+        rule_cfg = rules.get(rules_name, {})
+        rules_base = rule_cfg.get("path", "")
+
+        # Process artifacts to collect IDs
+        for art_cfg in system.get("artifacts", []):
+            art_path = resolve_path(art_cfg.get("path", ""))
+            art_kind = art_cfg.get("kind", "")
+            if not art_path.is_file():
+                continue
+
+            # Find template
+            template_path = resolve_path(f"{rules_base}/artifacts/{art_kind}/template.md")
+            if not template_path.is_file():
+                continue
+
+            tmpl, errs = Template.from_path(template_path)
+            if errs or tmpl is None:
+                continue
+
+            artifact = tmpl.parse(art_path)
+            artifact._extract_ids_and_refs()
+            parsed_artifacts.append(artifact)
+
+            for d in artifact.id_definitions:
+                artifact_ids.add(d.id)
+                if d.to_code:
+                    to_code_ids.add(d.id)
+
+        # Recurse into children
+        for child in system.get("children", []):
+            process_system(child, filter_system)
+
+    for system in systems:
+        process_system(system, args.system)
+
+    # Now scan code files
+    all_errors: List[Dict[str, object]] = []
+    all_warnings: List[Dict[str, object]] = []
+    code_files_scanned: List[Dict[str, object]] = []
+    code_ids_found: Set[str] = set()
+
+    def scan_codebase_entry(entry: dict, traceability: str) -> None:
+        code_path = resolve_path(entry.get("path", ""))
+        extensions = entry.get("extensions", [".py"])
+
+        if not code_path.exists():
+            return
+
+        if code_path.is_file():
+            files_to_scan = [code_path]
+        else:
+            files_to_scan = []
+            for ext in extensions:
+                files_to_scan.extend(code_path.rglob(f"*{ext}"))
+
+        for file_path in files_to_scan:
+            cf, errs = CodeFile.from_path(file_path)
+            if errs:
+                all_errors.extend(errs)
+                continue
+
+            if cf is None:
+                continue
+
+            # Validate structure
+            result = cf.validate()
+            all_errors.extend(result.get("errors", []))
+            all_warnings.extend(result.get("warnings", []))
+
+            # Track IDs found
+            file_ids = cf.list_ids()
+            code_ids_found.update(file_ids)
+
+            if file_ids or cf.scope_markers or cf.block_markers:
+                code_files_scanned.append({
+                    "path": str(file_path),
+                    "scope_markers": len(cf.scope_markers),
+                    "block_markers": len(cf.block_markers),
+                    "ids_referenced": len(file_ids),
+                })
+
+            # Check for orphaned markers (IDs not in artifacts)
+            if traceability == "FULL":
+                for ref in cf.references:
+                    if ref.id not in artifact_ids:
+                        all_errors.append({
+                            "type": "traceability",
+                            "message": "Code marker references ID not defined in any artifact",
+                            "path": str(file_path),
+                            "line": ref.line,
+                            "id": ref.id,
+                        })
+            elif traceability == "DOCS-ONLY":
+                # In DOCS-ONLY mode, markers are prohibited
+                if cf.scope_markers or cf.block_markers:
+                    all_errors.append({
+                        "type": "traceability",
+                        "message": "FDD markers found but traceability is DOCS-ONLY",
+                        "path": str(file_path),
+                        "line": 1,
+                    })
+
+    # If path specified, validate just that
+    if args.path:
+        target_path = Path(args.path).resolve()
+        scan_codebase_entry({"path": str(target_path), "extensions": [target_path.suffix or ".py"]}, "FULL")
+    else:
+        # Scan all codebase entries from systems
+        def scan_system_codebase(system: dict, filter_system: Optional[str]) -> None:
+            system_name = system.get("name", "")
+            if filter_system and system_name != filter_system:
+                for child in system.get("children", []):
+                    scan_system_codebase(child, filter_system)
+                return
+
+            for cb_entry in system.get("codebase", []):
+                # Determine traceability from system artifacts
+                traceability = "FULL"  # default
+                for art in system.get("artifacts", []):
+                    if art.get("traceability") == "DOCS-ONLY":
+                        traceability = "DOCS-ONLY"
+                        break
+                scan_codebase_entry(cb_entry, traceability)
+
+            for child in system.get("children", []):
+                scan_system_codebase(child, filter_system)
+
+        for system in systems:
+            scan_system_codebase(system, args.system)
+
+    # Check for missing code markers (to_code IDs without markers)
+    missing_ids = to_code_ids - code_ids_found
+    for missing_id in sorted(missing_ids):
+        all_errors.append({
+            "type": "coverage",
+            "message": "ID marked to_code=\"true\" has no code marker",
+            "id": missing_id,
+        })
+
+    # Build report
+    overall_status = "PASS" if not all_errors else "FAIL"
+
+    report: Dict[str, object] = {
+        "status": overall_status,
+        "code_files_scanned": len(code_files_scanned),
+        "artifact_ids_total": len(artifact_ids),
+        "to_code_ids_total": len(to_code_ids),
+        "code_ids_found": len(code_ids_found),
+        "coverage": f"{len(code_ids_found & to_code_ids)}/{len(to_code_ids)}" if to_code_ids else "N/A",
+        "error_count": len(all_errors),
+        "warning_count": len(all_warnings),
+    }
+
+    # Add next step hint
+    if overall_status == "PASS":
+        report["next_step"] = "Code traceability validation passed. Review implementation against design requirements."
+
+    if args.verbose:
+        report["code_files"] = code_files_scanned
+        report["errors"] = all_errors
+        report["warnings"] = all_warnings
+        report["artifact_ids"] = sorted(artifact_ids)
+        report["to_code_ids"] = sorted(to_code_ids)
+        report["code_ids_found"] = sorted(code_ids_found)
+        if missing_ids:
+            report["missing_coverage"] = sorted(missing_ids)
+    else:
+        if all_errors:
+            report["errors"] = all_errors[:20]
+            if len(all_errors) > 20:
+                report["errors_truncated"] = len(all_errors) - 20
+
+    out = json.dumps(report, indent=2 if args.verbose else None, ensure_ascii=False)
+    if args.verbose:
+        out += "\n"
+
+    if args.output:
+        Path(args.output).write_text(out, encoding="utf-8")
+    else:
+        print(out)
+
+    return 0 if overall_status == "PASS" else 2
+
+
+# =============================================================================
+# TEMPLATE VALIDATION COMMAND
+# =============================================================================
+
+def _cmd_validate_rules(argv: List[str]) -> int:
+    """Validate FDD rules configuration and template files.
+
+    Checks that:
+    - Rules are properly configured in artifacts.json
+    - Templates have valid fdd-template frontmatter (kind, version)
+    - All FDD markers are properly paired (open/close)
+    - Marker types and attributes are valid
+    """
+    p = argparse.ArgumentParser(prog="validate-rules", description="Validate FDD rules and template files")
+    p.add_argument("--rule", default=None, help="Rule ID to validate (if omitted, validates all rules)")
+    p.add_argument("--template", default=None, help="Path to specific template file to validate")
+    p.add_argument("--verbose", action="store_true", help="Print full validation report")
+    args = p.parse_args(argv)
+
+    templates_to_validate: List[Path] = []
+
+    if args.template:
+        template_path = Path(args.template).resolve()
+        if not template_path.exists():
+            print(json.dumps({"status": "ERROR", "message": f"Template not found: {template_path}"}, indent=None, ensure_ascii=False))
+            return 1
+        templates_to_validate.append(template_path)
+    else:
+        # Find all templates from adapter registry
+        adapter_dir = find_adapter_directory(Path.cwd())
+        if not adapter_dir:
+            print(json.dumps({"status": "ERROR", "message": "No adapter found. Run 'init' first or specify --template."}, indent=None, ensure_ascii=False))
+            return 1
+
+        registry, reg_err = load_artifacts_registry(adapter_dir)
+        if not registry or reg_err:
+            print(json.dumps({"status": "ERROR", "message": reg_err or "Could not load artifacts.json"}, indent=None, ensure_ascii=False))
+            return 1
+
+        from .utils.artifacts_meta import ArtifactsMeta
+        meta = ArtifactsMeta.from_dict(registry)
+        project_root = (adapter_dir / meta.project_root).resolve()
+
+        # Collect all unique template paths from template packages
+        # Collect unique template paths from all FDD artifacts
+        seen_paths: Set[str] = set()
+        for artifact_meta, system_node in meta.iter_all_artifacts():
+            pkg = meta.get_rule(system_node.rules)
+            if not pkg or not pkg.is_fdd_format():
+                continue
+            template_path_str = pkg.get_template_path(artifact_meta.kind)
+            tmpl_path = (project_root / template_path_str).resolve()
+            if tmpl_path.as_posix() not in seen_paths and tmpl_path.exists():
+                seen_paths.add(tmpl_path.as_posix())
+                templates_to_validate.append(tmpl_path)
+
+        if not templates_to_validate:
+            print(json.dumps({"status": "ERROR", "message": "No FDD templates found in registry"}, indent=None, ensure_ascii=False))
+            return 1
+
+    # Validate each template
+    all_errors: List[Dict[str, object]] = []
+    template_reports: List[Dict[str, object]] = []
+    overall_status = "PASS"
+
+    for template_path in templates_to_validate:
+        tmpl, errs = Template.from_path(template_path)
+
+        report: Dict[str, object] = {
+            "template": str(template_path),
+            "status": "PASS" if not errs else "FAIL",
+            "error_count": len(errs),
+        }
+
+        if errs:
+            overall_status = "FAIL"
+            if args.verbose:
+                report["errors"] = errs
+            all_errors.extend(errs)
+        else:
+            # Template parsed successfully - add metadata
+            if tmpl is not None:
+                report["kind"] = tmpl.kind
+                report["version"] = f"{tmpl.version.major}.{tmpl.version.minor}" if tmpl.version else None
+                report["blocks"] = len(tmpl.blocks) if tmpl.blocks else 0
+                if args.verbose and tmpl.blocks:
+                    report["block_types"] = list(set(b.type for b in tmpl.blocks))
+
+        template_reports.append(report)
+
+    # Build final report
+    result: Dict[str, object] = {
+        "status": overall_status,
+        "templates_validated": len(template_reports),
+        "error_count": len(all_errors),
+    }
+
+    if args.verbose:
+        result["templates"] = template_reports
+        if all_errors:
+            result["errors"] = all_errors
+    else:
+        # Compact output
+        failed = [r for r in template_reports if r.get("status") == "FAIL"]
+        if failed:
+            result["failed_templates"] = [
+                {"template": r.get("template"), "error_count": r.get("error_count")}
+                for r in failed
+            ]
+        if all_errors:
+            result["errors"] = all_errors[:10]
+            if len(all_errors) > 10:
+                result["errors_truncated"] = len(all_errors) - 10
+
+    out = json.dumps(result, indent=2 if args.verbose else None, ensure_ascii=False)
+    if args.verbose:
+        out += "\n"
+    print(out)
+
+    return 0 if overall_status == "PASS" else 2
 
 
 # =============================================================================
@@ -1903,14 +2358,14 @@ def main(argv: Optional[List[str]] = None) -> int:
     argv_list = list(argv) if argv is not None else sys.argv[1:]
     
     # Define all available commands
-    validation_commands = ["validate"]
+    validation_commands = ["validate", "validate-code", "validate-rules"]
     search_commands = [
         "init",
-        "list-sections", "list-ids", "list-items",
-        "read-section", "get-item", "find-id",
-        "search", "scan-ids",
+        "list-ids", "list-id-kinds",
+        "get-content",
         "where-defined", "where-used",
         "adapter-info",
+        "self-check",
         "agent-workflows",
         "agent-skills",
     ]
@@ -1936,30 +2391,26 @@ def main(argv: Optional[List[str]] = None) -> int:
     # Dispatch to appropriate command handler
     if cmd == "validate":
         return _cmd_validate(rest)
+    elif cmd == "validate-code":
+        return _cmd_validate_code(rest)
+    elif cmd == "validate-rules":
+        return _cmd_validate_rules(rest)
     elif cmd == "init":
         return _cmd_init(rest)
-    elif cmd == "list-sections":
-        return _cmd_list_sections(rest)
     elif cmd == "list-ids":
         return _cmd_list_ids(rest)
-    elif cmd == "list-items":
-        return _cmd_list_items(rest)
-    elif cmd == "read-section":
-        return _cmd_read_section(rest)
-    elif cmd == "get-item":
-        return _cmd_get_item(rest)
-    elif cmd == "find-id":
-        return _cmd_find_id(rest)
-    elif cmd == "search":
-        return _cmd_search(rest)
-    elif cmd == "scan-ids":
-        return _cmd_scan_ids(rest)
+    elif cmd == "list-id-kinds":
+        return _cmd_list_id_kinds(rest)
+    elif cmd == "get-content":
+        return _cmd_get_content(rest)
     elif cmd == "where-defined":
         return _cmd_where_defined(rest)
     elif cmd == "where-used":
         return _cmd_where_used(rest)
     elif cmd == "adapter-info":
         return _cmd_adapter_info(rest)
+    elif cmd == "self-check":
+        return _cmd_self_check(rest)
     elif cmd == "agent-workflows":
         return _cmd_agent_workflows(rest)
     elif cmd == "agent-skills":

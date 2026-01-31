@@ -1,12 +1,11 @@
 """
 Unit tests for CLI helper functions.
 
-Tests utility functions from fdd.utils.search, fdd.utils.markdown, and fdd.utils.document that perform parsing, filtering, and formatting.
+Tests utility functions from fdd.utils.document that perform parsing, filtering, and formatting.
 """
 
 import unittest
 import sys
-import re
 import json
 import io
 import contextlib
@@ -17,287 +16,8 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "fdd" / "scripts"))
 
 from fdd.utils.document import detect_artifact_kind, iter_text_files, read_text_safe, to_relative_posix
-from fdd.utils.markdown import find_nearest_heading, get_heading_level
-from fdd.utils.search import (
-    extract_ids,
-    filter_hits,
-    find_all_positions,
-    infer_fdd_type,
-    parse_trace_query,
-    _match_phase_inst_in_line,
-    unique_hits,
-)
 
 from fdd import cli as fdd_cli
-
-
-class TestParseTraceQuery(unittest.TestCase):
-    """Test parse_trace_query function."""
-
-    def test_parse_simple_base(self):
-        """Test parsing simple base ID."""
-        base, phase, inst = parse_trace_query("@fdd-test-flow-login")
-        
-        # Function strips @fdd- prefix when present
-        self.assertIsNotNone(base)
-        self.assertIsNone(phase)
-        self.assertIsNone(inst)
-
-    def test_parse_with_phase(self):
-        """Test parsing with phase."""
-        base, phase, inst = parse_trace_query("fdd-test-flow-login:ph-1")
-        
-        # Extracts phase correctly
-        self.assertEqual(base, "fdd-test-flow-login")
-        self.assertEqual(phase, "ph-1")
-        self.assertIsNone(inst)
-
-    def test_parse_with_phase_and_instruction(self):
-        """Test parsing with phase and instruction."""
-        base, phase, inst = parse_trace_query("fdd-test-flow-login:ph-1:inst-step-1")
-        
-        # Extracts both phase and instruction
-        self.assertEqual(base, "fdd-test-flow-login")
-        self.assertEqual(phase, "ph-1")
-        self.assertEqual(inst, "inst-step-1")
-
-    def test_parse_without_at_symbol(self):
-        """Test parsing without @ symbol."""
-        base, phase, inst = parse_trace_query("fdd-test-flow-login:ph-1")
-        
-        # Without @ it treats whole thing as base
-        self.assertIsNotNone(base)
-        self.assertIsNone(inst)
-
-    def test_parse_unqualified_rest_is_treated_as_base(self):
-        base, phase, inst = parse_trace_query("fdd-test-flow-login:foo")
-        self.assertEqual(base, "foo")
-        self.assertIsNone(phase)
-        self.assertIsNone(inst)
-
-
-class TestMatchPhaseInstInLine(unittest.TestCase):
-    def test_match_returns_none_when_inst_precedes_phase(self):
-        line = "inst-return-ok ph-1"
-        matched = _match_phase_inst_in_line(line, phase="ph-1", inst="inst-return-ok")
-        self.assertIsNone(matched)
-
-    def test_match_phase_only(self):
-        line = "1. [ ] - `ph-1` - **RETURN** ok - `inst-return-ok`"
-        matched = _match_phase_inst_in_line(line, phase="ph-1", inst=None)
-        self.assertIsNotNone(matched)
-        assert matched is not None
-        seg, _col = matched
-        self.assertEqual(seg, "phase")
-
-
-class TestExtractIds(unittest.TestCase):
-    """Test extract_ids function."""
-
-    def test_extract_single_id(self):
-        """Test extracting single ID."""
-        lines = ["Some text with `fdd-test-actor-user` in it"]
-        
-        ids = extract_ids(lines)
-        
-        self.assertGreater(len(ids), 0)
-        self.assertEqual(ids[0]["id"], "fdd-test-actor-user")
-
-    def test_extract_multiple_ids(self):
-        """Test extracting multiple IDs."""
-        lines = [
-            "Actor: `fdd-test-actor-user`",
-            "Capability: `fdd-test-capability-login`",
-        ]
-        
-        ids = extract_ids(lines)
-        
-        self.assertGreaterEqual(len(ids), 2)
-
-    def test_extract_with_columns(self):
-        """Test extracting IDs with column numbers."""
-        lines = ["Text `fdd-test-actor-user` more text"]
-        
-        ids = extract_ids(lines, with_cols=True)
-        
-        self.assertGreater(len(ids), 0)
-        self.assertIn("col", ids[0])
-
-
-class TestFilterIdHits(unittest.TestCase):
-    """Test filter_hits function."""
-
-    def test_filter_with_substring(self):
-        """Test filtering with substring pattern."""
-        hits = [
-            {"id": "fdd-test-actor-user"},
-            {"id": "fdd-test-actor-admin"},
-            {"id": "fdd-test-capability-login"},
-        ]
-        
-        filtered = filter_hits(hits, pattern="actor", regex=False)
-        
-        self.assertEqual(len(filtered), 2)
-
-    def test_filter_with_regex(self):
-        """Test filtering with regex pattern."""
-        hits = [
-            {"id": "fdd-test-actor-user"},
-            {"id": "fdd-test-actor-admin"},
-            {"id": "fdd-test-capability-login"},
-        ]
-        
-        filtered = filter_hits(hits, pattern="actor-.*", regex=True)
-        
-        self.assertEqual(len(filtered), 2)
-
-    def test_filter_no_pattern(self):
-        """Test filtering with no pattern returns all."""
-        hits = [
-            {"id": "fdd-test-actor-user"},
-            {"id": "fdd-test-capability-login"},
-        ]
-        
-        filtered = filter_hits(hits, pattern=None, regex=False)
-        
-        self.assertEqual(len(filtered), 2)
-
-
-class TestUniqueIdHits(unittest.TestCase):
-    """Test unique_hits function."""
-
-    def test_remove_duplicates(self):
-        """Test removing duplicate IDs."""
-        hits = [
-            {"id": "fdd-test-actor-user", "line": 10},
-            {"id": "fdd-test-actor-user", "line": 20},
-            {"id": "fdd-test-capability-login", "line": 30},
-        ]
-        
-        unique = unique_hits(hits)
-        
-        self.assertEqual(len(unique), 2)
-
-    def test_preserve_order(self):
-        """Test preserving first occurrence order."""
-        hits = [
-            {"id": "fdd-test-actor-admin", "line": 10},
-            {"id": "fdd-test-actor-user", "line": 20},
-            {"id": "fdd-test-actor-admin", "line": 30},
-        ]
-        
-        unique = unique_hits(hits)
-        
-        self.assertEqual(len(unique), 2)
-        self.assertEqual(unique[0]["id"], "fdd-test-actor-admin")
-        self.assertEqual(unique[1]["id"], "fdd-test-actor-user")
-
-
-class TestNearestHeadingTitle(unittest.TestCase):
-    """Test find_nearest_heading function."""
-
-    def test_find_nearest_heading(self):
-        """Test finding nearest heading."""
-        lines = [
-            "# Main Title",
-            "",
-            "## Section A",
-            "",
-            "Some content",
-            "More content",
-        ]
-        
-        title = find_nearest_heading(lines, from_idx=5)
-        
-        self.assertEqual(title, "Section A")
-
-    def test_find_parent_heading(self):
-        """Test finding parent heading."""
-        lines = [
-            "# Main Title",
-            "",
-            "## Section A",
-            "",
-            "### Subsection",
-            "Content",
-        ]
-        
-        title = find_nearest_heading(lines, from_idx=5)
-        
-        self.assertEqual(title, "Subsection")
-
-    def test_no_heading_found(self):
-        """Test when no heading is found."""
-        lines = [
-            "Just some text",
-            "No headings here",
-        ]
-        
-        title = find_nearest_heading(lines, from_idx=1)
-        
-        self.assertIsNone(title)
-
-
-class TestInferFddTypeFromId(unittest.TestCase):
-    """Test infer_fdd_type function."""
-
-    def test_infer_actor(self):
-        """Test inferring actor type."""
-        fdd_type = infer_fdd_type("fdd-test-actor-user")
-        self.assertEqual(fdd_type, "actor")
-
-    def test_infer_capability(self):
-        """Test inferring capability type."""
-        fdd_type = infer_fdd_type("fdd-test-capability-login")
-        self.assertEqual(fdd_type, "capability")
-
-    def test_infer_requirement(self):
-        """Test inferring requirement type."""
-        fdd_type = infer_fdd_type("fdd-test-req-001")
-        self.assertEqual(fdd_type, "requirement")
-
-    def test_infer_functional_requirement(self):
-        fdd_type = infer_fdd_type("fdd-test-fr-login")
-        self.assertEqual(fdd_type, "functional-requirement")
-
-    def test_infer_usecase(self):
-        """Test inferring usecase type."""
-        fdd_type = infer_fdd_type("fdd-test-usecase-login")
-        self.assertEqual(fdd_type, "usecase")
-
-    def test_infer_principle(self):
-        fdd_type = infer_fdd_type("fdd-test-principle-keep-it-simple")
-        self.assertEqual(fdd_type, "principle")
-
-    def test_infer_nfr(self):
-        fdd_type = infer_fdd_type("fdd-test-nfr-latency")
-        self.assertEqual(fdd_type, "nfr")
-
-    def test_infer_prd_context(self):
-        fdd_type = infer_fdd_type("fdd-test-prd-context-scope")
-        self.assertEqual(fdd_type, "prd-context")
-
-    def test_infer_constraint(self):
-        fdd_type = infer_fdd_type("fdd-test-constraint-no-external-deps")
-        self.assertEqual(fdd_type, "constraint")
-
-    def test_infer_feature_scoped_types(self):
-        self.assertEqual(infer_fdd_type("fdd-demo-feature-x-flow-login"), "flow")
-        self.assertEqual(infer_fdd_type("fdd-demo-feature-x-algo-a"), "algo")
-        self.assertEqual(infer_fdd_type("fdd-demo-feature-x-state-logged-in"), "state")
-        self.assertEqual(infer_fdd_type("fdd-demo-feature-x-context-session"), "feature-context")
-        self.assertEqual(infer_fdd_type("fdd-demo-feature-x-test-login"), "test")
-        self.assertEqual(infer_fdd_type("fdd-demo-feature-x-req-login"), "feature-requirement")
-
-    def test_infer_adr(self):
-        """Test inferring ADR type."""
-        fdd_type = infer_fdd_type("fdd-test-adr-0001")
-        self.assertEqual(fdd_type, "adr")
-
-    def test_infer_generic(self):
-        """Test inferring generic ID type."""
-        fdd_type = infer_fdd_type("fdd-test-something-else")
-        self.assertEqual(fdd_type, "id")
 
 
 class TestDetectKind(unittest.TestCase):
@@ -328,30 +48,6 @@ class TestDetectKind(unittest.TestCase):
         self.assertEqual(kind, "generic")
 
 
-class TestFindAllInLine(unittest.TestCase):
-    """Test find_all_positions function."""
-
-    def test_find_single_occurrence(self):
-        """Test finding single occurrence."""
-        positions = find_all_positions("Hello world", "world")
-        
-        self.assertEqual(len(positions), 1)
-        self.assertEqual(positions[0], 6)
-
-    def test_find_multiple_occurrences(self):
-        """Test finding multiple occurrences."""
-        positions = find_all_positions("test test test", "test")
-        
-        self.assertEqual(len(positions), 3)
-        self.assertEqual(positions, [0, 5, 10])
-
-    def test_find_no_occurrences(self):
-        """Test finding no occurrences."""
-        positions = find_all_positions("Hello world", "xyz")
-        
-        self.assertEqual(len(positions), 0)
-
-
 class TestRelativePosix(unittest.TestCase):
     """Test to_relative_posix function."""
 
@@ -360,9 +56,9 @@ class TestRelativePosix(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             subpath = root / "subdir" / "file.txt"
-            
+
             rel = to_relative_posix(subpath, root)
-            
+
             self.assertEqual(rel, "subdir/file.txt")
 
     def test_absolute_path_outside_root(self):
@@ -370,9 +66,9 @@ class TestRelativePosix(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir) / "root"
             outside = Path(tmpdir) / "outside" / "file.txt"
-            
+
             rel = to_relative_posix(outside, root)
-            
+
             # Should return absolute path when outside root
             self.assertIn("outside", rel)
 
@@ -449,42 +145,7 @@ class TestReadTextSafe(unittest.TestCase):
                 os.linesep = orig
 
 
-class TestHeadingLevel(unittest.TestCase):
-    """Test get_heading_level function."""
-
-    def test_level_1(self):
-        """Test detecting level 1 heading."""
-        level = get_heading_level("# Title")
-        self.assertEqual(level, 1)
-
-    def test_level_2(self):
-        """Test detecting level 2 heading."""
-        level = get_heading_level("## Section")
-        self.assertEqual(level, 2)
-
-    def test_level_3(self):
-        """Test detecting level 3 heading."""
-        level = get_heading_level("### Subsection")
-        self.assertEqual(level, 3)
-
-    def test_not_heading(self):
-        """Test detecting non-heading line."""
-        level = get_heading_level("Regular text")
-        self.assertIsNone(level)
-
-    def test_heading_with_spaces(self):
-        """Test heading with extra spaces."""
-        level = get_heading_level("####    Title with spaces")
-        self.assertEqual(level, 4)
-
-
 class TestCliInternalHelpers(unittest.TestCase):
-    def test_truncate_list_non_list_returns_empty(self):
-        self.assertEqual(fdd_cli._truncate_list({"a": 1}, 5), [])
-
-    def test_truncate_list_negative_limit_returns_empty(self):
-        self.assertEqual(fdd_cli._truncate_list([1, 2, 3], -1), [])
-
     def test_load_json_file_invalid_json_returns_none(self):
         with TemporaryDirectory() as tmpdir:
             p = Path(tmpdir) / "bad.json"
@@ -525,205 +186,103 @@ class TestCliInternalHelpers(unittest.TestCase):
             self.assertTrue(raw.endswith("\n"))
             self.assertEqual(json.loads(raw), {"a": 1})
 
-    def test_summarize_validate_report_includes_failure_details(self):
-        report = {
-            "status": "FAIL",
-            "path": "/tmp/x",
-            "errors": [{"type": "x", "message": "m"}],
-            "artifact_validation": {
-                "a": {
-                    "status": "FAIL",
-                    "errors": [{"type": "e", "message": "e"}],
-                    "missing_sections": ["A"],
-                    "adr_issues": [{"type": "adr", "message": "m"}],
-                    "placeholder_hits": ["TODO"],
-                    "path": "p",
-                },
-                "b": {"status": "PASS"},
-                "c": "not-a-dict",
-            },
-            "traceability": {
-                "feature_dir": "f",
-                "scan_root": "r",
-                "feature_design": "d",
-                "scanned_file_count": 1,
-                "missing": {
-                    "scopes": {"flows": ["x"], "algos": []},
-                    "instruction_tags": ["@fdd-algo:x:ph-1"],
-                },
-            },
-        }
-        out = fdd_cli._summarize_validate_report(report)
-        self.assertEqual(out.get("status"), "FAIL")
-        self.assertIn("error_count", out)
-        self.assertIn("artifact_validation", out)
-        self.assertIn("artifact_failures", out)
-        self.assertIn("traceability", out)
-
-    def test_summarize_validate_report_summarizes_feature_reports(self):
-        report = {
-            "status": "FAIL",
-            "feature_dir": "/tmp/feature-dir",
-            "feature_count": 4,
-            "feature_reports": [
-                "not-a-dict",
-                {
-                    "status": "PASS",
-                    "feature_dir": "feature-a",
-                },
-                {
-                    "status": "FAIL",
-                    "feature_dir": "feature-b",
-                    "errors": [{"type": "e", "message": "m"}],
-                    "traceability": {
-                        "feature_dir": "feature-b",
-                        "scan_root": ".",
-                        "feature_design": "DESIGN.md",
-                        "scanned_file_count": 2,
-                        "missing": {
-                            "scopes": {"flows": ["x", "y"], "algos": []},
-                            "instruction_tags": ["@fdd-algo:x:ph-1"],
-                        },
-                    },
-                },
-                {
-                    "status": "FAIL",
-                    "feature_dir": "feature-c",
-                    "errors": [],
-                    "traceability": "not-a-dict",
-                },
-            ],
-        }
-
-        out = fdd_cli._summarize_validate_report(report)
-        self.assertEqual(out.get("status"), "FAIL")
-        self.assertEqual(out.get("feature_dir"), "/tmp/feature-dir")
-
-        fr = out.get("feature_reports")
-        self.assertIsInstance(fr, dict)
-        self.assertEqual(fr.get("feature_count"), 4)
-        self.assertEqual(fr.get("pass_count"), 1)
-        self.assertEqual(fr.get("fail_count"), 2)
-        self.assertIsInstance(fr.get("failures"), list)
-
-
-class TestCliAgentWorkflowsCoverage(unittest.TestCase):
-    def test_agent_workflows_unknown_agent_requires_config(self):
-        with TemporaryDirectory() as tmpdir:
-            root = Path(tmpdir)
-            (root / ".fdd-config.json").write_text("{}\n", encoding="utf-8")
-
-            rc = fdd_cli.main(["agent-workflows", "--agent", "myagent", "--root", str(root), "--dry-run"])
-            self.assertEqual(rc, 2)
-
-
-class TestSearchModuleExtraCoverage(unittest.TestCase):
-    def test_list_ids_applies_base_offset(self):
-        from fdd.utils.search import list_ids
-
-        hits = list_ids(
-            lines=["**ID**: `fdd-test-actor-user`"],
-            base_offset=5,
-            pattern=None,
-            regex=False,
-            all_ids=True,
-        )
-        self.assertEqual(hits[0]["line"], 6)
-
-    def test_scan_ids_handles_regex_with_escaped_backslashes(self):
-        from fdd.utils.search import scan_ids
-
-        with TemporaryDirectory() as tmpdir:
-            root = Path(tmpdir)
-            (root / "a.md").write_text("`fdd-test-actor-123`\n", encoding="utf-8")
-            hits = scan_ids(
-                root=root,
-                pattern="fdd-test-actor-\\\\d+",
-                regex=True,
-                kind="all",
-                include=["*.md"],
-                exclude=None,
-                max_bytes=1_000_000,
-                all_ids=False,
-            )
-            self.assertEqual(len(hits), 1)
-            self.assertEqual(hits[0]["id"], "fdd-test-actor-123")
-
-    def test_where_used_excludes_definition_line(self):
-        from fdd.utils.search import where_used
-
-        with TemporaryDirectory() as tmpdir:
-            root = Path(tmpdir)
-            (root / "architecture").mkdir()
-            (root / "architecture" / "DESIGN.md").write_text(
-                "## B. Requirements\n\n- **ID**: `fdd-test-req-login`\n",
-                encoding="utf-8",
-            )
-            (root / "src").mkdir()
-            (root / "src" / "x.py").write_text(
-                "# @fdd-req:fdd-test-req-login:ph-1\n",
-                encoding="utf-8",
-            )
-
-            base, phase, inst, hits = where_used(
-                root=root,
-                raw_id="fdd-test-req-login",
-                include=["**/*.md", "**/*.py"],
-                exclude=None,
-                max_bytes=1_000_000,
-            )
-            self.assertEqual(base, "fdd-test-req-login")
-            self.assertIsNone(phase)
-            self.assertIsNone(inst)
-            self.assertEqual(len(hits), 1)
-            self.assertTrue(str(hits[0]["path"]).endswith("src/x.py"))
-
-    def test_search_lines_regex_branch(self):
-        from fdd.utils.search import search_lines
-
-        hits = search_lines(lines=["foo1", "bar"], query=r"foo\d+", regex=True)
-        self.assertEqual(len(hits), 1)
-
 
 class TestCliCommandCoverage(unittest.TestCase):
+    def test_self_check_project_root_not_found(self):
+        with TemporaryDirectory() as td:
+            with patch.object(fdd_cli, "find_project_root", return_value=None):
+                buf = io.StringIO()
+                with contextlib.redirect_stdout(buf):
+                    code = fdd_cli._cmd_self_check(["--root", td])
+        self.assertEqual(code, 1)
+
+    def test_self_check_adapter_dir_not_found(self):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            (root / ".git").mkdir()
+            with patch.object(fdd_cli, "find_project_root", return_value=root):
+                with patch.object(fdd_cli, "find_adapter_directory", return_value=None):
+                    buf = io.StringIO()
+                    with contextlib.redirect_stdout(buf):
+                        code = fdd_cli._cmd_self_check(["--root", td])
+        self.assertEqual(code, 1)
+
+    def test_self_check_registry_templates_invalid(self):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            (root / ".git").mkdir()
+            adapter = root / ".adapter"
+            adapter.mkdir()
+            with patch.object(fdd_cli, "find_project_root", return_value=root):
+                with patch.object(fdd_cli, "find_adapter_directory", return_value=adapter):
+                    with patch.object(fdd_cli, "load_artifacts_registry", return_value=({"version": "1.0"}, None)):
+                        buf = io.StringIO()
+                        with contextlib.redirect_stdout(buf):
+                            code = fdd_cli._cmd_self_check(["--root", td])
+        self.assertEqual(code, 1)
+
+    def test_self_check_missing_example_paths_fails_with_2(self):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            (root / ".git").mkdir()
+            adapter = root / ".adapter"
+            adapter.mkdir()
+            tmpl = root / "templates"
+            tmpl.mkdir()
+            (tmpl / "PRD.template.md").write_text(
+                """---\n"""
+                "fdd-template:\n  version:\n    major: 1\n    minor: 0\n  kind: PRD\n  unknown_sections: warn\n  order: strict\n  heading_levels: strict\n"
+                "---\n\n# PRD\n\n## A. Vision\n<!-- fdd:section id=\"A\" required=\"true\" match_heading=\"^A\\.\" -->\n",
+                encoding="utf-8",
+            )
+            registry = {
+                "version": "1.0",
+                "templates": {
+                    "PRD": [
+                        {
+                            "id": "x",
+                            "template_path": "templates/PRD.template.md",
+                            "example_path": "examples/requirements/prd/valid.md",
+                            "validation_level": "STRICT",
+                        }
+                    ]
+                },
+            }
+            with patch.object(fdd_cli, "find_project_root", return_value=root):
+                with patch.object(fdd_cli, "find_adapter_directory", return_value=adapter):
+                    with patch.object(fdd_cli, "load_artifacts_registry", return_value=(registry, None)):
+                        buf = io.StringIO()
+                        with contextlib.redirect_stdout(buf):
+                            code = fdd_cli._cmd_self_check(["--root", td])
+        self.assertEqual(code, 2)
+
+    def test_init_yes_dry_run(self):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                rc = fdd_cli.main(["init", "--project-root", str(root), "--yes", "--dry-run"])
+        self.assertEqual(rc, 0)
+
+    def test_agent_workflows_unknown_agent_config_incomplete(self):
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            (root / ".git").mkdir()
+            (root / "workflows").mkdir()
+            (root / "workflows" / "fdd.md").write_text("# /fdd\n", encoding="utf-8")
+            with patch.object(fdd_cli, "find_project_root", return_value=root):
+                buf = io.StringIO()
+                with contextlib.redirect_stdout(buf):
+                    code = fdd_cli._cmd_agent_workflows(["--agent", "my-ide", "--root", td, "--dry-run"])
+        self.assertEqual(code, 2)
+
     def test_main_missing_subcommand_returns_error(self):
         rc = fdd_cli.main([])
         self.assertEqual(rc, 1)
 
     def test_main_unknown_command_returns_error(self):
-        rc = fdd_cli.main(["does-not-exist"]) 
+        rc = fdd_cli.main(["does-not-exist"])
         self.assertEqual(rc, 1)
-
-    def test_list_ids_under_heading_not_found_returns_1(self):
-        with TemporaryDirectory() as tmpdir:
-            p = Path(tmpdir) / "doc.md"
-            p.write_text("# Title\n\nText `fdd-demo-actor-user`\n", encoding="utf-8")
-            rc = fdd_cli.main(["list-ids", "--artifact", str(p), "--under-heading", "Missing"])
-            self.assertEqual(rc, 1)
-
-    def test_read_section_feature_id_wrong_kind_returns_1(self):
-        with TemporaryDirectory() as tmpdir:
-            p = Path(tmpdir) / "DESIGN.md"
-            p.write_text("# Design\n", encoding="utf-8")
-            buf = io.StringIO()
-            with contextlib.redirect_stdout(buf):
-                rc = fdd_cli.main(["read-section", "--artifact", str(p), "--feature-id", "fdd-demo-feature-x"])
-            self.assertEqual(rc, 1)
-            self.assertIn("\"status\": \"ERROR\"", buf.getvalue())
-
-    def test_read_section_section_not_found_returns_1(self):
-        with TemporaryDirectory() as tmpdir:
-            p = Path(tmpdir) / "PRD.md"
-            p.write_text("# PRD\n", encoding="utf-8")
-            rc = fdd_cli.main(["read-section", "--artifact", str(p), "--section", "Z"])
-            self.assertEqual(rc, 1)
-
-    def test_where_defined_not_found_returns_1(self):
-        with TemporaryDirectory() as tmpdir:
-            root = Path(tmpdir)
-            (root / "README.md").write_text("hello\n", encoding="utf-8")
-            rc = fdd_cli.main(["where-defined", "--id", "fdd-demo-req-missing", "--root", str(root)])
-            self.assertEqual(rc, 1)
 
     def test_agent_workflows_deletes_stale_proxy_pointing_to_missing_workflow(self):
         with TemporaryDirectory() as tmpdir:

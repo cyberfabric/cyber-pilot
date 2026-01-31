@@ -13,9 +13,11 @@ These workflows are **IDE and agent-agnostic** - they describe the FDD methodolo
 
 ## Workflow Categories
 
-**Status**: ✅ All 21 workflows complete
+**Status**: ✅ 15 workflows
 
 **Quick Start**: See `AGENTS.md` for workflow selection decision tree and common sequences
+
+**Entrypoint**: `fdd.md` - Enable FDD mode (`/fdd`)
 
 ### Phase 0: Adapter Setup
 
@@ -45,7 +47,12 @@ These workflows are **IDE and agent-agnostic** - they describe the FDD methodolo
 
 ### Phase 3: Feature Implementation
 
+**code.md** - Implement feature code
 **code-validate.md** - Validate feature code implementation
+
+### Rules Management
+
+**rules.md** - Navigate to rule generation/validation workflows
 
 ---
 

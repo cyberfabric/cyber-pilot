@@ -1,10 +1,12 @@
 # @fdd-algo:fdd-fdd-feature-init-structure-change-infrastructure:ph-1
-.PHONY: test test-verbose test-quick test-coverage validate validate-examples validate-feature validate-code validate-code-feature install install-pipx clean help check-pytest check-pytest-cov check-pipx
+.PHONY: test test-verbose test-quick test-coverage validate validate-examples validate-feature validate-code validate-code-feature vulture vulture-ci install install-pipx clean help check-pytest check-pytest-cov check-pipx check-vulture
 
 PYTHON ?= python3
 PIPX ?= pipx
 PYTEST_PIPX ?= $(PIPX) run --spec pytest pytest
 PYTEST_PIPX_COV ?= $(PIPX) run --spec pytest-cov pytest
+VULTURE_PIPX ?= $(PIPX) run --spec vulture vulture
+VULTURE_MIN_CONF ?= 0
 
 # Default target
 help:
@@ -20,6 +22,8 @@ help:
 	@echo "  make validate-feature FEATURE=name - Validate specific feature"
 	@echo "  make validate-code                 - Validate codebase traceability (entire project)"
 	@echo "  make validate-code-feature FEATURE=name - Validate code traceability for specific feature"
+	@echo "  make vulture                       - Scan python code for dead code (report only, does not fail)"
+	@echo "  make vulture-ci                    - Scan python code for dead code (fails if findings)"
 	@echo "  make install                       - Install Python dependencies"
 	@echo "  make clean                         - Remove Python cache files"
 	@echo "  make help                          - Show this help message"
@@ -59,6 +63,18 @@ check-pytest-cov: check-pytest
 		exit 1; \
 	}
 
+check-vulture: check-pipx
+	@$(VULTURE_PIPX) --version >/dev/null 2>&1 || { \
+		echo ""; \
+		echo "ERROR: vulture is not runnable via pipx"; \
+		echo ""; \
+		echo "Install it with:"; \
+		echo "  pipx install vulture"; \
+		echo "or just run: make vulture (pipx run will download it)"; \
+		echo ""; \
+		exit 1; \
+	}
+
 test: check-pytest
 	@echo "Running FDD tests with pipx..."
 	$(PYTEST_PIPX) tests/ -v --tb=short
@@ -74,7 +90,6 @@ test-quick: check-pytest
 	$(PYTEST_PIPX) tests/ -v -m "not slow"
 
 # Run tests with coverage
-
 test-coverage: check-pytest-cov
 	@echo "Running tests with coverage..."
 	$(PYTEST_PIPX_COV) tests/ \
@@ -88,6 +103,15 @@ test-coverage: check-pytest-cov
 	@echo "Coverage report generated:"
 	@echo "  HTML: htmlcov/index.html"
 	@echo "  Open with: open htmlcov/index.html"
+
+vulture: check-vulture
+	@echo "Running vulture dead-code scan (excluding tests by scanning only skills/fdd/scripts/fdd)..."
+	@echo "Tip: raise/lower VULTURE_MIN_CONF to reduce false positives (current: $(VULTURE_MIN_CONF))."
+	@$(VULTURE_PIPX) skills/fdd/scripts/fdd --min-confidence $(VULTURE_MIN_CONF) || true
+
+vulture-ci: check-vulture
+	@echo "Running vulture dead-code scan (CI mode, fails if findings)..."
+	$(VULTURE_PIPX) skills/fdd/scripts/fdd --min-confidence $(VULTURE_MIN_CONF)
 
 validate-examples: check-pytest
 	@echo "Validating requirements examples..."

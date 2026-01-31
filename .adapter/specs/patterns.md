@@ -17,7 +17,7 @@
 **Level 1: Core AGENTS.md**
 - Location: `FDD/AGENTS.md`
 - Purpose: Universal FDD methodology
-- Scope: Applies to all projects
+- Scope: Applies only when FDD is enabled (opt-in)
 
 **Level 2: Adapter AGENTS.md**
 - Location: `{adapter-directory}/AGENTS.md` (e.g., `.adapter/AGENTS.md`)
@@ -86,13 +86,13 @@ ALWAYS open and follow `specs/conventions.md` WHEN executing workflows: adapter-
 
 ---
 
-ALWAYS open and follow `../requirements/workflow-execution.md` WHEN executing this workflow
+ALWAYS open and follow `../requirements/execution-protocol.md` WHEN executing this workflow
 
 ## Purpose
 {What this workflow does}
 
 ## Requirements
-**ALWAYS open and follow**: `../requirements/{artifact}-structure.md`
+**ALWAYS open and follow**: `../requirements/{artifact}-content.md`
 
 ## Prerequisites
 - [ ] Prerequisite 1

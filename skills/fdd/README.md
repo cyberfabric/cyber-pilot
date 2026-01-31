@@ -6,17 +6,16 @@ Unified FDD tool for artifact validation, search, and traceability.
 
 ✅ **FULLY COMPLETE**: `fdd.py` (4082 lines) with ALL functionality
 ✅ **Validation**: Full artifact validation with code traceability
-✅ **Search**: ALL commands implemented (list-sections, list-ids, list-items, read-section, get-item, find-id, search)
+✅ **Search**: ALL commands implemented (list-ids, list-items, read-section, get-item, find-id, search)
 ✅ **Traceability**: ALL commands implemented (scan-ids, where-defined, where-used)
 ✅ **Testing**: 82/82 tests passing (100% coverage)
 ✅ **Production Ready**: Tested on real project (hyperspot/modules/analytics)
 
 ## What's Complete
 
-1. **✅ Unified command interface** - Single `fdd.py` (4082 lines) with all subcommands:
+1. **✅ Unified command interface** - Single `fdd.py` with all subcommands:
    - `validate` - Full artifact validation with code traceability
-   - `list-sections` - List all headings/sections
-   - `list-ids` - Extract FDD/ADR IDs with filtering
+   - `list-ids` - Extract FDD IDs with filtering (supports scanning all FDD artifacts)
    - `list-items` - Structured extraction (actors, capabilities, requirements, flows, etc.)
    - `find-id` - Locate ID and return surrounding block
    - `search` - Text search with regex support

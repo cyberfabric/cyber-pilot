@@ -3,27 +3,27 @@ fdd: true
 type: requirement
 name: Common Requirements
 version: 1.0
-purpose: Define common requirements shared across FDD structure requirements
+purpose: Define common requirements shared across FDD requirements
 ---
 
-# Common Requirements Structure Requirements
+# Common Requirements
 
 ## Prerequisite Checklist
 
 - [ ] Agent has identified which artifact type is being validated
-- [ ] Agent understands that these are SHARED requirements across all structure files
+- [ ] Agent understands that these are shared requirements across multiple requirements files
 
 ---
 
 ## Overview
 
-This file defines requirements that are shared across multiple `*-structure.md` requirements files.
+This file defines requirements that are shared across multiple FDD requirements files.
 
-**Goal**: Avoid duplication across structure requirements.
+**Goal**: Avoid duplication across requirements.
 
 **Applies to**:
 - Artifact docs:
-  - FDD artifacts registered in `{adapter-dir}/artifacts.json` (default locations include: `architecture/PRD.md`, `architecture/DESIGN.md`, `architecture/ADR/`, `architecture/features/FEATURES.md`, `architecture/features/feature-{slug}/DESIGN.md`)
+  - FDD artifacts registered in `{adapter-dir}/artifacts.json`
 - Adapter spec docs:
   - `{adapter-directory}/specs/*.md`
 
@@ -32,7 +32,7 @@ This file defines requirements that are shared across multiple `*-structure.md` 
 
 ---
 
-## Structure
+## Shared Content and Quality Requirements
 
 ### Links (Artifacts)
 
@@ -106,16 +106,6 @@ This file defines requirements that are shared across multiple `*-structure.md` 
 - Leave artifact docs empty
 - Leave artifact docs placeholder-only
 
-### Size Limits (Artifacts)
-
-**MUST**:
-- Follow size limits defined by the applicable `*-structure.md` requirements file
-
-**MUST** define size limits in a consistent format in the corresponding structure requirements:
-- `**Size limits**:` section
-- `- Recommended: ...`
-- `- Hard limit: ...`
-
 ### ID Conventions (FDD IDs)
 
 **Applies to**: Any FDD-scoped ID that starts with `fdd-` in artifact docs and adapter spec docs.
@@ -129,74 +119,13 @@ This file defines requirements that are shared across multiple `*-structure.md` 
 - Use non-kebab-case variants for `fdd-...` IDs
 - Use unwrapped (non-backticked) `fdd-...` IDs when written as ID values
 
-### ID Placement (Artifacts)
-
-**Applies to**: Any artifact doc section where a heading is followed by an `**ID**:` line.
-
-**MUST**:
-- Insert exactly one blank line between the heading and the `**ID**:` line
-- Use `**ID**: \`fdd-...\`` format
-
-**MUST NOT**:
-- Place the `**ID**:` line immediately after the heading (no blank line)
-
-### ID Payload Blocks (Artifacts)
-
-**Applies to**: Any artifact doc line that defines an FDD ID using `**ID**: \`fdd-...\``.
-
-**MUST**:
-- Include a deterministic payload block delimited by `<!-- fdd-id-content -->` immediately after the `**ID**:` line (allowing optional blank lines)
-- Close the payload block with a matching `<!-- fdd-id-content -->` line
-- Keep the payload block content inside the delimiters (payload MAY be empty)
-  - Ensure the payload block contains all content of the enclosing element
-    - Enclosing element content MUST be computed as all lines after the element heading until the next heading of the same level or higher
-    - Enclosing element content MAY contain multiple `**ID**:` blocks; each `**ID**:` starts a new element
-    - For each element: no non-empty lines are allowed outside the payload block until the next `**ID**:` line or the enclosing element boundary
-
-**MUST NOT**:
-- Place any content for an `**ID**:` outside the payload block
-- Use unmatched payload delimiters
-
-### Section Heading Format (Artifacts)
-
-**Applies to**: Artifact docs that use lettered top-level sections (A, B, C, ...).
-
-**MUST**:
-- Use `## {LETTER}. {Title}` for top-level sections (e.g., `## A. Vision`)
-
-**MUST NOT**:
-- Use the `## Section {LETTER}: {Title}` format (e.g., `## Section A: Vision`)
-
-### Validation Scoring (Structure Requirements)
-
-**Applies to**: Any `*-structure.md` file that defines a scoring system for validating an artifact.
-
-**MUST**:
-- Use a 100-point scoring scale when scoring is used
-- Declare pass threshold in `/100` terms (e.g., `≥90/100`)
-
-### Validation Report Format (Structure Validators)
+### Validation Report Format (Validators)
 
 **Applies to**: Any workflow validator output that reports validation results for artifacts.
 
 **MUST**:
 - Include an `Issues` section listing missing/invalid items
 - Include a `Recommendations` section describing what to fix
-
-**MUST** include these fields when they are part of the validation model:
-- `Score: X/100`
-- `Completeness: X%`
-
-### Section Ordering (Structure Requirements)
-
-**Applies to**: Any `*-structure.md` file that defines an ordered set of top-level sections (e.g., A/B/C, 1/2/3).
-
-**MUST**:
-- Define the required top-level section order as a single ordered sequence (e.g., `A → B → C`)
-- Explicitly state which sections are optional (if any) and where they are allowed to appear in the sequence
-
-**MUST NOT**:
-- Allow ambiguous ordering rules
 
 ---
 
@@ -259,11 +188,6 @@ This file defines requirements that are shared across multiple `*-structure.md` 
 - [ ] No artifact doc is empty
 - [ ] No artifact doc is placeholder-only
 
-### Size Limits (Artifacts)
-
-**Check**:
-- [ ] Artifact docs do not exceed their hard size limits as defined by their structure requirements
-
 ### ID Conventions (FDD IDs)
 
 **Check**:
@@ -274,35 +198,6 @@ This file defines requirements that are shared across multiple `*-structure.md` 
 
 **Check**:
 - [ ] All `**ID**:` lines appear after exactly one blank line following their headings
-
-### ID Payload Blocks (Artifacts)
-
-**Check**:
-- [ ] For every FDD ID definition line ``**ID**: `fdd-...` ``, the next non-empty line is exactly the literal HTML comment line `<!-- fdd-id-content -->` (without surrounding backticks)
-- [ ] The payload block is closed by a matching literal HTML comment line `<!-- fdd-id-content -->` (without surrounding backticks) before the next element boundary (next heading of same-or-higher level, or next `**ID**:` line)
-- [ ] No non-empty lines exist outside the payload block between the `**ID**:` line and the end of the element (except an optional Markdown horizontal rule line `---` after the payload close)
-
-### Section Heading Format (Artifacts)
-
-**Check**:
-- [ ] No occurrences of `## Section {LETTER}:` in artifact docs
-
-### Validation Scoring (Structure Requirements)
-
-**Check**:
-- [ ] If scoring is used, it uses a 100-point scale and defines a pass threshold in `/100` terms
-
-### Validation Report Format (Structure Validators)
-
-**Check**:
-- [ ] Validator reports include Issues and Recommendations
-- [ ] If scoring is used, reports include `Score: X/100`
-- [ ] If completeness is used, reports include `Completeness: X%`
-
-### Section Ordering (Structure Requirements)
-
-**Check**:
-- [ ] If a structure file defines an ordered section sequence, it declares a strict order and defines optional sections and allowed positions
 
 ---
 
@@ -317,7 +212,7 @@ See [api.json](../../../docs/api/api.json)
 
 **Invalid**:
 ```markdown
-See `@/architecture/PRD.md`
+See `@/some/path/to/PRD.md`
 See `@ADR/`
 ```
 
@@ -329,7 +224,7 @@ See `@ADR/`
 - [ ] No IDE-specific link notations used
 - [ ] No placeholder content remains
 - [ ] All FDD IDs are kebab-case and backticked
-- [ ] ID payload blocks properly delimited
+
 
 ---
 

@@ -16,7 +16,9 @@ from fdd.utils.files import (
     cfg_get_str,
     detect_requirements,
     fdd_root_from_project_config,
+    iter_registry_entries,
     load_adapter_config,
+    load_artifacts_registry,
     load_project_config,
 )
 
@@ -190,19 +192,23 @@ class TestDetectRequirements(unittest.TestCase):
     def test_detect_requirements_known_artifacts(self):
         kind, rp = detect_requirements(Path("/tmp/architecture/PRD.md"))
         self.assertEqual(kind, "prd")
-        self.assertTrue(str(rp).endswith("requirements/prd-structure.md"))
+        self.assertTrue(str(rp).endswith("requirements/prd-content.md"))
 
         kind, rp = detect_requirements(Path("/tmp/architecture/ADR"))
         self.assertEqual(kind, "adr")
+        self.assertTrue(str(rp).endswith("requirements/adr-content.md"))
 
         kind, rp = detect_requirements(Path("/tmp/architecture/FEATURES.md"))
         self.assertEqual(kind, "features-manifest")
+        self.assertTrue(str(rp).endswith("requirements/features-manifest-content.md"))
 
         kind, rp = detect_requirements(Path("/tmp/architecture/DESIGN.md"))
         self.assertEqual(kind, "overall-design")
+        self.assertTrue(str(rp).endswith("requirements/overall-design-content.md"))
 
         kind, rp = detect_requirements(Path("/tmp/architecture/features/feature-x/DESIGN.md"))
         self.assertEqual(kind, "feature-design")
+        self.assertTrue(str(rp).endswith("requirements/feature-design-content.md"))
 
     def test_detect_requirements_unsupported_raises(self):
         with self.assertRaises(ValueError):
@@ -343,6 +349,129 @@ class TestLoadAdapterConfig(unittest.TestCase):
             
             self.assertIsNotNone(result)
             self.assertEqual(result.resolve(), adapter_dir.resolve())
+
+
+class TestIterRegistryEntries(unittest.TestCase):
+    def test_iter_registry_entries_with_artifacts_list(self):
+        registry = {"artifacts": [{"path": "a.md"}, {"path": "b.md"}]}
+        result = iter_registry_entries(registry)
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0]["path"], "a.md")
+
+    def test_iter_registry_entries_missing_artifacts_returns_empty(self):
+        registry = {"systems": []}
+        result = iter_registry_entries(registry)
+        self.assertEqual(result, [])
+
+    def test_iter_registry_entries_artifacts_not_list_returns_empty(self):
+        registry = {"artifacts": "not-a-list"}
+        result = iter_registry_entries(registry)
+        self.assertEqual(result, [])
+
+    def test_iter_registry_entries_skips_non_dict_items(self):
+        registry = {"artifacts": [{"path": "a.md"}, "invalid", 123, {"path": "b.md"}]}
+        result = iter_registry_entries(registry)
+        self.assertEqual(len(result), 2)
+
+
+class TestLoadArtifactsRegistryEdgeCases(unittest.TestCase):
+    def test_load_artifacts_registry_missing_systems_and_artifacts(self):
+        with TemporaryDirectory() as tmpdir:
+            ad = Path(tmpdir)
+            (ad / "artifacts.json").write_text('{"version": "1.0"}', encoding="utf-8")
+            reg, err = load_artifacts_registry(ad)
+            self.assertIsNone(reg)
+            self.assertIn("missing 'systems' or 'artifacts'", err)
+
+
+class TestLoadAdapterConfigExceptionHandling(unittest.TestCase):
+    def test_load_adapter_config_agents_md_read_error(self):
+        """Cover exception handling when reading AGENTS.md fails."""
+        with TemporaryDirectory() as tmpdir:
+            ad = Path(tmpdir) / "adapter"
+            ad.mkdir()
+            agents = ad / "AGENTS.md"
+            agents.write_text("# FDD Adapter: Test\n", encoding="utf-8")
+
+            orig = Path.read_text
+
+            def boom(self, *args, **kwargs):
+                if "AGENTS" in str(self):
+                    raise RuntimeError("boom")
+                return orig(self, *args, **kwargs)
+
+            try:
+                Path.read_text = boom  # type: ignore
+                cfg = load_adapter_config(ad)
+                # Should still return config without project_name
+                self.assertIsInstance(cfg, dict)
+                self.assertNotIn("project_name", cfg)
+            finally:
+                Path.read_text = orig  # type: ignore
+
+
+class TestIsAdapterDirectoryContentBased(unittest.TestCase):
+    def test_adapter_with_spec_in_agents_content(self):
+        """Cover content-based detection (spec keyword in AGENTS.md)."""
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / ".git").mkdir()
+
+            adapter_dir = root / "my-adapter"
+            adapter_dir.mkdir()
+            # AGENTS.md mentions "spec" but no specs/ directory
+            (adapter_dir / "AGENTS.md").write_text(
+                "# FDD Adapter: Test\n\nSee our spec documents.\n",
+                encoding="utf-8",
+            )
+
+            result = find_adapter_directory(root)
+            self.assertIsNotNone(result)
+            self.assertEqual(result.resolve(), adapter_dir.resolve())
+
+    def test_adapter_max_depth_exceeded_returns_none(self):
+        """Cover max_depth limit in recursive search."""
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / ".git").mkdir()
+
+            # Create deeply nested adapter (beyond default max_depth of 5)
+            deep = root / "a" / "b" / "c" / "d" / "e" / "f" / "g" / "adapter"
+            deep.mkdir(parents=True)
+            (deep / "AGENTS.md").write_text("# FDD Adapter: Deep\n", encoding="utf-8")
+            (deep / "specs").mkdir()
+
+            result = find_adapter_directory(root)
+            self.assertIsNone(result)
+
+
+class TestFddRootFromProjectConfigEdgeCases(unittest.TestCase):
+    def test_fdd_root_no_project_root_returns_none(self):
+        """Cover fdd_root_from_project_config returning None when no project root."""
+        with TemporaryDirectory() as tmpdir:
+            # No .git or .fdd-config.json - no project root
+            cwd = Path.cwd()
+            try:
+                import os
+                os.chdir(tmpdir)
+                result = fdd_root_from_project_config()
+                self.assertIsNone(result)
+            finally:
+                os.chdir(str(cwd))
+
+    def test_fdd_root_no_config_returns_none(self):
+        """Cover fdd_root_from_project_config returning None when config missing."""
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / ".git").mkdir()  # Project root exists but no config
+            cwd = Path.cwd()
+            try:
+                import os
+                os.chdir(str(root))
+                result = fdd_root_from_project_config()
+                self.assertIsNone(result)
+            finally:
+                os.chdir(str(cwd))
 
 
 if __name__ == "__main__":

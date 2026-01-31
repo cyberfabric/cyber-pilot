@@ -245,8 +245,9 @@ def load_artifacts_registry(adapter_dir: Path) -> Tuple[Optional[dict], Optional
         return None, f"Failed to read artifacts registry {path}: {e}"
     if not isinstance(cfg, dict):
         return None, f"Invalid artifacts registry (expected JSON object): {path}"
-    if not isinstance(cfg.get("artifacts"), list):
-        return None, f"Invalid artifacts registry (missing 'artifacts' list): {path}"
+    # Support both old format (artifacts list) and new format (systems list)
+    if not isinstance(cfg.get("systems"), list) and not isinstance(cfg.get("artifacts"), list):
+        return None, f"Invalid artifacts registry (missing 'systems' or 'artifacts' list): {path}"
     return cfg, None
 
 
@@ -304,20 +305,20 @@ def detect_requirements(artifact_path: Path) -> Tuple[str, Path]:
         return (fdd_root / rel).resolve()
 
     if name == "PRD.md":
-        return "prd", req("requirements/prd-structure.md")
+        return "prd", req("requirements/prd-content.md")
 
     if name == "ADR":
-        return "adr", req("requirements/adr-structure.md")
+        return "adr", req("requirements/adr-content.md")
 
     if name == "FEATURES.md":
-        return "features-manifest", req("requirements/features-manifest-structure.md")
+        return "features-manifest", req("requirements/features-manifest-content.md")
 
     if name == "DESIGN.md":
         parts = list(artifact_path.parts)
         is_feature_scope = any(p.startswith("feature-") for p in parts) and "features" in parts
         if is_feature_scope:
-            return "feature-design", req("requirements/feature-design-structure.md")
-        return "overall-design", req("requirements/overall-design-structure.md")
+            return "feature-design", req("requirements/feature-design-content.md")
+        return "overall-design", req("requirements/overall-design-content.md")
 
     raise ValueError(f"Unsupported artifact name: {name}")
 

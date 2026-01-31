@@ -4,158 +4,41 @@
   "title": "FDD Artifact Registry (artifacts.json)",
   "type": "object",
   "additionalProperties": false,
-  "required": ["version", "artifacts"],
+  "required": ["version", "systems", "rules"],
   "examples": [
     {
       "version": "1.0",
-      "artifacts": [
-        {
-          "kind": "PRD",
-          "system": "PlatformX",
-          "path": "architecture/PRD.md",
+      "project_root": "..",
+      "rules": {
+        "fdd-sdlc": {
           "format": "FDD",
-          "traceability_enabled": false
-        },
+          "path": "rules/sdlc"
+        }
+      },
+      "systems": [
         {
-          "kind": "DESIGN",
-          "system": "PlatformX",
-          "path": "architecture/DESIGN.md",
-          "format": "FDD",
-          "traceability_enabled": false
-        },
-        {
-          "kind": "ADR",
-          "system": "PlatformX",
-          "path": "architecture/ADR/general/0001-platformx-adr-initial-architecture.md",
-          "format": "FDD",
-          "traceability_enabled": false
-        },
-        {
-          "kind": "FEATURES",
-          "system": "PlatformX",
-          "path": "architecture/features/FEATURES.md",
-          "format": "FDD",
-          "traceability_enabled": false
-        },
-        {
-          "kind": "FEATURE",
-          "system": "Accounts",
-          "parent": "PlatformX",
-          "path": "modules/accounts/architecture/DESIGN.md",
-          "format": "FDD",
-          "traceability_enabled": true
-        },
-        {
-          "kind": "SRC",
-          "system": "PlatformX",
-          "path": "src",
-          "format": "CONTEXT",
-          "traceability_enabled": false,
-          "extensions": [".rs", ".ts"]
-        },
-        {
-          "kind": "CUSTOM",
-          "system": "PlatformX",
-          "path": "docs/CONTRIBUTING.md",
-          "format": "CONTEXT",
-          "traceability_enabled": false
-        },
-        {
-          "kind": "PRD",
-          "system": "Accounts",
-          "parent": "PlatformX",
-          "path": "modules/accounts/architecture/PRD.md",
-          "format": "FDD",
-          "traceability_enabled": false
-        },
-        {
-          "kind": "DESIGN",
-          "system": "Accounts",
-          "parent": "PlatformX",
-          "path": "modules/accounts/architecture/DESIGN.md",
-          "format": "FDD",
-          "traceability_enabled": false
-        },
-        {
-          "kind": "FEATURES",
-          "system": "Accounts",
-          "parent": "PlatformX",
-          "path": "modules/accounts/architecture/features/FEATURES.md",
-          "format": "FDD",
-          "traceability_enabled": false
-        },
-        {
-          "kind": "FEATURE",
-          "system": "Accounts",
-          "parent": "PlatformX",
-          "path": "modules/accounts/architecture/features/feature-auth/DESIGN.md",
-          "format": "FDD",
-          "traceability_enabled": true
-        },
-        {
-          "kind": "CUSTOM",
-          "system": "Accounts",
-          "parent": "PlatformX",
-          "path": "modules/accounts/README.md",
-          "format": "CONTEXT",
-          "traceability_enabled": false
-        },
-        {
-          "kind": "PRD",
-          "system": "IDP",
-          "parent": "PlatformX",
-          "path": "modules/idp/architecture/PRD.md",
-          "format": "FDD",
-          "traceability_enabled": false
-        },
-        {
-          "kind": "DESIGN",
-          "system": "IDP",
-          "parent": "PlatformX",
-          "path": "modules/idp/architecture/DESIGN.md",
-          "format": "FDD",
-          "traceability_enabled": false
-        },
-        {
-          "kind": "FEATURE",
-          "system": "IDP",
-          "parent": "PlatformX",
-          "path": "modules/idp/architecture/features/feature-sso/DESIGN.md",
-          "format": "FDD",
-          "traceability_enabled": true
-        },
-        {
-          "kind": "SRC",
-          "system": "IDP",
-          "parent": "PlatformX",
-          "path": "modules/idp/src",
-          "format": "CONTEXT",
-          "traceability_enabled": false,
-          "extensions": [".rs"]
-        },
-        {
-          "kind": "PRD",
-          "system": "Events",
-          "parent": "PlatformX",
-          "path": "modules/events/architecture/PRD.md",
-          "format": "FDD",
-          "traceability_enabled": false
-        },
-        {
-          "kind": "FEATURES",
-          "system": "Events",
-          "parent": "PlatformX",
-          "path": "modules/events/architecture/features/FEATURES.md",
-          "format": "FDD",
-          "traceability_enabled": false
-        },
-        {
-          "kind": "CUSTOM",
-          "system": "Events",
-          "parent": "PlatformX",
-          "path": "modules/events/docs/OPERATIONS.md",
-          "format": "CONTEXT",
-          "traceability_enabled": false
+          "name": "MyApp",
+          "rules": "fdd-sdlc",
+          "artifacts": [
+            { "name": "Product Requirements", "path": "architecture/PRD.md", "kind": "PRD", "traceability": "DOCS-ONLY" },
+            { "name": "Overall Design", "path": "architecture/DESIGN.md", "kind": "DESIGN", "traceability": "FULL" },
+            { "name": "Initial Architecture", "path": "architecture/ADR/0001-initial-architecture.md", "kind": "ADR", "traceability": "DOCS-ONLY" },
+            { "name": "Features Manifest", "path": "architecture/features/FEATURES.md", "kind": "FEATURES", "traceability": "DOCS-ONLY" }
+          ],
+          "codebase": [
+            { "name": "Source Code", "path": "src", "extensions": [".ts", ".tsx"] }
+          ],
+          "children": [
+            {
+              "name": "Auth",
+              "rules": "fdd-sdlc",
+              "artifacts": [
+                { "path": "modules/auth/architecture/PRD.md", "kind": "PRD", "traceability": "DOCS-ONLY" },
+                { "path": "modules/auth/architecture/features/feature-sso/DESIGN.md", "kind": "FEATURE", "traceability": "FULL" }
+              ],
+              "children": []
+            }
+          ]
         }
       ]
     }
@@ -163,60 +46,131 @@
   "properties": {
     "version": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "description": "Schema version"
     },
-    "artifacts": {
+    "project_root": {
+      "type": "string",
+      "minLength": 1,
+      "default": "..",
+      "description": "Relative path from artifacts.json to the project root directory. All paths in artifacts and codebase are resolved relative to this."
+    },
+    "rules": {
+      "$ref": "#/$defs/rules"
+    },
+    "systems": {
       "type": "array",
-      "items": { "$ref": "#/definitions/artifact" }
+      "description": "Root-level systems (top of the hierarchy tree)",
+      "items": {
+        "$ref": "#/$defs/system_node"
+      }
     }
   },
-  "definitions": {
-    "artifact": {
+  "$defs": {
+    "rules": {
+      "type": "object",
+      "description": "Registry of template rules. Each rule defines a template directory and format.",
+      "additionalProperties": {
+        "$ref": "#/$defs/rule"
+      }
+    },
+    "rule": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["kind", "system", "path", "format"],
-      "examples": [
-        {
-          "kind": "PRD",
-          "system": "FDD",
-          "path": "architecture/PRD.md",
-          "format": "FDD",
-          "traceability_enabled": false
-        },
-        {
-          "kind": "SRC",
-          "system": "FDD",
-          "path": "skills/fdd",
-          "format": "CONTEXT",
-          "traceability_enabled": false,
-          "extensions": [".py", ".rs"]
-        }
-      ],
+      "required": ["format", "path"],
       "properties": {
-        "kind": {
-          "type": "string",
-          "enum": ["ADR", "DESIGN", "PRD", "FEATURE", "FEATURES", "SRC", "CUSTOM"]
-        },
-        "system": {
-          "type": "string",
-          "minLength": 1
-        },
-        "parent": {
+        "format": {
           "type": "string",
           "minLength": 1,
-          "description": "Optional parent system/subsystem name for hierarchical composition."
+          "description": "Template format identifier. Use 'FDD' for full FDD tooling support with validation. Other values are treated as custom formats with LLM-only semantic processing."
         },
         "path": {
           "type": "string",
-          "minLength": 1
-        },
-        "format": {
+          "minLength": 1,
+          "description": "Path to rules package directory (resolved relative to project root). Contains artifacts/{KIND}/ and codebase/ subdirectories."
+        }
+      }
+    },
+    "system_node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "rules"],
+      "properties": {
+        "name": {
           "type": "string",
-          "enum": ["FDD", "CONTEXT"]
+          "minLength": 1,
+          "description": "System/subsystem/component name"
         },
-        "traceability_enabled": {
-          "type": "boolean",
-          "default": false
+        "rules": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Reference to a rule ID from rules"
+        },
+        "artifacts": {
+          "type": "array",
+          "description": "Artifacts belonging to this system node",
+          "items": {
+            "$ref": "#/$defs/artifact"
+          }
+        },
+        "codebase": {
+          "type": "array",
+          "description": "Source code directories belonging to this system node",
+          "items": {
+            "$ref": "#/$defs/codebase_entry"
+          }
+        },
+        "children": {
+          "type": "array",
+          "description": "Nested child systems (subsystems, components, modules, etc.)",
+          "items": {
+            "$ref": "#/$defs/system_node"
+          }
+        }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "kind"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable name for the artifact (optional, for display purposes)"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Path to the artifact file (resolved relative to project root). Must be a file path, not a directory."
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Artifact kind (e.g., PRD, DESIGN, ADR, FEATURES, FEATURE). Template resolved at: {rules.path}/artifacts/{KIND}/template.md"
+        },
+        "traceability": {
+          "type": "string",
+          "enum": ["FULL", "DOCS-ONLY"],
+          "default": "FULL",
+          "description": "FULL = traceability to codebase (default); DOCS-ONLY = documentation-only tracing"
+        }
+      }
+    },
+    "codebase_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "extensions"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable name for the codebase entry (optional, for display purposes)"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Path to source code directory (resolved relative to project root)"
         },
         "extensions": {
           "type": "array",
@@ -224,26 +178,10 @@
           "items": {
             "type": "string",
             "pattern": "^\\.[A-Za-z0-9]+$"
-          }
-        }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": { "kind": { "const": "SRC" } },
-            "required": ["kind"]
           },
-          "then": {
-            "required": ["extensions"],
-            "properties": {
-              "format": { "const": "CONTEXT" }
-            }
-          },
-          "else": {
-            "not": { "required": ["extensions"] }
-          }
+          "description": "File extensions to include (e.g., .rs, .ts, .py)"
         }
-      ]
+      }
     }
   }
- }
+}

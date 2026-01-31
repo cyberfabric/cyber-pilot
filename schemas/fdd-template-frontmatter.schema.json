@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/fdd/fdd-template-frontmatter.schema.json",
+  "title": "FDD Template Frontmatter (Markdown)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["fdd-template"],
+  "properties": {
+    "fdd-template": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "kind"],
+      "properties": {
+        "version": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["major", "minor"],
+          "properties": {
+            "major": {"type": "integer", "minimum": 1},
+            "minor": {"type": "integer", "minimum": 0}
+          }
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "unknown_sections": {
+          "type": "string",
+          "enum": ["error", "warn", "allow"],
+          "default": "warn"
+        }
+      }
+    }
+  }
+}

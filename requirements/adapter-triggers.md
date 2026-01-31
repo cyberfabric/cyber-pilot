@@ -311,7 +311,7 @@ Execute: Monitor triggers during workflow
 
 ## Validation Criteria
 
-### Structure (25 points)
+### Structure
 
 **Check**:
 - [ ] All 6 trigger types defined
@@ -320,7 +320,7 @@ Execute: Monitor triggers during workflow
 - [ ] Integration section complete
 - [ ] Proper markdown formatting
 
-### Completeness (30 points)
+### Completeness
 
 **Check**:
 - [ ] Each trigger has: When, Check, Scan, Propose sections
@@ -329,7 +329,7 @@ Execute: Monitor triggers during workflow
 - [ ] All workflow integration points defined
 - [ ] No placeholders or TODOs
 
-### Clarity (25 points)
+### Clarity
 
 **Check**:
 - [ ] Trigger conditions unambiguous
@@ -338,18 +338,14 @@ Execute: Monitor triggers during workflow
 - [ ] MUST/MUST NOT semantics correct
 - [ ] Imperative language used
 
-### Integration (20 points)
+### Integration
 
 **Check**:
-- [ ] References workflow-execution.md correctly
+- [ ] References execution-protocol.md correctly
 - [ ] References adapter-structure.md correctly
 - [ ] Consistent with FDD principles
 - [ ] Used by/References sections complete
 - [ ] Integration examples provided
-
-**Total**: 100/100
-
-**Pass threshold**: ≥95/100
 
 ---
 
@@ -364,10 +360,10 @@ Execute: Monitor triggers during workflow
 ## References
 
 **Used by**:
-- All FDD workflows (via workflow-execution.md)
+- All FDD workflows (via execution-protocol.md)
 - AI agent execution logic
 
 **References**:
 - `adapter-structure.md` - Adapter structure
 - `adapter-new.md` - Adapter workflow modes
-- `workflow-execution.md` - Workflow execution rules
+- `execution-protocol.md` - Common execution protocol

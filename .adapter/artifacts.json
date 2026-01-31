@@ -1,65 +1,33 @@
 {
   "version": "1.0",
-  "artifacts": [
-    {
-      "kind": "PRD",
-      "system": "FDD",
-      "path": "architecture/PRD.md",
+  "project_root": "..",
+  "rules": {
+    "fdd-sdlc": {
       "format": "FDD",
-      "traceability_enabled": true 
+      "path": "rules/sdlc"
     },
-    {
-      "kind": "DESIGN",
-      "system": "FDD",
-      "path": "architecture/DESIGN.md",
+    "fdd-core": {
       "format": "FDD",
-      "traceability_enabled": true
-    },
+      "path": "rules/core"
+    }
+  },
+  "systems": [
     {
-      "kind": "ADR",
-      "system": "FDD",
-      "path": "architecture/ADR",
-      "format": "FDD",
-      "traceability_enabled": true
-    },
-    {
-      "kind": "FEATURES",
-      "system": "FDD",
-      "path": "architecture/features/FEATURES.md",
-      "format": "FDD",
-      "traceability_enabled": true
-    },
-    {
-      "kind": "SRC",
-      "system": "FDD",
-      "path": "skills/fdd",
-      "format": "CONTEXT",
-      "traceability_enabled": false,
-      "extensions": [".py"]
-    },
-    {
-      "kind": "SRC",
-      "system": "FDD",
-      "path": "tests",
-      "format": "CONTEXT",
-      "traceability_enabled": false,
-      "extensions": [".py"]
-    },
-    {
-      "kind": "SRC",
-      "system": "FDD",
-      "path": "workflows",
-      "format": "CONTEXT",
-      "traceability_enabled": false,
-      "extensions": [".md"]
-    },
-    {
-      "kind": "SRC",
-      "system": "FDD",
-      "path": "requirements",
-      "format": "CONTEXT",
-      "traceability_enabled": false,
-      "extensions": [".md"]
+      "name": "FDD",
+      "rules": "fdd-sdlc",
+      "artifacts": [
+        { "name": "Product Requirements", "path": "architecture/PRD.md", "kind": "PRD", "traceability": "FULL" },
+        { "name": "Overall Design", "path": "architecture/DESIGN.md", "kind": "DESIGN", "traceability": "FULL" },
+        { "name": "ADR-0001: Initial Architecture", "path": "architecture/ADR/general/0001-fdd-fdd-adr-initial-architecture-v1.md", "kind": "ADR", "traceability": "FULL" },
+        { "name": "ADR-0002: Adaptive FDD", "path": "architecture/ADR/general/0002-fdd-fdd-adr-adaptive-fdd-flow-driven-development-v1.md", "kind": "ADR", "traceability": "FULL" },
+        { "name": "ADR-0003: Template-Centric", "path": "architecture/ADR/general/0003-fdd-fdd-adr-template-centric-architecture-v1.md", "kind": "ADR", "traceability": "FULL" },
+        { "name": "Features Manifest", "path": "architecture/features/FEATURES.md", "kind": "FEATURES", "traceability": "FULL" }
+      ],
+      "codebase": [
+        { "name": "FDD CLI", "path": "skills/fdd/scripts/fdd", "extensions": [".py"] },
+        { "name": "Tests", "path": "tests", "extensions": [".py"] }
+      ],
+      "children": []
     }
   ]
 }

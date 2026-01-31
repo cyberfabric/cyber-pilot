@@ -3,58 +3,46 @@ fdd: true
 type: workflow
 name: Adapter
 version: 1.0
-purpose: FDD Adapter Router - Choose adapter workflow mode
+purpose: Unified FDD adapter workflow - scan, configure, validate
 ---
 
-# FDD Adapter Workflow (Router)
+# FDD Adapter Workflow
 
-**Type**: Operation  
-**Role**: Any  
-**Artifact**: `{adapter-directory}/AGENTS.md` + specs
+**Type**: Operation
+**Role**: Any
+**Artifact**: `{adapter-directory}/AGENTS.md` + `artifacts.json` + specs
 
 ---
 
 ## Prerequisite Checklist
 
 - [ ] Agent has read execution-protocol.md
-- [ ] Agent has read workflow-execution.md
 - [ ] Agent understands this workflow's purpose
 
 ---
 
 ## Overview
 
-This workflow guides the execution of the specified task.
+Unified adapter workflow that handles the complete lifecycle:
+1. **Scan** - Discover project structure, existing artifacts, tech stack
+2. **Configure** - Propose hierarchy, rules packages, traceability settings
+3. **Generate** - Create/update adapter files
+4. **Integrate** - Configure AI agent integration
+5. **Validate** - Verify adapter completeness
 
 ---
 
-
-
-ALWAYS open and follow `../requirements/workflow-execution.md` WHEN executing this workflow
-
-## Purpose
-
-**Router workflow** - Determines which adapter workflow to execute based on:
-- User intent
-- Adapter state (exists/missing)
-- Project state (greenfield/existing)
-
-**Delegates to**:
-- `adapter-bootstrap` - Minimal initialization (new projects)
-- `adapter-auto` - Automatic project scanning (existing codebases)
-- `adapter-manual` - Manual specification updates (user-initiated)
-
----
+ALWAYS open and follow `../requirements/execution-protocol.md` WHEN executing this workflow
 
 ## Requirements
 
 **ALWAYS open and follow**: `../requirements/adapter-structure.md`
 
-**ALWAYS open and follow**: `../templates/adapter-AGENTS.template.md` WHEN generating adapter AGENTS.md
+**ALWAYS open and follow**: `../schemas/artifacts.schema.json` WHEN generating artifacts.json
 
 Extract:
-- Adapter lifecycle phases
-- When to use each mode
+- Adapter structure requirements
+- artifacts.json schema
 
 ---
 
@@ -66,290 +54,543 @@ Extract:
 
 ---
 
-## Decision Flow
+## Phase 1: Project Scan
 
-### 1. Check Adapter State
+### 1.1 Detect Project Root
 
-Search for adapter:
-- `/FDD-Adapter/AGENTS.md`
-- `spec/FDD-Adapter/AGENTS.md`
-- `docs/FDD-Adapter/AGENTS.md`
-
-**Result**:
-- `ADAPTER_EXISTS = true/false`
-- `ADAPTER_DIR = path` (if exists)
-
-### 2. Determine Context
-
-**If called from workflow trigger** (adapter-triggers.md):
+Search for project root:
 ```yaml
-Context: trigger-based evolution
-Mode: EVOLUTION (handled by adapter-triggers, not this router)
-Action: Skip router, direct execution
+Markers (in priority order):
+  1. .fdd-config.json (explicit FDD project)
+  2. .git directory (git repository root)
+  3. package.json, pyproject.toml, Cargo.toml, go.mod (language markers)
 ```
 
-**If called manually by user**:
+Store as: `PROJECT_ROOT`
+
+### 1.2 Check Existing Adapter
+
+Search for existing adapter:
 ```yaml
-Context: user-initiated
-Continue to Step 3
+Check in order:
+  1. .fdd-config.json → fddAdapterPath
+  2. Common locations: FDD-Adapter/, .adapter/, spec/FDD-Adapter/, docs/FDD-Adapter/
+
+If found:
+  ADAPTER_EXISTS = true
+  ADAPTER_DIR = {path}
+  Load existing artifacts.json if present
+
+If not found:
+  ADAPTER_EXISTS = false
 ```
 
-### 3. Analyze User Intent
+### 1.3 Scan Project Structure
 
-**Check user request for keywords**:
+Run comprehensive project scan:
 
+#### Directory Structure Analysis
 ```yaml
-Keywords for BOOTSTRAP:
-  - "initialize adapter"
-  - "create adapter"
-  - "setup adapter"
-  - "bootstrap"
-  
-Keywords for AUTO:
-  - "scan project"
-  - "discover"
-  - "analyze codebase"
-  - "auto-scan"
-  - "from sources"
-  
-Keywords for MANUAL:
-  - "add {spec}"
-  - "update {spec}"
-  - "add pattern"
-  - "add snippet"
-  - "manually"
+Scan for:
+  - Source directories: src/, app/, lib/, pkg/, internal/, cmd/
+  - Test directories: tests/, test/, __tests__/, spec/
+  - Documentation: docs/, doc/, README.md, ARCHITECTURE.md
+  - Architecture: architecture/, ADR/, adr/, decisions/
+  - Config files: package.json, pyproject.toml, Cargo.toml, go.mod, pom.xml
 ```
 
-**If keywords found**:
-- Route to appropriate workflow
-- Continue to Step 5
-
-**If NO keywords** (ambiguous):
-- Continue to Step 4
-
-### 4. Interactive Mode Selection
-
-**If ADAPTER_EXISTS = false**:
-
-```
-No adapter found.
-
-Choose initialization mode:
-  1. Bootstrap - Create minimal adapter (just Extends)
-     → For greenfield projects
-     → Specs added later through design workflow
-  
-  2. Auto-scan - Scan existing project and generate specs
-     → For existing codebases
-     → Discovers tech stack, patterns, conventions
-  
-Choose: [1-2]
-```
-
-**If ADAPTER_EXISTS = true**:
-
-```
-Adapter found at: {ADAPTER_DIR}
-
-Current specs:
-  - specs/tech-stack.md
-  - specs/domain-model.md
-  - specs/api-contracts.md
-
-Choose update mode:
-  1. Auto-scan - Re-scan project for new patterns
-     → Discovers changes in codebase
-     → Proposes additions/updates
-  
-  2. Manual update - Manually add/update specifications
-     → Interactive Q&A
-     → Precise control over content
-  
-Choose: [1-2]
-```
-
-**Based on choice**:
-- Set `MODE = bootstrap | auto | manual`
-
-### 5. Route to Specific Workflow
-
-**MODE = bootstrap**:
+#### Tech Stack Detection
 ```yaml
-Execute: adapter-bootstrap.md
-Purpose: Create minimal AGENTS.md
-Result: {ADAPTER_DIR}/FDD-Adapter/AGENTS.md (with Extends only)
+Detect:
+  - Languages: .ts, .js, .py, .rs, .go, .java, .cs, .rb
+  - Frameworks: Django, FastAPI, Express, Next.js, Spring, etc.
+  - Databases: docker-compose.yml, .env, config files
+  - Infrastructure: Dockerfile, k8s/, terraform/
 ```
 
-**MODE = auto**:
+#### Existing Artifacts Detection
 ```yaml
-Execute: adapter-auto.md
-Purpose: Scan project and generate specs
-Result: AGENTS.md + specs/*.md files
+Search for FDD artifacts:
+  - PRD.md (product requirements)
+  - DESIGN.md (architecture design)
+  - FEATURES.md (features manifest)
+  - ADR/ directory (architecture decisions)
+  - features/ directory (feature designs)
+
+Search for related docs:
+  - README.md, CONTRIBUTING.md
+  - API specs: openapi.yml, swagger.json, *.proto
+  - Schemas: *.schema.json, types/, models/
 ```
 
-**MODE = manual**:
+#### Hierarchy Detection
 ```yaml
-Execute: adapter-manual.md
-Purpose: Interactive specification update
-Result: Created/updated spec files
+Identify potential hierarchy:
+  - Monolith: Single system at root
+  - Monorepo: packages/*, apps/*, services/*
+  - Microservices: Each service directory
+  - Library: lib/*, modules/*
+
+Propose level structure:
+  - system (top-level)
+  - subsystem (optional)
+  - component (optional)
+  - module (optional)
 ```
 
-### 6. Delegate Execution
+Store scan results as: `SCAN_RESULTS`
 
-**Run selected workflow**:
+---
+
+## Phase 2: Configuration Proposal
+
+### 2.1 Present Scan Summary
+
+Display discovered information:
+
 ```
-Routing to: {selected-workflow}
-Executing: {selected-workflow}.md
+═══════════════════════════════════════════════════════════════════════════════
+FDD Adapter: Project Scan Results
+═══════════════════════════════════════════════════════════════════════════════
 
-[workflow execution output]
+Project: {PROJECT_NAME}
+Root: {PROJECT_ROOT}
+Adapter: {ADAPTER_EXISTS ? "Found at " + ADAPTER_DIR : "Not found"}
+
+───────────────────────────────────────────────────────────────────────────────
+TECH STACK DETECTED
+───────────────────────────────────────────────────────────────────────────────
+Languages: {languages}
+Frameworks: {frameworks}
+Databases: {databases}
+Infrastructure: {infrastructure}
+
+───────────────────────────────────────────────────────────────────────────────
+EXISTING ARTIFACTS
+───────────────────────────────────────────────────────────────────────────────
+Found:
+  {list of found artifacts with paths}
+
+Missing:
+  {list of recommended but missing artifacts}
+
+───────────────────────────────────────────────────────────────────────────────
+PROPOSED HIERARCHY
+───────────────────────────────────────────────────────────────────────────────
+{hierarchy visualization}
+
+───────────────────────────────────────────────────────────────────────────────
+AI AGENTS DETECTED
+───────────────────────────────────────────────────────────────────────────────
+{detected agent configs: .cursor/, .windsurf/, .claude/, .github/copilot}
+
+═══════════════════════════════════════════════════════════════════════════════
 ```
 
-### 7. Return Control
+### 2.2 Configure Adapter Location
 
-After workflow completes:
+If adapter doesn't exist, ask user:
+
 ```
-═══════════════════════════════════════════════
-Adapter Workflow Complete
+Adapter Location
 
-Mode: {bootstrap|auto|manual}
-Location: {ADAPTER_DIR}
-Files: [list of created/updated files]
+Choose adapter directory:
+  1. .adapter/ (recommended - hidden, clean)
+  2. FDD-Adapter/ (visible, explicit)
+  3. docs/FDD-Adapter/ (documentation-focused)
+  4. Custom path
 
-Validation: [score/status from workflow]
-═══════════════════════════════════════════════
+Choice: [1-4]
+```
+
+Store as: `ADAPTER_DIR`
+
+### 2.3 Configure Rules Package
+
+Ask user about rules preference:
+
+```
+Rules Package
+
+FDD supports multiple rules packages:
+
+  1. fdd-sdlc (Recommended)
+     - Full FDD tooling support
+     - Code traceability
+     - Complete validation rules
+     - Templates, checklists, examples included
+
+  2. Custom
+     - Define your own rules
+     - Use existing project conventions
+     - Must follow rules.md format
+
+Choice: [1-2]
+```
+
+Store as: `RULES_PACKAGE`
+
+### 2.4 Configure Hierarchy
+
+Based on scan results, propose hierarchy:
+
+```
+System Hierarchy
+
+Based on scan, proposed structure:
+
+{PROJECT_NAME}/
+├── {system-name}/ (system)
+│   ├── artifacts:
+│   │   ├── PRD.md
+│   │   ├── DESIGN.md
+│   │   └── FEATURES.md
+│   ├── codebase:
+│   │   └── src/ [.ts, .tsx]
+│   └── children:
+│       ├── {subsystem-1}/ (subsystem)
+│       │   └── ...
+│       └── {subsystem-2}/ (subsystem)
+
+Accept this structure? [Yes] [Modify] [Manual]
+```
+
+Store as: `HIERARCHY_CONFIG`
+
+### 2.5 Configure Traceability
+
+For each artifact, ask about traceability:
+
+```
+Traceability Configuration
+
+For each artifact, choose traceability level:
+
+  FULL - Full code traceability (FDD markers in code)
+         Best for: New code, active development
+
+  DOCS-ONLY - Documentation only (no code markers)
+              Best for: Existing codebases, documentation focus
+
+Artifact traceability:
+  - PRD.md: [FULL] [DOCS-ONLY]
+  - DESIGN.md: [FULL] [DOCS-ONLY]
+  - FEATURES.md: [FULL] [DOCS-ONLY]
+```
+
+Store as: `TRACEABILITY_CONFIG`
+
+---
+
+## Phase 3: Generation
+
+### 3.1 Create Adapter Directory
+
+```bash
+mkdir -p {ADAPTER_DIR}/specs
+```
+
+### 3.2 Generate artifacts.json
+
+Create `{ADAPTER_DIR}/artifacts.json` following schema:
+
+```json
+{
+  "version": "1.0",
+  "project_root": "{relative_path_to_project_root}",
+  "rules": {
+    "fdd-sdlc": {
+      "format": "FDD",
+      "path": "{fdd_core}/rules/sdlc"
+    }
+  },
+  "systems": [
+    {
+      "name": "{SYSTEM_NAME}",
+      "rules": "fdd-sdlc",
+      "artifacts": [
+        { "name": "Product Requirements", "path": "{artifacts_dir}/PRD.md", "kind": "PRD", "traceability": "{TRACEABILITY}" },
+        { "name": "Overall Design", "path": "{artifacts_dir}/DESIGN.md", "kind": "DESIGN", "traceability": "{TRACEABILITY}" },
+        { "name": "Features Manifest", "path": "{artifacts_dir}/features/FEATURES.md", "kind": "FEATURES", "traceability": "{TRACEABILITY}" }
+      ],
+      "codebase": [
+        { "name": "{codebase_name}", "path": "{src_dir}", "extensions": ["{extensions}"] }
+      ],
+      "children": []
+    }
+  ]
+}
+```
+
+### 3.3 Generate AGENTS.md
+
+Create `{ADAPTER_DIR}/AGENTS.md`:
+
+```markdown
+# FDD Adapter: {PROJECT_NAME}
+
+**Extends**: `{relative_path_to_fdd}/AGENTS.md`
+
+**Version**: 1.0
+**Last Updated**: {DATE}
+**Tech Stack**: {TECH_STACK_SUMMARY}
+
+---
+
+## Project Structure
+
+{HIERARCHY_OVERVIEW}
+
+---
+
+## Navigation Rules
+
+ALWAYS open and follow `specs/tech-stack.md` WHEN generating or validating: DESIGN, ADR, CODE
+
+ALWAYS open and follow `specs/conventions.md` WHEN generating or validating: CODE
+
+ALWAYS open and follow `specs/domain-model.md` WHEN generating or validating: DESIGN, FEATURE, CODE
+
+---
+
+## Artifacts Registry
+
+See `artifacts.json` for complete artifact configuration including:
+- Rules packages
+- System hierarchy
+- Traceability settings
+```
+
+### 3.4 Generate Spec Files
+
+Based on scan results, create initial spec files:
+
+#### specs/tech-stack.md
+```markdown
+# Tech Stack
+
+**Languages**: {languages}
+**Frameworks**: {frameworks}
+**Databases**: {databases}
+**Infrastructure**: {infrastructure}
+
+**Source**: Auto-detected from project scan
+```
+
+#### specs/conventions.md
+```markdown
+# Code Conventions
+
+**File Naming**: {detected_pattern}
+**Code Style**: {detected_linter_config}
+**Project Structure**: {detected_structure}
+
+**Source**: Auto-detected from project scan
+```
+
+#### specs/domain-model.md (if detected)
+```markdown
+# Domain Model
+
+**Format**: {detected_format}
+**Location**: {detected_location}
+
+**Source**: Auto-detected from project scan
+```
+
+### 3.5 Create .fdd-config.json
+
+At project root:
+
+```json
+{
+  "fddAdapterPath": "{relative_adapter_path}",
+  "fddCorePath": "{relative_fdd_core_path}"
+}
 ```
 
 ---
 
-## Automatic Routing Examples
+## Phase 4: Agent Integration
 
-### Example 1: User Says "initialize adapter"
+### 4.1 Detect AI Agents
+
+Check for AI agent configurations:
 
 ```yaml
-Step 1: Check adapter → NOT found
-Step 3: Keyword detected → "initialize"
-Step 5: Route to → adapter-bootstrap
-Execute: adapter-bootstrap.md
-Result: Minimal AGENTS.md created
+Search for:
+  - .cursor/rules (Cursor)
+  - .windsurfrules (Windsurf)
+  - CLAUDE.md or .claude/ (Claude)
+  - .github/copilot-instructions.md (Copilot)
 ```
 
-### Example 2: User Says "scan project"
+### 4.2 Offer Integration
 
-```yaml
-Step 1: Check adapter → Found (minimal)
-Step 3: Keyword detected → "scan"
-Step 5: Route to → adapter-auto
-Execute: adapter-auto.md
-Result: Specs generated from codebase
+For each detected agent:
+
+```
+AI Agent Integration
+
+Detected: {agent_name}
+
+Would you like to configure FDD integration?
+
+This will:
+  - Add FDD workflow commands
+  - Configure adapter references
+  - Enable FDD skill invocation
+
+Configure {agent_name}? [Yes] [No] [Later]
 ```
 
-### Example 3: User Says "add Redis to adapter"
+### 4.3 Generate Agent Config
 
-```yaml
-Step 1: Check adapter → Found (with specs)
-Step 3: Keyword detected → "add"
-Step 5: Route to → adapter-manual
-Execute: adapter-manual.md
-Result: specs/tech-stack.md updated
-```
+For each confirmed agent, run:
 
----
-
-## Interactive Routing Examples
-
-### Example 4: Ambiguous "update adapter"
-
-```yaml
-Step 1: Check adapter → Found
-Step 3: No specific keywords
-Step 4: Interactive selection
-
-Agent asks:
-  "Choose update mode:
-   1. Auto-scan
-   2. Manual update"
-
-User: "1"
-Step 5: Route to → adapter-auto
-Execute: adapter-auto.md
-```
-
-### Example 5: No adapter exists, user says "run adapter"
-
-```yaml
-Step 1: Check adapter → NOT found
-Step 3: No specific keywords
-Step 4: Interactive selection
-
-Agent asks:
-  "Choose initialization mode:
-   1. Bootstrap
-   2. Auto-scan"
-
-User: "2"
-Step 5: Route to → adapter-auto
-Execute: adapter-auto.md
+```bash
+fdd agent-workflows --agent {agent}
+fdd agent-skills --agent {agent}
 ```
 
 ---
 
-## Quick Reference
+## Phase 5: Validation
 
-| User Intent | Adapter State | Route To |
-|-------------|---------------|----------|
-| "Initialize/create/setup" | Missing | `adapter-bootstrap` |
-| "Scan/discover/analyze" | Any | `adapter-auto` |
-| "Add/update {spec}" | Exists | `adapter-manual` |
-| Ambiguous request | Missing | Ask: bootstrap or auto |
-| Ambiguous request | Exists | Ask: auto or manual |
-| Triggered from workflow | Any | Direct evolution (not via router) |
+### 5.1 Run Adapter Validation
+
+Execute validation checks:
+
+```yaml
+Validate:
+  1. .fdd-config.json
+     - Exists at project root
+     - Valid JSON
+     - Contains fddAdapterPath
+     - Path points to valid adapter
+
+  2. AGENTS.md
+     - Exists in adapter directory
+     - Contains Extends declaration
+     - Contains project name
+
+  3. artifacts.json
+     - Valid against schema
+     - All paths resolve correctly
+     - Rules packages configured
+     - Systems hierarchy valid
+
+  4. Spec files
+     - Referenced specs exist
+     - Have required structure
+```
+
+### 5.2 Display Validation Report
+
+```
+═══════════════════════════════════════════════════════════════════════════════
+FDD Adapter: Validation Report
+═══════════════════════════════════════════════════════════════════════════════
+
+Status: PASS ✅ | FAIL ❌
+
+───────────────────────────────────────────────────────────────────────────────
+CONFIGURATION
+───────────────────────────────────────────────────────────────────────────────
+✅ .fdd-config.json valid
+✅ fddAdapterPath correct
+✅ fddCorePath correct (if set)
+
+───────────────────────────────────────────────────────────────────────────────
+ADAPTER FILES
+───────────────────────────────────────────────────────────────────────────────
+✅ AGENTS.md exists
+✅ Extends declaration valid
+✅ artifacts.json valid
+
+───────────────────────────────────────────────────────────────────────────────
+SPEC FILES
+───────────────────────────────────────────────────────────────────────────────
+✅ specs/tech-stack.md
+✅ specs/conventions.md
+⚠️ specs/domain-model.md (optional, not created)
+
+───────────────────────────────────────────────────────────────────────────────
+AGENT INTEGRATION
+───────────────────────────────────────────────────────────────────────────────
+✅ Claude configured
+⚠️ Cursor detected but not configured
+
+═══════════════════════════════════════════════════════════════════════════════
+```
 
 ---
 
-## Validation
+## Quick Actions
 
-Each delegated workflow runs its own validation.
+### Rescan Project
 
-Router does NOT validate - it only routes.
+Re-run scan to detect changes:
+```
+Run adapter workflow with --rescan flag
+```
 
----
+### Update Specs
 
-## Notes
+Update existing specs from detected patterns:
+```
+Run adapter workflow with --update-specs flag
+```
 
-**This is a routing workflow** - it does NOT create files itself.
+### Add System
 
-**Purpose**: Simplify adapter workflow selection for users
+Add new system to hierarchy:
+```
+Run adapter workflow with --add-system {name}
+```
 
-**Trigger-based evolution**: Does NOT use this router - evolution calls are direct
+### Configure Agent
 
-**User-initiated updates**: Always go through this router for clarity
+Configure specific AI agent:
+```
+Run adapter workflow with --agent {windsurf|cursor|claude|copilot}
+```
 
 ---
 
 ## Validation Criteria
 
 - [ ] All workflow steps completed
-- [ ] Output artifacts are valid
+- [ ] artifacts.json valid against schema
+- [ ] AGENTS.md follows template
+- [ ] All referenced paths exist
 
 ---
-
 
 ## Validation Checklist
 
 - [ ] All prerequisites were met
 - [ ] All steps were executed in order
+- [ ] User confirmed configuration choices
+- [ ] Validation passed
 
 ---
 
+## Next Steps
+
+**After successful adapter setup**:
+- `/fdd-generate PRD` — Define product requirements
+- `/fdd-generate DESIGN` — Create architecture design
+- `/fdd-generate FEATURES` — Create features manifest
+
+**For existing projects**:
+- Review detected artifacts
+- Update traceability settings as needed
+- Configure additional AI agents
+
+---
 
 ## References
 
-**Delegates to**:
-- `adapter-bootstrap.md` - Minimal initialization
-- `adapter-auto.md` - Automatic scanning
-- `adapter-manual.md` - Manual updates
-
-**Referenced by**:
-- `adapter-structure.md` - Main workflow reference
-- `workflow-execution.md` - Adapter initialization check
-- `adapter-triggers.md` - Trigger-based calls (bypass router)
+**Requirements**: `../requirements/adapter-structure.md`
+**Schema**: `../schemas/artifacts.schema.json`

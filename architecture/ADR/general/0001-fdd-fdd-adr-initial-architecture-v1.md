@@ -1,13 +1,31 @@
+<!-- fdd:#:adr -->
 # ADR-0001: Initial FDD Architecture
 
+<!-- fdd:id:adr has="priority,task" covered_by="design" -->
+**ID**: [x] `p1` - `fdd-fdd-adr-initial-architecture-v1`
+<!-- fdd:id:adr -->
+
+<!-- fdd:##:meta -->
+## Meta
+
+<!-- fdd:paragraph:adr-title -->
+**Title**: ADR-0001 Initial FDD Architecture
+<!-- fdd:paragraph:adr-title -->
+
+<!-- fdd:paragraph:date -->
 **Date**: 2025-01-17
+<!-- fdd:paragraph:date -->
 
+<!-- fdd:paragraph:status -->
 **Status**: Accepted
+<!-- fdd:paragraph:status -->
+<!-- fdd:##:meta -->
 
-**ADR ID**: `fdd-fdd-adr-initial-architecture-v1`
+<!-- fdd:##:body -->
+## Body
 
-## Context and Problem Statement
-
+<!-- fdd:context -->
+**Context**:
 FDD (Feature-Driven Design) is a universal methodology framework for building software systems with complete traceability from product requirements to implementation. The methodology must be technology-agnostic to support any tech stack, while providing structured workflows that can be executed by both human teams and AI coding assistants.
 
 The architecture must enable incremental adoption, support design-first development, and maintain design-code coherence through systematic traceability.
@@ -18,9 +36,10 @@ Key requirements driving this decision:
 * Provide deterministic validation to fail fast on structural issues
 * Maintain complete traceability from product requirements through design to implementation
 * Support incremental methodology adoption without disrupting existing projects
+<!-- fdd:context -->
 
-## Decision Drivers
-
+<!-- fdd:decision-drivers -->
+**Decision Drivers**:
 1. **Technology Agnostic Core** (from `fdd-fdd-principle-tech-agnostic`)
    - Methodology must work equally well for Python, Rust, JavaScript, Java, Go, or any language
    - No forced technology choices in core; all tech decisions in project adapters
@@ -36,23 +55,22 @@ Key requirements driving this decision:
    - Reduce manual validation effort through deterministic checking
    - Support code generation from validated designs
 
-4. **Incremental Adoption** (from `fdd-fdd-fr-brownfield-support`, `fdd-fdd-req-migration`)
+4. **Incremental Adoption** (from `fdd-fdd-fr-brownfield-support`)
    - Projects must adopt FDD progressively without disruption
    - Support legacy system integration with minimal refactoring
    - Adapter-first approach enables starting with lightweight configuration
 
-5. **Complete Traceability** (from `fdd-fdd-fr-traceability`, `fdd-fdd-req-traceability`)
+5. **Complete Traceability** (from `fdd-fdd-fr-traceability`)
    - Every design element needs unique ID for tracking
    - Code tags must link implementation to specifications
    - Support impact analysis when designs change
+<!-- fdd:decision-drivers -->
 
-## Considered Options
-
+<!-- fdd:options repeat="many" -->
+**Considered Options**:
 * Monolithic framework with built-in tech stack
 * Configuration-heavy framework
 * Layered architecture with plugin-based adapter system (chosen)
-
-## Pros and Cons of the Options
 
 ### Option 1: Monolithic Framework with Built-in Tech Stack
 
@@ -64,10 +82,10 @@ Key requirements driving this decision:
 * Fewer configuration options to document
 
 **Cons**:
-* ❌ Forces technology choices on projects
-* ❌ Cannot support polyglot architectures
-* ❌ Limited to ecosystems where chosen tech stack works
-* ❌ Migration from existing projects requires tech stack change
+* Forces technology choices on projects
+* Cannot support polyglot architectures
+* Limited to ecosystems where chosen tech stack works
+* Migration from existing projects requires tech stack change
 
 **Rejected**: Violates technology-agnostic core principle
 
@@ -81,10 +99,10 @@ Key requirements driving this decision:
 * Single file to understand project setup
 
 **Cons**:
-* ❌ Configuration explosion (100+ options for all tech stacks)
-* ❌ Difficult for AI agents to navigate large config files
-* ❌ No incremental adoption (need full config upfront)
-* ❌ Hard to extend with project-specific conventions
+* Configuration explosion (100+ options for all tech stacks)
+* Difficult for AI agents to navigate large config files
+* No incremental adoption (need full config upfront)
+* Hard to extend with project-specific conventions
 
 **Rejected**: Too complex for incremental adoption, poor AI agent discoverability
 
@@ -109,21 +127,22 @@ Methodology Core (Requirements files, Workflow specs, Core AGENTS.md)
 ```
 
 **Pros**:
-* ✅ Technology-agnostic core with zero dependencies
-* ✅ Incremental adoption (start with minimal adapter)
-* ✅ AI agents navigate via AGENTS.md WHEN clauses
-* ✅ Project-specific conventions in isolated adapter directory
-* ✅ Core updates propagate without breaking adapters (Extends mechanism)
-* ✅ Plugin architecture supports future extensibility
+* Technology-agnostic core with zero dependencies
+* Incremental adoption (start with minimal adapter)
+* AI agents navigate via AGENTS.md WHEN clauses
+* Project-specific conventions in isolated adapter directory
+* Core updates propagate without breaking adapters (Extends mechanism)
+* Plugin architecture supports future extensibility
 
 **Cons**:
 * Requires adapter setup before usage (mitigated by bootstrap workflow)
 * More files to understand than monolithic approach (mitigated by progressive disclosure)
 
 **Selected**: Best fit for all decision drivers
+<!-- fdd:options -->
 
-## Decision Outcome
-
+<!-- fdd:decision-outcome -->
+**Decision Outcome**:
 Chosen option: "Layered architecture with plugin-based adapter system", because it best satisfies technology-agnosticism, incremental adoption, and deterministic validation/traceability while remaining navigable for AI agents.
 
 FDD uses **Layered Architecture with Plugin-Based Adapter System** with the following structure:
@@ -155,66 +174,31 @@ FDD uses **Layered Architecture with Plugin-Based Adapter System** with the foll
 * **Artifacts**: Plain Markdown (universal compatibility, version control friendly)
 * **API Interface**: CLISPEC (command-line interface, JSON output for machine consumption)
 * **Domain Model Format**: Markdown-based artifact structure (not code-level types)
+<!-- fdd:decision-outcome -->
 
-### Consequences
+**Consequences**:
+<!-- fdd:list:consequences -->
+- Positive: FDD works with any tech stack through adapter system
+- Positive: Projects can adopt incrementally without disruption
+- Positive: AI agents can execute workflows autonomously via AGENTS.md navigation
+- Positive: Core updates don't break project adapters (Extends mechanism)
+- Positive: Deterministic validation catches structural issues immediately
+- Positive: Complete traceability through FDD IDs and code tags
+- Negative: Requires adapter setup before first use (addressed by bootstrap workflow)
+- Negative: Multiple files to understand (addressed by progressive disclosure)
+- Negative: Learning curve for WHEN clause pattern (addressed by concrete examples)
+- Follow-up: None (initial decision)
+<!-- fdd:list:consequences -->
 
-* Good, because the core methodology remains stable and tech-agnostic while project-specific conventions live in adapters.
-* Bad, because adopting FDD requires an initial adapter setup and introduces additional files and concepts to learn.
+**Links**:
+<!-- fdd:list:links -->
+- Related Actors: `fdd-fdd-actor-architect`, `fdd-fdd-actor-technical-lead`, `fdd-fdd-actor-ai-assistant`, `fdd-fdd-actor-developer`
+- Related Capabilities: `fdd-fdd-fr-workflow-execution`, `fdd-fdd-fr-validation`, `fdd-fdd-fr-adapter-config`, `fdd-fdd-fr-design-first`, `fdd-fdd-fr-traceability`, `fdd-fdd-fr-brownfield-support`
+- Related Principles: `fdd-fdd-principle-tech-agnostic`, `fdd-fdd-principle-design-first`, `fdd-fdd-principle-machine-readable`, `fdd-fdd-principle-deterministic-gate`, `fdd-fdd-principle-traceability`
+- Supersedes: None (initial decision)
+- Superseded by: None (current)
+- Related ADRs: None yet (this is ADR-0001)
+<!-- fdd:list:links -->
+<!-- fdd:##:body -->
 
-#### Positive
-
-* ✅ FDD works with any tech stack through adapter system
-* ✅ Projects can adopt incrementally without disruption
-* ✅ AI agents can execute workflows autonomously via AGENTS.md navigation
-* ✅ Core updates don't break project adapters (Extends mechanism)
-* ✅ Deterministic validation catches structural issues immediately
-* ✅ Complete traceability through FDD IDs and code tags
-
-#### Negative
-
-* ⚠️ Requires adapter setup before first use (addressed by bootstrap workflow)
-* ⚠️ Multiple files to understand (addressed by progressive disclosure: README → QUICKSTART → AGENTS.md)
-* ⚠️ Learning curve for WHEN clause pattern (addressed by concrete examples in documentation)
-
-#### Trade-offs
-
-* **Flexibility vs Simplicity**: Chose flexibility (adapter system) over simplicity (monolithic). Justification: Supporting any tech stack is core mission.
-* **Discoverability vs Configuration**: Chose discoverability (AGENTS.md files) over central config. Justification: Better for AI agents and incremental adoption.
-* **Automation vs Manual**: Chose automated deterministic validation with manual fallback. Justification: Fail fast on obvious errors, human review for design quality.
-
-## Related Design Elements
-
-**Actors**:
-* `fdd-fdd-actor-architect` - Designs system architecture using these patterns
-* `fdd-fdd-actor-technical-lead` - Sets up adapters based on this architecture
-* `fdd-fdd-actor-ai-assistant` - Executes workflows following this architecture
-* `fdd-fdd-actor-developer` - Implements features following design-first approach
-
-**Capabilities**:
-* `fdd-fdd-fr-workflow-execution` - Enabled by workflow engine component
-* `fdd-fdd-fr-validation` - Enabled by validation engine component
-* `fdd-fdd-fr-adapter-config` - Enabled by adapter system component
-* `fdd-fdd-fr-design-first` - Enforced by validation gates
-* `fdd-fdd-fr-traceability` - Enabled by ID management component
-* `fdd-fdd-fr-brownfield-support` - Enabled by incremental adoption support
-
-**Principles**:
-* `fdd-fdd-principle-tech-agnostic` - Core architectural principle
-* `fdd-fdd-principle-design-first` - Core architectural principle
-* `fdd-fdd-principle-machine-readable` - Core architectural principle
-* `fdd-fdd-principle-deterministic-gate` - Core architectural principle
-* `fdd-fdd-principle-traceability` - Core architectural principle
-
-## More Information
-
-**Notes**:
-
-This is the foundational architectural decision for FDD. All subsequent ADRs will reference this decision as the baseline architecture. Future ADRs may refine specific components or patterns but should maintain compatibility with this layered architecture and the five core design principles.
-
-The architecture is designed for evolution: new components can be added as plugins, new adapter specs can be defined without core changes, and new skills can extend the AI integration layer. However, the core principles (technology agnostic, design-first, machine-readable, deterministic gate, traceability) are fundamental and should not be compromised in future decisions.
-
-**Supersedes**: None (initial decision)
-
-**Superseded by**: None (current)
-
-**Related ADRs**: None yet (this is ADR-0001)
+<!-- fdd:#:adr -->

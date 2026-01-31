@@ -819,12 +819,11 @@ For teams, work can be distributed: one person owns overall design and architect
 ├── requirements/                               # All FDD requirements and structure specs
 │   ├── FDL.md                                  # FDD Description Language syntax
 │   ├── execution-protocol.md                   # Workflow execution protocol
-│   ├── workflow-execution.md                   # General workflow execution
-│   ├── prd-structure.md           # PRD.md structure
-│   ├── overall-design-structure.md             # DESIGN.md structure
-│   ├── adr-structure.md                        # ADR directory structure
-│   ├── features-manifest-structure.md          # FEATURES.md structure
-│   ├── feature-design-structure.md             # Feature DESIGN.md structure
+│   ├── prd-content.md                          # PRD.md content requirements
+│   ├── overall-design-content.md               # DESIGN.md content requirements
+│   ├── adr-content.md                          # ADR content requirements
+│   ├── features-manifest-content.md            # FEATURES.md content requirements
+│   ├── feature-design-content.md               # Feature DESIGN.md content requirements
 │   
 │   └── adapter-structure.md                    # Adapter structure requirements
 ├── skills/                                     # Claude-compatible AI skills

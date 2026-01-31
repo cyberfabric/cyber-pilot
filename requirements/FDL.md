@@ -307,7 +307,7 @@ example_code();
 
 ## Validation Criteria
 
-### Structure (25 points)
+### Structure
 
 **Check**:
 - [ ] Uses numbered markdown lists (1, 2, 3...)
@@ -317,7 +317,7 @@ example_code();
 - [ ] No code blocks or function syntax
 - [ ] No type annotations
 
-### Keyword Usage (30 points)
+### Keyword Usage
 
 **Check**:
 - [ ] Keywords are bold (**IF**, **FOR EACH**, **WHILE**, etc.)
@@ -326,7 +326,7 @@ example_code();
 - [ ] TRY/CATCH used for error handling
 - [ ] RETURN used for algorithm outputs
 
-### Clarity (25 points)
+### Clarity
 
 **Check**:
 - [ ] Plain English descriptions
@@ -335,7 +335,7 @@ example_code();
 - [ ] Language-agnostic (implementation-independent)
 - [ ] Clear and unambiguous steps
 
-### Completeness (20 points)
+### Completeness
 
 **Check**:
 - [ ] All flows have numbered steps
@@ -346,10 +346,6 @@ example_code();
 - [ ] No placeholders or TODOs
 - [ ] All conditions and actions specified
 
-**Total**: 100/100
-
-**Pass threshold**: ≥90/100
-
 ---
 
 ## Validation Checklist
@@ -359,9 +355,8 @@ example_code();
 
 ---
 
-
 ## References
 
-- ALWAYS open and follow `overall-design-structure.md` WHEN specifying behavioral sections in root DESIGN.md
-- ALWAYS open and follow `feature-design-structure.md` WHEN specifying behavioral sections in feature DESIGN.md
+- ALWAYS open and follow `overall-design-content.md` WHEN specifying behavioral sections in root DESIGN.md
+- ALWAYS open and follow `feature-design-content.md` WHEN specifying behavioral sections in feature DESIGN.md
 - ALWAYS open and follow `{adapter-directory}/AGENTS.md` WHEN overriding the behavior description language

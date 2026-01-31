@@ -14,7 +14,6 @@ from ..constants import (
     SECTION_FEATURE_RE,
     SECTION_PRD_RE,
     FIELD_HEADER_RE,
-    KNOWN_FIELD_NAMES,
 )
 
 
@@ -121,6 +120,43 @@ def split_by_prd_section_letter_with_offsets(text: str) -> Tuple[List[str], Dict
     return split_by_section_letter_with_offsets(text, SECTION_PRD_RE)
 
 
+def _is_field_header_terminator(line: str) -> bool:
+    """Check if line should terminate a field block.
+    
+    Field headers come in two styles:
+    1. Non-list: **Field Name**: value
+    2. List-style: - **Field Name**: value (used in FEATURES.md)
+    
+    Content with bold is NOT a field header:
+    - **Bold Title**: prose explanation (like in PRD problem lists)
+    
+    Heuristic: List-style is a field header if value is short/empty/None.
+    Prose explanations after bold are content, not field headers.
+    """
+    m = FIELD_HEADER_RE.match(line)
+    if not m:
+        return False
+    
+    stripped = line.lstrip()
+    value = m.group(2).strip()
+    
+    # Non-list style (e.g., "**Status**: value") - always a field header
+    if not stripped.startswith(("- **", "* **")):
+        return True
+    
+    # List-style: check if value looks like field content vs prose
+    # Field headers have: empty, "None", or start with backtick/link
+    if not value or value == "None" or value.startswith("`") or value.startswith("["):
+        return True
+    
+    # If value is long prose (>40 chars), it's likely content not a field header
+    if len(value) > 40:
+        return False
+    
+    # Short values in list-style are treated as field headers
+    return True
+
+
 def field_block(lines: List[str], field_name: str) -> Optional[Dict[str, object]]:
     """
     Extract field block from list of lines.
@@ -139,8 +175,7 @@ def field_block(lines: List[str], field_name: str) -> Optional[Dict[str, object]
         value = m.group(2)
         tail: List[str] = []
         for j in range(idx + 1, len(lines)):
-            m2 = FIELD_HEADER_RE.match(lines[j])
-            if m2 and m2.group(1).strip() in KNOWN_FIELD_NAMES:
+            if _is_field_header_terminator(lines[j]):
                 break
             tail.append(lines[j])
         return {"index": idx, "value": value, "tail": tail}
