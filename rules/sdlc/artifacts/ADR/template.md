@@ -10,8 +10,8 @@ fdd-template:
 <!-- fdd:#:adr -->
 # ADR-0001: {short title, representative of solved problem and found solution}
 
-<!-- fdd:id:adr has="priority,task" covered_by="design" -->
-**ID**: [ ] `p1` - `fdd-<project>-adr-<slug>`
+<!-- fdd:id:adr has="priority,task" covered_by="DESIGN" -->
+- [ ] `p1` - **ID**: `fdd-{system}-adr-{slug}`
 
 <!-- fdd:##:meta -->
 ## Meta
@@ -34,28 +34,28 @@ fdd-template:
 
 <!-- fdd:context -->
 **Context**:
-<Describe the current situation and the problem to solve.>
+{Describe the current situation and the problem to solve.}
 
-<Include:
+{Include:
 - Context/background
 - Constraints
 - Goals/non-goals
-- Stakeholders and concerns>
+- Stakeholders and concerns}
 <!-- fdd:context -->
 
 <!-- fdd:decision-drivers -->
 **Decision Drivers**:
-<List the forces that drive the decision (quality attributes, constraints, risks).>
+{List the forces that drive the decision (quality attributes, constraints, risks).}
 <!-- fdd:decision-drivers -->
 
 <!-- fdd:options repeat="many" -->
 **Considered Options**:
-<List the options considered with pros/cons/trade-offs.>
+{List the options considered with pros/cons/trade-offs.}
 <!-- fdd:options -->
 
 <!-- fdd:decision-outcome -->
 **Decision Outcome**:
-<State the chosen option and why.>
+{State the chosen option and why.}
 <!-- fdd:decision-outcome -->
 
 <!-- fdd:list:consequences -->

@@ -1,5 +1,5 @@
 # @fdd-algo:fdd-fdd-feature-init-structure-change-infrastructure:ph-1
-.PHONY: test test-verbose test-quick test-coverage validate validate-examples validate-feature validate-code validate-code-feature vulture vulture-ci install install-pipx clean help check-pytest check-pytest-cov check-pipx check-vulture
+.PHONY: test test-verbose test-quick test-coverage validate validate-examples validate-feature validate-code validate-code-feature self-check vulture vulture-ci install install-pipx clean help check-pytest check-pytest-cov check-pipx check-vulture
 
 PYTHON ?= python3
 PIPX ?= pipx
@@ -22,6 +22,7 @@ help:
 	@echo "  make validate-feature FEATURE=name - Validate specific feature"
 	@echo "  make validate-code                 - Validate codebase traceability (entire project)"
 	@echo "  make validate-code-feature FEATURE=name - Validate code traceability for specific feature"
+	@echo "  make self-check                    - Validate SDLC examples against their templates"
 	@echo "  make vulture                       - Scan python code for dead code (report only, does not fail)"
 	@echo "  make vulture-ci                    - Scan python code for dead code (fails if findings)"
 	@echo "  make install                       - Install Python dependencies"
@@ -119,7 +120,7 @@ validate-examples: check-pytest
 
 # Validate core methodology feature
 validate:
-	$(PYTHON) skills/fdd/scripts/fdd.py validate
+	$(PYTHON) -m skills.fdd.scripts.fdd.cli validate
 
 # Validate specific feature
 validate-feature:
@@ -129,9 +130,14 @@ validate-feature:
 		exit 1; \
 	fi
 	@echo "Validating feature: $(FEATURE)..."
-	@python3.11 skills/fdd/scripts/fdd.py validate \
+	@$(PYTHON) -m skills.fdd.scripts.fdd.cli validate \
 		--artifact architecture/features/$(FEATURE)/DESIGN.md
 
+
+# Validate SDLC examples against templates
+self-check:
+	@echo "Running self-check: validating SDLC examples against templates..."
+	$(PYTHON) -m skills.fdd.scripts.fdd.cli self-check
 
 # Validate code traceability for specific feature
 validate-code-feature:
@@ -141,7 +147,7 @@ validate-code-feature:
 		exit 1; \
 	fi
 	@echo "Validating code traceability for feature: $(FEATURE)..."
-	@python3.11 skills/fdd/scripts/fdd.py validate --artifact architecture/features/$(FEATURE)
+	@$(PYTHON) -m skills.fdd.scripts.fdd.cli validate --artifact architecture/features/$(FEATURE)
 
 # Install Python dependencies
 install-pipx: check-pipx

@@ -3,6 +3,7 @@ node_modules/
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
+.venv/
 
 # Build output
 dist/
@@ -39,6 +40,8 @@ deck.pptx
 coverage.json
 .windsurf
 .claude
-fdd-agent-workflows.json
-fdd-agent-skills.json
+fdd-agents.json
 .tmp/
+fdd-flow-layers-2a.drawio.svg
+.github/prompts/*
+.github/copilot-instructions.md

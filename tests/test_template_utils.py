@@ -27,7 +27,7 @@ fdd-template:
 ---
 
 <!-- fdd:id:item has="priority,task" repeat="one" covered_by="DESIGN" -->
-**ID**: [ ] `p1` - `fdd-demo-item-1`
+- [ ] `p1` - **ID**: `fdd-demo-item-1`
 <!-- fdd:id:item -->
 
 <!-- fdd:paragraph:summary -->
@@ -54,13 +54,17 @@ print('hi')
 <!-- fdd:fdl:flow -->
 1. [ ] - `ph-1` - Do step - `inst-step-1`
 <!-- fdd:fdl:flow -->
+
+<!-- fdd:id-ref:item-ref has="priority,task" -->
+[x] `p1` - `fdd-demo-item-1`
+<!-- fdd:id-ref:item-ref -->
 """
 
 
 def _good_artifact_text() -> str:
     return """
 <!-- fdd:id:item -->
-**ID**: [x] `p1` - `fdd-demo-item-1`
+- [x] `p1` - **ID**: `fdd-demo-item-1`
 <!-- fdd:id:item -->
 
 <!-- fdd:paragraph:summary -->
@@ -87,6 +91,10 @@ print('hi')
 <!-- fdd:fdl:flow -->
 1. [x] - `ph-1` - Do step - `inst-step-1`
 <!-- fdd:fdl:flow -->
+
+<!-- fdd:id-ref:item-ref -->
+[x] `p1` - `fdd-demo-item-1`
+<!-- fdd:id-ref:item-ref -->
 """
 
 
@@ -125,7 +133,7 @@ def test_invalid_id_ref_and_table_validation(tmp_path: Path):
     tmpl, _ = load_template(tmpl_path)
     bad_art = """
 <!-- fdd:id:item -->
-**ID**: [ ] `p1` - not-an-id
+- [ ] `p1` - **ID**: `not-an-id`
 <!-- fdd:id:item -->
 
 <!-- fdd:table:data -->
@@ -143,7 +151,26 @@ def test_invalid_id_ref_and_table_validation(tmp_path: Path):
 
 def test_cross_validate_covered_by_and_refs(tmp_path: Path):
     tmpl_prd_path = _write(tmp_path / "prd.template.md", _sample_template_text("PRD"))
-    tmpl_design_path = _write(tmp_path / "design.template.md", _sample_template_text("DESIGN"))
+    # DESIGN template needs id-ref:item with has="priority,task" to match definition
+    design_template = """
+---
+fdd-template:
+  version:
+    major: 1
+    minor: 0
+  kind: DESIGN
+  unknown_sections: warn
+---
+
+<!-- fdd:id-ref:item has="priority,task" -->
+[x] `p1` - `fdd-demo-item-1`
+<!-- fdd:id-ref:item -->
+
+<!-- fdd:paragraph:summary -->
+Summary
+<!-- fdd:paragraph:summary -->
+"""
+    tmpl_design_path = _write(tmp_path / "design.template.md", design_template)
     tmpl_prd, _ = load_template(tmpl_prd_path)
     tmpl_design, _ = load_template(tmpl_design_path)
 
@@ -153,9 +180,13 @@ def test_cross_validate_covered_by_and_refs(tmp_path: Path):
         _write(
             tmp_path / "design.md",
             """
+<!-- fdd:id-ref:item has="priority,task" -->
+[x] `p1` - `fdd-demo-item-1`
 <!-- fdd:id-ref:item -->
-[x] - `fdd-demo-item-1`
-<!-- fdd:id-ref:item -->
+
+<!-- fdd:paragraph:summary -->
+Summary
+<!-- fdd:paragraph:summary -->
 """,
         ),
     )
@@ -184,9 +215,13 @@ def test_cross_validate_covered_by_and_refs(tmp_path: Path):
         _write(
             tmp_path / "design-done-ref.md",
             """
+<!-- fdd:id-ref:item has="priority,task" -->
+[x] `p1` - `fdd-demo-item-1`
 <!-- fdd:id-ref:item -->
-[x] - `fdd-demo-item-1`
-<!-- fdd:id-ref:item -->
+
+<!-- fdd:paragraph:summary -->
+Summary
+<!-- fdd:paragraph:summary -->
 """,
         ),
     )
@@ -331,6 +366,26 @@ Content without closing marker
     assert any("unclosed" in str(e.get("message", "")).lower() for e in errs)
 
 
+def test_template_unknown_marker_type(tmp_path: Path):
+    """Cover unknown marker type in template - should fail loading."""
+    text = """---
+fdd-template:
+  version:
+    major: 1
+    minor: 0
+  kind: TEST
+---
+<!-- fdd:line:summary -->
+Content with unknown type
+<!-- fdd:line:summary -->
+"""
+    tmpl_path = _write(tmp_path / "tmpl.template.md", text)
+    tmpl, errs = load_template(tmpl_path)
+    assert tmpl is None
+    assert any("unknown marker type" in str(e.get("message", "")).lower() for e in errs)
+    assert any(e.get("marker_type") == "line" for e in errs)
+
+
 def test_block_validation_free_type(tmp_path: Path):
     """Cover free block type (no validation)."""
     text = """---
@@ -361,7 +416,7 @@ fdd-template:
   kind: TEST
 ---
 <!-- fdd:id:item -->
-**ID**: [ ] `p1` - `fdd-test-1`
+- [ ] `p1` - **ID**: `fdd-test-1`
 <!-- fdd:id:item -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
@@ -819,7 +874,7 @@ def test_artifact_unclosed_marker(tmp_path: Path):
 
 
 def test_artifact_unknown_marker_warning(tmp_path: Path):
-    """Cover unknown marker producing warning."""
+    """Cover unknown marker producing error (unknown markers are always errors, regardless of unknown_sections policy)."""
     text = """---
 fdd-template:
   version:
@@ -836,7 +891,8 @@ text
     tmpl, _ = load_template(tmpl_path)
     art_path = _write(tmp_path / "art.md", "<!-- fdd:paragraph:known -->\ntext\n<!-- fdd:paragraph:known -->\n<!-- fdd:paragraph:unknown -->\ntext\n<!-- fdd:paragraph:unknown -->")
     report = tmpl.validate(art_path)
-    assert any("Unknown marker" in str(w.get("message", "")) for w in report["warnings"])
+    # Unknown markers are always errors (unknown_sections policy applies only to markdown sections without markers)
+    assert any("Unknown marker" in str(e.get("message", "")) for e in report["errors"])
 
 
 def test_artifact_unknown_marker_error(tmp_path: Path):
@@ -941,20 +997,20 @@ fdd-template:
   kind: TEST
 ---
 <!-- fdd:id:item has="task" -->
-**ID**: [ ] `p1` - `fdd-test-1`
-<!-- fdd:id:item -->
+- [ ] `p1` - **ID**: `fdd-test-1`
 <!-- fdd:task-list:tasks -->
 - [x] task
 <!-- fdd:task-list:tasks -->
+<!-- fdd:id:item -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
     art_text = """<!-- fdd:id:item -->
-**ID**: [ ] `p1` - `fdd-test-1`
-<!-- fdd:id:item -->
+- [ ] `p1` - **ID**: `fdd-test-1`
 <!-- fdd:task-list:tasks -->
 - [x] all done
 <!-- fdd:task-list:tasks -->
+<!-- fdd:id:item -->
 """
     art_path = _write(tmp_path / "art.md", art_text)
     report = tmpl.validate(art_path)
@@ -971,20 +1027,20 @@ fdd-template:
   kind: TEST
 ---
 <!-- fdd:id:item has="task" -->
-**ID**: [x] `p1` - `fdd-test-1`
-<!-- fdd:id:item -->
+- [x] `p1` - **ID**: `fdd-test-1`
 <!-- fdd:task-list:tasks -->
 - [ ] task
 <!-- fdd:task-list:tasks -->
+<!-- fdd:id:item -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
     art_text = """<!-- fdd:id:item -->
-**ID**: [x] `p1` - `fdd-test-1`
-<!-- fdd:id:item -->
+- [x] `p1` - **ID**: `fdd-test-1`
 <!-- fdd:task-list:tasks -->
 - [ ] not done
 <!-- fdd:task-list:tasks -->
+<!-- fdd:id:item -->
 """
     art_path = _write(tmp_path / "art.md", art_text)
     report = tmpl.validate(art_path)
@@ -1010,3 +1066,335 @@ fdd-template:
     art = Artifact.from_template(tmpl, art_path)
     report = cross_validate_artifacts([art])
     assert any("Reference has no definition" in str(e.get("message", "")) for e in report["errors"])
+
+
+def test_artifact_with_template_frontmatter_detected(tmp_path: Path):
+    """Cover detection of template frontmatter in artifact (should error)."""
+    tmpl_path = _write(tmp_path / "tmpl.template.md", _sample_template_text())
+    tmpl, _ = load_template(tmpl_path)
+
+    # Artifact should NOT have fdd-template frontmatter
+    bad_artifact = """---
+fdd-template:
+  version:
+    major: 1
+    minor: 0
+  kind: PRD
+---
+<!-- fdd:paragraph:summary -->
+Some content
+<!-- fdd:paragraph:summary -->
+"""
+    art_path = _write(tmp_path / "bad-artifact.md", bad_artifact)
+    report = tmpl.validate(art_path)
+    assert any("template frontmatter" in str(e.get("message", "")).lower() for e in report["errors"])
+
+
+def test_artifact_without_template_frontmatter_ok(tmp_path: Path):
+    """Cover that normal frontmatter (without fdd-template) is OK."""
+    tmpl_path = _write(tmp_path / "tmpl.template.md", _sample_template_text())
+    tmpl, _ = load_template(tmpl_path)
+
+    # Normal YAML frontmatter is fine
+    ok_artifact = """---
+title: My Document
+author: Test
+---
+<!-- fdd:id:item -->
+- [x] `p1` - **ID**: `fdd-demo-item-1`
+<!-- fdd:id:item -->
+<!-- fdd:paragraph:summary -->
+Some content
+<!-- fdd:paragraph:summary -->
+<!-- fdd:list:bullets -->
+- a
+<!-- fdd:list:bullets -->
+<!-- fdd:table:data -->
+| h1 | h2 |
+|----|----|
+| v1 | v2 |
+<!-- fdd:table:data -->
+<!-- fdd:code:snippet -->
+```
+code
+```
+<!-- fdd:code:snippet -->
+<!-- fdd:fdl:flow -->
+1. [x] - `ph-1` - Step - `inst-step-1`
+<!-- fdd:fdl:flow -->
+"""
+    art_path = _write(tmp_path / "ok-artifact.md", ok_artifact)
+    report = tmpl.validate(art_path)
+    # Should not have the template frontmatter error
+    assert not any("template frontmatter" in str(e.get("message", "")).lower() for e in report["errors"])
+
+
+def test_cross_validate_external_system_ref_no_error(tmp_path: Path):
+    """External system references should not error when registered_systems is provided."""
+    text = """---
+fdd-template:
+  version:
+    major: 1
+    minor: 0
+  kind: TEST
+---
+<!-- fdd:id:item -->
+**ID**: `fdd-myapp-item-1`
+<!-- fdd:id:item -->
+<!-- fdd:id-ref:ref -->
+`fdd-other-system-feature-auth`
+<!-- fdd:id-ref:ref -->
+"""
+    tmpl_path = _write(tmp_path / "tmpl.template.md", text)
+    tmpl, _ = load_template(tmpl_path)
+    art_path = _write(tmp_path / "art.md", """<!-- fdd:id:item -->
+**ID**: `fdd-myapp-item-1`
+<!-- fdd:id:item -->
+<!-- fdd:id-ref:ref -->
+`fdd-other-system-feature-auth`
+<!-- fdd:id-ref:ref -->
+""")
+    art = Artifact.from_template(tmpl, art_path)
+    # With registered_systems containing only "myapp", "other-system" is external
+    report = cross_validate_artifacts([art], registered_systems={"myapp"})
+    # Should NOT have "Reference has no definition" error for external system
+    ref_errors = [e for e in report["errors"] if "Reference has no definition" in str(e.get("message", ""))]
+    assert len(ref_errors) == 0
+
+
+def test_cross_validate_internal_system_ref_errors(tmp_path: Path):
+    """Internal system references without definition should error."""
+    text = """---
+fdd-template:
+  version:
+    major: 1
+    minor: 0
+  kind: TEST
+---
+<!-- fdd:id:item -->
+**ID**: `fdd-myapp-item-1`
+<!-- fdd:id:item -->
+<!-- fdd:id-ref:ref -->
+`fdd-myapp-missing-thing`
+<!-- fdd:id-ref:ref -->
+"""
+    tmpl_path = _write(tmp_path / "tmpl.template.md", text)
+    tmpl, _ = load_template(tmpl_path)
+    art_path = _write(tmp_path / "art.md", """<!-- fdd:id:item -->
+**ID**: `fdd-myapp-item-1`
+<!-- fdd:id:item -->
+<!-- fdd:id-ref:ref -->
+`fdd-myapp-missing-thing`
+<!-- fdd:id-ref:ref -->
+""")
+    art = Artifact.from_template(tmpl, art_path)
+    # With registered_systems containing "myapp", internal ref without def should error
+    report = cross_validate_artifacts([art], registered_systems={"myapp"})
+    ref_errors = [e for e in report["errors"] if "Reference has no definition" in str(e.get("message", ""))]
+    assert len(ref_errors) == 1
+    assert "fdd-myapp-missing-thing" in str(ref_errors[0])
+
+
+def test_cross_validate_multi_word_system_external(tmp_path: Path):
+    """Multi-word system names should be handled correctly."""
+    text = """---
+fdd-template:
+  version:
+    major: 1
+    minor: 0
+  kind: FEATURE
+---
+<!-- fdd:id:item -->
+**ID**: `fdd-account-server-feature-billing`
+<!-- fdd:id:item -->
+<!-- fdd:id-ref:ref -->
+`fdd-other-app-feature-auth`
+<!-- fdd:id-ref:ref -->
+"""
+    tmpl_path = _write(tmp_path / "tmpl.template.md", text)
+    tmpl, _ = load_template(tmpl_path)
+    art_path = _write(tmp_path / "art.md", """<!-- fdd:id:item -->
+**ID**: `fdd-account-server-feature-billing`
+<!-- fdd:id:item -->
+<!-- fdd:id-ref:ref -->
+`fdd-other-app-feature-auth`
+<!-- fdd:id-ref:ref -->
+""")
+    art = Artifact.from_template(tmpl, art_path)
+    # "account-server" is registered, "other-app" is external
+    report = cross_validate_artifacts([art], registered_systems={"account-server"})
+    ref_errors = [e for e in report["errors"] if "Reference has no definition" in str(e.get("message", ""))]
+    assert len(ref_errors) == 0  # external ref should not error
+
+
+def test_cross_validate_ref_has_attribute_is_optional(tmp_path: Path):
+    """Reference decides its own has= attributes; not required to match definition."""
+    # Definition template with has="priority,task"
+    def_tmpl = """---
+fdd-template:
+  version:
+    major: 1
+    minor: 0
+  kind: DEF
+  unknown_sections: warn
+---
+<!-- fdd:id:item has="priority,task" -->
+- [ ] `p1` - **ID**: `fdd-test-item-1`
+<!-- fdd:id:item -->
+"""
+    # Reference template WITHOUT has attribute (should pass - ref decides its own attrs)
+    ref_tmpl_simple = """---
+fdd-template:
+  version:
+    major: 1
+    minor: 0
+  kind: REF
+  unknown_sections: warn
+---
+<!-- fdd:id-ref:item -->
+`fdd-test-item-1`
+<!-- fdd:id-ref:item -->
+"""
+    # Reference template WITH has attribute (should also pass)
+    ref_tmpl_full = """---
+fdd-template:
+  version:
+    major: 1
+    minor: 0
+  kind: REF
+  unknown_sections: warn
+---
+<!-- fdd:id-ref:item has="priority,task" -->
+[ ] `p1` - `fdd-test-item-1`
+<!-- fdd:id-ref:item -->
+"""
+    def_tmpl_path = _write(tmp_path / "def.template.md", def_tmpl)
+    ref_tmpl_simple_path = _write(tmp_path / "ref-simple.template.md", ref_tmpl_simple)
+    ref_tmpl_full_path = _write(tmp_path / "ref-full.template.md", ref_tmpl_full)
+
+    tmpl_def, _ = load_template(def_tmpl_path)
+    tmpl_ref_simple, _ = load_template(ref_tmpl_simple_path)
+    tmpl_ref_full, _ = load_template(ref_tmpl_full_path)
+
+    art_def = Artifact.from_template(
+        tmpl_def,
+        _write(tmp_path / "def.md", """<!-- fdd:id:item -->
+- [ ] `p1` - **ID**: `fdd-test-item-1`
+<!-- fdd:id:item -->"""),
+    )
+
+    # Reference without has attribute should pass (ref decides its own attrs)
+    art_ref_simple = Artifact.from_template(
+        tmpl_ref_simple,
+        _write(tmp_path / "ref-simple.md", """<!-- fdd:id-ref:item -->
+`fdd-test-item-1`
+<!-- fdd:id-ref:item -->"""),
+    )
+    report_simple = cross_validate_artifacts([art_def, art_ref_simple])
+    assert not any("Reference missing" in str(e.get("message", "")) for e in report_simple["errors"])
+
+    # Reference with has attribute should also pass
+    art_ref_full = Artifact.from_template(
+        tmpl_ref_full,
+        _write(tmp_path / "ref-full.md", """<!-- fdd:id-ref:item has="priority,task" -->
+[ ] `p1` - `fdd-test-item-1`
+<!-- fdd:id-ref:item -->"""),
+    )
+    report_full = cross_validate_artifacts([art_def, art_ref_full])
+    assert not any("Reference missing" in str(e.get("message", "")) for e in report_full["errors"])
+
+
+def test_nesting_validation_errors_on_wrong_parent(tmp_path: Path):
+    """Nesting validation should error when artifact block has wrong parent."""
+    # Template with nested structure: ##:outer contains ##:inner
+    template_content = """---
+fdd-template:
+  version:
+    major: 1
+    minor: 0
+  kind: TEST
+  unknown_sections: warn
+---
+<!-- fdd:##:outer -->
+## Outer
+<!-- fdd:##:inner -->
+### Inner
+<!-- fdd:##:inner -->
+<!-- fdd:##:outer -->
+"""
+    # Artifact with correct nesting
+    artifact_correct = """<!-- fdd:##:outer -->
+## Outer
+<!-- fdd:##:inner -->
+### Inner
+<!-- fdd:##:inner -->
+<!-- fdd:##:outer -->"""
+
+    # Artifact with WRONG nesting (inner NOT inside outer)
+    artifact_wrong = """<!-- fdd:##:outer -->
+## Outer
+<!-- fdd:##:outer -->
+<!-- fdd:##:inner -->
+### Inner
+<!-- fdd:##:inner -->"""
+
+    tmpl_path = _write(tmp_path / "test.template.md", template_content)
+    tmpl, _ = load_template(tmpl_path)
+
+    # Correct nesting should pass with no nesting errors
+    art_correct = Artifact.from_template(
+        tmpl,
+        _write(tmp_path / "correct.md", artifact_correct),
+    )
+    report_correct = art_correct.validate()
+    nesting_errors = [e for e in report_correct["errors"] if e.get("type") == "nesting"]
+    assert len(nesting_errors) == 0
+
+    # Wrong nesting should produce nesting errors
+    art_wrong = Artifact.from_template(
+        tmpl,
+        _write(tmp_path / "wrong.md", artifact_wrong),
+    )
+    report_wrong = art_wrong.validate()
+    nesting_errors_wrong = [e for e in report_wrong["errors"] if e.get("type") == "nesting"]
+    assert len(nesting_errors_wrong) > 0
+    assert any("must be nested inside" in str(e.get("message", "")) for e in nesting_errors_wrong)
+
+
+def test_nesting_validation_skips_repeat_many_parents(tmp_path: Path):
+    """Nesting validation should skip blocks inside repeat='many' parents."""
+    # Template with repeat="many" outer block
+    template_content = """---
+fdd-template:
+  version:
+    major: 1
+    minor: 0
+  kind: TEST
+  unknown_sections: warn
+---
+<!-- fdd:##:section repeat="many" -->
+## Section
+<!-- fdd:paragraph:content -->
+Content here
+<!-- fdd:paragraph:content -->
+<!-- fdd:##:section -->
+"""
+    # Artifact with different nesting (paragraph directly inside section is fine)
+    artifact = """<!-- fdd:##:section repeat="many" -->
+## Section 1
+<!-- fdd:paragraph:content -->
+Content here
+<!-- fdd:paragraph:content -->
+<!-- fdd:##:section -->"""
+
+    tmpl_path = _write(tmp_path / "test.template.md", template_content)
+    tmpl, _ = load_template(tmpl_path)
+
+    art = Artifact.from_template(
+        tmpl,
+        _write(tmp_path / "art.md", artifact),
+    )
+    report = art.validate()
+    nesting_errors = [e for e in report["errors"] if e.get("type") == "nesting"]
+    # Should have no nesting errors because parent has repeat="many"
+    assert len(nesting_errors) == 0

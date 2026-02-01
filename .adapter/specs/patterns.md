@@ -1,7 +1,7 @@
 # Patterns
 
-**Version**: 1.0  
-**Last Updated**: 2025-01-17  
+**Version**: 2.0
+**Last Updated**: 2026-02-01  
 **Purpose**: Define architectural patterns and conventions used in FDD
 
 ---
@@ -26,20 +26,31 @@
 
 ### WHEN Clause Format
 
-**Pattern**: `ALWAYS open and follow {file} WHEN {condition}`
+**Three types of WHEN clauses**:
 
-**Examples**:
+1. **Rules-based** (for adapter navigation):
 ```markdown
-ALWAYS open and follow `specs/tech-stack.md` WHEN executing workflows: design.md, code.md
+ALWAYS open and follow `specs/tech-stack.md` WHEN FDD follows rules `fdd-sdlc` for artifact kinds: DESIGN, ADR OR codebase
 
-ALWAYS open and follow `specs/conventions.md` WHEN executing workflows: adapter-validate.md, code-validate.md
+ALWAYS open and follow `specs/conventions.md` WHEN FDD follows rules `fdd-sdlc` for codebase
+```
+
+2. **File-context** (for file-specific guidance):
+```markdown
+ALWAYS open and follow `artifacts.json` WHEN working with artifacts.json
+```
+
+3. **Pattern-based** (for recognizing patterns):
+```markdown
+ALWAYS do X WHEN you see {pattern}
 ```
 
 **Rules**:
-- Start with `ALWAYS open and follow`
+- Start with `ALWAYS open and follow`, `ALWAYS do`, or `ALWAYS execute`
 - Reference specific file path
-- Use `WHEN` clause with specific conditions
-- Conditions list specific workflows (not generic phrases)
+- Use rules-based format for adapter specs (reference rule ID and artifact kinds)
+- Valid artifact kinds: PRD, DESIGN, FEATURES, ADR, FEATURE
+- Use `OR codebase` when spec applies to code validation/generation
 
 ### Extends Mechanism
 
@@ -92,7 +103,7 @@ ALWAYS open and follow `../requirements/execution-protocol.md` WHEN executing th
 {What this workflow does}
 
 ## Requirements
-**ALWAYS open and follow**: `../requirements/{artifact}-content.md`
+**Load rules package**: `../rules/sdlc/artifacts/{ARTIFACT_KIND}/`
 
 ## Prerequisites
 - [ ] Prerequisite 1
@@ -216,7 +227,7 @@ def handle_login(username, password):
 
 **Validation**:
 ```bash
-python3 skills/fdd/scripts/fdd.py validate --artifact {code-root}
+python3 skills/fdd/scripts/fdd/cli.py validate --artifact {code-root}
 ```
 
 **Expected**: For each `[x]` marked item in DESIGN.md, corresponding `@fdd-*` tag exists in code.
@@ -248,6 +259,70 @@ architecture/features/
 
 ---
 
+## Reverse Engineering Pattern
+
+### Purpose
+
+**Technology-agnostic project analysis** - Systematic methodology for understanding any software project before generating artifacts or code.
+
+### When to Use
+
+- Adapter workflow: Project scanning (Phase 1)
+- Generate workflow: When working with existing codebase
+- Brownfield projects: Understanding before modification
+
+### Analysis Layers
+
+**9-layer progressive analysis** (each builds on previous):
+
+| Layer | Goal | Adapter Use |
+|-------|------|-------------|
+| 1. Surface Reconnaissance | Repository structure, languages, docs | ✅ Phase 1 |
+| 2. Entry Point Analysis | Main entry points, bootstrap sequence | ✅ Phase 1 |
+| 3. Structural Decomposition | Architecture pattern, module boundaries | ✅ Phase 1 |
+| 4. Data Flow Tracing | How data moves through system | Generate |
+| 5. Dependency Mapping | Internal/external dependencies | Generate |
+| 6. State Management | State creation, modification, persistence | Generate |
+| 7. Integration Boundaries | External touchpoints | Generate |
+| 8. Pattern Recognition | Conventions, idioms | Generate |
+| 9. Knowledge Synthesis | Consolidate findings | Generate |
+
+### Integration with Workflows
+
+**Adapter workflow** (`workflows/adapter.md`):
+```markdown
+ALWAYS open and follow `../requirements/reverse-engineering.md` WHEN scanning project structure (Phase 1)
+```
+
+Uses Layers 1-3 for:
+- Directory structure analysis
+- Tech stack detection
+- Hierarchy detection
+
+**Generate workflow** (`workflows/generate.md`):
+```markdown
+ALWAYS open and follow `../requirements/reverse-engineering.md` WHEN user requests to analyze codebase, search in code, search in project documentation, or generate artifacts or code based on existing project structure
+```
+
+Uses all layers when:
+- Analyzing existing codebase
+- Searching in code/documentation
+- Generating from existing project
+
+### Prerequisite Check
+
+Before generating artifacts/code for existing projects:
+
+1. Check if adapter has project analysis (`specs/` populated)
+2. If no analysis → suggest `/fdd-adapter --rescan` first
+3. After scan → continue with original task
+
+### Reference
+
+**Full specification**: `requirements/reverse-engineering.md`
+
+---
+
 ## FDD Framework Requirements (Migrated)
 
 ### Source of Truth
@@ -267,10 +342,11 @@ When requirements in this spec conflict with `architecture/features/feature-init
 - `AGENTS.md` MAY include mandatory instruction semantics and enforcement sections
 
 **Adapter AGENTS.md WHEN rule (mandatory)**:
-- Each navigation rule MUST use a WHEN clause that is ONLY a list of FDD workflows
+- Each navigation rule MUST use rules-based WHEN clause format
 - Canonical form:
-  - `ALWAYS open and follow {spec-file} WHEN executing workflows: {workflow1.md}, {workflow2.md}, ...`
-- The workflow names MUST match files under `/workflows/`
+  - `ALWAYS open and follow {spec-file} WHEN FDD follows rules `{rule-id}` for artifact kinds: {KIND1}, {KIND2} [OR codebase]`
+- Valid artifact kinds: PRD, DESIGN, FEATURES, ADR, FEATURE
+- Use `OR codebase` when spec applies to code validation/generation
 
 ### Workflow File Requirements
 
@@ -315,6 +391,7 @@ Validation workflows MUST NOT:
 - `AGENTS.md` - WHEN clause patterns
 - `.adapter/specs/conventions.md` - FDD principles
 - `requirements/FDL.md` - FDL specification
+- `requirements/reverse-engineering.md` - RE methodology
 - `workflows/*.md` - Workflow structure
 - `README.md` - FDD overview
 
@@ -323,11 +400,12 @@ Validation workflows MUST NOT:
 ## Validation Checklist
 
 Agent MUST verify before implementation:
-- [ ] WHEN clauses list specific workflows (not generic conditions)
+- [ ] WHEN clauses use rules-based format (reference rule ID and artifact kinds)
 - [ ] FDL uses bold keywords and numbered lists
 - [ ] Code tags use qualified ID format
 - [ ] Workflows follow standard structure
 - [ ] Validation runs deterministic gate first
+- [ ] RE methodology used for brownfield projects (Layers 1-3 minimum)
 
 **Self-test**:
 - [ ] Did I check all criteria?

@@ -163,8 +163,8 @@ def find_adapter_directory(start: Path, fdd_root: Optional[Path] = None) -> Opti
                     if "spec" in content_lower or "specifications" in content_lower:
                         return True
         except Exception:
-            pass
-        
+            pass  # Expected: search continues if file read fails
+
         # Fallback: verify it has specs/ directory (strong structural indicator)
         if (path / "specs").is_dir():
             return True
@@ -221,8 +221,8 @@ def load_adapter_config(adapter_dir: Path) -> Dict[str, object]:
                     config["project_name"] = line.replace("# FDD Adapter:", "").strip()
                     break
         except Exception:
-            pass
-    
+            pass  # Expected: project_name is optional metadata
+
     # List available specs
     specs_dir = adapter_dir / "specs"
     if specs_dir.is_dir():

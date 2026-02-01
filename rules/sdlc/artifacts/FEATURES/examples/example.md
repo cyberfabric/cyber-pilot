@@ -1,91 +1,177 @@
+<!-- fdd:#:features -->
 # Features: TaskFlow
 
-## A. Status Overview
+<!-- fdd:##:overview -->
+## 1. Overview
 
-**Status Overview**: 2 features total (0 implemented, 1 in development, 1 design ready, 0 in design, 0 not started)
+TaskFlow features are organized around core task management capabilities. The decomposition follows a dependency order where foundational CRUD operations enable higher-level features like notifications and reporting.
 
-**Meaning**:
-- ⏳ NOT_STARTED: planned
-- 📝 IN_DESIGN: being designed
-- 📘 DESIGN_READY: design completed and ready for development
-- 🔄 IN_DEVELOPMENT: being implemented
-- ✅ IMPLEMENTED: done
+<!-- fdd:##:overview -->
 
-## B. Entries
+<!-- fdd:##:entries -->
+## 2. Entries
 
+**Overall implementation status:**
+<!-- fdd:id:status has="priority,task" -->
+- [ ] `p1` - **ID**: `fdd-taskflow-status-overall`
+
+<!-- fdd:###:feature-title repeat="many" -->
 ### 1. [Task CRUD](feature-task-crud/) 🔄 HIGH
 
-**ID**: `fdd-taskflow-feature-task-crud`
+<!-- fdd:id:feature has="priority,task" -->
+- [ ] `p1` - **ID**: `fdd-taskflow-feature-task-crud`
 
+<!-- fdd:paragraph:feature-purpose required="true" -->
 - **Purpose**: Enable users to create, view, edit, and delete tasks with full lifecycle management.
-- **Status**: IN_DEVELOPMENT
+<!-- fdd:paragraph:feature-purpose -->
+
+<!-- fdd:paragraph:feature-depends -->
 - **Depends On**: None
-- **Blocks**: `fdd-taskflow-feature-notifications`
+<!-- fdd:paragraph:feature-depends -->
+
+<!-- fdd:list:feature-scope -->
 - **Scope**:
   - Task creation with title, description, priority, due date
   - Task assignment to team members
   - Status transitions (BACKLOG → IN_PROGRESS → DONE)
   - Task deletion with soft-delete
+<!-- fdd:list:feature-scope -->
+
+<!-- fdd:list:feature-out-scope -->
+- **Out of scope**:
+  - Recurring tasks
+  - Task templates
+<!-- fdd:list:feature-out-scope -->
+
 - **Requirements Covered**:
-  - `fdd-taskflow-req-task-crud`
-  - `fdd-taskflow-nfr-performance-reliability`
+<!-- fdd:id-ref:fr has="priority,task" -->
+  - [ ] `p1` - `fdd-taskflow-fr-task-crud`
+  - [ ] `p2` - `fdd-taskflow-nfr-performance-reliability`
+<!-- fdd:id-ref:fr -->
+
 - **Design Principles Covered**:
-  - `fdd-taskflow-principle-realtime-first`
-  - `fdd-taskflow-principle-simplicity-over-features`
+<!-- fdd:id-ref:principle has="priority,task" -->
+  - [ ] `p1` - `fdd-taskflow-principle-realtime-first`
+  - [ ] `p2` - `fdd-taskflow-principle-simplicity-over-features`
+<!-- fdd:id-ref:principle -->
+
 - **Design Constraints Covered**:
-  - `fdd-taskflow-constraint-supported-platforms`
+<!-- fdd:id-ref:constraint has="priority,task" -->
+  - [ ] `p1` - `fdd-taskflow-constraint-supported-platforms`
+<!-- fdd:id-ref:constraint -->
+
+<!-- fdd:list:feature-domain-entities -->
 - **Domain Model Entities**:
   - Task
   - User
-- **Design Components**:
-  - React SPA
-  - API Server
-  - PostgreSQL
-  - Redis PubSub
-- **API**:
-  - `POST /api/tasks`
-  - `GET /api/tasks`
-- **Sequences**:
-  - Task creation flow (Member -> API Server -> PostgreSQL -> Redis -> React SPA)
-- **Data**:
-  - `fdd-taskflow-db-table-tasks`
-- **Phases**:
-  - `ph-1`: ✅ IMPLEMENTED — basic CRUD API
-  - `ph-2`: 🔄 IN_DEVELOPMENT — assignment and status transitions
+<!-- fdd:list:feature-domain-entities -->
 
+- **Design Components**:
+<!-- fdd:id-ref:component has="priority,task" -->
+  - [ ] `p1` - `fdd-taskflow-component-react-spa`
+  - [ ] `p1` - `fdd-taskflow-component-api-server`
+  - [ ] `p1` - `fdd-taskflow-component-postgresql`
+  - [ ] `p2` - `fdd-taskflow-component-redis-pubsub`
+<!-- fdd:id-ref:component -->
+
+<!-- fdd:list:feature-api -->
+- **API**:
+  - POST /api/tasks
+  - GET /api/tasks
+  - PUT /api/tasks/{id}
+  - DELETE /api/tasks/{id}
+<!-- fdd:list:feature-api -->
+
+- **Sequences**:
+<!-- fdd:id-ref:seq has="priority,task" -->
+  - [ ] `p1` - `fdd-taskflow-seq-task-creation`
+<!-- fdd:id-ref:seq -->
+
+- **Data**:
+<!-- fdd:id-ref:dbtable has="priority,task" -->
+  - [ ] `p1` - `fdd-taskflow-dbtable-tasks`
+<!-- fdd:id-ref:dbtable -->
+
+<!-- fdd:id:feature -->
+<!-- fdd:###:feature-title repeat="many" -->
+
+<!-- fdd:###:feature-title repeat="many" -->
 ### 2. [Notifications](feature-notifications/) 📘 MEDIUM
 
-**ID**: `fdd-taskflow-feature-notifications`
+<!-- fdd:id:feature has="priority,task" -->
+- [ ] `p2` - **ID**: `fdd-taskflow-feature-notifications`
 
+<!-- fdd:paragraph:feature-purpose required="true" -->
 - **Purpose**: Notify users about task assignments, due dates, and status changes.
-- **Status**: DESIGN_READY
+<!-- fdd:paragraph:feature-purpose -->
+
+<!-- fdd:paragraph:feature-depends -->
 - **Depends On**: `fdd-taskflow-feature-task-crud`
-- **Blocks**: None
+<!-- fdd:paragraph:feature-depends -->
+
+<!-- fdd:list:feature-scope -->
 - **Scope**:
   - Push notifications for task assignments
   - Email alerts for overdue tasks
   - In-app notification center
+<!-- fdd:list:feature-scope -->
+
+<!-- fdd:list:feature-out-scope -->
+- **Out of scope**:
+  - SMS notifications
+  - Custom notification templates
+<!-- fdd:list:feature-out-scope -->
+
 - **Requirements Covered**:
-  - `fdd-taskflow-req-notifications`
+<!-- fdd:id-ref:fr has="priority,task" -->
+  - [ ] `p2` - `fdd-taskflow-fr-notifications`
+<!-- fdd:id-ref:fr -->
+
 - **Design Principles Covered**:
-  - `fdd-taskflow-principle-realtime-first`
-  - `fdd-taskflow-principle-mobile-first`
+<!-- fdd:id-ref:principle has="priority,task" -->
+  - [ ] `p1` - `fdd-taskflow-principle-realtime-first`
+  - [ ] `p2` - `fdd-taskflow-principle-mobile-first`
+<!-- fdd:id-ref:principle -->
+
 - **Design Constraints Covered**:
-  - `fdd-taskflow-constraint-supported-platforms`
+<!-- fdd:id-ref:constraint has="priority,task" -->
+  - [ ] `p1` - `fdd-taskflow-constraint-supported-platforms`
+<!-- fdd:id-ref:constraint -->
+
+<!-- fdd:list:feature-domain-entities -->
 - **Domain Model Entities**:
   - Task
   - User
+  - Notification
+<!-- fdd:list:feature-domain-entities -->
+
 - **Design Components**:
-  - React SPA
-  - API Server
-  - Redis PubSub
+<!-- fdd:id-ref:component has="priority,task" -->
+  - [ ] `p1` - `fdd-taskflow-component-react-spa`
+  - [ ] `p1` - `fdd-taskflow-component-api-server`
+  - [ ] `p2` - `fdd-taskflow-component-redis-pubsub`
+<!-- fdd:id-ref:component -->
+
+<!-- fdd:list:feature-api -->
 - **API**:
-  - `POST /api/notifications`
-  - `GET /api/notifications`
+  - POST /api/notifications
+  - GET /api/notifications
+  - PUT /api/notifications/{id}/read
+<!-- fdd:list:feature-api -->
+
 - **Sequences**:
-  - Notification delivery flow
+<!-- fdd:id-ref:seq has="priority,task" -->
+  - [ ] `p2` - `fdd-taskflow-seq-notification-delivery`
+<!-- fdd:id-ref:seq -->
+
 - **Data**:
-  - None
-- **Phases**:
-  - `ph-1`: ⏳ NOT_STARTED — push notifications
-  - `ph-2`: ⏳ NOT_STARTED — email alerts
+<!-- fdd:id-ref:dbtable has="priority,task" -->
+  - [ ] `p2` - `fdd-taskflow-dbtable-notifications`
+<!-- fdd:id-ref:dbtable -->
+
+<!-- fdd:id:feature -->
+<!-- fdd:###:feature-title repeat="many" -->
+
+<!-- fdd:id:status -->
+<!-- fdd:##:entries -->
+<!-- fdd:#:features -->

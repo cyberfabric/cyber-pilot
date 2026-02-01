@@ -3,6 +3,37 @@
 **Target**: Codebase Implementation
 **Purpose**: Rules for code generation and validation with FDD traceability
 
+---
+
+## Table of Contents
+
+1. [Requirements](#requirements)
+   - [Structural Requirements](#structural-requirements)
+   - [Traceability Requirements](#traceability-requirements)
+   - [Checkbox Cascade](#checkbox-cascade-code-markers--upstream-artifacts)
+   - [Versioning Requirements](#versioning-requirements)
+   - [Engineering Best Practices](#engineering-best-practices-mandatory)
+   - [Quality Requirements](#quality-requirements)
+2. [Tasks](#tasks)
+   - [Phase 1: Setup](#phase-1-setup)
+   - [Phase 2: Implementation](#phase-2-implementation-work-packages)
+   - [Phase 3: FDD Markers](#phase-3-fdd-markers-traceability-mode-on-only)
+   - [Phase 4: Sync Feature DESIGN.md](#phase-4-sync-feature-designmd-traceability-mode-on-only)
+   - [Phase 5: Quality Check](#phase-5-quality-check)
+   - [Phase 6: Tag Verification](#phase-6-tag-verification-traceability-mode-on-only)
+3. [Validation](#validation)
+   - [Phase 1: Implementation Coverage](#phase-1-implementation-coverage)
+   - [Phase 2: Traceability Validation](#phase-2-traceability-validation-mode-on-only)
+   - [Phase 3: Test Scenarios Validation](#phase-3-test-scenarios-validation)
+   - [Phase 4: Build and Lint Validation](#phase-4-build-and-lint-validation)
+   - [Phase 5: Test Execution](#phase-5-test-execution)
+   - [Phase 6: Code Quality Validation](#phase-6-code-quality-validation)
+   - [Phase 7: Code Logic Consistency](#phase-7-code-logic-consistency-with-design)
+   - [Phase 8: Semantic Expert Review](#phase-8-semantic-expert-review-always)
+4. [Next Steps](#next-steps)
+
+---
+
 **Dependencies**:
 - `checklist.md` — code quality criteria
 - `{FDD}/requirements/traceability.md` — marker syntax and validation rules
@@ -34,6 +65,55 @@ Agent confirms understanding of requirements:
 - [ ] If Mode ON: no orphaned/stale markers
 - [ ] If Mode ON: design checkboxes synced with code
 - [ ] If Mode OFF: no FDD markers in code
+
+### Checkbox Cascade (Code Markers → Upstream Artifacts)
+
+CODE implementation triggers upstream checkbox updates through markers:
+
+| Code Marker | FEATURE ID | Upstream Effect |
+|-------------|-----------|-----------------|
+| `@fdd-flow:{id}:ph-{N}` | `id:flow` | When all ph-N markers exist → check `id:flow` in FEATURE |
+| `@fdd-algo:{id}:ph-{N}` | `id:algo` | When all ph-N markers exist → check `id:algo` in FEATURE |
+| `@fdd-state:{id}:ph-{N}` | `id:state` | When all ph-N markers exist → check `id:state` in FEATURE |
+| `@fdd-req:{id}:ph-{N}` | `id:req` | When all ph-N markers exist + tests pass → check `id:req` in FEATURE |
+
+**Full Cascade Chain**:
+
+```
+CODE markers exist
+    ↓
+FEATURE: id:flow/algo/state/req → [x]
+    ↓
+FEATURE: ALL IDs [x] → id-ref:feature [x] in FEATURES
+    ↓
+FEATURES: id:feature [x] → id-ref:* (fr, principle, component, etc.) → [x]
+    ↓
+PRD: id:fr/nfr [x] when ALL downstream refs [x]
+DESIGN: id:principle/constraint/component/seq/dbtable [x] when ALL refs [x]
+```
+
+**When to Update Upstream Checkboxes**:
+
+1. **After implementing FDL instruction**:
+   - Add `@fdd-begin:{id}:ph-{N}:inst-{slug}` / `@fdd-end:...` markers
+   - Mark corresponding FDL step `[x]` in FEATURE
+
+2. **After completing flow/algo/state/req**:
+   - All FDL steps marked `[x]` → mark `id:flow`/`id:algo`/etc. as `[x]` in FEATURE
+   - For `id:req`: also verify tests pass
+
+3. **After completing FEATURE**:
+   - All `id:*` in FEATURE are `[x]` → mark `id-ref:feature` as `[x]` in FEATURES manifest
+   - Update feature status: `⏳ PLANNED` → `🔄 IN_PROGRESS` → `✅ IMPLEMENTED`
+
+4. **After FEATURES manifest updated**:
+   - Check if all `id-ref:fr`, `id-ref:principle`, etc. are `[x]`
+   - If all refs for a PRD/DESIGN ID are `[x]` → mark that ID as `[x]` in PRD/DESIGN
+
+**Validation Checks**:
+- `fdd validate` will warn if code marker exists but FEATURE checkbox is `[ ]`
+- `fdd validate` will warn if FEATURE checkbox is `[x]` but code marker is missing
+- `fdd validate` will report coverage: N% of FEATURE IDs have code markers
 
 ### Versioning Requirements
 
@@ -112,6 +192,31 @@ Choose implementation order based on feature design:
 4. Run work package validation (tests, build, linters per adapter)
 5. **If Traceability Mode ON**: Update feature DESIGN.md checkboxes
 6. Proceed to next work package
+
+**Partial Implementation Handling**:
+
+If implementation cannot be completed in a single session:
+
+1. **Checkpoint progress**:
+   - Note completed work packages with their IDs
+   - Note current work package state (which steps done)
+   - List remaining work packages
+2. **Ensure valid intermediate state**:
+   - All completed work packages must pass validation
+   - Current work package: either complete or revert to last valid state
+   - Do NOT leave partially implemented code without markers
+3. **Document resumption point**:
+   ```
+   Implementation checkpoint:
+   - Completed: {list of IDs}
+   - In progress: {current ID, steps done}
+   - Remaining: {list of IDs}
+   - Resume command: /fdd-generate CODE --continue {feature-id}
+   ```
+4. **On resume**:
+   - Verify checkpoint state still valid (design unchanged)
+   - Continue from documented resumption point
+   - If design changed: restart affected work packages
 
 ### Phase 3: FDD Markers (Traceability Mode ON only)
 
@@ -307,7 +412,25 @@ Logic Consistency: PASS/FAIL
 
 Run expert panel review after producing validation output.
 
-**Experts**:
+**Review Scope Selection**:
+
+| Change Size | Review Mode | Experts |
+|-------------|-------------|---------|
+| <50 LOC, single concern | Abbreviated | Developer + 1 relevant expert |
+| 50-200 LOC, multiple concerns | Standard | Developer, QA, Security, Architect |
+| >200 LOC or architectural | Full | All 8 experts |
+
+**Abbreviated Review** (for small, focused changes):
+1. Developer reviews code quality and design alignment
+2. Select ONE additional expert based on change type:
+   - Security changes → Security Expert
+   - Performance changes → Performance Engineer
+   - Database changes → Database Architect/Data Engineer
+   - Infrastructure changes → DevOps Engineer
+   - Test changes → QA Engineer
+3. Skip remaining experts with note: `Abbreviated review: {N} LOC, single concern`
+
+**Full Expert Panel**:
 - Developer, QA Engineer, Security Expert, Performance Engineer
 - DevOps Engineer, Architect, Monitoring Engineer
 - Database Architect, Data Engineer
@@ -366,6 +489,7 @@ After code generation/validation, offer these options to user:
 | Feature complete | Update feature status to IMPLEMENTED in FEATURES manifest |
 | All features done | `/fdd-validate DESIGN` — validate overall design completion |
 | New feature needed | `/fdd-generate FEATURE` — design next feature |
+| Want expert review only | `/fdd-validate semantic` — semantic validation (skip deterministic) |
 
 ### After Validation Issues
 

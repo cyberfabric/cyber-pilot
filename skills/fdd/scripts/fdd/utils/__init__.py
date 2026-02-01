@@ -61,6 +61,14 @@ from .codebase import (
     cross_validate_code,
 )
 
+from .context import (
+    FddContext,
+    LoadedRule,
+    get_context,
+    set_context,
+    ensure_context,
+)
+
 __all__ = [
     # File operations
     "cfg_get_str",
@@ -109,4 +117,10 @@ __all__ = [
     "validate_code_file",
     "scan_code_directory",
     "cross_validate_code",
+    # Context
+    "FddContext",
+    "LoadedRule",
+    "get_context",
+    "set_context",
+    "ensure_context",
 ]

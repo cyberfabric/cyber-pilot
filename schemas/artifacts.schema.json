@@ -180,6 +180,38 @@
             "pattern": "^\\.[A-Za-z0-9]+$"
           },
           "description": "File extensions to include (e.g., .rs, .ts, .py)"
+        },
+        "singleLineComments": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Single-line comment prefixes (e.g., [\"#\", \"//\"]). If omitted, defaults based on file extension."
+        },
+        "multiLineComments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/multiline_comment"
+          },
+          "description": "Multi-line comment delimiters. If omitted, defaults based on file extension."
+        }
+      }
+    },
+    "multiline_comment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start", "end"],
+      "properties": {
+        "start": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Opening delimiter (e.g., /*, <!--, \"\"\")"
+        },
+        "end": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Closing delimiter (e.g., */, -->, \"\"\")"
         }
       }
     }

@@ -1,7 +1,8 @@
 ---
 fdd: true
 type: workflow
-name: Validate
+name: fdd-validate
+description: Validate FDD artifacts against templates or code against design requirements with traceability verification
 version: 1.0
 purpose: Universal workflow for validating any FDD artifact or code
 ---
@@ -12,11 +13,19 @@ purpose: Universal workflow for validating any FDD artifact or code
 
 ALWAYS open and follow `../requirements/execution-protocol.md` FIRST
 
+OPEN and follow `../requirements/prompt-engineering.md` WHEN user requests validation of:
+- System prompts, agent prompts, or LLM prompts
+- Agent instructions or agent guidelines
+- Skills, workflows, or methodologies
+- AGENTS.md or navigation rules
+- Any document containing instructions for AI agents
+- User explicitly mentions "prompt engineering review" or "instruction quality"
+
 ---
 
 ## ⚠️ Maximum Attention to Detail
 
-**MUST** perform validation with **MAXIMUM ATTENTION TO DETAIL**:
+**MUST** perform validation checking **ALL** applicable criteria from the loaded checklist:
 
 - ✅ Check **EVERY SINGLE** validation criterion
 - ✅ Verify **EACH ITEM** individually, not in groups
@@ -60,11 +69,52 @@ ALWAYS open and follow `../requirements/execution-protocol.md` FIRST
 
 ## Overview
 
-Universal validation workflow. Handles two modes:
+Universal validation workflow. Handles multiple modes:
+- **Full mode** (default): Deterministic gate → Semantic review
+- **Semantic mode**: Semantic-only validation (skip deterministic gate)
 - **Artifact mode**: Validates against template + checklist
 - **Code mode**: Validates against checklist + design requirements
 
+### Command Variants
+
+| Command | Mode | Description |
+|---------|------|-------------|
+| `/fdd-validate` | Full | Deterministic gate → Semantic review |
+| `/fdd-validate semantic` | Semantic only | Skip deterministic, checklist-based validation only |
+| `/fdd-validate --artifact <path>` | Full | Validate specific artifact |
+| `/fdd-validate semantic --artifact <path>` | Semantic only | Semantic validation for specific artifact |
+| `/fdd-validate prompt <path>` | Prompt review | Prompt engineering methodology (9-layer analysis) |
+
+**Prompt review triggers** (auto-detected from context):
+- "validate this system prompt"
+- "review agent instructions"
+- "check this workflow/skill"
+- "prompt engineering review"
+
 After executing `execution-protocol.md`, you have: TARGET_TYPE, RULES, KIND, PATH, and resolved dependencies.
+
+---
+
+## Mode Detection
+
+**Check invocation**:
+
+- If user invoked `/fdd-validate semantic` or `/fdd validate semantic` → Set `SEMANTIC_ONLY=true`
+- If user invoked `/fdd-validate prompt` or context indicates prompt/instruction review → Set `PROMPT_REVIEW=true`
+- Otherwise → Set `SEMANTIC_ONLY=false`, `PROMPT_REVIEW=false` (full validation)
+
+**When `SEMANTIC_ONLY=true`**:
+- Skip Phase 2 (Deterministic Gate)
+- Go directly to Phase 3 (Semantic Review)
+- Semantic review is MANDATORY regardless of STRICT/RELAXED mode
+
+**When `PROMPT_REVIEW=true`**:
+- Open and follow `../requirements/prompt-engineering.md`
+- Execute 9-layer prompt engineering analysis
+- Skip standard FDD validation (not applicable to prompts)
+- Output using prompt-engineering.md format
+- Traceability checks: N/A (prompts don't have code markers)
+- Registry checks: N/A (prompts may not be in artifacts.json)
 
 ---
 
@@ -167,7 +217,9 @@ STOP validation.
 
 ## Phase 2: Deterministic Gate
 
-**MUST run first** - this is the authoritative PASS/FAIL.
+**If `SEMANTIC_ONLY=true`**: Skip this phase, go to Phase 3.
+
+**MUST run first** (when not semantic-only) - this is the authoritative PASS/FAIL.
 
 ### For Artifacts
 
@@ -204,14 +256,17 @@ Blocking issues:
 
 ## Phase 3: Semantic Review (Conditional)
 
-**Only if deterministic gate PASS**.
+**Run if**:
+- Deterministic gate PASS, OR
+- `SEMANTIC_ONLY=true` (skip deterministic gate)
 
 ### Mode-Dependent Behavior
 
-| Rules Mode | Semantic Review | Evidence Required |
-|------------|-----------------|-------------------|
-| **STRICT** | MANDATORY | Yes — per `agent-compliance.md` |
-| **RELAXED** | Optional | No — best effort |
+| Invocation | Rules Mode | Semantic Review | Evidence Required |
+|------------|------------|-----------------|-------------------|
+| `/fdd-validate semantic` | Any | MANDATORY | Yes — per `agent-compliance.md` |
+| `/fdd-validate` | **STRICT** | MANDATORY | Yes — per `agent-compliance.md` |
+| `/fdd-validate` | **RELAXED** | Optional | No — best effort |
 
 **If STRICT mode**:
 - Semantic review is MANDATORY, not optional
@@ -219,6 +274,12 @@ Blocking issues:
 - Agent MUST provide evidence for each checklist category
 - Agent MUST NOT skip categories or report bulk "PASS"
 - Failure to complete semantic review → validation INVALID
+
+**If semantic review cannot be completed** (context limits, missing info, interruption):
+1. Document which categories were checked with evidence
+2. Mark incomplete categories with reason (e.g., "INCOMPLETE: context limit reached")
+3. Output as `PARTIAL` — do NOT report overall PASS/FAIL
+4. Include checkpoint guidance: "Resume with `/fdd-validate semantic` after addressing blockers"
 
 **If RELAXED mode**:
 - Semantic review is optional
@@ -301,6 +362,16 @@ Check (from rules.md + standard):
 - [ ] System assignment is correct
 - [ ] Path is correct
 
+### Checkpoint for Large Artifacts
+
+**For artifacts >500 lines or validation taking multiple turns**:
+- After completing each checklist category group, note progress in output
+- If context runs low, save checkpoint before continuing:
+  - List completed categories with status
+  - List remaining categories
+  - Note current position in artifact
+- On resume: re-read artifact, verify unchanged, continue from checkpoint
+
 ### Collect Recommendations
 
 Categorize by priority:
@@ -313,6 +384,8 @@ Categorize by priority:
 ## Phase 4: Output
 
 Print to chat (NO files created):
+
+### Full Validation Output (default)
 
 ```
 ═══════════════════════════════════════════════
@@ -342,6 +415,42 @@ Status: PASS
 ### Coverage (if applicable)
 - Requirements: {X}/{Y} implemented
 - Tests: {X}/{Y} covered
+
+───────────────────────────────────────────────
+═══════════════════════════════════════════════
+```
+
+### Semantic-Only Validation Output (`/fdd-validate semantic`)
+
+```
+═══════════════════════════════════════════════
+Semantic Validation: {TARGET_TYPE}
+───────────────────────────────────────────────
+kind:   {KIND}
+name:   {name}
+path:   {PATH}
+───────────────────────────────────────────────
+Mode: SEMANTIC ONLY (deterministic gate skipped)
+Status: PASS/FAIL
+═══════════════════════════════════════════════
+
+### Checklist Review
+
+| Category | Status | Evidence |
+|----------|--------|----------|
+| {category} | PASS/FAIL/N/A | {line refs, quotes} |
+
+### Issues Found
+
+**High priority**:
+- {issue with location}
+
+**Medium priority**:
+- {issue with location}
+
+### Coverage
+- Checklist items: {X}/{Y} passed
+- N/A categories: {list with reasoning}
 
 ───────────────────────────────────────────────
 ═══════════════════════════════════════════════

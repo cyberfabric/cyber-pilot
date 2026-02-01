@@ -94,6 +94,7 @@ Prefer agents that support:
 - IntelliJ IDEA, PyCharm, WebStorm with AI Assistant
 - Multiple model support
 
+**Note**: FDD is **strictly opt-in** for AI agents. It will never activate automatically. You must explicitly enable it with `/fdd` or by invoking specific workflows (`/fdd-generate`, `/fdd-validate`, etc.).
 
 ---
 
@@ -130,29 +131,18 @@ git clone https://github.com/cyberfabric/fdd FDD
 
 ---
 
-### Step 2: Create Project AGENTS.md (1 minute, optional but recommended)
-
-**What it does**: Links your project to FDD
-
-**Create file** `AGENTS.md` in project root:
-```markdown
-# Project AI Agent Instructions
-
-ALWAYS open and follow `FDD/AGENTS.md`
-```
-
-**Result**: Root `AGENTS.md` created with FDD reference
-
----
-
 ### Step 2.5: Generate Agent Integration Files (1 minute, optional)
 
 This creates agent-specific proxy files that redirect back to the canonical FDD workflows and the `fdd` skill.
 
+**Agent-Safe Invocation** (MANDATORY):
 ```bash
+# MUST use this pattern (avoids cwd/PYTHONPATH issues)
+python3 FDD/skills/fdd/scripts/fdd.py <subcommand> [options]
+
+# Example for FDD installed at project root:
 python3 FDD/skills/fdd/scripts/fdd.py init
-python3 FDD/skills/fdd/scripts/fdd.py agent-workflows --agent windsurf
-python3 FDD/skills/fdd/scripts/fdd.py agent-skills --agent windsurf
+python3 FDD/skills/fdd/scripts/fdd.py agents --agent windsurf
 ```
 
 After initialization, create and populate `{adapter-dir}/artifacts.json`.
@@ -161,50 +151,60 @@ Artifact locations are resolved via this registry (defaults may be `architecture
 
 **After this step, you can use FDD directly from your agent chat**:
 
-**Workflow commands (from chat)**
+### Using FDD Workflows
 
-Once the workflow proxies are generated, you can trigger workflows by name from the chat (the exact UX depends on your IDE/agent).
+FDD provides structured workflows for AI agents to help with design and architecture tasks.
 
-Examples:
-```text
-/fdd-adapter
-/fdd-prd
-/fdd-design
-/fdd-features
-/fdd-feature
-/fdd-code
-```
+**FDD Mode States**:
+- **OFF** (default): Normal assistant, no FDD workflows
+- **ON**: FDD workflows available, adapter discovered
 
-Each of these opens a small proxy file that redirects the agent to the canonical workflow under `FDD/workflows/`.
+**Enable FDD**: `/fdd` or invoke specific workflow command
+**Disable FDD**: `/fdd off`
 
-**Tool/skill commands (from chat)**
+**Available Workflows (when FDD ON)**:
+
+| Command | Description |
+|---------|-------------|
+| `/fdd` | Enable FDD mode, show status and available workflows |
+| `/fdd-generate` | Create/update artifacts or implement code |
+| `/fdd-validate` | Validate artifacts or code (deterministic + semantic) |
+| `/fdd-validate semantic` | Semantic-only validation (skip deterministic gate) |
+| `/fdd-adapter` | Create/update project adapter |
+
+Each workflow command opens a proxy file that redirects the agent to the canonical workflow under `FDD/workflows/`.
+
+### Using FDD Tool Commands
 
 Once the skill proxy is generated, you can ask your agent to run `fdd` commands directly (validation + search are JSON-output, machine-friendly).
 
-Examples:
+**Examples**:
 ```text
 fdd help
 fdd validate help
 
-fdd adapter info
+fdd adapter-info
 
-fdd validate skip code traceability
+fdd validate
+fdd validate-code
+fdd validate-rules
 
-fdd get ids from design 
-fdd search postgres in design
+fdd list-ids
+fdd list-ids --pattern "-req-"
+fdd get-content --artifact architecture/PRD.md --id fdd-yourproj-req-some-id
 
-fdd where-defined fdd-yourproj-req-some-id
-fdd where-used fdd-yourproj-req-some-id
+fdd where-defined --id fdd-yourproj-req-some-id
+fdd where-used --id fdd-yourproj-req-some-id
 ```
 
-**Why this is powerful (tool + agent together)**
+**Why this is powerful (tool + agent together)**:
 
 You type short intent like the examples above. The agent:
 - Runs the precise `fdd` command under the hood (with correct flags/paths)
 - Reads the JSON output
 - Turns it into next steps (what to fix, which workflow to run, where the ID lives)
 
-Examples:
+**Examples**:
 ```text
 fdd validate
 # Agent reads FAIL report and tells you exactly which artifact/section failed and what workflow to run next.
@@ -212,25 +212,20 @@ fdd validate
 fdd where-defined fdd-yourproj-req-some-id
 # Agent finds the canonical definition and can open that section and help you edit it safely.
 
-fdd agent-workflows windsurf
+fdd agents --agent windsurf
 # Agent updates the workflow proxies after you updated the FDD submodule.
 ```
 
 Your agent will execute these via the underlying Python entrypoint, but from chat you only need to type `fdd ...`.
 
-**Update agent workflow proxies via the tool/skill**
+**Update agent integration files via the tool**:
 
 If you update the FDD submodule (new workflows appear, names change, etc.), just regenerate the proxies:
 ```text
-fdd agent-workflows windsurf
-fdd agent-skills windsurf
+fdd agents --agent windsurf
 ```
 
-**Supported agents**:
-- `windsurf`
-- `cursor`
-- `claude`
-- `copilot`
+**Supported agents**: `windsurf`, `cursor`, `claude`, `copilot`
 
 ---
 

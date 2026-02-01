@@ -10,21 +10,40 @@ purpose: Define structure and usage of artifacts.json for agent operations
 
 ---
 
-## Agent Instructions
+## Table of Contents
 
-**Add to adapter AGENTS.md**:
-```
-ALWAYS open and follow `../requirements/artifacts-registry.md` WHEN working with artifacts.json
-```
-
-**ALWAYS use**: `fdd.py adapter-info` to discover adapter location
-
-**ALWAYS use**: `fdd.py` CLI commands for artifact operations (list-ids, where-defined, where-used, validate)
+- [Agent Instructions](#agent-instructions)
+- [Overview](#overview)
+- [Schema Version](#schema-version)
+- [Root Structure](#root-structure)
+- [Rules](#rules)
+- [Systems](#systems)
+- [Artifacts](#artifacts)
+- [Codebase](#codebase)
+- [Path Resolution](#path-resolution)
+- [CLI Commands](#cli-commands)
+- [Agent Operations](#agent-operations)
+- [Error Handling](#error-handling)
+- [Example Registry](#example-registry)
+- [Common Issues](#common-issues)
+- [Consolidated Validation Checklist](#consolidated-validation-checklist)
+- [References](#references)
 
 ---
 
-## Prerequisite Checklist
+## Agent Instructions
 
+**Add to adapter AGENTS.md** (path relative to adapter directory):
+```
+ALWAYS open and follow `{FDD}/requirements/artifacts-registry.md` WHEN working with artifacts.json
+```
+Where `{FDD}` is resolved from the adapter's `**Extends**:` declaration.
+
+**ALWAYS use**: `python3 {FDD}/skills/fdd/scripts/fdd.py adapter-info` to discover adapter location
+
+**ALWAYS use**: `fdd.py` CLI commands for artifact operations (list-ids, where-defined, where-used, validate)
+
+**Prerequisite**: Agent confirms understanding before proceeding:
 - [ ] Agent has read and understood this requirement
 - [ ] Agent knows where artifacts.json is located (via adapter-info)
 - [ ] Agent will use CLI commands, not direct file manipulation
@@ -242,7 +261,9 @@ System (root)
     {
       "name": "Source Code",
       "path": "src",
-      "extensions": [".ts", ".tsx"]
+      "extensions": [".ts", ".tsx"],
+      "singleLineComments": ["//"],
+      "multiLineComments": [{"start": "/*", "end": "*/"}]
     }
   ]
 }
@@ -255,6 +276,8 @@ System (root)
 | `name` | string | NO | Human-readable name (for display) |
 | `path` | string | YES | Path to source directory (relative to project_root) |
 | `extensions` | array | YES | File extensions to include (e.g., `[".py", ".ts"]`) |
+| `singleLineComments` | array | NO | Single-line comment prefixes (e.g., `["#", "//"]`). Defaults based on file extension. |
+| `multiLineComments` | array | NO | Multi-line comment delimiters. Each item has `start` and `end` properties. Defaults based on file extension. |
 
 ### Extension Format
 
@@ -263,6 +286,34 @@ Extensions MUST start with a dot and contain only alphanumeric characters.
 **Valid**: `.py`, `.ts`, `.tsx`, `.rs`
 
 **Invalid**: `py`, `*.py`, `.foo-bar`
+
+### Comment Syntax Configuration
+
+Comment syntax can be explicitly configured per codebase entry, or left to default based on file extension.
+
+**Multi-line comment structure**:
+```json
+{
+  "start": "/*",
+  "end": "*/"
+}
+```
+
+**Common configurations**:
+
+| Language | Single-line | Multi-line |
+|----------|-------------|------------|
+| Python | `["#"]` | `[{"start": "\"\"\"", "end": "\"\"\""}]` |
+| JavaScript/TypeScript | `["//"]` | `[{"start": "/*", "end": "*/"}]` |
+| Rust | `["//"]` | `[{"start": "/*", "end": "*/"}]` |
+| HTML | — | `[{"start": "<!--", "end": "-->"}]` |
+| CSS | — | `[{"start": "/*", "end": "*/"}]` |
+
+**When to configure explicitly**:
+- Non-standard file extensions
+- Mixed-language files
+- Custom comment syntax
+- Overriding defaults for specific directories
 
 ---
 
@@ -286,36 +337,38 @@ Resolved: /project/.adapter/../architecture/PRD.md
 
 ## CLI Commands
 
+**Note**: All commands use `python3 {FDD}/skills/fdd/scripts/fdd.py` where `{FDD}` is the FDD installation path. Examples below use `fdd.py` as shorthand.
+
 ### Discovery
 
 ```bash
 # Find adapter and registry
-python3 scripts/fdd.py adapter-info --root /project
+fdd.py adapter-info --root /project
 ```
 
 ### Artifact Operations
 
 ```bash
 # List all IDs from registered FDD artifacts
-python3 scripts/fdd.py list-ids
+fdd.py list-ids
 
 # List IDs from specific artifact
-python3 scripts/fdd.py list-ids --artifact architecture/PRD.md
+fdd.py list-ids --artifact architecture/PRD.md
 
 # Find where ID is defined
-python3 scripts/fdd.py where-defined --id "myapp-actor-user"
+fdd.py where-defined --id "myapp-actor-user"
 
 # Find where ID is referenced
-python3 scripts/fdd.py where-used --id "myapp-actor-user"
+fdd.py where-used --id "myapp-actor-user"
 
 # Validate artifact against template
-python3 scripts/fdd.py validate --artifact architecture/PRD.md
+fdd.py validate --artifact architecture/PRD.md
 
 # Validate all registered artifacts
-python3 scripts/fdd.py validate
+fdd.py validate
 
 # Validate rules and templates
-python3 scripts/fdd.py validate-rules
+fdd.py validate-rules
 ```
 
 ---
@@ -362,29 +415,56 @@ else:
 
 ---
 
-## Validation Criteria
+## Error Handling
 
-### Registry Structure
+### artifacts.json Not Found
 
-- [ ] `version` field present and non-empty
-- [ ] `rules` object present with at least one rule
-- [ ] `systems` array present (may be empty)
-- [ ] Each rule has `format` and `path` fields
-- [ ] Each system has `name` and `rules` fields
-- [ ] Each system's `rules` references existing rule ID
+**If artifacts.json doesn't exist at adapter location**:
+```
+⚠️ Registry not found: {adapter_dir}/artifacts.json
+→ Adapter exists but registry not initialized
+→ Fix: Run /fdd-adapter to create registry
+```
+**Action**: STOP — cannot process artifacts without registry.
 
-### Artifact Entries
+### JSON Parse Error
 
-- [ ] Each artifact has `path` and `kind` fields
-- [ ] Artifact paths are files, not directories
-- [ ] Artifact paths have file extensions
-- [ ] Artifact kinds match expected values (PRD, DESIGN, ADR, FEATURES, FEATURE)
+**If artifacts.json contains invalid JSON**:
+```
+⚠️ Invalid JSON in artifacts.json: {parse error}
+→ Check for trailing commas, missing quotes, or syntax errors
+→ Fix: Validate JSON with online validator or IDE
+```
+**Action**: STOP — cannot process malformed registry.
 
-### Codebase Entries
+### Missing Rule Reference
 
-- [ ] Each codebase entry has `path` and `extensions` fields
-- [ ] Extensions array is non-empty
-- [ ] Each extension starts with `.`
+**If system references non-existent rule**:
+```
+⚠️ Invalid rule reference: system "MyApp" references rule "custom-rules" not in rules section
+→ Fix: Add rule to rules section OR change system.rules to existing rule ID
+```
+**Action**: FAIL validation for that system, continue with others.
+
+### Artifact File Not Found
+
+**If registered artifact file doesn't exist**:
+```
+⚠️ Artifact not found: architecture/PRD.md
+→ Registered in artifacts.json but file missing
+→ Fix: Create file OR remove from registry
+```
+**Action**: WARN and skip artifact, continue with others.
+
+### Template Not Found
+
+**If template for artifact kind doesn't exist**:
+```
+⚠️ Template not found: rules/sdlc/artifacts/PRD/template.md
+→ Kind "PRD" registered but template missing
+→ Fix: Create template OR use different rules package
+```
+**Action**: FAIL validation for that artifact, continue with others.
 
 ---
 
@@ -411,7 +491,13 @@ else:
         { "name": "Features Manifest", "path": "architecture/features/FEATURES.md", "kind": "FEATURES", "traceability": "DOCS-ONLY" }
       ],
       "codebase": [
-        { "name": "Source Code", "path": "src", "extensions": [".ts", ".tsx"] }
+        {
+          "name": "Source Code",
+          "path": "src",
+          "extensions": [".ts", ".tsx"],
+          "singleLineComments": ["//"],
+          "multiLineComments": [{"start": "/*", "end": "*/"}]
+        }
       ],
       "children": [
         {
@@ -454,15 +540,45 @@ else:
 
 ---
 
-## Validation Checklist
+## Consolidated Validation Checklist
 
-- [ ] artifacts.json exists at `{adapter-directory}/artifacts.json`
-- [ ] JSON parses without errors
-- [ ] Version field is present and non-empty
-- [ ] At least one rule is defined
-- [ ] Each rule has format and path fields
-- [ ] Each system has name and rules fields
-- [ ] System rules references exist in rules section
-- [ ] Artifact paths are files (not directories)
-- [ ] Artifact kinds are valid (PRD, DESIGN, ADR, FEATURES, FEATURE)
-- [ ] Codebase extensions start with dot
+**Use this single checklist for all artifacts.json validation.**
+
+### Registry Structure (R)
+
+| # | Check | Required | How to Verify |
+|---|-------|----------|---------------|
+| R.1 | artifacts.json exists at adapter location | YES | File exists at `{adapter_dir}/artifacts.json` |
+| R.2 | JSON parses without errors | YES | `json.loads()` succeeds |
+| R.3 | `version` field present and non-empty | YES | Field exists and is string |
+| R.4 | `rules` object present with ≥1 rule | YES | Object with at least one key |
+| R.5 | `systems` array present | YES | Array (may be empty) |
+| R.6 | Each rule has `format` and `path` fields | YES | Both fields exist per rule |
+| R.7 | Each system has `name` and `rules` fields | YES | Both fields exist per system |
+| R.8 | System `rules` references exist in rules section | YES | Lookup succeeds |
+
+### Artifact Entries (A)
+
+| # | Check | Required | How to Verify |
+|---|-------|----------|---------------|
+| A.1 | Each artifact has `path` and `kind` fields | YES | Both fields exist |
+| A.2 | Artifact paths are files, not directories | YES | Path has extension, doesn't end with `/` |
+| A.3 | Artifact kinds are valid | YES | One of: PRD, DESIGN, ADR, FEATURES, FEATURE |
+| A.4 | Artifact files exist (if validating content) | CONDITIONAL | File exists at resolved path |
+
+### Codebase Entries (C)
+
+| # | Check | Required | How to Verify |
+|---|-------|----------|---------------|
+| C.1 | Each codebase entry has `path` and `extensions` | YES | Both fields exist |
+| C.2 | Extensions array is non-empty | YES | Array length > 0 |
+| C.3 | Each extension starts with `.` | YES | Regex: `^\.[a-zA-Z0-9]+$` |
+| C.4 | Comment syntax format valid (if specified) | CONDITIONAL | Arrays of strings, multi-line has start/end |
+
+### Final (F)
+
+| # | Check | Required | How to Verify |
+|---|-------|----------|---------------|
+| F.1 | All Registry Structure checks pass | YES | R.1-R.8 verified |
+| F.2 | All Artifact Entries checks pass | YES | A.1-A.4 verified |
+| F.3 | All Codebase Entries checks pass | YES | C.1-C.4 verified |

@@ -11,6 +11,16 @@
 
 ---
 
+## Table of Contents
+
+1. [Requirements](#requirements)
+2. [Tasks](#tasks)
+3. [Validation](#validation)
+4. [Error Handling](#error-handling)
+5. [Next Steps](#next-steps)
+
+---
+
 ## Requirements
 
 Agent confirms understanding of requirements:
@@ -21,7 +31,7 @@ Agent confirms understanding of requirements:
 - [ ] **DO NOT copy `fdd-template:` frontmatter** — that is template metadata only
 - [ ] Artifact frontmatter (optional): use `fdd:` format for document metadata
 - [ ] All required sections present and non-empty
-- [ ] All IDs follow `fdd-{project}-{kind}-{slug}` convention
+- [ ] All IDs follow `fdd-{system}-{kind}-{slug}` convention
 - [ ] All capabilities have priority markers (`p1`-`p9`)
 - [ ] No placeholder content (TODO, TBD, FIXME)
 - [ ] No duplicate IDs within document
@@ -30,7 +40,7 @@ Agent confirms understanding of requirements:
 
 - [ ] When editing existing PRD: increment version in frontmatter
 - [ ] When changing capability definition: add `-v{N}` suffix to ID or increment existing version
-- [ ] Format: `fdd-{project}-cap-{slug}-v2`, `fdd-{project}-cap-{slug}-v3`, etc.
+- [ ] Format: `fdd-{system}-cap-{slug}-v2`, `fdd-{system}-cap-{slug}-v3`, etc.
 - [ ] Keep changelog of significant changes
 
 ### Semantic Requirements
@@ -38,10 +48,16 @@ Agent confirms understanding of requirements:
 **Reference**: `checklist.md` for detailed criteria
 
 - [ ] Vision is clear and explains WHY the product exists
+  - ✓ "Enables developers to validate artifacts against templates" (explains purpose)
+  - ✗ "A tool for FDD" (doesn't explain why it matters)
 - [ ] All actors are identified with specific roles (not just "users")
+  - ✓ "Framework Developer", "Project Maintainer", "CI Pipeline"
+  - ✗ "Users", "Developers" (too generic)
 - [ ] Each actor has defined capabilities
 - [ ] Capabilities trace to business problems
-- [ ] Success criteria are measurable (with baselines and timeframes where applicable)
+- [ ] Success criteria are measurable with concrete targets
+  - ✓ "Reduce validation time from 15min to <30s" (quantified with baseline)
+  - ✗ "Improve validation speed" (no baseline, no target)
 - [ ] Use cases cover primary user journeys
 - [ ] Use cases include alternative flows for error scenarios
 - [ ] Non-goals explicitly state what product does NOT do
@@ -55,6 +71,37 @@ Agent confirms understanding of requirements:
 - [ ] Capabilities are traced through: PRD → DESIGN → FEATURES → FEATURE → CODE
 - [ ] When capability fully implemented (all features IMPLEMENTED) → mark capability `[x]`
 - [ ] When all capabilities `[x]` → product version complete
+
+### Checkbox Management (`covered_by` Attribute)
+
+PRD defines IDs with `covered_by` attributes that track downstream implementation:
+
+| ID Type | `covered_by` | Meaning |
+|---------|--------------|---------|
+| `id:fr` | `DESIGN,FEATURES,FEATURE` | FR is covered when referenced in DESIGN, FEATURES, or FEATURE artifacts |
+| `id:nfr` | `DESIGN,FEATURES,FEATURE` | NFR is covered when referenced in downstream artifacts |
+
+**Checkbox States**:
+
+1. **FR/NFR Checkbox** (`id:fr`, `id:nfr`):
+   - `[ ] p1 - fdd-{system}-fr-{slug}` — unchecked until requirement is fully implemented
+   - `[x] p1 - fdd-{system}-fr-{slug}` — checked when ALL downstream references are `[x]`
+
+**When to Check FR/NFR Checkboxes**:
+
+- [ ] A FR can be checked when:
+  - All `id-ref:fr` references in DESIGN are `[x]` (if design addresses it)
+  - All `id-ref:fr` references in FEATURES are `[x]` (if features cover it)
+  - Implementation is verified and tested
+- [ ] An NFR can be checked when:
+  - Design addresses the non-functional concern
+  - All features implement the constraint
+  - Acceptance criteria are met and verified
+
+**Validation Checks** (automated via `python3 {FDD}/skills/fdd/scripts/fdd.py validate`):
+- Will warn if `id:fr`/`id:nfr` has no references in `covered_by` artifacts
+- Will warn if reference is `[x]` but definition is not
+- Agent does NOT manually check `covered_by` — the CLI tool handles this automatically
 
 ---
 
@@ -85,10 +132,10 @@ Agent executes tasks during generation:
 
 ### Phase 3: IDs and Structure
 
-- [ ] Generate actor IDs: `fdd-{project}-actor-{slug}`
-- [ ] Generate capability IDs: `fdd-{project}-cap-{slug}`
+- [ ] Generate actor IDs: `fdd-{system}-actor-{slug}`
+- [ ] Generate capability IDs: `fdd-{system}-cap-{slug}`
 - [ ] Assign priorities based on business impact
-- [ ] Verify uniqueness with `fdd list-ids`
+- [ ] Verify uniqueness with `python3 {FDD}/skills/fdd/scripts/fdd.py list-ids`
 
 ### Phase 4: Quality Check
 
@@ -104,7 +151,7 @@ Validation workflow applies rules in two phases:
 
 ### Phase 1: Structural Validation (Deterministic)
 
-Run `fdd validate` for:
+Run `python3 {FDD}/skills/fdd/scripts/fdd.py validate --artifact <path>` for:
 - [ ] Template structure compliance
 - [ ] ID format validation
 - [ ] Priority markers present
@@ -143,6 +190,49 @@ Issues:
 
 ---
 
+## Error Handling
+
+### Missing Dependencies
+
+**If `template.md` cannot be loaded**:
+```
+⚠ Template not found: rules/sdlc/artifacts/PRD/template.md
+→ Verify FDD installation is complete
+→ STOP — cannot proceed without template
+```
+
+**If `checklist.md` cannot be loaded**:
+```
+⚠ Checklist not found: rules/sdlc/artifacts/PRD/checklist.md
+→ Structural validation possible, semantic validation skipped
+→ Warn user: "Semantic validation unavailable"
+```
+
+**If `examples/example.md` cannot be loaded**:
+```
+⚠ Example not found — continuing with reduced guidance
+→ Warn user: "No reference example available for quality comparison"
+```
+
+### Missing Adapter Config
+
+**If adapter config unavailable** (Phase 1 Setup, line 100):
+```
+⚠ No adapter config found
+→ Use default project prefix: "fdd-{dirname}"
+→ Ask user to confirm or provide custom prefix
+```
+
+### Escalation
+
+**Ask user when**:
+- Cannot determine appropriate actor roles for the domain
+- Business requirements are unclear or contradictory
+- Success criteria cannot be quantified without domain knowledge
+- Uncertain whether a category is truly N/A or just missing
+
+---
+
 ## Next Steps
 
 After PRD generation/validation, offer these options:
@@ -152,3 +242,4 @@ After PRD generation/validation, offer these options:
 | PRD complete | `/fdd-generate DESIGN` — create technical design |
 | Need architecture decision | `/fdd-generate ADR` — document key decision |
 | PRD needs revision | Continue editing PRD |
+| Want checklist review only | `/fdd-validate semantic` — semantic validation (skip deterministic) |

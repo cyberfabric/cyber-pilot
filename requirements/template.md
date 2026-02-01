@@ -2,11 +2,49 @@
 fdd: true
 type: requirement
 name: FDD Template Specification
-version: 1.0
+version: 1.1
 purpose: Define marker-based template syntax for FDD artifacts
 ---
 
 # FDD Template Specification
+
+## Table of Contents
+
+1. [Quick Reference](#quick-reference)
+2. [Prerequisite Checklist](#prerequisite-checklist)
+3. [Overview](#overview)
+4. [Template Frontmatter](#template-frontmatter)
+5. [Marker Syntax](#marker-syntax)
+6. [ID Formats](#id-formats)
+7. [FDL Format](#fdl-format-fdd-definition-language)
+8. [Template Example](#template-example)
+9. [Artifact Validation](#artifact-validation)
+10. [Error Types](#error-types)
+11. [Agent Workflow](#agent-workflow)
+12. [Validation Checklist](#validation-checklist)
+13. [References](#references)
+
+---
+
+## Quick Reference
+
+**Marker syntax**:
+```html
+<!-- fdd:TYPE:NAME ATTRS -->
+content
+<!-- fdd:TYPE:NAME -->
+```
+
+**Common marker types**: `free`, `id`, `id-ref`, `list`, `table`, `paragraph`, `fdl`, `#`-`######`
+
+**ID format**: `` `fdd-{project}-{kind}-{slug}` ``
+
+**Validate template**:
+```bash
+python3 {FDD}/skills/fdd/scripts/fdd.py validate --artifact <path>
+```
+
+---
 
 ## Prerequisite Checklist
 
@@ -107,20 +145,20 @@ content goes here
 
 ```
 **ID**: `fdd-project-kind-slug`
-**ID**: [ ] `fdd-project-kind-slug`
-**ID**: [x] `p1` - `fdd-project-kind-slug`
-**ID**: `p2` - `fdd-project-kind-slug`
+- [ ] **ID**: `fdd-project-kind-slug`
+- [x] `p1` - **ID**: `fdd-project-kind-slug`
+`p2` - **ID**: `fdd-project-kind-slug`
 ```
 
 **Pattern**:
 
 ```regex
-^\*\*ID\*\*:\s*(?:(?:\[\s*[xX]?\s*\])\s*(?:`p\d+`\s*-\s*)?)?`fdd-[a-z0-9][a-z0-9-]+`\s*$
+^(?:\*\*ID\*\*:\s*`fdd-[a-z0-9][a-z0-9-]+`|`p\d+`\s*-\s*\*\*ID\*\*:\s*`fdd-[a-z0-9][a-z0-9-]+`|[-*]\s+\[\s*[xX]?\s*\]\s*(?:`p\d+`\s*-\s*)?\*\*ID\*\*:\s*`fdd-[a-z0-9][a-z0-9-]+`)\s*$
 ```
 
 Components:
 - `**ID**:` — literal prefix (required)
-- `[ ]` or `[x]` — optional task checkbox
+- `- [ ]` or `- [x]` — optional task checkbox (task list item)
 - `` `p1` `` - `` `p9` `` — optional priority
 - `` `fdd-xxx` `` — the ID in backticks (required)
 
@@ -223,7 +261,7 @@ Brief description of the feature.
 <!-- fdd:paragraph:description -->
 
 <!-- fdd:id:requirements required="true" repeat="many" covered_by="CODE" has="task" -->
-**ID**: [ ] `fdd-project-req-xxx`
+- [ ] **ID**: `fdd-project-req-xxx`
 <!-- fdd:id:requirements -->
 
 <!-- fdd:fdl:flow required="true" -->
@@ -291,28 +329,49 @@ Brief description of the feature.
 
 ---
 
-## Validation Criteria
+## Agent Workflow
 
-- [ ] Template has valid fdd-template frontmatter
-- [ ] Template version is supported (≤ 1.0)
-- [ ] All markers are properly paired (open/close)
-- [ ] Artifact has all required blocks
-- [ ] Block content matches type constraints
-- [ ] ID formats are correct
-- [ ] References resolve to definitions
-- [ ] Task statuses are consistent
+### When to Use This Spec
+
+1. **Creating templates**: When defining new artifact kinds
+2. **Validating artifacts**: When checking artifact structure against templates
+3. **Debugging validation errors**: When interpreting error messages
+
+### Template Creation Workflow
+
+1. Define artifact kind in frontmatter
+2. Add required markers with appropriate types
+3. Set attributes (`required`, `repeat`, `covered_by`, etc.)
+4. Test with example artifact
+
+### Validation Workflow
+
+1. Load template for artifact kind
+2. Parse artifact markers
+3. Check structure against template
+4. Validate content per marker type
+5. Report errors with line numbers
+
+### Common Tasks
+
+| Task | Command |
+|------|---------|
+| Validate artifact | `python3 {FDD}/skills/fdd/scripts/fdd.py validate --artifact <path>` |
+| List IDs | `python3 {FDD}/skills/fdd/scripts/fdd.py list-ids` |
+| Check references | `python3 {FDD}/skills/fdd/scripts/fdd.py check-refs` |
 
 ---
 
 ## Validation Checklist
 
-- [ ] Template frontmatter is present and valid
-- [ ] Template version is supported
-- [ ] All markers are properly paired
-- [ ] Required blocks are present in artifact
+- [ ] Template has valid `fdd-template` frontmatter
+- [ ] Template version is supported (≤ 1.0)
+- [ ] All markers are properly paired (open/close)
+- [ ] Artifact has all required blocks
 - [ ] Block content matches type constraints
 - [ ] ID formats are correct
-- [ ] All references resolve
+- [ ] All references resolve to definitions
+- [ ] Task statuses are consistent (if `has="task"`)
 
 ---
 
@@ -320,3 +379,4 @@ Brief description of the feature.
 
 - **Schema**: `schemas/fdd-template-frontmatter.schema.json`
 - **Implementation**: `skills/fdd/scripts/fdd/utils/template.py`
+- **CLI**: `python3 {FDD}/skills/fdd/scripts/fdd.py validate --artifact <path>`

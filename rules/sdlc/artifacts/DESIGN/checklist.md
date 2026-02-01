@@ -1,8 +1,72 @@
 # DESIGN (Overall Design) Expert Checklist
 
-**Artifact**: Overall System Design (DESIGN)  
-**Version**: 1.0  
+**Artifact**: Overall System Design (DESIGN)
+**Version**: 1.0
 **Purpose**: Comprehensive quality checklist for Overall Design artifacts
+
+---
+
+## Table of Contents
+
+1. [Review Scope Selection](#review-scope-selection)
+2. [Prerequisites](#prerequisites)
+3. [Evidence Requirements (STRICT mode)](#evidence-requirements-strict-mode)
+4. [Applicability Context](#applicability-context)
+5. [Severity Dictionary](#severity-dictionary)
+6. [MUST HAVE](#must-have)
+   - [ARCHITECTURE Expertise (ARCH)](#️-architecture-expertise-arch)
+   - [PERFORMANCE Expertise (PERF)](#-performance-expertise-perf)
+   - [SECURITY Expertise (SEC)](#-security-expertise-sec)
+   - [RELIABILITY Expertise (REL)](#️-reliability-expertise-rel)
+   - [DATA Expertise (DATA)](#-data-expertise-data)
+   - [INTEGRATION Expertise (INT)](#-integration-expertise-int)
+   - [OPERATIONS Expertise (OPS)](#️-operations-expertise-ops)
+   - [MAINTAINABILITY Expertise (MAINT)](#-maintainability-expertise-maint)
+   - [TESTING Expertise (TEST)](#-testing-expertise-test)
+   - [COMPLIANCE Expertise (COMPL)](#-compliance-expertise-compl)
+   - [USABILITY Expertise (UX)](#-usability-expertise-ux)
+   - [BUSINESS Expertise (BIZ)](#-business-expertise-biz)
+   - [Semantic Alignment (SEM)](#semantic-alignment-sem)
+   - [Deliberate Omissions](#deliberate-omissions)
+7. [MUST NOT HAVE](#must-not-have)
+8. [Validation Summary](#validation-summary)
+   - [Final Checklist](#final-checklist)
+   - [Reporting Readiness Checklist](#reporting-readiness-checklist)
+   - [Reporting](#reporting)
+
+---
+
+## Review Scope Selection
+
+**Choose review mode based on DESIGN scope and change type**:
+
+| Review Mode | When to Use | Domains to Check |
+|-------------|-------------|------------------|
+| **Quick** | Minor updates, <3 sections changed | ARCH (core only) + changed domains |
+| **Standard** | New DESIGN, moderate changes | All applicable domains |
+| **Full** | Major architectural changes, compliance-critical | All 12 domains with evidence |
+
+### Quick Review (ARCH Core Only)
+
+**MUST CHECK** (blocking):
+- [ ] ARCH-DESIGN-001: Architecture Overview Completeness
+- [ ] ARCH-DESIGN-004: Component Model Quality
+- [ ] ARCH-DESIGN-005: Domain Model Authority
+- [ ] DOC-DESIGN-001: Explicit Non-Applicability
+
+**Changed sections** — also check relevant domain items for any sections modified.
+
+### Domain Prioritization by System Type
+
+| System Type | Priority Domains (check first) | Secondary Domains | Often N/A |
+|-------------|-------------------------------|-------------------|-----------|
+| **Web Service** | ARCH, SEC, REL, DATA, INT | PERF, OPS, TEST | UX, COMPL |
+| **CLI Tool** | ARCH, MAINT, TEST | DATA, INT | SEC, PERF, OPS, COMPL, UX |
+| **Data Pipeline** | ARCH, DATA, REL, PERF | INT, OPS | SEC, UX, COMPL |
+| **Methodology/Framework** | ARCH, MAINT | TEST | SEC, PERF, REL, DATA, INT, OPS, COMPL, UX |
+| **Mobile App** | ARCH, UX, SEC, PERF | DATA, TEST | OPS, INT, COMPL |
+
+**Applicability Rule**: Domains in "Often N/A" column still require explicit "Not applicable because..." statement in document if skipped.
 
 ---
 
@@ -195,6 +259,40 @@ Before evaluating each checklist item, the expert MUST:
 - [ ] Internal vs external interfaces distinguished
 - [ ] Coupling between components minimized
 - [ ] Cohesion within components maximized
+
+---
+
+## Semantic Alignment (SEM)
+
+### SEM-DESIGN-001: PRD Intent Preservation
+**Severity**: CRITICAL
+
+- [ ] Design addresses all PRD FR and NFR IDs referenced in the design
+- [ ] Architecture drivers align with PRD problems, capabilities, and success criteria
+- [ ] Actors and use cases referenced in design match the PRD actor definitions
+- [ ] Non-goals and risks in PRD are respected and not contradicted
+
+### SEM-DESIGN-002: PRD Scope Consistency
+**Severity**: HIGH
+
+- [ ] No design scope extends beyond PRD boundaries without explicit approval
+- [ ] Assumptions and open questions are consistent with PRD assumptions
+- [ ] Any PRD trade-offs are explicitly documented in design context
+
+### SEM-DESIGN-003: ADR Consistency and Coverage
+**Severity**: CRITICAL
+
+- [ ] Each referenced ADR decision is reflected in architecture choices and rationale
+- [ ] ADR status is respected (Rejected/Deprecated decisions are not implemented)
+- [ ] ADR decision drivers are reflected in design principles and constraints
+- [ ] ADR consequences are incorporated into design risks or constraints
+
+### SEM-DESIGN-004: ADR/PRD Link Integrity
+**Severity**: HIGH
+
+- [ ] ADR links include a clear trace to PRD context or requirement IDs
+- [ ] Design references to ADRs are complete and do not omit critical decisions
+- [ ] Any deviation from ADR decisions is explicitly justified and approved
 
 ### ARCH-DESIGN-009: Technology Stack Alignment
 **Severity**: MEDIUM
@@ -815,7 +913,7 @@ For each issue include:
 - **Why it matters**: Impact (risk, cost, user harm, compliance)
 - **Proposal**: Concrete fix (what to change/add/remove) with clear acceptance criteria
 
-Recommended output format for chat:
+### Full Report Format (Standard/Full Reviews)
 
 ```markdown
 ## Review Report (Issues Only)
@@ -849,22 +947,22 @@ Recommended output format for chat:
 ---
 
 ### 2. {Short issue title}
-
-**Checklist Item**: `{CHECKLIST-ID}` — {Checklist item title}
-
-**Severity**: CRITICAL|HIGH|MEDIUM|LOW
-
-#### Why Applicable
-
-{...}
-
-#### Issue
-
-{...}
-
----
-
 ...
+```
+
+### Compact Report Format (Quick Reviews)
+
+For quick reviews, use this condensed table format:
+
+```markdown
+## DESIGN Review Summary
+
+| ID | Severity | Issue | Proposal |
+|----|----------|-------|----------|
+| ARCH-DESIGN-001 | HIGH | Missing context diagram | Add system context diagram to Section A |
+| ARCH-DESIGN-005 | MEDIUM | No schema location | Add path to domain types in Section C.1 |
+
+**Applicability**: {System type} — checked {N} priority domains, {M} marked N/A
 ```
 
 ---

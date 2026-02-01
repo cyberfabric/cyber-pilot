@@ -10,96 +10,97 @@ fdd-template:
 <!-- fdd:#:prd -->
 # PRD
 
-<!-- fdd:##:vision -->
-## A. Vision
+<!-- fdd:##:overview -->
+## 1. Overview
 
 <!-- fdd:paragraph:purpose -->
-**Purpose**: <1-3 sentences describing what the product/system is>
+**Purpose**: {1-3 sentences describing what the product/system is}
 <!-- fdd:paragraph:purpose -->
 
 <!-- fdd:paragraph:context -->
-<1-2 short paragraphs providing high-level context.>
+{1-2 short paragraphs providing high-level context.}
 <!-- fdd:paragraph:context -->
 
 **Target Users**:
 <!-- fdd:list:target-users required="true" -->
-- <who uses it>
-- <who else>
+- {Primary user type and their role}
+- {Secondary user type and their role}
 <!-- fdd:list:target-users -->
 
 **Key Problems Solved**:
 <!-- fdd:list:key-problems required="true" -->
-- <problem>
-- <problem>
+- {1-3 sentences describing a key problem this product solves}
+- {1-3 sentences describing another key problem}
 <!-- fdd:list:key-problems -->
 
 **Success Criteria**:
 <!-- fdd:list:success-criteria required="true" -->
-- <measurable outcome>
-- <measurable outcome>
+- {Measurable outcome with target metric and timeline}
+- {Another measurable outcome with target metric}
 <!-- fdd:list:success-criteria -->
 
 **Capabilities**:
 <!-- fdd:list:capabilities required="true" -->
-- <capability>
-- <capability>
+- {1-2 sentences describing a core capability}
+- {1-2 sentences describing another capability}
 <!-- fdd:list:capabilities -->
-<!-- fdd:##:vision -->
+<!-- fdd:##:overview -->
 
 <!-- fdd:##:actors -->
-## B. Actors
+## 2. Actors
 
 <!-- fdd:###:actor-title repeat="many" -->
-### <Actor Name>
+### {Actor Name}
 
-<!-- fdd:id:actor has="task" -->
-**ID**: [ ] `fdd-<project>-actor-<slug>`
 <!-- fdd:id:actor -->
+**ID**: `fdd-{system}-actor-{slug}`
 
-<!-- fdd:line:actor-role repeat="many" -->
-**Role**: <1-3 sentences describing responsibilities and goals>
-<!-- fdd:line:actor-role -->
+<!-- fdd:paragraph:actor-role repeat="many" -->
+**Role**: {1-3 sentences describing responsibilities and goals}
+<!-- fdd:paragraph:actor-role -->
 
-<Add more actors as needed.>
+{Add more actors as needed.}
+<!-- fdd:id:actor -->
 <!-- fdd:###:actor-title repeat="many" -->
 <!-- fdd:##:actors -->
 
 <!-- fdd:##:frs -->
-## C. Functional Requirements
+## 3. Functional Requirements
 
 <!-- fdd:###:fr-title repeat="many" -->
 ### FR-{NUMBER, like FR-001} { Functional Requirement Title }
 
-<!-- fdd:id:fr has="priority,task" covered_by="design" -->
-**ID**: [ ] `p1` - `fdd-<project>-fr-<slug>`
+<!-- fdd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+- [ ] `p1` - **ID**: `fdd-{system}-fr-{slug}`
+
+<!-- fdd:free:fr-summary -->
+{Describe the functional requirement in appropriate detail. You should choose suitable format - paragraphs, bullet points, or a combination - based on content complexity.}
+<!-- fdd:free:fr-summary -->
+
+**Actors**:
+<!-- fdd:id-ref:actor -->
+`fdd-{system}-actor-{slug-1}`, `fdd-{system}-actor-{slug-2}`
+<!-- fdd:id-ref:actor -->
 <!-- fdd:id:fr -->
-
-<!-- fdd:paragraph:fr-summary -->
-{ 3-5 sentences about the requirements for this product, what it does, and why it is needed }
-<!-- fdd:paragraph:fr-summary -->
-
-<!-- fdd:id-ref:actor -->
-**Actors**: `fdd-<project>-actor-<slug-1>`, `fdd-<project>-actor-<slug-2>`
-<!-- fdd:id-ref:actor -->
 <!-- fdd:###:fr-title repeat="many" -->
 <!-- fdd:##:frs -->
 
 <!-- fdd:##:usecases -->
-## D. Use Cases
+## 4. Use Cases
 
 <!-- fdd:###:uc-title repeat="many" -->
 ### UC-{NUMBER, like UC-001} { Case Title }
 
 <!-- fdd:id:usecase -->
-**ID**: `fdd-<project>-usecase-<slug>`
-<!-- fdd:id:usecase -->
+**ID**: `fdd-{system}-usecase-{slug}`
 
+**Actors**:
 <!-- fdd:id-ref:actor -->
-**Actors**: `fdd-<project>-actor-<slug-1>`, `fdd-<project>-actor-<slug-2>`
+`fdd-{system}-actor-{slug-1}`, `fdd-{system}-actor-{slug-2}`
 <!-- fdd:id-ref:actor -->
 
 <!-- fdd:paragraph:preconditions -->
-**Preconditions**: <what must already be true>
+**Preconditions**: {what must already be true}
 <!-- fdd:paragraph:preconditions -->
 
 <!-- fdd:paragraph:flow -->
@@ -107,59 +108,60 @@ fdd-template:
 <!-- fdd:paragraph:flow -->
 
 <!-- fdd:numbered-list:flow-steps -->
-1. <step>
-2. <step>
+1. {step description}
+2. {step description}
 <!-- fdd:numbered-list:flow-steps -->
 
 <!-- fdd:paragraph:postconditions -->
-**Postconditions**: <what becomes true>
+**Postconditions**: {what becomes true}
 <!-- fdd:paragraph:postconditions -->
 
 **Alternative Flows**:
 <!-- fdd:list:alternative-flows -->
-- **<condition>**: <what happens, may reference other use cases>
+- **{condition}**: {what happens, may reference other use cases}
 <!-- fdd:list:alternative-flows -->
 
-<Add more use cases as needed.>
+{Add more use cases as needed.}
+<!-- fdd:id:usecase -->
 <!-- fdd:###:uc-title repeat="many" -->
 <!-- fdd:##:usecases -->
 
 <!-- fdd:##:nfrs -->
-## E. Non-functional requirements
+## 5. Non-functional requirements
 
 <!-- fdd:###:nfr-title repeat="many" -->
-### <NFR Name>
+### {NFR Name}
 
-<!-- fdd:id:nfr has="priority,task" covered_by="design" -->
-**ID**: [ ] `p1` - `fdd-<project>-nfr-<slug>`
+<!-- fdd:id:nfr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+- [ ] `p1` - **ID**: `fdd-{system}-nfr-{slug}`
+
+<!-- fdd:list:nfr-statements -->
+- {Specific, measurable non-functional requirement statement}
+- {Another specific, measurable NFR statement}
+<!-- fdd:list:nfr-statements -->
+
+{Add more non-functional requirements as needed.}
 <!-- fdd:id:nfr -->
-
-<!-- fdd:list:nfr-statements -->
-- <NFR statement>
-- <NFR statement>
-<!-- fdd:list:nfr-statements -->
-
-<Add more non-functional requirements as needed.>
 <!-- fdd:###:nfr-title repeat="many" -->
 
 <!-- fdd:###:intentional-exclusions -->
 ### Intentional Exclusions
 
 <!-- fdd:list:exclusions -->
-- **<Category>** (<Checklist IDs>): Not applicable — <reason>
+- **{Category}** ({Checklist IDs}): Not applicable — {reason}
 <!-- fdd:list:exclusions -->
 <!-- fdd:###:intentional-exclusions -->
 <!-- fdd:##:nfrs -->
 
 <!-- fdd:##:nongoals -->
-## F. Non-Goals & Risks
+## 6. Non-Goals & Risks
 
 <!-- fdd:###:nongoals-title -->
 ### Non-Goals
 
 <!-- fdd:list:nongoals -->
-- <non-goal>
-- <non-goal>
+- {1-2 sentences describing what is explicitly out of scope and why}
+- {Another explicit non-goal with rationale}
 <!-- fdd:list:nongoals -->
 <!-- fdd:###:nongoals-title -->
 
@@ -167,21 +169,21 @@ fdd-template:
 ### Risks
 
 <!-- fdd:list:risks -->
-- <risk>
-- <risk>
+- {Risk description with potential impact and mitigation strategy}
+- {Another risk with impact and mitigation}
 <!-- fdd:list:risks -->
 <!-- fdd:###:risks-title -->
 <!-- fdd:##:nongoals -->
 
 <!-- fdd:##:assumptions -->
-## G. Assumptions & Open Questions
+## 7. Assumptions & Open Questions
 
 <!-- fdd:###:assumptions-title -->
 ### Assumptions
 
 <!-- fdd:list:assumptions -->
-- <assumption>
-- <assumption>
+- {Assumption statement with basis and potential impact if wrong}
+- {Another assumption with rationale}
 <!-- fdd:list:assumptions -->
 <!-- fdd:###:assumptions-title -->
 
@@ -189,22 +191,20 @@ fdd-template:
 ### Open Questions
 
 <!-- fdd:list:open-questions -->
-- <question> — Owner: <name>, Target: <date>
+- {Open question requiring resolution} — Owner: {name}, Target: {date}
 <!-- fdd:list:open-questions -->
 <!-- fdd:###:open-questions-title -->
 <!-- fdd:##:assumptions -->
 
 <!-- fdd:##:context -->
-## H. Additional context
+## 8. Additional context
 
 <!-- fdd:###:context-title repeat="many" -->
-### <Context Item>
+### {Context Item}
 
-<!-- fdd:list:prd-context-notes -->
-- <notes>
-<!-- fdd:list:prd-context-notes -->
-
-<This section is optional. Use it for stakeholder notes, business context, market notes, research links, etc.>
+<!-- fdd:free:prd-context-notes -->
+{Context notes, links, or background information. This section is optional. Use it for stakeholder notes, business context, market notes, research links, etc.}
+<!-- fdd:free:prd-context-notes -->
 <!-- fdd:###:context-title repeat="many" -->
 <!-- fdd:##:context -->
 <!-- fdd:#:prd -->

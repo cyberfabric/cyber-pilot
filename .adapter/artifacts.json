@@ -5,10 +5,6 @@
     "fdd-sdlc": {
       "format": "FDD",
       "path": "rules/sdlc"
-    },
-    "fdd-core": {
-      "format": "FDD",
-      "path": "rules/core"
     }
   },
   "systems": [
@@ -24,8 +20,20 @@
         { "name": "Features Manifest", "path": "architecture/features/FEATURES.md", "kind": "FEATURES", "traceability": "FULL" }
       ],
       "codebase": [
-        { "name": "FDD CLI", "path": "skills/fdd/scripts/fdd", "extensions": [".py"] },
-        { "name": "Tests", "path": "tests", "extensions": [".py"] }
+        {
+          "name": "FDD CLI",
+          "path": "skills/fdd/scripts/fdd",
+          "extensions": [".py"],
+          "singleLineComments": ["#"],
+          "multiLineComments": [{"start": "\"\"\"", "end": "\"\"\""}]
+        },
+        {
+          "name": "Tests",
+          "path": "tests",
+          "extensions": [".py"],
+          "singleLineComments": ["#"],
+          "multiLineComments": [{"start": "\"\"\"", "end": "\"\"\""}]
+        }
       ],
       "children": []
     }

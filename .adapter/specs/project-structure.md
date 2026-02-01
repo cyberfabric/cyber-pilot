@@ -1,12 +1,10 @@
 # Project Structure
 
-**Version**: 1.0  
-**Last Updated**: 2025-01-17  
+**Version**: 2.0
+**Last Updated**: 2026-02-01
 **Purpose**: Define FDD project directory organization
 
 ---
-
-When requirements in this spec conflict with `architecture/features/feature-init-structure/DESIGN.md`, follow `architecture/features/feature-init-structure/DESIGN.md`.
 
 ## Root Structure
 
@@ -14,14 +12,19 @@ When requirements in this spec conflict with `architecture/features/feature-init
 FDD/
 ├── .adapter/              # Project adapter (this directory)
 │   ├── AGENTS.md         # Adapter navigation
+│   ├── artifacts.json    # Artifact registry
 │   └── specs/            # Adapter specifications
 ├── architecture/          # Architecture artifacts
-├── templates/examples/     # Reference examples
-├── requirements/          # 22 structure requirement files
-├── workflows/            # 22 workflow definition files
+├── requirements/          # 11 requirement files
+├── workflows/            # 6 workflow files
+├── rules/                # Rules packages
+│   ├── core/            # Core FDD rules
+│   └── sdlc/            # SDLC artifact rules
 ├── skills/               # FDD skills/tools
 │   └── fdd/             # Unified FDD tool
-├── tests/                # Pytest tests
+├── schemas/              # JSON schemas
+├── tests/                # Pytest tests (17 files)
+├── guides/               # User guides
 ├── images/              # Documentation assets
 ├── .fdd-config.json     # Project configuration
 ├── .gitignore
@@ -29,9 +32,7 @@ FDD/
 ├── README.md            # Human-readable overview
 ├── AGENTS.md            # Core AI agent navigation
 ├── QUICKSTART.md        # Quick start guide
-├── WORKFLOW.md          # Workflow overview
-├── guides/ADAPTER.md    # Adapter creation guide
-├── CLISPEC.md           # CLI specification
+├── Makefile             # Build automation
 └── fdd-flow-layers.drawio.svg  # Architecture diagram
 ```
 
@@ -40,24 +41,57 @@ FDD/
 ## Core Directories
 
 ### `/requirements/`
-- **Purpose**: Content requirements for FDD artifacts
-- **Pattern**: `{artifact}-content.md` (except adapter)
-- **Examples**: 
-  - `prd-content.md`
-  - `overall-design-content.md`
-  - `feature-design-content.md`
-  - `adapter-structure.md`
-- **Count**: 22 files
+- **Purpose**: Content requirements for FDD framework
+- **Count**: 10 files
+- **Files**:
+  - `execution-protocol.md` - Workflow execution rules
+  - `adapter-structure.md` - Adapter validation rules
+  - `adapter-triggers.md` - Adapter evolution triggers
+  - `rules-format.md` - Rules package format
+  - `template.md` - Template requirements
+  - `FDL.md` - Flow Description Language spec
+  - `traceability.md` - ID traceability rules
+  - `artifacts-registry.md` - Artifact registry rules
+  - `extension.md` - Extension requirements
+  - `agent-compliance.md` - Agent compliance rules
 
 ### `/workflows/`
 - **Purpose**: Executable workflow definitions
 - **Pattern**: `{workflow-name}.md`
-- **Types**: Operation workflows, Validation workflows
-- **Examples**:
-  - `adapter-auto.md`
-  - `design.md`, `design-validate.md`
-  - `feature.md`, `feature-validate.md`
-- **Count**: 22 files
+- **Count**: 6 files
+- **Files**:
+  - `README.md` - Workflow overview
+  - `fdd.md` - Core FDD workflow
+  - `generate.md` - Artifact generation
+  - `validate.md` - Artifact validation
+  - `adapter.md` - Adapter management
+  - `rules.md` - Rules management
+
+### `/rules/`
+- **Purpose**: Rules packages for artifact validation and generation
+- **Structure**:
+  ```
+  rules/
+  ├── core/                    # Core FDD rules
+  │   ├── README.md
+  │   ├── template/           # Template rules
+  │   ├── checklist/          # Checklist rules
+  │   └── examples/           # Example rules
+  └── sdlc/                    # SDLC artifact rules
+      ├── artifacts/          # Per-artifact rules
+      │   ├── PRD/
+      │   │   ├── template.md
+      │   │   ├── checklist.md
+      │   │   ├── rules.md
+      │   │   └── examples/
+      │   ├── DESIGN/
+      │   ├── FEATURES/
+      │   ├── ADR/
+      │   └── FEATURE/
+      └── codebase/           # Code-level rules
+          ├── rules.md
+          └── checklist.md
+  ```
 
 ### `/skills/`
 - **Purpose**: Executable tools and skills
@@ -68,13 +102,32 @@ FDD/
   └── fdd/               # FDD unified tool
       ├── SKILL.md       # Tool documentation
       ├── README.md      # Tool overview
-      ├── scripts/
-      │   └── fdd.py    # Main tool (4317 lines)
-      └── tests/        # Test suite
-          ├── test_validate.py
-          ├── test_list_api.py
-          └── test_read_search.py
+      ├── fdd.clispec    # CLI specification
+      └── scripts/
+          └── fdd/
+              ├── __init__.py
+              ├── cli.py          # Main CLI entry point
+              ├── constants.py    # Shared constants
+              ├── utils/          # Utility modules
+              └── validation/     # Validation modules
   ```
+
+### `/schemas/`
+- **Purpose**: JSON Schema definitions
+- **Files**:
+  - `artifacts.schema.json` - Artifact registry schema
+  - `fdd-template-frontmatter.schema.json` - Template frontmatter schema
+
+### `/tests/`
+- **Purpose**: Pytest test suite
+- **Count**: 17 test files
+- **Pattern**: `test_*.py`
+- **Key tests**:
+  - `test_validate.py` - Validation tests
+  - `test_cli_integration.py` - CLI integration tests
+  - `test_core_structure.py` - Core structure tests
+  - `test_workflow_parsing.py` - Workflow parsing tests
+  - `test_files_utils.py` - File utility tests
 
 ---
 
@@ -85,6 +138,7 @@ FDD/
 ```
 .adapter/
 ├── AGENTS.md             # Adapter-specific navigation
+├── artifacts.json        # Artifact registry
 └── specs/                # Project-specific specifications
     ├── tech-stack.md
     ├── project-structure.md
@@ -92,7 +146,8 @@ FDD/
     ├── testing.md
     ├── build-deploy.md
     ├── domain-model.md
-    └── patterns.md
+    ├── patterns.md
+    └── language-config.md
 ```
 
 ---
@@ -101,7 +156,7 @@ FDD/
 
 **Markdown documentation**:
 - Core docs: `SCREAMING_SNAKE.md` (README.md, AGENTS.md)
-- Requirements: `kebab-case-structure.md`
+- Requirements: `kebab-case.md`
 - Workflows: `kebab-case.md`
 - Specs: `kebab-case.md`
 

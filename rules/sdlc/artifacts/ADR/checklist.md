@@ -1,8 +1,34 @@
 # ADR (Architecture Decision Record) Expert Checklist
 
-**Artifact**: Architecture Decision Record (ADR)  
-**Version**: 1.0  
+**Artifact**: Architecture Decision Record (ADR)
+**Version**: 1.0
 **Purpose**: Comprehensive quality checklist for ADR artifacts
+
+---
+
+## Table of Contents
+
+1. [Prerequisites](#prerequisites)
+2. [Applicability Context](#applicability-context)
+3. [Severity Dictionary](#severity-dictionary)
+4. [Review Scope Selection](#review-scope-selection)
+5. **MUST HAVE**
+   - [Architecture (ARCH)](#️-architecture-expertise-arch) — Core ADR quality
+   - [Performance (PERF)](#-performance-expertise-perf) — If applicable
+   - [Security (SEC)](#-security-expertise-sec) — If applicable
+   - [Reliability (REL)](#️-reliability-expertise-rel) — If applicable
+   - [Data (DATA)](#-data-expertise-data) — If applicable
+   - [Integration (INT)](#-integration-expertise-int) — If applicable
+   - [Operations (OPS)](#️-operations-expertise-ops) — If applicable
+   - [Maintainability (MAINT)](#-maintainability-expertise-maint) — If applicable
+   - [Testing (TEST)](#-testing-expertise-test) — If applicable
+   - [Compliance (COMPL)](#-compliance-expertise-compl) — If applicable
+   - [Usability (UX)](#-usability-expertise-ux) — If applicable
+   - [Business (BIZ)](#-business-expertise-biz) — If applicable
+6. **MUST NOT HAVE**
+7. [ADR-Specific Quality Checks](#adr-specific-quality-checks)
+8. [Validation Summary](#validation-summary)
+9. [Reporting](#reporting)
 
 ---
 
@@ -51,6 +77,70 @@ Before evaluating each checklist item, the expert MUST:
 - **HIGH**: Major ambiguity/risk; should be fixed before approval.
 - **MEDIUM**: Meaningful improvement; fix when feasible.
 - **LOW**: Minor improvement; optional.
+
+---
+
+## Review Scope Selection
+
+Select review depth based on ADR complexity and impact:
+
+### Review Modes
+
+| ADR Type | Review Mode | Domains to Check |
+|----------|-------------|------------------|
+| Simple (single component, low risk) | **Quick** | ARCH only |
+| Standard (multi-component, moderate risk) | **Standard** | ARCH + relevant domains |
+| Complex (architectural, high risk) | **Full** | All applicable domains |
+
+### Quick Review (ARCH Only)
+
+For simple, low-risk decisions, check only core architecture items:
+
+**MUST CHECK**:
+- [ ] ARCH-ADR-001: Decision Significance
+- [ ] ARCH-ADR-002: Context Completeness
+- [ ] ARCH-ADR-003: Options Quality
+- [ ] ARCH-ADR-004: Decision Rationale
+- [ ] ARCH-ADR-006: ADR Metadata Quality
+- [ ] QUALITY-002: Clarity
+- [ ] QUALITY-003: Actionability
+
+**SKIP**: All domain-specific sections (PERF, SEC, REL, etc.)
+
+Note: `Quick review: checked ARCH core items only`
+
+### Standard Review (ARCH + Relevant Domains)
+
+Select applicable domains based on ADR subject:
+
+| ADR Subject | Required Domains |
+|-------------|------------------|
+| Technology choice | ARCH, MAINT, OPS |
+| Security mechanism | ARCH, SEC, COMPL |
+| Database/storage | ARCH, DATA, PERF |
+| API/integration | ARCH, INT, SEC |
+| Infrastructure | ARCH, OPS, REL, PERF |
+| User-facing feature | ARCH, UX, BIZ |
+
+### Full Review
+
+For architectural decisions with broad impact, check ALL applicable domains.
+
+### Domain Applicability Quick Reference
+
+| Domain | When Required | When N/A |
+|--------|--------------|----------|
+| **PERF** | Performance-sensitive systems | Methodology, documentation |
+| **SEC** | User data, network, auth | Local-only tools |
+| **REL** | Production systems, SLAs | Dev tools, prototypes |
+| **DATA** | Persistent storage, migrations | Stateless components |
+| **INT** | External APIs, contracts | Self-contained systems |
+| **OPS** | Deployed services | Libraries, frameworks |
+| **MAINT** | Long-lived code | Throwaway prototypes |
+| **TEST** | Quality-critical systems | Exploratory work |
+| **COMPL** | Regulated industries | Internal tools |
+| **UX** | End-user impact | Backend infrastructure |
+| **BIZ** | Business alignment needed | Technical decisions |
 
 ---
 
@@ -633,6 +723,31 @@ For each major checklist category (ARCH, PERF, SEC, REL, DATA, INT, OPS, MAINT, 
 
 Report **only** problems (do not list what is OK).
 
+### Format Selection
+
+| Review Mode | Report Format |
+|-------------|---------------|
+| Quick | Compact (table) |
+| Standard | Compact or Full |
+| Full | Full (detailed) |
+
+### Compact Format (for Quick/Standard reviews)
+
+```markdown
+## ADR Review: {title}
+
+| # | ID | Sev | Issue | Fix |
+|---|-----|-----|-------|-----|
+| 1 | ARCH-002 | CRIT | Missing problem statement | Add 2+ sentences describing the problem |
+| 2 | ARCH-003 | HIGH | Only 1 option listed | Add at least 1 viable alternative |
+
+**Review mode**: Quick (ARCH core only)
+**Domains checked**: ARCH
+**Domains N/A**: PERF, SEC, REL, DATA, INT, OPS (methodology ADR)
+```
+
+### Full Format (for detailed reviews)
+
 For each issue include:
 
 - **Why Applicable**: Explain why this requirement applies to this specific ADR's context (e.g., "This ADR describes a web service architecture, therefore security impact analysis is required")
@@ -641,7 +756,7 @@ For each issue include:
 - **Why it matters**: Impact (risk, cost, user harm, compliance)
 - **Proposal**: Concrete fix (what to change/add/remove) with clear acceptance criteria
 
-Recommended output format for chat:
+Full output format:
 
 ```markdown
 ## Review Report (Issues Only)

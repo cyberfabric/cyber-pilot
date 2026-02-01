@@ -1,15 +1,14 @@
 <!-- fdd:#:adr -->
-# ADR-0002: Adaptive FDD - Flow-Driven Development
+# ADR-0002: Adaptive FDD - Framework for Documentation and Development
 
-<!-- fdd:id:adr has="priority,task" covered_by="design" -->
-**ID**: [x] `p1` - `fdd-fdd-adr-adaptive-fdd-flow-driven-development-v1`
-<!-- fdd:id:adr -->
+<!-- fdd:id:adr has="priority,task" covered_by="DESIGN" -->
+- [x] `p1` - **ID**: `fdd-fdd-adr-adaptive-fdd-flow-driven-development-v1`
 
 <!-- fdd:##:meta -->
 ## Meta
 
 <!-- fdd:paragraph:adr-title -->
-**Title**: ADR-0002 Adaptive FDD - Flow-Driven Development
+**Title**: ADR-0002 Adaptive FDD - Framework for Documentation and Development
 <!-- fdd:paragraph:adr-title -->
 
 <!-- fdd:paragraph:date -->
@@ -31,7 +30,7 @@ FDD should behave as a set of loosely coupled workflows and tools where a user c
 In this ADR, "Feature-Driven Design" terminology is considered deprecated and is not used.
 
 In this ADR, "FDD" may be interpreted as:
-- **Flow-Driven Development**: the methodology centered around flows/workflows, where artifacts and tooling are assembled into end-to-end user-driven pipelines.
+- **Framework for Documentation and Development**: the methodology centered around flows/workflows, where artifacts and tooling are assembled into end-to-end user-driven pipelines.
 
 Today, artifact discovery and dependency resolution are often tied to assumed repository layouts and strict prerequisites. This prevents "start anywhere" usage and makes adoption harder in large codebases where artifacts may be distributed across multiple scopes.
 
@@ -55,12 +54,12 @@ We need a deterministic, adapter-owned source of truth that:
 **Considered Options**:
 - **Option 1: Hardcoded artifact locations**
 - **Option 2: Store artifact locations only in `.fdd-config.json`**
-- **Option 3: Adapter-owned `artifacts.json` registry + Flow-Driven Development (SELECTED)**
+- **Option 3: Adapter-owned `artifacts.json` registry + Framework for Documentation and Development (SELECTED)**
 <!-- fdd:options -->
 
 <!-- fdd:decision-outcome -->
 **Decision Outcome**:
-Chosen option: **Adapter-owned `artifacts.json` registry + Flow-Driven Development**, because it allows the `fdd` tool and workflows to deterministically discover project structure and artifact locations across complex codebases, while enabling adaptive user-guided fallback when artifacts are missing.
+Chosen option: **Adapter-owned `artifacts.json` registry + Framework for Documentation and Development**, because it allows the `fdd` tool and workflows to deterministically discover project structure and artifact locations across complex codebases, while enabling adaptive user-guided fallback when artifacts are missing.
 
 ### What changes
 
@@ -120,5 +119,6 @@ Scopes MUST support inheritance:
 - Related ADRs: ADR-0001 (Initial FDD Architecture)
 <!-- fdd:list:links -->
 <!-- fdd:##:body -->
+<!-- fdd:id:adr -->
 
 <!-- fdd:#:adr -->

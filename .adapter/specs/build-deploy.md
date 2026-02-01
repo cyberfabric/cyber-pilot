@@ -1,7 +1,7 @@
 # Build & Deploy
 
-**Version**: 1.0  
-**Last Updated**: 2025-01-17  
+**Version**: 2.1
+**Last Updated**: 2026-02-01
 **Purpose**: Define build, deployment, and execution procedures
 
 ---
@@ -24,36 +24,71 @@
 
 **FDD Tool**:
 ```bash
-# From project root
-python3 skills/fdd/scripts/fdd.py <command> [options]
-
-# From skills/fdd directory
-python3 scripts/fdd.py <command> [options]
+# From project root (as module)
+python3 -m skills.fdd.scripts.fdd.cli <command> [options]
 ```
 
 **Examples**:
 ```bash
 # Discover adapter
-python3 skills/fdd/scripts/fdd.py adapter-info --root .
+python3 -m skills.fdd.scripts.fdd.cli adapter-info --root .
 
 # Validate artifact
-python3 skills/fdd/scripts/fdd.py validate --artifact architecture/DESIGN.md
+python3 -m skills.fdd.scripts.fdd.cli validate --artifact architecture/DESIGN.md
 
 # Search IDs
-python3 skills/fdd/scripts/fdd.py list-ids --artifact architecture/PRD.md
+python3 -m skills.fdd.scripts.fdd.cli list-ids --artifact architecture/PRD.md
+
+# Self-check templates
+python3 -m skills.fdd.scripts.fdd.cli self-check
 ```
 
 ---
 
-## Testing
+## Makefile Targets
 
-### Run Tests
+### Testing
 
+| Target | Description |
+|--------|-------------|
+| `make test` | Run all tests |
+| `make test-verbose` | Run tests with verbose output |
+| `make test-quick` | Run fast tests only (skip slow integration tests) |
+| `make test-coverage` | Run tests with coverage report (requires 90% minimum) |
+
+### Validation
+
+| Target | Description |
+|--------|-------------|
+| `make validate` | Validate core methodology feature |
+| `make validate-feature FEATURE=name` | Validate specific feature DESIGN.md |
+| `make validate-code-feature FEATURE=name` | Validate code traceability for specific feature |
+| `make validate-examples` | Validate requirements examples |
+| `make self-check` | Validate SDLC examples against templates |
+
+### Code Quality
+
+| Target | Description |
+|--------|-------------|
+| `make vulture` | Scan for dead code (report only) |
+| `make vulture-ci` | Scan for dead code (fails if findings) |
+
+### Setup & Maintenance
+
+| Target | Description |
+|--------|-------------|
+| `make install` | Install Python dependencies (pytest via pipx) |
+| `make clean` | Remove Python cache files |
+| `make help` | Show all available targets |
+
+### Coverage Requirements
+
+**Minimum coverage**: 90%
+
+Coverage is enforced via `scripts/check_coverage.py`:
 ```bash
-make test
-
-# Coverage
 make test-coverage
+# Fails if coverage < 90%
 ```
 
 ---
@@ -64,16 +99,17 @@ make test-coverage
 
 **Runtime dependencies**: None (standard library only)
 
-**Dev/Test tooling**:
-- `pipx`
-- `pytest` and `pytest-cov` (installed and executed via `pipx`)
+**Dev/Test tooling** (via pipx):
+- `pytest` - Test framework
+- `pytest-cov` - Coverage reporting
+- `vulture` - Dead code detection
 
-**Verification**:
+**Installation**:
 ```bash
-# Check Python version
-python3 --version
-
-# Should be Python 3.6 or higher
+make install
+# or manually:
+pipx install pytest
+pipx inject pytest pytest-cov
 ```
 
 ---
@@ -129,6 +165,8 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+htmlcov/
+coverage.json
 ```
 
 **Tracked files**:
@@ -157,24 +195,30 @@ build/
 ```bash
 python3 --version
 
+# Install dev dependencies
+make install
+
 # Run tests to verify setup
 make test
 
 # Use FDD tool
-python3 skills/fdd/scripts/fdd.py adapter-info --root .
+python3 -m skills.fdd.scripts.fdd.cli adapter-info --root .
 ```
 
 ### Making Changes
 
 ```bash
-# 1. Make code changes in skills/fdd/scripts/fdd.py
+# 1. Make code changes in skills/fdd/scripts/fdd/
 
 # 2. Add/update tests in tests/
 
-# 3. Run tests
-make test
+# 3. Run tests with coverage
+make test-coverage
 
-# 4. Commit changes
+# 4. Check for dead code
+make vulture
+
+# 5. Commit changes
 git add .
 git commit -m "Description"
 ```
@@ -198,7 +242,7 @@ git commit -m "Description"
 ## Source
 
 **Discovered from**:
-- Absence of build configuration files
+- `Makefile` - All build targets
 - Import analysis (standard library only)
 - README.md execution examples
 - .gitignore patterns
@@ -210,8 +254,9 @@ git commit -m "Description"
 Agent MUST verify before implementation:
 - [ ] Python 3.6+ is available
 - [ ] No build step required
-- [ ] Tool runs directly with `python3 scripts/fdd.py`
+- [ ] Tool runs as module: `python3 -m skills.fdd.scripts.fdd.cli`
 - [ ] Tests run via `make test` (preferred)
+- [ ] Coverage meets 90% minimum via `make test-coverage`
 - [ ] Test tooling is available via `pipx`
 
 **Self-test**:

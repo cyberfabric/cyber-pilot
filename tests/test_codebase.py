@@ -584,3 +584,71 @@ class TestErrorFunction:
         err = error("test", "Message", path=tmp_path, line=1, skip_none=None)
 
         assert "skip_none" not in err
+
+
+class TestCommentConfig:
+    """Test CommentConfig resolution with fallback chain."""
+
+    def test_from_codebase_entry_uses_entry_config(self):
+        from fdd.utils.codebase import CommentConfig
+
+        entry = {
+            "singleLineComments": ["//", "#"],
+            "multiLineComments": [{"start": "/*", "end": "*/"}],
+        }
+        config = CommentConfig.from_codebase_entry(entry, ".py")
+
+        assert config.single_line == ["//", "#"]
+        assert config.multi_line == [{"start": "/*", "end": "*/"}]
+
+    def test_from_codebase_entry_fallback_to_project_config(self):
+        from fdd.utils.codebase import CommentConfig
+
+        entry = {}  # No config in entry
+        project_config = {
+            "singleLineComments": ["--"],
+            "multiLineComments": [{"start": "<!--", "end": "-->"}],
+        }
+        config = CommentConfig.from_codebase_entry(entry, ".py", project_config)
+
+        assert config.single_line == ["--"]
+        assert config.multi_line == [{"start": "<!--", "end": "-->"}]
+
+    def test_from_codebase_entry_fallback_to_extension_defaults(self):
+        from fdd.utils.codebase import CommentConfig
+
+        entry = {}  # No config in entry
+        config = CommentConfig.from_codebase_entry(entry, ".py")
+
+        assert config.single_line == ["#"]
+        assert {"start": '"""', "end": '"""'} in config.multi_line
+
+    def test_from_codebase_entry_partial_fallback(self):
+        from fdd.utils.codebase import CommentConfig
+
+        entry = {"singleLineComments": ["//"]}  # Only single-line in entry
+        project_config = {"multiLineComments": [{"start": "/*", "end": "*/"}]}
+        config = CommentConfig.from_codebase_entry(entry, ".py", project_config)
+
+        assert config.single_line == ["//"]  # From entry
+        assert config.multi_line == [{"start": "/*", "end": "*/"}]  # From project
+
+    def test_for_extension_uses_project_config(self):
+        from fdd.utils.codebase import CommentConfig
+
+        project_config = {
+            "singleLineComments": ["--", "#"],
+            "multiLineComments": [{"start": "/*", "end": "*/"}],
+        }
+        config = CommentConfig.for_extension(".py", project_config)
+
+        assert config.single_line == ["--", "#"]
+        assert config.multi_line == [{"start": "/*", "end": "*/"}]
+
+    def test_for_extension_fallback_to_defaults(self):
+        from fdd.utils.codebase import CommentConfig
+
+        config = CommentConfig.for_extension(".py")
+
+        assert config.single_line == ["#"]
+        assert {"start": '"""', "end": '"""'} in config.multi_line

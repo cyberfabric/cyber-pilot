@@ -20,6 +20,11 @@ FDD is considered enabled ONLY when at least one is true:
 - User explicitly requests executing an FDD workflow (for example: `fdd validate`, `fdd generate`, `fdd rules`, `fdd adapter`)
 - User explicitly requests the `fdd` entrypoint workflow (`/fdd`)
 
+**If FDD intent is unclear** (user mentions "fdd" but doesn't explicitly request workflow):
+- Ask for clarification: "Would you like to enable FDD mode?"
+- Do NOT assume enabled without confirmation
+- Continue as normal assistant until confirmed
+
 If FDD is disabled OR NOT enabled:
 - **MUST** ignore the rest of this file
 - **MUST** behave as a normal coding assistant
@@ -63,4 +68,11 @@ ALWAYS open and follow `requirements/extension.md` WHEN you see **Extends**: {fi
 
 ALWAYS open and follow `{adapter-directory}/AGENTS.md` WHEN starting any FDD work
 
-ALWAYS open and follow `workflows/fdd.md` WHEN you see `fdd` in the prompt
+ALWAYS open and follow `skills/fdd/SKILL.md` WHEN you see `fdd` in the prompt
+
+### Dependency Error Handling
+
+**If referenced file not found**:
+- Log warning to user: "FDD dependency not found: {path}"
+- Continue with available files — do NOT fail silently
+- If critical dependency missing (SKILL.md, workflow), inform user and suggest `/fdd` to reinitialize

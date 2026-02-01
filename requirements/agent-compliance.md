@@ -13,11 +13,25 @@ purpose: Enforcement protocol for AI agents executing FDD workflows (STRICT mode
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Agent Anti-Patterns](#-agent-anti-patterns)
+- [Mandatory Behaviors](#mandatory-behaviors-strict-mode)
+- [Validation Output Schema](#validation-output-schema-strict-mode)
+- [Error Handling](#error-handling)
+- [Checkpoint Guidance](#checkpoint-guidance-for-large-artifacts)
+- [Recovery from Anti-Pattern Detection](#recovery-from-anti-pattern-detection)
+- [Relaxed Mode Behavior](#relaxed-mode-behavior)
+- [Consolidated Validation Checklist](#consolidated-validation-checklist)
+
+---
+
 ## Overview
 
 This protocol defines mandatory behaviors for AI agents executing FDD workflows when FDD rules are enabled. It prevents common agent failure modes through structural enforcement.
 
-**Key principle**: Trust but verify. Agents must prove they did the work, not just claim it.
+**Key principle**: Trust but verify — agents must provide observable evidence (quotes, line numbers, tool call confirmations) for every claim. "I checked it" without evidence = violation.
 
 ---
 
@@ -34,7 +48,7 @@ This protocol defines mandatory behaviors for AI agents executing FDD workflows 
 | AP-005 | SELF_TEST_LIE | Answer self-test YES without actually completing work | Self-test output before actual validation work |
 | AP-006 | SHORTCUT_OUTPUT | Report PASS immediately after deterministic gate | No semantic review section in output |
 | AP-007 | TEDIUM_AVOIDANCE | Skip thorough checklist review because it's "tedious" | Missing categories in validation output |
-| AP-008 | CONTEXT_ASSUMPTION | Assume file contents from previous context | File "too large to include" + no fresh Read |
+| AP-008 | CONTEXT_ASSUMPTION | Assume file contents from previous context | System message says "file truncated" or "content summarized" + no fresh Read tool call in current turn |
 
 **If agent exhibits any anti-pattern → workflow output INVALID**
 
@@ -109,19 +123,22 @@ This protocol defines mandatory behaviors for AI agents executing FDD workflows 
 ```markdown
 ### Agent Self-Test (completed AFTER validation)
 
-1. ⚠️ Did I read the ENTIRE artifact via Read tool?
+1. ⚠️ Did I load and follow agent-compliance.md (this protocol)?
+   → YES: Protocol loaded at start of STRICT mode validation
+
+2. ⚠️ Did I read the ENTIRE artifact via Read tool THIS turn?
    → YES: Read architecture/DESIGN.md: 742 lines
 
-2. ⚠️ Did I check EVERY checklist category?
+3. ⚠️ Did I check EVERY checklist category?
    → YES: 12 categories processed (see breakdown above)
 
-3. ⚠️ Did I provide evidence for each PASS/FAIL/N/A?
+4. ⚠️ Did I provide evidence for each PASS/FAIL/N/A?
    → YES: Evidence table included
 
-4. ⚠️ Did I verify N/A claims have explicit document statements?
+5. ⚠️ Did I verify N/A claims have explicit document statements?
    → YES: Found explicit N/A for PERF, SEC, OPS (lines 698, 712, 725)
 
-5. ⚠️ Am I reporting based on actual file content, not memory?
+6. ⚠️ Am I reporting based on actual file content, not memory/summary?
    → YES: All quotes verified against fresh Read output
 ```
 
@@ -161,7 +178,7 @@ Agent MUST structure validation output as follows:
 - N/A (missing statement): {N} → VIOLATIONS
 
 ### 4. Agent Self-Test
-{answers to all 5 questions with evidence}
+{answers to all 6 questions with evidence}
 
 ### 5. Final Status
 - Deterministic: PASS | FAIL
@@ -173,6 +190,70 @@ Agent MUST structure validation output as follows:
 ```
 
 **Free-form "PASS" or "looks good" without this structure → INVALID in STRICT mode**
+
+---
+
+## Error Handling
+
+### Read Tool Fails
+
+**If Read tool returns error** (file not found, permission denied):
+```
+⚠️ Cannot read artifact: {error}
+→ Validation cannot proceed without artifact access
+→ Fix: Verify path, check file exists, retry
+```
+**Action**: STOP — validation requires artifact content.
+
+### Context Compaction During Validation
+
+**If context compaction occurs mid-validation** (conversation summary appears):
+```
+⚠️ Context compacted during validation
+→ Previous Read outputs may be summarized/truncated
+→ MUST re-read all artifacts before continuing
+```
+**Action**: Re-execute Read tool for all artifacts, then continue from current checkpoint.
+
+### Checklist File Not Found
+
+**If checklist cannot be loaded**:
+```
+⚠️ Checklist not found: {path}
+→ Cannot perform semantic validation without criteria
+→ Fix: Verify rules path, check artifacts.json configuration
+```
+**Action**: STOP — semantic validation requires checklist.
+
+---
+
+## Checkpoint Guidance (for large artifacts)
+
+**When validating artifacts >500 lines OR checklist has >15 categories**:
+
+1. **After each category group** (3-5 categories), output progress:
+   ```
+   Checkpoint: Categories 1-5 of 15 complete
+   - ARCH-DESIGN-001: PASS
+   - ARCH-DESIGN-002: PASS
+   - ARCH-DESIGN-003: PASS
+   - PERF-DESIGN-001: N/A (explicit)
+   - PERF-DESIGN-002: N/A (explicit)
+   Continuing to categories 6-10...
+   ```
+
+2. **If context runs low** (approaching token limit), save state:
+   ```
+   ⚠️ Context limit approaching — saving checkpoint
+   Completed: Categories 1-10 (all PASS/N/A)
+   Remaining: Categories 11-15
+   Resume: Re-read artifact, continue from category 11
+   ```
+
+3. **On resume after compaction**:
+   - Re-read artifact via Read tool
+   - Verify artifact unchanged (check line count)
+   - Continue from saved checkpoint
 
 ---
 
@@ -199,12 +280,37 @@ When Rules Mode = RELAXED (no FDD rules):
 
 ---
 
-## Validation Criteria (for this document)
+## Consolidated Validation Checklist
 
-- [ ] Agent understands anti-patterns and can self-detect
-- [ ] Agent knows mandatory behaviors for STRICT mode
-- [ ] Agent knows evidence standards for PASS/FAIL/N/A
-- [ ] Agent knows self-test must be AFTER work, not before
-- [ ] Agent knows output schema for STRICT mode
-- [ ] Agent knows recovery procedure for violations
-- [ ] Agent knows RELAXED mode has no enforcement
+**Use this checklist to validate agent compliance protocol understanding.**
+
+### Understanding (U)
+
+| # | Check | Required | How to Verify |
+|---|-------|----------|---------------|
+| U.1 | Agent understands all 8 anti-patterns | YES | Can identify AP-001 through AP-008 by name |
+| U.2 | Agent knows mandatory behaviors for STRICT mode | YES | Can list Read, Checklist, Evidence, Self-Test requirements |
+| U.3 | Agent knows evidence standards for PASS/FAIL/N/A | YES | Can describe what each status requires |
+| U.4 | Agent knows self-test must be AFTER work | YES | Self-test appears at end of validation output |
+| U.5 | Agent knows output schema for STRICT mode | YES | Validation output follows 6-section schema |
+| U.6 | Agent knows recovery procedure for violations | YES | Can list 5 recovery steps |
+| U.7 | Agent knows RELAXED mode has no enforcement | YES | Includes disclaimer when RELAXED |
+
+### Execution (E)
+
+| # | Check | Required | How to Verify |
+|---|-------|----------|---------------|
+| E.1 | Read tool used for every artifact | YES | `Read {path}:` confirmation in output |
+| E.2 | Checklist progress tracked with TodoWrite | YES | Todo list shows category progress |
+| E.3 | Evidence provided for every status claim | YES | Evidence table has no empty cells |
+| E.4 | Self-test answered with evidence | YES | All 6 questions answered with proof |
+| E.5 | Output follows STRICT mode schema | YES | All 6 sections present |
+| E.6 | No anti-patterns exhibited | YES | No detection signals present |
+
+### Final (F)
+
+| # | Check | Required | How to Verify |
+|---|-------|----------|---------------|
+| F.1 | All Understanding checks pass | YES | U.1-U.7 verified |
+| F.2 | All Execution checks pass | YES | E.1-E.6 verified |
+| F.3 | Validation output is complete | YES | No "continuing later" or partial reports |

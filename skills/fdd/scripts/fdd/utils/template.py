@@ -16,13 +16,64 @@ SUPPORTED_VERSION = {"major": 1, "minor": 0}
 
 _MARKER_RE = re.compile(r"<!--\s*fdd:(?:(?P<type>[^:\s>]+):)?(?P<name>[^>\s]+)(?P<attrs>[^>]*)-->")
 _ATTR_RE = re.compile(r'([a-zA-Z0-9_-]+)\s*=\s*"([^"]*)"')
-_ID_DEF_RE = re.compile(r"^\*\*ID\*\*:\s*(?:(?P<task>\[\s*[xX]?\s*\])\s*(?:`(?P<priority>p\d+)`\s*-\s*|\-\s*)|`(?P<priority_only>p\d+)`\s*-\s*)?`(?P<id>fdd-[a-z0-9][a-z0-9-]+)`\s*$")
+_ID_DEF_RE = re.compile(
+    r"^(?:"
+    r"\*\*ID\*\*:\s*`(?P<id>fdd-[a-z0-9][a-z0-9-]+)`"
+    r"|"
+    r"`(?P<priority_only>p\d+)`\s*-\s*\*\*ID\*\*:\s*`(?P<id2>fdd-[a-z0-9][a-z0-9-]+)`"
+    r"|"
+    r"[-*]\s+(?P<task>\[\s*[xX]?\s*\])\s*(?:`(?P<priority>p\d+)`\s*-\s*)?\*\*ID\*\*:\s*`(?P<id3>fdd-[a-z0-9][a-z0-9-]+)`"
+    r")\s*$"
+)
+_ID_LABEL_RE = re.compile(r"\*\*ID\*\*:")
 _ID_REF_RE = re.compile(r"^(?:(?P<task>\[\s*[xX]?\s*\])\s*(?:`(?P<priority>p\d+)`\s*-\s*|\-\s*)|`(?P<priority_only>p\d+)`\s*-\s*)?`(?P<id>fdd-[a-z0-9][a-z0-9-]+)`\s*$")
 _BACKTICK_ID_RE = re.compile(r"`(fdd-[a-z0-9][a-z0-9-]+)`")
 _HEADING_RE = re.compile(r"^\s*(#{1,6})\s+(.+?)\s*$")
 _ORDERED_NUMERIC_RE = re.compile(r"^\s*\d+[\.)]\s+")
 _CODE_FENCE_RE = re.compile(r"^\s*```")
-_FDL_LINE_RE = re.compile(r"^\s*(?:\d+\.\s+|-\s+)\[\s*[xX ]\s*\]\s*-\s*`ph-\d+`\s*-\s*.+\s*-\s*`inst-[a-z0-9-]+`\s*$")
+_FDL_LINE_RE = re.compile(r"^\s*(?:\d+\.\s+|-\s+)\[\s*[xX ]\s*\]\s*-\s*`p[a-z0-9-]+`\s*-\s*.+\s*-\s*`inst-[a-z0-9-]+`\s*$")
+
+# Valid marker types (must match validate_block_content handlers)
+VALID_MARKER_TYPES = frozenset({
+    "free", "id", "id-ref",
+    "list", "numbered-list", "task-list",
+    "table", "paragraph", "code",
+    "#", "##", "###", "####", "#####", "######",
+    "link", "image", "fdl",
+})
+
+
+def filter_code_fences(lines: List[str]) -> List[str]:
+    """Filter out lines that are inside fenced code blocks (```...```)."""
+    result: List[str] = []
+    in_fence = False
+    for line in lines:
+        if _CODE_FENCE_RE.match(line):
+            in_fence = not in_fence
+            continue
+        if not in_fence:
+            result.append(line)
+    return result
+
+
+def enumerate_outside_code_fences(lines: List[str]) -> Iterable[Tuple[int, str]]:
+    """Enumerate lines that are NOT inside fenced code blocks, preserving original indices."""
+    in_fence = False
+    for idx, line in enumerate(lines):
+        if _CODE_FENCE_RE.match(line):
+            in_fence = not in_fence
+            continue
+        if not in_fence:
+            yield idx, line
+
+
+@dataclass(frozen=True)
+class ParsedFddId:
+    """Result of parsing an FDD ID."""
+    system: str
+    kind: str
+    slug: str
+    prefix_id: Optional[str] = None  # for composite IDs like fdd-sys-feature-x-algo-y
 
 
 @dataclass(frozen=True)
@@ -229,6 +280,10 @@ class Template:
                 m_type = m.group("type") or "free"
                 name = m.group("name")
                 attrs = Template.parse_attrs(m.group("attrs") or "")
+                # Validate marker type
+                if m_type not in VALID_MARKER_TYPES:
+                    errors.append(Template.error("template", f"Unknown marker type '{m_type}'", path=0, line=line_no, id=name, marker_type=m_type))
+                    continue
                 if stack and stack[-1][0] == m_type and stack[-1][1] == name:
                     open_type, open_name, open_attrs, open_line = stack.pop()
                     req_val = str(open_attrs.get("required", "true")).strip().lower()
@@ -237,6 +292,15 @@ class Template:
                     if rep_val not in {"one", "many"}:
                         errors.append(Template.error("template", "Invalid repeat", line=open_line, id=open_name, marker_type=open_type))
                         rep_val = "one"
+                    # Validate kind names for id blocks: must be single word (no hyphens)
+                    if open_type == "id" and "-" in open_name:
+                        errors.append(Template.error(
+                            "template",
+                            f"ID kind '{open_name}' must be single word (no hyphens)",
+                            line=open_line,
+                            id=open_name,
+                            marker_type=open_type,
+                        ))
                     blocks.append(
                         TemplateBlock(
                             type=open_type,
@@ -267,10 +331,18 @@ class Template:
                 return
             has_attr = tpl.attrs.get("has", "")
             require_priority = "priority" in has_attr
-            for line in content:
-                if not _ID_DEF_RE.match(line.strip()):
-                    errors.append(Template.error("structure", "Invalid ID format", path=artifact_path, line=inst.start_line, id=tpl.name))
-                    return
+            # Only check lines that start with **ID**: (ID blocks may wrap additional content)
+            # Filter out content inside code fences (examples shouldn't trigger validation)
+            filtered_content = filter_code_fences(content)
+            id_candidates = [line for line in filtered_content if _ID_LABEL_RE.search(line)]
+            if not id_candidates:
+                errors.append(Template.error("structure", "ID block missing **ID**: line", path=artifact_path, line=inst.start_line, id=tpl.name))
+                return
+            id_lines = [line for line in id_candidates if _ID_DEF_RE.match(line.strip())]
+            if not id_lines:
+                errors.append(Template.error("structure", "Invalid ID format", path=artifact_path, line=inst.start_line, id=tpl.name))
+                return
+            for line in id_lines:
                 if require_priority and "`p" not in line:
                     errors.append(Template.error("structure", "ID definition missing priority", path=artifact_path, line=inst.start_line, id=tpl.name))
                     return
@@ -283,7 +355,13 @@ class Template:
             require_priority = "priority" in has_attr
             tokens: List[str] = []
             for line in content:
-                for part in [p.strip() for p in line.split(",")]:
+                # Strip list markers (- or *) before processing
+                stripped = line.lstrip()
+                if stripped.startswith("- "):
+                    stripped = stripped[2:]
+                elif stripped.startswith("* "):
+                    stripped = stripped[2:]
+                for part in [p.strip() for p in stripped.split(",")]:
                     if part:
                         tokens.append(part)
             for tok in tokens:
@@ -450,7 +528,20 @@ class Artifact:
             self._errors.append(Template.error("file", "Failed to read artifact", path=self.path, line=1))
             return
 
+        # Detect template frontmatter in artifact (should only be in templates, not artifacts)
         lines = text.splitlines()
+        if lines and lines[0].strip() == "---":
+            for i, ln in enumerate(lines[1:], start=2):
+                if ln.strip() == "---":
+                    break
+                if "fdd-template:" in ln:
+                    self._errors.append(Template.error(
+                        "structure",
+                        "Artifact contains template frontmatter (fdd-template:) - this belongs only in template files, not artifacts",
+                        path=self.path,
+                        line=i,
+                    ))
+                    break
         art_blocks: List[ArtifactBlock] = []
         stack: List[Tuple[TemplateBlock, int]] = []
 
@@ -511,6 +602,22 @@ class Artifact:
                     return blk.text()
         return None
 
+    def get_with_location(self, id_value: str) -> Optional[Tuple[str, int, int]]:
+        """Get content containing id_value along with start and end line numbers.
+
+        Returns:
+            Tuple of (text, start_line, end_line) or None if not found.
+        """
+        for blk in self.blocks:
+            if blk.template_block.type == "id":
+                for line in blk.content:
+                    if id_value in line:
+                        return (blk.text(), blk.start_line, blk.end_line)
+            for line in blk.content:
+                if id_value in line:
+                    return (blk.text(), blk.start_line, blk.end_line)
+        return None
+
     def list(self, ids: Sequence[str]) -> List[Optional[str]]:
         return [self.get(i) for i in ids]
 
@@ -538,6 +645,28 @@ class Artifact:
                         best = parent
             return best
 
+        def find_template_parent(tpl_blk: TemplateBlock) -> Optional[TemplateBlock]:
+            """Find the innermost template block containing this block."""
+            best: Optional[TemplateBlock] = None
+            for other in self.template.blocks:
+                if other is tpl_blk:
+                    continue
+                if other.start_line < tpl_blk.start_line and tpl_blk.end_line < other.end_line:
+                    if best is None or other.start_line > best.start_line:
+                        best = other
+            return best
+
+        def find_artifact_parent(art_blk: ArtifactBlock) -> Optional[ArtifactBlock]:
+            """Find the innermost artifact block containing this block."""
+            best: Optional[ArtifactBlock] = None
+            for other in self.blocks:
+                if other is art_blk:
+                    continue
+                if other.start_line < art_blk.start_line and art_blk.end_line < other.end_line:
+                    if best is None or other.start_line > best.start_line:
+                        best = other
+            return best
+
         for key, tpl_list in tpl_by_key.items():
             instances = art_by_key.get(key, [])
             for tpl in tpl_list:
@@ -558,18 +687,70 @@ class Artifact:
                 for inst in instances:
                     Template.validate_block_content(self.path, tpl, inst, errors)
 
+        # Validate nesting structure: artifact blocks must be nested inside the same parent type as in template
+        # Skip nesting validation for blocks inside repeat="many" parents (structure varies by instance)
+        for art_blk in self.blocks:
+            tpl_blk = art_blk.template_block
+
+            # Skip nesting check if this block type appears multiple times in template
+            # (can't reliably match which occurrence an artifact block corresponds to)
+            key = (tpl_blk.type, tpl_blk.name)
+            if len(tpl_by_key.get(key, [])) > 1:
+                continue
+
+            tpl_parent = find_template_parent(tpl_blk)
+
+            # Skip nesting check if parent has repeat="many" (flexible structure)
+            if tpl_parent is not None and tpl_parent.repeat == "many":
+                continue
+
+            if tpl_parent is None:
+                # Template block is at root level - artifact block should also be at root
+                art_parent = find_artifact_parent(art_blk)
+                if art_parent is not None:
+                    # Only error if artifact parent is NOT a repeat="many" block
+                    if art_parent.template_block.repeat != "many":
+                        errors.append(Template.error(
+                            "nesting",
+                            f"Block should be at root level, not nested inside {art_parent.template_block.type}:{art_parent.template_block.name}",
+                            path=self.path,
+                            line=art_blk.start_line,
+                            id=tpl_blk.name,
+                            marker_type=tpl_blk.type,
+                        ))
+            else:
+                # Template block is nested - find artifact parent and check type matches
+                art_parent = find_artifact_parent(art_blk)
+                if art_parent is None:
+                    errors.append(Template.error(
+                        "nesting",
+                        f"Block must be nested inside {tpl_parent.type}:{tpl_parent.name}",
+                        path=self.path,
+                        line=art_blk.start_line,
+                        id=tpl_blk.name,
+                        marker_type=tpl_blk.type,
+                        expected_parent=f"{tpl_parent.type}:{tpl_parent.name}",
+                    ))
+                elif (art_parent.template_block.type, art_parent.template_block.name) != (tpl_parent.type, tpl_parent.name):
+                    errors.append(Template.error(
+                        "nesting",
+                        f"Block nested inside wrong parent: expected {tpl_parent.type}:{tpl_parent.name}, got {art_parent.template_block.type}:{art_parent.template_block.name}",
+                        path=self.path,
+                        line=art_blk.start_line,
+                        id=tpl_blk.name,
+                        marker_type=tpl_blk.type,
+                        expected_parent=f"{tpl_parent.type}:{tpl_parent.name}",
+                        actual_parent=f"{art_parent.template_block.type}:{art_parent.template_block.name}",
+                    ))
+
         # Extract IDs/refs/tasks for status cross-checks inside artifact
         self._extract_ids_and_refs()
         self._validate_id_task_statuses(errors)
 
-        if self.template.policy.unknown_sections != "allow":
-            for key, inst_list in art_by_key.items():
-                if key not in tpl_by_key:
-                    msg = Template.error("structure", "Unknown marker", path=self.path, line=inst_list[0].start_line, marker_type=key[0], id=key[1])
-                    if self.template.policy.unknown_sections == "error":
-                        errors.append(msg)
-                    else:
-                        warnings.append(msg)
+        # Unknown markers are always errors (markers in artifact not defined in template)
+        for key, inst_list in art_by_key.items():
+            if key not in tpl_by_key:
+                errors.append(Template.error("structure", "Unknown marker", path=self.path, line=inst_list[0].start_line, marker_type=key[0], id=key[1]))
 
         return {"errors": errors, "warnings": warnings}
 
@@ -579,15 +760,17 @@ class Artifact:
         for blk in self.blocks:
             if blk.template_block.type == "id":
                 to_code = str(blk.template_block.attrs.get("to_code", "false")).strip().lower() == "true"
-                for rel_idx, line in enumerate(blk.content, start=0):
+                # Skip lines inside code fences (examples shouldn't be extracted as real IDs)
+                for rel_idx, line in enumerate_outside_code_fences(blk.content):
                     m = _ID_DEF_RE.match(line.strip())
                     if not m:
                         continue
                     checked = (m.group("task") or "").lower().find("x") != -1
                     priority = m.group("priority") or m.group("priority_only")
+                    id_value = m.group("id") or m.group("id2") or m.group("id3")
                     self.id_definitions.append(
                         IdDefinition(
-                            id=m.group("id"),
+                            id=id_value,
                             line=blk.start_line + rel_idx,
                             checked=checked,
                             priority=priority,
@@ -598,8 +781,14 @@ class Artifact:
                         )
                     )
             if blk.template_block.type == "id-ref":
-                for rel_idx, line in enumerate(blk.content, start=0):
-                    m = _ID_REF_RE.match(line.strip())
+                # Skip lines inside code fences
+                for rel_idx, line in enumerate_outside_code_fences(blk.content):
+                    stripped = line.strip()
+                    if stripped.startswith("- "):
+                        stripped = stripped[2:]
+                    elif stripped.startswith("* "):
+                        stripped = stripped[2:]
+                    m = _ID_REF_RE.match(stripped)
                     if not m:
                         continue
                     checked = (m.group("task") or "").lower().find("x") != -1
@@ -615,9 +804,10 @@ class Artifact:
                             artifact_kind=self.template.kind,
                         )
                     )
-            else:
-                # generic backticked refs anywhere
-                for rel_idx, line in enumerate(blk.content, start=0):
+            elif blk.template_block.type not in {"id", "id-ref"}:
+                # generic backticked refs anywhere (except id/id-ref blocks which are handled above)
+                # Skip lines inside code fences
+                for rel_idx, line in enumerate_outside_code_fences(blk.content):
                     for mm in _BACKTICK_ID_RE.finditer(line):
                         self.id_references.append(
                             IdReference(
@@ -646,50 +836,105 @@ class Artifact:
                         self.task_statuses.append((checked, blk))
 
     def _validate_id_task_statuses(self, errors: List[Dict[str, object]]):
-        """Enforce task completion consistency between tasks and ID definitions."""
+        """Enforce task completion consistency between tasks and ID definitions.
+
+        For each ID definition with has="task", find all tasks within that ID block's
+        line range and validate that their completion status is consistent with the ID's status.
+
+        Also enforces cascade logic for nested ID definitions (e.g., id:status → id:feature in FEATURES).
+        """
         if not self.id_definitions:
             return
-        all_tasks = self.task_statuses
-        if not all_tasks:
-            return
-        all_done = all(checked for checked, _ in all_tasks)
+
         for d in self.id_definitions:
             has_task_attr = "task" in (d.block.template_block.attrs.get("has", "") or "")
             if not has_task_attr:
                 continue
+
+            # Find all tasks within this ID block's line range
+            id_start = d.block.start_line
+            id_end = d.block.end_line
+            tasks_in_block: List[bool] = []
+
+            for checked, task_blk in self.task_statuses:
+                # Task block is within ID block if its start is between ID's start and end
+                if id_start <= task_blk.start_line <= id_end:
+                    tasks_in_block.append(checked)
+
+            # Also find nested ID definitions within this ID block's range (cascade validation)
+            # E.g., id:status contains id:feature blocks in FEATURES manifest
+            nested_ids: List[bool] = []
+            for other_d in self.id_definitions:
+                if other_d is d:
+                    continue
+                # Check if other_d is nested within d's range (but not the same block)
+                if id_start < other_d.block.start_line and other_d.block.end_line < id_end:
+                    # Only consider IDs with has="task" for cascade
+                    other_has_task = "task" in (other_d.block.template_block.attrs.get("has", "") or "")
+                    if other_has_task:
+                        nested_ids.append(other_d.checked)
+
+            # Combine tasks and nested IDs for cascade validation
+            all_children = tasks_in_block + nested_ids
+            if not all_children:
+                continue
+
+            all_done = all(all_children)
+
             if all_done and not d.checked:
                 errors.append(Template.error("structure", "All tasks done but ID not marked done", path=self.path, line=d.line, id=d.id))
             if not all_done and d.checked:
                 errors.append(Template.error("structure", "ID marked done but tasks not all done", path=self.path, line=d.line, id=d.id))
 
 
-def cross_validate_artifacts(artifacts: Sequence[Artifact]) -> Dict[str, List[Dict[str, object]]]:
+def cross_validate_artifacts(
+    artifacts: Sequence[Artifact],
+    registered_systems: Optional[Iterable[str]] = None,
+    known_kinds: Optional[Iterable[str]] = None,
+) -> Dict[str, List[Dict[str, object]]]:
     """Cross-artifact validation: covered_by presence and refs to defs.
 
+    Args:
+        artifacts: Sequence of parsed Artifact objects to validate
+        registered_systems: Set of known system names from artifacts.json.
+            If provided, references to unknown systems are treated as external
+            and not flagged as errors.
+        known_kinds: Set of known kind identifiers from templates (e.g., {"feature", "algo", "fr"}).
+            Used for validating ID structure and kind existence.
+
+    Validates:
     - For each ID definition with covered_by attr: ensure at least one reference exists
       in artifacts whose template.kind is in covered_by list.
-    - For each reference: ensure a definition exists somewhere.
+    - For each reference: ensure a definition exists somewhere (unless external system).
     - For task sync across refs: if a ref is checked and refers to a definable ID with task,
       ensure corresponding definition is checked.
     """
     errors: List[Dict[str, object]] = []
     warnings: List[Dict[str, object]] = []
 
+    # Normalize known_kinds to lowercase set (if provided)
+    kinds_set: Optional[set] = None
+    if known_kinds is not None:
+        kinds_set = {k.lower() for k in known_kinds}
+
     id_defs: Dict[str, List[IdDefinition]] = {}
     id_refs: List[IdReference] = []
     defs_by_kind: Dict[str, List[IdDefinition]] = {}
     refs_by_kind: Dict[str, List[IdReference]] = {}
 
+    present_kinds: set[str] = set()
     for art in artifacts:
         art._extract_ids_and_refs()
+        kind = art.template.kind
+        present_kinds.add(kind)
         for d in art.id_definitions:
             id_defs.setdefault(d.id, []).append(d)
-            defs_by_kind.setdefault(art.template.kind, []).append(d)
+            defs_by_kind.setdefault(kind, []).append(d)
         for r in art.id_references:
             id_refs.append(r)
-            refs_by_kind.setdefault(art.template.kind, []).append(r)
+            refs_by_kind.setdefault(kind, []).append(r)
 
-    # covered_by check
+    # covered_by check (case-sensitive kind matching)
     for art in artifacts:
         for blk in art.blocks:
             if blk.template_block.type != "id":
@@ -700,6 +945,8 @@ def cross_validate_artifacts(artifacts: Sequence[Artifact]) -> Dict[str, List[Di
             target_kinds = [c.strip() for c in covered.split(",") if c.strip()]
             if not target_kinds:
                 continue
+            # Check if any target kind is present in validation scope
+            kinds_in_scope = [tk for tk in target_kinds if tk in present_kinds]
             # find ids defined in this block
             for d in art.id_definitions:
                 if d.block is not blk:
@@ -711,11 +958,76 @@ def cross_validate_artifacts(artifacts: Sequence[Artifact]) -> Dict[str, List[Di
                         found = True
                         break
                 if not found:
-                    errors.append(Template.error("structure", "ID not covered by required artifact kinds", path=art.path, line=d.line, id=d.id, covered_by=target_kinds))
+                    # If no target artifacts exist in scope, warn instead of error
+                    if not kinds_in_scope:
+                        warnings.append(Template.error("structure", "ID not covered (target artifact kinds not in scope)", path=art.path, line=d.line, id=d.id, covered_by=target_kinds))
+                    else:
+                        errors.append(Template.error("structure", "ID not covered by required artifact kinds", path=art.path, line=d.line, id=d.id, covered_by=target_kinds))
 
-    # refs must have definitions
+    # Normalize registered_systems to lowercase set for matching
+    systems_set: set[str] = set()
+    if registered_systems is not None:
+        systems_set = {s.lower() for s in registered_systems}
+
+    # Helper to check if a reference's system is registered
+    def _is_external_system_ref(fdd_id: str) -> bool:
+        """Check if this ID references an external (non-registered) system.
+
+        If no registered_systems provided, we cannot determine external refs,
+        so treat all as internal (will error if no definition).
+        """
+        if not systems_set:
+            return False  # no systems known, can't distinguish external
+        if not fdd_id.lower().startswith("fdd-"):
+            return False
+        # Try to find if any registered system matches as prefix
+        for sys in systems_set:
+            prefix = f"fdd-{sys}-"
+            if fdd_id.lower().startswith(prefix):
+                return False  # system is registered, not external
+        return True  # no registered system matched → external
+
+    # Helper to extract kind from FDD ID (first segment after system)
+    def _extract_kind_from_id(fdd_id: str) -> Optional[str]:
+        """Extract the kind segment from an FDD ID."""
+        if not fdd_id.lower().startswith("fdd-"):
+            return None
+        # Find matching system (longest match)
+        matched_sys: Optional[str] = None
+        for sys in systems_set:
+            prefix = f"fdd-{sys}-"
+            if fdd_id.lower().startswith(prefix.lower()):
+                if matched_sys is None or len(sys) > len(matched_sys):
+                    matched_sys = sys
+        if matched_sys is None:
+            return None
+        prefix_len = len(f"fdd-{matched_sys}-")
+        remainder = fdd_id[prefix_len:]
+        if not remainder:
+            return None
+        return remainder.split("-", 1)[0].lower()
+
+    # Validate ID kinds against known_kinds (if provided)
+    if kinds_set:
+        for d in id_defs.values():
+            for defn in d:
+                kind = _extract_kind_from_id(defn.id)
+                if kind and kind not in kinds_set:
+                    warnings.append(Template.error(
+                        "structure",
+                        f"ID uses unknown kind '{kind}'",
+                        path=defn.artifact_path,
+                        line=defn.line,
+                        id=defn.id,
+                        unknown_kind=kind,
+                    ))
+
+    # refs must have definitions (but only error if system is registered)
     for r in id_refs:
         if r.id not in id_defs:
+            if _is_external_system_ref(r.id):
+                # External system reference - not an error
+                continue
             errors.append(Template.error("structure", "Reference has no definition", path=r.artifact_path, line=r.line, id=r.id))
 
     # checked ref implies checked def (if def has task)
@@ -730,7 +1042,117 @@ def cross_validate_artifacts(artifacts: Sequence[Artifact]) -> Dict[str, List[Di
                 continue
             errors.append(Template.error("structure", "Reference marked done but definition not done", path=r.artifact_path, line=r.line, id=r.id))
 
+    # Note: References decide their own has= attributes (task, priority).
+    # A reference without has="task" is valid even if the definition has it.
+    # This allows flexible cross-artifact references where downstream artifacts
+    # may not need to track task status for upstream IDs.
+
     return {"errors": errors, "warnings": warnings}
+
+
+def parse_fdd_id(
+    fdd_id: str,
+    expected_kind: str,
+    registered_systems: Iterable[str],
+    where_defined: Optional[callable] = None,
+    known_kinds: Optional[Iterable[str]] = None,
+) -> Optional[ParsedFddId]:
+    """Parse an FDD ID and extract system, kind, slug, and optional prefix_id.
+
+    Algorithm:
+    1. Check fdd- prefix (case-insensitive)
+    2. Find system by matching registered systems as prefix (longest match wins, case-insensitive)
+    3. Extract first kind after system
+    4. Validate kind against known_kinds if provided
+    5. If first kind matches expected_kind → simple ID
+    6. Otherwise, look for composite ID by finding `-{expected_kind}-` separator
+    7. For composite IDs, validate that parent (left part) exists via where_defined
+
+    Args:
+        fdd_id: The FDD ID string to parse (e.g., "fdd-myapp-feature-auth-algo-hash")
+        expected_kind: The kind we're looking for (e.g., "algo")
+        registered_systems: Set/list of known system names (e.g., {"myapp", "account-server"})
+        where_defined: Optional callable(id) -> bool to check if parent ID exists
+        known_kinds: Optional set/list of known kind identifiers (e.g., {"feature", "algo", "fr"}).
+            If provided, the kind in the ID is validated against this set.
+
+    Returns:
+        ParsedFddId with system, kind, slug, and optional prefix_id; or None if not parseable
+
+    Examples:
+        >>> parse_fdd_id("fdd-myapp-feature-auth", "feature", {"myapp"})
+        ParsedFddId(system="myapp", kind="feature", slug="auth", prefix_id=None)
+
+        >>> parse_fdd_id("fdd-myapp-feature-auth-algo-hash", "algo", {"myapp"}, lambda x: x == "fdd-myapp-feature-auth")
+        ParsedFddId(system="myapp", kind="algo", slug="hash", prefix_id="fdd-myapp-feature-auth")
+
+        >>> parse_fdd_id("fdd-myapp-feature-auth", "feature", {"myapp"}, known_kinds={"feature", "algo"})
+        ParsedFddId(system="myapp", kind="feature", slug="auth", prefix_id=None)
+    """
+    if not fdd_id or not fdd_id.lower().startswith("fdd-"):
+        return None
+
+    # Convert to set for O(1) membership checks
+    systems_set = set(registered_systems) if not isinstance(registered_systems, set) else registered_systems
+
+    # Convert known_kinds to lowercase set (if provided)
+    kinds_set: Optional[set] = None
+    if known_kinds is not None:
+        kinds_set = {k.lower() for k in known_kinds}
+
+    # 1. Find system by checking each registered system as prefix (case-insensitive)
+    # Use longest match to handle multi-word systems like "account-server"
+    system: Optional[str] = None
+    for sys in systems_set:
+        prefix = f"fdd-{sys}-"
+        if fdd_id.lower().startswith(prefix.lower()):
+            if system is None or len(sys) > len(system):
+                system = sys
+
+    if system is None:
+        return None  # unknown system — not a recognized FDD ID
+
+    # 2. Remove prefix, get remainder
+    prefix_len = len(f"fdd-{system}-")
+    remainder = fdd_id[prefix_len:]
+
+    if not remainder:
+        return None  # no kind/slug after system
+
+    # 3. Extract first kind
+    parts = remainder.split("-", 1)
+    first_kind = parts[0]
+
+    # 4. Validate first_kind against known_kinds (if provided)
+    if kinds_set is not None and first_kind.lower() not in kinds_set:
+        return None  # unknown kind
+
+    # 5. If first_kind == expected_kind → simple ID
+    if first_kind.lower() == expected_kind.lower():
+        slug = parts[1] if len(parts) > 1 else ""
+        return ParsedFddId(system=system, kind=expected_kind, slug=slug, prefix_id=None)
+
+    # 6. Composite ID — look for `-{expected_kind}-` separator
+    # Also validate expected_kind is known (if known_kinds provided)
+    if kinds_set is not None and expected_kind.lower() not in kinds_set:
+        return None  # expected kind is not valid
+
+    separator = f"-{expected_kind}-"
+    fdd_id_lower = fdd_id.lower()
+    separator_lower = separator.lower()
+
+    if separator_lower not in fdd_id_lower:
+        return None  # expected kind not found
+
+    idx = fdd_id_lower.index(separator_lower)
+    left = fdd_id[:idx]  # parent ID (preserve original case)
+    slug = fdd_id[idx + len(separator):]  # everything after separator
+
+    # 7. Validate parent exists (if where_defined provided)
+    if where_defined is not None and not where_defined(left):
+        return None  # parent doesn't exist
+
+    return ParsedFddId(system=system, kind=expected_kind, slug=slug, prefix_id=left)
 
 
 def load_template(template_path: Path) -> Tuple[Optional[Template], List[Dict[str, object]]]:
@@ -776,7 +1198,9 @@ def validate_artifact_file_against_template(
 __all__ = [
     "Template",
     "Artifact",
+    "ParsedFddId",
     "load_template",
     "validate_artifact_file_against_template",
     "cross_validate_artifacts",
+    "parse_fdd_id",
 ]

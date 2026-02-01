@@ -2,11 +2,48 @@
 fdd: true
 type: requirement
 name: Code Traceability Specification
-version: 1.0
+version: 1.1
 purpose: Define FDD code traceability markers and validation rules
 ---
 
 # Code Traceability Specification
+
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Quick Reference](#quick-reference)
+3. [Traceability Mode](#traceability-mode)
+4. [Marker Syntax](#marker-syntax)
+5. [Marker Rules](#marker-rules)
+6. [Versioning](#versioning)
+7. [Design Synchronization](#design-synchronization)
+8. [Agent Workflow](#agent-workflow)
+9. [Common Errors](#common-errors)
+10. [Validation](#validation)
+11. [References](#references)
+
+---
+
+## Quick Reference
+
+**Scope marker** (single-line):
+```
+@fdd-{kind}:{full-id}:ph-{N}
+```
+
+**Block markers** (paired):
+```
+@fdd-begin:{full-id}:ph-{N}:inst-{local}
+...code...
+@fdd-end:{full-id}:ph-{N}:inst-{local}
+```
+
+**Validate markers**:
+```bash
+python3 {FDD}/skills/fdd/scripts/fdd.py validate-code
+```
+
+---
 
 ## Overview
 
@@ -164,6 +201,112 @@ When all instructions in scope are `[x]`:
 
 ---
 
+## Agent Workflow
+
+### When to Add Markers
+
+**During code implementation** (via `/fdd-generate CODE`):
+
+1. **Before writing code**: Identify which design IDs you're implementing
+2. **At function/class level**: Add scope marker as first line in docstring/comment
+3. **For specific instructions**: Wrap implementation with begin/end markers
+4. **After implementation**: Run `validate-code` to verify coverage
+
+### Marker Placement Workflow
+
+```
+1. Read FEATURE design → identify ID with to_code="true"
+2. Locate existing code OR create new file
+3. Add scope marker at entry point (function/class)
+4. Add block markers around instruction implementations
+5. Run validation: python3 {FDD}/skills/fdd/scripts/fdd.py validate-code
+6. Update design checkbox if implementation complete
+```
+
+### Multi-ID Implementation
+
+When one function implements multiple design IDs:
+- Add multiple scope markers (one per ID)
+- Each instruction block gets its own begin/end pair
+- Order markers by ID hierarchy (parent first, then children)
+
+---
+
+## Common Errors
+
+### ❌ Missing Phase Postfix
+
+```python
+# WRONG - missing :ph-N
+# @fdd-flow:fdd-app-feature-auth-flow-login
+def login(): ...
+
+# CORRECT
+# @fdd-flow:fdd-app-feature-auth-flow-login:ph-1
+def login(): ...
+```
+
+### ❌ Mismatched Begin/End IDs
+
+```python
+# WRONG - IDs don't match
+# @fdd-begin:fdd-app-feature-auth-flow-login:ph-1:inst-validate
+def validate(): ...
+# @fdd-end:fdd-app-feature-auth-flow-login:ph-1:inst-check  # DIFFERENT!
+
+# CORRECT - IDs match exactly
+# @fdd-begin:fdd-app-feature-auth-flow-login:ph-1:inst-validate
+def validate(): ...
+# @fdd-end:fdd-app-feature-auth-flow-login:ph-1:inst-validate
+```
+
+### ❌ Invented IDs
+
+```python
+# WRONG - ID doesn't exist in design
+# @fdd-flow:fdd-app-feature-auth-flow-my-custom-thing:ph-1
+def my_function(): ...
+
+# CORRECT - Use only IDs from design document
+# @fdd-flow:fdd-app-feature-auth-flow-login:ph-1
+def login_flow(): ...
+```
+
+### ❌ Empty Block
+
+```python
+# WRONG - no code between markers
+# @fdd-begin:fdd-app-feature-auth-flow-login:ph-1:inst-validate
+# @fdd-end:fdd-app-feature-auth-flow-login:ph-1:inst-validate
+
+# CORRECT - actual implementation between markers
+# @fdd-begin:fdd-app-feature-auth-flow-login:ph-1:inst-validate
+def validate_credentials(user, password):
+    return authenticate(user, password)
+# @fdd-end:fdd-app-feature-auth-flow-login:ph-1:inst-validate
+```
+
+### ❌ Nested Blocks
+
+```python
+# WRONG - nested block markers
+# @fdd-begin:...:inst-outer
+# @fdd-begin:...:inst-inner  # NESTING NOT ALLOWED
+# ...
+# @fdd-end:...:inst-inner
+# @fdd-end:...:inst-outer
+
+# CORRECT - sequential blocks
+# @fdd-begin:...:inst-outer
+# ...
+# @fdd-end:...:inst-outer
+# @fdd-begin:...:inst-inner
+# ...
+# @fdd-end:...:inst-inner
+```
+
+---
+
 ## Validation
 
 ### Deterministic Checks
@@ -215,3 +358,4 @@ Status: PASS | FAIL
 - **Traceability setting**: `artifact.traceability = "FULL" | "DOCS-ONLY"`
 - **FDL instruction format**: `requirements/FDL.md`
 - **Template markers**: `requirements/template.md`
+- **Validation command**: `python3 {FDD}/skills/fdd/scripts/fdd.py validate-code`

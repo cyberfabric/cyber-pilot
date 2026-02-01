@@ -253,6 +253,53 @@ class TestArtifactsMeta(unittest.TestCase):
         self.assertIsNotNone(parent_result)
         self.assertIsNotNone(child_result)
 
+    def test_iter_all_system_names(self):
+        """Cover iter_all_system_names method with nested systems."""
+        data = {
+            "version": "1.0",
+            "project_root": "..",
+            "rules": {},
+            "systems": [
+                {
+                    "name": "myapp",
+                    "rules": "",
+                    "children": [
+                        {"name": "account-server", "rules": ""},
+                        {"name": "billing", "rules": "", "children": [{"name": "invoicing", "rules": ""}]},
+                    ],
+                },
+                {"name": "other-system", "rules": ""},
+            ],
+        }
+        meta = ArtifactsMeta.from_dict(data)
+        names = list(meta.iter_all_system_names())
+        self.assertIn("myapp", names)
+        self.assertIn("account-server", names)
+        self.assertIn("billing", names)
+        self.assertIn("invoicing", names)
+        self.assertIn("other-system", names)
+        self.assertEqual(len(names), 5)
+
+    def test_get_all_system_names(self):
+        """Cover get_all_system_names method returns lowercase set."""
+        data = {
+            "version": "1.0",
+            "project_root": "..",
+            "rules": {},
+            "systems": [
+                {"name": "MyApp", "rules": ""},
+                {"name": "Account-Server", "rules": ""},
+            ],
+        }
+        meta = ArtifactsMeta.from_dict(data)
+        names = meta.get_all_system_names()
+        self.assertIsInstance(names, set)
+        self.assertIn("myapp", names)
+        self.assertIn("account-server", names)
+        # Original case should NOT be in the set
+        self.assertNotIn("MyApp", names)
+        self.assertNotIn("Account-Server", names)
+
 
 class TestLoadArtifactsMeta(unittest.TestCase):
     def test_load_artifacts_meta_success(self):

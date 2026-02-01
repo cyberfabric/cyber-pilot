@@ -1,7 +1,8 @@
 ---
 fdd: true
 type: workflow
-name: Generate
+name: fdd-generate
+description: Create/update FDD artifacts (PRD, DESIGN, FEATURES, ADR, Feature) or implement code from design with traceability markers
 version: 1.0
 purpose: Universal workflow for creating or updating any FDD artifact or code
 ---
@@ -12,6 +13,61 @@ purpose: Universal workflow for creating or updating any FDD artifact or code
 
 ALWAYS open and follow `../requirements/execution-protocol.md` FIRST
 
+ALWAYS open and follow `../requirements/reverse-engineering.md` WHEN user requests to analyze codebase, search in code, search in project documentation, or generate artifacts or code based on existing project structure
+
+For context compaction recovery during multi-phase workflows, follow `../requirements/execution-protocol.md` Section "Compaction Recovery".
+
+---
+
+## Table of Contents
+
+- [Reverse Engineering Prerequisite](#reverse-engineering-prerequisite)
+- [Overview](#overview)
+- [Agent Anti-Patterns](#-agent-anti-patterns-strict-mode)
+- [Rules Mode Behavior](#rules-mode-behavior)
+- [Phase 0: Ensure Dependencies](#phase-0-ensure-dependencies)
+- [Phase 0.5: Clarify Output & Context](#phase-05-clarify-output--context)
+- [Phase 1: Collect Information](#phase-1-collect-information)
+- [Phase 2: Generate](#phase-2-generate)
+- [Phase 2.5: Checkpoint](#phase-25-checkpoint-for-long-artifacts)
+- [Phase 3: Summary](#phase-3-summary)
+- [Phase 4: Write](#phase-4-write)
+- [Phase 5: Validate](#phase-5-validate)
+- [Phase 6: Offer Next Steps](#phase-6-offer-next-steps)
+- [Error Handling](#error-handling)
+- [State Summary](#state-summary)
+- [Validation Criteria](#validation-criteria)
+
+---
+
+## Reverse Engineering Prerequisite
+
+**When trigger conditions above are met**, before proceeding with generation:
+
+1. **Check if adapter has project analysis**:
+   - Does `{adapter-dir}/specs/` contain populated spec files?
+   - Is there a recent project scan summary?
+
+2. **If no project analysis exists**:
+   ```
+   To generate quality artifacts/code based on the existing project,
+   I recommend running adapter in reverse engineering mode first:
+
+   /fdd-adapter --rescan
+
+   This will:
+   - Analyze codebase structure (Layers 1-3)
+   - Detect tech stack and patterns
+   - Populate adapter specs
+
+   After scan completes, we can continue with your request.
+
+   Proceed with adapter scan? [yes/skip]
+   ```
+
+3. **If user confirms**: Run adapter workflow Phase 1, then return to original task
+4. **If user skips**: Proceed with best-effort generation using `reverse-engineering.md` inline
+
 ---
 
 ## Overview
@@ -21,6 +77,8 @@ Universal generation workflow. Handles two modes:
 - **Code mode**: Uses checklist only
 
 After executing `execution-protocol.md`, you have: TARGET_TYPE, RULES, KIND, PATH, MODE, and resolved dependencies.
+
+**Examples**: Each artifact type has examples in `{rules-path}/artifacts/{KIND}/examples/`. Reference these during Phase 1 (input collection) and Phase 2 (content generation) for style and quality guidance.
 
 ---
 
@@ -38,14 +96,19 @@ After executing `execution-protocol.md`, you have: TARGET_TYPE, RULES, KIND, PAT
 | PLACEHOLDER_SHIP | Write file with TODO/TBD markers | Incomplete artifact breaks downstream |
 | NO_CONFIRMATION | Write files without user "yes" | User loses control over changes |
 
-**Self-check before writing files**:
-- Did I load and follow template.md? → Check output structure matches
-- Did I reference example.md for style? → Check output tone/format
-- Did I self-review against checklist? → Check quality before output
-- Are there any placeholders? → Search for TODO, TBD, FIXME, [Description]
-- Did user confirm with "yes"? → Check confirmation received
+**Self-check before writing files** (MANDATORY in STRICT mode):
+
+| Check | Verification | If FAIL |
+|-------|--------------|---------|
+| Loaded template.md? | Output structure matches template H2 sections | STOP — reload template |
+| Referenced example.md? | Output tone/format consistent with example | STOP — review example |
+| Self-reviewed against checklist? | All checklist items addressed | STOP — complete review |
+| No placeholders? | Search for TODO, TBD, FIXME, [Description] returns 0 | STOP — fill all placeholders |
+| User confirmed "yes"? | Explicit confirmation received | STOP — request confirmation |
 
 **If any self-check fails → STOP and fix before proceeding**
+
+**STRICT mode enforcement**: Agent MUST include self-check results in Phase 3 Summary output. Skipping self-check is anti-pattern `SKIP_CHECKLIST`.
 
 ---
 
@@ -230,7 +293,7 @@ Execute phases from rules.md:
 - **Phase 3: IDs and Structure** — generate IDs per rules format
 - **Phase 4: Quality Check** — self-review against checklist
 
-Standard checks:
+Standard checks (subset of [Validation Criteria](#validation-criteria)):
 - [ ] No placeholders (TODO, TBD, [Description])
 - [ ] All IDs valid and unique
 - [ ] All sections filled
@@ -244,7 +307,7 @@ Execute phases from codebase/rules.md:
 - **Phase 3: Marker Format** — use correct marker syntax
 - **Phase 4: Quality Check** — verify traceability
 
-Standard checks:
+Standard checks (subset of [Validation Criteria](#validation-criteria)):
 - [ ] Follows conventions
 - [ ] Implements all requirements
 - [ ] Has tests (if required)
@@ -271,6 +334,33 @@ Standard checks:
 - Use empty lines between headings, paragraphs, lists
 - Use fenced code blocks with language tags
 - End metadata lines with two spaces for line breaks (or use lists)
+
+---
+
+## Phase 2.5: Checkpoint (for long artifacts)
+
+**When to checkpoint**: Artifacts with >10 sections OR generation taking multiple conversation turns.
+
+**After Phase 2 completion, save checkpoint**:
+```markdown
+### Generation Checkpoint
+
+**Workflow**: /fdd-generate {KIND}
+**Phase**: 2 complete, ready for Phase 3
+**Inputs collected**:
+- {section}: {value summary}
+- ...
+
+**Content generated**: {line count} lines
+**Pending**: Summary → Confirmation → Write → Validate
+
+Resume: Re-read this checkpoint, verify no file changes, continue to Phase 3.
+```
+
+**On resume after compaction**:
+1. Re-read target file (if exists) to verify no external changes
+2. Re-load rules dependencies
+3. Continue from saved phase
 
 ---
 
@@ -301,7 +391,7 @@ Standard checks:
 **User responses**:
 - **yes**: Create files and proceed to validation
 - **no**: Cancel operation
-- **modify**: Ask which question to revisit, iterate
+- **modify**: Ask which question to revisit, iterate (max 3 iterations; after 3, require explicit "continue iterating" or restart workflow)
 
 ---
 
@@ -359,6 +449,38 @@ What would you like to do next?
 1. {option from rules Next Steps}
 2. {option from rules Next Steps}
 3. Other
+```
+
+---
+
+## Error Handling
+
+### Tool Failures
+
+**If `fdd.py` script fails**:
+```
+⚠️ Tool error: {error message}
+→ Check Python environment and dependencies
+→ Verify adapter is correctly configured
+→ Run /fdd-adapter --rescan to refresh
+```
+**STOP** — do not continue with incomplete state.
+
+### User Abandonment
+
+**If user does not respond or abandons mid-workflow**:
+- Do not auto-proceed with assumptions
+- State can be resumed by re-running the workflow command
+- No cleanup required (no partial files created until Phase 4)
+
+### Validation Failure Loop
+
+**If validation fails repeatedly (3+ times)**:
+```
+⚠️ Validation failing repeatedly. Options:
+1. Review checklist requirements manually
+2. Simplify artifact scope
+3. Skip validation (RELAXED mode only)
 ```
 
 ---

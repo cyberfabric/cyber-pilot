@@ -21,18 +21,18 @@ def test_parse_workflow_extracts_all_sections():
     workflows_dir = Path(__file__).parent.parent / "workflows"
     assert workflows_dir.exists(), "workflows/ directory not found"
 
-    # Test fdd.md workflow (entrypoint workflow with classic structure)
-    workflow_path = workflows_dir / "fdd.md"
+    # Test generate.md workflow (main generation workflow with phases)
+    workflow_path = workflows_dir / "generate.md"
     assert workflow_path.exists(), f"{workflow_path} not found"
 
     content = workflow_path.read_text(encoding='utf-8')
 
-    # fdd.md uses classic structure with Prerequisites and Steps
-    has_prerequisites = '## Prerequisites' in content or '## Prerequisite' in content
-    has_steps = '## Steps' in content or '## Step' in content or '## Phase' in content
+    # generate.md uses phase-based structure with Prerequisite checks
+    has_prerequisites = 'Prerequisite' in content
+    has_phases = '## Phase' in content
 
-    assert has_prerequisites, f"{workflow_path.name}: Prerequisites section not found"
-    assert has_steps, f"{workflow_path.name}: Steps/Phase section not found"
+    assert has_prerequisites, f"{workflow_path.name}: Prerequisite section not found"
+    assert has_phases, f"{workflow_path.name}: Phase section not found"
     assert '**Type**:' in content, f"{workflow_path.name}: Type metadata not found"
 
 

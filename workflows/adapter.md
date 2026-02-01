@@ -1,7 +1,8 @@
 ---
 fdd: true
 type: workflow
-name: Adapter
+name: fdd-adapter
+description: Create/update project FDD adapter - scan structure, configure rules, generate AGENTS.md and artifacts.json
 version: 1.0
 purpose: Unified FDD adapter workflow - scan, configure, validate
 ---
@@ -11,6 +12,17 @@ purpose: Unified FDD adapter workflow - scan, configure, validate
 **Type**: Operation
 **Role**: Any
 **Artifact**: `{adapter-directory}/AGENTS.md` + `artifacts.json` + specs
+
+---
+
+## Table of Contents
+
+1. [Phase 1: Project Scan](#phase-1-project-scan)
+2. [Phase 2: Configuration Proposal](#phase-2-configuration-proposal)
+3. [Phase 3: Generation](#phase-3-generation)
+4. [Phase 4: Agent Integration](#phase-4-agent-integration)
+5. [Phase 5: Validation](#phase-5-validation)
+6. [Quick Actions](#quick-actions)
 
 ---
 
@@ -39,6 +51,8 @@ ALWAYS open and follow `../requirements/execution-protocol.md` WHEN executing th
 **ALWAYS open and follow**: `../requirements/adapter-structure.md`
 
 **ALWAYS open and follow**: `../schemas/artifacts.schema.json` WHEN generating artifacts.json
+
+**ALWAYS open and follow**: `../requirements/reverse-engineering.md` WHEN scanning project structure (Phase 1)
 
 Extract:
 - Adapter structure requirements
@@ -87,7 +101,12 @@ If not found:
 
 ### 1.3 Scan Project Structure
 
-Run comprehensive project scan:
+Run comprehensive project scan following `reverse-engineering.md` methodology:
+
+**Use Layers 1-3** from reverse engineering spec:
+- Layer 1: Surface Reconnaissance (repository structure, languages, documentation)
+- Layer 2: Entry Point Analysis (main entry points, bootstrap sequence)
+- Layer 3: Structural Decomposition (architecture pattern, module boundaries)
 
 #### Directory Structure Analysis
 ```yaml
@@ -280,6 +299,14 @@ Artifact traceability:
 
 Store as: `TRACEABILITY_CONFIG`
 
+### 2.6 Cancellation Handling
+
+**If user cancels** (selects "Cancel", provides no response, or explicitly declines):
+- Do NOT create any files
+- Inform user: "Adapter setup cancelled. Run `/fdd-adapter` to restart."
+- Return to normal assistant mode
+- Do NOT partially save configuration
+
 ---
 
 ## Phase 3: Generation
@@ -345,11 +372,19 @@ Create `{ADAPTER_DIR}/AGENTS.md`:
 
 ## Navigation Rules
 
-ALWAYS open and follow `specs/tech-stack.md` WHEN generating or validating: DESIGN, ADR, CODE
+ALWAYS open and follow `specs/tech-stack.md` WHEN FDD follows rules `{RULES_ID}` for artifact kinds: DESIGN, ADR OR codebase
 
-ALWAYS open and follow `specs/conventions.md` WHEN generating or validating: CODE
+ALWAYS open and follow `specs/domain-model.md` WHEN FDD follows rules `{RULES_ID}` for artifact kinds: DESIGN, FEATURES, FEATURE OR codebase
 
-ALWAYS open and follow `specs/domain-model.md` WHEN generating or validating: DESIGN, FEATURE, CODE
+ALWAYS open and follow `specs/api-contracts.md` WHEN FDD follows rules `{RULES_ID}` for artifact kinds: DESIGN, ADR, FEATURE OR codebase
+
+ALWAYS open and follow `specs/patterns.md` WHEN FDD follows rules `{RULES_ID}` for artifact kinds: DESIGN, ADR, FEATURE OR codebase
+
+ALWAYS open and follow `specs/conventions.md` WHEN FDD follows rules `{RULES_ID}` for codebase
+
+ALWAYS open and follow `specs/build-deploy.md` WHEN FDD follows rules `{RULES_ID}` for codebase
+
+ALWAYS open and follow `specs/testing.md` WHEN FDD follows rules `{RULES_ID}` for codebase
 
 ---
 
@@ -360,6 +395,8 @@ See `artifacts.json` for complete artifact configuration including:
 - System hierarchy
 - Traceability settings
 ```
+
+**Note**: `{RULES_ID}` is the rules package identifier from artifacts.json (e.g., `fdd-sdlc`)
 
 ### 3.4 Generate Spec Files
 
@@ -409,6 +446,16 @@ At project root:
 }
 ```
 
+### 3.6 Error Recovery
+
+**If generation fails mid-phase**:
+1. Note which files were created successfully
+2. Delete partially created files (incomplete AGENTS.md, malformed JSON, etc.)
+3. Log error to user with specific failure point
+4. Suggest: "Run `/fdd-adapter` again to restart from Phase 1"
+
+**Do NOT leave adapter in inconsistent state** — either complete all files or rollback to previous state.
+
 ---
 
 ## Phase 4: Agent Integration
@@ -452,6 +499,12 @@ For each confirmed agent, run:
 fdd agent-workflows --agent {agent}
 fdd agent-skills --agent {agent}
 ```
+
+**If CLI command fails**:
+- Log error output to user
+- Note which agent configuration failed
+- Suggest manual configuration or `/fdd` to verify setup
+- Continue with other agents if multiple configured
 
 ---
 
@@ -528,6 +581,8 @@ AGENT INTEGRATION
 
 ## Quick Actions
 
+⚠️ **Quick Actions modify adapter state.** Always run Phase 5 validation after any Quick Action to ensure adapter consistency.
+
 ### Rescan Project
 
 Re-run scan to detect changes:
@@ -594,3 +649,4 @@ Run adapter workflow with --agent {windsurf|cursor|claude|copilot}
 
 **Requirements**: `../requirements/adapter-structure.md`
 **Schema**: `../schemas/artifacts.schema.json`
+**Methodology**: `../requirements/reverse-engineering.md`

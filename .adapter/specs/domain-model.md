@@ -1,7 +1,7 @@
 # Domain Model
 
-**Version**: 1.0  
-**Last Updated**: 2025-01-17  
+**Version**: 2.0
+**Last Updated**: 2026-02-01  
 **Purpose**: Define FDD artifact structures and ID formats
 
 ---
@@ -28,14 +28,18 @@ FDD uses **Markdown-based artifacts** for design documentation, not code-level t
 
 ### Validation Requirements
 
-Each artifact type has content requirements in:
+Each artifact type has rules packages in:
 ```
-requirements/
-├── prd-content.md
-├── overall-design-content.md
-├── adr-content.md
-├── features-manifest-content.md
-└── feature-design-content.md
+rules/sdlc/artifacts/
+├── PRD/
+│   ├── template.md     # Generation template
+│   ├── checklist.md    # Validation checklist
+│   ├── rules.md        # Validation rules
+│   └── examples/       # Valid examples
+├── DESIGN/
+├── FEATURES/
+├── ADR/
+└── FEATURE/
 ```
 
 ---
@@ -222,9 +226,9 @@ python3 skills/fdd/scripts/fdd.py scan-ids --root . --kind fdd
 ## Source
 
 **Discovered from**:
-- `requirements/*-content.md` files
-- FDD artifact examples in documentation
-- `skills/fdd/scripts/fdd.py` - ID regex patterns
+- `rules/sdlc/artifacts/*/template.md` - Artifact templates
+- `rules/sdlc/artifacts/*/examples/` - Valid examples
+- `skills/fdd/scripts/fdd/cli.py` - ID regex patterns
 - README.md - FDD ID format descriptions
 
 ---

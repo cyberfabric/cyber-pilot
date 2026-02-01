@@ -207,7 +207,7 @@ class TestCliCommandCoverage(unittest.TestCase):
                         code = fdd_cli._cmd_self_check(["--root", td])
         self.assertEqual(code, 1)
 
-    def test_self_check_registry_templates_invalid(self):
+    def test_self_check_registry_no_rules(self):
         with TemporaryDirectory() as td:
             root = Path(td)
             (root / ".git").mkdir()
@@ -221,31 +221,26 @@ class TestCliCommandCoverage(unittest.TestCase):
                             code = fdd_cli._cmd_self_check(["--root", td])
         self.assertEqual(code, 1)
 
-    def test_self_check_missing_example_paths_fails_with_2(self):
+    def test_self_check_with_rules_structure(self):
         with TemporaryDirectory() as td:
             root = Path(td)
             (root / ".git").mkdir()
             adapter = root / ".adapter"
             adapter.mkdir()
-            tmpl = root / "templates"
-            tmpl.mkdir()
-            (tmpl / "PRD.template.md").write_text(
-                """---\n"""
-                "fdd-template:\n  version:\n    major: 1\n    minor: 0\n  kind: PRD\n  unknown_sections: warn\n  order: strict\n  heading_levels: strict\n"
-                "---\n\n# PRD\n\n## A. Vision\n<!-- fdd:section id=\"A\" required=\"true\" match_heading=\"^A\\.\" -->\n",
+            # Create rules structure
+            rules_dir = root / "rules" / "test" / "artifacts" / "PRD"
+            rules_dir.mkdir(parents=True)
+            (rules_dir / "template.md").write_text(
+                "---\n"
+                "fdd-template:\n  version:\n    major: 1\n    minor: 0\n  kind: PRD\n"
+                "---\n\n# PRD\n",
                 encoding="utf-8",
             )
+            # No example - should warn but pass (no examples = no failures)
             registry = {
                 "version": "1.0",
-                "templates": {
-                    "PRD": [
-                        {
-                            "id": "x",
-                            "template_path": "templates/PRD.template.md",
-                            "example_path": "examples/requirements/prd/valid.md",
-                            "validation_level": "STRICT",
-                        }
-                    ]
+                "rules": {
+                    "test-rules": {"format": "FDD", "path": "rules/test"}
                 },
             }
             with patch.object(fdd_cli, "find_project_root", return_value=root):
@@ -254,7 +249,8 @@ class TestCliCommandCoverage(unittest.TestCase):
                         buf = io.StringIO()
                         with contextlib.redirect_stdout(buf):
                             code = fdd_cli._cmd_self_check(["--root", td])
-        self.assertEqual(code, 2)
+        # PASS when no examples exist (warnings only)
+        self.assertEqual(code, 0)
 
     def test_init_yes_dry_run(self):
         with TemporaryDirectory() as td:
@@ -264,18 +260,6 @@ class TestCliCommandCoverage(unittest.TestCase):
                 rc = fdd_cli.main(["init", "--project-root", str(root), "--yes", "--dry-run"])
         self.assertEqual(rc, 0)
 
-    def test_agent_workflows_unknown_agent_config_incomplete(self):
-        with TemporaryDirectory() as td:
-            root = Path(td)
-            (root / ".git").mkdir()
-            (root / "workflows").mkdir()
-            (root / "workflows" / "fdd.md").write_text("# /fdd\n", encoding="utf-8")
-            with patch.object(fdd_cli, "find_project_root", return_value=root):
-                buf = io.StringIO()
-                with contextlib.redirect_stdout(buf):
-                    code = fdd_cli._cmd_agent_workflows(["--agent", "my-ide", "--root", td, "--dry-run"])
-        self.assertEqual(code, 2)
-
     def test_main_missing_subcommand_returns_error(self):
         rc = fdd_cli.main([])
         self.assertEqual(rc, 1)
@@ -283,81 +267,6 @@ class TestCliCommandCoverage(unittest.TestCase):
     def test_main_unknown_command_returns_error(self):
         rc = fdd_cli.main(["does-not-exist"])
         self.assertEqual(rc, 1)
-
-    def test_agent_workflows_deletes_stale_proxy_pointing_to_missing_workflow(self):
-        with TemporaryDirectory() as tmpdir:
-            project_root = Path(tmpdir)
-            (project_root / ".fdd-config.json").write_text("{}\n", encoding="utf-8")
-            wf_dir = project_root / "wf"
-            wf_dir.mkdir(parents=True, exist_ok=True)
-
-            repo_root = Path(__file__).parent.parent
-            missing_target = (repo_root / "workflows" / "does-not-exist.md").resolve()
-            stale = wf_dir / "fdd-stale.md"
-            stale.write_text(
-                "# /fdd-stale\n\nALWAYS open and follow `" + missing_target.as_posix() + "`\n",
-                encoding="utf-8",
-            )
-
-            cfg = {
-                "version": 1,
-                "agents": {
-                    "windsurf": {
-                        "workflow_dir": "wf",
-                        "workflow_command_prefix": "fdd-",
-                        "workflow_filename_format": "{command}.md",
-                        "template": [
-                            "# /{command}\n",
-                            "\n",
-                            "ALWAYS open and follow `{target_workflow_path}`\n",
-                        ],
-                    }
-                },
-            }
-            cfg_path = project_root / "fdd-agent-workflows.json"
-            cfg_path.write_text(json.dumps(cfg), encoding="utf-8")
-
-            rc = fdd_cli.main([
-                "agent-workflows",
-                "--agent",
-                "windsurf",
-                "--root",
-                str(project_root),
-                "--config",
-                str(cfg_path),
-                "--fdd-root",
-                str(repo_root),
-            ])
-            self.assertEqual(rc, 0)
-            self.assertFalse(stale.exists())
-
-    def test_agent_skills_legacy_invalid_template_returns_2(self):
-        with TemporaryDirectory() as tmpdir:
-            project_root = Path(tmpdir)
-            (project_root / ".fdd-config.json").write_text("{}\n", encoding="utf-8")
-            cfg = {
-                "version": 1,
-                "agents": {
-                    "windsurf": {
-                        "skills_dir": ".windsurf/skills",
-                        "skill_name": "fdd",
-                        "template": "not-a-list",
-                    }
-                },
-            }
-            cfg_path = project_root / "fdd-agent-skills.json"
-            cfg_path.write_text(json.dumps(cfg), encoding="utf-8")
-            rc = fdd_cli.main([
-                "agent-skills",
-                "--agent",
-                "windsurf",
-                "--root",
-                str(project_root),
-                "--config",
-                str(cfg_path),
-                "--dry-run",
-            ])
-            self.assertEqual(rc, 2)
 
 
 if __name__ == "__main__":

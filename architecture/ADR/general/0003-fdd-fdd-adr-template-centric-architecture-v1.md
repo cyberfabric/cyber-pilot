@@ -1,9 +1,8 @@
 <!-- fdd:#:adr -->
 # ADR-0003: Template-Centric Architecture and Workflow Consolidation
 
-<!-- fdd:id:adr has="priority,task" covered_by="design" -->
-**ID**: [x] `p1` - `fdd-fdd-adr-template-centric-architecture-v1`
-<!-- fdd:id:adr -->
+<!-- fdd:id:adr has="priority,task" covered_by="DESIGN" -->
+- [x] `p1` - **ID**: `fdd-fdd-adr-template-centric-architecture-v1`
 
 <!-- fdd:##:meta -->
 ## Meta
@@ -200,5 +199,6 @@ FDD is rebranded to **Framework for Documentation and Development**:
 - Related ADRs: ADR-0001 (Initial FDD Architecture), ADR-0002 (Adaptive FDD)
 <!-- fdd:list:links -->
 <!-- fdd:##:body -->
+<!-- fdd:id:adr -->
 
 <!-- fdd:#:adr -->

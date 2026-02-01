@@ -12,6 +12,24 @@ purpose: Common protocol executed by generate.md and validate.md workflows
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Execution Protocol Violations](#-execution-protocol-violations)
+- [Compaction Recovery](#-compaction-recovery)
+- [FDD Mode Detection](#fdd-mode-detection)
+- [Rules Mode Detection](#rules-mode-detection)
+- [Discover Adapter](#discover-adapter)
+- [Understand Registry](#understand-registry)
+- [Clarify Intent](#clarify-intent)
+- [Load Rules](#load-rules)
+- [Cross-Reference Awareness](#cross-reference-awareness)
+- [Context Usage](#context-usage)
+- [Error Handling](#error-handling)
+- [Consolidated Validation Checklist](#consolidated-validation-checklist)
+
+---
+
 ## Overview
 
 Common steps shared by `generate.md` and `validate.md`. Both workflows MUST execute this protocol before their specific logic.
@@ -48,6 +66,50 @@ Common steps shared by `generate.md` and `validate.md`. Both workflows MUST exec
 4. Discard invalid output
 5. Restart workflow with full protocol compliance
 6. Show protocol compliance report in new output
+
+---
+
+## 🔄 Compaction Recovery
+
+**Problem**: After context compaction (conversation summarization), agent may lose:
+- Knowledge that FDD workflow was active
+- List of loaded specs
+- Current workflow phase
+
+**Detection signals** (agent should suspect compaction occurred):
+- Conversation starts with "This session is being continued from a previous conversation"
+- Summary mentions `/fdd-generate`, `/fdd-validate`, or other FDD commands
+- Todo list contains FDD-related tasks in progress
+
+**Recovery protocol**:
+
+1. **Check summary for FDD triggers**:
+   - If summary mentions `/fdd-*` command → FDD workflow was active
+   - If summary mentions editing codebase in FDD project → specs were required
+
+2. **Re-establish context**:
+   ```
+   ⚠️ Detected: FDD workflow continuation after compaction
+   → Re-running protocol check...
+   → Running: fdd adapter-info
+   → Loading required specs from AGENTS.md
+   ```
+
+3. **Announce recovery**:
+   ```
+   FDD Context Restored:
+   - Workflow: {from summary}
+   - Target: {from summary}
+   - Specs loaded: {list}
+   ```
+
+4. **Continue workflow** with full context
+
+**Agent MUST NOT**:
+- Continue FDD work without re-loading specs after compaction
+- Assume specs are "still loaded" from before compaction
+- Skip protocol because "it was already done"
+
 ---
 
 ## FDD Mode Detection
@@ -298,6 +360,40 @@ I understand the following requirements for {ARTIFACT_TYPE}:
 - `EXAMPLE` — loaded example content
 - `REQUIREMENTS` — parsed requirements from rules
 
+### 6. Load Adapter Specs
+
+**After rules loaded and target type determined**, load applicable adapter specs:
+
+**Read adapter AGENTS.md** at `{adapter_dir}/AGENTS.md`
+
+**Parse WHEN clauses** matching current context:
+
+```
+For each line matching: ALWAYS open and follow `{spec}` WHEN FDD follows rules `{rule}` for {target}
+  IF {rule} == loaded rules ID (e.g., "fdd-sdlc"):
+    IF target includes current artifact kind:
+      → Open and follow {spec}
+    IF target includes "codebase" AND working on code:
+      → Open and follow {spec}
+```
+
+**Example resolution**:
+- Loaded rules: `fdd-sdlc`
+- Current target: artifact kind `DESIGN`
+- Adapter AGENTS.md contains:
+  ```
+  ALWAYS open and follow `specs/tech-stack.md` WHEN FDD follows rules `fdd-sdlc` for artifact kinds: DESIGN, ADR OR codebase
+  ALWAYS open and follow `specs/domain-model.md` WHEN FDD follows rules `fdd-sdlc` for artifact kinds: DESIGN, FEATURES, FEATURE
+  ```
+- Matched specs: `specs/tech-stack.md`, `specs/domain-model.md`
+- Agent opens and follows both spec files
+
+**Store loaded adapter specs**:
+- `ADAPTER_SPECS` — list of loaded spec paths
+- Specs content available for workflow guidance
+
+**Backward compatibility**: If adapter uses legacy format (`WHEN executing workflows: ...`), map workflow names to artifact kinds internally.
+
 ---
 
 ## Cross-Reference Awareness
@@ -326,25 +422,126 @@ I understand the following requirements for {ARTIFACT_TYPE}:
 
 ## Error Handling
 
+### Adapter Not Found
+
 **If adapter not found**:
 ```
-⚠ Adapter not found
+⚠️ Adapter not found
 → Run /fdd-adapter to bootstrap
 ```
+**Action**: STOP — cannot proceed without adapter. Suggest bootstrap.
+
+### artifacts.json Parse Error
+
+**If artifacts.json is malformed**:
+```
+⚠️ Cannot parse artifacts.json: {parse error}
+→ Fix JSON syntax errors in {adapter_dir}/artifacts.json
+→ Validate with: python3 -m json.tool artifacts.json
+```
+**Action**: STOP — cannot determine rules or systems without valid registry.
+
+### Rules.md Not Found
+
+**If rules.md cannot be loaded**:
+```
+⚠️ Rules file not found: {RULES_PATH}
+→ Verify rules package exists at {RULES_BASE}
+→ Check artifacts.json rules section has correct path
+→ Run /fdd-adapter --rescan to regenerate
+```
+**Action**: STOP — cannot load dependencies or validate without rules.
+
+### Template/Checklist Not Found
+
+**If dependency from rules.md not found**:
+```
+⚠️ Dependency not found: {dependency_path}
+→ Referenced in: {RULES_PATH}
+→ Expected at: {resolved_path}
+→ Verify rules package is complete
+```
+**Action**: STOP — cannot generate/validate without required dependencies.
+
+### System Not Registered
+
+**If target artifact's system not in artifacts.json**:
+```
+⚠️ System not found: {system_name}
+→ Registered systems: {list from artifacts.json}
+→ Options:
+  1. Register system via /fdd-adapter
+  2. Use existing system
+  3. Continue in RELAXED mode (no rules enforcement)
+```
+**Action**: Prompt user to choose before proceeding.
+
+### Artifact Kind Not Supported
+
+**If artifact kind not in rules package**:
+```
+⚠️ Unsupported artifact kind: {KIND}
+→ Available kinds in {RULES_BASE}: {list}
+→ Options:
+  1. Use supported kind
+  2. Create custom rules for {KIND}
+  3. Continue in RELAXED mode
+```
+**Action**: Prompt user to choose before proceeding.
 
 ---
 
-## Validation Criteria
+## Consolidated Validation Checklist
 
-- [ ] FDD mode detected
-- [ ] Adapter discovery executed
-- [ ] artifacts.json read and understood
-- [ ] Rules directories explored
-- [ ] Target type clarified (artifact or code)
-- [ ] Artifact type determined (PRD, DESIGN, etc.)
-- [ ] Rules.md loaded from correct path
-- [ ] Dependencies parsed and loaded (template, checklist, example)
-- [ ] Requirements confirmed
-- [ ] Rules context clarified (if applicable)
-- [ ] System context clarified (if using rules)
-- [ ] Cross-reference context understood
+**Use this single checklist for all execution-protocol validation.**
+
+### Detection (D)
+
+| # | Check | Required | How to Verify |
+|---|-------|----------|---------------|
+| D.1 | FDD mode detected | YES | Agent announced "FDD mode: ENABLED" |
+| D.2 | Rules mode determined (STRICT/RELAXED) | YES | Agent announced rules mode with reason |
+
+### Discovery (DI)
+
+| # | Check | Required | How to Verify |
+|---|-------|----------|---------------|
+| DI.1 | Adapter discovery executed | YES | `fdd adapter-info` command was run |
+| DI.2 | artifacts.json read and understood | YES | Agent listed systems/rules from registry |
+| DI.3 | Rules directories explored | YES | Agent listed available artifact kinds |
+
+### Clarification (CL)
+
+| # | Check | Required | How to Verify |
+|---|-------|----------|---------------|
+| CL.1 | Target type clarified (artifact or code) | YES | Agent stated target type |
+| CL.2 | Artifact type determined (PRD, DESIGN, etc.) | YES | Agent stated artifact kind |
+| CL.3 | System context clarified | CONDITIONAL | If using rules, agent stated system |
+| CL.4 | Rules context clarified | CONDITIONAL | If multiple rules, agent stated which |
+
+### Loading (L)
+
+| # | Check | Required | How to Verify |
+|---|-------|----------|---------------|
+| L.1 | Rules.md loaded from correct path | YES | Agent stated `RULES_PATH` value |
+| L.2 | Dependencies parsed and loaded | YES | Agent confirmed template/checklist/example loaded |
+| L.3 | Requirements confirmed | YES | Agent listed understood requirements |
+| L.4 | Adapter specs loaded | CONDITIONAL | Agent listed matched WHEN clauses and specs |
+
+### Context (C)
+
+| # | Check | Required | How to Verify |
+|---|-------|----------|---------------|
+| C.1 | Cross-reference context understood | YES | Agent identified parent/child/related artifacts |
+| C.2 | Project context available | YES | Agent can reference project-specific information |
+
+### Final (F)
+
+| # | Check | Required | How to Verify |
+|---|-------|----------|---------------|
+| F.1 | All Detection checks pass | YES | D.1-D.2 verified |
+| F.2 | All Discovery checks pass | YES | DI.1-DI.3 verified |
+| F.3 | All Clarification checks pass | YES | CL.1-CL.4 verified (conditionals where applicable) |
+| F.4 | All Loading checks pass | YES | L.1-L.4 verified (conditionals where applicable) |
+| F.5 | All Context checks pass | YES | C.1-C.2 verified |
+| F.6 | Ready to proceed to workflow-specific logic | YES | Agent has all required context loaded |

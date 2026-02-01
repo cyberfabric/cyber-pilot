@@ -1,8 +1,48 @@
 # PRD Expert Checklist
 
-**Artifact**: Product Requirements Document (PRD)  
-**Version**: 1.0  
+**Artifact**: Product Requirements Document (PRD)
+**Version**: 1.1
+**Last Updated**: 2025-02-01
 **Purpose**: Comprehensive quality checklist for PRD artifacts
+
+---
+
+## Table of Contents
+
+1. [Prerequisites](#prerequisites)
+2. [Applicability Context](#applicability-context)
+3. [Severity Dictionary](#severity-dictionary)
+4. [Applicability Determination](#applicability-determination) — criteria for "(if applicable)" items
+5. [Checkpointing](#checkpointing-long-reviews) — for long reviews / context limits
+6. **MUST HAVE** (check in priority order):
+   - [BIZ: Business](#business-expertise-biz) — Vision, Stakeholders, Requirements, Use Cases ⭐ Start here
+   - [ARCH: Architecture](#architecture-expertise-arch) — Scope, Modularity, Scalability
+   - [SEC: Security](#-security-expertise-sec) — Auth, Authorization, Data Classification
+   - [TEST: Testing](#-testing-expertise-test) — Acceptance Criteria, Testability
+   - [PERF: Performance](#-performance-expertise-perf) — Response Time, Throughput
+   - [REL: Reliability](#️-reliability-expertise-rel) — Availability, Recovery
+   - [UX: Usability](#-usability-expertise-ux) — UX Goals, Accessibility
+   - [DATA: Data](#-data-expertise-data) — Ownership, Quality, Lifecycle
+   - [INT: Integration](#-integration-expertise-int) — External Systems, APIs
+   - [COMPL: Compliance](#-compliance-expertise-compl) — Regulatory, Legal
+   - [MAINT: Maintainability](#-maintainability-expertise-maint) — Documentation, Support
+   - [OPS: Operations](#️-operations-expertise-ops) — Deployment, Monitoring
+   - [Deliberate Omissions](#deliberate-omissions) — DOC-PRD-001
+7. **MUST NOT HAVE**:
+   - [No Technical Implementation](#-arch-prd-no-001-no-technical-implementation-details)
+   - [No Architectural Decisions](#-arch-prd-no-002-no-architectural-decisions)
+   - [No Implementation Tasks](#-biz-prd-no-001-no-implementation-tasks)
+   - [No Feature-Level Design](#-biz-prd-no-002-no-feature-level-design)
+   - [No Data Schema](#-data-prd-no-001-no-data-schema-definitions)
+   - [No API Specs](#-int-prd-no-001-no-api-specifications)
+   - [No Test Cases](#-test-prd-no-001-no-test-cases)
+   - [No Infrastructure Specs](#-ops-prd-no-001-no-infrastructure-specifications)
+   - [No Security Implementation](#-sec-prd-no-001-no-security-implementation-details)
+   - [No Code-Level Docs](#-maint-prd-no-001-no-code-level-documentation)
+8. [Validation Summary](#validation-summary)
+9. [Reporting](#reporting)
+
+**Review Priority**: BIZ → ARCH → SEC → TEST → (others as applicable)
 
 ---
 
@@ -17,6 +57,7 @@ Before starting the review, confirm:
 - [ ] I will document any violations found
 - [ ] I will provide specific feedback for each failed check
 - [ ] I will complete the Final Checklist and provide a review report
+- [ ] I will use the [Reporting](#reporting) format for output (see end of document)
 
 ---
 
@@ -51,6 +92,55 @@ Before evaluating each checklist item, the expert MUST:
 - **HIGH**: Major ambiguity/risk; should be fixed before approval.
 - **MEDIUM**: Meaningful improvement; fix when feasible.
 - **LOW**: Minor improvement; optional.
+
+---
+
+## Applicability Determination
+
+**For items marked "(if applicable)"**, determine applicability using these criteria:
+
+| Domain | Applicable When | Not Applicable When |
+|--------|-----------------|---------------------|
+| Market positioning (BIZ-PRD-002) | External product, competitive market | Internal tool, no competitors |
+| SSO/federation (SEC-PRD-001) | Enterprise product, multi-tenant | Single-user tool, local-only |
+| Regulatory (COMPL-PRD-001) | Handles PII, financial data, healthcare | Internal dev tool, no user data |
+| Accessibility (UX-PRD-002) | Public-facing, government, enterprise | Internal tool with known user base |
+| Internationalization (UX-PRD-003) | Multi-region deployment planned | Single-locale deployment |
+| Offline capability (UX-PRD-004) | Mobile app, unreliable network | Server-side tool, always-connected |
+
+**When uncertain**: Mark as applicable and let the PRD author explicitly exclude with reasoning.
+
+---
+
+## Checkpointing (Long Reviews)
+
+This checklist is 700+ lines. For reviews that may exceed context limits:
+
+### Checkpoint After Each Domain
+
+After completing each expertise domain (BIZ, ARCH, SEC, etc.), output:
+```
+✓ {DOMAIN} complete: {N} items checked, {M} issues found
+Issues: {list issue IDs}
+Remaining: {list unchecked domains}
+```
+
+### If Context Runs Low
+
+1. **Save progress**: List completed domains and issues found so far
+2. **Note position**: "Stopped at {DOMAIN}-{ID}"
+3. **Resume instruction**: "Continue from {DOMAIN}-{ID}, issues so far: {list}"
+
+### Minimum Viable Review
+
+If full review impossible, prioritize in this order:
+1. **BIZ** (CRITICAL) — Vision, Requirements, Use Cases
+2. **ARCH-PRD-001** (CRITICAL) — Scope Boundaries
+3. **SEC-PRD-001/002** (CRITICAL) — Auth/Authorization
+4. **DOC-PRD-001** (CRITICAL) — Deliberate Omissions
+5. **MUST NOT HAVE** (all CRITICAL/HIGH items)
+
+Mark review as "PARTIAL" if not all domains completed.
 
 ---
 

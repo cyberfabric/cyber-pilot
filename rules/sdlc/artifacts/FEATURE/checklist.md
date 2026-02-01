@@ -1,8 +1,72 @@
 # Feature Specification Expert Checklist
 
-**Artifact**: Feature Specification (FEATURE)  
-**Version**: 1.0  
+**Artifact**: Feature Specification (FEATURE)
+**Version**: 1.0
 **Purpose**: Comprehensive quality checklist for feature specifications
+
+---
+
+## Table of Contents
+
+1. [Review Scope Selection](#review-scope-selection)
+2. [Prerequisites](#prerequisites)
+3. [Applicability Context](#applicability-context)
+4. [Severity Dictionary](#severity-dictionary)
+5. [MUST HAVE](#must-have)
+   - [ARCHITECTURE Expertise (ARCH)](#️-architecture-expertise-arch)
+   - [PERFORMANCE Expertise (PERF)](#-performance-expertise-perf)
+   - [SECURITY Expertise (SEC)](#-security-expertise-sec)
+   - [RELIABILITY Expertise (REL)](#️-reliability-expertise-rel)
+   - [DATA Expertise (DATA)](#-data-expertise-data)
+   - [INTEGRATION Expertise (INT)](#-integration-expertise-int)
+   - [OPERATIONS Expertise (OPS)](#️-operations-expertise-ops)
+   - [MAINTAINABILITY Expertise (MAINT)](#-maintainability-expertise-maint)
+   - [TESTING Expertise (TEST)](#-testing-expertise-test)
+   - [COMPLIANCE Expertise (COMPL)](#-compliance-expertise-compl)
+   - [USABILITY Expertise (UX)](#-usability-expertise-ux)
+   - [BUSINESS Expertise (BIZ)](#-business-expertise-biz)
+   - [Semantic Alignment (SEM)](#semantic-alignment-sem)
+   - [Deliberate Omissions](#deliberate-omissions)
+6. [MUST NOT HAVE](#must-not-have)
+7. [Validation Summary](#validation-summary)
+   - [Final Checklist](#final-checklist)
+   - [Reporting Readiness Checklist](#reporting-readiness-checklist)
+   - [Reporting](#reporting)
+
+---
+
+## Review Scope Selection
+
+**Choose review mode based on feature complexity and risk**:
+
+| Review Mode | When to Use | Domains to Check |
+|-------------|-------------|------------------|
+| **Quick** | Simple CRUD, minor updates | ARCH (core) + BIZ + changed domains |
+| **Standard** | New feature, moderate complexity | All applicable domains |
+| **Full** | Security-sensitive, complex logic | All 12 domains with evidence |
+
+### Quick Review (Core Items Only)
+
+**MUST CHECK** (blocking):
+- [ ] ARCH-FDESIGN-001: Feature Context Completeness
+- [ ] ARCH-FDESIGN-003: Actor Flow Completeness
+- [ ] BIZ-FDESIGN-001: Requirements Alignment
+- [ ] DOC-FDESIGN-001: Explicit Non-Applicability
+
+**Changed sections** — also check relevant domain items for any sections modified.
+
+### Domain Prioritization by Feature Type
+
+| Feature Type | Priority Domains (check first) | Secondary Domains | Often N/A |
+|--------------|-------------------------------|-------------------|-----------|
+| **User-facing UI** | ARCH, UX, SEC, TEST | PERF, REL, DATA | OPS, INT, COMPL |
+| **Backend API** | ARCH, SEC, DATA, INT | PERF, REL, TEST | UX, COMPL |
+| **Data Processing** | ARCH, DATA, PERF, REL | INT, TEST | SEC, UX, OPS, COMPL |
+| **CLI Command** | ARCH, MAINT, TEST | DATA, INT | SEC, PERF, UX, OPS, COMPL |
+| **Integration/Webhook** | ARCH, INT, SEC, REL | DATA, TEST | UX, PERF, OPS, COMPL |
+| **Auth/Security** | SEC, ARCH, DATA, REL | TEST, COMPL | UX, PERF, OPS, INT |
+
+**Applicability Rule**: Domains in "Often N/A" column still require explicit "Not applicable because..." statement in document if skipped.
 
 ---
 
@@ -133,6 +197,50 @@ Before evaluating each checklist item, the expert MUST:
 - [ ] Configuration options documented
 - [ ] Feature flags integration documented
 - [ ] Versioning considerations documented
+
+---
+
+## Semantic Alignment (SEM)
+
+### SEM-FDESIGN-001: PRD Coverage Integrity
+**Severity**: CRITICAL
+
+- [ ] All referenced PRD FR/NFR IDs are valid and correctly cited
+- [ ] Feature requirements do not contradict PRD scope, priorities, or constraints
+- [ ] Feature outcomes preserve PRD intent and success criteria
+- [ ] Any PRD trade-offs are explicitly documented and approved
+
+### SEM-FDESIGN-002: Design Principles and Constraints
+**Severity**: CRITICAL
+
+- [ ] Feature design adheres to design principles referenced in the Overall Design
+- [ ] Feature design respects all design constraints and does not bypass them
+- [ ] Any constraint exception is explicitly documented with rationale
+
+### SEM-FDESIGN-003: Architecture and Component Consistency
+**Severity**: HIGH
+
+- [ ] Feature responsibilities align with component boundaries in the Overall Design
+- [ ] Interactions and sequences match the system interaction design
+- [ ] Data models and entities conform to the Overall Design domain model
+- [ ] API contracts and integration boundaries match the Overall Design
+
+### SEM-FDESIGN-004: Feature Semantics Completeness
+**Severity**: HIGH
+
+- [ ] Actor flows, algorithms, and state machines are consistent with the design context
+- [ ] Definition of Done mappings cover required design references (principles, constraints, components, sequences, tables)
+- [ ] Any semantic deviation from design is documented and approved
+
+### SEM-FDESIGN-005: FEATURES Manifest Consistency
+**Severity**: HIGH
+
+- [ ] Feature ID matches the entry in the FEATURES manifest
+- [ ] Purpose, scope, and out-of-scope items align with the FEATURES entry
+- [ ] Dependencies in the feature design match the FEATURES dependency list
+- [ ] Requirements covered (FR/NFR) match the FEATURES mapping
+- [ ] Design principles and constraints covered match the FEATURES mapping
+- [ ] Domain entities, components, APIs, sequences, and data tables match the FEATURES entry
 
 ---
 
@@ -772,7 +880,7 @@ For each issue include:
 - **Why it matters**: Impact (risk, cost, user harm, compliance)
 - **Proposal**: Concrete fix (what to change/add/remove) with clear acceptance criteria
 
-Recommended output format for chat:
+### Full Report Format (Standard/Full Reviews)
 
 ```markdown
 ## Review Report (Issues Only)
@@ -806,22 +914,22 @@ Recommended output format for chat:
 ---
 
 ### 2. {Short issue title}
-
-**Checklist Item**: `{CHECKLIST-ID}` — {Checklist item title}
-
-**Severity**: CRITICAL|HIGH|MEDIUM|LOW
-
-#### Why Applicable
-
-{...}
-
-#### Issue
-
-{...}
-
----
-
 ...
+```
+
+### Compact Report Format (Quick Reviews)
+
+For quick reviews, use this condensed table format:
+
+```markdown
+## FEATURE Review Summary
+
+| ID | Severity | Issue | Proposal |
+|----|----------|-------|----------|
+| ARCH-FDESIGN-001 | HIGH | Missing feature scope | Add scope statement to Section A |
+| BIZ-FDESIGN-001 | MEDIUM | No PRD traceability | Add requirement references |
+
+**Applicability**: {Feature type} — checked {N} priority domains, {M} marked N/A
 ```
 
 ---

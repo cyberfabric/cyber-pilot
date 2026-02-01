@@ -1,263 +1,497 @@
+<!-- fdd:#:features -->
 # Features: FDD
 
-## A. Status Overview
+<!-- fdd:##:overview -->
+## 1. Overview
 
-**Status Overview**: 6 features total (0 implemented, 0 in development, 0 design ready, 0 in design, 6 not started)
+FDD features are organized around **architectural components** with explicit dependencies. Foundation features (Methodology Core, Adapter System) enable higher-level features (Rules Packages, CLI Tool, Workflows). The decomposition follows the component model from DESIGN.md, ensuring each feature maps to one or more components and covers related functional requirements.
 
-**Meaning**:
-- ⏳ NOT_STARTED
-- 📝 IN_DESIGN
-- 📘 DESIGN_READY
-- 🔄 IN_DEVELOPMENT
-- ✅ IMPLEMENTED
+<!-- fdd:##:overview -->
 
----
+<!-- fdd:##:entries -->
+## 2. Entries
 
-## B. Entries
+**Overall implementation status:**
+<!-- fdd:id:status has="priority,task" -->
+- [x] `p1` - **ID**: `fdd-fdd-status-overall`
 
-### 1. [Adapter System](feature-adapter-system/) ⏳ HIGH
+<!-- fdd:###:feature-title repeat="many" -->
+### 1. [Methodology Core](feature-methodology-core/) ✅ HIGH
 
-**ID**: `fdd-fdd-feature-adapter-system`
+<!-- fdd:id:feature has="priority,task" -->
+- [x] `p1` - **ID**: `fdd-fdd-feature-methodology-core`
 
-- **Purpose**: Adapter discovery, registry-driven artifact resolution, and project-specific conventions boundary.
-- **Status**: NOT_STARTED
+<!-- fdd:paragraph:feature-purpose required="true" -->
+- **Purpose**: Provide universal FDD specifications including requirements, FDL language, and base template syntax that all projects share.
+<!-- fdd:paragraph:feature-purpose -->
+
+<!-- fdd:paragraph:feature-depends -->
 - **Depends On**: None
-- **Blocks**: None
+<!-- fdd:paragraph:feature-depends -->
+
+<!-- fdd:list:feature-scope -->
 - **Scope**:
-  - Adapter discovery and adapter root resolution.
-  - Artifacts registry loading and path normalization.
-  - Adapter spec application boundaries (no core hardcoded paths).
+  - Requirements specifications (`requirements/*.md`)
+  - FDL (FDD Description Language) specification
+  - Template marker syntax specification
+  - Execution protocol definition
+<!-- fdd:list:feature-scope -->
+
+<!-- fdd:list:feature-out-scope -->
+- **Out of scope**:
+  - Project-specific customization
+  - Concrete templates for artifact kinds
+<!-- fdd:list:feature-out-scope -->
+
 - **Requirements Covered**:
-  - `fdd-fdd-fr-adapter-config`
-  - `fdd-fdd-fr-brownfield-support`
+<!-- fdd:id-ref:fr has="priority,task" -->
+  - [x] `p1` - `fdd-fdd-fr-artifact-templates`
+  - [x] `p2` - `fdd-fdd-fr-artifact-examples`
+  - [x] `p1` - `fdd-fdd-fr-fdl`
+<!-- fdd:id-ref:fr -->
+
 - **Design Principles Covered**:
-  - `fdd-fdd-principle-tech-agnostic`
-  - `fdd-fdd-principle-adapter-variability-boundary`
+<!-- fdd:id-ref:principle has="priority,task" -->
+  - [x] `p1` - `fdd-fdd-principle-tech-agnostic`
+  - [x] `p1` - `fdd-fdd-principle-machine-readable`
+  - [x] `p1` - `fdd-fdd-principle-machine-readable-artifacts`
+<!-- fdd:id-ref:principle -->
+
 - **Design Constraints Covered**:
-  - `fdd-fdd-constraint-markdown`
+<!-- fdd:id-ref:constraint has="priority,task" -->
+  - [x] `p1` - `fdd-fdd-constraint-markdown`
+  - [x] `p1` - `fdd-fdd-constraint-no-forced-tools`
+<!-- fdd:id-ref:constraint -->
+
+<!-- fdd:list:feature-domain-entities -->
 - **Domain Model Entities**:
-  - artifacts registry entries (kind: PRD/DESIGN/ADR/FEATURES/FEATURE)
-  - adapter specs (AGENTS.md + specs/*.md)
+  - Artifact
+  - Workflow
+  - FDL
+<!-- fdd:list:feature-domain-entities -->
+
 - **Design Components**:
-  - `fdd-fdd-component-adapter-system`
+<!-- fdd:id-ref:component has="priority,task" -->
+  - [x] `p1` - `fdd-fdd-component-methodology-core`
+<!-- fdd:id-ref:component -->
+
+<!-- fdd:list:feature-api -->
 - **API**:
-  - adapter-info
-  - list-ids
+  - Specifications only, no CLI commands
+<!-- fdd:list:feature-api -->
+
 - **Sequences**:
-  - `fdd-fdd-seq-adapter-discovery`
+<!-- fdd:id-ref:seq has="priority,task" -->
+  - [x] `p1` - `fdd-fdd-seq-intent-to-workflow`
+<!-- fdd:id-ref:seq -->
+
 - **Data**:
-  - None
-- **Phases**:
-  - `ph-1`: ⏳ NOT_STARTED — adapter discovery and registry resolution
-  - `ph-2`: ⏳ NOT_STARTED — adapter spec-driven behavior in workflows/validation
+<!-- fdd:id-ref:dbtable has="priority,task" -->
+  - [x] `p3` - `fdd-fdd-dbtable-na`
+<!-- fdd:id-ref:dbtable -->
 
----
+<!-- fdd:id:feature -->
+<!-- fdd:###:feature-title repeat="many" -->
 
-### 2. [Workflow Execution Engine](feature-workflow-execution-engine/) ⏳ CRITICAL
+<!-- fdd:###:feature-title repeat="many" -->
+### 2. [Adapter System](feature-adapter-system/) ✅ HIGH
 
-**ID**: `fdd-fdd-feature-workflow-execution-engine`
+<!-- fdd:id:feature has="priority,task" -->
+- [x] `p1` - **ID**: `fdd-fdd-feature-adapter-system`
 
-- **Purpose**: Workflow execution engine for operation and validation workflows with prerequisite handling.
-- **Status**: NOT_STARTED
-- **Depends On**:
-  - [fdd-fdd-feature-adapter-system](feature-adapter-system/)
-- **Blocks**: None
+<!-- fdd:paragraph:feature-purpose required="true" -->
+- **Purpose**: Enable project-specific customization without modifying core methodology through adapter configuration and hierarchical artifact registry.
+<!-- fdd:paragraph:feature-purpose -->
+
+<!-- fdd:paragraph:feature-depends -->
+- **Depends On**: None
+<!-- fdd:paragraph:feature-depends -->
+
+<!-- fdd:list:feature-scope -->
 - **Scope**:
-  - Workflow intent resolution and mode selection.
-  - Operation workflows: interactive Q/A loop and confirmation gates.
-  - Validation workflows: deterministic, chat-only output.
+  - Adapter discovery (`adapter-info` command)
+  - `artifacts.json` registry with hierarchical systems
+  - `.adapter/` directory structure
+  - Spec files (tech-stack, conventions, etc.)
+<!-- fdd:list:feature-scope -->
+
+<!-- fdd:list:feature-out-scope -->
+- **Out of scope**:
+  - Actual project artifacts
+  - Rules packages
+<!-- fdd:list:feature-out-scope -->
+
 - **Requirements Covered**:
-  - `fdd-fdd-fr-workflow-execution`
-  - `fdd-fdd-fr-design-first`
-  - `fdd-fdd-fr-interactive-docs`
-  - `fdd-fdd-fr-ide-integration`
+<!-- fdd:id-ref:fr has="priority,task" -->
+  - [x] `p1` - `fdd-fdd-fr-adapter-config`
+  - [x] `p2` - `fdd-fdd-fr-hierarchical-registry`
+  - [x] `p2` - `fdd-fdd-fr-brownfield-support`
+<!-- fdd:id-ref:fr -->
+
 - **Design Principles Covered**:
-  - `fdd-fdd-principle-design-first`
-  - `fdd-fdd-principle-deterministic-gate`
+<!-- fdd:id-ref:principle has="priority,task" -->
+  - [x] `p1` - `fdd-fdd-principle-tech-agnostic`
+  - [x] `p1` - `fdd-fdd-principle-adapter-variability-boundary`
+<!-- fdd:id-ref:principle -->
+
 - **Design Constraints Covered**:
-  - `fdd-fdd-constraint-no-forced-tools`
+<!-- fdd:id-ref:constraint has="priority,task" -->
+  - [x] `p1` - `fdd-fdd-constraint-git`
+<!-- fdd:id-ref:constraint -->
+
+<!-- fdd:list:feature-domain-entities -->
 - **Domain Model Entities**:
-  - workflows (operation/validation)
-  - requirements files
+  - Adapter
+  - ArtifactRegistry
+  - System
+<!-- fdd:list:feature-domain-entities -->
+
 - **Design Components**:
-  - `fdd-fdd-component-workflow-engine`
+<!-- fdd:id-ref:component has="priority,task" -->
+  - [x] `p1` - `fdd-fdd-component-adapter-system`
+<!-- fdd:id-ref:component -->
+
+<!-- fdd:list:feature-api -->
 - **API**:
-  - validate
-  - list-sections
+  - `fdd adapter-info`
+  - `fdd init`
+<!-- fdd:list:feature-api -->
+
 - **Sequences**:
-  - `fdd-fdd-seq-intent-to-workflow`
+<!-- fdd:id-ref:seq has="priority,task" -->
+  - [x] `p1` - `fdd-fdd-seq-adapter-discovery`
+<!-- fdd:id-ref:seq -->
+
 - **Data**:
-  - None
-- **Phases**:
-  - `ph-1`: ⏳ NOT_STARTED — intent resolution and workflow routing
-  - `ph-2`: ⏳ NOT_STARTED — operation workflow execution loop
-  - `ph-3`: ⏳ NOT_STARTED — validation workflow execution mode
+<!-- fdd:id-ref:dbtable has="priority,task" -->
+  - [x] `p3` - `fdd-fdd-dbtable-na`
+<!-- fdd:id-ref:dbtable -->
 
----
+<!-- fdd:id:feature -->
+<!-- fdd:###:feature-title repeat="many" -->
 
-### 3. [Deterministic Validation](feature-deterministic-validation/) ⏳ CRITICAL
+<!-- fdd:###:feature-title repeat="many" -->
+### 3. [Rules Packages](feature-rules-packages/) ✅ HIGH
 
-**ID**: `fdd-fdd-feature-deterministic-validation`
+<!-- fdd:id:feature has="priority,task" -->
+- [x] `p1` - **ID**: `fdd-fdd-feature-rules-packages`
 
-- **Purpose**: Deterministic validation engine for artifacts and cross-artifact checks.
-- **Status**: NOT_STARTED
-- **Depends On**:
-  - [fdd-fdd-feature-adapter-system](feature-adapter-system/)
-- **Blocks**:
-  - [fdd-fdd-feature-traceability-and-id-management](feature-traceability-and-id-management/)
-  - [fdd-fdd-feature-feature-planning-and-lifecycle](feature-feature-planning-and-lifecycle/)
+<!-- fdd:paragraph:feature-purpose required="true" -->
+- **Purpose**: Provide templates, checklists, rules, and examples for each artifact kind with validation and self-check capabilities.
+<!-- fdd:paragraph:feature-purpose -->
+
+<!-- fdd:paragraph:feature-depends -->
+- **Depends On**: `fdd-fdd-feature-methodology-core`
+<!-- fdd:paragraph:feature-depends -->
+
+<!-- fdd:list:feature-scope -->
 - **Scope**:
-  - Artifact structure validation with scoring and actionable errors.
-  - Cross-artifact consistency checks (PRD/ADR/DESIGN/FEATURES/feature DESIGN).
-  - Deterministic gate behavior and validator-first execution.
+  - Template definitions (`template.md` per kind)
+  - Semantic checklists (`checklist.md` per kind)
+  - Generation rules (`rules.md` per kind)
+  - Canonical examples (`examples/example.md`)
+  - Rules validation (`validate-rules`)
+  - Template QA (`self-check`)
+<!-- fdd:list:feature-scope -->
+
+<!-- fdd:list:feature-out-scope -->
+- **Out of scope**:
+  - Custom project rules
+  - Code generation rules
+<!-- fdd:list:feature-out-scope -->
+
 - **Requirements Covered**:
-  - `fdd-fdd-fr-validation`
-  - `fdd-fdd-nfr-validation-performance`
-  - `fdd-fdd-nfr-security-integrity`
-  - `fdd-fdd-nfr-reliability-recoverability`
-  - `fdd-fdd-nfr-adoption-usability`
+<!-- fdd:id-ref:fr has="priority,task" -->
+  - [x] `p1` - `fdd-fdd-fr-rules-packages`
+  - [x] `p2` - `fdd-fdd-fr-template-qa`
+  - [x] `p1` - `fdd-fdd-fr-artifact-templates`
+<!-- fdd:id-ref:fr -->
+
 - **Design Principles Covered**:
-  - `fdd-fdd-principle-deterministic-gate`
-  - `fdd-fdd-principle-machine-readable`
+<!-- fdd:id-ref:principle has="priority,task" -->
+  - [x] `p1` - `fdd-fdd-principle-machine-readable`
+  - [x] `p1` - `fdd-fdd-principle-deterministic-gate`
+<!-- fdd:id-ref:principle -->
+
 - **Design Constraints Covered**:
-  - `fdd-fdd-constraint-stdlib-only`
+<!-- fdd:id-ref:constraint has="priority,task" -->
+  - [x] `p1` - `fdd-fdd-constraint-markdown`
+<!-- fdd:id-ref:constraint -->
+
+<!-- fdd:list:feature-domain-entities -->
 - **Domain Model Entities**:
-  - validators
-  - validation reports
+  - Template
+  - Checklist
+  - Rules
+<!-- fdd:list:feature-domain-entities -->
+
 - **Design Components**:
-  - `fdd-fdd-component-validation-engine`
+<!-- fdd:id-ref:component has="priority,task" -->
+  - [x] `p1` - `fdd-fdd-component-rules-packages`
+<!-- fdd:id-ref:component -->
+
+<!-- fdd:list:feature-api -->
 - **API**:
-  - validate
+  - `fdd validate-rules`
+  - `fdd self-check`
+<!-- fdd:list:feature-api -->
+
 - **Sequences**:
-  - `fdd-fdd-seq-validate-overall-design`
+<!-- fdd:id-ref:seq has="priority,task" -->
+  - [x] `p1` - `fdd-fdd-seq-validate-overall-design`
+<!-- fdd:id-ref:seq -->
+
 - **Data**:
-  - None
-- **Phases**:
-  - `ph-1`: ⏳ NOT_STARTED — core artifact validators + scoring model
-  - `ph-2`: ⏳ NOT_STARTED — cascading validation and compact JSON output
+<!-- fdd:id-ref:dbtable has="priority,task" -->
+  - [x] `p3` - `fdd-fdd-dbtable-na`
+<!-- fdd:id-ref:dbtable -->
 
----
+<!-- fdd:id:feature -->
+<!-- fdd:###:feature-title repeat="many" -->
 
-### 4. [Traceability & ID Management](feature-traceability-and-id-management/) ⏳ HIGH
+<!-- fdd:###:feature-title repeat="many" -->
+### 4. [FDD CLI Tool](feature-fdd-cli/) ✅ HIGH
 
-**ID**: `fdd-fdd-feature-traceability-and-id-management`
+<!-- fdd:id:feature has="priority,task" -->
+- [x] `p1` - **ID**: `fdd-fdd-feature-fdd-cli`
 
-- **Purpose**: Stable ID system, traceability scanning, and repository-wide queries.
-- **Status**: NOT_STARTED
-- **Depends On**:
-  - [fdd-fdd-feature-deterministic-validation](feature-deterministic-validation/)
-- **Blocks**: None
+<!-- fdd:paragraph:feature-purpose required="true" -->
+- **Purpose**: Provide deterministic validation, ID management, and traceability commands via a Python stdlib-only CLI tool.
+<!-- fdd:paragraph:feature-purpose -->
+
+<!-- fdd:paragraph:feature-depends -->
+- **Depends On**: `fdd-fdd-feature-adapter-system`, `fdd-fdd-feature-rules-packages`
+<!-- fdd:paragraph:feature-depends -->
+
+<!-- fdd:list:feature-scope -->
 - **Scope**:
-  - ID formats and qualified IDs (`:ph-N`, `:inst-*`).
-  - Repository-wide search commands (`scan-ids`, `where-defined`, `where-used`).
-  - Optional code traceability via `@fdd-*` tags.
+  - Artifact validation (`validate --artifact`)
+  - Code validation (`validate-code`)
+  - Cross-artifact validation
+  - ID management (`list-ids`, `where-defined`, `where-used`)
+  - JSON output for machine consumption
+<!-- fdd:list:feature-scope -->
+
+<!-- fdd:list:feature-out-scope -->
+- **Out of scope**:
+  - IDE-specific integrations
+  - Interactive workflows
+<!-- fdd:list:feature-out-scope -->
+
 - **Requirements Covered**:
-  - `fdd-fdd-fr-traceability`
-  - `fdd-fdd-fr-fdl`
+<!-- fdd:id-ref:fr has="priority,task" -->
+  - [x] `p1` - `fdd-fdd-fr-validation`
+  - [x] `p1` - `fdd-fdd-fr-traceability`
+  - [x] `p1` - `fdd-fdd-fr-cross-artifact-validation`
+<!-- fdd:id-ref:fr -->
+
 - **Design Principles Covered**:
-  - `fdd-fdd-principle-traceability`
-  - `fdd-fdd-principle-cli-json-composability`
+<!-- fdd:id-ref:principle has="priority,task" -->
+  - [x] `p1` - `fdd-fdd-principle-deterministic-gate`
+  - [x] `p1` - `fdd-fdd-principle-traceability`
+  - [x] `p1` - `fdd-fdd-principle-cli-json-composability`
+<!-- fdd:id-ref:principle -->
+
 - **Design Constraints Covered**:
-  - `fdd-fdd-constraint-git`
+<!-- fdd:id-ref:constraint has="priority,task" -->
+  - [x] `p1` - `fdd-fdd-constraint-stdlib-only`
+  - [x] `p1` - `fdd-fdd-constraint-no-forced-tools`
+<!-- fdd:id-ref:constraint -->
+
+<!-- fdd:list:feature-domain-entities -->
 - **Domain Model Entities**:
-  - IDs
-  - qualified IDs
+  - ValidationResult
+  - FddId
+  - CrossReference
+<!-- fdd:list:feature-domain-entities -->
+
 - **Design Components**:
-  - `fdd-fdd-component-id-management`
+<!-- fdd:id-ref:component has="priority,task" -->
+  - [x] `p1` - `fdd-fdd-component-fdd-skill`
+<!-- fdd:id-ref:component -->
+
+<!-- fdd:list:feature-api -->
 - **API**:
-  - scan-ids
-  - where-defined
-  - where-used
+  - `fdd validate`
+  - `fdd list-ids`
+  - `fdd where-defined`
+  - `fdd where-used`
+<!-- fdd:list:feature-api -->
+
 - **Sequences**:
-  - `fdd-fdd-seq-traceability-query`
+<!-- fdd:id-ref:seq has="priority,task" -->
+  - [x] `p1` - `fdd-fdd-seq-validate-overall-design`
+  - [x] `p1` - `fdd-fdd-seq-traceability-query`
+<!-- fdd:id-ref:seq -->
+
 - **Data**:
-  - None
-- **Phases**:
-  - `ph-1`: ⏳ NOT_STARTED — ID scanning and where-defined/where-used
-  - `ph-2`: ⏳ NOT_STARTED — qualified IDs and code tag expectations
+<!-- fdd:id-ref:dbtable has="priority,task" -->
+  - [x] `p3` - `fdd-fdd-dbtable-na`
+<!-- fdd:id-ref:dbtable -->
 
----
+<!-- fdd:id:feature -->
+<!-- fdd:###:feature-title repeat="many" -->
 
-### 5. [Artifact Authoring Kit](feature-artifact-authoring-kit/) ⏳ MEDIUM
+<!-- fdd:###:feature-title repeat="many" -->
+### 5. [Workflow Engine](feature-workflow-engine/) ✅ HIGH
 
-**ID**: `fdd-fdd-feature-artifact-authoring-kit`
+<!-- fdd:id:feature has="priority,task" -->
+- [x] `p1` - **ID**: `fdd-fdd-feature-workflow-engine`
 
-- **Purpose**: Templates and canonical examples for authoring FDD artifacts consistently.
-- **Status**: NOT_STARTED
-- **Depends On**:
-  - [fdd-fdd-feature-workflow-execution-engine](feature-workflow-execution-engine/)
-- **Blocks**: None
+<!-- fdd:paragraph:feature-purpose required="true" -->
+- **Purpose**: Provide interactive artifact creation/update workflows and validation workflows with execution protocol.
+<!-- fdd:paragraph:feature-purpose -->
+
+<!-- fdd:paragraph:feature-depends -->
+- **Depends On**: `fdd-fdd-feature-fdd-cli`, `fdd-fdd-feature-rules-packages`
+<!-- fdd:paragraph:feature-depends -->
+
+<!-- fdd:list:feature-scope -->
 - **Scope**:
-  - Templates for core artifacts.
-  - Canonical examples for each artifact kind.
-  - Workflow references to templates/examples as the generation contract.
+  - Generate workflow (`workflows/generate.md`)
+  - Validate workflow (`workflows/validate.md`)
+  - Execution protocol
+  - Artifact management (PRD, DESIGN, ADR, FEATURES, FEATURE)
+  - Question-answer flow with proposals
+<!-- fdd:list:feature-scope -->
+
+<!-- fdd:list:feature-out-scope -->
+- **Out of scope**:
+  - Code generation
+  - IDE integrations
+<!-- fdd:list:feature-out-scope -->
+
 - **Requirements Covered**:
-  - `fdd-fdd-fr-artifact-templates`
-  - `fdd-fdd-fr-artifact-examples`
+<!-- fdd:id-ref:fr has="priority,task" -->
+  - [x] `p1` - `fdd-fdd-fr-workflow-execution`
+  - [x] `p1` - `fdd-fdd-fr-design-first`
+  - [x] `p1` - `fdd-fdd-fr-prd-mgmt`
+  - [x] `p1` - `fdd-fdd-fr-overall-design-mgmt`
+  - [x] `p1` - `fdd-fdd-fr-feature-design-mgmt`
+<!-- fdd:id-ref:fr -->
+
 - **Design Principles Covered**:
-  - `fdd-fdd-principle-machine-readable-artifacts`
+<!-- fdd:id-ref:principle has="priority,task" -->
+  - [x] `p1` - `fdd-fdd-principle-design-first`
+  - [x] `p1` - `fdd-fdd-principle-deterministic-gate`
+<!-- fdd:id-ref:principle -->
+
 - **Design Constraints Covered**:
-  - `fdd-fdd-constraint-markdown`
+<!-- fdd:id-ref:constraint has="priority,task" -->
+  - [x] `p1` - `fdd-fdd-constraint-git`
+  - [x] `p1` - `fdd-fdd-constraint-markdown`
+<!-- fdd:id-ref:constraint -->
+
+<!-- fdd:list:feature-domain-entities -->
 - **Domain Model Entities**:
-  - templates
-  - examples
+  - Workflow
+  - ExecutionProtocol
+  - WorkflowPhase
+<!-- fdd:list:feature-domain-entities -->
+
 - **Design Components**:
-  - `fdd-fdd-component-methodology-core`
+<!-- fdd:id-ref:component has="priority,task" -->
+  - [x] `p1` - `fdd-fdd-component-workflows`
+<!-- fdd:id-ref:component -->
+
+<!-- fdd:list:feature-api -->
 - **API**:
-  - read-section
-  - get-item
+  - `/fdd`
+  - `/fdd-generate`
+  - `/fdd-validate`
+<!-- fdd:list:feature-api -->
+
 - **Sequences**:
-  - `fdd-fdd-seq-intent-to-workflow`
+<!-- fdd:id-ref:seq has="priority,task" -->
+  - [x] `p1` - `fdd-fdd-seq-intent-to-workflow`
+<!-- fdd:id-ref:seq -->
+
 - **Data**:
-  - None
-- **Phases**:
-  - `ph-1`: ⏳ NOT_STARTED — templates inventory and workflow references
-  - `ph-2`: ⏳ NOT_STARTED — examples inventory and review consistency
+<!-- fdd:id-ref:dbtable has="priority,task" -->
+  - [x] `p3` - `fdd-fdd-dbtable-na`
+<!-- fdd:id-ref:dbtable -->
 
----
+<!-- fdd:id:feature -->
+<!-- fdd:###:feature-title repeat="many" -->
 
-### 6. [Feature Planning & Lifecycle](feature-feature-planning-and-lifecycle/) ⏳ HIGH
+<!-- fdd:###:feature-title repeat="many" -->
+### 6. [Agent Compliance](feature-agent-compliance/) ✅ MEDIUM
 
-**ID**: `fdd-fdd-feature-feature-planning-and-lifecycle`
+<!-- fdd:id:feature has="priority,task" -->
+- [x] `p2` - **ID**: `fdd-fdd-feature-agent-compliance`
 
-- **Purpose**: Feature manifest + feature design lifecycle, gating, and status transitions.
-- **Status**: NOT_STARTED
-- **Depends On**:
-  - [fdd-fdd-feature-workflow-execution-engine](feature-workflow-execution-engine/)
-  - [fdd-fdd-feature-deterministic-validation](feature-deterministic-validation/)
-  - [fdd-fdd-feature-traceability-and-id-management](feature-traceability-and-id-management/)
-- **Blocks**: None
+<!-- fdd:paragraph:feature-purpose required="true" -->
+- **Purpose**: Enforce workflow quality through anti-pattern detection, evidence requirements, and STRICT/RELAXED mode.
+<!-- fdd:paragraph:feature-purpose -->
+
+<!-- fdd:paragraph:feature-depends -->
+- **Depends On**: `fdd-fdd-feature-workflow-engine`
+<!-- fdd:paragraph:feature-depends -->
+
+<!-- fdd:list:feature-scope -->
 - **Scope**:
-  - Feature manifest management and validation.
-  - Feature design management and validation.
-  - Status lifecycle rules and transition validation.
+  - Anti-patterns documentation (8 patterns)
+  - Evidence requirements for validation
+  - STRICT vs RELAXED mode
+  - Agent self-test protocol (6 questions)
+  - Agent compliance protocol
+<!-- fdd:list:feature-scope -->
+
+<!-- fdd:list:feature-out-scope -->
+- **Out of scope**:
+  - Specific AI agent implementations
+  - Automated enforcement
+<!-- fdd:list:feature-out-scope -->
+
 - **Requirements Covered**:
-  - `fdd-fdd-fr-feature-manifest-mgmt`
-  - `fdd-fdd-fr-feature-design-mgmt`
-  - `fdd-fdd-fr-feature-lifecycle`
-  - `fdd-fdd-fr-code-generation`
-  - `fdd-fdd-fr-overall-design-mgmt`
-  - `fdd-fdd-fr-prd-mgmt`
-  - `fdd-fdd-fr-arch-decision-mgmt`
+<!-- fdd:id-ref:fr has="priority,task" -->
+  - [x] `p2` - `fdd-fdd-fr-multi-agent-integration`
+  - [x] `p1` - `fdd-fdd-nfr-security-integrity`
+  - [x] `p1` - `fdd-fdd-nfr-reliability-recoverability`
+<!-- fdd:id-ref:fr -->
+
 - **Design Principles Covered**:
-  - `fdd-fdd-principle-deterministic-gates`
-  - `fdd-fdd-principle-machine-readable`
+<!-- fdd:id-ref:principle has="priority,task" -->
+  - [x] `p1` - `fdd-fdd-principle-deterministic-gates`
+  - [x] `p1` - `fdd-fdd-principle-traceability`
+<!-- fdd:id-ref:principle -->
+
 - **Design Constraints Covered**:
-  - `fdd-fdd-constraint-markdown`
-  - `fdd-fdd-constraint-git`
+<!-- fdd:id-ref:constraint has="priority,task" -->
+  - [x] `p1` - `fdd-fdd-constraint-no-forced-tools`
+<!-- fdd:id-ref:constraint -->
+
+<!-- fdd:list:feature-domain-entities -->
 - **Domain Model Entities**:
-  - features
-  - feature designs
+  - AntiPattern
+  - EvidenceRequirement
+  - RulesMode
+<!-- fdd:list:feature-domain-entities -->
+
 - **Design Components**:
-  - `fdd-fdd-component-ai-integration-layer`
+<!-- fdd:id-ref:component has="priority,task" -->
+  - [x] `p1` - `fdd-fdd-component-agent`
+<!-- fdd:id-ref:component -->
+
+<!-- fdd:list:feature-api -->
 - **API**:
-  - validate
-  - list-items
+  - `fdd agent-workflows`
+  - `fdd agent-skills`
+<!-- fdd:list:feature-api -->
+
 - **Sequences**:
-  - `fdd-fdd-seq-validate-overall-design`
+<!-- fdd:id-ref:seq has="priority,task" -->
+  - [x] `p1` - `fdd-fdd-seq-intent-to-workflow`
+<!-- fdd:id-ref:seq -->
+
 - **Data**:
-  - None
-- **Phases**:
-  - `ph-1`: ⏳ NOT_STARTED — FEATURES manifest management + validation
-  - `ph-2`: ⏳ NOT_STARTED — feature design management + validation
-  - `ph-3`: ⏳ NOT_STARTED — lifecycle gating across artifacts
+<!-- fdd:id-ref:dbtable has="priority,task" -->
+  - [x] `p3` - `fdd-fdd-dbtable-na`
+<!-- fdd:id-ref:dbtable -->
+
+<!-- fdd:id:feature -->
+<!-- fdd:###:feature-title repeat="many" -->
+
+<!-- fdd:id:status -->
+<!-- fdd:##:entries -->
+<!-- fdd:#:features -->

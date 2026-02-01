@@ -1,7 +1,7 @@
 # Tech Stack
 
-**Version**: 1.0  
-**Last Updated**: 2025-01-17  
+**Version**: 2.0
+**Last Updated**: 2026-02-01  
 **Purpose**: Define technology stack for FDD project
 
 ---
@@ -45,8 +45,8 @@
 ## Source
 
 **Discovered from**:
-- `skills/fdd/scripts/fdd.py` - Main tool (4317 lines)
-- `tests/` - Repository test suite
+- `skills/fdd/scripts/fdd/cli.py` - Main CLI entry point
+- `tests/` - Repository test suite (17 test files)
 - `Makefile` - Test and coverage targets
 - Import analysis - Only standard library imports
 

@@ -12,68 +12,92 @@ fdd-template:
 <!-- fdd:#:features -->
 # Features
 
-<!-- fdd:##:status-overview -->
-## A. Status Overview
+<!-- fdd:##:overview -->
+## 1. Overview
 
-<!-- fdd:line:status-overview required="true" -->
-**Status Overview**: {N} features total ({N} implemented, {N} in development, {N} design ready, {N} in design, {N} not started)
-<!-- fdd:line:status-overview -->
+{ Description of what should be dome, why it was decomposed in that way, and any other relevant information. }
 
-**Meaning**:
-<!-- fdd:list:status-meaning required="true" -->
-- ⏳ NOT_STARTED
-- 📝 IN_DESIGN
-- 📘 DESIGN_READY
-- 🔄 IN_DEVELOPMENT
-- ✅ IMPLEMENTED
-<!-- fdd:list:status-meaning -->
 
-<!-- fdd:line:status-separator -->
----
-<!-- fdd:line:status-separator -->
-<!-- fdd:##:status-overview -->
+<!-- fdd:##:overview -->
 
 <!-- fdd:##:entries -->
-## B. Entries
+## 2. Entries
+
+**Overall implementation status:**
+<!-- fdd:id:status has="priority,task" -->
+- [ ] `p1` - **ID**: `fdd-{system}-status-overall`
 
 <!-- fdd:###:feature-title repeat="many" -->
 ### 1. [{Feature Title}](feature-{slug}/) ⏳ MEDIUM
 
 <!-- fdd:id:feature has="priority,task" -->
-**ID**: [ ] `p1` - `fdd-{project}-feature-{slug}`
-<!-- fdd:id:feature -->
+- [ ] `p1` - **ID**: `fdd-{system}-feature-{slug}`
 
-<!-- fdd:list:feature-entry -->
+<!-- fdd:paragraph:feature-purpose required="true" -->
 - **Purpose**: {Few sentences}
-- **Status**: NOT_STARTED
-- **Depends On**: None
-- **Blocks**: None
+<!-- fdd:paragraph:feature-purpose -->
+
+<!-- fdd:paragraph:feature-depends -->
+- **Depends On**: {None or `fdd-{system}-feature-{slug}`}
+<!-- fdd:paragraph:feature-depends -->
+
+<!-- fdd:list:feature-scope -->
 - **Scope**:
   - {in-scope item}
   - {in-scope item}
+<!-- fdd:list:feature-scope -->
+
+<!-- fdd:list:feature-out-scope -->
+- **Out of scope**:
+  - {Out-of-scope item}
+  - {Out-of-scope item}
+<!-- fdd:list:feature-out-scope -->
+
 - **Requirements Covered**:
-  - `fdd-{project}-fr-{slug}`
-  - `fdd-{project}-nfr-{slug}`
+<!-- fdd:id-ref:fr has="priority,task" -->
+  - [ ] `p1` - `fdd-{system}-fr-{slug}`
+  - [ ] `p1` - `fdd-{system}-nfr-{slug}`
+<!-- fdd:id-ref:fr -->
+
 - **Design Principles Covered**:
-  - `fdd-{project}-principle-{slug}`
+<!-- fdd:id-ref:principle has="priority,task" -->
+  - [ ] `p1` - `fdd-{system}-principle-{slug}`
+<!-- fdd:id-ref:principle -->
+
 - **Design Constraints Covered**:
-  - `fdd-{project}-constraint-{slug}`
+<!-- fdd:id-ref:constraint has="priority,task" -->
+  - [ ] `p1` - `fdd-{system}-constraint-{slug}`
+<!-- fdd:id-ref:constraint -->
+
+<!-- fdd:list:feature-domain-entities -->
 - **Domain Model Entities**:
   - {entity/type/object}
+<!-- fdd:list:feature-domain-entities -->
+
 - **Design Components**:
-  - `fdd-{project}-component-{slug}`
+<!-- fdd:id-ref:component has="priority,task" -->
+  - [ ] `p1` - `fdd-{system}-component-{slug}`
+<!-- fdd:id-ref:component -->
+
+<!-- fdd:list:feature-api -->
 - **API**:
   - /{resource-name}
   - {CLI command}
+<!-- fdd:list:feature-api -->
+
 - **Sequences**:
-  - `fdd-{project}-seq-{slug}`
+<!-- fdd:id-ref:seq has="priority,task" -->
+  - [ ] `p1` - `fdd-{system}-seq-{slug}`
+<!-- fdd:id-ref:seq -->
+
 - **Data**:
-  - `fdd-{project}-db-table-{slug}`
-- **Phases**:
-  - `p1`: ⏳ NOT_STARTED — {scope}
-  - `p2`: ⏳ NOT_STARTED — {scope}
-<!-- fdd:list:feature-entry -->
+<!-- fdd:id-ref:dbtable has="priority,task" -->
+  - [ ] `p1` - `fdd-{system}-dbtable-{slug}`
+<!-- fdd:id-ref:dbtable -->
+
+<!-- fdd:id:feature -->
 
 <!-- fdd:###:feature-title repeat="many" -->
+<!-- fdd:id:status -->
 <!-- fdd:##:entries -->
 <!-- fdd:#:features -->

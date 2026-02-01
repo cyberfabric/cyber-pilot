@@ -1,8 +1,50 @@
 # FEATURES (Features Manifest) Expert Checklist
 
-**Artifact**: Features Manifest (FEATURES)  
-**Version**: 1.0  
+**Artifact**: Features Manifest (FEATURES)
+**Version**: 1.1
+**Last Updated**: 2025-02-01
 **Purpose**: Comprehensive quality checklist for Features Manifest artifacts
+
+---
+
+## Table of Contents
+
+1. [Prerequisites](#prerequisites)
+2. [Applicability Context](#applicability-context)
+3. [Severity Dictionary](#severity-dictionary)
+4. [Applicability Determination](#applicability-determination) — criteria for "(if applicable)" items
+5. [Checkpointing](#checkpointing-long-reviews) — for long reviews / context limits
+6. **MUST HAVE** (check in priority order):
+   - [BIZ: Business](#business-expertise-biz) — Requirements, Scope, Status, Checkbox Consistency ⭐ Start here
+   - [ARCH: Architecture](#architecture-expertise-arch) — Dependencies, Phases, Modularity
+   - [SEC: Security](#-security-expertise-sec) — Security Requirements Distribution
+   - [DATA: Data](#-data-expertise-data) — Data Requirements & Dependencies
+   - [INT: Integration](#-integration-expertise-int) — Integration Requirements
+   - [REL: Reliability](#️-reliability-expertise-rel) — Reliability Requirements
+   - [PERF: Performance](#-performance-expertise-perf) — Performance Requirements
+   - [OPS: Operations](#️-operations-expertise-ops) — Operational Requirements
+   - [MAINT: Maintainability](#-maintainability-expertise-maint) — Organization & Naming
+   - [TEST: Testing](#-testing-expertise-test) — Testing Requirements
+   - [COMPL: Compliance](#-compliance-expertise-compl) — Regulatory Requirements
+   - [UX: Usability](#-usability-expertise-ux) — UX Requirements
+   - [SEM: Semantic Alignment](#semantic-alignment-sem) — Design Coverage & Consistency
+   - [Deliberate Omissions](#deliberate-omissions) — DOC-FEAT-001
+7. **MUST NOT HAVE**:
+   - [No Implementation Details](#-arch-feat-no-001-no-feature-implementation-details)
+   - [No Architectural Details](#-arch-feat-no-002-no-architectural-details)
+   - [No Decision Rationales](#-arch-feat-no-003-no-decision-rationales)
+   - [No Product Requirements](#-biz-feat-no-001-no-product-requirements)
+   - [No Task-Level Tracking](#-biz-feat-no-002-no-task-level-tracking)
+   - [No Data Schema](#-data-feat-no-001-no-data-schema-details)
+   - [No API Specs](#-int-feat-no-001-no-api-specifications)
+   - [No Test Cases](#-test-feat-no-001-no-test-cases)
+   - [No Operational Details](#-ops-feat-no-001-no-operational-details)
+   - [No Code Content](#-maint-feat-no-001-no-code-content)
+8. [Format Validation](#format-validation)
+9. [Validation Summary](#validation-summary)
+10. [Reporting](#reporting)
+
+**Review Priority**: BIZ → ARCH → SEC → FORMAT → (others as applicable)
 
 ---
 
@@ -17,6 +59,7 @@ Before starting the review, confirm:
 - [ ] I will document any violations found
 - [ ] I will provide specific feedback for each failed check
 - [ ] I will complete the Final Checklist and provide a review report
+- [ ] I will use the [Reporting](#reporting) format for output (see end of document)
 
 ---
 
@@ -54,6 +97,56 @@ Before evaluating each checklist item, the expert MUST:
 
 ---
 
+## Applicability Determination
+
+**For items marked "(if applicable)"**, determine applicability using these criteria:
+
+| Domain | Applicable When | Not Applicable When |
+|--------|-----------------|---------------------|
+| Compliance (COMPL-FEAT-*) | Regulated industry, handles PII, financial data | Internal dev tool, no user data |
+| Stakeholder visibility (BIZ-FEAT-005) | Multiple stakeholders tracking progress | Single developer project |
+| Ownership tracking (BIZ-FEAT-006) | Team-based development | Solo developer |
+| Performance distribution (PERF-FEAT-*) | Performance-critical application | Internal tool, no SLAs |
+| UX requirements (UX-FEAT-*) | User-facing product | Backend service, CLI tool |
+| Internationalization | Multi-region deployment | Single-locale deployment |
+
+**When uncertain**: Mark as applicable and let the manifest author explicitly exclude with reasoning.
+
+---
+
+## Checkpointing (Long Reviews)
+
+This checklist is 750+ lines. For reviews that may exceed context limits:
+
+### Checkpoint After Each Domain
+
+After completing each expertise domain (BIZ, ARCH, SEC, etc.), output:
+```
+✓ {DOMAIN} complete: {N} items checked, {M} issues found
+Issues: {list issue IDs}
+Remaining: {list unchecked domains}
+```
+
+### If Context Runs Low
+
+1. **Save progress**: List completed domains and issues found so far
+2. **Note position**: "Stopped at {DOMAIN}-{ID}"
+3. **Resume instruction**: "Continue from {DOMAIN}-{ID}, issues so far: {list}"
+
+### Minimum Viable Review
+
+If full review impossible, prioritize in this order:
+1. **BIZ-FEAT-001/002/007** (CRITICAL) — Requirements, Scope, Checkbox Consistency
+2. **ARCH-FEAT-001** (CRITICAL) — Dependency Graph
+3. **SEC-FEAT-001** (CRITICAL) — Security Requirements Distribution
+4. **FORMAT-001/002/005** (CRITICAL) — Feature Entry, Required Fields, Checkbox Syntax
+5. **DOC-FEAT-001** (CRITICAL) — Deliberate Omissions
+6. **MUST NOT HAVE** (all CRITICAL/HIGH items)
+
+Mark review as "PARTIAL" if not all domains completed.
+
+---
+
 # MUST HAVE
 
 ---
@@ -88,6 +181,21 @@ Before evaluating each checklist item, the expert MUST:
 - [ ] Status is consistent with evidence (specs exist, code exists, release notes, etc.)
 - [ ] "Done" features have acceptance criteria met and validation evidence captured (where applicable)
 
+### BIZ-FEAT-007: Checkbox Consistency
+**Severity**: CRITICAL
+
+- [ ] Overall status `id:status` is `[x]` only when ALL feature `id:feature` blocks are `[x]`
+- [ ] Feature `id:feature` is `[x]` only when ALL nested `id-ref` blocks within that feature are `[x]`
+- [ ] All `id-ref:fr` (requirements) checkboxes reflect actual implementation status
+- [ ] All `id-ref:principle` (principles) checkboxes reflect actual application status
+- [ ] All `id-ref:constraint` (constraints) checkboxes reflect actual compliance status
+- [ ] All `id-ref:component` (components) checkboxes reflect actual integration status
+- [ ] All `id-ref:seq` (sequences) checkboxes reflect actual flow implementation status
+- [ ] All `id-ref:dbtable` (data) checkboxes reflect actual schema creation status
+- [ ] Priority markers (`p1`-`p9`) are consistent between definitions and references
+- [ ] No orphaned checked references (reference checked but definition unchecked)
+- [ ] Status emoji matches checkbox state (⏳ for in-progress, ✅ for done)
+
 ### BIZ-FEAT-004: Value Delivery Tracking
 **Severity**: MEDIUM
 
@@ -111,6 +219,34 @@ Before evaluating each checklist item, the expert MUST:
 
 - [ ] Each feature has an owner (person or team) when applicable
 - [ ] Target release/milestone is specified when applicable
+
+---
+
+## Semantic Alignment (SEM)
+
+### SEM-FEAT-001: Design Coverage Integrity
+**Severity**: CRITICAL
+
+- [ ] All design principles referenced in FEATURES exist in DESIGN and are valid IDs
+- [ ] All design constraints referenced in FEATURES exist in DESIGN and are valid IDs
+- [ ] All components referenced in FEATURES exist in DESIGN and are valid IDs
+- [ ] All sequences referenced in FEATURES exist in DESIGN and are valid IDs
+- [ ] All data tables referenced in FEATURES exist in DESIGN and are valid IDs
+
+### SEM-FEAT-002: Design Scope Consistency
+**Severity**: HIGH
+
+- [ ] Feature purposes and scopes do not contradict DESIGN principles or constraints
+- [ ] Dependencies and phases reflect the architectural sequencing in DESIGN
+- [ ] APIs and integration boundaries listed in FEATURES align with DESIGN contracts
+- [ ] Domain entities listed in FEATURES align with DESIGN domain model
+
+### SEM-FEAT-003: Cross-Artifact Consistency
+**Severity**: HIGH
+
+- [ ] Each feature entry maps to a corresponding Feature Design (FEATURE) artifact
+- [ ] Feature IDs and slugs are consistent between FEATURES and FEATURE artifacts
+- [ ] Any missing feature design is documented as intentional and approved
 
 ---
 
@@ -594,6 +730,28 @@ Before evaluating each checklist item, the expert MUST:
 - [ ] Identifiers (if used) follow a single agreed convention
 - [ ] Identifiers are unique within the document
 - [ ] References to other artifacts use the same convention consistently
+
+## FORMAT-005: Checkbox Syntax
+**Severity**: CRITICAL
+
+- [ ] All task checkboxes use correct syntax: `[ ]` (unchecked) or `[x]` (checked)
+- [ ] No invalid checkbox syntax like `[]`, `[X]`, `[ x]`, `[  ]`
+- [ ] Checkbox is followed by backtick-enclosed priority: `[ ] \`p1\``
+- [ ] Priority followed by dash and backtick-enclosed ID: `[ ] \`p1\` - \`fdd-{system}-{type}-{slug}\``
+- [ ] ID format follows convention: `fdd-{system}-{type}-{slug}`
+- [ ] Reference IDs match their definitions exactly (case-sensitive)
+- [ ] No duplicate checkboxes for the same ID within a feature block
+
+## FORMAT-006: Feature Entry Structure
+**Severity**: HIGH
+
+- [ ] Feature heading includes link to feature directory: `[{Title}](feature-{slug}/)`
+- [ ] Feature heading includes status emoji (⏳, ✅, ⏸️, etc.)
+- [ ] Feature heading includes priority marker (LOW, MEDIUM, HIGH, CRITICAL)
+- [ ] Feature ID line immediately follows heading
+- [ ] All `id-ref` blocks are within the feature's `<!-- fdd:id:feature -->` block range
+- [ ] Depends On section uses proper `id-ref:feature` references
+- [ ] Requirements Covered section uses proper `id-ref:fr` references
 
 ---
 

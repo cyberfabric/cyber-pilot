@@ -6,6 +6,35 @@
 
 ---
 
+## Table of Contents
+
+1. [Prerequisites](#prerequisites)
+2. [Applicability Context](#applicability-context)
+3. [Severity Dictionary](#severity-dictionary)
+4. [Review Scope Selection](#review-scope-selection)
+5. **MUST HAVE**
+   - [Engineering Best Practices (ENG)](#engineering-best-practices-eng)
+   - [Code Quality (QUAL)](#code-quality-qual)
+   - [Error Handling (ERR)](#error-handling-err)
+   - [Security (SEC)](#security-sec)
+   - [Performance (PERF)](#performance-perf)
+   - [Observability (OBS)](#observability-obs)
+   - [Testing (TEST)](#testing-test)
+   - [Semantic Alignment (SEM)](#semantic-alignment-sem)
+6. **MUST NOT HAVE**
+   - [No Incomplete Work Markers](#qual-code-no-001-no-incomplete-work-markers)
+   - [No Placeholder Implementations](#qual-code-no-002-no-placeholder-implementations)
+   - [No Silent Failures](#err-code-no-001-no-silent-failures)
+   - [No Unsafe Panic Patterns](#err-code-no-002-no-unsafe-panic-patterns)
+   - [No Ignored Tests](#test-code-no-001-no-ignored-tests)
+   - [No Hardcoded Secrets](#sec-code-no-001-no-hardcoded-secrets)
+   - [No Dangerous Patterns](#sec-code-no-002-no-dangerous-patterns)
+7. [Validation Summary](#validation-summary)
+8. [Conflict Resolution](#conflict-resolution)
+9. [Reporting](#reporting)
+
+---
+
 ## Prerequisites
 
 Before starting the review, confirm:
@@ -48,6 +77,62 @@ Before evaluating each checklist item, the expert MUST:
 - **HIGH**: Major quality issue; should be fixed before merge.
 - **MEDIUM**: Meaningful improvement; fix when feasible.
 - **LOW**: Minor improvement; optional.
+
+---
+
+## Review Scope Selection
+
+Select review depth based on change size and risk:
+
+### Review Modes
+
+| Change Size | Risk Level | Review Mode | Items to Check |
+|-------------|------------|-------------|----------------|
+| <50 LOC, single file | Low | **Quick** | Critical-tier only |
+| 50-200 LOC, few files | Medium | **Standard** | Critical + High-tier |
+| >200 LOC or architectural | High | **Full** | All items |
+
+### Quick Review (Critical-Tier Only)
+
+For small, low-risk changes, check only these items:
+
+**MUST CHECK** (blocking):
+- [ ] SEC-CODE-001: Injection Prevention
+- [ ] SEC-CODE-002: Authentication & Authorization
+- [ ] SEC-CODE-003: Data Protection
+- [ ] SEC-CODE-NO-001: No Hardcoded Secrets
+- [ ] SEC-CODE-NO-002: No Dangerous Patterns
+- [ ] ERR-CODE-001: Explicit Error Handling
+- [ ] ERR-CODE-003: Input Validation
+- [ ] ERR-CODE-NO-001: No Silent Failures
+- [ ] QUAL-CODE-NO-002: No Placeholder Implementations
+
+**SPOT CHECK** (sample):
+- [ ] ENG-CODE-001: TDD — at least one test for new behavior
+- [ ] QUAL-CODE-001: Readability — naming is clear
+
+Note: `Quick review: {N} LOC, checked Critical-tier items`
+
+### Standard Review (Critical + High-Tier)
+
+For medium-sized changes, check all CRITICAL and HIGH severity items:
+
+**All Quick Review items PLUS**:
+- [ ] All HIGH severity items from MUST HAVE sections
+- [ ] All items from MUST NOT HAVE sections
+
+### Full Review
+
+For large or architectural changes, check ALL items in this checklist.
+
+### Triage Priority Within Full Review
+
+When time-constrained during full review, prioritize in this order:
+
+1. **First pass**: All CRITICAL items (security, error handling)
+2. **Second pass**: All HIGH items (quality, testing, SOLID)
+3. **Third pass**: All MEDIUM items (DRY, OCP, performance)
+4. **Fourth pass**: All LOW items (metrics, tracing)
 
 ---
 
@@ -314,6 +399,68 @@ Before evaluating each checklist item, the expert MUST:
 - [ ] Tests cover regression scenarios
 - [ ] Tests document expected behavior
 
+## Semantic Alignment (SEM)
+
+### SEM-CODE-001: Resolve Design Sources
+**Severity**: HIGH
+
+- [ ] Resolve Feature Design via `@fdd-*` markers using the `fdd where-defined` or `fdd where-used` skill
+- [ ] If no `@fdd-*` markers exist, ask the user to provide the Feature Design location before proceeding
+- [ ] If the user is unsure, search the repository for candidate feature designs and present options for user selection
+- [ ] Resolve Overall Design by following references from the Feature Design (or ask the user for the design path)
+
+### SEM-CODE-002: Feature Context Semantics
+**Severity**: HIGH
+
+- [ ] Confirm code behavior aligns with the Feature Overview, Purpose, and key assumptions
+- [ ] Verify all referenced actors are represented by actual interfaces, entrypoints, or roles in code
+- [ ] Ensure referenced ADRs and related features do not conflict with current implementation choices
+
+### SEM-CODE-003: Feature Flows Semantics
+**Severity**: HIGH
+
+- [ ] Verify each implemented flow follows the ordered steps, triggers, and outcomes in Actor Flows
+- [ ] Confirm conditionals, branching, and return paths match the flow logic
+- [ ] Validate all flow steps marked with IDs are implemented and traceable
+
+### SEM-CODE-004: Algorithms Semantics
+**Severity**: HIGH
+
+- [ ] Validate algorithm steps match the Feature Design algorithms (inputs, rules, outputs)
+- [ ] Ensure data transformations and calculations match the described business rules
+- [ ] Confirm loop/iteration behavior and validation rules align with algorithm steps
+
+### SEM-CODE-005: State Semantics
+**Severity**: HIGH
+
+- [ ] Confirm state transitions match the Feature Design state machine
+- [ ] Verify triggers and guards for transitions match defined conditions
+- [ ] Ensure invalid transitions are prevented or handled explicitly
+
+### SEM-CODE-006: Definition of Done Semantics
+**Severity**: HIGH
+
+- [ ] Verify each requirement in Definition of Done is implemented and testable
+- [ ] Confirm implementation details (API, DB, domain entities) match the requirement section
+- [ ] Validate requirement mappings to flows and algorithms are satisfied
+- [ ] Ensure PRD coverage (FR/NFR) is preserved in implementation outcomes
+- [ ] Ensure Design coverage (principles, constraints, components, sequences, db tables) is satisfied
+
+### SEM-CODE-007: Overall Design Consistency
+**Severity**: HIGH
+
+- [ ] Confirm architecture vision and system boundaries are respected
+- [ ] Validate architecture drivers (FR/NFR) are still satisfied by implementation
+- [ ] Verify ADR decisions are reflected in code choices or explicitly overridden
+- [ ] Confirm principles and constraints are enforced in implementation
+- [ ] Validate domain model entities and invariants are respected by code
+- [ ] Confirm component responsibilities, boundaries, and dependencies match the component model
+- [ ] Validate API contracts and integration boundaries are honored
+- [ ] Verify interactions and sequences are implemented as described
+- [ ] Ensure database schemas, constraints, and access patterns align with design
+- [ ] Confirm topology and tech stack choices are not contradicted
+- [ ] Document any deviation with a rationale and approval
+
 ---
 
 # MUST NOT HAVE
@@ -444,6 +591,37 @@ Confirm before reporting results:
 
 ---
 
+## Conflict Resolution
+
+When checklist items appear to conflict, use this resolution order:
+
+### Priority Order (highest to lowest)
+
+1. **Security (SEC)** — Always takes precedence
+2. **Error Handling (ERR)** — Explicit failures over silent issues
+3. **Correctness (QUAL, TEST)** — Working code over elegant code
+4. **Maintainability (ENG, QUAL)** — Clarity over cleverness
+5. **Performance (PERF)** — Only after correctness established
+6. **Observability (OBS)** — Useful but not at expense of security
+
+### Common Conflicts
+
+| Conflict | Resolution |
+|----------|------------|
+| DRY vs KISS | Prefer KISS — duplication is better than wrong abstraction |
+| YAGNI vs OCP | Prefer YAGNI — don't add extension points "just in case" |
+| Performance vs Readability | Prefer readability; optimize only with evidence |
+| Test coverage vs Test speed | Prefer coverage for critical paths; speed for CI |
+| Verbose errors vs User experience | Detailed logs, friendly user messages |
+
+### When Uncertain
+
+1. Ask: "What failure mode is worse?"
+2. Security/data loss > inconvenience > performance
+3. Document the trade-off decision in code comments
+
+---
+
 ## Reporting Readiness Checklist
 
 - [ ] I will report every identified issue (no omissions)
@@ -459,6 +637,29 @@ Confirm before reporting results:
 
 Report **only** problems (do not list what is OK).
 
+### Format Selection
+
+| Review Mode | Report Format |
+|-------------|---------------|
+| Quick | Compact (table) |
+| Standard | Compact or Full |
+| Full | Full (detailed) |
+
+### Compact Format (for Quick/Standard reviews)
+
+```markdown
+## Code Review: {scope}
+
+| # | ID | Sev | Location | Issue | Fix |
+|---|-----|-----|----------|-------|-----|
+| 1 | SEC-001 | CRIT | file.py:42 | SQL injection | Use parameterized query |
+| 2 | ERR-001 | HIGH | file.py:87 | Silent catch | Add logging |
+
+**Review mode**: Quick ({N} LOC)
+```
+
+### Full Format (for detailed reviews)
+
 For each issue include:
 
 - **Issue**: What is wrong
@@ -467,7 +668,7 @@ For each issue include:
 - **Why it matters**: Impact (risk, maintainability, security)
 - **Proposal**: Concrete fix
 
-Recommended output format for chat:
+Full output format:
 
 ```markdown
 ## Code Review Report (Issues Only)

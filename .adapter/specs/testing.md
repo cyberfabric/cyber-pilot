@@ -1,7 +1,7 @@
 # Testing
 
-**Version**: 1.0  
-**Last Updated**: 2025-01-17  
+**Version**: 2.0
+**Last Updated**: 2026-02-01  
 **Purpose**: Define testing strategy and practices for FDD project
 
 ---
@@ -28,11 +28,26 @@
 
 ```
 tests/
-├── test_validate.py
-├── test_design_validation.py
-├── test_core_structure.py
-└── test_workflow_parsing.py
+├── test_validate.py           # Validation tests
+├── test_cli_integration.py    # CLI integration tests
+├── test_core_structure.py     # Core structure tests
+├── test_workflow_parsing.py   # Workflow parsing tests
+├── test_files_utils.py        # File utility tests
+├── test_design_validation.py  # Design validation tests
+├── test_helpers.py            # Helper function tests
+├── test_parsing_utils.py      # Parsing utility tests
+├── test_adapter_info.py       # Adapter info tests
+├── test_ai_navigate_when.py   # AI navigation tests
+├── test_context.py            # Context tests
+├── test_codebase.py           # Codebase validation tests
+├── test_parse_fdd_id.py       # FDD ID parsing tests
+├── test_artifacts_meta.py     # Artifacts metadata tests
+├── test_template_utils.py     # Template utility tests
+├── test_quickstart_bootstrap.py # Bootstrap tests
+└── test_language_config.py    # Language config tests
 ```
+
+**Total**: 17 test files
 
 ### Test Files
 

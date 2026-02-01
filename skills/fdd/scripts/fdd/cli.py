@@ -64,143 +64,201 @@ def _write_json_file(path: Path, data: dict) -> None:
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
-def _windsurf_default_agent_workflows_config() -> dict:
+def _default_agents_config() -> dict:
+    """Unified config for both workflows and skills registration per agent."""
     return {
         "version": 1,
         "agents": {
             "windsurf": {
-                "workflow_dir": ".windsurf/workflows",
-                "workflow_command_prefix": "fdd-",
-                "workflow_filename_format": "{command}.md",
-                "template": [
-                    "# /{command}",
-                    "",
-                    "ALWAYS open and follow `{target_workflow_path}`",
-                ],
-            }
-            ,
+                "workflows": {
+                    "workflow_dir": ".windsurf/workflows",
+                    "workflow_command_prefix": "fdd-",
+                    "workflow_filename_format": "{command}.md",
+                    "custom_content": "",
+                    "template": [
+                        "# /{command}",
+                        "",
+                        "{custom_content}",
+                        "ALWAYS open and follow `{target_workflow_path}`",
+                    ],
+                },
+                "skills": {
+                    "skill_name": "fdd",
+                    "custom_content": "",
+                    "outputs": [
+                        {
+                            "path": ".windsurf/skills/fdd/SKILL.md",
+                            "template": [
+                                "---",
+                                "name: {name}",
+                                "description: {description}",
+                                "---",
+                                "",
+                                "{custom_content}",
+                                "ALWAYS open and follow `{target_skill_path}`",
+                            ],
+                        },
+                        {
+                            "path": ".windsurf/workflows/fdd.md",
+                            "template": [
+                                "# /fdd",
+                                "",
+                                "{custom_content}",
+                                "ALWAYS open and follow `{target_skill_path}`",
+                            ],
+                        },
+                    ],
+                },
+            },
             "cursor": {
-                "workflow_dir": ".cursor/commands",
-                "workflow_command_prefix": "fdd-",
-                "workflow_filename_format": "{command}.md",
-                "template": [
-                    "# /{command}",
-                    "",
-                    "ALWAYS open and follow `{target_workflow_path}`",
-                ],
+                "workflows": {
+                    "workflow_dir": ".cursor/commands",
+                    "workflow_command_prefix": "fdd-",
+                    "workflow_filename_format": "{command}.md",
+                    "custom_content": "",
+                    "template": [
+                        "# /{command}",
+                        "",
+                        "{custom_content}",
+                        "ALWAYS open and follow `{target_workflow_path}`",
+                    ],
+                },
+                "skills": {
+                    "custom_content": "",
+                    "outputs": [
+                        {
+                            "path": ".cursor/rules/fdd.mdc",
+                            "template": [
+                                "---",
+                                "description: {description}",
+                                "alwaysApply: true",
+                                "---",
+                                "",
+                                "{custom_content}",
+                                "ALWAYS open and follow `{target_skill_path}`",
+                            ],
+                        },
+                        {
+                            "path": ".cursor/commands/fdd.md",
+                            "template": [
+                                "# /fdd",
+                                "",
+                                "{custom_content}",
+                                "ALWAYS open and follow `{target_skill_path}`",
+                            ],
+                        },
+                    ],
+                },
             },
             "claude": {
-                "workflow_dir": ".claude/commands",
-                "workflow_command_prefix": "fdd-",
-                "workflow_filename_format": "{command}.md",
-                "template": [
-                    "---",
-                    "description: Proxy to FDD workflow {workflow_name}",
-                    "---",
-                    "",
-                    "ALWAYS open and follow `{target_workflow_path}`",
-                ],
+                "workflows": {
+                    "workflow_dir": ".claude/commands",
+                    "workflow_command_prefix": "fdd-",
+                    "workflow_filename_format": "{command}.md",
+                    "custom_content": "",
+                    "template": [
+                        "---",
+                        "description: {description}",
+                        "---",
+                        "",
+                        "{custom_content}",
+                        "ALWAYS open and follow `{target_workflow_path}`",
+                    ],
+                },
+                "skills": {
+                    "custom_content": "",
+                    "outputs": [
+                        {
+                            "path": ".claude/commands/fdd.md",
+                            "template": [
+                                "---",
+                                "description: {description}",
+                                "---",
+                                "",
+                                "{custom_content}",
+                                "ALWAYS open and follow `{target_skill_path}`",
+                            ],
+                        }
+                    ],
+                },
             },
             "copilot": {
-                "workflow_dir": ".github/prompts",
-                "workflow_command_prefix": "fdd-",
-                "workflow_filename_format": "{command}.prompt.md",
-                "template": [
-                    "---",
-                    "name: {command}",
-                    "description: Proxy to FDD workflow {workflow_name}",
-                    "---",
-                    "",
-                    "ALWAYS open and follow `{target_workflow_path}`",
-                ],
+                "workflows": {
+                    "workflow_dir": ".github/prompts",
+                    "workflow_command_prefix": "fdd-",
+                    "workflow_filename_format": "{command}.prompt.md",
+                    "custom_content": "",
+                    "template": [
+                        "---",
+                        "name: {name}",
+                        "description: {description}",
+                        "---",
+                        "",
+                        "{custom_content}",
+                        "ALWAYS open and follow `{target_workflow_path}`",
+                    ],
+                },
+                "skills": {
+                    "custom_content": "",
+                    "outputs": [
+                        {
+                            "path": ".github/copilot-instructions.md",
+                            "template": [
+                                "# FDD",
+                                "",
+                                "{custom_content}",
+                                "ALWAYS open and follow `{target_skill_path}`",
+                            ],
+                        },
+                        {
+                            "path": ".github/prompts/fdd.prompt.md",
+                            "template": [
+                                "---",
+                                "name: {name}",
+                                "description: {description}",
+                                "---",
+                                "",
+                                "{custom_content}",
+                                "ALWAYS open and follow `{target_skill_path}`",
+                            ],
+                        },
+                    ],
+                },
             },
         },
     }
 
 
-def _windsurf_default_agent_skills_config() -> dict:
-    return {
-        "version": 1,
-        "agents": {
-            "windsurf": {
-                "skill_name": "fdd",
-                "outputs": [
-                    {
-                        "path": ".windsurf/skills/fdd/SKILL.md",
-                        "template": [
-                            "---",
-                            "name: {skill_name}",
-                            "description: Proxy to FDD core skill instructions",
-                            "---",
-                            "",
-                            "ALWAYS open and follow `{target_skill_path}`",
-                        ],
-                    }
-                ],
-            }
-            ,
-            "cursor": {
-                "outputs": [
-                    {
-                        "path": ".cursor/rules/fdd.mdc",
-                        "template": [
-                            "---",
-                            "description: Proxy to FDD core skill instructions",
-                            "alwaysApply: true",
-                            "---",
-                            "",
-                            "ALWAYS open and follow `{target_skill_path}`",
-                        ],
-                    },
-                    {
-                        "path": ".cursor/commands/fdd.md",
-                        "template": [
-                            "# /fdd",
-                            "",
-                            "ALWAYS open and follow `{target_skill_path}`",
-                        ],
-                    },
-                ],
-            },
-            "claude": {
-                "outputs": [
-                    {
-                        "path": ".claude/commands/fdd.md",
-                        "template": [
-                            "---",
-                            "description: Proxy to FDD core skill instructions",
-                            "---",
-                            "",
-                            "ALWAYS open and follow `{target_skill_path}`",
-                        ],
-                    }
-                ],
-            },
-            "copilot": {
-                "outputs": [
-                    {
-                        "path": ".github/copilot-instructions.md",
-                        "template": [
-                            "# FDD",
-                            "",
-                            "ALWAYS open and follow `{target_skill_path}`",
-                        ],
-                    },
-                    {
-                        "path": ".github/prompts/fdd-skill.prompt.md",
-                        "template": [
-                            "---",
-                            "name: fdd-skill",
-                            "description: Proxy to FDD core skill instructions",
-                            "---",
-                            "",
-                            "ALWAYS open and follow `{target_skill_path}`",
-                        ],
-                    },
-                ],
-            },
-        },
-    }
+def _parse_frontmatter(file_path: Path) -> Dict[str, str]:
+    """Parse YAML frontmatter from markdown file. Returns dict with name, description, etc."""
+    result: Dict[str, str] = {}
+    try:
+        content = file_path.read_text(encoding="utf-8")
+    except Exception:
+        return result
+
+    lines = content.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return result
+
+    end_idx = -1
+    for i, line in enumerate(lines[1:], start=1):
+        if line.strip() == "---":
+            end_idx = i
+            break
+
+    if end_idx < 0:
+        return result
+
+    for line in lines[1:end_idx]:
+        if ":" in line:
+            key, _, value = line.partition(":")
+            key = key.strip()
+            value = value.strip()
+            if key and value:
+                result[key] = value
+
+    return result
 
 
 def _render_template(lines: List[str], variables: Dict[str, str]) -> str:
@@ -213,12 +271,128 @@ def _render_template(lines: List[str], variables: Dict[str, str]) -> str:
     return "\n".join(out).rstrip() + "\n"
 
 
-def _cmd_agent_workflows(argv: List[str]) -> int:
-    p = argparse.ArgumentParser(prog="agent-workflows", description="Generate/update agent-specific workflow proxy files")
-    p.add_argument("--agent", required=True, help="Agent/IDE key (e.g., windsurf)")
+def _cmd_self_check(argv: List[str]) -> int:
+    p = argparse.ArgumentParser(prog="self-check", description="Validate registered template examples against templates")
+    p.add_argument("--root", default=".", help="Project root to search from (default: current directory)")
+    p.add_argument("--rule", help="Specific rule ID to check (e.g., fdd-sdlc)")
+    p.add_argument("--verbose", action="store_true", help="Include full per-template error/warning lists")
+    args = p.parse_args(argv)
+
+    start_path = Path(args.root).resolve()
+    project_root = find_project_root(start_path)
+    if project_root is None:
+        print(json.dumps({"status": "ERROR", "message": "Project root not found"}, indent=2, ensure_ascii=False))
+        return 1
+
+    adapter_dir = find_adapter_directory(project_root)
+    if adapter_dir is None:
+        print(json.dumps({"status": "ERROR", "message": "Adapter directory not found"}, indent=2, ensure_ascii=False))
+        return 1
+
+    reg, reg_err = load_artifacts_registry(adapter_dir)
+    if reg_err or reg is None:
+        print(json.dumps({"status": "ERROR", "message": reg_err or "Missing artifacts registry"}, indent=2, ensure_ascii=False))
+        return 1
+
+    rules_cfg = reg.get("rules") if isinstance(reg, dict) else None
+    if not isinstance(rules_cfg, dict) or not rules_cfg:
+        print(json.dumps({"status": "ERROR", "message": "No rules packages defined in artifacts.json"}, indent=2, ensure_ascii=False))
+        return 1
+
+    try:
+        from .utils.template import validate_artifact_file_against_template
+    except Exception:
+        validate_artifact_file_against_template = None  # type: ignore[assignment]
+
+    if validate_artifact_file_against_template is None:
+        print(json.dumps({"status": "ERROR", "message": "Template validation module not available"}, indent=2, ensure_ascii=False))
+        return 1
+
+    results: List[Dict[str, object]] = []
+    overall_status = "PASS"
+    rules_checked = 0
+
+    for rule_id, rule_def in rules_cfg.items():
+        if args.rule and rule_id != args.rule:
+            continue
+        if not isinstance(rule_def, dict):
+            continue
+
+        rule_path_str = rule_def.get("path")
+        if not isinstance(rule_path_str, str):
+            continue
+
+        rule_base = (project_root / rule_path_str).resolve()
+        artifacts_dir = rule_base / "artifacts"
+        if not artifacts_dir.is_dir():
+            continue
+
+        rules_checked += 1
+
+        for kind_dir in sorted(artifacts_dir.iterdir()):
+            if not kind_dir.is_dir():
+                continue
+
+            kind = kind_dir.name
+            template_path = kind_dir / "template.md"
+            example_path = kind_dir / "examples" / "example.md"
+
+            if not template_path.exists():
+                continue
+
+            item: Dict[str, object] = {
+                "rule": rule_id,
+                "kind": kind,
+                "template_path": template_path.as_posix(),
+                "example_path": example_path.as_posix() if example_path.exists() else None,
+                "status": "PASS",
+            }
+
+            errs: List[Dict[str, object]] = []
+            warns: List[Dict[str, object]] = []
+
+            if not example_path.exists():
+                warns.append({"type": "file", "message": "Example not found (skipped)", "path": example_path.as_posix()})
+            else:
+                rep = validate_artifact_file_against_template(
+                    artifact_path=example_path,
+                    template_path=template_path,
+                    expected_kind=kind,
+                )
+                errs.extend(list(rep.get("errors", []) or []))
+                warns.extend(list(rep.get("warnings", []) or []))
+
+            if errs:
+                item["status"] = "FAIL"
+                item["error_count"] = len(errs)
+                item["errors"] = errs  # Always show errors on failure
+                overall_status = "FAIL"
+            if warns:
+                item["warning_count"] = len(warns)
+                if errs or bool(args.verbose):
+                    item["warnings"] = warns  # Show warnings on failure or verbose
+
+            results.append(item)
+
+    out = {
+        "status": overall_status,
+        "project_root": project_root.as_posix(),
+        "adapter_dir": adapter_dir.as_posix(),
+        "rules_checked": rules_checked,
+        "templates_checked": len(results),
+        "results": results,
+    }
+    print(json.dumps(out, indent=2, ensure_ascii=False))
+    return 0 if overall_status == "PASS" else 2
+
+
+def _cmd_agents(argv: List[str]) -> int:
+    """Unified command to register both workflows and skills for an agent."""
+    p = argparse.ArgumentParser(prog="agents", description="Generate/update agent-specific workflow proxies and skill outputs")
+    p.add_argument("--agent", required=True, help="Agent/IDE key (e.g., windsurf, cursor, claude, copilot)")
     p.add_argument("--root", default=".", help="Project root directory (default: current directory)")
     p.add_argument("--fdd-root", default=None, help="Explicit FDD core root (optional override)")
-    p.add_argument("--config", default=None, help="Path to agent workflows config JSON (default: project root)")
+    p.add_argument("--config", default=None, help="Path to unified agents config JSON (default: fdd-agents.json in project root)")
     p.add_argument("--dry-run", action="store_true", help="Compute changes without writing files")
     args = p.parse_args(argv)
 
@@ -242,38 +416,27 @@ def _cmd_agent_workflows(argv: List[str]) -> int:
         if not ((fdd_root / "AGENTS.md").exists() and (fdd_root / "workflows").is_dir()):
             fdd_root = Path(__file__).resolve().parents[6]
 
-    cfg_path = Path(args.config).resolve() if args.config else (project_root / "fdd-agent-workflows.json")
+    cfg_path = Path(args.config).resolve() if args.config else (project_root / "fdd-agents.json")
     cfg = _load_json_file(cfg_path)
 
     recognized = agent in {"windsurf", "cursor", "claude", "copilot"}
     if cfg is None:
-        cfg = _windsurf_default_agent_workflows_config() if recognized else {"version": 1, "agents": {agent: {}}}
+        cfg = _default_agents_config() if recognized else {"version": 1, "agents": {agent: {"workflows": {}, "skills": {}}}}
         if not args.dry_run:
             _write_json_file(cfg_path, cfg)
 
     agents_cfg = cfg.get("agents") if isinstance(cfg, dict) else None
     if isinstance(cfg, dict) and isinstance(agents_cfg, dict) and agent not in agents_cfg:
         if recognized:
-            defaults = _windsurf_default_agent_workflows_config()
+            defaults = _default_agents_config()
             default_agents = defaults.get("agents") if isinstance(defaults, dict) else None
             if isinstance(default_agents, dict) and isinstance(default_agents.get(agent), dict):
                 agents_cfg[agent] = default_agents[agent]
         else:
-            agents_cfg[agent] = {}
+            agents_cfg[agent] = {"workflows": {}, "skills": {}}
         cfg["agents"] = agents_cfg
         if not args.dry_run:
             _write_json_file(cfg_path, cfg)
-
-    if isinstance(cfg, dict) and isinstance(agents_cfg, dict) and agent in agents_cfg and not recognized:
-        agent_cfg_candidate = agents_cfg.get(agent)
-        if not isinstance(agent_cfg_candidate, dict) or not agent_cfg_candidate:
-            print(json.dumps({
-                "status": "CONFIG_INCOMPLETE",
-                "message": "Unknown agent config must be filled in",
-                "config_path": cfg_path.as_posix(),
-                "agent": agent,
-            }, indent=2, ensure_ascii=False))
-            return 2
 
     if not isinstance(agents_cfg, dict) or agent not in agents_cfg or not isinstance(agents_cfg.get(agent), dict):
         print(json.dumps({
@@ -285,541 +448,250 @@ def _cmd_agent_workflows(argv: List[str]) -> int:
         return 1
 
     agent_cfg: dict = agents_cfg[agent]
-    workflow_dir_rel = agent_cfg.get("workflow_dir")
-    filename_fmt = agent_cfg.get("workflow_filename_format", "{command}.md")
-    prefix = agent_cfg.get("workflow_command_prefix", "fdd-")
-    template = agent_cfg.get("template")
+    workflows_cfg = agent_cfg.get("workflows", {})
+    skills_cfg = agent_cfg.get("skills", {})
 
-    if not isinstance(workflow_dir_rel, str) or not workflow_dir_rel.strip():
-        print(json.dumps({
-            "status": "CONFIG_INCOMPLETE",
-            "message": "Agent config missing workflow_dir",
-            "config_path": cfg_path.as_posix(),
-            "agent": agent,
-        }, indent=2, ensure_ascii=False))
-        return 2
-    if not isinstance(filename_fmt, str) or not filename_fmt.strip():
-        print(json.dumps({
-            "status": "CONFIG_INCOMPLETE",
-            "message": "Agent config missing workflow_filename_format",
-            "config_path": cfg_path.as_posix(),
-            "agent": agent,
-        }, indent=2, ensure_ascii=False))
-        return 2
-    if not isinstance(prefix, str):
-        prefix = "fdd-"
-    if not isinstance(template, list) or not all(isinstance(x, str) for x in template):
-        print(json.dumps({
-            "status": "CONFIG_INCOMPLETE",
-            "message": "Agent config missing template (must be array of strings)",
-            "config_path": cfg_path.as_posix(),
-            "agent": agent,
-        }, indent=2, ensure_ascii=False))
-        return 2
+    # --- WORKFLOWS SECTION ---
+    workflows_result: Dict[str, Any] = {"created": [], "updated": [], "renamed": [], "deleted": [], "errors": []}
 
-    workflow_dir = (project_root / workflow_dir_rel).resolve()
-    fdd_workflow_files = _list_workflow_files(fdd_root)
-    fdd_workflow_names = [Path(p).stem for p in fdd_workflow_files]
+    if isinstance(workflows_cfg, dict) and workflows_cfg:
+        workflow_dir_rel = workflows_cfg.get("workflow_dir")
+        filename_fmt = workflows_cfg.get("workflow_filename_format", "{command}.md")
+        prefix = workflows_cfg.get("workflow_command_prefix", "fdd-")
+        template = workflows_cfg.get("template")
 
-    desired: Dict[str, Dict[str, str]] = {}
-    for wf_name in fdd_workflow_names:
-        command = "fdd" if wf_name == "fdd" else f"{prefix}{wf_name}"
-        filename = filename_fmt.format(command=command, workflow_name=wf_name)
-        desired_path = (workflow_dir / filename).resolve()
-        target_workflow_path = (fdd_root / "workflows" / f"{wf_name}.md").resolve()
-        target_rel = _safe_relpath(target_workflow_path, project_root)
-        content = _render_template(
-            template,
-            {
-                "command": command,
-                "workflow_name": wf_name,
-                "target_workflow_path": target_rel,
-            },
-        )
-        desired[desired_path.as_posix()] = {
-            "command": command,
-            "workflow_name": wf_name,
-            "target_workflow_path": target_rel,
-            "content": content,
-        }
+        if not isinstance(workflow_dir_rel, str) or not workflow_dir_rel.strip():
+            workflows_result["errors"].append("Missing workflow_dir in workflows config")
+        elif not isinstance(template, list) or not all(isinstance(x, str) for x in template):
+            workflows_result["errors"].append("Missing or invalid template in workflows config")
+        else:
+            workflow_dir = (project_root / workflow_dir_rel).resolve()
+            fdd_workflow_files = _list_workflow_files(fdd_root)
+            fdd_workflow_names = [Path(p).stem for p in fdd_workflow_files]
 
-    created: List[str] = []
-    updated: List[str] = []
-    renamed: List[Tuple[str, str]] = []
-    rename_conflicts: List[Tuple[str, str]] = []
-    deleted: List[str] = []
+            desired: Dict[str, Dict[str, str]] = {}
+            for wf_name in fdd_workflow_names:
+                command = "fdd" if wf_name == "fdd" else f"{prefix}{wf_name}"
+                filename = filename_fmt.format(command=command, workflow_name=wf_name)
+                desired_path = (workflow_dir / filename).resolve()
+                target_workflow_path = (fdd_root / "workflows" / f"{wf_name}.md").resolve()
+                target_rel = _safe_relpath(target_workflow_path, project_root)
 
-    existing_files: List[Path] = []
-    if workflow_dir.is_dir():
-        existing_files = list(workflow_dir.glob("*.md"))
+                # Parse frontmatter from source workflow
+                fm = _parse_frontmatter(target_workflow_path)
+                source_name = fm.get("name", command)
+                source_description = fm.get("description", f"Proxy to FDD workflow {wf_name}")
 
-    # Rename misnamed proxy files that target an existing workflow.
-    desired_by_target: Dict[str, str] = {meta["target_workflow_path"]: p for p, meta in desired.items()}
-    for pth in existing_files:
-        if pth.as_posix() in desired:
-            continue
-        # Only consider renaming files that look like agent-workflow proxies.
-        if not pth.name.startswith(prefix):
-            try:
-                head = "\n".join(pth.read_text(encoding="utf-8").splitlines()[:5])
-            except Exception:
-                continue
-            if not head.lstrip().startswith("# /"):
-                continue
-        try:
-            txt = pth.read_text(encoding="utf-8")
-        except Exception:
-            continue
-        if "ALWAYS open and follow `" not in txt:
-            continue
-        m = re.search(r"ALWAYS open and follow `([^`]+)`", txt)
-        if not m:
-            continue
-        target_rel = m.group(1)
-        dst = desired_by_target.get(target_rel)
-        if not dst:
-            continue
-        if pth.as_posix() == dst:
-            continue
-        if Path(dst).exists():
-            rename_conflicts.append((pth.as_posix(), dst))
-            continue
-        if not args.dry_run:
-            workflow_dir.mkdir(parents=True, exist_ok=True)
-            Path(dst).parent.mkdir(parents=True, exist_ok=True)
-            pth.replace(Path(dst))
-        renamed.append((pth.as_posix(), dst))
+                # Get custom content from config (optional user-defined section)
+                custom_content = workflows_cfg.get("custom_content", "")
 
-    # Refresh listing after potential renames.
-    existing_files = list(workflow_dir.glob("*.md")) if workflow_dir.is_dir() else []
+                content = _render_template(
+                    template,
+                    {
+                        "command": command,
+                        "workflow_name": wf_name,
+                        "target_workflow_path": target_rel,
+                        "name": source_name,
+                        "description": source_description,
+                        "custom_content": custom_content,
+                    },
+                )
+                desired[desired_path.as_posix()] = {
+                    "command": command,
+                    "workflow_name": wf_name,
+                    "target_workflow_path": target_rel,
+                    "content": content,
+                }
 
-    # Create/update desired files.
-    for p_str, meta in desired.items():
-        pth = Path(p_str)
-        if not pth.exists():
-            created.append(p_str)
-            if not args.dry_run:
-                pth.parent.mkdir(parents=True, exist_ok=True)
-                pth.write_text(meta["content"], encoding="utf-8")
-            continue
-        try:
-            old = pth.read_text(encoding="utf-8")
-        except Exception:
-            old = ""
-        if old != meta["content"]:
-            updated.append(p_str)
-            if not args.dry_run:
-                pth.write_text(meta["content"], encoding="utf-8")
+            existing_files: List[Path] = []
+            if workflow_dir.is_dir():
+                existing_files = list(workflow_dir.glob("*.md"))
 
-    # Delete stale generated proxies (prefix-based + heuristic match), if they are not desired.
-    desired_paths = set(desired.keys())
-    for pth in existing_files:
-        p_str = pth.as_posix()
-        if p_str in desired_paths:
-            continue
-        if not pth.name.startswith(prefix) and not pth.name.startswith("fdd-"):
-            continue
-        try:
-            txt = pth.read_text(encoding="utf-8")
-        except Exception:
-            continue
-        m = re.search(r"ALWAYS open and follow `([^`]+)`", txt)
-        if not m:
-            continue
-        target_rel = m.group(1)
-        # Only delete if it points to a workflow under fdd_root/workflows/ that no longer exists.
-        # If it's pointing elsewhere, leave it alone.
-        if "workflows/" not in target_rel and "/workflows/" not in target_rel:
-            continue
-        expected = (project_root / target_rel).resolve() if not target_rel.startswith("/") else Path(target_rel)
-        # If expected is inside fdd_root/workflows, treat as managed candidate.
-        try:
-            expected.relative_to(fdd_root / "workflows")
-        except ValueError:
-            continue
-        if expected.exists():
-            continue
-        deleted.append(p_str)
-        if not args.dry_run:
-            try:
-                pth.unlink()
-            except (PermissionError, FileNotFoundError, OSError):
-                pass
+            # Rename misnamed proxy files
+            desired_by_target: Dict[str, str] = {meta["target_workflow_path"]: p for p, meta in desired.items()}
+            for pth in existing_files:
+                if pth.as_posix() in desired:
+                    continue
+                if not pth.name.startswith(prefix):
+                    try:
+                        head = "\n".join(pth.read_text(encoding="utf-8").splitlines()[:5])
+                    except Exception:
+                        continue
+                    if not head.lstrip().startswith("# /"):
+                        continue
+                try:
+                    txt = pth.read_text(encoding="utf-8")
+                except Exception:
+                    continue
+                if "ALWAYS open and follow `" not in txt:
+                    continue
+                m = re.search(r"ALWAYS open and follow `([^`]+)`", txt)
+                if not m:
+                    continue
+                target_rel = m.group(1)
+                dst = desired_by_target.get(target_rel)
+                if not dst or pth.as_posix() == dst:
+                    continue
+                if Path(dst).exists():
+                    continue
+                if not args.dry_run:
+                    workflow_dir.mkdir(parents=True, exist_ok=True)
+                    Path(dst).parent.mkdir(parents=True, exist_ok=True)
+                    pth.replace(Path(dst))
+                workflows_result["renamed"].append((pth.as_posix(), dst))
+
+            existing_files = list(workflow_dir.glob("*.md")) if workflow_dir.is_dir() else []
+
+            # Create/update desired files
+            for p_str, meta in desired.items():
+                pth = Path(p_str)
+                if not pth.exists():
+                    workflows_result["created"].append(p_str)
+                    if not args.dry_run:
+                        pth.parent.mkdir(parents=True, exist_ok=True)
+                        pth.write_text(meta["content"], encoding="utf-8")
+                    continue
+                try:
+                    old = pth.read_text(encoding="utf-8")
+                except Exception:
+                    old = ""
+                if old != meta["content"]:
+                    workflows_result["updated"].append(p_str)
+                    if not args.dry_run:
+                        pth.write_text(meta["content"], encoding="utf-8")
+
+            # Delete stale proxies
+            desired_paths = set(desired.keys())
+            for pth in existing_files:
+                p_str = pth.as_posix()
+                if p_str in desired_paths:
+                    continue
+                if not pth.name.startswith(prefix) and not pth.name.startswith("fdd-"):
+                    continue
+                try:
+                    txt = pth.read_text(encoding="utf-8")
+                except Exception:
+                    continue
+                m = re.search(r"ALWAYS open and follow `([^`]+)`", txt)
+                if not m:
+                    continue
+                target_rel = m.group(1)
+                if "workflows/" not in target_rel and "/workflows/" not in target_rel:
+                    continue
+                expected = (project_root / target_rel).resolve() if not target_rel.startswith("/") else Path(target_rel)
+                try:
+                    expected.relative_to(fdd_root / "workflows")
+                except ValueError:
+                    continue
+                if expected.exists():
+                    continue
+                workflows_result["deleted"].append(p_str)
+                if not args.dry_run:
+                    try:
+                        pth.unlink()
+                    except (PermissionError, FileNotFoundError, OSError):
+                        pass  # Expected: cleanup failure is non-fatal
+
+    # --- SKILLS SECTION ---
+    skills_result: Dict[str, Any] = {"created": [], "updated": [], "outputs": [], "errors": []}
+
+    if isinstance(skills_cfg, dict) and skills_cfg:
+        outputs = skills_cfg.get("outputs")
+        skill_name = skills_cfg.get("skill_name", "fdd")
+
+        if outputs is not None:
+            if not isinstance(outputs, list) or not all(isinstance(x, dict) for x in outputs):
+                skills_result["errors"].append("outputs must be an array of objects")
+            else:
+                target_skill_abs = (project_root / "skills" / "fdd" / "SKILL.md").resolve()
+
+                # Parse frontmatter from source SKILL.md
+                skill_fm = _parse_frontmatter(target_skill_abs)
+                skill_source_name = skill_fm.get("name", skill_name)
+                skill_source_description = skill_fm.get("description", "Proxy to FDD core skill instructions")
+
+                # Get custom content from config (optional user-defined section)
+                custom_content = skills_cfg.get("custom_content", "")
+
+                for idx, out_cfg in enumerate(outputs):
+                    rel_path = out_cfg.get("path")
+                    template = out_cfg.get("template")
+                    if not isinstance(rel_path, str) or not rel_path.strip():
+                        skills_result["errors"].append(f"outputs[{idx}] missing path")
+                        continue
+                    if not isinstance(template, list) or not all(isinstance(x, str) for x in template):
+                        skills_result["errors"].append(f"outputs[{idx}] missing or invalid template")
+                        continue
+
+                    out_path = (project_root / rel_path).resolve()
+                    out_dir = out_path.parent
+                    target_skill_rel = _safe_relpath_from_dir(target_skill_abs, out_dir)
+                    content = _render_template(
+                        template,
+                        {
+                            "agent": agent,
+                            "skill_name": str(skill_name),
+                            "target_skill_path": target_skill_rel,
+                            "name": skill_source_name,
+                            "description": skill_source_description,
+                            "custom_content": custom_content,
+                        },
+                    )
+
+                    if not out_path.exists():
+                        skills_result["created"].append(out_path.as_posix())
+                        if not args.dry_run:
+                            out_path.parent.mkdir(parents=True, exist_ok=True)
+                            out_path.write_text(content, encoding="utf-8")
+                        skills_result["outputs"].append({"path": _safe_relpath(out_path, project_root), "action": "created"})
+                    else:
+                        try:
+                            old = out_path.read_text(encoding="utf-8")
+                        except Exception:
+                            old = ""
+                        if old != content:
+                            skills_result["updated"].append(out_path.as_posix())
+                            if not args.dry_run:
+                                out_path.write_text(content, encoding="utf-8")
+                            skills_result["outputs"].append({"path": _safe_relpath(out_path, project_root), "action": "updated"})
+                        else:
+                            skills_result["outputs"].append({"path": _safe_relpath(out_path, project_root), "action": "unchanged"})
+
+    # --- OUTPUT ---
+    all_errors = workflows_result.get("errors", []) + skills_result.get("errors", [])
+    status = "PASS" if not all_errors else "PARTIAL"
 
     print(json.dumps({
-        "status": "PASS",
+        "status": status,
         "agent": agent,
         "project_root": project_root.as_posix(),
         "fdd_root": fdd_root.as_posix(),
         "config_path": cfg_path.as_posix(),
-        "workflow_dir": _safe_relpath(workflow_dir, project_root),
         "dry_run": bool(args.dry_run),
-        "counts": {
-            "workflows": len(fdd_workflow_names),
-            "created": len(created),
-            "updated": len(updated),
-            "renamed": len(renamed),
-            "rename_conflicts": len(rename_conflicts),
-            "deleted": len(deleted),
-        },
-        "created": created,
-        "updated": updated,
-        "renamed": renamed,
-        "rename_conflicts": rename_conflicts,
-        "deleted": deleted,
-    }, indent=2, ensure_ascii=False))
-    return 0
-
-
-def _cmd_self_check(argv: List[str]) -> int:
-    p = argparse.ArgumentParser(prog="self-check", description="Validate registered template examples against templates")
-    p.add_argument("--root", default=".", help="Project root to search from (default: current directory)")
-    p.add_argument("--verbose", action="store_true", help="Include full per-template error/warning lists")
-    args = p.parse_args(argv)
-
-    start_path = Path(args.root).resolve()
-    project_root = find_project_root(start_path)
-    if project_root is None:
-        print(json.dumps({"status": "ERROR", "message": "Project root not found"}, indent=2, ensure_ascii=False))
-        return 1
-
-    adapter_dir = find_adapter_directory(project_root)
-    if adapter_dir is None:
-        print(json.dumps({"status": "ERROR", "message": "Adapter directory not found"}, indent=2, ensure_ascii=False))
-        return 1
-
-    reg, reg_err = load_artifacts_registry(adapter_dir)
-    if reg_err or reg is None:
-        print(json.dumps({"status": "ERROR", "message": reg_err or "Missing artifacts registry"}, indent=2, ensure_ascii=False))
-        return 1
-
-    templates = reg.get("templates") if isinstance(reg, dict) else None
-    if not isinstance(templates, dict):
-        print(json.dumps({"status": "ERROR", "message": "Registry templates catalog missing or invalid"}, indent=2, ensure_ascii=False))
-        return 1
-
-    def _resolve_registry_path(p_raw: object) -> Optional[Path]:
-        if not isinstance(p_raw, str) or not p_raw.strip():
-            return None
-        s = p_raw.strip()
-        if s.startswith("./"):
-            s = s[2:]
-        if s.startswith("/"):
-            return Path(s).resolve()
-        return (project_root / s).resolve()
-
-    try:
-        from .utils.template import validate_artifact_file_against_template
-    except Exception:
-        validate_artifact_file_against_template = None  # type: ignore[assignment]
-
-    if validate_artifact_file_against_template is None:
-        print(json.dumps({"status": "ERROR", "message": "Template validation module not available"}, indent=2, ensure_ascii=False))
-        return 1
-
-    results: List[Dict[str, object]] = []
-    overall_status = "PASS"
-
-    for kind, tmpl_list in templates.items():
-        if not isinstance(tmpl_list, list):
-            continue
-        for t in tmpl_list:
-            if not isinstance(t, dict):
-                continue
-            level = str(t.get("validation_level") or "STRICT").strip().upper()
-            if level != "STRICT":
-                continue
-
-            template_path = _resolve_registry_path(t.get("template_path"))
-            example_path = _resolve_registry_path(t.get("example_path"))
-
-            item: Dict[str, object] = {
-                "kind": str(kind),
-                "id": t.get("id"),
-                "validation_level": level,
-                "template_path": str(template_path) if template_path is not None else None,
-                "example_path": str(example_path) if example_path is not None else None,
-                "status": "PASS",
-            }
-
-            errs: List[Dict[str, object]] = []
-            warns: List[Dict[str, object]] = []
-
-            if template_path is None or not template_path.exists():
-                errs.append({"type": "file", "message": "Template path not found", "path": str(template_path) if template_path is not None else ""})
-            if example_path is None or not example_path.exists():
-                errs.append({"type": "file", "message": "Example path not found", "path": str(example_path) if example_path is not None else ""})
-
-            if not errs and template_path is not None and example_path is not None:
-                rep = validate_artifact_file_against_template(
-                    artifact_path=example_path,
-                    template_path=template_path,
-                    expected_kind=str(kind),
-                )
-                errs.extend(list(rep.get("errors", []) or []))
-                warns.extend(list(rep.get("warnings", []) or []))
-
-            if errs:
-                item["status"] = "FAIL"
-                item["error_count"] = len(errs)
-                overall_status = "FAIL"
-            if warns:
-                item["warning_count"] = len(warns)
-            if bool(args.verbose):
-                item["errors"] = errs
-                item["warnings"] = warns
-
-            results.append(item)
-
-    out = {
-        "status": overall_status,
-        "project_root": project_root.as_posix(),
-        "adapter_dir": adapter_dir.as_posix(),
-        "count": len(results),
-        "results": results,
-    }
-    print(json.dumps(out, indent=2, ensure_ascii=False))
-    return 0 if overall_status == "PASS" else 2
-
-
-def _cmd_agent_skills(argv: List[str]) -> int:
-    p = argparse.ArgumentParser(prog="agent-skills", description="Generate/update agent-specific skill outputs")
-    p.add_argument("--agent", required=True, help="Agent/IDE key (e.g., windsurf)")
-    p.add_argument("--root", default=".", help="Project root directory (default: current directory)")
-    p.add_argument("--config", default=None, help="Path to agent skills config JSON (default: project root)")
-    p.add_argument("--dry-run", action="store_true", help="Compute changes without writing files")
-    args = p.parse_args(argv)
-
-    agent = str(args.agent).strip()
-    if not agent:
-        raise SystemExit("--agent must be non-empty")
-
-    start_path = Path(args.root).resolve()
-    project_root = find_project_root(start_path)
-    if project_root is None:
-        print(json.dumps({
-            "status": "NOT_FOUND",
-            "message": "No project root found (no .git or .fdd-config.json)",
-            "searched_from": start_path.as_posix(),
-        }, indent=2, ensure_ascii=False))
-        return 1
-
-    cfg_path = Path(args.config).resolve() if args.config else (project_root / "fdd-agent-skills.json")
-    cfg = _load_json_file(cfg_path)
-
-    recognized = agent in {"windsurf", "cursor", "claude", "copilot"}
-    if cfg is None:
-        cfg = _windsurf_default_agent_skills_config() if recognized else {"version": 1, "agents": {agent: {}}}
-        if not args.dry_run:
-            _write_json_file(cfg_path, cfg)
-
-    agents_cfg = cfg.get("agents") if isinstance(cfg, dict) else None
-    if isinstance(cfg, dict) and isinstance(agents_cfg, dict) and agent not in agents_cfg:
-        if recognized:
-            defaults = _windsurf_default_agent_skills_config()
-            default_agents = defaults.get("agents") if isinstance(defaults, dict) else None
-            if isinstance(default_agents, dict) and isinstance(default_agents.get(agent), dict):
-                agents_cfg[agent] = default_agents[agent]
-        else:
-            agents_cfg[agent] = {}
-        cfg["agents"] = agents_cfg
-        if not args.dry_run:
-            _write_json_file(cfg_path, cfg)
-
-    if isinstance(cfg, dict) and isinstance(agents_cfg, dict) and agent in agents_cfg and not recognized:
-        agent_cfg_candidate = agents_cfg.get(agent)
-        if not isinstance(agent_cfg_candidate, dict) or not agent_cfg_candidate:
-            print(json.dumps({
-                "status": "CONFIG_INCOMPLETE",
-                "message": "Unknown agent config must be filled in",
-                "config_path": cfg_path.as_posix(),
-                "agent": agent,
-            }, indent=2, ensure_ascii=False))
-            return 2
-
-    if not isinstance(agents_cfg, dict) or agent not in agents_cfg or not isinstance(agents_cfg.get(agent), dict):
-        print(json.dumps({
-            "status": "CONFIG_ERROR",
-            "message": "Agent config missing or invalid",
-            "config_path": cfg_path.as_posix(),
-            "agent": agent,
-        }, indent=2, ensure_ascii=False))
-        return 1
-
-    agent_cfg: dict = agents_cfg[agent]
-    outputs = agent_cfg.get("outputs")
-    if outputs is not None:
-        if not isinstance(outputs, list) or not all(isinstance(x, dict) for x in outputs):
-            print(json.dumps({
-                "status": "CONFIG_INCOMPLETE",
-                "message": "Agent config outputs must be an array of objects",
-                "config_path": cfg_path.as_posix(),
-                "agent": agent,
-            }, indent=2, ensure_ascii=False))
-            return 2
-
-        created: List[str] = []
-        updated: List[str] = []
-        out_items: List[Dict[str, str]] = []
-
-        target_skill_abs = (project_root / "skills" / "fdd" / "SKILL.md").resolve()
-        skill_name = agent_cfg.get("skill_name")
-        if not isinstance(skill_name, str) or not skill_name.strip():
-            skill_name = "fdd"
-
-        for idx, out_cfg in enumerate(outputs):
-            rel_path = out_cfg.get("path")
-            template = out_cfg.get("template")
-            if not isinstance(rel_path, str) or not rel_path.strip():
-                print(json.dumps({
-                    "status": "CONFIG_INCOMPLETE",
-                    "message": f"outputs[{idx}] missing path",
-                    "config_path": cfg_path.as_posix(),
-                    "agent": agent,
-                }, indent=2, ensure_ascii=False))
-                return 2
-            if not isinstance(template, list) or not all(isinstance(x, str) for x in template):
-                print(json.dumps({
-                    "status": "CONFIG_INCOMPLETE",
-                    "message": f"outputs[{idx}] missing template (must be array of strings)",
-                    "config_path": cfg_path.as_posix(),
-                    "agent": agent,
-                }, indent=2, ensure_ascii=False))
-                return 2
-
-            out_path = (project_root / rel_path).resolve()
-            out_dir = out_path.parent
-            target_skill_rel = _safe_relpath_from_dir(target_skill_abs, out_dir)
-            content = _render_template(
-                template,
-                {
-                    "agent": agent,
-                    "skill_name": str(skill_name),
-                    "target_skill_path": target_skill_rel,
-                },
-            )
-
-            if not out_path.exists():
-                created.append(out_path.as_posix())
-                if not args.dry_run:
-                    out_path.parent.mkdir(parents=True, exist_ok=True)
-                    out_path.write_text(content, encoding="utf-8")
-                out_items.append({"path": _safe_relpath(out_path, project_root), "action": "created"})
-            else:
-                try:
-                    old = out_path.read_text(encoding="utf-8")
-                except Exception:
-                    old = ""
-                if old != content:
-                    updated.append(out_path.as_posix())
-                    if not args.dry_run:
-                        out_path.write_text(content, encoding="utf-8")
-                    out_items.append({"path": _safe_relpath(out_path, project_root), "action": "updated"})
-                else:
-                    out_items.append({"path": _safe_relpath(out_path, project_root), "action": "unchanged"})
-
-        print(json.dumps({
-            "status": "PASS",
-            "agent": agent,
-            "project_root": project_root.as_posix(),
-            "config_path": cfg_path.as_posix(),
-            "dry_run": bool(args.dry_run),
+        "workflows": {
+            "created": workflows_result["created"],
+            "updated": workflows_result["updated"],
+            "renamed": workflows_result["renamed"],
+            "deleted": workflows_result["deleted"],
             "counts": {
-                "outputs": len(outputs),
-                "created": len(created),
-                "updated": len(updated),
+                "created": len(workflows_result["created"]),
+                "updated": len(workflows_result["updated"]),
+                "renamed": len(workflows_result["renamed"]),
+                "deleted": len(workflows_result["deleted"]),
             },
-            "outputs": out_items,
-            "created": created,
-            "updated": updated,
-        }, indent=2, ensure_ascii=False))
-        return 0
-
-    # Legacy (windsurf) schema: a single skill folder with an entry file.
-    skills_dir_rel = agent_cfg.get("skills_dir")
-    skill_name = agent_cfg.get("skill_name")
-    entry_filename = agent_cfg.get("entry_filename", "SKILL.md")
-    template = agent_cfg.get("template")
-
-    if not isinstance(skills_dir_rel, str) or not skills_dir_rel.strip():
-        print(json.dumps({
-            "status": "CONFIG_INCOMPLETE",
-            "message": "Agent config missing skills_dir",
-            "config_path": cfg_path.as_posix(),
-            "agent": agent,
-        }, indent=2, ensure_ascii=False))
-        return 2
-    if not isinstance(skill_name, str) or not skill_name.strip():
-        print(json.dumps({
-            "status": "CONFIG_INCOMPLETE",
-            "message": "Agent config missing skill_name",
-            "config_path": cfg_path.as_posix(),
-            "agent": agent,
-        }, indent=2, ensure_ascii=False))
-        return 2
-    if not isinstance(entry_filename, str) or not entry_filename.strip():
-        entry_filename = "SKILL.md"
-    if not isinstance(template, list) or not all(isinstance(x, str) for x in template):
-        print(json.dumps({
-            "status": "CONFIG_INCOMPLETE",
-            "message": "Agent config missing template (must be array of strings)",
-            "config_path": cfg_path.as_posix(),
-            "agent": agent,
-        }, indent=2, ensure_ascii=False))
-        return 2
-
-    skills_dir = (project_root / skills_dir_rel).resolve()
-    skill_dir = (skills_dir / skill_name).resolve()
-    entry_path = (skill_dir / entry_filename).resolve()
-
-    target_skill_abs = (project_root / "skills" / "fdd" / "SKILL.md").resolve()
-    target_skill_rel = _safe_relpath_from_dir(target_skill_abs, skill_dir)
-
-    content = _render_template(
-        template,
-        {
-            "skill_name": skill_name,
-            "target_skill_path": target_skill_rel,
         },
-    )
-
-    created: List[str] = []
-    updated: List[str] = []
-
-    if not entry_path.exists():
-        created.append(entry_path.as_posix())
-        if not args.dry_run:
-            entry_path.parent.mkdir(parents=True, exist_ok=True)
-            entry_path.write_text(content, encoding="utf-8")
-    else:
-        try:
-            old = entry_path.read_text(encoding="utf-8")
-        except Exception:
-            old = ""
-        if old != content:
-            updated.append(entry_path.as_posix())
-            if not args.dry_run:
-                entry_path.write_text(content, encoding="utf-8")
-
-    print(json.dumps({
-        "status": "PASS",
-        "agent": agent,
-        "project_root": project_root.as_posix(),
-        "config_path": cfg_path.as_posix(),
-        "dry_run": bool(args.dry_run),
-        "skill": {
-            "name": skill_name,
-            "dir": _safe_relpath(skill_dir, project_root),
-            "entry": _safe_relpath(entry_path, project_root),
+        "skills": {
+            "created": skills_result["created"],
+            "updated": skills_result["updated"],
+            "outputs": skills_result["outputs"],
+            "counts": {
+                "created": len(skills_result["created"]),
+                "updated": len(skills_result["updated"]),
+            },
         },
-        "counts": {
-            "created": len(created),
-            "updated": len(updated),
-        },
-        "created": created,
-        "updated": updated,
+        "errors": all_errors if all_errors else None,
     }, indent=2, ensure_ascii=False))
-    return 0
+    return 0 if not all_errors else 1
 
 
 def _default_project_config(fdd_core_path: str, fdd_adapter_path: str) -> dict:
@@ -938,9 +810,9 @@ def _cmd_init(argv: List[str]) -> int:
 
     project_name = str(args.project_name).strip() if args.project_name else project_root.name
 
-    workflow_files = _list_workflow_files(fdd_root)
-    workflow_list = ", ".join(workflow_files)
-    artifacts_when = f"ALWAYS open and follow `artifacts.json` WHEN executing workflows: {workflow_list}" if workflow_list else "ALWAYS open and follow `artifacts.json` WHEN executing workflows"
+    # Use rules-based WHEN clause format (not workflow-based)
+    rules_id = "fdd-sdlc"
+    artifacts_when = f"ALWAYS open and follow `artifacts.json` WHEN FDD follows rules `{rules_id}` for artifact kinds: PRD, DESIGN, FEATURES, ADR, FEATURE OR codebase"
     schema_rel = _safe_relpath_from_dir(fdd_root / "schemas" / "artifacts.schema.json", adapter_dir)
     registry_spec_rel = _safe_relpath_from_dir(fdd_root / "requirements" / "artifacts-registry.md", adapter_dir)
     desired_agents = "\n".join([
@@ -1074,6 +946,7 @@ def _cmd_validate(argv: List[str]) -> int:
     and task statuses.
     """
     from .utils.template import cross_validate_artifacts
+    from .utils.context import get_context
 
     p = argparse.ArgumentParser(prog="validate", description="Validate FDD artifacts using template-based parsing")
     p.add_argument("--artifact", default=None, help="Path to specific FDD artifact (if omitted, validates all registered FDD artifacts)")
@@ -1081,20 +954,16 @@ def _cmd_validate(argv: List[str]) -> int:
     p.add_argument("--output", default=None, help="Write report to file instead of stdout")
     args = p.parse_args(argv)
 
-    # Find adapter and load registry
-    adapter_dir = find_adapter_directory(Path.cwd())
-    if not adapter_dir:
+    # Use pre-loaded context (templates already loaded on startup)
+    ctx = get_context()
+    if not ctx:
         print(json.dumps({"status": "ERROR", "message": "No adapter found. Run 'init' first."}, indent=None, ensure_ascii=False))
         return 1
 
-    registry, reg_err = load_artifacts_registry(adapter_dir)
-    if not registry or reg_err:
-        print(json.dumps({"status": "ERROR", "message": reg_err or "Could not load artifacts.json"}, indent=None, ensure_ascii=False))
-        return 1
-
-    from .utils.artifacts_meta import ArtifactsMeta
-    meta = ArtifactsMeta.from_dict(registry)
-    project_root = (adapter_dir / meta.project_root).resolve()
+    meta = ctx.meta
+    project_root = ctx.project_root
+    registered_systems = ctx.registered_systems
+    known_kinds = ctx.get_known_id_kinds()
 
     # Collect artifacts to validate: (artifact_path, template_path, artifact_type, traceability)
     artifacts_to_validate: List[Tuple[Path, Path, str, str]] = []
@@ -1143,16 +1012,20 @@ def _cmd_validate(argv: List[str]) -> int:
     parsed_artifacts: List[TemplateArtifact] = []
 
     for artifact_path, template_path, artifact_type, traceability in artifacts_to_validate:
-        tmpl, tmpl_errs = Template.from_path(template_path)
-        if tmpl_errs or tmpl is None:
-            all_errors.append({
-                "type": "template",
-                "message": f"Failed to load template for {artifact_type}",
-                "artifact": str(artifact_path),
-                "template": str(template_path),
-                "errors": tmpl_errs,
-            })
-            continue
+        # Use pre-loaded template from context if available
+        tmpl = ctx.get_template_for_kind(artifact_type)
+        if tmpl is None:
+            # Fallback: load from disk
+            tmpl, tmpl_errs = Template.from_path(template_path)
+            if tmpl_errs or tmpl is None:
+                all_errors.append({
+                    "type": "template",
+                    "message": f"Failed to load template for {artifact_type}",
+                    "artifact": str(artifact_path),
+                    "template": str(template_path),
+                    "errors": tmpl_errs,
+                })
+                continue
 
         artifact: TemplateArtifact = tmpl.parse(artifact_path)
         parsed_artifacts.append(artifact)
@@ -1181,13 +1054,43 @@ def _cmd_validate(argv: List[str]) -> int:
         all_errors.extend(errors)
         all_warnings.extend(warnings)
 
-    # Cross-reference validation across all artifacts
-    if len(parsed_artifacts) > 1:
-        cross_result = cross_validate_artifacts(parsed_artifacts)
+    # Cross-reference validation - load ALL FDD artifacts for context
+    # When validating a single artifact, we still need all artifacts to check references
+    all_artifacts_for_cross: List[TemplateArtifact] = list(parsed_artifacts)
+    validated_paths = {str(p) for p, _, _, _ in artifacts_to_validate}
+
+    # Load remaining artifacts that weren't validated (for cross-reference context)
+    for artifact_meta, system_node in meta.iter_all_artifacts():
+        pkg = meta.get_rule(system_node.rules)
+        if not pkg or not pkg.is_fdd_format():
+            continue
+        art_path = (project_root / artifact_meta.path).resolve()
+        if str(art_path) in validated_paths:
+            continue  # Already parsed
+        if not art_path.exists():
+            continue
+        tmpl = ctx.get_template_for_kind(artifact_meta.kind)
+        if tmpl is None:
+            continue
+        try:
+            art = tmpl.parse(art_path)
+            all_artifacts_for_cross.append(art)
+        except Exception:
+            pass  # Silently skip unparseable artifacts for cross-ref
+
+    if len(all_artifacts_for_cross) > 0:
+        cross_result = cross_validate_artifacts(all_artifacts_for_cross, registered_systems=registered_systems, known_kinds=known_kinds)
         cross_errors = cross_result.get("errors", [])
         cross_warnings = cross_result.get("warnings", [])
-        all_errors.extend(cross_errors)
-        all_warnings.extend(cross_warnings)
+        # Only include cross-ref errors for artifacts we're validating
+        for err in cross_errors:
+            err_path = err.get("path", "")
+            if err_path in validated_paths:
+                all_errors.append(err)
+        for warn in cross_warnings:
+            warn_path = warn.get("path", "")
+            if warn_path in validated_paths:
+                all_warnings.append(warn)
 
     # Build final report
     overall_status = "PASS" if not all_errors else "FAIL"
@@ -1251,69 +1154,61 @@ def _cmd_list_ids(argv: List[str]) -> int:
     p.add_argument("--include-code", action="store_true", help="Also scan code files for FDD marker references")
     args = p.parse_args(argv)
 
-    # Collect artifacts to scan: (artifact_path, template_path, artifact_type)
-    artifacts_to_scan: List[Tuple[Path, Path, str]] = []
+    # Collect artifacts to scan: (artifact_path, template, artifact_kind)
+    artifacts_to_scan: List[Tuple[Path, Template, str]] = []
+    ctx = None
 
     if args.artifact:
-        # Single artifact specified
+        # Single artifact specified - find context from artifact's location
         artifact_path = Path(args.artifact).resolve()
         if not artifact_path.exists():
             print(json.dumps({"status": "ERROR", "message": f"Artifact not found: {artifact_path}"}, indent=None, ensure_ascii=False))
             return 1
 
-        # Try to find template from adapter registry
-        adapter_dir = find_adapter_directory(artifact_path.parent)
-        if adapter_dir:
-            registry, reg_err = load_artifacts_registry(adapter_dir)
-            if registry and not reg_err:
-                from .utils.artifacts_meta import ArtifactsMeta
-                meta = ArtifactsMeta.from_dict(registry)
-                project_root = (adapter_dir / meta.project_root).resolve()
+        from .utils.context import FddContext
+        ctx = FddContext.load(artifact_path.parent)
+        if not ctx:
+            print(json.dumps({"status": "ERROR", "message": "No adapter found. Run 'init' first or specify --artifact."}, indent=None, ensure_ascii=False))
+            return 1
 
-                # Find artifact in registry
-                try:
-                    rel_path = artifact_path.relative_to(project_root).as_posix()
-                except ValueError:
-                    rel_path = None
+        project_root = ctx.project_root
+        meta = ctx.meta
 
-                if rel_path:
-                    result = meta.get_artifact_by_path(rel_path)
-                    if result:
-                        artifact_meta, system_node = result
-                        pkg = meta.get_rule(system_node.rules)
-                        if pkg and pkg.is_fdd_format():
-                            template_path_str = pkg.get_template_path(artifact_meta.kind)
-                            template_path = (project_root / template_path_str).resolve()
-                            artifacts_to_scan.append((artifact_path, template_path, artifact_meta.kind))
+        # Find artifact in registry
+        try:
+            rel_path = artifact_path.relative_to(project_root).as_posix()
+        except ValueError:
+            rel_path = None
+
+        if rel_path:
+            result = meta.get_artifact_by_path(rel_path)
+            if result:
+                artifact_meta, system_node = result
+                tmpl = ctx.get_template(system_node.rules, artifact_meta.kind)
+                if tmpl:
+                    artifacts_to_scan.append((artifact_path, tmpl, artifact_meta.kind))
 
         if not artifacts_to_scan:
             print(json.dumps({"status": "ERROR", "message": "Could not find template for artifact. Ensure artifact is registered in adapter."}, indent=None, ensure_ascii=False))
             return 1
     else:
-        # No artifact specified - scan all FDD-format artifacts from registry
-        adapter_dir = find_adapter_directory(Path.cwd())
-        if not adapter_dir:
+        # No artifact specified - use global context from cwd
+        from .utils.context import get_context
+        ctx = get_context()
+        if not ctx:
             print(json.dumps({"status": "ERROR", "message": "No adapter found. Run 'init' first or specify --artifact."}, indent=None, ensure_ascii=False))
             return 1
 
-        registry, reg_err = load_artifacts_registry(adapter_dir)
-        if not registry or reg_err:
-            print(json.dumps({"status": "ERROR", "message": reg_err or "Could not load artifacts.json from adapter."}, indent=None, ensure_ascii=False))
-            return 1
-
-        from .utils.artifacts_meta import ArtifactsMeta
-        meta = ArtifactsMeta.from_dict(registry)
-        project_root = (adapter_dir / meta.project_root).resolve()
+        meta = ctx.meta
+        project_root = ctx.project_root
 
         for artifact_meta, system_node in meta.iter_all_artifacts():
-            pkg = meta.get_rule(system_node.rules)
-            if not pkg or not pkg.is_fdd_format():
+            tmpl = ctx.get_template(system_node.rules, artifact_meta.kind)
+            if not tmpl:
                 continue
-            template_path_str = pkg.get_template_path(artifact_meta.kind)
             artifact_path = (project_root / artifact_meta.path).resolve()
-            template_path = (project_root / template_path_str).resolve()
-            if artifact_path.exists() and template_path.exists():
-                artifacts_to_scan.append((artifact_path, template_path, artifact_meta.kind))
+            if artifact_path.exists():
+                artifacts_to_scan.append((artifact_path, tmpl, artifact_meta.kind))
 
         if not artifacts_to_scan:
             print(json.dumps({"status": "ERROR", "message": "No FDD-format artifacts found in registry."}, indent=None, ensure_ascii=False))
@@ -1322,11 +1217,7 @@ def _cmd_list_ids(argv: List[str]) -> int:
     # Parse artifacts and collect IDs
     hits: List[Dict[str, object]] = []
 
-    for artifact_path, template_path, artifact_type in artifacts_to_scan:
-        tmpl, errs = Template.from_path(template_path)
-        if errs or tmpl is None:
-            continue
-
+    for artifact_path, tmpl, artifact_type in artifacts_to_scan:
         parsed: TemplateArtifact = tmpl.parse(artifact_path)
         parsed._extract_ids_and_refs()  # Populate id_definitions and id_references
 
@@ -1364,53 +1255,45 @@ def _cmd_list_ids(argv: List[str]) -> int:
 
     # Scan code files if requested
     code_files_scanned = 0
-    if args.include_code and not args.artifact:
-        # Find adapter and scan codebase entries
-        adapter_dir = find_adapter_directory(Path.cwd())
-        if adapter_dir:
-            registry, _ = load_artifacts_registry(adapter_dir)
-            if registry:
-                from .utils.artifacts_meta import ArtifactsMeta
-                meta = ArtifactsMeta.from_dict(registry)
-                project_root = (adapter_dir / meta.project_root).resolve()
+    if args.include_code and not args.artifact and ctx:
+        # Scan codebase entries from context
+        for cb_entry, system_node in ctx.meta.iter_all_codebase():
+            code_path = (ctx.project_root / cb_entry.path).resolve()
+            extensions = cb_entry.extensions or [".py"]
 
-                for cb_entry, system_node in meta.iter_all_codebase():
-                    code_path = (project_root / cb_entry.path).resolve()
-                    extensions = cb_entry.extensions or [".py"]
+            if not code_path.exists():
+                continue
 
-                    if not code_path.exists():
-                        continue
+            if code_path.is_file():
+                files = [code_path]
+            else:
+                files = []
+                for ext in extensions:
+                    files.extend(code_path.rglob(f"*{ext}"))
 
-                    if code_path.is_file():
-                        files = [code_path]
-                    else:
-                        files = []
-                        for ext in extensions:
-                            files.extend(code_path.rglob(f"*{ext}"))
+            for file_path in files:
+                cf, errs = CodeFile.from_path(file_path)
+                if errs or cf is None:
+                    continue
 
-                    for file_path in files:
-                        cf, errs = CodeFile.from_path(file_path)
-                        if errs or cf is None:
-                            continue
+                code_files_scanned += 1
 
-                        code_files_scanned += 1
-
-                        # Add code references
-                        for ref in cf.references:
-                            h: Dict[str, object] = {
-                                "id": ref.id,
-                                "kind": ref.kind or "code",
-                                "type": "code_reference",
-                                "artifact_type": "CODE",
-                                "line": ref.line,
-                                "artifact": str(file_path),
-                                "marker_type": ref.marker_type,
-                            }
-                            if ref.phase is not None:
-                                h["phase"] = ref.phase
-                            if ref.inst:
-                                h["inst"] = ref.inst
-                            hits.append(h)
+                # Add code references
+                for ref in cf.references:
+                    h: Dict[str, object] = {
+                        "id": ref.id,
+                        "kind": ref.kind or "code",
+                        "type": "code_reference",
+                        "artifact_type": "CODE",
+                        "line": ref.line,
+                        "artifact": str(file_path),
+                        "marker_type": ref.marker_type,
+                    }
+                    if ref.phase is not None:
+                        h["phase"] = ref.phase
+                    if ref.inst:
+                        h["inst"] = ref.inst
+                    hits.append(h)
 
     # Apply filters
     if args.kind:
@@ -1614,21 +1497,15 @@ def _cmd_get_content(argv: List[str]) -> int:
         print(json.dumps({"status": "ERROR", "message": f"Artifact not found: {artifact_path}"}, indent=None, ensure_ascii=False))
         return 1
 
-    from .utils.artifacts_meta import load_artifacts_meta
-
-    # Find adapter and load artifacts meta
-    adapter_dir = find_adapter_directory(artifact_path.parent)
-    if adapter_dir is None:
+    # Load FddContext from artifact's location
+    from .utils.context import FddContext
+    ctx = FddContext.load(artifact_path.parent)
+    if not ctx:
         print(json.dumps({"status": "ERROR", "message": "No adapter found"}, indent=None, ensure_ascii=False))
         return 1
 
-    meta, err = load_artifacts_meta(adapter_dir)
-    if err or meta is None:
-        print(json.dumps({"status": "ERROR", "message": err or "Failed to load artifacts meta"}, indent=None, ensure_ascii=False))
-        return 1
-
-    # Get project root from meta
-    project_root = (adapter_dir / meta.project_root).resolve()
+    meta = ctx.meta
+    project_root = ctx.project_root
 
     # Find artifact in registry to get its template
     try:
@@ -1643,26 +1520,31 @@ def _cmd_get_content(argv: List[str]) -> int:
         return 1
 
     artifact_meta, system = artifact_entry
-    template_path_str = meta.get_template_for_artifact(artifact_meta, system)
-    if template_path_str is None:
+    tmpl = ctx.get_template(system.rules, artifact_meta.kind)
+    if tmpl is None:
         print(json.dumps({"status": "ERROR", "message": f"No template found for artifact type: {artifact_meta.type}"}, indent=None, ensure_ascii=False))
         return 1
 
-    # Load template and parse artifact
-    template_path = meta.resolve_template_path(template_path_str, adapter_dir)
-    tmpl, errs = Template.from_path(template_path)
-    if errs or tmpl is None:
-        print(json.dumps({"status": "ERROR", "message": f"Failed to load template: {errs}"}, indent=None, ensure_ascii=False))
-        return 1
-
+    # Parse artifact using pre-loaded template
     artifact = tmpl.parse(artifact_path)
-    content = artifact.get(args.id)
+    result = artifact.get_with_location(args.id)
 
-    if content is None:
+    if result is None:
         print(json.dumps({"status": "NOT_FOUND", "id": args.id}, indent=None, ensure_ascii=False))
         return 2
 
-    print(json.dumps({"status": "FOUND", "id": args.id, "text": content}, indent=None, ensure_ascii=False))
+    text, start_line, end_line = result
+    print(json.dumps({
+        "status": "FOUND",
+        "id": args.id,
+        "text": text,
+        "artifact": str(artifact_path),
+        "start_line": start_line,
+        "end_line": end_line,
+        "kind": artifact_meta.kind,
+        "system": system.name,
+        "traceability": artifact_meta.traceability,
+    }, indent=None, ensure_ascii=False))
     return 0
 
 
@@ -1678,29 +1560,25 @@ def _cmd_where_defined(argv: List[str]) -> int:
         print(json.dumps({"status": "ERROR", "message": "ID cannot be empty"}, indent=None, ensure_ascii=False))
         return 1
 
-    # Find adapter and load registry
-    adapter_dir = find_adapter_directory(Path.cwd())
-    if not adapter_dir:
-        print(json.dumps({"status": "ERROR", "message": "No adapter found. Run 'init' first."}, indent=None, ensure_ascii=False))
-        return 1
-
-    registry, reg_err = load_artifacts_registry(adapter_dir)
-    if not registry or reg_err:
-        print(json.dumps({"status": "ERROR", "message": reg_err or "Could not load artifacts.json"}, indent=None, ensure_ascii=False))
-        return 1
-
-    from .utils.artifacts_meta import ArtifactsMeta
-    meta = ArtifactsMeta.from_dict(registry)
-    project_root = (adapter_dir / meta.project_root).resolve()
-
-    # Collect artifacts to scan
-    artifacts_to_scan: List[Tuple[Path, Path, str]] = []
+    # Collect artifacts to scan: (artifact_path, template, artifact_kind)
+    artifacts_to_scan: List[Tuple[Path, Template, str]] = []
 
     if args.artifact:
+        # Load context from artifact's location
         artifact_path = Path(args.artifact).resolve()
         if not artifact_path.exists():
             print(json.dumps({"status": "ERROR", "message": f"Artifact not found: {artifact_path}"}, indent=None, ensure_ascii=False))
             return 1
+
+        from .utils.context import FddContext
+        ctx = FddContext.load(artifact_path.parent)
+        if not ctx:
+            print(json.dumps({"status": "ERROR", "message": "No adapter found. Run 'init' first."}, indent=None, ensure_ascii=False))
+            return 1
+
+        meta = ctx.meta
+        project_root = ctx.project_root
+
         try:
             rel_path = artifact_path.relative_to(project_root).as_posix()
         except ValueError:
@@ -1709,25 +1587,31 @@ def _cmd_where_defined(argv: List[str]) -> int:
             result = meta.get_artifact_by_path(rel_path)
             if result:
                 artifact_meta, system_node = result
-                pkg = meta.get_rule(system_node.rules)
-                if pkg and pkg.is_fdd_format():
-                    template_path_str = pkg.get_template_path(artifact_meta.kind)
-                    template_path = (project_root / template_path_str).resolve()
-                    artifacts_to_scan.append((artifact_path, template_path, artifact_meta.kind))
+                tmpl = ctx.get_template(system_node.rules, artifact_meta.kind)
+                if tmpl:
+                    artifacts_to_scan.append((artifact_path, tmpl, artifact_meta.kind))
         if not artifacts_to_scan:
             print(json.dumps({"status": "ERROR", "message": f"Artifact not in FDD registry: {args.artifact}"}, indent=None, ensure_ascii=False))
             return 1
     else:
+        # Use global context
+        from .utils.context import get_context
+        ctx = get_context()
+        if not ctx:
+            print(json.dumps({"status": "ERROR", "message": "No adapter found. Run 'init' first."}, indent=None, ensure_ascii=False))
+            return 1
+
+        meta = ctx.meta
+        project_root = ctx.project_root
+
         # Scan all FDD artifacts
         for artifact_meta, system_node in meta.iter_all_artifacts():
-            pkg = meta.get_rule(system_node.rules)
-            if not pkg or not pkg.is_fdd_format():
+            tmpl = ctx.get_template(system_node.rules, artifact_meta.kind)
+            if not tmpl:
                 continue
-            template_path_str = pkg.get_template_path(artifact_meta.kind)
             artifact_path = (project_root / artifact_meta.path).resolve()
-            template_path = (project_root / template_path_str).resolve()
-            if artifact_path.exists() and template_path.exists():
-                artifacts_to_scan.append((artifact_path, template_path, artifact_meta.kind))
+            if artifact_path.exists():
+                artifacts_to_scan.append((artifact_path, tmpl, artifact_meta.kind))
 
     if not artifacts_to_scan:
         print(json.dumps({"status": "ERROR", "message": "No FDD artifacts found in registry"}, indent=None, ensure_ascii=False))
@@ -1736,11 +1620,7 @@ def _cmd_where_defined(argv: List[str]) -> int:
     # Search for definitions
     definitions: List[Dict[str, object]] = []
 
-    for artifact_path, template_path, artifact_type in artifacts_to_scan:
-        tmpl, errs = Template.from_path(template_path)
-        if errs or tmpl is None:
-            continue
-
+    for artifact_path, tmpl, artifact_type in artifacts_to_scan:
         parsed: TemplateArtifact = tmpl.parse(artifact_path)
         parsed._extract_ids_and_refs()  # Populate id_definitions
 
@@ -1789,29 +1669,25 @@ def _cmd_where_used(argv: List[str]) -> int:
         print(json.dumps({"status": "ERROR", "message": "ID cannot be empty"}, indent=None, ensure_ascii=False))
         return 1
 
-    # Find adapter and load registry
-    adapter_dir = find_adapter_directory(Path.cwd())
-    if not adapter_dir:
-        print(json.dumps({"status": "ERROR", "message": "No adapter found. Run 'init' first."}, indent=None, ensure_ascii=False))
-        return 1
-
-    registry, reg_err = load_artifacts_registry(adapter_dir)
-    if not registry or reg_err:
-        print(json.dumps({"status": "ERROR", "message": reg_err or "Could not load artifacts.json"}, indent=None, ensure_ascii=False))
-        return 1
-
-    from .utils.artifacts_meta import ArtifactsMeta
-    meta = ArtifactsMeta.from_dict(registry)
-    project_root = (adapter_dir / meta.project_root).resolve()
-
-    # Collect artifacts to scan
-    artifacts_to_scan: List[Tuple[Path, Path, str]] = []
+    # Collect artifacts to scan: (artifact_path, template, artifact_kind)
+    artifacts_to_scan: List[Tuple[Path, Template, str]] = []
 
     if args.artifact:
+        # Load context from artifact's location
         artifact_path = Path(args.artifact).resolve()
         if not artifact_path.exists():
             print(json.dumps({"status": "ERROR", "message": f"Artifact not found: {artifact_path}"}, indent=None, ensure_ascii=False))
             return 1
+
+        from .utils.context import FddContext
+        ctx = FddContext.load(artifact_path.parent)
+        if not ctx:
+            print(json.dumps({"status": "ERROR", "message": "No adapter found. Run 'init' first."}, indent=None, ensure_ascii=False))
+            return 1
+
+        meta = ctx.meta
+        project_root = ctx.project_root
+
         try:
             rel_path = artifact_path.relative_to(project_root).as_posix()
         except ValueError:
@@ -1820,25 +1696,31 @@ def _cmd_where_used(argv: List[str]) -> int:
             result = meta.get_artifact_by_path(rel_path)
             if result:
                 artifact_meta, system_node = result
-                pkg = meta.get_rule(system_node.rules)
-                if pkg and pkg.is_fdd_format():
-                    template_path_str = pkg.get_template_path(artifact_meta.kind)
-                    template_path = (project_root / template_path_str).resolve()
-                    artifacts_to_scan.append((artifact_path, template_path, artifact_meta.kind))
+                tmpl = ctx.get_template(system_node.rules, artifact_meta.kind)
+                if tmpl:
+                    artifacts_to_scan.append((artifact_path, tmpl, artifact_meta.kind))
         if not artifacts_to_scan:
             print(json.dumps({"status": "ERROR", "message": f"Artifact not in FDD registry: {args.artifact}"}, indent=None, ensure_ascii=False))
             return 1
     else:
+        # Use global context
+        from .utils.context import get_context
+        ctx = get_context()
+        if not ctx:
+            print(json.dumps({"status": "ERROR", "message": "No adapter found. Run 'init' first."}, indent=None, ensure_ascii=False))
+            return 1
+
+        meta = ctx.meta
+        project_root = ctx.project_root
+
         # Scan all FDD artifacts
         for artifact_meta, system_node in meta.iter_all_artifacts():
-            pkg = meta.get_rule(system_node.rules)
-            if not pkg or not pkg.is_fdd_format():
+            tmpl = ctx.get_template(system_node.rules, artifact_meta.kind)
+            if not tmpl:
                 continue
-            template_path_str = pkg.get_template_path(artifact_meta.kind)
             artifact_path = (project_root / artifact_meta.path).resolve()
-            template_path = (project_root / template_path_str).resolve()
-            if artifact_path.exists() and template_path.exists():
-                artifacts_to_scan.append((artifact_path, template_path, artifact_meta.kind))
+            if artifact_path.exists():
+                artifacts_to_scan.append((artifact_path, tmpl, artifact_meta.kind))
 
     if not artifacts_to_scan:
         print(json.dumps({"status": "ERROR", "message": "No FDD artifacts found in registry"}, indent=None, ensure_ascii=False))
@@ -1847,11 +1729,7 @@ def _cmd_where_used(argv: List[str]) -> int:
     # Search for references
     references: List[Dict[str, object]] = []
 
-    for artifact_path, template_path, artifact_type in artifacts_to_scan:
-        tmpl, errs = Template.from_path(template_path)
-        if errs or tmpl is None:
-            continue
-
+    for artifact_path, tmpl, artifact_type in artifacts_to_scan:
         parsed: TemplateArtifact = tmpl.parse(artifact_path)
         parsed._extract_ids_and_refs()  # Populate id_definitions and id_references
 
@@ -2356,7 +2234,14 @@ def _cmd_adapter_info(argv: List[str]) -> int:
 
 def main(argv: Optional[List[str]] = None) -> int:
     argv_list = list(argv) if argv is not None else sys.argv[1:]
-    
+
+    # Load global FDD context on startup (templates, systems, etc.)
+    # Always reload context based on current working directory (no caching)
+    from .utils.context import FddContext, set_context
+    ctx = FddContext.load()
+    set_context(ctx)
+    # Context may be None if no adapter found - that's OK for some commands like init
+
     # Define all available commands
     validation_commands = ["validate", "validate-code", "validate-rules"]
     search_commands = [
@@ -2366,8 +2251,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         "where-defined", "where-used",
         "adapter-info",
         "self-check",
-        "agent-workflows",
-        "agent-skills",
+        "agents",
     ]
     all_commands = validation_commands + search_commands
 
@@ -2411,10 +2295,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         return _cmd_adapter_info(rest)
     elif cmd == "self-check":
         return _cmd_self_check(rest)
-    elif cmd == "agent-workflows":
-        return _cmd_agent_workflows(rest)
-    elif cmd == "agent-skills":
-        return _cmd_agent_skills(rest)
+    elif cmd == "agents":
+        return _cmd_agents(rest)
     else:
         print(json.dumps({
             "status": "ERROR",

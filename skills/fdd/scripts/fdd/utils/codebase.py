@@ -36,38 +36,144 @@ _BLOCK_END_RE = re.compile(
 # Generic FDD ID reference (backticked or in markers)
 _FDD_ID_RE = re.compile(r"fdd-[a-z0-9][a-z0-9-]+")
 
-# File extensions by language for comment detection
-_COMMENT_PREFIXES = {
-    ".py": "#",
-    ".pyi": "#",
-    ".rb": "#",
-    ".sh": "#",
-    ".bash": "#",
-    ".zsh": "#",
-    ".yaml": "#",
-    ".yml": "#",
-    ".toml": "#",
-    ".ts": "//",
-    ".tsx": "//",
-    ".js": "//",
-    ".jsx": "//",
-    ".mjs": "//",
-    ".go": "//",
-    ".rs": "//",
-    ".java": "//",
-    ".kt": "//",
-    ".kts": "//",
-    ".swift": "//",
-    ".c": "//",
-    ".cpp": "//",
-    ".cc": "//",
-    ".h": "//",
-    ".hpp": "//",
-    ".cs": "//",
-    ".scala": "//",
-    ".php": "//",
-    ".dart": "//",
+# Default single-line comment prefixes by file extension
+# Used as fallback when codebase entry doesn't specify singleLineComments
+DEFAULT_SINGLE_LINE_COMMENTS: Dict[str, List[str]] = {
+    ".py": ["#"],
+    ".pyi": ["#"],
+    ".rb": ["#"],
+    ".sh": ["#"],
+    ".bash": ["#"],
+    ".zsh": ["#"],
+    ".yaml": ["#"],
+    ".yml": ["#"],
+    ".toml": ["#"],
+    ".ts": ["//"],
+    ".tsx": ["//"],
+    ".js": ["//"],
+    ".jsx": ["//"],
+    ".mjs": ["//"],
+    ".go": ["//"],
+    ".rs": ["//"],
+    ".java": ["//"],
+    ".kt": ["//"],
+    ".kts": ["//"],
+    ".swift": ["//"],
+    ".c": ["//"],
+    ".cpp": ["//"],
+    ".cc": ["//"],
+    ".h": ["//"],
+    ".hpp": ["//"],
+    ".cs": ["//"],
+    ".scala": ["//"],
+    ".php": ["//"],
+    ".dart": ["//"],
+    ".sql": ["--"],
+    ".md": [],  # Markdown has no single-line comments
 }
+
+# Default multi-line comment delimiters by file extension
+# Used as fallback when codebase entry doesn't specify multiLineComments
+DEFAULT_MULTI_LINE_COMMENTS: Dict[str, List[Dict[str, str]]] = {
+    ".py": [{"start": '"""', "end": '"""'}, {"start": "'''", "end": "'''"}],
+    ".pyi": [{"start": '"""', "end": '"""'}],
+    ".ts": [{"start": "/*", "end": "*/"}],
+    ".tsx": [{"start": "/*", "end": "*/"}, {"start": "{/*", "end": "*/}"}],
+    ".js": [{"start": "/*", "end": "*/"}],
+    ".jsx": [{"start": "/*", "end": "*/"}, {"start": "{/*", "end": "*/}"}],
+    ".go": [{"start": "/*", "end": "*/"}],
+    ".rs": [{"start": "/*", "end": "*/"}],
+    ".java": [{"start": "/*", "end": "*/"}],
+    ".c": [{"start": "/*", "end": "*/"}],
+    ".cpp": [{"start": "/*", "end": "*/"}],
+    ".cs": [{"start": "/*", "end": "*/"}],
+    ".sql": [{"start": "/*", "end": "*/"}],
+    ".md": [{"start": "<!--", "end": "-->"}],
+}
+
+# Legacy alias for backwards compatibility
+_COMMENT_PREFIXES = {ext: prefixes[0] for ext, prefixes in DEFAULT_SINGLE_LINE_COMMENTS.items() if prefixes}
+
+
+@dataclass(frozen=True)
+class CommentConfig:
+    """Comment syntax configuration for a codebase entry.
+
+    Resolution order (first non-None wins):
+    1. Codebase entry config (artifacts.json)
+    2. Project config (.fdd-config.json codeScanning)
+    3. Extension-based defaults (built-in)
+    """
+    single_line: List[str]
+    multi_line: List[Dict[str, str]]
+
+    @classmethod
+    def from_codebase_entry(
+        cls,
+        entry: Dict[str, object],
+        extension: str,
+        project_config: Optional[Dict[str, object]] = None,
+    ) -> "CommentConfig":
+        """Create CommentConfig from a codebase entry dict.
+
+        Args:
+            entry: Codebase entry from artifacts.json
+            extension: File extension (e.g., ".py")
+            project_config: Optional codeScanning section from .fdd-config.json
+
+        Fallback order: entry -> project_config -> extension defaults
+        """
+        single = entry.get("singleLineComments")
+        multi = entry.get("multiLineComments")
+
+        # Fallback to project config
+        if project_config:
+            if single is None:
+                single = project_config.get("singleLineComments")
+            if multi is None:
+                multi = project_config.get("multiLineComments")
+
+        # Fallback to extension defaults
+        if single is None:
+            single = DEFAULT_SINGLE_LINE_COMMENTS.get(extension, ["#"])
+        if multi is None:
+            multi = DEFAULT_MULTI_LINE_COMMENTS.get(extension, [])
+
+        return cls(
+            single_line=list(single) if isinstance(single, list) else [],
+            multi_line=list(multi) if isinstance(multi, list) else [],
+        )
+
+    @classmethod
+    def for_extension(
+        cls,
+        extension: str,
+        project_config: Optional[Dict[str, object]] = None,
+    ) -> "CommentConfig":
+        """Create CommentConfig using defaults for the given extension.
+
+        Args:
+            extension: File extension (e.g., ".py")
+            project_config: Optional codeScanning section from .fdd-config.json
+
+        Fallback order: project_config -> extension defaults
+        """
+        single = None
+        multi = None
+
+        if project_config:
+            single = project_config.get("singleLineComments")
+            multi = project_config.get("multiLineComments")
+
+        if single is None:
+            single = DEFAULT_SINGLE_LINE_COMMENTS.get(extension, ["#"])
+        if multi is None:
+            multi = DEFAULT_MULTI_LINE_COMMENTS.get(extension, [])
+
+        return cls(
+            single_line=list(single) if isinstance(single, list) else [],
+            multi_line=list(multi) if isinstance(multi, list) else [],
+        )
 
 
 def error(kind: str, message: str, *, path: Path, line: int = 1, **extra) -> Dict[str, object]:
@@ -321,6 +427,7 @@ def scan_directory(
     directory: Path,
     extensions: Optional[List[str]] = None,
     recursive: bool = True,
+    comment_config: Optional[CommentConfig] = None,
 ) -> List[CodeFile]:
     """Scan a directory for code files with FDD markers.
 
@@ -328,12 +435,14 @@ def scan_directory(
         directory: Root directory to scan
         extensions: File extensions to include (e.g., [".py", ".ts"])
         recursive: Whether to scan subdirectories
+        comment_config: Optional comment syntax config from codebase entry.
+            Currently unused but available for future marker-in-comment validation.
 
     Returns:
         List of CodeFile objects (only files with FDD markers)
     """
     if extensions is None:
-        extensions = list(_COMMENT_PREFIXES.keys())
+        extensions = list(DEFAULT_SINGLE_LINE_COMMENTS.keys())
 
     results: List[CodeFile] = []
     pattern = "**/*" if recursive else "*"

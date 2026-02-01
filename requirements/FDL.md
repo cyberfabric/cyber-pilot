@@ -8,13 +8,41 @@ purpose: Define syntax and grammar for behavior description language
 
 # FDL - FDD Description Language
 
-## Prerequisite Checklist
+---
 
-- [ ] Agent has read and understood this requirement
-- [ ] Agent will follow the rules defined here
+## Table of Contents
+
+- [Agent Instructions](#agent-instructions)
+- [Overview](#overview)
+- [Core Rules](#core-rules)
+- [Phase + Implementation Status](#phase--implementation-status-mandatory)
+- [Basic Format](#basic-format)
+- [Control Flow Keywords](#control-flow-keywords)
+- [Example: Algorithm](#example-algorithm)
+- [Example: Actor Flow](#example-actor-flow)
+- [Validation Rules](#validation-rules)
+- [State Machines](#state-machines-section-d)
+- [Excluding Examples from Validation](#excluding-examples-from-validation)
+- [Error Handling](#error-handling)
+- [Consolidated Validation Checklist](#consolidated-validation-checklist)
+- [References](#references)
 
 ---
 
+## Agent Instructions
+
+**ALWAYS open and follow**: This file WHEN writing behavioral sections (algorithms, flows, state machines) in DESIGN artifacts
+
+**ALWAYS open and follow**: `overall-design-content.md` WHEN specifying behavioral sections in root DESIGN.md
+
+**ALWAYS open and follow**: `feature-design-content.md` WHEN specifying behavioral sections in feature DESIGN.md
+
+**Prerequisite**: Agent confirms understanding before proceeding:
+- [ ] Agent has read and understood this requirement
+- [ ] Agent will follow the rules defined here
+- [ ] Agent understands FDL is language-agnostic (no code syntax)
+
+---
 
 ## Overview
 
@@ -305,58 +333,143 @@ example_code();
 
 ---
 
-## Validation Criteria
+## Error Handling
 
-### Structure
+### Invalid FDL Syntax
 
-**Check**:
-- [ ] Uses numbered markdown lists (1, 2, 3...)
-- [ ] Proper nesting with indentation
-- [ ] Each step line includes `[ ]` or `[x]`
-- [ ] Each step line includes phase token `ph-{N}` (written as inline code)
-- [ ] No code blocks or function syntax
-- [ ] No type annotations
+**If FDL content contains prohibited syntax**:
+```
+⚠️ Invalid FDL syntax detected: {description}
+→ Location: {file}:{line}
+→ Found: {prohibited element}
+→ Fix: Replace with plain English description
+```
+**Action**: FAIL validation — FDL must be language-agnostic.
 
-### Keyword Usage
+### Missing Required Tokens
 
-**Check**:
-- [ ] Keywords are bold (**IF**, **FOR EACH**, **WHILE**, etc.)
-- [ ] Keywords used correctly (IF for conditions, FOR EACH for iterations)
-- [ ] FROM/TO/WHEN used for state transitions
-- [ ] TRY/CATCH used for error handling
-- [ ] RETURN used for algorithm outputs
+**If step line missing checkbox, phase token, or instruction ID**:
+```
+⚠️ Incomplete FDL step line: {line content}
+→ Location: {file}:{line}
+→ Missing: {checkbox | ph-{N} | inst-{id}}
+→ Fix: Add missing token(s) in format: N. [ ] - `ph-1` - description - `inst-id`
+```
+**Action**: FAIL validation — all tokens are mandatory.
 
-### Clarity
+### Duplicate Instruction IDs
 
-**Check**:
-- [ ] Plain English descriptions
-- [ ] No programming language syntax (no =>, &&, ||, etc.)
-- [ ] No function definitions (fn, function, async)
-- [ ] Language-agnostic (implementation-independent)
-- [ ] Clear and unambiguous steps
+**If same `inst-{id}` appears multiple times in scope**:
+```
+⚠️ Duplicate instruction ID: inst-{id}
+→ First occurrence: {file}:{line1}
+→ Duplicate: {file}:{line2}
+→ Fix: Rename one ID to be unique within scope
+```
+**Action**: FAIL validation — IDs must be unique within scope.
 
-### Completeness
+### Unbalanced FDD Markers in Code
 
-**Check**:
-- [ ] All flows have numbered steps
-- [ ] All algorithms have Input/Output defined
-- [ ] All state machines have States and Transitions defined
-- [ ] No step lines missing checkbox, phase token, or instruction ID token
-- [ ] No instruction tag appears in code without matching `fdd-begin`/`fdd-end` wrapping a non-empty code block
-- [ ] No placeholders or TODOs
-- [ ] All conditions and actions specified
+**If code has `fdd-begin` without matching `fdd-end`**:
+```
+⚠️ Unbalanced FDD marker: {marker}
+→ Location: {file}:{line}
+→ Found: fdd-begin without fdd-end (or vice versa)
+→ Fix: Add matching marker or remove orphan
+```
+**Action**: FAIL validation — markers must be paired.
+
+### Empty FDD Block in Code
+
+**If `fdd-begin`/`fdd-end` wraps no code**:
+```
+⚠️ Empty FDD block: {marker}
+→ Location: {file}:{line}
+→ Block contains no implementation code
+→ Fix: Add implementation OR remove markers if not implemented
+```
+**Action**: FAIL validation — markers must wrap non-empty code.
 
 ---
 
-## Validation Checklist
+## Consolidated Validation Checklist
 
-- [ ] Document follows required structure
-- [ ] All validation criteria pass
+**Use this single checklist for all FDL validation.**
+
+### Structure (S)
+
+| # | Check | Required | How to Verify |
+|---|-------|----------|---------------|
+| S.1 | Uses numbered markdown lists (1, 2, 3...) | YES | Regex: `^\d+\.` for step lines |
+| S.2 | Proper nesting with indentation | YES | Nested steps have consistent indent |
+| S.3 | Each step line includes `[ ]` or `[x]` | YES | Checkbox present after step number |
+| S.4 | Each step line includes phase token `ph-{N}` | YES | Regex: `ph-\d+` in backticks |
+| S.5 | Each step line includes instruction ID `inst-{id}` | YES | Regex: `inst-[a-z0-9-]+` in backticks |
+| S.6 | No code blocks or function syntax | YES | No `fn`, `function`, `async`, `def` |
+| S.7 | No type annotations | YES | No `: string`, `<T>`, `-> Type` |
+
+### Keyword Usage (K)
+
+| # | Check | Required | How to Verify |
+|---|-------|----------|---------------|
+| K.1 | Keywords are bold | YES | `**IF**`, `**FOR EACH**`, etc. |
+| K.2 | IF used for conditions | YES | `**IF** [condition]:` format |
+| K.3 | FOR EACH used for iterations | YES | `**FOR EACH** item in collection:` format |
+| K.4 | FROM/TO/WHEN used for state transitions | YES | State machine format |
+| K.5 | TRY/CATCH used for error handling | YES | Proper pairing |
+| K.6 | RETURN used for algorithm outputs | YES | `**RETURN** [value]` format |
+
+### Clarity (CL)
+
+| # | Check | Required | How to Verify |
+|---|-------|----------|---------------|
+| CL.1 | Plain English descriptions | YES | No code-like syntax |
+| CL.2 | No programming operators | YES | No `=>`, `&&`, `\|\|`, `==` |
+| CL.3 | No function definitions | YES | No `fn`, `function`, `async`, `def` |
+| CL.4 | Language-agnostic | YES | No language-specific constructs |
+| CL.5 | Clear and unambiguous steps | YES | Each step has single clear action |
+
+### Completeness (CO)
+
+| # | Check | Required | How to Verify |
+|---|-------|----------|---------------|
+| CO.1 | All flows have numbered steps | YES | Step numbers present |
+| CO.2 | All algorithms have Input/Output | YES | `Input:` and `Output:` lines present |
+| CO.3 | All state machines have States and Transitions | YES | `**States**:` and `**Transitions**:` present |
+| CO.4 | No missing tokens on step lines | YES | All 3 tokens present: checkbox, phase, inst-id |
+| CO.5 | Instruction IDs unique within scope | YES | No duplicates per flow/algorithm |
+| CO.6 | No placeholders or TODOs | YES | Search returns 0 matches |
+| CO.7 | All conditions and actions specified | YES | No empty IF/ELSE/FOR EACH bodies |
+
+### Code Traceability (CT)
+
+| # | Check | Required | How to Verify |
+|---|-------|----------|---------------|
+| CT.1 | Implemented instructions have code markers | CONDITIONAL | If `[x]`, marker exists in code |
+| CT.2 | Code markers use `fdd-begin`/`fdd-end` format | YES | Paired block markers |
+| CT.3 | FDD blocks wrap non-empty code | YES | Code exists between markers |
+| CT.4 | No orphan markers in code | YES | All begin/end balanced |
+
+### Final (F)
+
+| # | Check | Required | How to Verify |
+|---|-------|----------|---------------|
+| F.1 | All Structure checks pass | YES | S.1-S.7 verified |
+| F.2 | All Keyword Usage checks pass | YES | K.1-K.6 verified |
+| F.3 | All Clarity checks pass | YES | CL.1-CL.5 verified |
+| F.4 | All Completeness checks pass | YES | CO.1-CO.7 verified |
+| F.5 | All Code Traceability checks pass | CONDITIONAL | CT.1-CT.4 verified if code exists |
 
 ---
 
 ## References
 
-- ALWAYS open and follow `overall-design-content.md` WHEN specifying behavioral sections in root DESIGN.md
-- ALWAYS open and follow `feature-design-content.md` WHEN specifying behavioral sections in feature DESIGN.md
-- ALWAYS open and follow `{adapter-directory}/AGENTS.md` WHEN overriding the behavior description language
+**This file is referenced by**:
+- DESIGN artifacts (behavioral sections)
+- FEATURE artifacts (algorithms, flows)
+- Code files (via FDD markers)
+
+**References**:
+- `overall-design-content.md` — Root DESIGN behavioral sections
+- `feature-design-content.md` — Feature DESIGN behavioral sections
+- `{adapter-directory}/AGENTS.md` — Project-specific FDL overrides (if any)

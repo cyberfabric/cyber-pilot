@@ -1,209 +1,199 @@
 # API Contracts
 
-**Version**: 1.0  
-**Last Updated**: 2025-01-17  
-**Purpose**: Define API contract format and location for FDD skill
+**Version**: 2.0
+**Last Updated**: 2025-02-01
+**Purpose**: Define CLI command contracts for FDD skill
 
 ---
 
 ## Overview
 
-FDD skill uses **CLISPEC** format for CLI command documentation and validation.
+FDD skill provides a CLI tool (`fdd.py`) for artifact management, validation, and traceability.
 
-**Philosophy**: 
-- Human and machine-readable format
-- Structured for AI agent consumption
-- Complete command specification with examples
+**Authoritative source**: `skills/fdd/SKILL.md` - Complete command documentation
+
+**Philosophy**:
+- JSON output for machine consumption
+- Human-readable help via `--help`
+- Exit codes for automation
 - Integration with FDD workflows
-
----
-
-## Technology
-
-**Format**: CLISPEC  
-**Specification**: `../../CLISPEC.md`  
-**Version**: 1.0
 
 ---
 
 ## Contract Location
 
-**Primary contract**: `skills/fdd/fdd.clispec`
+**Primary documentation**: `skills/fdd/SKILL.md`
 
 **Structure**:
 ```
 skills/fdd/
-├── fdd.clispec          # CLI command specification
-├── SKILL.md             # Skill documentation
-└── scripts/
-    └── fdd.py           # Implementation
-```
-
----
-
-## Command Specification Format
-
-### CLISPEC Structure
-
-Each command follows this format:
-
-```
-COMMAND <command-name>
-SYNOPSIS: python3 scripts/fdd.py <command> [options]
-DESCRIPTION: <brief description>
-WORKFLOW: <workflow-reference> (optional)
-
-ARGUMENTS:
-  <arg-name>  <type>  [required|optional]  <description>
-
-OPTIONS:
-  --long-name  <type>  [default: value]  <description>
-
-EXIT CODES:
-  <code>  <description>
-
-EXAMPLE:
-  $ <example-usage>
-
-RELATED:
-  - @CLI.other-command
-  - @Workflow.workflow-name
----
+├── SKILL.md             # Command documentation (authoritative)
+├── scripts/
+│   └── fdd.py           # CLI entrypoint
+│   └── fdd/             # Implementation
+└── README.md            # Overview
 ```
 
 ---
 
 ## Available Commands
 
-**Validation**:
-- `validate` - Validate FDD artifacts or perform traceability scan
+### Validation Commands
 
-**Search**:
-- `list-sections` - List sections and headings
-- `list-ids` - List FDD IDs with filtering
-- `list-items` - List structured items by type
-- `read-section` - Read specific section content
-- `get-item` - Get complete item details
-- `find-id` - Find ID with context
-- `search` - Full-text search
+| Command | Description | Required Args |
+|---------|-------------|---------------|
+| `validate` | Validate FDD artifacts against templates | None (validates all) or `--artifact <path>` |
+| `validate-code` | Validate traceability markers in code | None or `<path>` |
+| `validate-rules` | Validate rules configuration and templates | None or `--rule <id>` |
 
-**Discovery**:
-- `adapter-info` - Discover FDD adapter configuration
+### Search Commands
 
-**Traceability**:
-- `scan-ids` - Scan repository for all IDs
-- `where-defined` - Find normative definition location
-- `where-used` - Find all usage locations
+| Command | Description | Required Args |
+|---------|-------------|---------------|
+| `list-ids` | List FDD IDs from artifacts | None (all) or `--artifact <path>` |
+| `list-id-kinds` | List ID kinds that exist | None or `--artifact <path>` |
+| `get-content` | Get content block for specific ID | `--id <id>` + (`--artifact` or `--code`) |
+| `where-defined` | Find where ID is defined | `--id <id>` |
+| `where-used` | Find all references to ID | `--id <id>` |
 
----
+### Adapter & Setup Commands
 
-## Type System
-
-**Supported types** (from CLISPEC):
-- `<string>` - Any text value
-- `<number>` - Numeric value
-- `<boolean>` - True/false flag
-- `<path>` - File system path
+| Command | Description | Required Args |
+|---------|-------------|---------------|
+| `adapter-info` | Discover FDD adapter configuration | None |
+| `init` | Initialize FDD config and adapter | None |
+| `agents` | Generate agent-specific workflow proxies | `--agent <name>` |
+| `self-check` | Validate examples against templates | None or `--rule <id>` |
 
 ---
 
 ## Exit Code Semantics
 
 **Standard exit codes**:
-- `0` - Success
-- `1` - File system error or resource not found
-- `2` - Validation failure or not found
-- `3` - Ambiguous result (multiple definitions)
+| Code | Meaning |
+|------|---------|
+| `0` | Success |
+| `1` | File system error or resource not found |
+| `2` | Validation failure or ID not found |
+
+---
+
+## Command Invocation
+
+### ✅ Correct Invocation
+
+```bash
+# From project root - ALWAYS use this pattern
+python3 skills/fdd/scripts/fdd.py <command> [options]
+
+# Examples:
+python3 skills/fdd/scripts/fdd.py validate
+python3 skills/fdd/scripts/fdd.py validate --artifact architecture/PRD.md --verbose
+python3 skills/fdd/scripts/fdd.py validate-code
+python3 skills/fdd/scripts/fdd.py list-ids --pattern "-req-"
+python3 skills/fdd/scripts/fdd.py where-defined --id fdd-myapp-actor-admin
+python3 skills/fdd/scripts/fdd.py adapter-info
+python3 skills/fdd/scripts/fdd.py init --yes
+python3 skills/fdd/scripts/fdd.py agents --agent claude
+```
+
+### ❌ Incorrect Invocation
+
+```bash
+# Missing script path
+python3 fdd.py validate
+
+# Wrong module invocation (only works from specific directory)
+python3 -m fdd.cli validate
+
+# Non-existent command
+python3 scripts/fdd.py search --query "auth"
+
+# Wrong option name
+python3 scripts/fdd.py list-ids --file architecture/DESIGN.md
+# Correct: --artifact architecture/DESIGN.md
+```
 
 ---
 
 ## Integration with Workflows
 
-**Validation workflows**:
-- `design-validate.md` - Uses `validate --artifact DESIGN.md`
-- `feature-validate.md` - Uses `validate --artifact feature-*/DESIGN.md`
-- `code-validate.md` - Uses `validate --artifact .`
+**Validation workflow** (`workflows/validate.md`):
+- Uses `validate --artifact <path>` for artifact validation
+- Uses `validate-code` for traceability validation
 
-**Traceability workflows**:
-- All implementation workflows use `where-defined` and `where-used`
+**Generate workflow** (`workflows/generate.md`):
+- Uses `where-defined` and `where-used` for traceability
+- Uses `list-ids` to check existing IDs
 
----
-
-## Examples
-
-### ✅ Valid Command Invocation
-
-```bash
-# Validate artifact with auto-detection
-python3 scripts/fdd.py validate --artifact architecture/DESIGN.md
-
-# Discover adapter
-python3 scripts/fdd.py adapter-info --root .
-
-# Find ID definition
-python3 scripts/fdd.py where-defined --root . --id fdd-myapp-actor-admin
-
-# Scan codebase for FDD IDs
-python3 scripts/fdd.py scan-ids --root . --kind fdd
-```
-
-### ❌ Invalid Command Invocation
-
-```bash
-# Missing required argument
-python3 scripts/fdd.py validate
-
-# Wrong option name
-python3 scripts/fdd.py list-ids --file architecture/DESIGN.md
-
-# Wrong type (string instead of number)
-python3 scripts/fdd.py list-items --artifact DESIGN.md --change "one"
-```
+**Adapter workflow** (`workflows/adapter.md`):
+- Uses `adapter-info` to discover configuration
+- Uses `init` to bootstrap new projects
 
 ---
 
-## Source References
+## Error Handling
 
-**Derived from**:
-- `skills/fdd/SKILL.md` - Skill documentation
-- `skills/fdd/scripts/fdd.py` - Implementation analysis
-- `CLISPEC.md` - Format specification
-- Code analysis and testing
+**If command fails**:
+```
+⚠ Command failed: {command}
+Exit code: {code}
+→ Check --help for correct usage: python3 scripts/fdd.py {command} --help
+→ Verify paths exist and are readable
+→ Check artifacts.json for registered artifacts
+```
 
-**Command discovery method**: 
-- Parsed argparse subcommands from fdd.py
-- Extracted argument definitions and help text
-- Validated against actual implementation
+**If command not found**:
+```
+⚠ Unknown command: {command}
+→ Available commands: validate, validate-code, validate-rules, list-ids,
+   list-id-kinds, get-content, where-defined, where-used, adapter-info,
+   init, agents, self-check
+→ Run: python3 scripts/fdd.py --help
+```
 
 ---
 
 ## Validation Checklist
 
-Agent MUST verify before using fdd skill:
-- [ ] All commands follow CLISPEC format in `fdd.clispec`
-- [ ] Required arguments are provided
-- [ ] Optional arguments use documented option names
-- [ ] Paths are absolute or relative to correct base
-- [ ] Exit codes are handled appropriately
-- [ ] Commands are invoked with `python3 scripts/fdd.py`
+Agent MUST verify before using FDD CLI:
+- [ ] Using correct invocation: `python3 skills/fdd/scripts/fdd.py <command>`
+- [ ] Command exists (check Available Commands table above)
+- [ ] Required arguments provided
+- [ ] Option names match exactly (including `--`)
+- [ ] Exit codes handled appropriately
 
-**Self-test**:
-- [ ] Did I check the CLISPEC file for command signature?
+**Self-test** (MUST answer YES to all):
+- [ ] Did I check SKILL.md for command signature?
 - [ ] Are all required arguments present?
-- [ ] Do option names match exactly (including --)?
-- [ ] Is the command path correct (scripts/fdd.py)?
+- [ ] Am I using the full script path?
+- [ ] Did I handle potential errors?
+
+---
+
+## Output Format
+
+All commands output **JSON** to stdout:
+
+```json
+{
+  "status": "PASS" | "FAIL" | "ERROR",
+  "message": "Human-readable summary",
+  ...command-specific fields...
+}
+```
+
+**Verbose mode** (`--verbose`): Includes detailed information in output.
 
 ---
 
 ## References
 
 **Used by workflows**:
-- `design-validate.md` - Validation command
-- `feature-validate.md` - Validation command  
-- `code-validate.md` - Traceability validation
-- All implementation workflows - Traceability commands
+- `workflows/validate.md` - Validation commands
+- `workflows/generate.md` - Traceability commands
+- `workflows/adapter.md` - Setup commands
 
 **Related files**:
-- `../../CLISPEC.md` - CLISPEC format specification
-- `../../skills/fdd/fdd.clispec` - Complete command specification
-- `../../skills/fdd/SKILL.md` - Skill documentation
+- `skills/fdd/SKILL.md` - Authoritative command documentation
+- `skills/fdd/scripts/fdd.py` - CLI implementation

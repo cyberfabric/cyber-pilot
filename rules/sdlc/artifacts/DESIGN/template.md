@@ -11,19 +11,19 @@ fdd-template:
 # Technical Design: {PROJECT_NAME}
 
 <!-- fdd:##:architecture-overview -->
-## A. Architecture Overview
+## 1. Architecture Overview
 
 <!-- fdd:###:architectural-vision -->
 ### Architectural Vision
 
-<!-- fdd:paragraph:architectural-vision-body -->
+<!-- fdd:architectural-vision-body -->
 {1-3 paragraphs describing the architecture at a high level.}
 
 {Include:
 - system boundaries
 - major responsibilities
 - what drives the chosen architecture}
-<!-- fdd:paragraph:architectural-vision-body -->
+<!-- fdd:architectural-vision-body -->
 <!-- fdd:###:architectural-vision -->
 
 <!-- fdd:###:architecture-drivers -->
@@ -32,23 +32,39 @@ fdd-template:
 <!-- fdd:####:prd-requirements -->
 #### Product requirements
 
-<!-- fdd:table:prd-requirements required="true" -->
-| FDD ID | Solution short description |
-|--------|----------------------------|
-| `fdd-{project}-fr-{slug}` | {How the design addresses this requirement} |
-| `fdd-{project}-nfr-{slug}` | {How the design addresses this NFR} |
-<!-- fdd:table:prd-requirements -->
+<!-- fdd:fr-title repeat="many" -->
+##### {FR Name}
+
+<!-- fdd:id-ref:fr has="priority,task" -->
+[ ] `p1` - `fdd-{system}-fr-{slug}`
+<!-- fdd:id-ref:fr -->
+
+**Solution**: {How the design addresses this requirement}
+<!-- fdd:fr-title repeat="many" -->
+
+<!-- fdd:nfr-title repeat="many" -->
+##### {NFR Name}
+
+<!-- fdd:id-ref:nfr has="priority,task" -->
+[ ] `p1` - `fdd-{system}-nfr-{slug}`
+<!-- fdd:id-ref:nfr -->
+
+**Solution**: {How the design addresses this NFR}
+<!-- fdd:nfr-title -->
 <!-- fdd:####:prd-requirements -->
 
 <!-- fdd:####:adr-records -->
 #### Architecture Decisions Records
 
-<!-- fdd:table:adr-records required="true" -->
-| FDD ADR ID | Summary |
-|------------|---------|
-| `fdd-{project}-adr-{slug}` | {2-4 sentences describing what decision was taken and why. Include key tradeoffs if relevant.} |
-| `fdd-{project}-adr-{slug}` | {2-4 sentences describing what decision was taken and why. Include key tradeoffs if relevant.} |
-<!-- fdd:table:adr-records -->
+<!-- fdd:adr-title repeat="many" -->
+##### {ADR Title}
+
+<!-- fdd:id-ref:adr has="priority,task" -->
+[ ] `p1` - `fdd-{system}-adr-{slug}`
+<!-- fdd:id-ref:adr -->
+
+{2-4 sentences describing what decision was taken and why. Include key tradeoffs if relevant.}
+<!-- fdd:adr-title -->
 <!-- fdd:####:adr-records -->
 <!-- fdd:###:architecture-drivers -->
 
@@ -66,46 +82,46 @@ fdd-template:
 <!-- fdd:##:architecture-overview -->
 
 <!-- fdd:##:principles-and-constraints -->
-## B. Principles & Constraints
+## 2. Principles & Constraints
 
 <!-- fdd:###:principles -->
-### B.1: Design Principles
+### 2.1: Design Principles
 
 <!-- fdd:####:principle-title repeat="many" -->
 #### {Principle Name}
 
-<!-- fdd:id:principle has="priority,task" covered_by="features,feature" -->
-**ID**: [ ] `p1` - `fdd-{project}-principle-{slug}`
-<!-- fdd:id:principle -->
+<!-- fdd:id:principle has="priority,task" covered_by="FEATURES,FEATURE" -->
+- [ ] `p1` - **ID**: `fdd-{system}-principle-{slug}`
 
 <!-- fdd:paragraph:principle-body -->
 {Rationale and guidance.}
 <!-- fdd:paragraph:principle-body -->
+<!-- fdd:id:principle -->
 <!-- fdd:####:principle-title repeat="many" -->
 <!-- fdd:###:principles -->
 
 <!-- fdd:###:constraints -->
-### B.2: Constraints
+### 2.2: Constraints
 
 <!-- fdd:####:constraint-title repeat="many" -->
 #### {Constraint Name}
 
-<!-- fdd:id:constraint has="priority,task" covered_by="features,feature" -->
-**ID**: [ ] `p1` - `fdd-{project}-constraint-{slug}`
-<!-- fdd:id:constraint -->
+<!-- fdd:id:constraint has="priority,task" covered_by="FEATURES,FEATURE" -->
+- [ ] `p1` - **ID**: `fdd-{system}-constraint-{slug}`
 
 <!-- fdd:paragraph:constraint-body -->
 {What constraint exists and why.}
 <!-- fdd:paragraph:constraint-body -->
+<!-- fdd:id:constraint -->
 <!-- fdd:####:constraint-title repeat="many" -->
 <!-- fdd:###:constraints -->
 <!-- fdd:##:principles-and-constraints -->
 
 <!-- fdd:##:technical-architecture -->
-## C. Technical Architecture
+## 3. Technical Architecture
 
 <!-- fdd:###:domain-model -->
-### C.1: Domain Model
+### 3.1: Domain Model
 
 <!-- fdd:paragraph:domain-model -->
 {Describe domain entities, invariants, and relationships.}
@@ -113,7 +129,7 @@ fdd-template:
 <!-- fdd:###:domain-model -->
 
 <!-- fdd:###:component-model -->
-### C.2: Component Model
+### 3.2: Component Model
 
 <!-- fdd:code:component-model -->
 ```mermaid
@@ -124,9 +140,8 @@ fdd-template:
 <!-- fdd:####:component-title repeat="many" -->
 #### {Component Name}
 
-<!-- fdd:id:component has="priority,task" covered_by="features,feature" -->
-**ID**: [ ] `p1` - `fdd-{project}-component-{component-slug}`
-<!-- fdd:id:component -->
+<!-- fdd:id:component has="priority,task" covered_by="FEATURES,FEATURE" -->
+- [ ] `p1` - **ID**: `fdd-{system}-component-{component-slug}`
 
 <!-- fdd:list:component-payload -->
 - Responsibilities
@@ -134,11 +149,12 @@ fdd-template:
 - Dependencies
 - Key interfaces
 <!-- fdd:list:component-payload -->
+<!-- fdd:id:component -->
 <!-- fdd:####:component-title repeat="many" -->
 <!-- fdd:###:component-model -->
 
 <!-- fdd:###:api-contracts -->
-### C.3: API Contracts
+### 3.3: API Contracts
 
 <!-- fdd:paragraph:api-contracts -->
 {Describe public APIs, contracts, and integration boundaries.}
@@ -146,14 +162,13 @@ fdd-template:
 <!-- fdd:###:api-contracts -->
 
 <!-- fdd:###:interactions -->
-### C.4: Interactions & Sequences
+### 3.4: Interactions & Sequences
 
 <!-- fdd:####:sequence-title repeat="many" -->
 #### {Sequence Name}
 
-<!-- fdd:id:seq has="priority,task" covered_by="features,feature" -->
-**ID**: [ ] `p1` - `fdd-{project}-seq-{slug}`
-<!-- fdd:id:seq -->
+<!-- fdd:id:seq has="priority,task" covered_by="FEATURES,FEATURE" -->
+- [ ] `p1` - **ID**: `fdd-{system}-seq-{slug}`
 
 <!-- fdd:code:sequences -->
 ```mermaid
@@ -164,54 +179,55 @@ fdd-template:
 <!-- fdd:paragraph:sequence-body -->
 {Explain the interaction, participants, and success/failure outcomes.}
 <!-- fdd:paragraph:sequence-body -->
+<!-- fdd:id:seq -->
 <!-- fdd:####:sequence-title repeat="many" -->
 <!-- fdd:###:interactions -->
 
 <!-- fdd:###:database -->
-### C.5 Database schemas & tables (optional)
+### 3.5 Database schemas & tables (optional)
 
 <!-- fdd:####:db-table-title repeat="many" -->
 #### Table {name}
 
-<!-- fdd:id:db-table has="priority,task" covered_by="features,feature" -->
-**ID**: [ ] `p1` - `fdd-{project-name}-db-table-{slug}`
-<!-- fdd:id:db-table -->
+<!-- fdd:id:dbtable has="priority,task" covered_by="FEATURES,FEATURE" -->
+- [ ] `p1` - **ID**: `fdd-{system}-dbtable-{slug}`
 
-Schema
+**Schema**
 <!-- fdd:table:db-table-schema -->
 | Column | Type | Description |
 |--------|------|-------------|
 <!-- fdd:table:db-table-schema -->
 
-PK:
+**PK**: { Primary key or composite key (if composite, list columns) }
 
-Constraints
+**Constraints**: { Any constraints (unique, check, etc.) }
 
-Additional info
+**Additional info**: { Any additional info }
 
-Example
+**Example**
 <!-- fdd:table:db-table-example -->
 | Col name A | B | C |
 |------------|---|---|
 | values     |   |   |
 <!-- fdd:table:db-table-example -->
+<!-- fdd:id:dbtable -->
 <!-- fdd:####:db-table-title repeat="many" -->
 <!-- fdd:###:database -->
 
 <!-- fdd:###:topology -->
-### C.6: Topology (optional)
+### 3.6: Topology (optional)
 
 <!-- fdd:id:topology has="task" -->
-**ID**: [ ] `fdd-{project-name}-topology-{slug}`
-<!-- fdd:id:topology -->
+- [ ] **ID**: `fdd-{system}-topology-{slug}`
 
-<!-- fdd:paragraph:topology-body -->
-Physical view, files, pods, containers, DC, virtual machines, etc.
-<!-- fdd:paragraph:topology-body -->
+<!-- fdd:free:topology-body -->
+{ Physical view, files, pods, containers, DC, virtual machines, etc. }
+<!-- fdd:free:topology-body -->
+<!-- fdd:id:topology -->
 <!-- fdd:###:topology -->
 
 <!-- fdd:###:tech-stack -->
-### C.7: Tech stack (optional)
+### 3.7: Tech stack (optional)
 
 <!-- fdd:paragraph:status -->
 **Status**: Proposed | Rejected | Accepted | Deprecated | Superseded
@@ -224,11 +240,11 @@ Physical view, files, pods, containers, DC, virtual machines, etc.
 <!-- fdd:##:technical-architecture -->
 
 <!-- fdd:##:design-context -->
-## D. Additional Context
+## 4. Additional Context
 
-<!-- fdd:paragraph:design-context-body -->
+<!-- fdd:free:design-context-body -->
 {Optional notes, rationale, trade-offs, and links.}
-<!-- fdd:paragraph:design-context-body -->
+<!-- fdd:free:design-context-body -->
 
 <!-- fdd:paragraph:date -->
 **Date**: {YYYY-MM-DD}

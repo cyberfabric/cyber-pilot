@@ -1,9 +1,8 @@
 <!-- fdd:#:adr -->
 # ADR-0001: Initial FDD Architecture
 
-<!-- fdd:id:adr has="priority,task" covered_by="design" -->
-**ID**: [x] `p1` - `fdd-fdd-adr-initial-architecture-v1`
-<!-- fdd:id:adr -->
+<!-- fdd:id:adr has="priority,task" covered_by="DESIGN" -->
+- [x] `p1` - **ID**: `fdd-fdd-adr-initial-architecture-v1`
 
 <!-- fdd:##:meta -->
 ## Meta
@@ -200,5 +199,6 @@ FDD uses **Layered Architecture with Plugin-Based Adapter System** with the foll
 - Related ADRs: None yet (this is ADR-0001)
 <!-- fdd:list:links -->
 <!-- fdd:##:body -->
+<!-- fdd:id:adr -->
 
 <!-- fdd:#:adr -->

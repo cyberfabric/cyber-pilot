@@ -27,8 +27,7 @@ EXAMPLE:
 
 RELATED:
   - @CLI.adapter-info
-  - @CLI.agent-workflows
-  - @CLI.agent-skills
+  - @CLI.agents
   - @Workflow.adapter
 ---
 
@@ -324,57 +323,75 @@ RELATED:
   - @CLI.get-content
 ---
 
-COMMAND agent-workflows
-SYNOPSIS: python3 scripts/fdd.py agent-workflows --agent <name> [options]
-DESCRIPTION: Generate/update agent-specific workflow proxy files (e.g. Windsurf .windsurf/workflows) that redirect to existing FDD workflows
+COMMAND agents
+SYNOPSIS: python3 scripts/fdd.py agents --agent <name> [options]
+DESCRIPTION: Generate/update agent-specific workflow proxies and skill outputs. Creates unified proxy files for workflows (fdd-generate, fdd-validate, fdd-adapter, fdd-rules) and the fdd skill entry point. Supports windsurf, cursor, claude, copilot.
 WORKFLOW: adapter
 
 ARGUMENTS:
 
 OPTIONS:
-  --agent  <string>  required  Agent/IDE key (e.g., windsurf)
+  --agent  <string>  required  Agent/IDE key (windsurf, cursor, claude, copilot)
   --root  <path>  Project root directory to search from (default: current directory)
   --fdd-root  <path>  Explicit FDD core root (optional override)
-  --config  <path>  Path to agent workflows config JSON (default: {project-root}/fdd-agent-workflows.json)
+  --config  <path>  Path to unified agents config JSON (default: {project-root}/fdd-agents.json)
   --dry-run  <boolean>  Compute changes without writing files
 
 EXIT CODES:
-  0  Success (config present and sync completed)
+  0  Success (all workflows and skills synced)
   1  Error (invalid args, missing project root, invalid config)
-  2  Config incomplete (agent exists in config but missing required fields)
+
+OUTPUT:
+  JSON object with:
+  - status: PASS or PARTIAL
+  - agent: Agent name
+  - workflows: Object with created/updated/renamed/deleted counts
+  - skills: Object with created/updated counts and outputs list
+  - errors: List of errors if any
 
 EXAMPLE:
-  $ python3 scripts/fdd.py agent-workflows --agent windsurf
-  $ python3 scripts/fdd.py agent-workflows --agent windsurf --dry-run
+  $ python3 scripts/fdd.py agents --agent windsurf
+  $ python3 scripts/fdd.py agents --agent claude --dry-run
+  $ python3 scripts/fdd.py agents --agent cursor
 
 RELATED:
+  - @CLI.init
+  - @CLI.adapter-info
   - @Workflow.adapter
 
 ---
 
-COMMAND agent-skills
-SYNOPSIS: python3 scripts/fdd.py agent-skills --agent <name> [options]
-DESCRIPTION: Generate/update agent-specific skill outputs (e.g. Windsurf .windsurf/skills/<skill-name>/SKILL.md, Cursor .cursor/rules/*.mdc, Claude .claude/commands/*.md, Copilot .github/copilot-instructions.md)
-WORKFLOW: adapter
+COMMAND self-check
+SYNOPSIS: python3 scripts/fdd.py self-check [--rule <id>] [--verbose]
+DESCRIPTION: Validate example artifacts against their templates (template QA). For each rule package, checks that example.md passes validation against template.md. Ensures templates and examples remain synchronized.
+WORKFLOW: rules
 
 ARGUMENTS:
 
 OPTIONS:
-  --agent  <string>  required  Agent/IDE key (e.g., windsurf)
-  --root  <path>  Project root directory to search from (default: current directory)
-  --config  <path>  Path to agent skills config JSON (default: {project-root}/fdd-agent-skills.json)
-  --dry-run  <boolean>  Compute changes without writing files
+  --rule  <id>  Rule ID to check (if omitted, checks all rules)
+  --verbose  <boolean>  Print detailed validation report
 
 EXIT CODES:
-  0  Success (config present and skill sync completed)
-  1  Error (invalid args, missing project root, invalid config)
-  2  Config incomplete (agent exists in config but missing required fields)
+  0  All examples pass validation
+  1  File system error or no adapter found
+  2  One or more examples failed validation
+
+OUTPUT:
+  JSON object with:
+  - status: PASS or FAIL
+  - rules_checked: Number of rules checked
+  - examples_checked: Number of examples validated
+  - pass_count: Examples that passed
+  - fail_count: Examples that failed
+  - failures: List of failed examples with error details
 
 EXAMPLE:
-  $ python3 scripts/fdd.py agent-skills --agent windsurf
-  $ python3 scripts/fdd.py agent-skills --agent windsurf --dry-run
+  $ python3 scripts/fdd.py self-check
+  $ python3 scripts/fdd.py self-check --rule fdd-sdlc
+  $ python3 scripts/fdd.py self-check --verbose
 
 RELATED:
-  - @CLI.agent-workflows
-  - @Workflow.adapter
-
+  - @CLI.validate-rules
+  - @CLI.validate
+  - @Workflow.rules

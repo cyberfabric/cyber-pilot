@@ -271,6 +271,21 @@ class ArtifactsMeta:
             return None
         return rule.get_template_path(artifact.kind)
 
+    def iter_all_system_names(self) -> Iterator[str]:
+        """Iterate over all system names in the registry (including nested children)."""
+        def _iter_system(node: SystemNode) -> Iterator[str]:
+            if node.name:
+                yield node.name
+            for child in node.children:
+                yield from _iter_system(child)
+
+        for system in self.systems:
+            yield from _iter_system(system)
+
+    def get_all_system_names(self) -> set:
+        """Get a set of all system names (normalized to lowercase)."""
+        return {name.lower() for name in self.iter_all_system_names()}
+
 
 def load_artifacts_meta(adapter_dir: Path) -> Tuple[Optional[ArtifactsMeta], Optional[str]]:
     """

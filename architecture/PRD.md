@@ -1,15 +1,15 @@
 <!-- fdd:#:prd -->
 # PRD (Product Requirements Document): FDD
 
-<!-- fdd:##:vision -->
-## A. Vision
+<!-- fdd:##:overview -->
+## 1. Overview
 
 <!-- fdd:paragraph:purpose -->
 **Purpose**: FDD is a methodology and productized system for guiding software development through stable artifacts, deterministic validation, and repeatable workflows.
 <!-- fdd:paragraph:purpose -->
 
 <!-- fdd:paragraph:context -->
-In this project, "FDD" means **Flow-Driven Development**: the project is developed by running workflows (flows), using skills/tools for deterministic checks, and iterating interactively with AI agents.
+In this project, "FDD" means **Framework for Documentation and Development**: the project is developed by running workflows (flows), using skills/tools for deterministic checks, and iterating interactively with AI agents.
 <!-- fdd:paragraph:context -->
 
 **Target Users**:
@@ -46,638 +46,637 @@ In this project, "FDD" means **Flow-Driven Development**: the project is develop
 - Provide deterministic validation and traceability scanning
 - Support adapter-driven configuration for different projects and tech stacks
 <!-- fdd:list:capabilities -->
-<!-- fdd:##:vision -->
+<!-- fdd:##:overview -->
 
 ---
 
 <!-- fdd:##:actors -->
-## B. Actors
+## 2. Actors
 
 <!-- fdd:###:actor-title repeat="many" -->
 ### Product Manager
 
-<!-- fdd:id:actor has="task" -->
-**ID**: [ ] - `fdd-fdd-actor-product-manager`
 <!-- fdd:id:actor -->
+**ID**: `fdd-fdd-actor-product-manager`
 
-<!-- fdd:line:actor-role repeat="many" -->
+<!-- fdd:paragraph:actor-role repeat="many" -->
 **Role**: Defines product requirements, captures use cases, and documents PRD content using FDD workflows
-<!-- fdd:line:actor-role -->
+<!-- fdd:paragraph:actor-role -->
+<!-- fdd:id:actor -->
 <!-- fdd:###:actor-title repeat="many" -->
 
 <!-- fdd:###:actor-title repeat="many" -->
 ### Architect
 
-<!-- fdd:id:actor has="task" -->
-**ID**: [ ] - `fdd-fdd-actor-architect`
 <!-- fdd:id:actor -->
+**ID**: `fdd-fdd-actor-architect`
 
-<!-- fdd:line:actor-role repeat="many" -->
+<!-- fdd:paragraph:actor-role repeat="many" -->
 **Role**: Designs system architecture, creates overall design documentation, and defines technical patterns
-<!-- fdd:line:actor-role -->
+<!-- fdd:paragraph:actor-role -->
+<!-- fdd:id:actor -->
 <!-- fdd:###:actor-title repeat="many" -->
 
 <!-- fdd:###:actor-title repeat="many" -->
 ### Developer
 
-<!-- fdd:id:actor has="task" -->
-**ID**: [ ] - `fdd-fdd-actor-developer`
 <!-- fdd:id:actor -->
+**ID**: `fdd-fdd-actor-developer`
 
-<!-- fdd:line:actor-role repeat="many" -->
+<!-- fdd:paragraph:actor-role repeat="many" -->
 **Role**: Implements features according to validated designs, adds traceability tags to code
-<!-- fdd:line:actor-role -->
+<!-- fdd:paragraph:actor-role -->
+<!-- fdd:id:actor -->
 <!-- fdd:###:actor-title repeat="many" -->
 
 <!-- fdd:###:actor-title repeat="many" -->
 ### QA Engineer
 
-<!-- fdd:id:actor has="task" -->
-**ID**: [ ] - `fdd-fdd-actor-qa-engineer`
 <!-- fdd:id:actor -->
+**ID**: `fdd-fdd-actor-qa-engineer`
 
-<!-- fdd:line:actor-role repeat="many" -->
+<!-- fdd:paragraph:actor-role repeat="many" -->
 **Role**: Validates implementation against design specifications and ensures test coverage
-<!-- fdd:line:actor-role -->
+<!-- fdd:paragraph:actor-role -->
+<!-- fdd:id:actor -->
 <!-- fdd:###:actor-title repeat="many" -->
 
 <!-- fdd:###:actor-title repeat="many" -->
 ### Technical Lead
 
-<!-- fdd:id:actor has="task" -->
-**ID**: [ ] - `fdd-fdd-actor-technical-lead`
 <!-- fdd:id:actor -->
+**ID**: `fdd-fdd-actor-technical-lead`
 
-<!-- fdd:line:actor-role repeat="many" -->
+<!-- fdd:paragraph:actor-role repeat="many" -->
 **Role**: Sets up project adapters, configures FDD for project-specific conventions
-<!-- fdd:line:actor-role -->
+<!-- fdd:paragraph:actor-role -->
+<!-- fdd:id:actor -->
 <!-- fdd:###:actor-title repeat="many" -->
 
 <!-- fdd:###:actor-title repeat="many" -->
 ### Project Manager
 
-<!-- fdd:id:actor has="task" -->
-**ID**: [ ] - `fdd-fdd-actor-project-manager`
 <!-- fdd:id:actor -->
+**ID**: `fdd-fdd-actor-project-manager`
 
-<!-- fdd:line:actor-role repeat="many" -->
+<!-- fdd:paragraph:actor-role repeat="many" -->
 **Role**: Monitors development progress, ensures workflows are followed, tracks feature completion
-<!-- fdd:line:actor-role -->
+<!-- fdd:paragraph:actor-role -->
+<!-- fdd:id:actor -->
 <!-- fdd:###:actor-title repeat="many" -->
 
 <!-- fdd:###:actor-title repeat="many" -->
 ### Documentation Writer
 
-<!-- fdd:id:actor has="task" -->
-**ID**: [ ] - `fdd-fdd-actor-documentation-writer`
 <!-- fdd:id:actor -->
+**ID**: `fdd-fdd-actor-documentation-writer`
 
-<!-- fdd:line:actor-role repeat="many" -->
+<!-- fdd:paragraph:actor-role repeat="many" -->
 **Role**: Creates and maintains project documentation using FDD artifacts as source
-<!-- fdd:line:actor-role -->
+<!-- fdd:paragraph:actor-role -->
+<!-- fdd:id:actor -->
 <!-- fdd:###:actor-title repeat="many" -->
 
 <!-- fdd:###:actor-title repeat="many" -->
 ### DevOps Engineer
 
-<!-- fdd:id:actor has="task" -->
-**ID**: [ ] - `fdd-fdd-actor-devops-engineer`
 <!-- fdd:id:actor -->
+**ID**: `fdd-fdd-actor-devops-engineer`
 
-<!-- fdd:line:actor-role repeat="many" -->
+<!-- fdd:paragraph:actor-role repeat="many" -->
 **Role**: Configures CI/CD pipelines, uses adapter specs for build and deployment automation
-<!-- fdd:line:actor-role -->
+<!-- fdd:paragraph:actor-role -->
+<!-- fdd:id:actor -->
 <!-- fdd:###:actor-title repeat="many" -->
 
 <!-- fdd:###:actor-title repeat="many" -->
 ### Security Engineer
 
-<!-- fdd:id:actor has="task" -->
-**ID**: [ ] - `fdd-fdd-actor-security-engineer`
 <!-- fdd:id:actor -->
+**ID**: `fdd-fdd-actor-security-engineer`
 
-<!-- fdd:line:actor-role repeat="many" -->
+<!-- fdd:paragraph:actor-role repeat="many" -->
 **Role**: Conducts security review of design and code, validates security requirements implementation
-<!-- fdd:line:actor-role -->
+<!-- fdd:paragraph:actor-role -->
+<!-- fdd:id:actor -->
 <!-- fdd:###:actor-title repeat="many" -->
 
 <!-- fdd:###:actor-title repeat="many" -->
 ### Business Analyst
 
-<!-- fdd:id:actor has="task" -->
-**ID**: [ ] - `fdd-fdd-actor-prd-analyst`
 <!-- fdd:id:actor -->
+**ID**: `fdd-fdd-actor-prd-analyst`
 
-<!-- fdd:line:actor-role repeat="many" -->
+<!-- fdd:paragraph:actor-role repeat="many" -->
 **Role**: Analyzes product requirements and translates them into FDD format for Product Manager
-<!-- fdd:line:actor-role -->
+<!-- fdd:paragraph:actor-role -->
+<!-- fdd:id:actor -->
 <!-- fdd:###:actor-title repeat="many" -->
 
 <!-- fdd:###:actor-title repeat="many" -->
 ### UX Designer
 
-<!-- fdd:id:actor has="task" -->
-**ID**: [ ] - `fdd-fdd-actor-ux-designer`
 <!-- fdd:id:actor -->
+**ID**: `fdd-fdd-actor-ux-designer`
 
-<!-- fdd:line:actor-role repeat="many" -->
+<!-- fdd:paragraph:actor-role repeat="many" -->
 **Role**: Designs user interfaces based on actor flows from feature design
-<!-- fdd:line:actor-role -->
+<!-- fdd:paragraph:actor-role -->
+<!-- fdd:id:actor -->
 <!-- fdd:###:actor-title repeat="many" -->
 
 <!-- fdd:###:actor-title repeat="many" -->
 ### Performance Engineer
 
-<!-- fdd:id:actor has="task" -->
-**ID**: [ ] - `fdd-fdd-actor-performance-engineer`
 <!-- fdd:id:actor -->
+**ID**: `fdd-fdd-actor-performance-engineer`
 
-<!-- fdd:line:actor-role repeat="many" -->
+<!-- fdd:paragraph:actor-role repeat="many" -->
 **Role**: Defines performance targets, reviews designs for performance risks, and validates performance requirements implementation
-<!-- fdd:line:actor-role -->
+<!-- fdd:paragraph:actor-role -->
+<!-- fdd:id:actor -->
 <!-- fdd:###:actor-title repeat="many" -->
 
 <!-- fdd:###:actor-title repeat="many" -->
 ### Database Architect
 
-<!-- fdd:id:actor has="task" -->
-**ID**: [ ] - `fdd-fdd-actor-database-architect`
 <!-- fdd:id:actor -->
+**ID**: `fdd-fdd-actor-database-architect`
 
-<!-- fdd:line:actor-role repeat="many" -->
+<!-- fdd:paragraph:actor-role repeat="many" -->
 **Role**: Designs data models and storage strategies, reviews domain model impacts, and validates database-related constraints
-<!-- fdd:line:actor-role -->
+<!-- fdd:paragraph:actor-role -->
+<!-- fdd:id:actor -->
 <!-- fdd:###:actor-title repeat="many" -->
 
 <!-- fdd:###:actor-title repeat="many" -->
 ### Release Manager
 
-<!-- fdd:id:actor has="task" -->
-**ID**: [ ] - `fdd-fdd-actor-release-manager`
 <!-- fdd:id:actor -->
+**ID**: `fdd-fdd-actor-release-manager`
 
-<!-- fdd:line:actor-role repeat="many" -->
+<!-- fdd:paragraph:actor-role repeat="many" -->
 **Role**: Manages releases and tracks feature readiness using FDD artifacts (for example via a Feature Manifest when used)
-<!-- fdd:line:actor-role -->
+<!-- fdd:paragraph:actor-role -->
+<!-- fdd:id:actor -->
 <!-- fdd:###:actor-title repeat="many" -->
 
 <!-- fdd:###:actor-title repeat="many" -->
 ### AI Coding Assistant
 
-<!-- fdd:id:actor has="task" -->
-**ID**: [ ] - `fdd-fdd-actor-ai-assistant`
 <!-- fdd:id:actor -->
+**ID**: `fdd-fdd-actor-ai-assistant`
 
-<!-- fdd:line:actor-role repeat="many" -->
+<!-- fdd:paragraph:actor-role repeat="many" -->
 **Role**: Executes FDD workflows interactively, generates artifacts, and validates against requirements
-<!-- fdd:line:actor-role -->
+<!-- fdd:paragraph:actor-role -->
+<!-- fdd:id:actor -->
 <!-- fdd:###:actor-title repeat="many" -->
 
 <!-- fdd:###:actor-title repeat="many" -->
 ### FDD Validation Tool
 
-<!-- fdd:id:actor has="task" -->
-**ID**: [ ] - `fdd-fdd-actor-fdd-tool`
 <!-- fdd:id:actor -->
+**ID**: `fdd-fdd-actor-fdd-tool`
 
-<!-- fdd:line:actor-role repeat="many" -->
+<!-- fdd:paragraph:actor-role repeat="many" -->
 **Role**: Automated validation engine that checks artifact structure, ID formats, and traceability
-<!-- fdd:line:actor-role -->
+<!-- fdd:paragraph:actor-role -->
+<!-- fdd:id:actor -->
 <!-- fdd:###:actor-title repeat="many" -->
 
 <!-- fdd:###:actor-title repeat="many" -->
 ### CI/CD Pipeline
 
-<!-- fdd:id:actor has="task" -->
-**ID**: [ ] - `fdd-fdd-actor-ci-pipeline`
 <!-- fdd:id:actor -->
+**ID**: `fdd-fdd-actor-ci-pipeline`
 
-<!-- fdd:line:actor-role repeat="many" -->
+<!-- fdd:paragraph:actor-role repeat="many" -->
 **Role**: Automatically validates FDD artifacts on every commit through GitHub Actions or GitLab CI
-<!-- fdd:line:actor-role -->
+<!-- fdd:paragraph:actor-role -->
+<!-- fdd:id:actor -->
 <!-- fdd:###:actor-title repeat="many" -->
 
 <!-- fdd:###:actor-title repeat="many" -->
 ### Documentation Generator
 
-<!-- fdd:id:actor has="task" -->
-**ID**: [ ] - `fdd-fdd-actor-doc-generator`
 <!-- fdd:id:actor -->
+**ID**: `fdd-fdd-actor-doc-generator`
 
-<!-- fdd:line:actor-role repeat="many" -->
+<!-- fdd:paragraph:actor-role repeat="many" -->
 **Role**: Automatically generates external documentation from FDD artifacts (API docs, architecture diagrams)
-<!-- fdd:line:actor-role -->
+<!-- fdd:paragraph:actor-role -->
+<!-- fdd:id:actor -->
 <!-- fdd:###:actor-title repeat="many" -->
 <!-- fdd:##:actors -->
 
 ---
 
 <!-- fdd:##:frs -->
-## C. Functional Requirements
+## 3. Functional Requirements
 
 <!-- fdd:###:fr-title repeat="many" -->
 ### FR-001 Workflow-Driven Development
 
-<!-- fdd:id:fr has="priority,task" covered_by="design" -->
-**ID**: [x] `p1` - `fdd-fdd-fr-workflow-execution`
-<!-- fdd:id:fr -->
+<!-- fdd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+- [x] `p1` - **ID**: `fdd-fdd-fr-workflow-execution`
 
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 The system MUST provide a clear, documented workflow catalog that users and AI agents can execute. Artifact locations MUST be adapter-defined; workflows MUST NOT hardcode repository paths. The core workflow set MUST cover at least: Adapter bootstrap and configuration, PRD creation/update, Overall design creation/update, ADR creation/update, Feature design creation/update, Feature implementation (`implement` as the primary implementation workflow), and Deterministic validation workflows for the above artifacts and for code traceability (when enabled). The system MUST provide a unified agent entrypoint workflow (`/fdd`) that selects and executes the appropriate workflow (create/update/validate) based on context, or runs `fdd` tool commands when requested. This includes interactive question-answer flow with AI agents, automated validation after artifact creation, step-by-step guidance for complex operations, and independent workflows (no forced sequence).
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
 `fdd-fdd-actor-product-manager`, `fdd-fdd-actor-architect`, `fdd-fdd-actor-technical-lead`, `fdd-fdd-actor-project-manager`, `fdd-fdd-actor-release-manager`, `fdd-fdd-actor-developer`, `fdd-fdd-actor-qa-engineer`, `fdd-fdd-actor-security-engineer`, `fdd-fdd-actor-performance-engineer`, `fdd-fdd-actor-database-architect`, `fdd-fdd-actor-devops-engineer`, `fdd-fdd-actor-documentation-writer`, `fdd-fdd-actor-prd-analyst`, `fdd-fdd-actor-ux-designer`, `fdd-fdd-actor-ai-assistant`, `fdd-fdd-actor-fdd-tool`, `fdd-fdd-actor-ci-pipeline`
 <!-- fdd:id-ref:actor -->
+<!-- fdd:id:fr -->
 <!-- fdd:###:fr-title repeat="many" -->
 
 <!-- fdd:###:fr-title repeat="many" -->
 ### FR-002 Artifact Structure Validation
 
-<!-- fdd:id:fr has="priority,task" covered_by="design" -->
-**ID**: [x] `p1` - `fdd-fdd-fr-validation`
-<!-- fdd:id:fr -->
+<!-- fdd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+- [x] `p1` - **ID**: `fdd-fdd-fr-validation`
 
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 Deterministic validators for structural checks (sections, IDs, format). Deterministic content validation for semantic quality and boundaries: Content MUST be internally consistent (no contradictions), Content MUST NOT include information that belongs in other artifacts, Content MUST include required information expected for the artifact kind, Content MUST be semantically consistent with upstream/downstream artifacts (no cross-artifact contradictions), Content MUST not omit critical details that are explicitly defined in other artifacts. Deterministic validation for key artifacts defined by the adapter (no hardcoded repository paths). 100-point scoring system with category breakdown. Pass/fail thresholds (typically ≥90 or 100/100). Cross-reference validation (actor/capability IDs). Placeholder detection (incomplete markers). Detailed issue reporting with recommendations.
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
 `fdd-fdd-actor-architect`, `fdd-fdd-actor-technical-lead`, `fdd-fdd-actor-developer`, `fdd-fdd-actor-qa-engineer`, `fdd-fdd-actor-security-engineer`, `fdd-fdd-actor-performance-engineer`, `fdd-fdd-actor-database-architect`, `fdd-fdd-actor-ai-assistant`, `fdd-fdd-actor-fdd-tool`, `fdd-fdd-actor-ci-pipeline`
 <!-- fdd:id-ref:actor -->
+<!-- fdd:id:fr -->
 <!-- fdd:###:fr-title repeat="many" -->
 
 <!-- fdd:###:fr-title repeat="many" -->
 ### FR-003 Adapter Configuration System
 
-<!-- fdd:id:fr has="priority,task" covered_by="design" -->
-**ID**: [x] `p1` - `fdd-fdd-fr-adapter-config`
-<!-- fdd:id:fr -->
+<!-- fdd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+- [x] `p1` - **ID**: `fdd-fdd-fr-adapter-config`
 
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 Technology-agnostic core methodology. Project-specific adapter specifications. Adapter MUST define an explicit registry of artifacts and their properties (for example: locations, scope, normative vs context-only). Adapter MUST support per-artifact configuration, including enabling/disabling code traceability checks. Tech stack definition (languages, frameworks, tools). Domain model format specification. API contract format specification. Adapter MUST be able to define deterministic tools/commands used to validate domain model sources and API contract sources. Testing strategy and build tool configuration. Auto-detection from existing codebase.
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
 `fdd-fdd-actor-technical-lead`, `fdd-fdd-actor-architect`, `fdd-fdd-actor-database-architect`, `fdd-fdd-actor-performance-engineer`, `fdd-fdd-actor-devops-engineer`, `fdd-fdd-actor-developer`, `fdd-fdd-actor-ai-assistant`
 <!-- fdd:id-ref:actor -->
+<!-- fdd:id:fr -->
 <!-- fdd:###:fr-title repeat="many" -->
 
 <!-- fdd:###:fr-title repeat="many" -->
 ### FR-004 Adaptive Design Bootstrapping
 
-<!-- fdd:id:fr has="priority,task" covered_by="design" -->
-**ID**: [x] `p1` - `fdd-fdd-fr-design-first`
-<!-- fdd:id:fr -->
+<!-- fdd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+- [x] `p1` - **ID**: `fdd-fdd-fr-design-first`
 
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 Users MAY start implementation without having pre-existing design artifacts. When a workflow needs a traceability source and design artifacts are missing, the workflow MUST bootstrap the minimum viable design interactively and then continue. Once created, design artifacts become the single source of truth (code follows design). Design iteration MUST be workflow-driven and MUST be followed by deterministic validation. Clear separation between PRD, overall design, ADRs, and feature designs. Behavioral specifications MUST use FDL (plain-English algorithms).
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
 `fdd-fdd-actor-product-manager`, `fdd-fdd-actor-architect`, `fdd-fdd-actor-developer`, `fdd-fdd-actor-prd-analyst`, `fdd-fdd-actor-ux-designer`, `fdd-fdd-actor-security-engineer`, `fdd-fdd-actor-performance-engineer`, `fdd-fdd-actor-database-architect`
 <!-- fdd:id-ref:actor -->
+<!-- fdd:id:fr -->
 <!-- fdd:###:fr-title repeat="many" -->
 
 <!-- fdd:###:fr-title repeat="many" -->
 ### FR-005 Traceability Management
 
-<!-- fdd:id:fr has="priority,task" covered_by="design" -->
-**ID**: [x] `p1` - `fdd-fdd-fr-traceability`
-<!-- fdd:id:fr -->
+<!-- fdd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+- [x] `p1` - **ID**: `fdd-fdd-fr-traceability`
 
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 Unique ID system for all design elements using structured format. Code tags (@fdd-*) linking implementation to design. Traceability validation MUST be configurable per artifact (enabled/disabled via adapter). FDD-ID MAY be versioned by appending a `-vN` suffix (example: `<base-id>-v2`). When an identifier is replaced (REPLACE), the new identifier version MUST be incremented: If the prior identifier has no version suffix, the new identifier MUST end with `-v1`; If the prior identifier ends with `-vN`, the new identifier MUST increment the version by 1 (example: `-v1` → `-v2`). Once an identifier becomes versioned, the version suffix MUST NOT be removed in future references. When an identifier is replaced (REPLACE), all references MUST be updated (all artifacts and all code traceability tags, including qualified `:ph-N:inst-*` references). Qualified IDs for phases and instructions (:ph-N:inst-*). Repository-wide ID scanning and search. where-defined and where-used commands. Design-to-code validation (implemented items must have code tags).
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
 `fdd-fdd-actor-developer`, `fdd-fdd-actor-qa-engineer`, `fdd-fdd-actor-fdd-tool`
 <!-- fdd:id-ref:actor -->
+<!-- fdd:id:fr -->
 <!-- fdd:###:fr-title repeat="many" -->
 
 <!-- fdd:###:fr-title repeat="many" -->
 ### FR-006 Quickstart Guides
 
-<!-- fdd:id:fr has="priority,task" covered_by="design" -->
-**ID**: [x] `p2` - `fdd-fdd-fr-interactive-docs`
-<!-- fdd:id:fr -->
+<!-- fdd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+- [x] `p2` - **ID**: `fdd-fdd-fr-interactive-docs`
 
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 QUICKSTART guides with copy-paste prompts. Progressive disclosure (human-facing overview docs, AI navigation rules for agents).
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
 `fdd-fdd-actor-documentation-writer`, `fdd-fdd-actor-product-manager`, `fdd-fdd-actor-release-manager`, `fdd-fdd-actor-ai-assistant`, `fdd-fdd-actor-doc-generator`
 <!-- fdd:id-ref:actor -->
+<!-- fdd:id:fr -->
 <!-- fdd:###:fr-title repeat="many" -->
 
 <!-- fdd:###:fr-title repeat="many" -->
 ### FR-007 Artifact Templates
 
-<!-- fdd:id:fr has="priority,task" covered_by="design" -->
-**ID**: [x] `p1` - `fdd-fdd-fr-artifact-templates`
-<!-- fdd:id:fr -->
+<!-- fdd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+- [x] `p1` - **ID**: `fdd-fdd-fr-artifact-templates`
 
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 The system MUST provide an artifact template catalog for core FDD artifacts (PRD, Overall Design, ADRs, Feature Manifest, Feature Designs). Agents MUST be able to use these templates during workflow execution.
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
 `fdd-fdd-actor-documentation-writer`, `fdd-fdd-actor-ai-assistant`, `fdd-fdd-actor-doc-generator`, `fdd-fdd-actor-technical-lead`
 <!-- fdd:id-ref:actor -->
+<!-- fdd:id:fr -->
 <!-- fdd:###:fr-title repeat="many" -->
 
 <!-- fdd:###:fr-title repeat="many" -->
 ### FR-008 Artifact Examples
 
-<!-- fdd:id:fr has="priority,task" covered_by="design" -->
-**ID**: [x] `p2` - `fdd-fdd-fr-artifact-examples`
-<!-- fdd:id:fr -->
+<!-- fdd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+- [x] `p2` - **ID**: `fdd-fdd-fr-artifact-examples`
 
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 The system MUST provide an artifact example catalog for core FDD artifacts (PRD, Overall Design, ADRs, Feature Manifest, Feature Designs). Agents MUST be able to use these examples during workflow execution.
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
 `fdd-fdd-actor-documentation-writer`, `fdd-fdd-actor-ai-assistant`, `fdd-fdd-actor-doc-generator`, `fdd-fdd-actor-technical-lead`
 <!-- fdd:id-ref:actor -->
+<!-- fdd:id:fr -->
 <!-- fdd:###:fr-title repeat="many" -->
 
 <!-- fdd:###:fr-title repeat="many" -->
 ### FR-009 ADR Management
 
-<!-- fdd:id:fr has="priority,task" covered_by="design" -->
-**ID**: [x] `p2` - `fdd-fdd-fr-arch-decision-mgmt`
-<!-- fdd:id:fr -->
+<!-- fdd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+- [x] `p2` - **ID**: `fdd-fdd-fr-arch-decision-mgmt`
 
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 Create and track architecture decisions with structured format. Link ADRs to affected design sections and feature IDs. Decision status tracking (PROPOSED, ACCEPTED, DEPRECATED, SUPERSEDED). Impact analysis when ADR changes affect multiple features. Search ADRs by status, date, or affected components. Version history for decision evolution.
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
 `fdd-fdd-actor-architect`, `fdd-fdd-actor-technical-lead`, `fdd-fdd-actor-security-engineer`, `fdd-fdd-actor-performance-engineer`, `fdd-fdd-actor-database-architect`
 <!-- fdd:id-ref:actor -->
+<!-- fdd:id:fr -->
 <!-- fdd:###:fr-title repeat="many" -->
 
 <!-- fdd:###:fr-title repeat="many" -->
 ### FR-010 PRD Management
 
-<!-- fdd:id:fr has="priority,task" covered_by="design" -->
-**ID**: [x] `p1` - `fdd-fdd-fr-prd-mgmt`
-<!-- fdd:id:fr -->
+<!-- fdd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+- [x] `p1` - **ID**: `fdd-fdd-fr-prd-mgmt`
 
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 Create and update PRD content through workflows. Enforce stable IDs for actors and capabilities. PRD deterministic validation integration.
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
 `fdd-fdd-actor-product-manager`, `fdd-fdd-actor-prd-analyst`, `fdd-fdd-actor-ai-assistant`, `fdd-fdd-actor-fdd-tool`
 <!-- fdd:id-ref:actor -->
+<!-- fdd:id:fr -->
 <!-- fdd:###:fr-title repeat="many" -->
 
 <!-- fdd:###:fr-title repeat="many" -->
 ### FR-011 Overall Design Management
 
-<!-- fdd:id:fr has="priority,task" covered_by="design" -->
-**ID**: [x] `p1` - `fdd-fdd-fr-overall-design-mgmt`
-<!-- fdd:id:fr -->
+<!-- fdd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+- [x] `p1` - **ID**: `fdd-fdd-fr-overall-design-mgmt`
 
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 Create and update Overall Design through workflows. Link requirements to PRD actors and capabilities. Deterministic validation integration for Overall Design.
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
 `fdd-fdd-actor-architect`, `fdd-fdd-actor-technical-lead`, `fdd-fdd-actor-ai-assistant`, `fdd-fdd-actor-fdd-tool`
 <!-- fdd:id-ref:actor -->
+<!-- fdd:id:fr -->
 <!-- fdd:###:fr-title repeat="many" -->
 
 <!-- fdd:###:fr-title repeat="many" -->
 ### FR-012 Feature Manifest Management
 
-<!-- fdd:id:fr has="priority,task" covered_by="design" -->
-**ID**: [x] `p2` - `fdd-fdd-fr-feature-manifest-mgmt`
-<!-- fdd:id:fr -->
+<!-- fdd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+- [x] `p2` - **ID**: `fdd-fdd-fr-feature-manifest-mgmt`
 
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 Create and update Feature Manifest through workflows. Maintain stable IDs for features and tracking fields. Deterministic validation integration for Feature Manifest.
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
 `fdd-fdd-actor-project-manager`, `fdd-fdd-actor-release-manager`, `fdd-fdd-actor-ai-assistant`, `fdd-fdd-actor-fdd-tool`
 <!-- fdd:id-ref:actor -->
+<!-- fdd:id:fr -->
 <!-- fdd:###:fr-title repeat="many" -->
 
 <!-- fdd:###:fr-title repeat="many" -->
 ### FR-013 Feature Design Management
 
-<!-- fdd:id:fr has="priority,task" covered_by="design" -->
-**ID**: [x] `p1` - `fdd-fdd-fr-feature-design-mgmt`
-<!-- fdd:id:fr -->
+<!-- fdd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+- [x] `p1` - **ID**: `fdd-fdd-fr-feature-design-mgmt`
 
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 Create and update Feature Design through workflows. Maintain stable IDs for flows, algorithms, and requirements. Deterministic validation integration for Feature Design.
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
 `fdd-fdd-actor-architect`, `fdd-fdd-actor-ai-assistant`, `fdd-fdd-actor-fdd-tool`
 <!-- fdd:id-ref:actor -->
+<!-- fdd:id:fr -->
 <!-- fdd:###:fr-title repeat="many" -->
 
 <!-- fdd:###:fr-title repeat="many" -->
 ### FR-014 Feature Lifecycle Management
 
-<!-- fdd:id:fr has="priority,task" covered_by="design" -->
-**ID**: [x] `p2` - `fdd-fdd-fr-feature-lifecycle`
-<!-- fdd:id:fr -->
+<!-- fdd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+- [x] `p2` - **ID**: `fdd-fdd-fr-feature-lifecycle`
 
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 Track feature status from NOT_STARTED through IN_DESIGN, DESIGNED, READY, IN_PROGRESS to DONE. Track progress using the project's selected feature tracking approach (for example a feature manifest when used). Feature dependency management and blocking detection. Milestone tracking and release planning integration. Historical feature completion metrics and velocity tracking. Status transition validation (cannot skip states).
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
 `fdd-fdd-actor-project-manager`, `fdd-fdd-actor-release-manager`, `fdd-fdd-actor-developer`, `fdd-fdd-actor-ai-assistant`
 <!-- fdd:id-ref:actor -->
+<!-- fdd:id:fr -->
 <!-- fdd:###:fr-title repeat="many" -->
 
 <!-- fdd:###:fr-title repeat="many" -->
 ### FR-015 Code Generation from Design
 
-<!-- fdd:id:fr has="priority,task" covered_by="design" -->
-**ID**: [x] `p2` - `fdd-fdd-fr-code-generation`
-<!-- fdd:id:fr -->
+<!-- fdd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+- [x] `p2` - **ID**: `fdd-fdd-fr-code-generation`
 
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 Provide an implementation process that is adapter-aware and works with any programming language. Apply general best practices that are applicable across languages. Prefer TDD where feasible and follow SOLID principles. Use adapter-defined domain model and API contract sources when present. Add traceability tags when traceability is enabled for the relevant artifacts.
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
 `fdd-fdd-actor-developer`, `fdd-fdd-actor-ai-assistant`
 <!-- fdd:id-ref:actor -->
+<!-- fdd:id:fr -->
 <!-- fdd:###:fr-title repeat="many" -->
 
 <!-- fdd:###:fr-title repeat="many" -->
 ### FR-016 Brownfield Support
 
-<!-- fdd:id:fr has="priority,task" covered_by="design" -->
-**ID**: [x] `p2` - `fdd-fdd-fr-brownfield-support`
-<!-- fdd:id:fr -->
+<!-- fdd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+- [x] `p2` - **ID**: `fdd-fdd-fr-brownfield-support`
 
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 Add FDD to existing projects without disruption. Auto-detect existing architecture from code and configs. Reverse-engineer the PRD from requirements documentation. Extract Overall Design patterns from implementation. Incremental FDD adoption (start with adapter, add artifacts gradually). Legacy system integration with minimal refactoring.
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
 `fdd-fdd-actor-technical-lead`, `fdd-fdd-actor-architect`, `fdd-fdd-actor-ai-assistant`
 <!-- fdd:id-ref:actor -->
+<!-- fdd:id:fr -->
 <!-- fdd:###:fr-title repeat="many" -->
 
 <!-- fdd:###:fr-title repeat="many" -->
 ### FR-017 FDL (FDD Description Language)
 
-<!-- fdd:id:fr has="priority,task" covered_by="design" -->
-**ID**: [x] `p1` - `fdd-fdd-fr-fdl`
-<!-- fdd:id:fr -->
+<!-- fdd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+- [x] `p1` - **ID**: `fdd-fdd-fr-fdl`
 
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 Plain English algorithm description language for actor flows (recursive acronym: FDD Description Language). Structured numbered lists with bold keywords (**IF**, **ELSE**, **WHILE**, **FOR EACH**). Instruction markers with checkboxes (- [ ] Inst-label: description). Phase-based organization (ph-1, ph-2, etc.) for implementation tracking. Readable by non-programmers for validation and review. Translates directly to code with traceability tags. Keywords: **AND**, **OR**, **NOT**, **MUST**, **REQUIRED**, **OPTIONAL**. Actor-centric (steps start with **Actor** or **System**).
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
 `fdd-fdd-actor-architect`, `fdd-fdd-actor-developer`, `fdd-fdd-actor-prd-analyst`, `fdd-fdd-actor-ux-designer`, `fdd-fdd-actor-product-manager`
 <!-- fdd:id-ref:actor -->
+<!-- fdd:id:fr -->
 <!-- fdd:###:fr-title repeat="many" -->
 
 <!-- fdd:###:fr-title repeat="many" -->
 ### FR-018 IDE Integration and Tooling
 
-<!-- fdd:id:fr has="priority,task" covered_by="design" -->
-**ID**: [x] `p3` - `fdd-fdd-fr-ide-integration`
-<!-- fdd:id:fr -->
+<!-- fdd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+- [ ] `p3` - **ID**: `fdd-fdd-fr-ide-integration`
 
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 VS Code extension for FDD artifact editing. Click-to-navigate for FDD IDs (jump to definition). where-used and where-defined commands in IDE. Inline validation errors and warnings. Autocomplete for FDD IDs and section references. Syntax highlighting for FDL (FDD Description Language). Integration with `fdd` skill commands. Code lens showing traceability status.
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
 `fdd-fdd-actor-developer`, `fdd-fdd-actor-architect`, `fdd-fdd-actor-devops-engineer`
 <!-- fdd:id-ref:actor -->
+<!-- fdd:id:fr -->
 <!-- fdd:###:fr-title repeat="many" -->
 
 <!-- fdd:###:fr-title repeat="many" -->
 ### FR-019 Multi-Agent IDE Integration
 
-<!-- fdd:id:fr has="priority,task" covered_by="design" -->
-**ID**: [x] `p2` - `fdd-fdd-fr-multi-agent-integration`
-<!-- fdd:id:fr -->
+<!-- fdd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+- [x] `p2` - **ID**: `fdd-fdd-fr-multi-agent-integration`
 
-<!-- fdd:paragraph:fr-summary -->
-The system MUST provide commands to generate and maintain agent-specific workflow proxy files for multiple AI coding assistants. Supported agents MUST include Claude, Cursor, Windsurf, and Copilot. The `agent-workflows` command MUST generate workflow entry points in each agent's native format (e.g., `.claude/commands/`, `.cursor/commands/`, `.windsurf/workflows/`, `.github/prompts/`). The `agent-skills` command MUST generate skill/rule entry points that point to the core FDD skill. Configuration MUST be externalized to JSON files (`fdd-agent-workflows.json`, `fdd-agent-skills.json`) with sensible defaults for recognized agents.
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
+The system MUST provide a unified `agents` command to generate and maintain agent-specific workflow proxy files and skill entry points for multiple AI coding assistants. Supported agents MUST include Claude, Cursor, Windsurf, and Copilot. The `agents` command MUST generate workflow entry points in each agent's native format (e.g., `.claude/commands/`, `.cursor/commands/`, `.windsurf/workflows/`, `.github/prompts/`) and skill/rule entry points that point to the core FDD skill. Configuration MUST be externalized to a unified JSON file (`fdd-agents.json`) with sensible defaults for recognized agents.
+<!-- fdd:free:fr-summary -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
 `fdd-fdd-actor-technical-lead`, `fdd-fdd-actor-devops-engineer`, `fdd-fdd-actor-ai-assistant`
 <!-- fdd:id-ref:actor -->
+<!-- fdd:id:fr -->
 <!-- fdd:###:fr-title repeat="many" -->
 
 <!-- fdd:###:fr-title repeat="many" -->
 ### FR-020 Extensible Rules Package System
 
-<!-- fdd:id:fr has="priority,task" covered_by="design" -->
-**ID**: [x] `p1` - `fdd-fdd-fr-rules-packages`
-<!-- fdd:id:fr -->
+<!-- fdd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+- [x] `p1` - **ID**: `fdd-fdd-fr-rules-packages`
 
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 The system MUST support extensible rules packages that define templates, checklists, and validation rules for artifact types. Each rules package MUST be identified in the adapter registry and MUST contain a `template.md` file with FDD markers for each artifact kind. Rules packages MAY contain `checklist.md` for semantic validation criteria and `rules.md` for generation guidance. The `validate-rules` command MUST validate that rules packages are structurally correct and that templates follow the fdd-template frontmatter specification.
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
 `fdd-fdd-actor-technical-lead`, `fdd-fdd-actor-fdd-tool`, `fdd-fdd-actor-ai-assistant`
 <!-- fdd:id-ref:actor -->
+<!-- fdd:id:fr -->
 <!-- fdd:###:fr-title repeat="many" -->
 
 <!-- fdd:###:fr-title repeat="many" -->
 ### FR-021 Template Quality Assurance
 
-<!-- fdd:id:fr has="priority,task" covered_by="design" -->
-**ID**: [x] `p2` - `fdd-fdd-fr-template-qa`
-<!-- fdd:id:fr -->
+<!-- fdd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+- [x] `p2` - **ID**: `fdd-fdd-fr-template-qa`
 
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 The system MUST provide a `self-check` command that validates example artifacts against their templates. The adapter registry MAY define `templates` entries with `template_path`, `example_path`, and `validation_level` properties. When `validation_level` is `STRICT`, the self-check command MUST validate that the example artifact passes all template validation rules. This ensures that templates and examples remain synchronized and that templates are valid.
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
 `fdd-fdd-actor-technical-lead`, `fdd-fdd-actor-fdd-tool`, `fdd-fdd-actor-documentation-writer`
 <!-- fdd:id-ref:actor -->
+<!-- fdd:id:fr -->
 <!-- fdd:###:fr-title repeat="many" -->
 
 <!-- fdd:###:fr-title repeat="many" -->
 ### FR-022 Cross-Artifact Validation
 
-<!-- fdd:id:fr has="priority,task" covered_by="design" -->
-**ID**: [x] `p1` - `fdd-fdd-fr-cross-artifact-validation`
-<!-- fdd:id:fr -->
+<!-- fdd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+- [x] `p1` - **ID**: `fdd-fdd-fr-cross-artifact-validation`
 
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 The system MUST validate cross-artifact relationships when multiple artifacts are validated together. ID blocks with `covered_by` attributes MUST have at least one reference in artifacts whose template kind matches the covered_by list. All ID references MUST resolve to a definition in some artifact. When a reference is marked as checked (`[x]`), the corresponding definition MUST also be marked as checked. Cross-artifact validation MUST be deterministic and report all consistency violations with line numbers and artifact paths.
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
 `fdd-fdd-actor-fdd-tool`, `fdd-fdd-actor-ci-pipeline`, `fdd-fdd-actor-architect`
 <!-- fdd:id-ref:actor -->
+<!-- fdd:id:fr -->
 <!-- fdd:###:fr-title repeat="many" -->
 
 <!-- fdd:###:fr-title repeat="many" -->
 ### FR-023 Hierarchical System Registry
 
-<!-- fdd:id:fr has="priority,task" covered_by="design" -->
-**ID**: [x] `p2` - `fdd-fdd-fr-hierarchical-registry`
-<!-- fdd:id:fr -->
+<!-- fdd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+- [x] `p2` - **ID**: `fdd-fdd-fr-hierarchical-registry`
 
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 The system MUST support hierarchical organization of systems in the artifacts registry. Each system MUST have a `name`, `rules` reference, and lists of `artifacts` and optional `codebase` entries. Systems MAY have `children` arrays for nested subsystems. Each artifact entry MUST specify `name`, `path`, `kind`, and `traceability` level (`FULL` or `DOCS-ONLY`). Each codebase entry MUST specify `name`, `path`, and `extensions` for code scanning. The `adapter-info` command MUST display the resolved hierarchical structure.
-<!-- fdd:paragraph:fr-summary -->
+<!-- fdd:free:fr-summary -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
 `fdd-fdd-actor-technical-lead`, `fdd-fdd-actor-fdd-tool`, `fdd-fdd-actor-architect`
 <!-- fdd:id-ref:actor -->
+<!-- fdd:id:fr -->
 <!-- fdd:###:fr-title repeat="many" -->
 <!-- fdd:##:frs -->
 
 ---
 
 <!-- fdd:##:usecases -->
-## D. Use Cases
+## 4. Use Cases
 
 <!-- fdd:###:uc-title repeat="many" -->
 ### UC-001 Bootstrap New Project with FDD
 
 <!-- fdd:id:usecase -->
 **ID**: `fdd-fdd-usecase-bootstrap-project`
-<!-- fdd:id:usecase -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
@@ -702,6 +701,7 @@ The system MUST support hierarchical organization of systems in the artifacts re
 <!-- fdd:paragraph:postconditions -->
 **Postconditions**: Project has working FDD adapter, ready for PRD and design workflows
 <!-- fdd:paragraph:postconditions -->
+<!-- fdd:id:usecase -->
 <!-- fdd:###:uc-title repeat="many" -->
 
 ---
@@ -711,7 +711,6 @@ The system MUST support hierarchical organization of systems in the artifacts re
 
 <!-- fdd:id:usecase -->
 **ID**: `fdd-fdd-usecase-create-prd`
-<!-- fdd:id:usecase -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
@@ -738,6 +737,7 @@ The system MUST support hierarchical organization of systems in the artifacts re
 <!-- fdd:paragraph:postconditions -->
 **Postconditions**: Valid PRD exists, project ready for overall design workflow
 <!-- fdd:paragraph:postconditions -->
+<!-- fdd:id:usecase -->
 <!-- fdd:###:uc-title repeat="many" -->
 
 ---
@@ -747,7 +747,6 @@ The system MUST support hierarchical organization of systems in the artifacts re
 
 <!-- fdd:id:usecase -->
 **ID**: `fdd-fdd-usecase-design-feature`
-<!-- fdd:id:usecase -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
@@ -773,6 +772,7 @@ The system MUST support hierarchical organization of systems in the artifacts re
 <!-- fdd:paragraph:postconditions -->
 **Postconditions**: Feature Design validated at 100/100, ready for implementation
 <!-- fdd:paragraph:postconditions -->
+<!-- fdd:id:usecase -->
 <!-- fdd:###:uc-title repeat="many" -->
 
 ---
@@ -782,7 +782,6 @@ The system MUST support hierarchical organization of systems in the artifacts re
 
 <!-- fdd:id:usecase -->
 **ID**: `fdd-fdd-usecase-validate-design`
-<!-- fdd:id:usecase -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
@@ -807,6 +806,7 @@ The system MUST support hierarchical organization of systems in the artifacts re
 <!-- fdd:paragraph:postconditions -->
 **Postconditions**: Validation report shows PASS (≥90/100) or FAIL with actionable issues, Architect fixes issues or proceeds to next workflow
 <!-- fdd:paragraph:postconditions -->
+<!-- fdd:id:usecase -->
 <!-- fdd:###:uc-title repeat="many" -->
 
 ---
@@ -816,7 +816,6 @@ The system MUST support hierarchical organization of systems in the artifacts re
 
 <!-- fdd:id:usecase -->
 **ID**: `fdd-fdd-usecase-trace-requirement`
-<!-- fdd:id:usecase -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
@@ -840,6 +839,7 @@ The system MUST support hierarchical organization of systems in the artifacts re
 <!-- fdd:paragraph:postconditions -->
 **Postconditions**: Developer confirms requirement is fully implemented with proper traceability, or identifies missing implementation
 <!-- fdd:paragraph:postconditions -->
+<!-- fdd:id:usecase -->
 <!-- fdd:###:uc-title repeat="many" -->
 
 ---
@@ -849,7 +849,6 @@ The system MUST support hierarchical organization of systems in the artifacts re
 
 <!-- fdd:id:usecase -->
 **ID**: `fdd-fdd-usecase-update-feature-design`
-<!-- fdd:id:usecase -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
@@ -879,6 +878,7 @@ The system MUST support hierarchical organization of systems in the artifacts re
 <!-- fdd:paragraph:postconditions -->
 **Postconditions**: Feature Design updated with new algorithm, fully validated, ready for implementation
 <!-- fdd:paragraph:postconditions -->
+<!-- fdd:id:usecase -->
 <!-- fdd:###:uc-title repeat="many" -->
 
 ---
@@ -888,7 +888,6 @@ The system MUST support hierarchical organization of systems in the artifacts re
 
 <!-- fdd:id:usecase -->
 **ID**: `fdd-fdd-usecase-plan-implementation`
-<!-- fdd:id:usecase -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
@@ -915,6 +914,7 @@ The system MUST support hierarchical organization of systems in the artifacts re
 <!-- fdd:paragraph:postconditions -->
 **Postconditions**: Feature implemented with traceability where used, and validation indicates completeness
 <!-- fdd:paragraph:postconditions -->
+<!-- fdd:id:usecase -->
 <!-- fdd:###:uc-title repeat="many" -->
 
 ---
@@ -924,7 +924,6 @@ The system MUST support hierarchical organization of systems in the artifacts re
 
 <!-- fdd:id:usecase -->
 **ID**: `fdd-fdd-usecase-validate-implementation`
-<!-- fdd:id:usecase -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
@@ -952,6 +951,7 @@ The system MUST support hierarchical organization of systems in the artifacts re
 <!-- fdd:paragraph:postconditions -->
 **Postconditions**: Validation report shows full traceability or lists missing/incorrect tags, QA Engineer confirms implementation complete or requests fixes
 <!-- fdd:paragraph:postconditions -->
+<!-- fdd:id:usecase -->
 <!-- fdd:###:uc-title repeat="many" -->
 
 ---
@@ -961,7 +961,6 @@ The system MUST support hierarchical organization of systems in the artifacts re
 
 <!-- fdd:id:usecase -->
 **ID**: `fdd-fdd-usecase-auto-generate-adapter`
-<!-- fdd:id:usecase -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
@@ -994,6 +993,7 @@ The system MUST support hierarchical organization of systems in the artifacts re
 <!-- fdd:paragraph:postconditions -->
 **Postconditions**: Adapter with auto-generated specs from existing codebase, validated and ready for FDD workflows
 <!-- fdd:paragraph:postconditions -->
+<!-- fdd:id:usecase -->
 <!-- fdd:###:uc-title repeat="many" -->
 
 ---
@@ -1003,7 +1003,6 @@ The system MUST support hierarchical organization of systems in the artifacts re
 
 <!-- fdd:id:usecase -->
 **ID**: `fdd-fdd-usecase-configure-cicd`
-<!-- fdd:id:usecase -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
@@ -1032,6 +1031,7 @@ The system MUST support hierarchical organization of systems in the artifacts re
 <!-- fdd:paragraph:postconditions -->
 **Postconditions**: CI/CD Pipeline automatically validates all FDD artifacts, prevents invalid designs from being merged
 <!-- fdd:paragraph:postconditions -->
+<!-- fdd:id:usecase -->
 <!-- fdd:###:uc-title repeat="many" -->
 
 ---
@@ -1041,7 +1041,6 @@ The system MUST support hierarchical organization of systems in the artifacts re
 
 <!-- fdd:id:usecase -->
 **ID**: `fdd-fdd-usecase-security-review`
-<!-- fdd:id:usecase -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
@@ -1069,6 +1068,7 @@ The system MUST support hierarchical organization of systems in the artifacts re
 <!-- fdd:paragraph:postconditions -->
 **Postconditions**: Feature design includes comprehensive security requirements, ready for secure implementation
 <!-- fdd:paragraph:postconditions -->
+<!-- fdd:id:usecase -->
 <!-- fdd:###:uc-title repeat="many" -->
 
 ---
@@ -1078,7 +1078,6 @@ The system MUST support hierarchical organization of systems in the artifacts re
 
 <!-- fdd:id:usecase -->
 **ID**: `fdd-fdd-usecase-prd-analysis`
-<!-- fdd:id:usecase -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
@@ -1108,6 +1107,7 @@ The system MUST support hierarchical organization of systems in the artifacts re
 <!-- fdd:paragraph:postconditions -->
 **Postconditions**: Well-structured PRD capturing all stakeholder requirements in FDD format (triggers `fdd-fdd-usecase-create-prd`)
 <!-- fdd:paragraph:postconditions -->
+<!-- fdd:id:usecase -->
 <!-- fdd:###:uc-title repeat="many" -->
 
 ---
@@ -1117,7 +1117,6 @@ The system MUST support hierarchical organization of systems in the artifacts re
 
 <!-- fdd:id:usecase -->
 **ID**: `fdd-fdd-usecase-design-ui`
-<!-- fdd:id:usecase -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
@@ -1147,6 +1146,7 @@ The system MUST support hierarchical organization of systems in the artifacts re
 <!-- fdd:paragraph:postconditions -->
 **Postconditions**: UI mockups fully aligned with feature flows, developers can code UI following both mockups and feature design
 <!-- fdd:paragraph:postconditions -->
+<!-- fdd:id:usecase -->
 <!-- fdd:###:uc-title repeat="many" -->
 
 ---
@@ -1156,7 +1156,6 @@ The system MUST support hierarchical organization of systems in the artifacts re
 
 <!-- fdd:id:usecase -->
 **ID**: `fdd-fdd-usecase-plan-release`
-<!-- fdd:id:usecase -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
@@ -1182,6 +1181,7 @@ The system MUST support hierarchical organization of systems in the artifacts re
 <!-- fdd:paragraph:postconditions -->
 **Postconditions**: Clear visibility into feature progress, automated status tracking, dependency validation, historical metrics for planning
 <!-- fdd:paragraph:postconditions -->
+<!-- fdd:id:usecase -->
 <!-- fdd:###:uc-title repeat="many" -->
 
 ---
@@ -1191,7 +1191,6 @@ The system MUST support hierarchical organization of systems in the artifacts re
 
 <!-- fdd:id:usecase -->
 **ID**: `fdd-fdd-usecase-record-adr`
-<!-- fdd:id:usecase -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
@@ -1218,6 +1217,7 @@ The system MUST support hierarchical organization of systems in the artifacts re
 <!-- fdd:paragraph:postconditions -->
 **Postconditions**: Architecture decision documented with full context, linked to affected design elements, searchable by status and component
 <!-- fdd:paragraph:postconditions -->
+<!-- fdd:id:usecase -->
 <!-- fdd:###:uc-title repeat="many" -->
 
 ---
@@ -1227,7 +1227,6 @@ The system MUST support hierarchical organization of systems in the artifacts re
 
 <!-- fdd:id:usecase -->
 **ID**: `fdd-fdd-usecase-generate-code`
-<!-- fdd:id:usecase -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
@@ -1256,6 +1255,7 @@ The system MUST support hierarchical organization of systems in the artifacts re
 <!-- fdd:paragraph:postconditions -->
 **Postconditions**: Code scaffolding generated with proper structure and traceability tags when enabled, developer can focus on business logic implementation
 <!-- fdd:paragraph:postconditions -->
+<!-- fdd:id:usecase -->
 <!-- fdd:###:uc-title repeat="many" -->
 
 ---
@@ -1265,7 +1265,6 @@ The system MUST support hierarchical organization of systems in the artifacts re
 
 <!-- fdd:id:usecase -->
 **ID**: `fdd-fdd-usecase-ide-navigation`
-<!-- fdd:id:usecase -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
@@ -1295,6 +1294,7 @@ The system MUST support hierarchical organization of systems in the artifacts re
 <!-- fdd:paragraph:postconditions -->
 **Postconditions**: Developer can navigate between design and code instantly, maintain traceability without manual searching
 <!-- fdd:paragraph:postconditions -->
+<!-- fdd:id:usecase -->
 <!-- fdd:###:uc-title repeat="many" -->
 
 ---
@@ -1304,7 +1304,6 @@ The system MUST support hierarchical organization of systems in the artifacts re
 
 <!-- fdd:id:usecase -->
 **ID**: `fdd-fdd-usecase-migrate-project`
-<!-- fdd:id:usecase -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
@@ -1335,6 +1334,7 @@ The system MUST support hierarchical organization of systems in the artifacts re
 <!-- fdd:paragraph:postconditions -->
 **Postconditions**: Legacy project has FDD artifacts documenting current state, team can use FDD workflows for new features while preserving existing code
 <!-- fdd:paragraph:postconditions -->
+<!-- fdd:id:usecase -->
 <!-- fdd:###:uc-title repeat="many" -->
 
 ---
@@ -1344,7 +1344,6 @@ The system MUST support hierarchical organization of systems in the artifacts re
 
 <!-- fdd:id:usecase -->
 **ID**: `fdd-fdd-usecase-track-feature-lifecycle`
-<!-- fdd:id:usecase -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
@@ -1375,6 +1374,7 @@ The system MUST support hierarchical organization of systems in the artifacts re
 <!-- fdd:paragraph:postconditions -->
 **Postconditions**: Clear visibility into feature progress, automated status tracking, dependency validation, historical metrics for planning
 <!-- fdd:paragraph:postconditions -->
+<!-- fdd:id:usecase -->
 <!-- fdd:###:uc-title repeat="many" -->
 
 ---
@@ -1384,7 +1384,6 @@ The system MUST support hierarchical organization of systems in the artifacts re
 
 <!-- fdd:id:usecase -->
 **ID**: `fdd-fdd-usecase-write-fdl-flow`
-<!-- fdd:id:usecase -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
@@ -1414,6 +1413,7 @@ The system MUST support hierarchical organization of systems in the artifacts re
 <!-- fdd:paragraph:postconditions -->
 **Postconditions**: Actor flow documented in plain English readable by all stakeholders, directly translatable to code with instruction-level traceability
 <!-- fdd:paragraph:postconditions -->
+<!-- fdd:id:usecase -->
 <!-- fdd:###:uc-title repeat="many" -->
 
 ---
@@ -1423,7 +1423,6 @@ The system MUST support hierarchical organization of systems in the artifacts re
 
 <!-- fdd:id:usecase -->
 **ID**: `fdd-fdd-usecase-validate-prd`
-<!-- fdd:id:usecase -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
@@ -1452,6 +1451,7 @@ The system MUST support hierarchical organization of systems in the artifacts re
 <!-- fdd:list:alternative-flows -->
 - **Validation fails**: If step 3 reports FAIL, Product Manager reviews issues, edits PRD to fix them, and re-runs validation (loop to step 1)
 <!-- fdd:list:alternative-flows -->
+<!-- fdd:id:usecase -->
 <!-- fdd:###:uc-title repeat="many" -->
 
 ---
@@ -1461,7 +1461,6 @@ The system MUST support hierarchical organization of systems in the artifacts re
 
 <!-- fdd:id:usecase -->
 **ID**: `fdd-fdd-usecase-create-overall-design`
-<!-- fdd:id:usecase -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
@@ -1486,6 +1485,7 @@ The system MUST support hierarchical organization of systems in the artifacts re
 <!-- fdd:paragraph:postconditions -->
 **Postconditions**: Overall Design exists and is deterministically validated
 <!-- fdd:paragraph:postconditions -->
+<!-- fdd:id:usecase -->
 <!-- fdd:###:uc-title repeat="many" -->
 
 ---
@@ -1495,7 +1495,6 @@ The system MUST support hierarchical organization of systems in the artifacts re
 
 <!-- fdd:id:usecase -->
 **ID**: `fdd-fdd-usecase-update-overall-design`
-<!-- fdd:id:usecase -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
@@ -1520,6 +1519,7 @@ The system MUST support hierarchical organization of systems in the artifacts re
 <!-- fdd:paragraph:postconditions -->
 **Postconditions**: Overall Design updated and deterministically validated
 <!-- fdd:paragraph:postconditions -->
+<!-- fdd:id:usecase -->
 <!-- fdd:###:uc-title repeat="many" -->
 
 ---
@@ -1529,7 +1529,6 @@ The system MUST support hierarchical organization of systems in the artifacts re
 
 <!-- fdd:id:usecase -->
 **ID**: `fdd-fdd-usecase-validate-adrs`
-<!-- fdd:id:usecase -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
@@ -1553,6 +1552,7 @@ The system MUST support hierarchical organization of systems in the artifacts re
 <!-- fdd:paragraph:postconditions -->
 **Postconditions**: ADR validation status is known; issues are ready for remediation
 <!-- fdd:paragraph:postconditions -->
+<!-- fdd:id:usecase -->
 <!-- fdd:###:uc-title repeat="many" -->
 
 ---
@@ -1562,7 +1562,6 @@ The system MUST support hierarchical organization of systems in the artifacts re
 
 <!-- fdd:id:usecase -->
 **ID**: `fdd-fdd-usecase-create-feature-manifest`
-<!-- fdd:id:usecase -->
 
 **Actors**:
 <!-- fdd:id-ref:actor -->
@@ -1587,64 +1586,65 @@ The system MUST support hierarchical organization of systems in the artifacts re
 <!-- fdd:paragraph:postconditions -->
 **Postconditions**: Feature Manifest exists and is deterministically validated
 <!-- fdd:paragraph:postconditions -->
+<!-- fdd:id:usecase -->
 <!-- fdd:###:uc-title repeat="many" -->
 <!-- fdd:##:usecases -->
 
 ---
 
 <!-- fdd:##:nfrs -->
-## E. Non-functional requirements
+## 5. Non-functional requirements
 
 <!-- fdd:###:nfr-title repeat="many" -->
 ### Validation performance
 
-<!-- fdd:id:nfr has="priority,task" covered_by="design" -->
-**ID**: [x] `p2` - `fdd-fdd-nfr-validation-performance`
-<!-- fdd:id:nfr -->
+<!-- fdd:id:nfr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+- [x] `p2` - **ID**: `fdd-fdd-nfr-validation-performance`
 
 <!-- fdd:list:nfr-statements -->
 - Deterministic validation SHOULD complete in ≤ 10 seconds for typical repositories (≤ 50k LOC).
 - Validation output MUST be clear and actionable.
 <!-- fdd:list:nfr-statements -->
+<!-- fdd:id:nfr -->
 <!-- fdd:###:nfr-title repeat="many" -->
 
 <!-- fdd:###:nfr-title repeat="many" -->
 ### Security and integrity
 
-<!-- fdd:id:nfr has="priority,task" covered_by="design" -->
-**ID**: [x] `p1` - `fdd-fdd-nfr-security-integrity`
-<!-- fdd:id:nfr -->
+<!-- fdd:id:nfr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+- [x] `p1` - **ID**: `fdd-fdd-nfr-security-integrity`
 
 <!-- fdd:list:nfr-statements -->
 - Validation MUST NOT execute untrusted code from artifacts.
 - Validation MUST produce deterministic results given the same repository state.
 <!-- fdd:list:nfr-statements -->
+<!-- fdd:id:nfr -->
 <!-- fdd:###:nfr-title repeat="many" -->
 
 <!-- fdd:###:nfr-title repeat="many" -->
 ### Reliability and recoverability
 
-<!-- fdd:id:nfr has="priority,task" covered_by="design" -->
-**ID**: [x] `p2` - `fdd-fdd-nfr-reliability-recoverability`
-<!-- fdd:id:nfr -->
+<!-- fdd:id:nfr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+- [x] `p2` - **ID**: `fdd-fdd-nfr-reliability-recoverability`
 
 <!-- fdd:list:nfr-statements -->
 - Validation failures MUST include enough context to remediate without reverse-engineering the validator.
 - The system SHOULD provide actionable guidance for common failure modes (missing sections, invalid IDs, missing cross-references).
 <!-- fdd:list:nfr-statements -->
+<!-- fdd:id:nfr -->
 <!-- fdd:###:nfr-title repeat="many" -->
 
 <!-- fdd:###:nfr-title repeat="many" -->
 ### Adoption and usability
 
-<!-- fdd:id:nfr has="priority,task" covered_by="design" -->
-**ID**: [x] `p2` - `fdd-fdd-nfr-adoption-usability`
-<!-- fdd:id:nfr -->
+<!-- fdd:id:nfr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+- [x] `p2` - **ID**: `fdd-fdd-nfr-adoption-usability`
 
 <!-- fdd:list:nfr-statements -->
 - Workflow instructions SHOULD be executable by a new user without prior FDD context, with ≤ 3 clarifying questions per workflow on average.
 - Documentation SHOULD prioritize discoverability of next steps and prerequisites.
 <!-- fdd:list:nfr-statements -->
+<!-- fdd:id:nfr -->
 <!-- fdd:###:nfr-title repeat="many" -->
 
 <!-- fdd:###:intentional-exclusions -->
@@ -1667,7 +1667,7 @@ The system MUST support hierarchical organization of systems in the artifacts re
 ---
 
 <!-- fdd:##:nongoals -->
-## F. Non-Goals & Risks
+## 6. Non-Goals & Risks
 
 <!-- fdd:###:nongoals-title -->
 ### Non-Goals
@@ -1695,14 +1695,14 @@ The system MUST support hierarchical organization of systems in the artifacts re
 ---
 
 <!-- fdd:##:assumptions -->
-## G. Assumptions & Open Questions
+## 7. Assumptions & Open Questions
 
 <!-- fdd:###:assumptions-title -->
 ### Assumptions
 
 <!-- fdd:list:assumptions -->
 - AI coding assistants (Claude Code, Cursor, etc.) can follow structured markdown workflows with embedded instructions.
-- Developers have access to Python 3.10+ for running the `fdd` CLI tool.
+- Developers have access to Python 3.6+ for running the `fdd` CLI tool.
 - Projects use Git for version control (adapter discovery relies on `.git` directory).
 - Teams are willing to maintain design artifacts as part of their development workflow.
 <!-- fdd:list:assumptions -->
@@ -1720,18 +1720,14 @@ The system MUST support hierarchical organization of systems in the artifacts re
 ---
 
 <!-- fdd:##:context -->
-## H. Additional context
+## 8. Additional context
 
 <!-- fdd:###:context-title repeat="many" -->
 ### Terminology
 
-<!-- fdd:id:prd-context has="task" -->
-**ID**: [ ] - `fdd-fdd-prd-context-terminology`
-<!-- fdd:id:prd-context -->
-
-<!-- fdd:list:prd-context-notes -->
-- This PRD uses "FDD" to mean Flow-Driven Development.
-<!-- fdd:list:prd-context-notes -->
+<!-- fdd:free:prd-context-notes -->
+This PRD uses "FDD" to mean Framework for Documentation and Development.
+<!-- fdd:free:prd-context-notes -->
 <!-- fdd:###:context-title repeat="many" -->
 <!-- fdd:##:context -->
 <!-- fdd:#:prd -->

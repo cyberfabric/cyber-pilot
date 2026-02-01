@@ -1,7 +1,7 @@
 # Code Conventions
 
-**Version**: 1.0  
-**Last Updated**: 2025-01-17  
+**Version**: 2.0
+**Last Updated**: 2026-02-01  
 **Purpose**: Define coding style and conventions for FDD project
 
 ---
@@ -16,18 +16,18 @@ When modifying FDD framework sources (requirements, workflows, AGENTS, and the `
 
 **Requirements and workflows** (`requirements/*.md`, `workflows/*.md`):
 - **MUST** preserve YAML frontmatter and required fields for all FDD spec files.
-- **MUST** keep file naming conventions (requirements: `*-content.md` except adapter, workflows: `kebab-case.md`).
-- **MUST** run deterministic validation using `python3 skills/fdd/scripts/fdd.py validate --artifact .` after edits.
+- **MUST** keep file naming conventions (requirements: `kebab-case.md`, workflows: `kebab-case.md`).
+- **MUST** run deterministic validation using `python3 skills/fdd/scripts/fdd/cli.py validate --artifact .` after edits.
 
 **AGENTS.md files** (`AGENTS.md`, `workflows/AGENTS.md`, `.adapter/AGENTS.md`):
 - **MUST** keep these files navigation-only (no spec duplication).
-- **MUST** keep WHEN clauses workflow-specific (no generic conditions).
-- **MUST** run `python3 skills/fdd/scripts/fdd.py validate --artifact .` after edits.
+- **MUST** keep WHEN clauses rules-based (reference rule IDs and artifact kinds, not workflow names).
+- **MUST** run `python3 skills/fdd/scripts/fdd/cli.py validate --artifact .` after edits.
 
 **Skills / tooling** (`skills/fdd/**`):
 - **MUST** keep runtime Python dependencies standard-library only.
 - **MUST** update `skills/fdd/fdd.clispec` when the CLI surface changes.
-- **MUST** run `python3 skills/fdd/scripts/fdd.py validate --artifact .` after edits.
+- **MUST** run `python3 skills/fdd/scripts/fdd/cli.py validate --artifact .` after edits.
 
 **Validation gates** (Makefile, validators, coverage checks):
 - **MUST NOT** bypass validation gates by weakening thresholds, adding exclusions, or changing checks to avoid failures.
@@ -223,7 +223,7 @@ def test_feature_design_valid():
 ## Source
 
 **Discovered from**:
-- `skills/fdd/scripts/fdd.py` - Main implementation
+- `skills/fdd/scripts/fdd/cli.py` - Main CLI implementation
 - Code analysis (function names, type hints, imports)
 
 ---
