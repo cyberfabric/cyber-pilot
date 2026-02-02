@@ -60,7 +60,7 @@ This document provides:
 - Best-fit use cases for each framework
 - Practical interoperability patterns
 
-## What SDLC `weave` provides
+## What SDLC weaver provides
 
 **Structured Templates** — Templates in spider format for each artifact kind.
 
