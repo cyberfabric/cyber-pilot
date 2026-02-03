@@ -1,4 +1,4 @@
-# @spider-req:spd-spider-feature-init-structure-req-base-file-structure:ph-1
+# @spider-req:spd-spider-feature-init-structure-req-base-file-structure:p1
 """
 Tests for Spider project core structure validation.
 
@@ -32,8 +32,8 @@ except ModuleNotFoundError:  # pragma: no cover
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
-# @spider-test:spd-spider-feature-init-structure-test-directories-exist:ph-1
-# @spider-req:spd-spider-feature-init-structure-req-directory-structure:ph-1
+# @spider-test:spd-spider-feature-init-structure-test-directories-exist:p1
+# @spider-req:spd-spider-feature-init-structure-req-directory-structure:p1
 class TestDirectoriesExist:
     """Validate required directories exist."""
 
@@ -64,7 +64,7 @@ class TestDirectoriesExist:
     # spider-end spd-spider-feature-init-structure-test-directories-exist:ph-1:inst-assert-dirs
 
 
-# @spider-test:spd-spider-feature-init-structure-test-base-structure:ph-1
+# @spider-test:spd-spider-feature-init-structure-test-base-structure:p1
 class TestBaseStructure:
     """Validate base file structure for Spider specification files."""
 
@@ -236,8 +236,8 @@ class TestBaseStructure:
     # spider-end spd-spider-feature-init-structure-test-base-structure:ph-1:inst-assert-base
 
 
-# @spider-test:spd-spider-feature-init-structure-test-requirements-structure:ph-1
-# @spider-req:spd-spider-feature-init-structure-req-requirements-structure:ph-1
+# @spider-test:spd-spider-feature-init-structure-test-requirements-structure:p1
+# @spider-req:spd-spider-feature-init-structure-req-requirements-structure:p1
 class TestRequirementsStructure:
     """Validate requirements files follow structure conventions."""
 
@@ -303,8 +303,8 @@ class TestRequirementsStructure:
     # spider-end spd-spider-feature-init-structure-test-requirements-structure:ph-1:inst-assert-req-valid
 
 
-# @spider-test:spd-spider-feature-init-structure-test-workflow-structure:ph-1
-# @spider-req:spd-spider-feature-init-structure-req-workflow-structure:ph-1
+# @spider-test:spd-spider-feature-init-structure-test-workflow-structure:p1
+# @spider-req:spd-spider-feature-init-structure-req-workflow-structure:p1
 class TestWorkflowStructure:
     """Validate workflow file structure."""
 
@@ -386,8 +386,8 @@ class TestWorkflowStructure:
     # spider-end spd-spider-feature-init-structure-test-workflow-structure:ph-1:inst-assert-workflow-valid
 
 
-# @spider-test:spd-spider-feature-init-structure-test-agents-structure:ph-1
-# @spider-req:spd-spider-feature-init-structure-req-agents-structure:ph-1
+# @spider-test:spd-spider-feature-init-structure-test-agents-structure:p1
+# @spider-req:spd-spider-feature-init-structure-req-agents-structure:p1
 class TestAgentsStructure:
     """Validate AGENTS.md file structure."""
 
@@ -471,8 +471,8 @@ class TestAgentsStructure:
     # spider-end spd-spider-feature-init-structure-test-agents-structure:ph-1:inst-assert-agents-valid
 
 
-# @spider-test:spd-spider-feature-init-structure-test-makefile-targets:ph-1
-# @spider-req:spd-spider-feature-init-structure-req-makefile-structure:ph-1
+# @spider-test:spd-spider-feature-init-structure-test-makefile-targets:p1
+# @spider-req:spd-spider-feature-init-structure-req-makefile-structure:p1
 class TestMakefileTargets:
     """Validate Makefile targets."""
 

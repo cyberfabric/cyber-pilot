@@ -3281,7 +3281,7 @@ spider-template:
     code_dir = root / "src"
     code_dir.mkdir(parents=True)
     (code_dir / "module.py").write_text(
-        "# @spider-flow:spd-test-1:ph-1\ndef test(): pass\n",
+        "# @spider-flow:spd-test-1:p1\ndef test(): pass\n",
         encoding="utf-8"
     )
 
@@ -3340,7 +3340,7 @@ class TestCLIValidateCodeCommand(unittest.TestCase):
 
             # Create a code file with Spider markers
             code_file = root / "test_code.py"
-            code_file.write_text("# @spider-flow:spd-test-1:ph-1\ndef foo(): pass\n", encoding="utf-8")
+            code_file.write_text("# @spider-flow:spd-test-1:p1\ndef foo(): pass\n", encoding="utf-8")
 
             cwd = os.getcwd()
             try:
@@ -3438,7 +3438,7 @@ class TestCLIValidateCodeCommand(unittest.TestCase):
             # Add code file with orphaned marker (ID not in artifacts)
             orphan_file = root / "src" / "orphan.py"
             orphan_file.write_text(
-                "# @spider-flow:spd-unknown-id:ph-1\ndef orphan(): pass\n",
+                "# @spider-flow:spd-unknown-id:p1\ndef orphan(): pass\n",
                 encoding="utf-8"
             )
 
@@ -3528,7 +3528,7 @@ spider-template:
             # Create code with markers
             (root / "src").mkdir(parents=True)
             (root / "src" / "module.py").write_text(
-                "# @spider-flow:spd-test-1:ph-1\ndef test(): pass\n",
+                "# @spider-flow:spd-test-1:p1\ndef test(): pass\n",
                 encoding="utf-8"
             )
 
@@ -3627,7 +3627,7 @@ class TestCLIGetContentCodeFile(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             code_file = Path(tmpdir) / "test.py"
             code_file.write_text(
-                "# @spider-flow:spd-test-flow-login:ph-1\ndef login(): pass\n",
+                "# @spider-flow:spd-test-flow-login:p1\ndef login(): pass\n",
                 encoding="utf-8"
             )
 
@@ -3656,9 +3656,9 @@ class TestCLIGetContentCodeFile(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             code_file = Path(tmpdir) / "test.py"
             code_file.write_text(
-                "# @spider-begin:spd-test-flow-login:ph-1:inst-validate\n"
+                "# @spider-begin:spd-test-flow-login:p1:inst-validate\n"
                 "def validate(): return True\n"
-                "# @spider-end:spd-test-flow-login:ph-1:inst-validate\n",
+                "# @spider-end:spd-test-flow-login:p1:inst-validate\n",
                 encoding="utf-8"
             )
 
@@ -3735,7 +3735,7 @@ spider-template:
             code_dir = root / "src"
             code_dir.mkdir(parents=True)
             (code_dir / "module.py").write_text(
-                "# @spider-flow:spd-test-flow-test:ph-1\ndef test(): pass\n",
+                "# @spider-flow:spd-test-flow-test:p1\ndef test(): pass\n",
                 encoding="utf-8"
             )
 

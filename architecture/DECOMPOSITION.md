@@ -1,5 +1,5 @@
-<!-- spd:#:features -->
-# Features: Spider
+<!-- spd:#:decomposition -->
+# Decomposition: Spider
 
 <!-- spd:##:overview -->
 ## 1. Overview
@@ -494,4 +494,4 @@ Spider features are organized around **architectural components** with explicit 
 
 <!-- spd:id:status -->
 <!-- spd:##:entries -->
-<!-- spd:#:features -->
+<!-- spd:#:decomposition -->

@@ -15,11 +15,11 @@ from spider.utils.codebase import (
 
 
 class TestScopeMarkerParsing:
-    """Test parsing of scope markers like @spider-flow:{id}:ph-{N}."""
+    """Test parsing of scope markers like @spider-flow:{id}:p{N}."""
 
     def test_parse_flow_marker(self, tmp_path: Path):
         code = dedent("""
-            # @spider-flow:spd-myapp-feature-auth-flow-login:ph-1
+            # @spider-flow:spd-myapp-feature-auth-flow-login:p1
             def login_flow(request):
                 pass
         """)
@@ -36,7 +36,7 @@ class TestScopeMarkerParsing:
 
     def test_parse_algo_marker(self, tmp_path: Path):
         code = dedent("""
-            // @spider-algo:spd-myapp-feature-search-algo-rank:ph-2
+            // @spider-algo:spd-myapp-feature-search-algo-rank:p2
             function rankResults(items) {
                 return items;
             }
@@ -53,15 +53,15 @@ class TestScopeMarkerParsing:
 
     def test_parse_multiple_markers(self, tmp_path: Path):
         code = dedent("""
-            # @spider-req:spd-myapp-feature-auth-req-validate:ph-1
+            # @spider-req:spd-myapp-feature-auth-req-validate:p1
             def validate_input(data):
                 pass
 
-            # @spider-flow:spd-myapp-feature-auth-flow-login:ph-1
+            # @spider-flow:spd-myapp-feature-auth-flow-login:p1
             def login(request):
                 pass
 
-            # @spider-test:spd-myapp-feature-auth-test-login:ph-3
+            # @spider-test:spd-myapp-feature-auth-test-login:p3
             def test_login():
                 pass
         """)
@@ -82,12 +82,12 @@ class TestBlockMarkerParsing:
 
     def test_parse_block_marker(self, tmp_path: Path):
         code = dedent("""
-            # @spider-begin:spd-myapp-feature-auth-flow-login:ph-1:inst-validate-creds
+            # @spider-begin:spd-myapp-feature-auth-flow-login:p1:inst-validate-creds
             def validate_credentials(username, password):
                 if not username or not password:
                     raise ValidationError("Missing credentials")
                 return authenticate(username, password)
-            # @spider-end:spd-myapp-feature-auth-flow-login:ph-1:inst-validate-creds
+            # @spider-end:spd-myapp-feature-auth-flow-login:p1:inst-validate-creds
         """)
         code_file = tmp_path / "auth.py"
         code_file.write_text(code)
@@ -102,7 +102,7 @@ class TestBlockMarkerParsing:
 
     def test_unclosed_block_error(self, tmp_path: Path):
         code = dedent("""
-            # @spider-begin:spd-myapp-feature-auth-flow-login:ph-1:inst-validate
+            # @spider-begin:spd-myapp-feature-auth-flow-login:p1:inst-validate
             def validate():
                 pass
             # missing @spider-end
@@ -118,7 +118,7 @@ class TestBlockMarkerParsing:
         code = dedent("""
             def validate():
                 pass
-            # @spider-end:spd-myapp-feature-auth-flow-login:ph-1:inst-validate
+            # @spider-end:spd-myapp-feature-auth-flow-login:p1:inst-validate
         """)
         code_file = tmp_path / "auth.py"
         code_file.write_text(code)
@@ -129,8 +129,8 @@ class TestBlockMarkerParsing:
 
     def test_empty_block_error(self, tmp_path: Path):
         code = dedent("""
-            # @spider-begin:spd-myapp-feature-auth-flow-login:ph-1:inst-validate
-            # @spider-end:spd-myapp-feature-auth-flow-login:ph-1:inst-validate
+            # @spider-begin:spd-myapp-feature-auth-flow-login:p1:inst-validate
+            # @spider-end:spd-myapp-feature-auth-flow-login:p1:inst-validate
         """)
         code_file = tmp_path / "auth.py"
         code_file.write_text(code)
@@ -145,14 +145,14 @@ class TestCodeFileInterface:
 
     def test_list_ids(self, tmp_path: Path):
         code = dedent("""
-            # @spider-flow:spd-myapp-feature-auth-flow-login:ph-1
+            # @spider-flow:spd-myapp-feature-auth-flow-login:p1
             def login():
                 pass
 
-            # @spider-begin:spd-myapp-feature-auth-flow-login:ph-1:inst-validate
+            # @spider-begin:spd-myapp-feature-auth-flow-login:p1:inst-validate
             def validate():
                 pass
-            # @spider-end:spd-myapp-feature-auth-flow-login:ph-1:inst-validate
+            # @spider-end:spd-myapp-feature-auth-flow-login:p1:inst-validate
         """)
         code_file = tmp_path / "auth.py"
         code_file.write_text(code)
@@ -163,7 +163,7 @@ class TestCodeFileInterface:
 
     def test_list_refs_same_as_list_ids(self, tmp_path: Path):
         code = dedent("""
-            # @spider-flow:spd-myapp-feature-auth-flow-login:ph-1
+            # @spider-flow:spd-myapp-feature-auth-flow-login:p1
             def login():
                 pass
         """)
@@ -176,7 +176,7 @@ class TestCodeFileInterface:
     def test_list_defined_empty(self, tmp_path: Path):
         """Code files don't define IDs, only reference them."""
         code = dedent("""
-            # @spider-flow:spd-myapp-feature-auth-flow-login:ph-1
+            # @spider-flow:spd-myapp-feature-auth-flow-login:p1
             def login():
                 pass
         """)
@@ -188,10 +188,10 @@ class TestCodeFileInterface:
 
     def test_get_content(self, tmp_path: Path):
         code = dedent("""
-            # @spider-begin:spd-myapp-feature-auth-flow-login:ph-1:inst-validate
+            # @spider-begin:spd-myapp-feature-auth-flow-login:p1:inst-validate
             def validate():
                 return True
-            # @spider-end:spd-myapp-feature-auth-flow-login:ph-1:inst-validate
+            # @spider-end:spd-myapp-feature-auth-flow-login:p1:inst-validate
         """)
         code_file = tmp_path / "auth.py"
         code_file.write_text(code)
@@ -203,15 +203,15 @@ class TestCodeFileInterface:
 
     def test_get_by_inst(self, tmp_path: Path):
         code = dedent("""
-            # @spider-begin:spd-myapp-feature-auth-flow-login:ph-1:inst-validate
+            # @spider-begin:spd-myapp-feature-auth-flow-login:p1:inst-validate
             def validate():
                 return True
-            # @spider-end:spd-myapp-feature-auth-flow-login:ph-1:inst-validate
+            # @spider-end:spd-myapp-feature-auth-flow-login:p1:inst-validate
 
-            # @spider-begin:spd-myapp-feature-auth-flow-login:ph-1:inst-authenticate
+            # @spider-begin:spd-myapp-feature-auth-flow-login:p1:inst-authenticate
             def authenticate():
                 return True
-            # @spider-end:spd-myapp-feature-auth-flow-login:ph-1:inst-authenticate
+            # @spider-end:spd-myapp-feature-auth-flow-login:p1:inst-authenticate
         """)
         code_file = tmp_path / "auth.py"
         code_file.write_text(code)
@@ -231,7 +231,7 @@ class TestCrossValidation:
 
     def test_orphaned_marker_error(self, tmp_path: Path):
         code = dedent("""
-            # @spider-flow:spd-myapp-feature-unknown-flow-missing:ph-1
+            # @spider-flow:spd-myapp-feature-unknown-flow-missing:p1
             def unknown():
                 pass
         """)
@@ -248,7 +248,7 @@ class TestCrossValidation:
 
     def test_missing_coverage_error(self, tmp_path: Path):
         code = dedent("""
-            # @spider-flow:spd-myapp-feature-auth-flow-login:ph-1
+            # @spider-flow:spd-myapp-feature-auth-flow-login:p1
             def login():
                 pass
         """)
@@ -267,7 +267,7 @@ class TestCrossValidation:
 
     def test_docs_only_prohibits_markers(self, tmp_path: Path):
         code = dedent("""
-            # @spider-flow:spd-myapp-feature-auth-flow-login:ph-1
+            # @spider-flow:spd-myapp-feature-auth-flow-login:p1
             def login():
                 pass
         """)
@@ -281,7 +281,7 @@ class TestCrossValidation:
 
     def test_full_traceability_pass(self, tmp_path: Path):
         code = dedent("""
-            # @spider-flow:spd-myapp-feature-auth-flow-login:ph-1
+            # @spider-flow:spd-myapp-feature-auth-flow-login:p1
             def login():
                 pass
         """)
@@ -315,7 +315,7 @@ class TestScanDirectory:
 
     def test_scan_files_with_markers(self, tmp_path: Path):
         from spider.utils.codebase import scan_directory
-        code = "# @spider-flow:spd-myapp-flow-test:ph-1\ndef foo():\n    pass\n"
+        code = "# @spider-flow:spd-myapp-flow-test:p1\ndef foo():\n    pass\n"
         (tmp_path / "module.py").write_text(code)
 
         result = scan_directory(tmp_path)
@@ -324,8 +324,8 @@ class TestScanDirectory:
 
     def test_scan_with_extension_filter(self, tmp_path: Path):
         from spider.utils.codebase import scan_directory
-        py_code = "# @spider-flow:spd-myapp-flow-py:ph-1\ndef foo(): pass\n"
-        js_code = "// @spider-flow:spd-myapp-flow-js:ph-1\nfunction foo() {}\n"
+        py_code = "# @spider-flow:spd-myapp-flow-py:p1\ndef foo(): pass\n"
+        js_code = "// @spider-flow:spd-myapp-flow-js:p1\nfunction foo() {}\n"
 
         (tmp_path / "module.py").write_text(py_code)
         (tmp_path / "script.js").write_text(js_code)
@@ -338,7 +338,7 @@ class TestScanDirectory:
         from spider.utils.codebase import scan_directory
         subdir = tmp_path / "subdir"
         subdir.mkdir()
-        code = "# @spider-flow:spd-myapp-flow-nested:ph-1\ndef foo(): pass\n"
+        code = "# @spider-flow:spd-myapp-flow-nested:p1\ndef foo(): pass\n"
         (subdir / "nested.py").write_text(code)
 
         result = scan_directory(tmp_path, recursive=True)
@@ -349,7 +349,7 @@ class TestScanDirectory:
         from spider.utils.codebase import scan_directory
         subdir = tmp_path / "subdir"
         subdir.mkdir()
-        code = "# @spider-flow:spd-myapp-flow-nested:ph-1\ndef foo(): pass\n"
+        code = "# @spider-flow:spd-myapp-flow-nested:p1\ndef foo(): pass\n"
         (subdir / "nested.py").write_text(code)
 
         result = scan_directory(tmp_path, recursive=False)
@@ -361,7 +361,7 @@ class TestLoadCodeFile:
     """Test load_code_file wrapper function."""
 
     def test_load_existing_file(self, tmp_path: Path):
-        code = "# @spider-flow:spd-myapp-flow-test:ph-1\ndef foo(): pass\n"
+        code = "# @spider-flow:spd-myapp-flow-test:p1\ndef foo(): pass\n"
         code_file = tmp_path / "test.py"
         code_file.write_text(code)
 
@@ -381,7 +381,7 @@ class TestValidateCodeFile:
     """Test validate_code_file wrapper function."""
 
     def test_validate_valid_file(self, tmp_path: Path):
-        code = "# @spider-flow:spd-myapp-flow-test:ph-1\ndef foo(): pass\n"
+        code = "# @spider-flow:spd-myapp-flow-test:p1\ndef foo(): pass\n"
         code_file = tmp_path / "test.py"
         code_file.write_text(code)
 
@@ -390,7 +390,7 @@ class TestValidateCodeFile:
         assert result["warnings"] == []
 
     def test_validate_file_with_errors(self, tmp_path: Path):
-        code = "# @spider-begin:spd-myapp-flow-test:ph-1:inst-foo\n# missing end\n"
+        code = "# @spider-begin:spd-myapp-flow-test:p1:inst-foo\n# missing end\n"
         code_file = tmp_path / "test.py"
         code_file.write_text(code)
 
@@ -409,13 +409,13 @@ class TestCodeFileList:
 
     def test_list_multiple_ids(self, tmp_path: Path):
         code = dedent("""
-            # @spider-begin:spd-myapp-flow-a:ph-1:inst-a
+            # @spider-begin:spd-myapp-flow-a:p1:inst-a
             def a(): pass
-            # @spider-end:spd-myapp-flow-a:ph-1:inst-a
+            # @spider-end:spd-myapp-flow-a:p1:inst-a
 
-            # @spider-begin:spd-myapp-flow-b:ph-1:inst-b
+            # @spider-begin:spd-myapp-flow-b:p1:inst-b
             def b(): pass
-            # @spider-end:spd-myapp-flow-b:ph-1:inst-b
+            # @spider-end:spd-myapp-flow-b:p1:inst-b
         """)
         code_file = tmp_path / "test.py"
         code_file.write_text(code)
@@ -433,7 +433,7 @@ class TestCodeFileGetScopeMarker:
     """Test getting content from scope markers (not just blocks)."""
 
     def test_get_scope_marker_content(self, tmp_path: Path):
-        code = "# @spider-flow:spd-myapp-flow-test:ph-1\ndef foo(): pass\n"
+        code = "# @spider-flow:spd-myapp-flow-test:p1\ndef foo(): pass\n"
         code_file = tmp_path / "test.py"
         code_file.write_text(code)
 
@@ -467,10 +467,10 @@ class TestDuplicateMarkerWarnings:
 
     def test_duplicate_scope_marker_warning(self, tmp_path: Path):
         code = dedent("""
-            # @spider-flow:spd-myapp-flow-test:ph-1
+            # @spider-flow:spd-myapp-flow-test:p1
             def foo(): pass
 
-            # @spider-flow:spd-myapp-flow-test:ph-1
+            # @spider-flow:spd-myapp-flow-test:p1
             def bar(): pass
         """)
         code_file = tmp_path / "test.py"
@@ -485,11 +485,11 @@ class TestDuplicateMarkerWarnings:
 
     def test_duplicate_begin_without_end(self, tmp_path: Path):
         code = dedent("""
-            # @spider-begin:spd-myapp-flow-test:ph-1:inst-foo
+            # @spider-begin:spd-myapp-flow-test:p1:inst-foo
             def foo(): pass
-            # @spider-begin:spd-myapp-flow-test:ph-1:inst-foo
+            # @spider-begin:spd-myapp-flow-test:p1:inst-foo
             def bar(): pass
-            # @spider-end:spd-myapp-flow-test:ph-1:inst-foo
+            # @spider-end:spd-myapp-flow-test:p1:inst-foo
         """)
         code_file = tmp_path / "test.py"
         code_file.write_text(code)
@@ -503,7 +503,7 @@ class TestStateMarker:
     """Test state marker kind parsing."""
 
     def test_parse_state_marker(self, tmp_path: Path):
-        code = "# @spider-state:spd-myapp-state-auth:ph-1\nauth_state = {}\n"
+        code = "# @spider-state:spd-myapp-state-auth:p1\nauth_state = {}\n"
         code_file = tmp_path / "state.py"
         code_file.write_text(code)
 
@@ -517,7 +517,7 @@ class TestCodeFileLoad:
     """Test CodeFile.load() method edge cases."""
 
     def test_already_loaded(self, tmp_path: Path):
-        code = "# @spider-flow:spd-myapp-flow-test:ph-1\ndef foo(): pass\n"
+        code = "# @spider-flow:spd-myapp-flow-test:p1\ndef foo(): pass\n"
         code_file = tmp_path / "test.py"
         code_file.write_text(code)
 
@@ -549,8 +549,8 @@ class TestCrossValidationEdgeCases:
         assert result["errors"][0]["type"] == "coverage"
 
     def test_multiple_code_files(self, tmp_path: Path):
-        code1 = "# @spider-flow:spd-myapp-flow-a:ph-1\ndef a(): pass\n"
-        code2 = "# @spider-flow:spd-myapp-flow-b:ph-1\ndef b(): pass\n"
+        code1 = "# @spider-flow:spd-myapp-flow-a:p1\ndef a(): pass\n"
+        code2 = "# @spider-flow:spd-myapp-flow-b:p1\ndef b(): pass\n"
 
         (tmp_path / "a.py").write_text(code1)
         (tmp_path / "b.py").write_text(code2)

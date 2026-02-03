@@ -4,8 +4,8 @@ This module provides a deterministic, stdlib-only parser for code files with
 Spider traceability markers. Similar interface to template.py but for code.
 
 Marker types supported:
-- Scope markers: @spd-{kind}:{id}:ph-{N}
-- Block markers: @spider-begin:{id}:ph-{N}:inst-{local} / @spider-end:...
+- Scope markers: @spider-{kind}:{id}:p{N}
+- Block markers: @spider-begin:{id}:p{N}:inst-{local} / @spider-end:...
 
 Key difference from artifacts: code can only REFERENCE IDs (not define them).
 IDs in code that don't exist in artifacts = validation FAIL.
@@ -17,20 +17,20 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Set, Tuple
 
-# Scope marker: @spd-{kind}:{full-id}:ph-{N}
-# Kinds: flow, algo, state, req, test
+# Scope marker: @spider-{kind}:{full-id}:p{N}
+# {kind} is weaver-defined; parser accepts any lowercase slug.
 _SCOPE_MARKER_RE = re.compile(
-    r"@spider-(?P<kind>flow|algo|state|req|test):(?P<id>spd-[a-z0-9][a-z0-9-]+):ph-(?P<phase>\d+)"
+    r"@spider-(?P<kind>[a-z][a-z0-9-]*):(?P<id>spd-[a-z0-9][a-z0-9-]+):(?:p|ph-)(?P<phase>\d+)"
 )
 
 # Block begin marker: @spider-begin:{full-id}:ph-{N}:inst-{local}
 _BLOCK_BEGIN_RE = re.compile(
-    r"@spider-begin:(?P<id>spd-[a-z0-9][a-z0-9-]+):ph-(?P<phase>\d+):inst-(?P<inst>[a-z0-9-]+)"
+    r"@spider-begin:(?P<id>spd-[a-z0-9][a-z0-9-]+):(?:p|ph-)(?P<phase>\d+):inst-(?P<inst>[a-z0-9-]+)"
 )
 
 # Block end marker: @spider-end:{full-id}:ph-{N}:inst-{local}
 _BLOCK_END_RE = re.compile(
-    r"@spider-end:(?P<id>spd-[a-z0-9][a-z0-9-]+):ph-(?P<phase>\d+):inst-(?P<inst>[a-z0-9-]+)"
+    r"@spider-end:(?P<id>spd-[a-z0-9][a-z0-9-]+):(?:p|ph-)(?P<phase>\d+):inst-(?P<inst>[a-z0-9-]+)"
 )
 
 # Generic SID reference (backticked or in markers)
@@ -186,7 +186,7 @@ def error(kind: str, message: str, *, path: Path, line: int = 1, **extra) -> Dic
 
 @dataclass(frozen=True)
 class ScopeMarker:
-    """A scope marker like @spider-flow:{id}:ph-{N}."""
+    """A scope marker like @spider-flow:{id}:p{N}."""
     kind: str  # flow, algo, state, req, test
     id: str  # full Spider ID
     phase: int
@@ -196,7 +196,7 @@ class ScopeMarker:
 
 @dataclass(frozen=True)
 class BlockMarker:
-    """A block marker pair @spider-begin/end:{id}:ph-{N}:inst-{local}."""
+    """A block marker pair @spider-begin/end:{id}:p{N}:inst-{local}."""
     id: str  # full Spider ID
     phase: int
     inst: str  # instruction slug
@@ -285,7 +285,7 @@ class CodeFile:
 
             # Check for block begin markers
             for m in _BLOCK_BEGIN_RE.finditer(line):
-                key = f"{m.group('id')}:ph-{m.group('phase')}:inst-{m.group('inst')}"
+                key = f"{m.group('id')}:{m.group('phase')}:{m.group('inst')}"
                 if key in open_blocks:
                     self._errors.append(error(
                         "marker",
@@ -300,7 +300,7 @@ class CodeFile:
 
             # Check for block end markers
             for m in _BLOCK_END_RE.finditer(line):
-                key = f"{m.group('id')}:ph-{m.group('phase')}:inst-{m.group('inst')}"
+                key = f"{m.group('id')}:{m.group('phase')}:{m.group('inst')}"
                 if key not in open_blocks:
                     self._errors.append(error(
                         "marker",
@@ -407,7 +407,7 @@ class CodeFile:
         # Check for duplicate scope markers with same ID
         seen_scopes: Dict[str, int] = {}
         for scope in self.scope_markers:
-            key = f"{scope.kind}:{scope.id}:ph-{scope.phase}"
+            key = f"{scope.kind}:{scope.id}:{scope.phase}"
             if key in seen_scopes:
                 warnings.append(error(
                     "marker",

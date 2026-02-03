@@ -1,4 +1,4 @@
-# @spider-algo:spd-spider-feature-init-structure-change-infrastructure:ph-1
+# @spider-algo:spd-spider-feature-init-structure-change-infrastructure:p1
 .PHONY: test test-verbose test-quick test-coverage validate validate-examples validate-feature validate-code validate-code-feature self-check vulture vulture-ci install install-pipx clean help check-pytest check-pytest-cov check-pipx check-vulture
 
 PYTHON ?= python3

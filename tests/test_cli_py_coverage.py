@@ -222,7 +222,7 @@ class TestCLIPyCoverageValidateCode(unittest.TestCase):
             src.mkdir(parents=True, exist_ok=True)
             code_file = src / "code.py"
             code_file.write_text(
-                "# @spider-req:spd-req-1:ph-1\n"
+                "# @spider-req:spd-req-1:p1\n"
                 "print('ok')\n",
                 encoding="utf-8",
             )

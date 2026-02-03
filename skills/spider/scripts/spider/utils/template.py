@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
-SUPPORTED_VERSION = {"major": 1, "minor": 0}
+SUPPORTED_VERSION = {"major": 2, "minor": 0}
 
 _MARKER_RE = re.compile(r"<!--\s*spd:(?:(?P<type>[^:\s>]+):)?(?P<name>[^>\s]+)(?P<attrs>[^>]*)-->")
 _ATTR_RE = re.compile(r'([a-zA-Z0-9_-]+)\s*=\s*"([^"]*)"')

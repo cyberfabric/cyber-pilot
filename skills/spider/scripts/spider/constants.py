@@ -43,14 +43,14 @@ FDL_SCOPE_ID_RE = re.compile(
 # === CODE TRACEABILITY PATTERNS ===
 
 # @spider-* tags in code comments
-Spider_TAG_FLOW_RE = re.compile(r"@spider-flow:(spd-[a-z0-9-]+):ph-(\d+)")
-Spider_TAG_ALGO_RE = re.compile(r"@spider-algo:(spd-[a-z0-9-]+):ph-(\d+)")
-Spider_TAG_STATE_RE = re.compile(r"@spider-state:(spd-[a-z0-9-]+):ph-(\d+)")
-Spider_TAG_REQ_RE = re.compile(r"@spider-req:(spd-[a-z0-9-]+):ph-(\d+)")
-Spider_TAG_TEST_RE = re.compile(r"@spider-test:(spd-[a-z0-9-]+):ph-(\d+)")
+Spider_TAG_FLOW_RE = re.compile(r"@spider-flow:(spd-[a-z0-9-]+):(?:p|ph-)(\d+)")
+Spider_TAG_ALGO_RE = re.compile(r"@spider-algo:(spd-[a-z0-9-]+):(?:p|ph-)(\d+)")
+Spider_TAG_STATE_RE = re.compile(r"@spider-state:(spd-[a-z0-9-]+):(?:p|ph-)(\d+)")
+Spider_TAG_REQ_RE = re.compile(r"@spider-req:(spd-[a-z0-9-]+):(?:p|ph-)(\d+)")
+Spider_TAG_TEST_RE = re.compile(r"@spider-test:(spd-[a-z0-9-]+):(?:p|ph-)(\d+)")
 
 # Unwrapped instruction tags (should be wrapped in spider-begin/spider-end)
-UNWRAPPED_INST_TAG_RE = re.compile(r"(spd-[a-z0-9-]+(?:-[a-z0-9-]+)*:ph-\d+:inst-[a-z0-9-]+)")
+UNWRAPPED_INST_TAG_RE = re.compile(r"(spd-[a-z0-9-]+(?:-[a-z0-9-]+)*:(?:p\d+|ph-\d+):inst-[a-z0-9-]+)")
 
 # === SCOPE ID PATTERNS BY KIND ===
 
