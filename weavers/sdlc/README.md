@@ -27,7 +27,7 @@ The LLM reads the upstream artifact, understands its intent, and generates a dow
 ---
 ## 🚀 Quick Start
 
-**New to** **Spider SDLC**? Start here: **[QUICKSTART.md](../../QUICKSTART.md)**
+**New to** **Spider SDLC**? Start here: **[QUICKSTART.md](guides/QUICKSTART.md)**
 
 Learn **Spider** in 10 minutes with:
 - **Exact prompts to copy-paste** into your AI chat
