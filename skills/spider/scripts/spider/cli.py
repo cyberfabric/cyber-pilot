@@ -29,7 +29,6 @@ from .utils.template import (
 )
 from .utils.codebase import (
     CodeFile,
-    scan_directory as scan_code_directory,
     cross_validate_code,
 )
 
@@ -2214,11 +2213,6 @@ def _cmd_validate_weavers(argv: List[str]) -> int:
     return 0 if overall_status == "PASS" else 2
 
 
-def _cmd_validate_rules(argv: List[str]) -> int:
-    """Backward-compatible alias for validate-weavers."""
-    return _cmd_validate_weavers(argv)
-
-
 # =============================================================================
 # ADAPTER COMMAND
 # =============================================================================
@@ -2346,6 +2340,23 @@ def main(argv: Optional[List[str]] = None) -> int:
         "agents",
     ]
     all_commands = validation_commands + search_commands
+
+    # Handle --help / -h at top level
+    if argv_list and argv_list[0] in ("-h", "--help"):
+        print("usage: spider <command> [options]")
+        print()
+        print("Spider CLI - artifact validation and traceability tool")
+        print()
+        print("Validation commands:")
+        for c in validation_commands:
+            print(f"  {c}")
+        print()
+        print("Search and utility commands:")
+        for c in search_commands:
+            print(f"  {c}")
+        print()
+        print("Run 'spider <command> --help' for command-specific options.")
+        return 0
 
     if not argv_list:
         print(json.dumps({

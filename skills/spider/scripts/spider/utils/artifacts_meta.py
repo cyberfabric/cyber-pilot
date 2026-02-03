@@ -37,16 +37,6 @@ class Weaver:
         # Path pattern: {path}/artifacts/{KIND}/template.md
         return f"{self.path.rstrip('/')}/artifacts/{kind}/template.md"
 
-    def get_checklist_path(self, kind: str) -> str:
-        """Get checklist file path for a given artifact kind."""
-        # Path pattern: {path}/artifacts/{KIND}/checklist.md
-        return f"{self.path.rstrip('/')}/artifacts/{kind}/checklist.md"
-
-    def get_example_path(self, kind: str) -> str:
-        """Get example file path for a given artifact kind."""
-        # Path pattern: {path}/artifacts/{KIND}/examples/example.md
-        return f"{self.path.rstrip('/')}/artifacts/{kind}/examples/example.md"
-
 
 @dataclass
 class Artifact:
@@ -254,22 +244,6 @@ class ArtifactsMeta:
 
         for system in self.systems:
             yield from _iter_system(system)
-
-    # === Resolution Methods ===
-
-    def resolve_template_path(self, template_path: str, base_dir: Path) -> Path:
-        """Resolve template path relative to project root."""
-        project_root_path = (base_dir / self.project_root).resolve()
-        return (project_root_path / template_path).resolve()
-
-    # === Template Resolution for Artifacts ===
-
-    def get_template_for_artifact(self, artifact: Artifact, system: SystemNode) -> Optional[str]:
-        """Get the template path for an artifact based on its system's weaver."""
-        weaver = self.weavers.get(system.weaver)
-        if weaver is None:
-            return None
-        return weaver.get_template_path(artifact.kind)
 
     def iter_all_system_names(self) -> Iterator[str]:
         """Iterate over all system names in the registry (including nested children)."""

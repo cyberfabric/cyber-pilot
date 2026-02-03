@@ -2,9 +2,8 @@
 Tests for SpiderContext and related functions.
 
 Tests cover:
-- SpiderContext methods: get_template, get_all_templates, get_template_for_kind, get_all_kinds
+- SpiderContext methods: get_template, get_template_for_kind, get_known_id_kinds
 - Global context functions: get_context, set_context, ensure_context
-- Load errors property
 """
 
 import sys
@@ -104,15 +103,6 @@ class TestSpiderContextMethods:
         result = ctx.get_template("spider-sdlc", "NONEXISTENT")
         assert result is None
 
-    def test_get_all_templates(self):
-        """get_all_templates returns all templates from all weavers."""
-        ctx = self._make_context()
-        all_tmpls = ctx.get_all_templates()
-        assert len(all_tmpls) == 3  # PRD, DESIGN, FEATURE
-        assert "PRD" in all_tmpls
-        assert "DESIGN" in all_tmpls
-        assert "FEATURE" in all_tmpls
-
     def test_get_template_for_kind_found(self):
         """get_template_for_kind finds template from any weaver."""
         ctx = self._make_context()
@@ -127,23 +117,12 @@ class TestSpiderContextMethods:
         result = ctx.get_template_for_kind("NONEXISTENT")
         assert result is None
 
-    def test_get_all_kinds(self):
-        """get_all_kinds returns lowercase set of all artifact kinds."""
-        ctx = self._make_context()
-        kinds = ctx.get_all_kinds()
-        assert kinds == {"prd", "design", "feature"}
-
     def test_get_known_id_kinds(self):
         """get_known_id_kinds extracts id kinds from template markers."""
         ctx = self._make_context()
         id_kinds = ctx.get_known_id_kinds()
         # PRD has fr, actor; DESIGN has component, seq; FEATURE has flow, algo
         assert id_kinds == {"fr", "actor", "component", "seq", "flow", "algo"}
-
-    def test_load_errors(self):
-        """load_errors returns errors collected during loading."""
-        ctx = self._make_context()
-        assert ctx.load_errors == ["error1", "error2"]
 
 
 class TestGlobalContextFunctions:

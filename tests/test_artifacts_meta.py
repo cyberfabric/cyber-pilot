@@ -39,14 +39,6 @@ class TestWeaver(unittest.TestCase):
         self.assertEqual(weaver.get_template_path("PRD"), "weavers/sdlc/artifacts/PRD/template.md")
         self.assertEqual(weaver.get_template_path("UNKNOWN"), "weavers/sdlc/artifacts/UNKNOWN/template.md")
 
-    def test_weaver_get_checklist_path(self):
-        weaver = Weaver("id", "Spider", "weavers/sdlc")
-        self.assertEqual(weaver.get_checklist_path("PRD"), "weavers/sdlc/artifacts/PRD/checklist.md")
-
-    def test_weaver_get_example_path(self):
-        weaver = Weaver("id", "Spider", "weavers/sdlc")
-        self.assertEqual(weaver.get_example_path("PRD"), "weavers/sdlc/artifacts/PRD/examples/example.md")
-
 
 class TestArtifact(unittest.TestCase):
     def test_artifact_from_dict(self):
@@ -180,39 +172,6 @@ class TestArtifactsMeta(unittest.TestCase):
         meta = ArtifactsMeta.from_dict(data)
         result = meta.get_artifact_by_path("PRD.md")
         self.assertIsNotNone(result)
-
-    def test_resolve_template_path(self):
-        """Cover lines 252-253: resolve_template_path method."""
-        data = {"version": "1.0", "project_root": "..", "weavers": {}, "systems": []}
-        meta = ArtifactsMeta.from_dict(data)
-        with TemporaryDirectory() as tmpdir:
-            base = Path(tmpdir) / "adapter"
-            base.mkdir()
-            resolved = meta.resolve_template_path("templates/PRD.template.md", base)
-            self.assertTrue(str(resolved).endswith("PRD.template.md"))
-
-    def test_get_template_for_artifact(self):
-        """Cover lines 259-262: get_template_for_artifact method."""
-        data = {
-            "version": "1.0",
-            "project_root": "..",
-            "weavers": {"spider": {"format": "Spider", "path": "weavers/sdlc"}},
-            "systems": [{"name": "Test", "weaver": "spider", "artifacts": [{"path": "PRD.md", "kind": "PRD"}]}],
-        }
-        meta = ArtifactsMeta.from_dict(data)
-        artifact = Artifact(path="PRD.md", kind="PRD", traceability="DOCS-ONLY")
-        system = meta.systems[0]
-        template_path = meta.get_template_for_artifact(artifact, system)
-        self.assertEqual(template_path, "weavers/sdlc/artifacts/PRD/template.md")
-
-    def test_get_template_for_artifact_missing_weaver(self):
-        """Cover get_template_for_artifact when weaver doesn't exist."""
-        data = {"version": "1.0", "project_root": "..", "weavers": {}, "systems": [{"name": "Test", "weaver": "missing"}]}
-        meta = ArtifactsMeta.from_dict(data)
-        artifact = Artifact(path="PRD.md", kind="PRD", traceability="DOCS-ONLY")
-        system = meta.systems[0]
-        result = meta.get_template_for_artifact(artifact, system)
-        self.assertIsNone(result)
 
     def test_iter_all_artifacts(self):
         data = {

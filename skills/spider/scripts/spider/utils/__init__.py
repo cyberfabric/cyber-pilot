@@ -57,7 +57,6 @@ from .codebase import (
     CodeReference,
     load_code_file,
     validate_code_file,
-    scan_directory as scan_code_directory,
     cross_validate_code,
 )
 
@@ -115,7 +114,6 @@ __all__ = [
     "CodeReference",
     "load_code_file",
     "validate_code_file",
-    "scan_code_directory",
     "cross_validate_code",
     # Context
     "SpiderContext",

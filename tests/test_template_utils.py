@@ -115,7 +115,7 @@ def test_template_parses_and_validates_happy_path(tmp_path: Path):
     report = tmpl.validate(art_path)
     assert report["errors"] == []
 
-    art = Artifact.from_template(tmpl, art_path)
+    art = tmpl.parse(art_path)
     assert set(art.list_defined()) == {"spd-demo-item-1"}
     assert set(art.list_refs()) == {"spd-demo-item-1"}
 
@@ -174,12 +174,11 @@ Summary
     tmpl_prd, _ = load_template(tmpl_prd_path)
     tmpl_design, _ = load_template(tmpl_design_path)
 
-    art_prd = Artifact.from_template(tmpl_prd, _write(tmp_path / "prd.md", _good_artifact_text()))
-    art_design = Artifact.from_template(
-        tmpl_design,
-        _write(
-            tmp_path / "design.md",
-            """
+    art_prd = tmpl_prd.parse(_write(tmp_path / "prd.md", _good_artifact_text()))
+    art_design = tmpl_design.parse(
+      _write(
+        tmp_path / "design.md",
+        """
 <!-- spd:id-ref:item has="priority,task" -->
 [x] `p1` - `spd-demo-item-1`
 <!-- spd:id-ref:item -->
@@ -195,26 +194,23 @@ Summary
     assert report["errors"] == []
 
     # Missing ref for covered_by should fail
-    art_design_empty = Artifact.from_template(
-        tmpl_design,
-        _write(tmp_path / "design-empty.md", "<!-- spd:paragraph:summary -->x<!-- spd:paragraph:summary -->"),
+    art_design_empty = tmpl_design.parse(
+      _write(tmp_path / "design-empty.md", "<!-- spd:paragraph:summary -->x<!-- spd:paragraph:summary -->"),
     )
     report2 = cross_validate_artifacts([art_prd, art_design_empty])
     assert any(e.get("message") == "ID not covered by required artifact kinds" for e in report2["errors"])
 
     # Ref done but def not done should fail
-    art_prd_undone = Artifact.from_template(
-        tmpl_prd,
-        _write(
-            tmp_path / "prd-undone.md",
-            _good_artifact_text().replace("[x]", "[ ]", 1),
-        ),
+    art_prd_undone = tmpl_prd.parse(
+      _write(
+        tmp_path / "prd-undone.md",
+        _good_artifact_text().replace("[x]", "[ ]", 1),
+      ),
     )
-    art_design_done_ref = Artifact.from_template(
-        tmpl_design,
-        _write(
-            tmp_path / "design-done-ref.md",
-            """
+    art_design_done_ref = tmpl_design.parse(
+      _write(
+        tmp_path / "design-done-ref.md",
+        """
 <!-- spd:id-ref:item has="priority,task" -->
 [x] `p1` - `spd-demo-item-1`
 <!-- spd:id-ref:item -->
@@ -958,7 +954,7 @@ def test_artifact_get_and_list_methods(tmp_path: Path):
     tmpl_path = _write(tmp_path / "tmpl.template.md", _sample_template_text())
     tmpl, _ = load_template(tmpl_path)
     art_path = _write(tmp_path / "art.md", _good_artifact_text())
-    art = Artifact.from_template(tmpl, art_path)
+    art = tmpl.parse(art_path)
 
     # Test get method
     result = art.get("spd-demo-item-1")
@@ -981,7 +977,7 @@ def test_artifact_list_ids(tmp_path: Path):
     tmpl_path = _write(tmp_path / "tmpl.template.md", _sample_template_text())
     tmpl, _ = load_template(tmpl_path)
     art_path = _write(tmp_path / "art.md", _good_artifact_text())
-    art = Artifact.from_template(tmpl, art_path)
+    art = tmpl.parse(art_path)
 
     ids = art.list_ids()
     assert "spd-demo-item-1" in ids
@@ -1063,7 +1059,7 @@ spider-template:
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
     art_path = _write(tmp_path / "art.md", "<!-- spd:id-ref:item -->\n[x] - `spd-nonexistent`\n<!-- spd:id-ref:item -->")
-    art = Artifact.from_template(tmpl, art_path)
+    art = tmpl.parse(art_path)
     report = cross_validate_artifacts([art])
     assert any("Reference has no definition" in str(e.get("message", "")) for e in report["errors"])
 
@@ -1154,7 +1150,7 @@ spider-template:
 `spd-other-system-feature-auth`
 <!-- spd:id-ref:ref -->
 """)
-    art = Artifact.from_template(tmpl, art_path)
+    art = tmpl.parse(art_path)
     # With registered_systems containing only "myapp", "other-system" is external
     report = cross_validate_artifacts([art], registered_systems={"myapp"})
     # Should NOT have "Reference has no definition" error for external system
@@ -1187,7 +1183,7 @@ spider-template:
 `spd-myapp-missing-thing`
 <!-- spd:id-ref:ref -->
 """)
-    art = Artifact.from_template(tmpl, art_path)
+    art = tmpl.parse(art_path)
     # With registered_systems containing "myapp", internal ref without def should error
     report = cross_validate_artifacts([art], registered_systems={"myapp"})
     ref_errors = [e for e in report["errors"] if "Reference has no definition" in str(e.get("message", ""))]
@@ -1220,7 +1216,7 @@ spider-template:
 `spd-other-app-feature-auth`
 <!-- spd:id-ref:ref -->
 """)
-    art = Artifact.from_template(tmpl, art_path)
+    art = tmpl.parse(art_path)
     # "account-server" is registered, "other-app" is external
     report = cross_validate_artifacts([art], registered_systems={"account-server"})
     ref_errors = [e for e in report["errors"] if "Reference has no definition" in str(e.get("message", ""))]
@@ -1276,17 +1272,15 @@ spider-template:
     tmpl_ref_simple, _ = load_template(ref_tmpl_simple_path)
     tmpl_ref_full, _ = load_template(ref_tmpl_full_path)
 
-    art_def = Artifact.from_template(
-        tmpl_def,
-        _write(tmp_path / "def.md", """<!-- spd:id:item -->
+    art_def = tmpl_def.parse(
+      _write(tmp_path / "def.md", """<!-- spd:id:item -->
 - [ ] `p1` - **ID**: `spd-test-item-1`
 <!-- spd:id:item -->"""),
     )
 
     # Reference without has attribute should pass (ref decides its own attrs)
-    art_ref_simple = Artifact.from_template(
-        tmpl_ref_simple,
-        _write(tmp_path / "ref-simple.md", """<!-- spd:id-ref:item -->
+    art_ref_simple = tmpl_ref_simple.parse(
+      _write(tmp_path / "ref-simple.md", """<!-- spd:id-ref:item -->
 `spd-test-item-1`
 <!-- spd:id-ref:item -->"""),
     )
@@ -1294,9 +1288,8 @@ spider-template:
     assert not any("Reference missing" in str(e.get("message", "")) for e in report_simple["errors"])
 
     # Reference with has attribute should also pass
-    art_ref_full = Artifact.from_template(
-        tmpl_ref_full,
-        _write(tmp_path / "ref-full.md", """<!-- spd:id-ref:item has="priority,task" -->
+    art_ref_full = tmpl_ref_full.parse(
+      _write(tmp_path / "ref-full.md", """<!-- spd:id-ref:item has="priority,task" -->
 [ ] `p1` - `spd-test-item-1`
 <!-- spd:id-ref:item -->"""),
     )
@@ -1342,18 +1335,16 @@ spider-template:
     tmpl, _ = load_template(tmpl_path)
 
     # Correct nesting should pass with no nesting errors
-    art_correct = Artifact.from_template(
-        tmpl,
-        _write(tmp_path / "correct.md", artifact_correct),
+    art_correct = tmpl.parse(
+      _write(tmp_path / "correct.md", artifact_correct),
     )
     report_correct = art_correct.validate()
     nesting_errors = [e for e in report_correct["errors"] if e.get("type") == "nesting"]
     assert len(nesting_errors) == 0
 
     # Wrong nesting should produce nesting errors
-    art_wrong = Artifact.from_template(
-        tmpl,
-        _write(tmp_path / "wrong.md", artifact_wrong),
+    art_wrong = tmpl.parse(
+      _write(tmp_path / "wrong.md", artifact_wrong),
     )
     report_wrong = art_wrong.validate()
     nesting_errors_wrong = [e for e in report_wrong["errors"] if e.get("type") == "nesting"]
@@ -1390,9 +1381,8 @@ Content here
     tmpl_path = _write(tmp_path / "test.template.md", template_content)
     tmpl, _ = load_template(tmpl_path)
 
-    art = Artifact.from_template(
-        tmpl,
-        _write(tmp_path / "art.md", artifact),
+    art = tmpl.parse(
+      _write(tmp_path / "art.md", artifact),
     )
     report = art.validate()
     nesting_errors = [e for e in report["errors"] if e.get("type") == "nesting"]

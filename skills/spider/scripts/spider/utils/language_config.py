@@ -57,32 +57,6 @@ class LanguageConfig:
             patterns.append(re.escape(prefix))
         
         return "(?:" + "|".join(patterns) + ")"
-    
-    def is_effective_code_line(self, line: str) -> bool:
-        """
-        Check if line contains effective code (not just comments/whitespace).
-        Uses configured comment patterns.
-        """
-        s = line.strip()
-        if not s:
-            return False
-        
-        # Check single-line comments
-        for prefix in self.single_line_comments:
-            if s.startswith(prefix):
-                return False
-        
-        # Check multi-line comment markers
-        for mlc in self.multi_line_comments:
-            if s.startswith(mlc["start"]) or s.startswith(mlc["end"]):
-                return False
-        
-        # Check block comment prefixes (but not bold markdown **)
-        for prefix in self.block_comment_prefixes:
-            if s.startswith(prefix) and not s.startswith(prefix * 2):
-                return False
-        
-        return True
 
 
 def load_language_config(start_path: Optional[Path] = None) -> LanguageConfig:

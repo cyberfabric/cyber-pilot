@@ -24,9 +24,11 @@ from spider.utils.parsing import (
 from spider.constants import (
     SECTION_FEATURE_RE,
     SECTION_PRD_RE,
-    ACTOR_ID_RE,
-    CAPABILITY_ID_RE,
 )
+
+
+ACTOR_ID_RE = re.compile(r"^spd-[a-z0-9-]+-actor-[a-z0-9-]+$", re.IGNORECASE)
+CAPABILITY_ID_RE = re.compile(r"^spd-[a-z0-9-]+-capability-[a-z0-9-]+$", re.IGNORECASE)
 
 
 class TestFindPresentSectionIds(unittest.TestCase):

@@ -125,30 +125,12 @@ class SpiderContext:
             return None
         return loaded_weaver.templates.get(kind)
 
-    def get_all_templates(self) -> Dict[str, Template]:
-        """Get all loaded templates as kind -> Template mapping."""
-        result: Dict[str, Template] = {}
-        for loaded_weaver in self.weavers.values():
-            result.update(loaded_weaver.templates)
-        return result
-
     def get_template_for_kind(self, kind: str) -> Optional[Template]:
         """Get template for a kind from any weaver."""
         for loaded_weaver in self.weavers.values():
             if kind in loaded_weaver.templates:
                 return loaded_weaver.templates[kind]
         return None
-
-    def get_all_kinds(self) -> Set[str]:
-        """Get all known artifact kinds from loaded templates.
-
-        Returns lowercase set of kind names (e.g., {"prd", "design", "feature", "adr"}).
-        """
-        kinds: Set[str] = set()
-        for loaded_weaver in self.weavers.values():
-            for kind in loaded_weaver.templates.keys():
-                kinds.add(kind.lower())
-        return kinds
 
     def get_known_id_kinds(self) -> Set[str]:
         """Get all known ID kinds from template markers.
@@ -164,11 +146,6 @@ class SpiderContext:
                         # block.name is the kind (e.g., "fr", "actor", "flow", "algo")
                         kinds.add(block.name.lower())
         return kinds
-
-    @property
-    def load_errors(self) -> List[str]:
-        """Return any errors that occurred during loading."""
-        return self._errors
 
 
 # Global context instance (set by CLI on startup)

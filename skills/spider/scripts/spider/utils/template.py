@@ -73,7 +73,7 @@ class ParsedSpiderId:
     system: str
     kind: str
     slug: str
-    prefix_id: Optional[str] = None  # for composite IDs like spd-sys-feature-x-algo-y
+    prefix_id: Optional[str] = None  # noqa: for composite IDs like spd-sys-feature-x-algo-y
 
 
 @dataclass(frozen=True)
@@ -110,7 +110,7 @@ class Template:
     path: Path
     kind: str = ""
     version: Optional[TemplateVersion] = None
-    policy: Optional[TemplatePolicy] = None
+    policy: Optional[TemplatePolicy] = None  # noqa
     blocks: List[TemplateBlock] = None  # populated on load()
     _loaded: bool = False
 
@@ -480,7 +480,6 @@ class IdDefinition:
     priority: Optional[str]
     block: ArtifactBlock
     artifact_path: Path
-    artifact_kind: str
     to_code: bool = False  # from template attr to_code="true"
 
 
@@ -492,7 +491,6 @@ class IdReference:
     priority: Optional[str]
     block: ArtifactBlock
     artifact_path: Path
-    artifact_kind: str
 
 
 @dataclass
@@ -516,12 +514,6 @@ class Artifact:
         self.id_definitions: List[IdDefinition] = []
         self.id_references: List[IdReference] = []
         self.task_statuses: List[Tuple[bool, ArtifactBlock]] = []  # (checked?, block)
-
-    @classmethod
-    def from_template(cls, template: Template, artifact_path: Path) -> "Artifact":
-        art = cls(template, artifact_path, [], [])
-        art.load()
-        return art
 
     def load(self) -> None:
         """Parse artifact markers into blocks; accumulate structural errors."""
@@ -781,7 +773,6 @@ class Artifact:
                             priority=priority,
                             block=blk,
                             artifact_path=self.path,
-                            artifact_kind=self.template.kind,
                             to_code=to_code,
                         )
                     )
@@ -806,7 +797,6 @@ class Artifact:
                             priority=priority,
                             block=blk,
                             artifact_path=self.path,
-                            artifact_kind=self.template.kind,
                         )
                     )
             elif blk.template_block.type not in {"id", "id-ref"}:
@@ -822,7 +812,6 @@ class Artifact:
                                 priority=None,
                                 block=blk,
                                 artifact_path=self.path,
-                                artifact_kind=self.template.kind,
                             )
                         )
             if blk.template_block.type == "task-list":
