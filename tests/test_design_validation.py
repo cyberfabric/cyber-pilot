@@ -28,21 +28,21 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "spider" / "scr
 
 
 def test_features_manifest_references_design():
-    """Verify FEATURES.md references DESIGN.md for each feature."""
-    features_path = Path(__file__).parent.parent / "architecture" / "features" / "FEATURES.md"
+    """Verify DECOMPOSITION.md references DESIGN.md for each feature."""
+    features_path = Path(__file__).parent.parent / "architecture" / "features" / "DECOMPOSITION.md"
     
     if not features_path.exists():
-        pytest.skip("FEATURES.md not found")
+        pytest.skip("DECOMPOSITION.md not found")
     
     content = features_path.read_text(encoding='utf-8')
     
-    # Verify FEATURES.md mentions design artifacts
+    # Verify DECOMPOSITION.md mentions design artifacts
     assert 'DESIGN.md' in content or 'design' in content.lower(), \
-        "FEATURES.md should reference DESIGN.md files"
+        "DECOMPOSITION.md should reference DESIGN.md files"
     
     # Check that feature entries have proper structure
     assert '## ' in content or '###' in content, \
-        "FEATURES.md should have feature sections"
+        "DECOMPOSITION.md should have feature sections"
 
 
 def test_validate_all_feature_designs_have_required_sections():

@@ -104,7 +104,7 @@ spider-template:
 |-------|------|----------|-------------|
 | `version.major` | integer | YES | Major version (breaking changes) |
 | `version.minor` | integer | YES | Minor version (compatible changes) |
-| `kind` | string | YES | Artifact kind (PRD, DESIGN, ADR, FEATURES, FEATURE) |
+| `kind` | string | YES | Artifact kind (PRD, DESIGN, ADR, DECOMPOSITION, FEATURE) |
 | `unknown_sections` | string | NO | How to handle markers not in template: `error`, `warn`, `allow`. Default: `warn` |
 
 ---

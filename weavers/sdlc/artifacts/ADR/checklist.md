@@ -1,8 +1,24 @@
 # ADR (Architecture Decision Record) Expert Checklist
 
 **Artifact**: Architecture Decision Record (ADR)
-**Version**: 1.0
+**Version**: 2.0
 **Purpose**: Comprehensive quality checklist for ADR artifacts
+
+---
+
+## Referenced Standards
+
+This checklist incorporates requirements and best practices from:
+
+| Standard | Scope | Key Sections Used |
+|----------|-------|-------------------|
+| **Michael Nygard's ADR Template (2011)** | De facto standard for ADR format | Title, Status, Context, Decision, Consequences structure |
+| **ISO/IEC/IEEE 42010:2022** | Architecture Description | §5.7 AD elements, §6.7 Architecture decisions and rationale |
+| **ISO/IEC 25010:2011** | SQuaRE Software Quality Model | §4.2 Quality characteristics (performance, security, reliability, maintainability) |
+| **ISO/IEC/IEEE 29148:2018** | Requirements Engineering | §6.5 Behavioral requirements, traceability |
+| **OWASP ASVS 5.0** | Application Security Verification | V1.2 Architecture, V2 Authentication, V5 Validation |
+| **ISO/IEC 27001:2022** | Information Security Management | Annex A controls, risk assessment |
+| **ISO/IEC/IEEE 29119-3:2021** | Test Documentation | Test specification, acceptance criteria |
 
 ---
 
@@ -150,8 +166,11 @@ For architectural decisions with broad impact, check ALL applicable domains.
 
 ## 🏗️ ARCHITECTURE Expertise (ARCH)
 
+**Standards**: Michael Nygard's ADR Template (2011), ISO/IEC/IEEE 42010:2022 §6.7
+
 ### ARCH-ADR-001: Decision Significance
 **Severity**: CRITICAL
+**Ref**: ISO 42010 §6.7.1 — Architecture decisions shall be documented when they affect the system's fundamental structure
 
 - [ ] Decision is architecturally significant (not trivial)
 - [ ] Decision affects multiple components or teams
@@ -162,6 +181,7 @@ For architectural decisions with broad impact, check ALL applicable domains.
 
 ### ARCH-ADR-002: Context Completeness
 **Severity**: CRITICAL
+**Ref**: Michael Nygard ADR Template — "Context" section; ISO 42010 §6.7.2 — Decision rationale shall include the context
 
 - [ ] Problem statement is clear and specific
 - [ ] Business context explained
@@ -174,6 +194,7 @@ For architectural decisions with broad impact, check ALL applicable domains.
 
 ### ARCH-ADR-003: Options Quality
 **Severity**: CRITICAL
+**Ref**: ISO 42010 §6.7.3 — Decision rationale shall document considered alternatives
 
 - [ ] ≥2 distinct options considered
 - [ ] Options are genuinely viable
@@ -185,6 +206,7 @@ For architectural decisions with broad impact, check ALL applicable domains.
 
 ### ARCH-ADR-004: Decision Rationale
 **Severity**: CRITICAL
+**Ref**: Michael Nygard ADR Template — "Decision" & "Consequences" sections; ISO 42010 §6.7.2 — rationale documentation
 
 - [ ] Chosen option clearly stated
 - [ ] Rationale explains WHY this option was chosen
@@ -196,6 +218,7 @@ For architectural decisions with broad impact, check ALL applicable domains.
 
 ### ARCH-ADR-005: Traceability
 **Severity**: HIGH
+**Ref**: ISO 29148 §5.2.8 — Requirements traceability; ISO 42010 §5.7 — AD element relationships
 
 - [ ] Links to related requirements, risks, or constraints are provided
 - [ ] Links to impacted architecture and design documents are provided (when applicable)
@@ -205,6 +228,7 @@ For architectural decisions with broad impact, check ALL applicable domains.
 
 ### ARCH-ADR-006: ADR Metadata Quality
 **Severity**: CRITICAL
+**Ref**: Michael Nygard ADR Template — Title, Status, Date fields
 
 - [ ] Title is descriptive and action-oriented
 - [ ] Date is present and unambiguous
@@ -224,6 +248,7 @@ For architectural decisions with broad impact, check ALL applicable domains.
 
 ### ARCH-ADR-008: Supersession Handling
 **Severity**: HIGH (if applicable)
+**Ref**: Michael Nygard ADR Template — Status values include "Superseded by [ADR-XXX]"
 
 - [ ] Superseding ADR referenced
 - [ ] Reason for supersession explained
@@ -248,8 +273,11 @@ For architectural decisions with broad impact, check ALL applicable domains.
 
 ## ⚡ PERFORMANCE Expertise (PERF)
 
+**Standards**: ISO/IEC 25010:2011 §4.2.2 (Performance Efficiency)
+
 ### PERF-ADR-001: Performance Impact
 **Severity**: HIGH (if applicable)
+**Ref**: ISO 25010 §4.2.2 — Time behavior, resource utilization, capacity sub-characteristics
 
 - [ ] Performance requirements referenced
 - [ ] Performance trade-offs documented
@@ -271,8 +299,11 @@ For architectural decisions with broad impact, check ALL applicable domains.
 
 ## 🔒 SECURITY Expertise (SEC)
 
+**Standards**: OWASP ASVS 5.0 V1.2 (Architecture), ISO/IEC 27001:2022 (ISMS)
+
 ### SEC-ADR-001: Security Impact
 **Severity**: CRITICAL (if applicable)
+**Ref**: OWASP ASVS V1.2 — Security architecture requirements; ISO 27001 Annex A.8 — Asset management
 
 - [ ] Security requirements referenced
 - [ ] Security trade-offs documented
@@ -284,6 +315,7 @@ For architectural decisions with broad impact, check ALL applicable domains.
 
 ### SEC-ADR-002: Security Review
 **Severity**: HIGH (if applicable)
+**Ref**: ISO 27001 §9.2 — Internal audit; OWASP ASVS V1.2.4 — Security architecture review
 
 - [ ] Security review conducted
 - [ ] Security reviewer identified
@@ -293,6 +325,7 @@ For architectural decisions with broad impact, check ALL applicable domains.
 
 ### SEC-ADR-003: Authentication/Authorization Impact
 **Severity**: HIGH (if applicable)
+**Ref**: OWASP ASVS V2 — Authentication, V4 — Access Control
 
 - [ ] AuthN mechanism changes documented
 - [ ] AuthZ model changes documented
@@ -304,8 +337,11 @@ For architectural decisions with broad impact, check ALL applicable domains.
 
 ## 🛡️ RELIABILITY Expertise (REL)
 
+**Standards**: ISO/IEC 25010:2011 §4.2.5 (Reliability)
+
 ### REL-ADR-001: Reliability Impact
 **Severity**: HIGH (if applicable)
+**Ref**: ISO 25010 §4.2.5 — Maturity, availability, fault tolerance, recoverability
 
 - [ ] Availability impact analyzed
 - [ ] Failure mode changes documented
@@ -327,8 +363,11 @@ For architectural decisions with broad impact, check ALL applicable domains.
 
 ## 📊 DATA Expertise (DATA)
 
+**Standards**: IEEE 1016-2009 §5.6 (Information Viewpoint)
+
 ### DATA-ADR-001: Data Impact
 **Severity**: HIGH (if applicable)
+**Ref**: IEEE 1016 §5.6 — Information viewpoint: data entities, relationships, integrity constraints
 
 - [ ] Data model changes documented
 - [ ] Migration requirements documented
@@ -339,6 +378,7 @@ For architectural decisions with broad impact, check ALL applicable domains.
 
 ### DATA-ADR-002: Data Governance
 **Severity**: MEDIUM (if applicable)
+**Ref**: ISO 27001 Annex A.5.9-5.14 — Information classification, handling
 
 - [ ] Data ownership impact documented
 - [ ] Data classification impact documented
@@ -350,8 +390,11 @@ For architectural decisions with broad impact, check ALL applicable domains.
 
 ## 🔌 INTEGRATION Expertise (INT)
 
+**Standards**: IEEE 1016-2009 §5.3 (Interface Viewpoint)
+
 ### INT-ADR-001: Integration Impact
 **Severity**: HIGH (if applicable)
+**Ref**: IEEE 1016 §5.3 — Interface viewpoint: services, protocols, data formats
 
 - [ ] API breaking changes documented
 - [ ] Protocol changes documented
@@ -395,8 +438,11 @@ For architectural decisions with broad impact, check ALL applicable domains.
 
 ## 🔧 MAINTAINABILITY Expertise (MAINT)
 
+**Standards**: ISO/IEC 25010:2011 §4.2.7 (Maintainability)
+
 ### MAINT-ADR-001: Maintainability Impact
 **Severity**: MEDIUM
+**Ref**: ISO 25010 §4.2.7 — Modularity, reusability, analysability, modifiability, testability
 
 - [ ] Code complexity impact analyzed
 - [ ] Technical debt impact documented
@@ -416,8 +462,11 @@ For architectural decisions with broad impact, check ALL applicable domains.
 
 ## 🧪 TESTING Expertise (TEST)
 
+**Standards**: ISO/IEC/IEEE 29119-3:2021 (Test Documentation)
+
 ### TEST-ADR-001: Testing Impact
 **Severity**: MEDIUM
+**Ref**: ISO 29119-3 §8 — Test design specification; ISO 25010 §4.2.7.5 — Testability
 
 - [ ] Test strategy changes documented
 - [ ] Test coverage requirements documented
@@ -427,6 +476,7 @@ For architectural decisions with broad impact, check ALL applicable domains.
 
 ### TEST-ADR-002: Validation Plan
 **Severity**: MEDIUM
+**Ref**: ISO 29119-3 §9 — Test case specification; acceptance criteria
 
 - [ ] How to validate decision documented
 - [ ] Acceptance criteria stated
@@ -437,8 +487,11 @@ For architectural decisions with broad impact, check ALL applicable domains.
 
 ## 📜 COMPLIANCE Expertise (COMPL)
 
+**Standards**: ISO/IEC 27001:2022 (ISMS), domain-specific regulations (GDPR, HIPAA, SOC 2)
+
 ### COMPL-ADR-001: Compliance Impact
 **Severity**: CRITICAL (if applicable)
+**Ref**: ISO 27001 §4.2 — Interested parties; §6.1 — Risk assessment; Annex A — Controls
 
 - [ ] Regulatory impact analyzed
 - [ ] Certification impact documented
@@ -463,8 +516,11 @@ For architectural decisions with broad impact, check ALL applicable domains.
 
 ## 🏢 BUSINESS Expertise (BIZ)
 
+**Standards**: ISO/IEC/IEEE 29148:2018 §5.2 (Stakeholder requirements)
+
 ### BIZ-ADR-001: Business Alignment
 **Severity**: HIGH
+**Ref**: ISO 29148 §5.2 — Stakeholder requirements definition; business value traceability
 
 - [ ] Business requirements addressed
 - [ ] Business value of decision explained
@@ -644,8 +700,11 @@ For architectural decisions with broad impact, check ALL applicable domains.
 
 ## ADR Writing Quality
 
+**Standards**: Michael Nygard ADR Template — writing style guidance
+
 ### QUALITY-001: Neutrality
 **Severity**: MEDIUM
+**Ref**: Michael Nygard — "Options should be presented neutrally"
 
 - [ ] Options described neutrally (no leading language)
 - [ ] Pros and cons balanced for all options
@@ -655,6 +714,7 @@ For architectural decisions with broad impact, check ALL applicable domains.
 
 ### QUALITY-002: Clarity
 **Severity**: HIGH
+**Ref**: ISO 29148 §5.2.5 — Requirements shall be unambiguous; IEEE 1016 §4.2 — SDD comprehensibility
 
 - [ ] Decision can be understood without insider knowledge
 - [ ] Acronyms expanded on first use
@@ -664,6 +724,7 @@ For architectural decisions with broad impact, check ALL applicable domains.
 
 ### QUALITY-003: Actionability
 **Severity**: HIGH
+**Ref**: Michael Nygard — "Decision" section specifies what to do
 
 - [ ] Clear what action to take based on decision
 - [ ] Implementation guidance provided
@@ -673,6 +734,7 @@ For architectural decisions with broad impact, check ALL applicable domains.
 
 ### QUALITY-004: Reviewability
 **Severity**: MEDIUM
+**Ref**: ISO 42010 §6.7 — AD rationale shall be verifiable
 
 - [ ] Can be reviewed in a reasonable time
 - [ ] Evidence and references provided

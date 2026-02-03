@@ -23,7 +23,7 @@
             { "name": "Product Requirements", "path": "architecture/PRD.md", "kind": "PRD", "traceability": "DOCS-ONLY" },
             { "name": "Overall Design", "path": "architecture/DESIGN.md", "kind": "DESIGN", "traceability": "FULL" },
             { "name": "Initial Architecture", "path": "architecture/ADR/0001-initial-architecture.md", "kind": "ADR", "traceability": "DOCS-ONLY" },
-            { "name": "Features Manifest", "path": "architecture/features/FEATURES.md", "kind": "FEATURES", "traceability": "DOCS-ONLY" }
+            { "name": "Design Decomposition", "path": "architecture/DECOMPOSITION.md", "kind": "DECOMPOSITION", "traceability": "FULL" }
           ],
           "codebase": [
             { "name": "Source Code", "path": "src", "extensions": [".ts", ".tsx"] }
@@ -147,7 +147,7 @@
         "kind": {
           "type": "string",
           "minLength": 1,
-          "description": "Artifact kind (e.g., PRD, DESIGN, ADR, FEATURES, FEATURE). Template resolved at: {weaver.path}/artifacts/{KIND}/template.md"
+          "description": "Artifact kind (e.g., PRD, DESIGN, ADR, DECOMPOSITION, FEATURE). Template resolved at: {weaver.path}/artifacts/{KIND}/template.md"
         },
         "traceability": {
           "type": "string",

@@ -70,7 +70,7 @@ spider-template:
 <!-- spd:###:fr-title repeat="many" -->
 ### FR-{NUMBER, like FR-001} { Functional Requirement Title }
 
-<!-- spd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:fr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [ ] `p1` - **ID**: `spd-{system}-fr-{slug}`
 
 <!-- spd:free:fr-summary -->
@@ -132,7 +132,7 @@ spider-template:
 <!-- spd:###:nfr-title repeat="many" -->
 ### {NFR Name}
 
-<!-- spd:id:nfr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:nfr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [ ] `p1` - **ID**: `spd-{system}-nfr-{slug}`
 
 <!-- spd:list:nfr-statements -->

@@ -12,7 +12,7 @@
 | PRD | Product Requirements Document | `PRD/template.md` | `PRD/checklist.md` | `PRD/examples/example.md` |
 | DESIGN | Overall System Design | `DESIGN/template.md` | `DESIGN/checklist.md` | `DESIGN/examples/example.md` |
 | ADR | Architecture Decision Record | `ADR/template.md` | `ADR/checklist.md` | `ADR/examples/example.md` |
-| FEATURES | Feature Manifest | `FEATURES/template.md` | `FEATURES/checklist.md` | `FEATURES/examples/example.md` |
+| DECOMPOSITION | Design Decomposition | `DECOMPOSITION/template.md` | `DECOMPOSITION/checklist.md` | `DECOMPOSITION/examples/example.md` |
 | FEATURE | Feature Design | `FEATURE/template.md` | `FEATURE/checklist.md` | `FEATURE/examples/example.md` |
 
 ---
@@ -37,7 +37,7 @@ weavers/sdlc/
 │   ├── checklist.md
 │   └── examples/
 │       └── example.md
-├── FEATURES/
+├── DECOMPOSITION/
 │   ├── template.md
 │   ├── checklist.md
 │   └── examples/
@@ -69,7 +69,7 @@ example:   weavers/sdlc/{KIND}/examples/example.md
   "rules": {
     "spider-sdlc": {
       "path": "weavers/sdlc",
-      "artifacts": ["PRD", "DESIGN", "ADR", "FEATURES", "FEATURE"]
+      "artifacts": ["PRD", "DESIGN", "ADR", "DECOMPOSITION", "FEATURE"]
     }
   }
 }
@@ -83,7 +83,7 @@ example:   weavers/sdlc/{KIND}/examples/example.md
 PRD
  └── DESIGN
       ├── ADR (optional, per decision)
-      └── FEATURES
+      └── DECOMPOSITION
            └── FEATURE (per feature)
 ```
 

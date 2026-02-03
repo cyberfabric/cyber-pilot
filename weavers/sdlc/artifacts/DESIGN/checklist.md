@@ -1,8 +1,24 @@
 # DESIGN (Overall Design) Expert Checklist
 
 **Artifact**: Overall System Design (DESIGN)
-**Version**: 1.0
+**Version**: 2.0
+**Last Updated**: 2025-02-03
 **Purpose**: Comprehensive quality checklist for Overall Design artifacts
+
+---
+
+## Referenced Standards
+
+This checklist validates system design artifacts based on the following international standards:
+
+| Standard | Domain | Description |
+|----------|--------|-------------|
+| [IEEE 1016-2009](https://standards.ieee.org/ieee/1016/4502/) | **Design Description** | Software Design Descriptions — context, composition, logical, dependency viewpoints |
+| [ISO/IEC/IEEE 42010:2022](https://www.iso.org/standard/74393.html) | **Architecture Description** | Architecture viewpoints, stakeholders, concerns, model correspondences |
+| [ISO/IEC 25010:2011](https://www.iso.org/standard/35733.html) | **Quality Model** | SQuaRE — 8 quality characteristics: performance, security, reliability, maintainability |
+| [ISO/IEC/IEEE 29148:2018](https://www.iso.org/standard/72089.html) | **Requirements Traceability** | Bidirectional traceability, requirements-to-design mapping |
+| [OWASP ASVS 5.0](https://owasp.org/www-project-application-security-verification-standard/) | **Security Architecture** | Authentication, authorization, cryptography, data protection |
+| [ISO/IEC 27001:2022](https://www.iso.org/standard/27001) | **Information Security** | ISMS controls, security management framework |
 
 ---
 
@@ -167,8 +183,13 @@ Before evaluating each checklist item, the expert MUST:
 
 ## 🏗️ ARCHITECTURE Expertise (ARCH)
 
+> **Standards**:
+> - [IEEE 1016-2009](https://standards.ieee.org/ieee/1016/4502/) — Context (§5.2), Composition (§5.3), Logical (§5.4), Dependency (§5.5) viewpoints
+> - [ISO/IEC/IEEE 42010:2022](https://www.iso.org/standard/74393.html) — Stakeholders, concerns, architecture viewpoints (§5-6)
+
 ### ARCH-DESIGN-001: Architecture Overview Completeness
 **Severity**: CRITICAL
+**Ref**: ISO/IEC/IEEE 42010:2022 §5.3 (Stakeholders and concerns), IEEE 1016-2009 §5.2 (Context viewpoint)
 
 - [ ] System purpose clearly stated
 - [ ] High-level architecture described
@@ -203,6 +224,7 @@ Before evaluating each checklist item, the expert MUST:
 
 ### ARCH-DESIGN-004: Component Model Quality
 **Severity**: CRITICAL
+**Ref**: IEEE 1016-2009 §5.3 (Composition viewpoint), ISO/IEC/IEEE 42010:2022 §6 (Architecture views)
 
 - [ ] At least one architecture diagram present (image, Mermaid, or ASCII)
 - [ ] All major components/services identified
@@ -215,6 +237,7 @@ Before evaluating each checklist item, the expert MUST:
 
 ### ARCH-DESIGN-005: Domain Model Authority
 **Severity**: CRITICAL
+**Ref**: IEEE 1016-2009 §5.4 (Logical viewpoint), §5.6 (Information viewpoint)
 
 - [ ] Domain model section exists
 - [ ] Core entities/aggregates defined
@@ -264,8 +287,13 @@ Before evaluating each checklist item, the expert MUST:
 
 ## Semantic Alignment (SEM)
 
+> **Standard**: [ISO/IEC/IEEE 29148:2018](https://www.iso.org/standard/72089.html) — Requirements Engineering
+>
+> "Bidirectional traceability between requirements and design" (§6.5)
+
 ### SEM-DESIGN-001: PRD Intent Preservation
 **Severity**: CRITICAL
+**Ref**: ISO/IEC/IEEE 29148:2018 §6.5 (Traceability)
 
 - [ ] Design addresses all PRD FR and NFR IDs referenced in the design
 - [ ] Architecture drivers align with PRD problems, capabilities, and success criteria
@@ -316,8 +344,13 @@ Before evaluating each checklist item, the expert MUST:
 
 ## ⚡ PERFORMANCE Expertise (PERF)
 
+> **Standard**: [ISO/IEC 25010:2011](https://www.iso.org/standard/35733.html) — Performance Efficiency
+>
+> Sub-characteristics: time behavior, resource utilization, capacity
+
 ### PERF-DESIGN-001: Performance Architecture
 **Severity**: HIGH
+**Ref**: ISO/IEC 25010:2011 §4.2.2 (Performance efficiency)
 
 - [ ] Caching strategy documented
 - [ ] Database access patterns optimized
@@ -361,8 +394,14 @@ Before evaluating each checklist item, the expert MUST:
 
 ## 🔒 SECURITY Expertise (SEC)
 
+> **Standards**:
+> - [ISO/IEC 25010:2011](https://www.iso.org/standard/35733.html) — Security: confidentiality, integrity, non-repudiation, accountability, authenticity
+> - [OWASP ASVS 5.0](https://owasp.org/www-project-application-security-verification-standard/) — Architecture requirements (V1)
+> - [ISO/IEC 27001:2022](https://www.iso.org/standard/27001) — Information security controls
+
 ### SEC-DESIGN-001: Authentication Architecture
 **Severity**: CRITICAL
+**Ref**: OWASP ASVS V1.2 (Authentication Architecture), ISO 25010 §4.2.6
 
 - [ ] Authentication mechanism documented
 - [ ] Token/session management described
@@ -429,8 +468,13 @@ Before evaluating each checklist item, the expert MUST:
 
 ## 🛡️ RELIABILITY Expertise (REL)
 
+> **Standard**: [ISO/IEC 25010:2011](https://www.iso.org/standard/35733.html) — Reliability
+>
+> Sub-characteristics: maturity, availability, fault tolerance, recoverability
+
 ### REL-DESIGN-001: Fault Tolerance
 **Severity**: HIGH
+**Ref**: ISO/IEC 25010:2011 §4.2.5 (Fault tolerance)
 
 - [ ] Single points of failure identified and mitigated
 - [ ] Redundancy strategies documented
@@ -484,8 +528,13 @@ Before evaluating each checklist item, the expert MUST:
 
 ## 📊 DATA Expertise (DATA)
 
+> **Standard**: [IEEE 1016-2009](https://standards.ieee.org/ieee/1016/4502/) — Information Viewpoint (§5.6)
+>
+> Data entities, persistent data stores, data flow
+
 ### DATA-DESIGN-001: Data Architecture
 **Severity**: CRITICAL
+**Ref**: IEEE 1016-2009 §5.6 (Information viewpoint)
 
 - [ ] Data stores identified
 - [ ] Data partitioning strategy documented
@@ -612,8 +661,13 @@ Before evaluating each checklist item, the expert MUST:
 
 ## 🔧 MAINTAINABILITY Expertise (MAINT)
 
+> **Standard**: [ISO/IEC 25010:2011](https://www.iso.org/standard/35733.html) — Maintainability
+>
+> Sub-characteristics: modularity, reusability, analysability, modifiability, testability
+
 ### MAINT-DESIGN-001: Code Organization
 **Severity**: HIGH
+**Ref**: ISO/IEC 25010:2011 §4.2.7 (Modularity)
 
 - [ ] Module structure documented
 - [ ] Package/namespace conventions documented
@@ -642,8 +696,11 @@ Before evaluating each checklist item, the expert MUST:
 
 ## 🧪 TESTING Expertise (TEST)
 
+> **Standard**: [ISO/IEC 25010:2011](https://www.iso.org/standard/35733.html) §4.2.7.5 — Testability
+
 ### TEST-DESIGN-001: Testability Architecture
 **Severity**: HIGH
+**Ref**: ISO/IEC 25010:2011 §4.2.7.5 (Testability)
 
 - [ ] Dependency injection for testability documented
 - [ ] Mock/stub boundaries documented
@@ -700,8 +757,13 @@ Before evaluating each checklist item, the expert MUST:
 
 ## 🏢 BUSINESS Expertise (BIZ)
 
+> **Standard**: [ISO/IEC/IEEE 29148:2018](https://www.iso.org/standard/72089.html) — Requirements Engineering
+>
+> Requirements-to-design allocation and traceability (§6.5)
+
 ### BIZ-DESIGN-001: Business Alignment
 **Severity**: HIGH
+**Ref**: ISO/IEC/IEEE 29148:2018 §6.5 (Requirements-design traceability)
 
 - [ ] All functional requirements are addressed
 - [ ] All non-functional requirements are addressed

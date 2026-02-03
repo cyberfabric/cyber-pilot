@@ -15,7 +15,7 @@ FDD/
 │   ├── PRD.md               # Product Requirements Document
 │   ├── DESIGN.md            # Technical Design
 │   ├── features/
-│   │   └── FEATURES.md      # Features Manifest
+│   │   └── DECOMPOSITION.md      # Features Manifest
 │   └── ADR/
 │       └── general/         # Architecture Decision Records
 │
@@ -120,7 +120,7 @@ weavers/sdlc/
 │   │   └── examples/
 │   │       └── example.md   # Canonical example
 │   ├── DESIGN/              # Same structure
-│   ├── FEATURES/            # Same structure
+│   ├── DECOMPOSITION/            # Same structure
 │   ├── FEATURE/             # Same structure
 │   └── ADR/                 # Same structure
 ├── codebase/

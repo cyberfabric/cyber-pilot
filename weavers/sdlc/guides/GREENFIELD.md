@@ -3,7 +3,7 @@
 Use this guide when you are starting a new project from scratch.
 
 Examples use Windsurf slash commands (like `/spider-design`).
-You can apply the same flow in any agent by opening the corresponding workflow files under `workflows/`.
+You can apply the same flow in any agent by opening the corresponding workflow files under [`workflows/`](../../../workflows/).
 
 ## Goal
 
@@ -12,11 +12,11 @@ Create a validated baseline (PRD + architecture) before writing code.
 ## What You Will Produce
 
 - Spider artifacts registered in `{adapter-dir}/artifacts.json` ([taxonomy](TAXONOMY.md))
-  - PRD (default: `architecture/PRD.md`)
-  - Overall DESIGN (default: `architecture/DESIGN.md`)
-  - ADR directory (default: `architecture/ADR/**`)
-  - FEATURES manifest (default: `architecture/features/FEATURES.md`)
-  - Feature DESIGN (default: `architecture/features/feature-{slug}/DESIGN.md`)
+  - PRD (default: `{project-root}/architecture/PRD.md`)
+  - Overall DESIGN (default: `{project-root}/architecture/DESIGN.md`)
+  - ADR directory (default: `{project-root}/architecture/ADR/**`)
+  - DECOMPOSITION (default: `{project-root}/architecture/DECOMPOSITION.md`)
+  - Feature DESIGN (default: `{project-root}/architecture/features/feature-{slug}/DESIGN.md`)
 
 ## How to Provide Context in Prompts
 
@@ -141,7 +141,7 @@ Context:
 ### 5. `/spider-features`
 
 **What it does**:
-- Creates or updates the FEATURES manifest artifact ([taxonomy](TAXONOMY.md#featuresmd)) from the overall design.
+- Creates or updates the DECOMPOSITION artifact ([taxonomy](TAXONOMY.md#featuresmd)) from the overall design.
 
 **Provide context**:
 - Any feature boundaries you want (what should be separate features)

@@ -1,10 +1,16 @@
-<!-- spd:#:features -->
-# Features: TaskFlow
+<!-- spd:#:decomposition -->
+# Decomposition: TaskFlow
 
 <!-- spd:##:overview -->
 ## 1. Overview
 
-TaskFlow features are organized around core task management capabilities. The decomposition follows a dependency order where foundational CRUD operations enable higher-level features like notifications and reporting.
+TaskFlow design is decomposed into features organized around core task management capabilities. The decomposition follows a dependency order where foundational CRUD operations enable higher-level features like notifications and reporting.
+
+**Decomposition Strategy**:
+- Features grouped by functional cohesion (related capabilities together)
+- Dependencies minimize coupling between features
+- Each feature covers specific components and sequences from DESIGN
+- 100% coverage of all DESIGN elements verified
 
 <!-- spd:##:overview -->
 
@@ -16,7 +22,7 @@ TaskFlow features are organized around core task management capabilities. The de
 - [ ] `p1` - **ID**: `spd-taskflow-status-overall`
 
 <!-- spd:###:feature-title repeat="many" -->
-### 1. [Task CRUD](feature-task-crud/) 🔄 HIGH
+### 1. [Task CRUD](feature-task-crud/) ⏳ HIGH
 
 <!-- spd:id:feature has="priority,task" -->
 - [ ] `p1` - **ID**: `spd-taskflow-feature-task-crud`
@@ -96,7 +102,7 @@ TaskFlow features are organized around core task management capabilities. The de
 <!-- spd:###:feature-title repeat="many" -->
 
 <!-- spd:###:feature-title repeat="many" -->
-### 2. [Notifications](feature-notifications/) 📘 MEDIUM
+### 2. [Notifications](feature-notifications/) ⏳ MEDIUM
 
 <!-- spd:id:feature has="priority,task" -->
 - [ ] `p2` - **ID**: `spd-taskflow-feature-notifications`
@@ -174,4 +180,4 @@ TaskFlow features are organized around core task management capabilities. The de
 
 <!-- spd:id:status -->
 <!-- spd:##:entries -->
-<!-- spd:#:features -->
+<!-- spd:#:decomposition -->

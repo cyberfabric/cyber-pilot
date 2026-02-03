@@ -68,7 +68,7 @@ Agent confirms understanding of requirements:
 
 ### Downstream Traceability
 
-- [ ] Capabilities are traced through: PRD → DESIGN → FEATURES → FEATURE → CODE
+- [ ] Capabilities are traced through: PRD → DESIGN → DECOMPOSITION → FEATURE → CODE
 - [ ] When capability fully implemented (all features IMPLEMENTED) → mark capability `[x]`
 - [ ] When all capabilities `[x]` → product version complete
 
@@ -78,8 +78,8 @@ PRD defines IDs with `covered_by` attributes that track downstream implementatio
 
 | ID Type | `covered_by` | Meaning |
 |---------|--------------|---------|
-| `id:fr` | `DESIGN,FEATURES,FEATURE` | FR is covered when referenced in DESIGN, FEATURES, or FEATURE artifacts |
-| `id:nfr` | `DESIGN,FEATURES,FEATURE` | NFR is covered when referenced in downstream artifacts |
+| `id:fr` | `DESIGN,DECOMPOSITION,FEATURE` | FR is covered when referenced in DESIGN, DECOMPOSITION, or FEATURE artifacts |
+| `id:nfr` | `DESIGN,DECOMPOSITION,FEATURE` | NFR is covered when referenced in downstream artifacts |
 
 **Checkbox States**:
 
@@ -91,7 +91,7 @@ PRD defines IDs with `covered_by` attributes that track downstream implementatio
 
 - [ ] A FR can be checked when:
   - All `id-ref:fr` references in DESIGN are `[x]` (if design addresses it)
-  - All `id-ref:fr` references in FEATURES are `[x]` (if features cover it)
+  - All `id-ref:fr` references in DECOMPOSITION are `[x]` (if features cover it)
   - Implementation is verified and tested
 - [ ] An NFR can be checked when:
   - Design addresses the non-functional concern

@@ -2,7 +2,11 @@
 
 ## Core Principle
 
-Adapters extend Spider with project-specific context. Start files with `Extends: ../Spider/path/to/file.md`.
+Adapters extend Spider with project-specific context. Start files with:
+
+```text
+Extends: ../Spider/path/to/file.md
+```
 
 **You can override/add anything EXCEPT the immutable rules below.**
 
@@ -37,7 +41,7 @@ Must reference parent level, never contradict.
 architecture/
 ├── DESIGN.md                    # Overall Design
 └── features/
-    ├── FEATURES.md              # Feature manifest
+    ├── DECOMPOSITION.md              # Feature manifest
     └── feature-{slug}/
         ├── DESIGN.md            # Feature Design
 ```
@@ -70,14 +74,26 @@ Everything else is adapter-specific. Define as needed:
 
 **Note**: All Spider operation workflows now support **CREATE and UPDATE modes**. Adapters can be created once and updated anytime as project evolves. Use `adapter.md` workflow to create or update your adapter.
 
-### Tech Stack (`specs/tech-stack.md`)
+### Tech Stack
+
+Example location (in your adapter):
+
+```text
+.spider-adapter/specs/tech-stack.md
+```
 - Primary language and version
 - Frameworks (backend, frontend)
 - Database type and version
 - Additional services (cache, message queue, search)
 - Development tools (package manager, build tool, linter, formatter)
 
-### Domain Model Format (`specs/domain-model.md`)
+### Domain Model Format
+
+Example location (in your adapter):
+
+```text
+.spider-adapter/specs/domain-model.md
+```
 - Technology (TypeScript, JSON Schema, Protobuf, GTS, etc.)
 - Location (`architecture/domain-model/`, per-feature, etc.)
 - DML syntax (`@DomainModel.TypeName` for clickable references)
@@ -85,7 +101,13 @@ Everything else is adapter-specific. Define as needed:
 - Naming conventions
 - Traceability requirements (clickable links from Feature→Overall)
 
-### API Contract Format (`specs/api-contracts.md`)
+### API Contract Format
+
+Example location (in your adapter):
+
+```text
+.spider-adapter/specs/api-contracts.md
+```
 - Technology (OpenAPI, GraphQL, gRPC, CLISPEC, etc.)
 - Location (`architecture/api-specs/`, `architecture/cli-specs/`, etc.)
 - Linking syntax (`@API.GET:/path`, `@CLI.command-name`, `@Feature.{slug}` for clickable references)
@@ -93,42 +115,78 @@ Everything else is adapter-specific. Define as needed:
 - API conventions
 - Traceability requirements (clickable links from Feature→Overall)
 
-**Note**: For CLI tools, consider using **CLISPEC** - a built-in, simple format for CLI command documentation. See `CLISPEC.md` for specification.
+**Note**: For CLI tools, consider using **CLISPEC** - a built-in, simple format for CLI command documentation. See `../CLISPEC.md`.
 
-### Patterns & Architecture (`specs/patterns.md`)
+### Patterns & Architecture
+
+Example location (in your adapter):
+
+```text
+.spider-adapter/specs/patterns.md
+```
 - Architecture style (layered, hexagonal, microservices, etc.)
 - Core design patterns (DI, repository, error handling, etc.)
 - Anti-patterns to avoid
 - Module organization guidelines
 
-### Code Conventions (`specs/conventions.md`)
+### Code Conventions
+
+Example location (in your adapter):
+
+```text
+.spider-adapter/specs/conventions.md
+```
 - Naming conventions (files, directories, variables, functions, classes)
 - Code style (indentation, line length, braces, imports)
 - Documentation requirements
 - Error handling patterns
 
-### Testing Strategy (`specs/testing.md`)
+### Testing Strategy
+
+Example location (in your adapter):
+
+```text
+.spider-adapter/specs/testing.md
+```
 - Test frameworks (unit, integration, E2E)
 - Test organization and structure
 - Coverage requirements
 - Mocking strategy
 - Test commands
 
-### Build & Deployment (`specs/build-deploy.md`)
+### Build & Deployment
+
+Example location (in your adapter):
+
+```text
+.spider-adapter/specs/build-deploy.md
+```
 - Build tool and commands
 - Development environment setup
 - CI/CD pipeline configuration
 - Deployment strategy and environments
 - Database migrations
 
-### Linting (`specs/linting.md`)
+### Linting
+
+Example location (in your adapter):
+
+```text
+.spider-adapter/specs/linting.md
+```
 - Linter configuration
 - Formatting tools
 - Pre-commit hooks
 - CI integration
 - Custom lint rules
 
-### Security (`specs/security.md`)
+### Security
+
+Example location (in your adapter):
+
+```text
+.spider-adapter/specs/security.md
+```
 - Authentication and authorization strategy
 - Input validation requirements
 - Data protection (encryption, sensitive data handling)
@@ -136,7 +194,13 @@ Everything else is adapter-specific. Define as needed:
 - Secrets management
 - Security testing
 
-### Performance (`specs/performance.md`)
+### Performance
+
+Example location (in your adapter):
+
+```text
+.spider-adapter/specs/performance.md
+```
 - Performance requirements and SLAs
 - Benchmarking strategy and tools
 - Profiling guidelines
@@ -144,7 +208,13 @@ Everything else is adapter-specific. Define as needed:
 - Caching strategies
 - Resource usage limits
 
-### Project Structure (`specs/project-structure.md`)
+### Project Structure
+
+Example location (in your adapter):
+
+```text
+.spider-adapter/specs/project-structure.md
+```
 - Directory organization
 - File naming conventions
 - Spider artifact locations
@@ -152,11 +222,17 @@ Everything else is adapter-specific. Define as needed:
 - Test and documentation locations
 
 ### Additional Specs (as needed)
-- `rest-api-guidelines.md` - REST API conventions
-- `graphql-guidelines.md` - GraphQL schema patterns
-- `architectural-lints.md` - Custom architectural rules
-- `module-creation.md` - Module creation templates
-- Language-specific guidelines (e.g., `rust-guidelines.md`, `typescript-guidelines.md`)
+
+Examples (in your adapter):
+
+```text
+.spider-adapter/specs/rest-api-guidelines.md
+.spider-adapter/specs/graphql-guidelines.md
+.spider-adapter/specs/architectural-lints.md
+.spider-adapter/specs/module-creation.md
+.spider-adapter/specs/rust-guidelines.md
+.spider-adapter/specs/typescript-guidelines.md
+```
 
 **Required in all spec files**:
 - **Validation checklist**: Agent self-verification criteria
@@ -168,7 +244,12 @@ Everything else is adapter-specific. Define as needed:
 ### Behavior Description Language (Optional Override)
 - **Default**: Spider DSL (SDSL) for flows/algorithms/states
 - **Can override**: Create custom behavior specification in `{adapter-directory}/`
-- **Example**: Replace `../requirements/SDSL.md` with `../.spider-adapter/CustomBDL.md`
+- **Example**:
+
+```text
+Replace: {Spider}/requirements/SDSL.md
+With:    {project-root}/.spider-adapter/CustomBDL.md
+```
 - **Requirements**: Define control flow keywords, syntax rules, validation criteria
 - **Note**: Must update workflows 05 and 06 to reference custom spec
 
@@ -244,7 +325,11 @@ ALWAYS open and follow `specs/project-structure.md` WHEN executing workflows: ad
 ALWAYS open and follow `specs/conventions.md` WHEN executing workflows: adapter.md, adapter-auto.md, adapter-manual.md, adapter-bootstrap.md, adapter-validate.md, code-validate.md
 ```
 
-**Example spec file** (`specs/domain-model.md`):
+**Example spec file** (in your adapter):
+
+```text
+.spider-adapter/specs/domain-model.md
+```
 ```markdown
 # Domain Model Specification
 

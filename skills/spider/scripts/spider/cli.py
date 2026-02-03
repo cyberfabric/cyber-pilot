@@ -846,7 +846,7 @@ def _cmd_init(argv: List[str]) -> int:
 
     # Use weaver-based WHEN clause format (not workflow-based)
     weaver_id = "spider-sdlc"
-    artifacts_when = f"ALWAYS open and follow `artifacts.json` WHEN Spider uses weaver `{weaver_id}` for artifact kinds: PRD, DESIGN, FEATURES, ADR, FEATURE OR codebase"
+    artifacts_when = f"ALWAYS open and follow `artifacts.json` WHEN Spider uses weaver `{weaver_id}` for artifact kinds: PRD, DESIGN, DECOMPOSITION, ADR, FEATURE OR codebase"
     schema_rel = _safe_relpath_from_dir(spider_root / "schemas" / "artifacts.schema.json", adapter_dir)
     registry_spec_rel = _safe_relpath_from_dir(spider_root / "requirements" / "artifacts-registry.md", adapter_dir)
     desired_agents = "\n".join([

@@ -87,7 +87,7 @@ The system focuses on simplicity and speed, allowing teams to manage their daily
 <!-- spd:###:fr-title repeat="many" -->
 ### FR-001 Task Management
 
-<!-- spd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:fr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [ ] `p1` - **ID**: `spd-taskflow-fr-task-management`
 
 <!-- spd:free:fr-summary -->
@@ -104,7 +104,7 @@ The system MUST allow creating, editing, and deleting tasks. The system MUST all
 <!-- spd:###:fr-title repeat="many" -->
 ### FR-002 Notifications
 
-<!-- spd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:fr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [ ] `p1` - **ID**: `spd-taskflow-fr-notifications`
 
 <!-- spd:free:fr-summary -->
@@ -167,7 +167,7 @@ The system MUST send push notifications for task assignments. The system MUST se
 <!-- spd:###:nfr-title repeat="many" -->
 ### Security
 
-<!-- spd:id:nfr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:nfr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [ ] `p1` - **ID**: `spd-taskflow-nfr-security`
 
 <!-- spd:list:nfr-statements -->
@@ -181,7 +181,7 @@ The system MUST send push notifications for task assignments. The system MUST se
 <!-- spd:###:nfr-title repeat="many" -->
 ### Performance
 
-<!-- spd:id:nfr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:nfr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [ ] `p2` - **ID**: `spd-taskflow-nfr-performance`
 
 <!-- spd:list:nfr-statements -->

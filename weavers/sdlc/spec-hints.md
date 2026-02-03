@@ -7,7 +7,7 @@ Maps adapter specs to artifact kinds supported by this weaver. Used by `/spider-
 This weaver supports the following artifact kinds:
 - `PRD` — Product Requirements Document
 - `DESIGN` — Technical Design
-- `FEATURES` — Features Manifest
+- `DECOMPOSITION` — Features Manifest
 - `FEATURE` — Individual Feature Design
 - `ADR` — Architecture Decision Record
 
@@ -17,7 +17,7 @@ This weaver supports the following artifact kinds:
 |------|----------------|----------|-------------|
 | `tech-stack.md` | DESIGN, ADR | ✓ | Languages, frameworks, dependencies |
 | `project-structure.md` | DESIGN, ADR | ✓ | Directory layout, module organization |
-| `domain-model.md` | DESIGN, FEATURES, FEATURE | ✓ | Core concepts, entities, data structures |
+| `domain-model.md` | DESIGN, DECOMPOSITION, FEATURE | ✓ | Core concepts, entities, data structures |
 | `conventions.md` | — | ✓ | Code style, naming, file organization |
 | `testing.md` | — | ✓ | Test framework, patterns, coverage |
 | `build-deploy.md` | — | ✓ | Build commands, CI/CD, deployment |
@@ -40,7 +40,7 @@ This weaver supports the following artifact kinds:
 ## Example Generated Rules
 
 ```markdown
-ALWAYS open and follow `specs/domain-model.md` WHEN Spider uses weaver `spider-sdlc` for artifact kinds: DESIGN, FEATURES, FEATURE OR codebase
+ALWAYS open and follow `specs/domain-model.md` WHEN Spider uses weaver `spider-sdlc` for artifact kinds: DESIGN, DECOMPOSITION, FEATURE OR codebase
 
 ALWAYS open and follow `specs/conventions.md` WHEN Spider uses weaver `spider-sdlc` for codebase
 ```

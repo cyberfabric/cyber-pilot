@@ -2,9 +2,9 @@
 spider: true
 type: workflow
 name: spider-generate
-description: Create/update Spider artifacts (PRD, DESIGN, FEATURES, ADR, Feature) or implement code from design with traceability markers
+description: Create/update artifacts or implement code
 version: 1.0
-purpose: Universal workflow for creating or updating any Spider artifact or code
+purpose: Universal workflow for creating or updating any artifact or code
 ---
 
 # Generate

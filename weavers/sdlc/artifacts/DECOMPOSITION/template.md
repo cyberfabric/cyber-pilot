@@ -1,21 +1,21 @@
 ---
 spider-template:
   version:
-    major: 1
+    major: 2
     minor: 0
-  kind: FEATURES
+  kind: DECOMPOSITION
   unknown_sections: warn
 ---
 
-# Features: {PROJECT_NAME}
+# Decomposition: {PROJECT_NAME}
 
-<!-- spd:#:features -->
-# Features
+<!-- spd:#:decomposition -->
+# Decomposition
 
 <!-- spd:##:overview -->
 ## 1. Overview
 
-{ Description of what should be dome, why it was decomposed in that way, and any other relevant information. }
+{ Description of how the DESIGN was decomposed into features, the decomposition strategy, and any relevant decomposition rationale. }
 
 
 <!-- spd:##:overview -->
@@ -100,4 +100,4 @@ spider-template:
 <!-- spd:###:feature-title repeat="many" -->
 <!-- spd:id:status -->
 <!-- spd:##:entries -->
-<!-- spd:#:features -->
+<!-- spd:#:decomposition -->

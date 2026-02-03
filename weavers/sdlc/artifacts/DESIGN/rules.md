@@ -90,7 +90,7 @@ Agent confirms understanding of requirements:
 
 **Relationship to other artifacts**:
 - **PRD** → DESIGN: PRD defines WHAT, DESIGN defines HOW (high-level)
-- **DESIGN** → FEATURES: DESIGN defines architecture, FEATURES lists implementations
+- **DESIGN** → DECOMPOSITION: DESIGN defines architecture, FEATURES lists implementations
 - **DESIGN** → FEATURE: DESIGN provides context, FEATURE details implementation
 
 ### Upstream Traceability
@@ -117,11 +117,11 @@ DESIGN defines IDs with `covered_by` attributes that track downstream implementa
 
 | ID Type | `covered_by` | Meaning |
 |---------|--------------|---------|
-| `id:principle` | `FEATURES,FEATURE` | Principle is covered when applied in feature designs |
-| `id:constraint` | `FEATURES,FEATURE` | Constraint is covered when satisfied by features |
-| `id:component` | `FEATURES,FEATURE` | Component is covered when integrated in features |
-| `id:seq` | `FEATURES,FEATURE` | Sequence is covered when implemented in features |
-| `id:dbtable` | `FEATURES,FEATURE` | Table is covered when used in features |
+| `id:principle` | `DECOMPOSITION,FEATURE` | Principle is covered when applied in feature designs |
+| `id:constraint` | `DECOMPOSITION,FEATURE` | Constraint is covered when satisfied by features |
+| `id:component` | `DECOMPOSITION,FEATURE` | Component is covered when integrated in features |
+| `id:seq` | `DECOMPOSITION,FEATURE` | Sequence is covered when implemented in features |
+| `id:dbtable` | `DECOMPOSITION,FEATURE` | Table is covered when used in features |
 
 **Checkbox States**:
 
@@ -148,7 +148,7 @@ DESIGN defines IDs with `covered_by` attributes that track downstream implementa
 **When to Check DESIGN Checkboxes**:
 
 - [ ] A design element (principle, constraint, component, etc.) can be checked when:
-  - All `id-ref` references in FEATURES manifest are `[x]`
+  - All `id-ref` references in DECOMPOSITION manifest are `[x]`
   - All `id-ref` references in individual FEATURE designs are `[x]`
   - Implementation is verified and tested
 
@@ -286,7 +286,7 @@ After DESIGN generation/validation, offer these options:
 
 | Condition | Suggested Next Step |
 |-----------|---------------------|
-| DESIGN complete | `/spider-generate FEATURES` — create features manifest |
+| DESIGN complete | `/spider-generate DECOMPOSITION` — create features manifest |
 | Need architecture decision | `/spider-generate ADR` — document key decision |
 | PRD missing/incomplete | `/spider-generate PRD` — create/update PRD first |
 | DESIGN needs revision | Continue editing DESIGN |

@@ -3,7 +3,7 @@
 **Learn Spider in 10 minutes with real prompts and examples**
 
 This Quickstart shows examples in a Windsurf-friendly style (slash commands like `/spider-adr`).
-You can apply the same flow in any agent by opening the corresponding workflow files under `workflows/`.
+You can apply the same flow in any agent by opening the corresponding workflow files under [`workflows/`](../../../workflows/).
 
 ---
 
@@ -36,7 +36,7 @@ Spider = **Design First, Code Second**
 
 **Key principle**: If code contradicts design, fix design first, then regenerate code.
 
-Learn what each artifact means: [guides/TAXONOMY.md](guides/TAXONOMY.md)
+Learn what each artifact means: [TAXONOMY.md](TAXONOMY.md)
 
 ---
 
@@ -46,10 +46,10 @@ Learn what each artifact means: [guides/TAXONOMY.md](guides/TAXONOMY.md)
 
 ---
 
-- Greenfield (new project): [guides/GREENFIELD.md](guides/GREENFIELD.md)
-- Brownfield (existing code/docs): [guides/BROWNFIELD.md](guides/BROWNFIELD.md)
+- Greenfield (new project): [GREENFIELD.md](GREENFIELD.md)
+- Brownfield (existing code/docs): [BROWNFIELD.md](BROWNFIELD.md)
 
-Modular monolith (modules inside one repo/deployable): [guides/MONOLITH.md](guides/MONOLITH.md)
+Modular monolith (modules inside one repo/deployable): [MONOLITH.md](MONOLITH.md)
 
-Learn what each artifact means: [guides/TAXONOMY.md](guides/TAXONOMY.md)
+Learn what each artifact means: [TAXONOMY.md](TAXONOMY.md)
 

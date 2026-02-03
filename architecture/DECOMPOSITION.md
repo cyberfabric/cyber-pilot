@@ -189,7 +189,7 @@ Spider features are organized around **architectural components** with explicit 
   - Template definitions (`template.md` per kind)
   - Semantic checklists (`checklist.md` per kind)
   - Generation rules (`rules.md` per kind)
-  - Canonical examples (`examples/example.md`)
+  - Canonical examples (`weavers/sdlc/artifacts/{KIND}/examples/example.md`)
   - Weaver validation (`validate-weavers`)
   - Template QA (`self-check`)
 <!-- spd:list:feature-scope -->
@@ -348,8 +348,8 @@ Spider features are organized around **architectural components** with explicit 
 
 <!-- spd:list:feature-scope -->
 - **Scope**:
-  - Generate workflow (`workflows/generate.md`)
-  - Validate workflow (`workflows/validate.md`)
+  - Generate workflow (`../workflows/generate.md`)
+  - Validate workflow (`../workflows/validate.md`)
   - Execution protocol
   - Artifact management (PRD, DESIGN, ADR, FEATURES, FEATURE)
   - Question-answer flow with proposals

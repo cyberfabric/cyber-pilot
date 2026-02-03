@@ -70,7 +70,7 @@ To run tests:
 ### spider
 
 **Name**: `spider`  
-**Description**: Unified Spider tool for artifact validation, search, and traceability. Validates Spider artifacts (PRD, DESIGN, ADR, FEATURES, FEATURE) against structure requirements, provides search and ID lookup across artifacts, and enables full bidirectional traceability between documentation and code.
+**Description**: Unified Spider tool for artifact validation, search, and traceability. Validates Spider artifacts (PRD, DESIGN, ADR, DECOMPOSITION, FEATURE) against structure requirements, provides search and ID lookup across artifacts, and enables full bidirectional traceability between documentation and code.
 
 **Primary capabilities**:
 - Artifact validation with deterministic pass/fail

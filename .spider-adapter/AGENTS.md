@@ -21,7 +21,7 @@ ALWAYS open and follow `../schemas/artifacts.schema.json` WHEN working with arti
 
 ALWAYS open and follow `../requirements/artifacts-registry.md` WHEN working with artifacts.json
 
-ALWAYS open and follow `artifacts.json` WHEN Spider uses weaver `spider-sdlc` for artifact kinds: PRD, DESIGN, FEATURES, ADR, FEATURE OR codebase
+ALWAYS open and follow `artifacts.json` WHEN Spider uses weaver `spider-sdlc` for artifact kinds: PRD, DESIGN, DECOMPOSITION, ADR, FEATURE OR codebase
 
 ### Tech Stack & Conventions
 
@@ -31,7 +31,7 @@ ALWAYS open and follow `specs/conventions.md` WHEN Spider uses weaver `spider-sd
 
 ### Domain Model
 
-ALWAYS open and follow `specs/domain-model.md` WHEN Spider uses weaver `spider-sdlc` for artifact kinds: DESIGN, FEATURES, FEATURE OR codebase
+ALWAYS open and follow `specs/domain-model.md` WHEN Spider uses weaver `spider-sdlc` for artifact kinds: DESIGN, DECOMPOSITION, FEATURE OR codebase
 
 ### Project Structure
 
@@ -57,7 +57,7 @@ ALWAYS open and follow `specs/patterns.md` WHEN Spider uses weaver `spider-sdlc`
 |------|------|--------------|
 | PRD | `architecture/PRD.md` | FULL |
 | DESIGN | `architecture/DESIGN.md` | FULL |
-| FEATURES | `architecture/features/FEATURES.md` | FULL |
+| DECOMPOSITION | `architecture/DECOMPOSITION.md` | FULL |
 | ADR | `architecture/ADR/general/*.md` | FULL |
 
 ## Codebase Locations

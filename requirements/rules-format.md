@@ -113,7 +113,7 @@ weavers/sdlc/
 │   ├── PRD/rules.md
 │   ├── DESIGN/rules.md
 │   ├── ADR/rules.md
-│   ├── FEATURES/rules.md
+│   ├── DECOMPOSITION/rules.md
 │   └── FEATURE/rules.md
 └── codebase/rules.md
 ```

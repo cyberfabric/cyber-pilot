@@ -22,7 +22,7 @@ def detect_artifact_kind(artifact_path: Path) -> str:
     name = artifact_path.name
     if artifact_path.exists() and artifact_path.is_dir() and name == "ADR":
         return "adr"
-    if name == "FEATURES.md":
+    if name == "DECOMPOSITION.md":
         return "features-manifest"
     if name == "DESIGN.md" and "features" in artifact_path.parts and any(p.startswith("feature-") for p in artifact_path.parts):
         return "feature-design"

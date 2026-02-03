@@ -289,7 +289,7 @@ EXIT CODES:
 EXAMPLE:
   $ python3 scripts/spider.py where-defined --id spd-myapp-actor-admin
   $ python3 scripts/spider.py where-defined --id spd-myapp-req-auth
-  $ python3 scripts/spider.py where-defined --id spd-myapp-feature-auth --artifact architecture/features/FEATURES.md
+  $ python3 scripts/spider.py where-defined --id spd-myapp-feature-auth --artifact architecture/DECOMPOSITION.md
 
 RELATED:
   - @CLI.where-used

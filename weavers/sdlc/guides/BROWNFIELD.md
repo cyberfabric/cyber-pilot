@@ -25,7 +25,7 @@ Use this track when you have an existing codebase (with or without existing docs
 
 Use this when baseline exists and you want to code a new capability.
 
-- Update the FEATURES manifest artifact (default: `architecture/features/FEATURES.md`) ([taxonomy](TAXONOMY.md#featuresmd)).
+- Update the DECOMPOSITION artifact (default: `architecture/DECOMPOSITION.md`) ([taxonomy](TAXONOMY.md#decompositionmd)).
 - Create/update feature `DESIGN.md` ([taxonomy](TAXONOMY.md#feature-designmd)).
 - Implement with `implement`.
 
@@ -134,7 +134,7 @@ Context:
 #### 5. `/spider-features`
 
 **What it does**:
-- Creates or updates the FEATURES manifest artifact ([taxonomy](TAXONOMY.md#featuresmd)).
+- Creates or updates the DECOMPOSITION artifact ([taxonomy](TAXONOMY.md#featuresmd)).
 
 **Provide context**:
 - If the system is large: which modules/domains should become separate features

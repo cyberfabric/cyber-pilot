@@ -90,7 +90,7 @@ spider-template:
 <!-- spd:####:principle-title repeat="many" -->
 #### {Principle Name}
 
-<!-- spd:id:principle has="priority,task" covered_by="FEATURES,FEATURE" -->
+<!-- spd:id:principle has="priority,task" covered_by="DECOMPOSITION,FEATURE" -->
 - [ ] `p1` - **ID**: `spd-{system}-principle-{slug}`
 
 <!-- spd:paragraph:principle-body -->
@@ -106,7 +106,7 @@ spider-template:
 <!-- spd:####:constraint-title repeat="many" -->
 #### {Constraint Name}
 
-<!-- spd:id:constraint has="priority,task" covered_by="FEATURES,FEATURE" -->
+<!-- spd:id:constraint has="priority,task" covered_by="DECOMPOSITION,FEATURE" -->
 - [ ] `p1` - **ID**: `spd-{system}-constraint-{slug}`
 
 <!-- spd:paragraph:constraint-body -->
@@ -140,7 +140,7 @@ spider-template:
 <!-- spd:####:component-title repeat="many" -->
 #### {Component Name}
 
-<!-- spd:id:component has="priority,task" covered_by="FEATURES,FEATURE" -->
+<!-- spd:id:component has="priority,task" covered_by="DECOMPOSITION,FEATURE" -->
 - [ ] `p1` - **ID**: `spd-{system}-component-{component-slug}`
 
 <!-- spd:list:component-payload -->
@@ -167,7 +167,7 @@ spider-template:
 <!-- spd:####:sequence-title repeat="many" -->
 #### {Sequence Name}
 
-<!-- spd:id:seq has="priority,task" covered_by="FEATURES,FEATURE" -->
+<!-- spd:id:seq has="priority,task" covered_by="DECOMPOSITION,FEATURE" -->
 - [ ] `p1` - **ID**: `spd-{system}-seq-{slug}`
 
 <!-- spd:code:sequences -->
@@ -189,7 +189,7 @@ spider-template:
 <!-- spd:####:db-table-title repeat="many" -->
 #### Table {name}
 
-<!-- spd:id:dbtable has="priority,task" covered_by="FEATURES,FEATURE" -->
+<!-- spd:id:dbtable has="priority,task" covered_by="DECOMPOSITION,FEATURE" -->
 - [ ] `p1` - **ID**: `spd-{system}-dbtable-{slug}`
 
 **Schema**

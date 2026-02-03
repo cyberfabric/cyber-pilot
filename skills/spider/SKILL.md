@@ -1,6 +1,6 @@
 ---
 name: spider
-description: Framework for Documentation and Development - AI agent toolkit. Use when user works with PRD, DESIGN, FEATURES, ADR, feature specs, architecture documentation, requirements, or mentions Spider/workflow/artifact/adapter/traceability. Provides structured artifact templates, validation, design-to-code traceability, and guided code implementation with traceability markers. Opt-in - suggest enabling when design/architecture activities detected.
+description: Framework for Documentation and Development - AI agent toolkit. Use when user works with PRD, DESIGN, DECOMPOSITION, ADR, feature specs, architecture documentation, requirements, or mentions Spider/workflow/artifact/adapter/traceability. Provides structured artifact templates, validation, design-to-code traceability, and guided code implementation with traceability markers. Opt-in - suggest enabling when design/architecture activities detected.
 ---
 
 # Spider Unified Tool
@@ -9,7 +9,7 @@ description: Framework for Documentation and Development - AI agent toolkit. Use
 
 Provides comprehensive Spider artifact management and implementation:
 1. **Template-Based Validation**: Validates artifacts against Spider templates with marker parsing
-2. **Cross-Reference Validation**: Validates references between artifacts (PRD → DESIGN → FEATURES → feature designs)
+2. **Cross-Reference Validation**: Validates references between artifacts (PRD → DESIGN → DECOMPOSITION → feature designs)
 3. **Code Traceability**: Codebase scanning to verify implemented items are tagged in code
 4. **Search**: ID lookup and traceability across Spider artifacts
 5. **Design-to-Code Implementation**: Guided code generation from design specs with `@spider-*` traceability markers
@@ -35,7 +35,7 @@ Spider does **NOT**:
 - Enforce coding style (use linters/formatters for that)
 - Provide IDE features (syntax highlighting, autocomplete)
 
-Spider **DOES** support code generation via `/spider-generate` with `KIND=CODE` using `weavers/sdlc/codebase/rules.md`.
+Spider **DOES** support code generation via `/spider-generate` with `KIND=CODE` using `../../weavers/sdlc/codebase/rules.md`.
 
 ## Preconditions
 
@@ -318,7 +318,7 @@ python3 {SPIDER_ROOT}/skills/spider/scripts/spider.py self-check [--weaver <id>]
 
 ## Project Configuration
 
-Optional `.spider-config.json` at project root:
+Optional `{project-root}/.spider-config.json` at project root:
 
 ```json
 {
@@ -386,10 +386,10 @@ Spider provides structured workflows for AI agents to help with design and archi
 Agent SHOULD suggest enabling Spider when detecting these patterns:
 
 **File patterns**:
-- User creates/edits: `PRD.md`, `DESIGN.md`, `FEATURES.md`, `ADR/*.md`
+- User creates/edits: `PRD.md`, `DESIGN.md`, `DECOMPOSITION.md`, `ADR/*.md`
 - User creates/edits: `**/feature-*/DESIGN.md`, `architecture/**/*.md`
 - User opens/edits: `AGENTS.md`, `artifacts.json`, `workflows/*.md`
-- Project contains: `.spider-config.json` (Spider-enabled project)
+- Project contains: `{project-root}/.spider-config.json` (Spider-enabled project)
 
 **Spider terminology** (strong signal):
 - User mentions: "spider", "Spider", "framework for documentation"
@@ -409,7 +409,7 @@ Agent SHOULD suggest enabling Spider when detecting these patterns:
 
 ### Auto-Detection in Spider Projects
 
-If project contains `.spider-config.json`:
+If project contains `{project-root}/.spider-config.json`:
 - Spider is available but still opt-in
 - Agent SHOULD mention Spider availability on first relevant interaction
 - Example: "This project has Spider configured. Would you like to enable Spider mode?"
@@ -426,7 +426,7 @@ Agent suggests:
 Would you like to enable Spider mode for structured workflow support?
 
 Spider provides:
-- Artifact templates (PRD, DESIGN, FEATURES, ADR, Feature)
+- Artifact templates (PRD, DESIGN, DECOMPOSITION, ADR, Feature)
 - Validation against best practices
 - Traceability between design and code
 
@@ -495,10 +495,10 @@ Spider mode is successfully enabled when ALL of these are true:
 | Command | Workflow | Description |
 |---------|----------|-------------|
 | `/spider` | (this skill) | Enable Spider mode, show status |
-| `/spider-generate` | `workflows/generate.md` | Create/update artifacts or implement code |
-| `/spider-validate` | `workflows/validate.md` | Validate artifacts or code (deterministic + semantic) |
-| `/spider-validate semantic` | `workflows/validate.md` | Semantic-only validation (skip deterministic gate) |
-| `/spider-adapter` | `workflows/adapter.md` | Create/update project adapter |
+| `/spider-generate` | `../../workflows/generate.md` | Create/update artifacts or implement code |
+| `/spider-validate` | `../../workflows/validate.md` | Validate artifacts or code (deterministic + semantic) |
+| `/spider-validate semantic` | `../../workflows/validate.md` | Semantic-only validation (skip deterministic gate) |
+| `/spider-adapter` | `../../workflows/adapter.md` | Create/update project adapter |
 
 ### Tracked Files Detection
 
@@ -524,7 +524,7 @@ When Spider is ON and user requests a workflow:
 ```
 ALWAYS follow this skill's "Enable Spider Mode" steps WHEN user invokes `/spider`
 
-ALWAYS open and follow `workflows/generate.md` WHEN ANY of:
+ALWAYS open and follow `../../workflows/generate.md` WHEN ANY of:
   - user invokes `/spider-generate`
   - user asks to create/update Spider artifacts
   - user asks to CREATE files/folders that are tracked in artifacts.json
@@ -535,9 +535,9 @@ ALWAYS open and follow `workflows/generate.md` WHEN ANY of:
   - user asks to REFACTOR files/folders that are tracked in artifacts.json
   - user asks to IMPLEMENT features in codebase tracked in artifacts.json
 
-ALWAYS open and follow `workflows/validate.md` WHEN user invokes `/spider-validate` OR user asks to validate Spider artifacts
+ALWAYS open and follow `../../workflows/validate.md` WHEN user invokes `/spider-validate` OR user asks to validate Spider artifacts
 
-ALWAYS open and follow `workflows/adapter.md` WHEN user invokes `/spider-adapter` OR user asks to setup/update Spider adapter
+ALWAYS open and follow `../../workflows/adapter.md` WHEN user invokes `/spider-adapter` OR user asks to setup/update Spider adapter
 ```
 
 ### Modification Detection Keywords

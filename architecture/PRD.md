@@ -33,7 +33,7 @@ In this project, "Spider" means **Framework for Documentation and Development**:
 
 **Success Criteria**:
 <!-- spd:list:success-criteria required="true" -->
-- A new user can complete adapter initialization and reach a first passing PRD validation (`spider validate --artifact architecture/PRD.md`) in ≤ 60 minutes. (Baseline: not measured; Target: v1.0)
+- A new user can complete adapter initialization and reach a first passing PRD validation (`spider validate --artifact {project-root}/architecture/PRD.md`) in ≤ 60 minutes. (Baseline: not measured; Target: v1.0)
 - Deterministic validation of the PRD completes in ≤ 3 seconds on a typical developer laptop. (Baseline: ~1s current; Target: v1.0)
 - 100% of `spd-spider-actor-*` IDs defined in the PRD are resolvable via deterministic search (`spider where-defined`) without ambiguity. (Baseline: 100% current; Target: v1.0)
 - CI validation feedback for PRD changes is produced in ≤ 2 minutes from push to default branch. (Baseline: not measured; Target: v1.0)
@@ -278,7 +278,7 @@ In this project, "Spider" means **Framework for Documentation and Development**:
 <!-- spd:###:fr-title repeat="many" -->
 ### FR-001 Workflow-Driven Development
 
-<!-- spd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:fr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [x] `p1` - **ID**: `spd-spider-fr-workflow-execution`
 
 <!-- spd:free:fr-summary -->
@@ -295,7 +295,7 @@ The system MUST provide a clear, documented workflow catalog that users and AI a
 <!-- spd:###:fr-title repeat="many" -->
 ### FR-002 Artifact Structure Validation
 
-<!-- spd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:fr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [x] `p1` - **ID**: `spd-spider-fr-validation`
 
 <!-- spd:free:fr-summary -->
@@ -312,7 +312,7 @@ Deterministic validators for structural checks (sections, IDs, format). Determin
 <!-- spd:###:fr-title repeat="many" -->
 ### FR-003 Adapter Configuration System
 
-<!-- spd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:fr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [x] `p1` - **ID**: `spd-spider-fr-adapter-config`
 
 <!-- spd:free:fr-summary -->
@@ -329,7 +329,7 @@ Technology-agnostic core methodology. Project-specific adapter specifications. A
 <!-- spd:###:fr-title repeat="many" -->
 ### FR-004 Adaptive Design Bootstrapping
 
-<!-- spd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:fr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [x] `p1` - **ID**: `spd-spider-fr-design-first`
 
 <!-- spd:free:fr-summary -->
@@ -346,7 +346,7 @@ Users MAY start implementation without having pre-existing design artifacts. Whe
 <!-- spd:###:fr-title repeat="many" -->
 ### FR-005 Traceability Management
 
-<!-- spd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:fr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [x] `p1` - **ID**: `spd-spider-fr-traceability`
 
 <!-- spd:free:fr-summary -->
@@ -363,7 +363,7 @@ Unique ID system for all design elements using structured format. Code tags (@sp
 <!-- spd:###:fr-title repeat="many" -->
 ### FR-006 Quickstart Guides
 
-<!-- spd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:fr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [x] `p2` - **ID**: `spd-spider-fr-interactive-docs`
 
 <!-- spd:free:fr-summary -->
@@ -380,7 +380,7 @@ QUICKSTART guides with copy-paste prompts. Progressive disclosure (human-facing 
 <!-- spd:###:fr-title repeat="many" -->
 ### FR-007 Artifact Templates
 
-<!-- spd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:fr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [x] `p1` - **ID**: `spd-spider-fr-artifact-templates`
 
 <!-- spd:free:fr-summary -->
@@ -397,7 +397,7 @@ The system MUST provide an artifact template catalog for core Spider artifacts (
 <!-- spd:###:fr-title repeat="many" -->
 ### FR-008 Artifact Examples
 
-<!-- spd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:fr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [x] `p2` - **ID**: `spd-spider-fr-artifact-examples`
 
 <!-- spd:free:fr-summary -->
@@ -414,7 +414,7 @@ The system MUST provide an artifact example catalog for core Spider artifacts (P
 <!-- spd:###:fr-title repeat="many" -->
 ### FR-009 ADR Management
 
-<!-- spd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:fr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [x] `p2` - **ID**: `spd-spider-fr-arch-decision-mgmt`
 
 <!-- spd:free:fr-summary -->
@@ -431,7 +431,7 @@ Create and track architecture decisions with structured format. Link ADRs to aff
 <!-- spd:###:fr-title repeat="many" -->
 ### FR-010 PRD Management
 
-<!-- spd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:fr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [x] `p1` - **ID**: `spd-spider-fr-prd-mgmt`
 
 <!-- spd:free:fr-summary -->
@@ -448,7 +448,7 @@ Create and update PRD content through workflows. Enforce stable IDs for actors a
 <!-- spd:###:fr-title repeat="many" -->
 ### FR-011 Overall Design Management
 
-<!-- spd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:fr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [x] `p1` - **ID**: `spd-spider-fr-overall-design-mgmt`
 
 <!-- spd:free:fr-summary -->
@@ -465,7 +465,7 @@ Create and update Overall Design through workflows. Link requirements to PRD act
 <!-- spd:###:fr-title repeat="many" -->
 ### FR-012 Feature Manifest Management
 
-<!-- spd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:fr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [x] `p2` - **ID**: `spd-spider-fr-feature-manifest-mgmt`
 
 <!-- spd:free:fr-summary -->
@@ -482,7 +482,7 @@ Create and update Feature Manifest through workflows. Maintain stable IDs for fe
 <!-- spd:###:fr-title repeat="many" -->
 ### FR-013 Feature Design Management
 
-<!-- spd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:fr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [x] `p1` - **ID**: `spd-spider-fr-feature-design-mgmt`
 
 <!-- spd:free:fr-summary -->
@@ -499,7 +499,7 @@ Create and update Feature Design through workflows. Maintain stable IDs for flow
 <!-- spd:###:fr-title repeat="many" -->
 ### FR-014 Feature Lifecycle Management
 
-<!-- spd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:fr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [x] `p2` - **ID**: `spd-spider-fr-feature-lifecycle`
 
 <!-- spd:free:fr-summary -->
@@ -516,7 +516,7 @@ Track feature status from NOT_STARTED through IN_DESIGN, DESIGNED, READY, IN_PRO
 <!-- spd:###:fr-title repeat="many" -->
 ### FR-015 Code Generation from Design
 
-<!-- spd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:fr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [x] `p2` - **ID**: `spd-spider-fr-code-generation`
 
 <!-- spd:free:fr-summary -->
@@ -533,7 +533,7 @@ Provide an implementation process that is adapter-aware and works with any progr
 <!-- spd:###:fr-title repeat="many" -->
 ### FR-016 Brownfield Support
 
-<!-- spd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:fr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [x] `p2` - **ID**: `spd-spider-fr-brownfield-support`
 
 <!-- spd:free:fr-summary -->
@@ -550,7 +550,7 @@ Add Spider to existing projects without disruption. Auto-detect existing archite
 <!-- spd:###:fr-title repeat="many" -->
 ### FR-017 Spider DSL (SDSL)
 
-<!-- spd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:fr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [x] `p1` - **ID**: `spd-spider-fr-fdl`
 
 <!-- spd:free:fr-summary -->
@@ -567,7 +567,7 @@ Plain English algorithm description language for actor flows (Spider DSL, abbrev
 <!-- spd:###:fr-title repeat="many" -->
 ### FR-018 IDE Integration and Tooling
 
-<!-- spd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:fr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [ ] `p3` - **ID**: `spd-spider-fr-ide-integration`
 
 <!-- spd:free:fr-summary -->
@@ -584,7 +584,7 @@ VS Code extension for Spider artifact editing. Click-to-navigate for Spider IDs 
 <!-- spd:###:fr-title repeat="many" -->
 ### FR-019 Multi-Agent IDE Integration
 
-<!-- spd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:fr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [x] `p2` - **ID**: `spd-spider-fr-multi-agent-integration`
 
 <!-- spd:free:fr-summary -->
@@ -601,7 +601,7 @@ The system MUST provide a unified `agents` command to generate and maintain agen
 <!-- spd:###:fr-title repeat="many" -->
 ### FR-020 Extensible Weaver Package System
 
-<!-- spd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:fr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [x] `p1` - **ID**: `spd-spider-fr-rules-packages`
 
 <!-- spd:free:fr-summary -->
@@ -618,7 +618,7 @@ The system MUST support extensible weaver packages that define templates, checkl
 <!-- spd:###:fr-title repeat="many" -->
 ### FR-021 Template Quality Assurance
 
-<!-- spd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:fr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [x] `p2` - **ID**: `spd-spider-fr-template-qa`
 
 <!-- spd:free:fr-summary -->
@@ -635,7 +635,7 @@ The system MUST provide a `self-check` command that validates example artifacts 
 <!-- spd:###:fr-title repeat="many" -->
 ### FR-022 Cross-Artifact Validation
 
-<!-- spd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:fr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [x] `p1` - **ID**: `spd-spider-fr-cross-artifact-validation`
 
 <!-- spd:free:fr-summary -->
@@ -652,7 +652,7 @@ The system MUST validate cross-artifact relationships when multiple artifacts ar
 <!-- spd:###:fr-title repeat="many" -->
 ### FR-023 Hierarchical System Registry
 
-<!-- spd:id:fr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:fr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [x] `p2` - **ID**: `spd-spider-fr-hierarchical-registry`
 
 <!-- spd:free:fr-summary -->
@@ -1598,7 +1598,7 @@ The system MUST support hierarchical organization of systems in the artifacts re
 <!-- spd:###:nfr-title repeat="many" -->
 ### Validation performance
 
-<!-- spd:id:nfr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:nfr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [x] `p2` - **ID**: `spd-spider-nfr-validation-performance`
 
 <!-- spd:list:nfr-statements -->
@@ -1611,7 +1611,7 @@ The system MUST support hierarchical organization of systems in the artifacts re
 <!-- spd:###:nfr-title repeat="many" -->
 ### Security and integrity
 
-<!-- spd:id:nfr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:nfr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [x] `p1` - **ID**: `spd-spider-nfr-security-integrity`
 
 <!-- spd:list:nfr-statements -->
@@ -1624,7 +1624,7 @@ The system MUST support hierarchical organization of systems in the artifacts re
 <!-- spd:###:nfr-title repeat="many" -->
 ### Reliability and recoverability
 
-<!-- spd:id:nfr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:nfr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [x] `p2` - **ID**: `spd-spider-nfr-reliability-recoverability`
 
 <!-- spd:list:nfr-statements -->
@@ -1637,7 +1637,7 @@ The system MUST support hierarchical organization of systems in the artifacts re
 <!-- spd:###:nfr-title repeat="many" -->
 ### Adoption and usability
 
-<!-- spd:id:nfr has="priority,task" covered_by="DESIGN,FEATURES,FEATURE" -->
+<!-- spd:id:nfr has="priority,task" covered_by="DESIGN,DECOMPOSITION,FEATURE" -->
 - [x] `p2` - **ID**: `spd-spider-nfr-adoption-usability`
 
 <!-- spd:list:nfr-statements -->

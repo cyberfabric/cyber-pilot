@@ -1,453 +1,201 @@
-# Spider Taxonomy
+# SDLC Weaver Taxonomy
 
-This guide defines what each Spider artifact is, why it exists, and how it helps both humans and AI agents.
+Canonical taxonomy for the SDLC weaver.
 
-**Language**: This guide is intentionally written in English to match the Spider framework conventions.
+This guide defines what each SDLC artifact/code kind is, how it transforms into the next layer, how it traces to upstream IDs, and which files define templates/rules/examples.
 
-## Core Concepts
+## Pipeline (dependency chain)
 
-- **Artifact**: A Markdown document with a stable path and a deterministic validator.
-- **Workflow**: A repeatable procedure that creates/updates/validates artifacts.
-- **Layer**: A dependency level in the Spider chain. Higher layers must not contradict lower layers.
-- **Deterministic gate**: A tool-based validation step that must pass before proceeding.
-
-## How to Use This Guide
-
-- Use the **Artifact Index** to jump to the artifact you are about to create/update.
-- Use the **What it is / What it is not** sections to choose the right artifact.
-- Use the **Templates & Examples** section to start from a known-good structure.
-- Use the **deterministic gate** (`spider validate`) before moving to the next layer.
-
-## Layers and Dependency Graph
-
-Spider artifacts form a dependency chain. The higher layer is allowed to be more specific, but must not contradict lower layers.
+In the SDLC weaver, artifacts form a strict chain:
 
 ```
-AGENTS/Adapter
-  -> PRD
-    -> ADR
-      -> DESIGN
-        -> FEATURES
-          -> feature DESIGN
-            -> code (traceability)
+PRD
+  -> ADR
+    -> DESIGN
+      -> DECOMPOSITION
+        -> FEATURE
+          -> CODE
 ```
 
-**Practical rule**:
-- If the code contradicts a feature design, update the design first and re-validate.
-- If a feature design contradicts overall design, update overall design (or add ADR) first.
-
-## Artifact Index
-
-- [Spider Taxonomy](#spider-taxonomy)
-  - [Core Concepts](#core-concepts)
-  - [How to Use This Guide](#how-to-use-this-guide)
-  - [Layers and Dependency Graph](#layers-and-dependency-graph)
-  - [Artifact Index](#artifact-index)
-  - [AGENTS.md](#agentsmd)
-  - [Project Adapter (.spider-adapter)](#project-adapter-spider-adapter)
-  - [PRD.md](#prdmd)
-  - [DESIGN.md](#designmd)
-  - [ADR](#adr)
-  - [FEATURES.md](#featuresmd)
-  - [Feature DESIGN.md](#feature-designmd)
-  - [Templates & Examples](#templates--examples)
-  - [Validation (Deterministic Gate)](#validation-deterministic-gate)
-  - [Mapping to Common Document Names](#mapping-to-common-document-names)
-  - [Why Many Small Artifacts (Not One Big Doc)](#why-many-small-artifacts-not-one-big-doc)
-
----
-
-<a id="agentsmd"></a>
-## AGENTS.md
-
-**Path**:
-- `AGENTS.md`
-- `workflows/AGENTS.md`
-- `{adapter-directory}/AGENTS.md`
-
-**Templates**:
-- None (navigation-only)
-
-**Examples**:
-- [core](../AGENTS.md)
-- [workflow navigation](../workflows/AGENTS.md)
-- [adapter (this repo)](../.spider-adapter/AGENTS.md)
-
-**Purpose**:
-- Provide navigation rules for AI agents.
-- Point to authoritative workflow and requirement files.
-
-**What it is**:
-- A navigation-only entrypoint that tells agents what to read and in what order.
-- A set of deterministic rules (MUST/ALWAYS) for routing requests to workflows and requirements.
-
-**What it is not**:
-- Not a specification document (do not duplicate requirements/workflows here).
-- Not a project architecture document.
-- Not a tutorial.
-
-**Should contain**:
-- Pointers to authoritative workflow and requirement files.
-- Deterministic navigation rules (MUST/ALWAYS) and routing rules.
-- Minimal, stable links that help agents find the right source of truth.
-
-**Should not contain**:
-- Architecture specifications or decisions.
-- Templates or example content (keep those in `templates/` and `templates/examples/`).
-- Long-form tutorials (use [**`guides/ADAPTER.md`**](../guides/ADAPTER.md) for tutorials).
-
-**Why this helps**:
-- **Agent**: deterministic navigation; fewer hallucinations; lower search cost.
-- **Human**: one place to understand how the agent will behave.
-
----
-
-<a id="artifact-adapter"></a>
-## Project Adapter (.spider-adapter)
+## Kinds
 
-**Typical path**:
-- `.spider-adapter/AGENTS.md` (for projects using Spider)
+### PRD
 
-**In this repository**:
-- `.spider-adapter/AGENTS.md` (adapter for developing Spider itself)
-
-**Template**:
-- [templates/adapter-AGENTS.template.md](../templates/adapter-AGENTS.template.md)
-
-**Examples**:
-- [valid](../templates/examples/adapter/AGENTS-EXAMPLE.md)
+**Purpose**: product intent and problem definition.
 
-**Purpose**:
-- Specify project-specific conventions (tech stack, domain model format, API contracts, testing).
-
-**What it is**:
-- A project-specific overlay that extends core Spider navigation and defaults.
-- The source of truth for where to find domain model, API contracts, conventions, and validation expectations.
-
-**What it is not**:
-- Not the overall system design (that lives in the DESIGN artifact; default: `architecture/DESIGN.md`).
-- Not a dumping ground for general documentation.
-- Not a replacement for ADRs.
-
-**Should contain**:
-- `**Extends**: ...` back to core `AGENTS.md`.
-- Project-specific conventions:
-  - Tech stack/tooling constraints.
-  - Domain model format and location.
-  - API contract format and location.
-  - Validation/CI expectations.
+**Defines IDs** (examples):
+- Actors: `spd-{system}-actor-{slug}`
+- Functional requirements: `spd-{system}-fr-{slug}`
+- Non-functional requirements: `spd-{system}-nfr-{slug}`
+- Use cases: `spd-{system}-usecase-{slug}`
 
-**Should not contain**:
-- PRD (use the PRD artifact; default: `architecture/PRD.md`).
-- Architecture decisions rationale (use ADRs).
-- Feature specs or implementation plans.
+**Transforms into**:
+- **DESIGN**: design drivers reference PRD FR/NFR IDs and describe architectural responses.
+- **DECOMPOSITION**/**FEATURE**: downstream layers must keep referencing the same PRD IDs they cover.
 
-**Why this helps**:
-- **Agent**: removes ambiguity about formats, locations, and conventions.
-- **Human**: makes decisions explicit and reviewable.
+**Traceability**:
+- PRD is the root of many downstream references (FR/NFR coverage).
 
----
+**Validation**:
+- Template structure + ID formats
+- Cross-reference validity (downstream references must resolve)
 
-<a id="artifact-prd"></a>
-## PRD.md
+**Files**:
+- Template: [weavers/sdlc/artifacts/PRD/template.md](../artifacts/PRD/template.md)
+- Rules: [weavers/sdlc/artifacts/PRD/rules.md](../artifacts/PRD/rules.md)
+- Checklist: [weavers/sdlc/artifacts/PRD/checklist.md](../artifacts/PRD/checklist.md)
+- Examples: [weavers/sdlc/artifacts/PRD/examples/](../artifacts/PRD/examples/)
 
-**Path**:
-- Defined by `{adapter-dir}/artifacts.json` (kind: `PRD`). Default: `architecture/PRD.md`
+### ADR
 
-**Template**:
-- [templates/PRD.template.md](../templates/PRD.template.md)
+**Purpose**: record a single architecture decision (context → options → outcome → consequences).
 
-**Examples**:
-- [valid](../templates/examples/PRD.md)
+**Defines IDs**:
+- ADR record: `spd-{system}-adr-{slug}`
 
-**Purpose**:
-- Define the PRD: vision, actors, capabilities.
+**Transforms into**:
+- **DESIGN**: design drivers reference ADR IDs and incorporate decisions.
 
-**What it is**:
-- Stable prd vocabulary with IDs (actors, capabilities, and optionally use cases).
-- The baseline that downstream design and features reference for scope and meaning.
+**Traceability**:
+- ADR IDs are referenced from DESIGN (and optionally from FEATURE context).
 
-**What it is not**:
-- Not a technical architecture document.
-- Not a feature backlog.
-- Not an implementation plan.
+**Validation**:
+- Template structure + ID format + required Meta fields
 
-**Should contain**:
-- Vision, actors, capabilities (and optionally use cases) with stable IDs.
-- Business vocabulary that downstream artifacts can reference without reinterpretation.
+**Files**:
+- Template: [weavers/sdlc/artifacts/ADR/template.md](../artifacts/ADR/template.md)
+- Rules: [weavers/sdlc/artifacts/ADR/rules.md](../artifacts/ADR/rules.md)
+- Checklist: [weavers/sdlc/artifacts/ADR/checklist.md](../artifacts/ADR/checklist.md)
+- Examples: [weavers/sdlc/artifacts/ADR/examples/](../artifacts/ADR/examples/)
 
-**Should not contain**:
-- Technical architecture (use the DESIGN artifact; default: `architecture/DESIGN.md`).
-- Implementation steps or tasks.
-- API endpoint specs or schemas.
+### DESIGN
 
-**Inputs** (typical):
-- PRD/BRD or product notes.
-- Existing system behavior (brownfield: code is allowed to be the source of truth).
+**Purpose**: the technical architecture that satisfies PRD requirements and ADR decisions.
 
-**Outputs** (what downstream artifacts rely on):
-- Stable actor IDs and capability IDs.
+**References upstream IDs**:
+- PRD FR/NFR IDs (as drivers)
+- ADR IDs (as decision drivers)
 
-**Why this helps**:
-- **Agent**: stable actor/capability IDs; constraints for design and features.
-- **Human**: aligns stakeholders and engineering on what is being built.
+**Defines IDs** (examples):
+- Principles: `spd-{system}-principle-{slug}`
+- Constraints: `spd-{system}-constraint-{slug}`
+- Components: `spd-{system}-component-{slug}`
+- Sequences: `spd-{system}-seq-{slug}`
+- DB tables (optional): `spd-{system}-dbtable-{slug}`
 
----
+**Transforms into**:
+- **DECOMPOSITION**: features are defined as work units that cover specific design elements (principles/constraints/components/etc.).
 
-<a id="artifact-design"></a>
-## DESIGN.md
+**Traceability**:
+- DESIGN references PRD/ADR.
+- DECOMPOSITION/FEATURE must keep referencing the DESIGN IDs they implement/cover.
 
-**Path**:
-- Defined by `{adapter-dir}/artifacts.json` (kind: `DESIGN`). Default: `architecture/DESIGN.md`
+**Validation**:
+- Template structure + ID formats
+- Cross-reference validity for all referenced IDs
 
-**Template**:
-- [templates/DESIGN.template.md](../templates/DESIGN.template.md)
+**Files**:
+- Template: [weavers/sdlc/artifacts/DESIGN/template.md](../artifacts/DESIGN/template.md)
+- Rules: [weavers/sdlc/artifacts/DESIGN/rules.md](../artifacts/DESIGN/rules.md)
+- Checklist: [weavers/sdlc/artifacts/DESIGN/checklist.md](../artifacts/DESIGN/checklist.md)
+- Examples: [weavers/sdlc/artifacts/DESIGN/examples/](../artifacts/DESIGN/examples/)
 
-**Examples**:
-- [valid](../templates/examples/DESIGN.md)
+### DECOMPOSITION
 
-**Purpose**:
-- Define the overall system architecture.
-- Define domain model and API contracts at the system level.
-- Establish principles and constraints used by all features.
+**Purpose**: turn DESIGN into a set of implementable features with explicit coverage links.
 
-**What it is**:
-- A system-level architecture baseline (constraints, principles, shared concepts, and contracts).
-- The parent document that feature designs must not contradict.
+**Defines IDs**:
+- Overall status tracker: `spd-{system}-status-overall`
+- Features: `spd-{system}-feature-{slug}`
 
-**What it is not**:
-- Not a per-feature behavioral spec (use feature `DESIGN.md`).
-- Not an implementation task list.
-- Not a code tutorial.
+**References upstream IDs**:
+- PRD FR/NFR IDs (requirements covered)
+- DESIGN IDs (principles/constraints/components/sequences/data)
 
-**Should contain**:
-- System-level constraints and principles.
-- Shared concepts/types/contracts that features must not redefine.
-- References to domain model and API contract sources.
+**Transforms into**:
+- **FEATURE**: each decomposition entry links to a feature folder (`feature-{slug}/`) containing a feature design.
 
-**Should not contain**:
-- Feature-level flows/algorithms/states (use feature `DESIGN.md`).
-- Implementation tasks.
-- Decision rationale debates (use ADRs).
+**Traceability**:
+- A feature entry is the upstream anchor for a FEATURE design (`FEATURE` references the `feature` ID).
 
-**Typical structure inside**:
-- Requirements/principles with stable IDs.
-- Domain model and API contract references.
-- Technical architecture decisions that features must obey.
+**Validation**:
+- Template structure + feature link format
+- Cross-reference validity for all coverage references
 
-**Why this helps**:
-- **Agent**: single source of truth for types/contracts; prevents type redefinition across features.
-- **Human**: reviewable architecture; stable baseline for refactoring.
+**Files**:
+- Template: [weavers/sdlc/artifacts/DECOMPOSITION/template.md](../artifacts/DECOMPOSITION/template.md)
+- Rules: [weavers/sdlc/artifacts/DECOMPOSITION/rules.md](../artifacts/DECOMPOSITION/rules.md)
+- Checklist: [weavers/sdlc/artifacts/DECOMPOSITION/checklist.md](../artifacts/DECOMPOSITION/checklist.md)
+- Examples: [weavers/sdlc/artifacts/DECOMPOSITION/examples/](../artifacts/DECOMPOSITION/examples/)
 
----
+### FEATURE
 
-<a id="artifact-adr"></a>
-## ADR
+**Purpose**: the executable(ish) behavior spec for a single feature, with definition-of-done and implementable steps.
 
-**Path**:
-- Defined by `{adapter-dir}/artifacts.json` (kind: `ADR`). Default: `architecture/ADR/**`
+**References upstream IDs**:
+- The decomposition feature ID: `spd-{system}-feature-{slug}`
+- PRD actor IDs (actors)
+- PRD FR/NFR IDs (coverage)
+- DESIGN IDs (principles/constraints/components/sequences/data)
 
-**Template**:
-- [templates/ADR.template.md](../templates/ADR.template.md)
+**Defines IDs** (SDLC code-traceable kinds):
+- Flow: `spd-{system}-feature-{feature}-flow-{slug}`
+- Algorithm: `spd-{system}-feature-{feature}-algo-{slug}`
+- State machine: `spd-{system}-feature-{feature}-state-{slug}`
+- Requirement (definition-of-done): `spd-{system}-feature-{feature}-req-{slug}`
 
-**Examples**:
-- [valid](../templates/examples/ADR/example-adr.md)
+These IDs are typically marked `to_code="true"` in the template, which makes them subject to code coverage checks.
 
-**Purpose**:
-- Capture architectural decisions and trade-offs.
+**Transforms into**:
+- **CODE**: implement flows/algorithms/states/requirements in source code and tag implementation with Spider markers.
 
-**What it is**:
-- A decision record: context, options, outcome, and consequences.
-- A durable rationale that future changes can reference.
+**Traceability**:
+- FEATURE IDs are referenced from code using scope markers: `@spider-{kind}:{spd-id}:p{N}`.
+- Instruction-level implementations can be wrapped with block markers:
+  - `@spider-begin:{spd-id}:p{N}:inst-{local}` / `@spider-end:...`
 
-**What it is not**:
-- Not the primary place to describe architecture (use the DESIGN artifact; default: `architecture/DESIGN.md`).
-- Not meeting notes or a scratchpad.
-- Not a feature spec.
+Phase tokens:
+- FEATURE step lines use `ph-{N}` (as part of the step formatting).
+- Code markers use `p{N}` (as part of marker syntax).
 
-**Should contain**:
-- Context/problem statement.
-- Considered options (short, comparable).
-- Decision outcome and consequences.
-- Links to related design elements (IDs).
+**Validation**:
+- Template structure + ID formats
+- Cross-reference validity for all referenced IDs
+- Code coverage and orphan checks via `validate-code`
 
-**Should not contain**:
-- Full architecture description (keep that in the DESIGN artifact; default: `architecture/DESIGN.md`).
-- Detailed implementation steps.
-- Broad product requirements.
+**Files**:
+- Template: [weavers/sdlc/artifacts/FEATURE/template.md](../artifacts/FEATURE/template.md)
+- Rules: [weavers/sdlc/artifacts/FEATURE/rules.md](../artifacts/FEATURE/rules.md)
+- Checklist: [weavers/sdlc/artifacts/FEATURE/checklist.md](../artifacts/FEATURE/checklist.md)
+- Example: [weavers/sdlc/artifacts/FEATURE/examples/example.md](../artifacts/FEATURE/examples/example.md)
 
-**Anti-pattern**:
-- Do not use ADRs for operational runbooks or temporary notes.
+### CODE
 
-**Why this helps**:
-- **Agent**: reduces re-litigation of decisions; provides constraints for future changes.
-- **Human**: preserves reasoning; improves maintainability.
+**Purpose**: the implementation layer validated against FEATURE IDs.
 
----
+**Defines**:
+- No new Spider IDs are defined in code. Code only references IDs that exist in artifacts.
 
-<a id="artifact-features"></a>
-## FEATURES.md
+**Traceability**:
+- Mark code with Spider markers as specified in `requirements/traceability.md`.
 
-**Path**:
-- Defined by `{adapter-dir}/artifacts.json` (kind: `FEATURES`). Default: `architecture/features/FEATURES.md`
+**Validation**:
+- Structure and pairing checks + cross-validation + coverage checks via `validate-code`.
+- Semantic code review criteria via SDLC codebase checklist.
 
-**Template**:
-- [templates/FEATURES.template.md](../templates/FEATURES.template.md)
+**Files**:
+- Rules: [weavers/sdlc/codebase/rules.md](../codebase/rules.md)
+- Checklist: [weavers/sdlc/codebase/checklist.md](../codebase/checklist.md)
 
-**Examples**:
-- [valid](../templates/examples/FEATURES.md)
+## Validation commands
 
-**Purpose**:
-- Maintain the feature list, priorities, statuses, and dependencies.
+- Validate artifacts (templates + cross-refs): `python3 {Spider}/skills/spider/scripts/spider.py validate`
+- Validate code markers (pairing + coverage): `python3 {Spider}/skills/spider/scripts/spider.py validate-code`
+- Validate weaver package itself: `python3 {Spider}/skills/spider/scripts/spider.py validate-weavers`
 
-**What it is**:
-- A manifest/index of features: status, dependencies, and coverage of requirement IDs.
-- A routing surface for humans and agents (“what exists”, “what is next”).
+## References
 
-**What it is not**:
-- Not the detailed feature behavior spec (use feature `DESIGN.md`).
-- Not a task board.
-- Not a narrative roadmap document.
-
-**Should contain**:
-- Feature list with stable IDs, status, priority.
-- Dependencies/blocks and coverage of requirement IDs.
-- High-level scope bullets (not detailed design).
-
-**Should not contain**:
-- Feature flows/algorithms/states.
-- Task breakdowns.
-- Code-level details.
-
-**Key responsibilities**:
-- Track feature status consistently with feature `DESIGN.md`.
-- Declare dependencies and the requirement IDs covered.
-
-**Why this helps**:
-- **Agent**: objective routing for “what to work on next”; status-driven validation.
-- **Human**: roadmap and dependency map in one place.
-
----
-
-<a id="artifact-feature-design"></a>
-## Feature DESIGN.md
-
-**Path**:
-- Defined by `{adapter-dir}/artifacts.json` (kind: `FEATURE`). Default: `architecture/features/feature-{slug}/DESIGN.md`
-
-**Template**:
-- [templates/feature-DESIGN.template.md](../templates/feature-DESIGN.template.md)
-
-**Examples**:
-- [valid](../templates/examples/features/feature-task-crud/DESIGN.md)
-
-**Purpose**:
-- Specify a single feature in detail (flows, algorithms, technical details, requirements).
-
-**What it is**:
-- An executable specification for one feature (Spider DSL (SDSL) flows/algorithms/states + requirements + test scenarios).
-- The source of truth for acceptance criteria and edge cases.
-
-**What it is not**:
-- Not a system-wide architecture baseline.
-- Not an implementation plan.
-- Not the code.
-
-**Should contain**:
-- Feature context, references, and boundaries.
-- Spider DSL (SDSL) content:
-  - Actor flows
-  - Algorithms
-  - States
-- Feature requirements, phases, acceptance criteria.
-- Test scenarios and edge cases.
-
-**Should not contain**:
-- Sprint/task breakdowns.
-- System-level type redefinitions (use the DESIGN artifact; default: `architecture/DESIGN.md`).
-- Code diffs or code snippets.
-
-**Where SCENARIOS live**:
-- Test scenarios belong in the feature design (commonly in the dedicated “Test Scenarios” section).
-
-**Why this helps**:
-- **Agent**: executable spec for implementation and traceability checks.
-- **Human**: reviewable behavior and edge cases before coding.
-
-**Notes**:
-- Prefer keeping feature-level behavior and acceptance criteria here.
-
----
-
-## Mapping to Common Document Names
-
-Spider does not require you to create BRD/PRD as separate artifacts.
-
-- **BRD/PRD**: typically maps to the PRD artifact + the requirements/principles part of the DESIGN artifact (defaults: `architecture/PRD.md`, `architecture/DESIGN.md`).
-- **ADR**: maps to the ADR artifact directory (default: `architecture/ADR/**`).
-- **SCENARIOS**: live inside feature `DESIGN.md` (feature-level acceptance criteria and edge cases).
-
----
-
-<a id="templates--examples"></a>
-## Templates & Examples
-
-Use templates for **authoritative structure** and examples for **minimal valid content**.
-
-**Templates** (structure source of truth):
-- `templates/README.md`: [Template index](../templates/README.md)
-- PRD: [template](../templates/PRD.template.md)
-- Overall DESIGN: [template](../templates/DESIGN.template.md)
-- ADR: [template](../templates/ADR.template.md)
-- FEATURES: [template](../templates/FEATURES.template.md)
-- Feature DESIGN: [template](../templates/feature-DESIGN.template.md)
-- Adapter AGENTS: [template](../templates/adapter-AGENTS.template.md)
-
-**Examples** (minimal “valid/invalid” snapshots):
-- Adapter: [valid](../templates/examples/adapter/AGENTS-EXAMPLE.md)
-- PRD: [valid](../templates/examples/PRD.md)
-- Overall DESIGN: [valid](../templates/examples/DESIGN.md)
-- ADR: [valid](../templates/examples/ADR/example-adr.md)
-- FEATURES: [valid](../templates/examples/FEATURES.md)
-- Feature DESIGN: [valid](../templates/examples/features/feature-task-crud/DESIGN.md)
-
-**Real artifacts in this repository (as reference implementations)**:
-- PRD (Spider repo default): [architecture/PRD.md](../architecture/PRD.md)
-- Overall DESIGN (Spider repo default): [architecture/DESIGN.md](../architecture/DESIGN.md)
-- ADRs (Spider repo default): [architecture/ADR/general/](../architecture/ADR/general/)
-- Features manifest (Spider repo default): [architecture/features/FEATURES.md](../architecture/features/FEATURES.md)
-- Example feature DESIGN (Spider repo default):
-  - [architecture/features/feature-init-structure/DESIGN.md](../architecture/features/feature-init-structure/DESIGN.md)
-
----
-
-<a id="validation-deterministic-gate"></a>
-## Validation (Deterministic Gate)
-
-Spider assumes you validate artifacts deterministically before moving “up” the chain.
-
-**What to run**:
-- `python3 skills/spider/scripts/spider.py validate --artifact .` (full project)
-- `python3 skills/spider/scripts/spider.py validate --artifact {path}` (single artifact)
-
-**What validation catches early**:
-- Missing required sections.
-- Placeholder markers (`TODO`, `TBD`, etc.).
-- Broken cross-references.
-- Invalid ID formats.
-
-**Practical interpretation**:
-- If validation fails: fix the artifact first, do not proceed to the next layer.
-
-## Why Many Small Artifacts (Not One Big Doc)
-
-- **Avoid conflicts**: each layer has a clear owner and validator.
-- **Avoid a monolith**: each doc stays reviewable.
-- **Prevent drift**: validation and traceability keep artifacts consistent with each other and with code.
-- **Reduce LLM context drift**: smaller, scoped artifacts reduce accidental overwrites and “semantic blending” when an agent holds too much unrelated context.
-- **Lower retrieval ambiguity**: search/where-defined/where-used results are cleaner when each concept has one obvious home.
-- **Enable deterministic gates**: validators can target a specific artifact kind with stable structure expectations.
-- **Minimize blast radius**: a change to one feature plan or ADR does not force rewriting the entire architecture narrative.
-- **Preserve abstraction boundaries**: prd vs architecture vs feature behavior vs implementation plan stay separated and auditable.
-- **Improve review ergonomics**: diffs are smaller, code review is faster, and regression risk is easier to reason about.
-- **Support parallel work**: multiple contributors (or agents) can work on different artifacts without stepping on each other.
+- Traceability marker spec: [requirements/traceability.md](../../../requirements/traceability.md)
+- Template marker spec: [requirements/template.md](../../../requirements/template.md)
+- Rules format spec: [requirements/rules-format.md](../../../requirements/rules-format.md)
+- SDLC behavior language (SDSL): [requirements/SDSL.md](../../../requirements/SDSL.md)

@@ -4,22 +4,22 @@
 
 **Spider SDLC** is an artifact-first pipeline that turns intent into implementation through a fixed sequence of document layers, with deterministic validation gates and end-to-end traceability.
 
-- **Layered transformation**: PRD → ADR + DESIGN → FEATURES → FEATURE → CODE.
+- **Layered transformation**: PRD → ADR + DESIGN → DECOMPOSITION → FEATURE → CODE.
 - **Deterministic gates**: templates, IDs, cross-references, and task/acceptance criteria are validated at every step.
 - **Behavior spec**: the **FEATURE** layer expresses behavior as **Spider DSL (SDSL)** flows/algorithms that can be implemented directly.
 - **Traceability chain**: each downstream artifact references upstream IDs, and code keeps links via tags/markers.
 
 ## Pipeline Diagram
 
-![**Spider** SDLC pipeline: PRD → DESIGN → FEATURES → FEATURE → CODE, with validation gates and ID traceability between layers](pipeline.drawio.svg)
+![**Spider** SDLC pipeline: PRD → DESIGN → DECOMPOSITION → FEATURE → CODE, with validation gates and ID traceability between layers](pipeline.drawio.svg)
 
 Each layer **transforms** the previous artifact into a new form while **preserving traceability through IDs and references**:
 
 | From | To | Transformation |
 |------|-----|----------------|
 | **PRD** | ADR + DESIGN | WHAT → HOW (architecture decisions and design) |
-| **DESIGN** | FEATURES | Architecture → decomposition to features |
-| **FEATURES** | FEATURE | Features → detailed specification and definitions of done |
+| **DESIGN** | DECOMPOSITION | Architecture → decomposition to features |
+| **DECOMPOSITION** | FEATURE | Features → detailed specification and definitions of done |
 | **FEATURE** | CODE | Detailed specification → implementation, source code |
 
 The LLM reads the upstream artifact, understands its intent, and generates a downstream artifact of a **different kind** with explicit ID references back to the source. This creates a **traceable chain** from requirements to implementation.
@@ -44,9 +44,9 @@ Learn **Spider** in 10 minutes with:
 | **PRD** | Drafted from stakeholder input + market context with required IDs | Template structure, ID format | Semantic review vs industry best practices | Product Managers & Architects alignment |
 | **ADR** | Captures key architecture decisions with rationale | Template structure, ID format | Semantic review vs industry best practices | Architects alignment |
 | **DESIGN** | Derived from PRD with architecture decisions | Cross reference ID and tasks validation | Semantic review vs PRD + ADR + industry best practices | Architects alignment |
-| **FEATURES** | Decomposed from DESIGN into implementable feature scope | Cross reference ID and tasks validation | Semantic review vs DESIGN + industry best practices | Architects alignment |
-| **FEATURE** | Expanded from FEATURES into **Spider DSL** (**SDSL**) flows/algorithms plus implementation requirements | Cross reference ID and tasks validation | Semantic review vs DESIGN + FEATURES + industry best practices | Architects & Developers alignment |
-| **CODE** | Implemented from FEATURE specs with traceability in code comments | Cross reference ID and tasks validation | Semantic review vs FEATURE + DESIGN + FEATURES + industry best practices | Developers & QA alignment |
+| **DECOMPOSITION** | Decomposed from DESIGN into implementable feature scope | Cross reference ID and tasks validation | Semantic review vs DESIGN + industry best practices | Architects alignment |
+| **FEATURE** | Expanded from DECOMPOSITION into **Spider DSL** (**SDSL**) flows/algorithms plus implementation requirements | Cross reference ID and tasks validation | Semantic review vs DESIGN + DECOMPOSITION + industry best practices | Architects & Developers alignment |
+| **CODE** | Implemented from FEATURE specs with traceability in code comments | Cross reference ID and tasks validation | Semantic review vs FEATURE + DESIGN + DECOMPOSITION + industry best practices | Developers & QA alignment |
 
 ## Spider SDLC vs Popular SDD Methodologies
 

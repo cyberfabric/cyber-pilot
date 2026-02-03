@@ -233,7 +233,7 @@ Run adapter discovery to capture existing decisions? [Yes] [No]
 At ANY workflow step:
 
 1. Monitor for triggers:
-   - Artifact created/updated (kinds: PRD, DESIGN, FEATURES, ADR, FEATURE)
+   - Artifact created/updated (kinds: PRD, DESIGN, DECOMPOSITION, ADR, FEATURE)
    - Artifact validated (any kind)
    - Codebase changes (code committed, tests passed)
    - User stated technical decision

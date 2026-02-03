@@ -125,7 +125,7 @@ def _is_field_header_terminator(line: str) -> bool:
     
     Field headers come in two styles:
     1. Non-list: **Field Name**: value
-    2. List-style: - **Field Name**: value (used in FEATURES.md)
+    2. List-style: - **Field Name**: value (used in DECOMPOSITION.md)
     
     Content with bold is NOT a field header:
     - **Bold Title**: prose explanation (like in PRD problem lists)

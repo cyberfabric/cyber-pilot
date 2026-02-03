@@ -228,9 +228,9 @@ Goal: Create new dashboard
 - Plain English descriptions
 - Indentation for nested steps
 - Each step line includes `[ ]` or `[x]`, `ph-{N}`, and an instruction ID token `inst-{short-id}`
-- For codebase traceability, every implemented instruction marker (`...:ph-{N}:inst-...`) MUST be represented in code as a paired `spider-begin`/`spider-end` block wrapping non-empty code. Unwrapped single-line `...:inst-...` markers MUST NOT be used.
-  - Format: `// spider-begin spd-{full-tag}:ph-{N}:inst-{id}` ... code ... `// spider-end spd-{full-tag}:ph-{N}:inst-{id}`
-  - Example: `// spider-begin spd-system-feature-x-algo-validate:ph-1:inst-check-input`
+- For codebase traceability, every implemented instruction marker maps to code via paired Spider block markers wrapping non-empty code.
+   - Format: `@spider-begin:{spd-id}:p{N}:inst-{id}` ... code ... `@spider-end:{spd-id}:p{N}:inst-{id}`
+   - Example: `# @spider-begin:spd-system-feature-x-algo-validate:p1:inst-check-input`
 
 ### ❌ Prohibited
 
@@ -315,16 +315,16 @@ Goal: Create new dashboard
 
 ```markdown
 Real implementation:
-<!-- spider-begin spd-myproject-feature-x-flow-y:ph-1:inst-real -->
+<!-- spider-begin spd-myproject-feature-x-flow-y:p1:inst-real -->
 Actual workflow step
-<!-- spider-end   spd-myproject-feature-x-flow-y:ph-1:inst-real -->
+<!-- spider-end   spd-myproject-feature-x-flow-y:p1:inst-real -->
 
 Documentation example (excluded from validation):
 <!-- !no-spider-begin -->
 ```rust
-// spider-begin spd-example-feature-z-algo-w:ph-1:inst-example
+// spider-begin spd-example-feature-z-algo-w:p1:inst-example
 example_code();
-// spider-end   spd-example-feature-z-algo-w:ph-1:inst-example
+// spider-end   spd-example-feature-z-algo-w:p1:inst-example
 ```
 <!-- !no-spider-end -->
 ```

@@ -2,8 +2,8 @@
 spider: true
 type: requirement
 name: Code Traceability Specification
-version: 1.1
-purpose: Define Spider code traceability markers and validation rules
+version: 1.2
+purpose: Define Spider code traceability markers and validation rules (weaver-agnostic)
 ---
 
 # Code Traceability Specification
@@ -12,15 +12,13 @@ purpose: Define Spider code traceability markers and validation rules
 
 1. [Overview](#overview)
 2. [Quick Reference](#quick-reference)
-3. [Traceability Mode](#traceability-mode)
+3. [Weaver Ownership](#weaver-ownership)
 4. [Marker Syntax](#marker-syntax)
-5. [Marker Rules](#marker-rules)
-6. [Versioning](#versioning)
-7. [Design Synchronization](#design-synchronization)
-8. [Agent Workflow](#agent-workflow)
-9. [Common Errors](#common-errors)
-10. [Validation](#validation)
-11. [References](#references)
+5. [Traceability Mode](#traceability-mode)
+6. [Validation Rules](#validation-rules)
+7. [Versioning](#versioning)
+8. [Common Errors](#common-errors)
+9. [References](#references)
 
 ---
 
@@ -28,14 +26,14 @@ purpose: Define Spider code traceability markers and validation rules
 
 **Scope marker** (single-line):
 ```
-@spd-{kind}:{full-id}:ph-{N}
+@spider-{kind}:{spd-id}:p{N}
 ```
 
 **Block markers** (paired):
 ```
-@spider-begin:{full-id}:ph-{N}:inst-{local}
+@spider-begin:{spd-id}:p{N}:inst-{local}
 ...code...
-@spider-end:{full-id}:ph-{N}:inst-{local}
+@spider-end:{spd-id}:p{N}:inst-{local}
 ```
 
 **Validate markers**:
@@ -47,34 +45,28 @@ python3 {Spider}/skills/spider/scripts/spider.py validate-code
 
 ## Overview
 
-Spider code traceability links design artifacts (FEATURE designs) to implementation code through markers. This enables:
-- Automated verification that design is implemented
-- Bidirectional navigation between design and code
-- Progress tracking via checkbox synchronization
+Spider code traceability links IDs defined in artifacts to implementation code through markers. This enables:
+- Automated verification that code references real, registered design IDs
+- Coverage checks for IDs explicitly marked as requiring implementation (`to_code="true"`)
+- Bidirectional navigation between artifacts and code (via ID search)
+
+This specification is **weaver-agnostic**:
+- This document defines the **generic marker format** and generic validation expectations.
+- The active weaver (registered in `artifacts.json`) defines:
+  - which artifact kinds exist
+  - which IDs exist and which are marked `to_code="true"`
+  - what `{kind}` values are meaningful for that weaver
 
 ---
 
-## Traceability Mode
+## Weaver Ownership
 
-### Mode Determination
+Spider core does not require a fixed list of `{kind}` values.
 
-**Traceability Mode is ON when ALL conditions are met:**
-
-1. Target artifact is registered in `artifacts.json`
-2. Artifact has `traceability: "FULL"` (not `"DOCS-ONLY"`)
-3. Artifact kind is `FEATURE` (feature design document)
-
-**Mode lookup:**
-```
-artifacts.json → systems[].artifacts[] → { path, kind, traceability }
-```
-
-### Mode Effects
-
-| Mode | Code Markers | Checkbox Sync | Tag Verification |
-|------|--------------|---------------|------------------|
-| `FULL` | Required | Required | Required |
-| `DOCS-ONLY` | Prohibited | N/A | N/A |
+To understand which kinds exist and what they mean for your project:
+1. Identify the active weaver for a system in `artifacts.json`.
+2. Read that weaver’s taxonomy guide: `weavers/<weaver>/guides/TAXONOMY.md`.
+3. Use weaver templates/rules to determine which IDs must be implemented in code (`to_code="true"`) and how.
 
 ---
 
@@ -85,23 +77,21 @@ artifacts.json → systems[].artifacts[] → { path, kind, traceability }
 Mark scope entry points (functions, classes, modules):
 
 ```
-@spd-{kind}:{full-id}:ph-{N}
+@spider-{kind}:{spd-id}:p{N}
 ```
 
-**Kinds:**
-- `@spider-flow:{id}:ph-{N}` — Actor flow implementation
-- `@spider-algo:{id}:ph-{N}` — Algorithm implementation
-- `@spider-state:{id}:ph-{N}` — State machine implementation
-- `@spider-req:{id}:ph-{N}` — Requirement implementation
-- `@spider-test:{id}:ph-{N}` — Test scenario implementation
+**Kind token (`{kind}`):**
+`{kind}` is a weaver-defined string that classifies what the marker is about (for example, a behavior type, a requirement type, a test type, etc.).
+
+Spider tools validate marker structure and referenced IDs; additional constraints on `{kind}` (allowed values, meaning, mapping to artifact kinds) are weaver-owned.
 
 **Format:**
-- `{id}` — Full Spider ID from design (e.g., `spd-myapp-feature-auth-flow-login`)
-- `ph-{N}` — Phase number (mandatory postfix)
+- `{spd-id}` — Full Spider ID defined in artifacts (e.g., `spd-my-system-...`)
+- `p{N}` — Phase number (required)
 
 **Example:**
 ```python
-# @spider-flow:spd-myapp-feature-auth-flow-login:ph-1
+# @spider-flow:spd-my-system-feature-core-auth-v2:p1
 def login_flow(request):
     ...
 ```
@@ -111,24 +101,24 @@ def login_flow(request):
 Wrap specific SDSL instruction implementations:
 
 ```
-@spider-begin:{full-id}:ph-{N}:inst-{local}
+@spider-begin:{spd-id}:p{N}:inst-{local}
 ...code...
-@spider-end:{full-id}:ph-{N}:inst-{local}
+@spider-end:{spd-id}:p{N}:inst-{local}
 ```
 
 **Format:**
-- `{full-id}` — Full Spider ID from design
-- `ph-{N}` — Phase number
-- `inst-{local}` — Instruction ID from SDSL step (e.g., `inst-validate-creds`)
+- `{spd-id}` — Full Spider ID defined in artifacts
+- `p{N}` — Phase number
+- `inst-{local}` — Local instruction identifier (the meaning and source of this value is weaver-defined)
 
 **Example:**
 ```python
-# @spider-begin:spd-myapp-feature-auth-flow-login:ph-1:inst-validate-creds
+# @spider-begin:spd-my-system-feature-core-auth-v2:p1:inst-fetch-tenant-from-db
 def validate_credentials(username, password):
     if not username or not password:
         raise ValidationError("Missing credentials")
     return authenticate(username, password)
-# @spider-end:spd-myapp-feature-auth-flow-login:ph-1:inst-validate-creds
+# @spider-end:spd-my-system-feature-core-auth-v2:p1:inst-fetch-tenant-from-db
 ```
 
 ### Language-Specific Comment Syntax
@@ -143,7 +133,26 @@ def validate_credentials(username, password):
 
 ---
 
-## Marker Rules
+## Traceability Mode
+
+Traceability mode is configured in `artifacts.json` (and may be further constrained by weaver rules).
+
+At minimum, Spider distinguishes:
+
+- `FULL`: markers are allowed and validated.
+  - Structural checks apply (pairing, no empty blocks, etc.).
+  - Cross-validation applies: code markers must reference IDs that exist in artifacts.
+  - Coverage applies: any ID marked `to_code="true"` in artifacts must be referenced by at least one code marker.
+- `DOCS-ONLY`: code markers are prohibited for the affected scope.
+
+Registry lookup (conceptual):
+```
+artifacts.json → systems[] → { weaver, artifacts[], codebase[] }
+```
+
+Note: specific scoping rules (per-system vs per-artifact vs per-codebase-entry) are implementation-defined; weaver documentation should describe the expected policy for your project.
+
+## Validation Rules
 
 ### Placement Rules
 
@@ -162,7 +171,7 @@ def validate_credentials(username, password):
 ### ID Rules
 
 1. **Exact match**: Marker ID must exactly match design ID
-2. **Phase required**: All markers must include `:ph-{N}` postfix
+2. **Phase required**: All markers must include `:p{N}` postfix
 3. **No invention**: Use only IDs that exist in design (no new IDs)
 
 ---
@@ -173,8 +182,8 @@ When design ID is versioned:
 
 | Design ID | Code Marker |
 |-----------|-------------|
-| `spd-app-feature-auth-flow-login` | `@spider-flow:spd-app-feature-auth-flow-login:ph-1` |
-| `spd-app-feature-auth-flow-login-v2` | `@spider-flow:spd-app-feature-auth-flow-login-v2:ph-1` |
+| `spd-app-feature-auth-flow-login` | `@spider-flow:spd-app-feature-auth-flow-login:p1` |
+| `spd-app-feature-auth-flow-login-v2` | `@spider-flow:spd-app-feature-auth-flow-login-v2:p1` |
 
 **Migration:**
 - When design version increments, update all code markers
@@ -182,53 +191,12 @@ When design ID is versioned:
 
 ---
 
-## Design Synchronization
+## Validation
 
-### Checkbox Rules
-
-When code marker exists and is valid:
-- Mark corresponding SDSL instruction `- [ ]` → `- [x]` in design
-
-When all instructions in scope are `[x]`:
-- Mark parent scope `- [ ]` → `- [x]` in design
-
-### Status Rules
-
-| Condition | Requirement Status |
-|-----------|-------------------|
-| First instruction implemented | `🔄 IN_PROGRESS` |
-| All instructions implemented | `✅ IMPLEMENTED` |
-
----
-
-## Agent Workflow
-
-### When to Add Markers
-
-**During code implementation** (via `/spider-generate CODE`):
-
-1. **Before writing code**: Identify which design IDs you're implementing
-2. **At function/class level**: Add scope marker as first line in docstring/comment
-3. **For specific instructions**: Wrap implementation with begin/end markers
-4. **After implementation**: Run `validate-code` to verify coverage
-
-### Marker Placement Workflow
-
+Run:
+```bash
+python3 {Spider}/skills/spider/scripts/spider.py validate-code
 ```
-1. Read FEATURE design → identify ID with to_code="true"
-2. Locate existing code OR create new file
-3. Add scope marker at entry point (function/class)
-4. Add block markers around instruction implementations
-5. Run validation: python3 {Spider}/skills/spider/scripts/spider.py validate-code
-6. Update design checkbox if implementation complete
-```
-
-### Multi-ID Implementation
-
-When one function implements multiple design IDs:
-- Add multiple scope markers (one per ID)
-- Each instruction block gets its own begin/end pair
-- Order markers by ID hierarchy (parent first, then children)
 
 ---
 
@@ -237,12 +205,12 @@ When one function implements multiple design IDs:
 ### ❌ Missing Phase Postfix
 
 ```python
-# WRONG - missing :ph-N
+# WRONG - missing :pN
 # @spider-flow:spd-app-feature-auth-flow-login
 def login(): ...
 
 # CORRECT
-# @spider-flow:spd-app-feature-auth-flow-login:ph-1
+# @spider-flow:spd-app-feature-auth-flow-login:p1
 def login(): ...
 ```
 
@@ -250,25 +218,25 @@ def login(): ...
 
 ```python
 # WRONG - IDs don't match
-# @spider-begin:spd-app-feature-auth-flow-login:ph-1:inst-validate
+# @spider-begin:spd-app-feature-auth-flow-login:p1:inst-validate
 def validate(): ...
-# @spider-end:spd-app-feature-auth-flow-login:ph-1:inst-check  # DIFFERENT!
+# @spider-end:spd-app-feature-auth-flow-login:p1:inst-check  # DIFFERENT!
 
 # CORRECT - IDs match exactly
-# @spider-begin:spd-app-feature-auth-flow-login:ph-1:inst-validate
+# @spider-begin:spd-app-feature-auth-flow-login:p1:inst-validate
 def validate(): ...
-# @spider-end:spd-app-feature-auth-flow-login:ph-1:inst-validate
+# @spider-end:spd-app-feature-auth-flow-login:p1:inst-validate
 ```
 
 ### ❌ Invented IDs
 
 ```python
 # WRONG - ID doesn't exist in design
-# @spider-flow:spd-app-feature-auth-flow-my-custom-thing:ph-1
+# @spider-flow:spd-app-feature-auth-flow-my-custom-thing:p1
 def my_function(): ...
 
 # CORRECT - Use only IDs from design document
-# @spider-flow:spd-app-feature-auth-flow-login:ph-1
+# @spider-flow:spd-app-feature-auth-flow-login:p1
 def login_flow(): ...
 ```
 
@@ -276,14 +244,14 @@ def login_flow(): ...
 
 ```python
 # WRONG - no code between markers
-# @spider-begin:spd-app-feature-auth-flow-login:ph-1:inst-validate
-# @spider-end:spd-app-feature-auth-flow-login:ph-1:inst-validate
+# @spider-begin:spd-app-feature-auth-flow-login:p1:inst-validate
+# @spider-end:spd-app-feature-auth-flow-login:p1:inst-validate
 
 # CORRECT - actual implementation between markers
-# @spider-begin:spd-app-feature-auth-flow-login:ph-1:inst-validate
+# @spider-begin:spd-app-feature-auth-flow-login:p1:inst-validate
 def validate_credentials(user, password):
     return authenticate(user, password)
-# @spider-end:spd-app-feature-auth-flow-login:ph-1:inst-validate
+# @spider-end:spd-app-feature-auth-flow-login:p1:inst-validate
 ```
 
 ### ❌ Nested Blocks
@@ -307,55 +275,16 @@ def validate_credentials(user, password):
 
 ---
 
-## Validation
-
-### Deterministic Checks
-
-1. **Marker format**: Syntax matches specification
-2. **Pairing**: All begin markers have matching end
-3. **No empty blocks**: Code exists between begin/end
-4. **Phase postfix**: All markers include `:ph-{N}`
-
-### Traceability Checks
-
-1. **Coverage**: All `to_code="true"` IDs have markers in code
-2. **No orphans**: All code markers reference existing design IDs
-3. **No stale**: All referenced design IDs still exist
-4. **Sync**: Markers match checkbox state in design
-
-### Validation Report
-
-```
-Traceability Validation Report
-══════════════════════════════
-
-Mode: FULL | DOCS-ONLY
-Design IDs (to_code="true"): N
-Code markers found: M
-
-Coverage: P%
-
-Missing markers:
-  - {id} (no marker in code)
-
-Orphaned markers:
-  - {marker} (no design ID)
-
-Sync errors:
-  - {id} (marker exists but not [x] in design)
-
-Pairing errors:
-  - {marker} (missing @spider-end)
-
-Status: PASS | FAIL
-```
+Validation performs:
+- Deterministic checks (syntax, pairing, empty blocks, nesting)
+- Cross-validation against artifacts (orphaned markers)
+- Coverage checks driven by `to_code="true"` IDs (weaver-owned)
 
 ---
 
 ## References
 
-- **Design artifacts**: `artifacts.json → systems[].artifacts[]`
-- **Traceability setting**: `artifact.traceability = "FULL" | "DOCS-ONLY"`
-- **SDSL instruction format**: `requirements/SDSL.md`
-- **Template markers**: `requirements/template.md`
-- **Validation command**: `python3 {Spider}/skills/spider/scripts/spider.py validate-code`
+- Registry: `artifacts.json`
+- Weaver taxonomy: `weavers/<weaver>/guides/TAXONOMY.md`
+- Template markers: `requirements/template.md`
+- Validation command: `python3 {Spider}/skills/spider/scripts/spider.py validate-code`

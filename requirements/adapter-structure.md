@@ -29,9 +29,7 @@ purpose: Define validation rules for Spider adapter files
 
 **ALWAYS open and follow**: `../workflows/adapter.md` WHEN executing workflow
 
-**ALWAYS open and follow**: `../templates/adapter-AGENTS.template.md` WHEN generating adapter AGENTS.md
-
-**ALWAYS open**: `../templates/examples/adapter/AGENTS-EXAMPLE.md` WHEN reviewing valid artifact structure
+**ALWAYS open**: `../.spider-adapter/AGENTS.md` WHEN reviewing a valid adapter AGENTS.md example (this repository)
 
 **Prerequisite**: Agent confirms understanding before proceeding:
 - [ ] Agent has read and understood this requirement
@@ -106,7 +104,7 @@ purpose: Define validation rules for Spider adapter files
 ALWAYS open and follow `{spec-file}` WHEN Spider follows weaver `{weaver-id}` for artifact kinds: {KIND1}, {KIND2} [OR codebase]
 ```
 
-**Valid artifact kinds**: Standard Spider kinds: PRD, DESIGN, FEATURES, ADR, FEATURE. Custom kinds may be added per project.
+**Valid artifact kinds**: Standard Spider kinds: PRD, DESIGN, DECOMPOSITION, ADR, FEATURE. Custom kinds may be added per project.
 
 **Codebase**: Use `OR codebase` when spec applies to code validation/generation
 
@@ -116,7 +114,7 @@ ALWAYS open and follow `specs/tech-stack.md` WHEN Spider follows weaver `spider-
 
 ALWAYS open and follow `specs/conventions.md` WHEN Spider follows weaver `spider-sdlc` for codebase
 
-ALWAYS open and follow `specs/domain-model.md` WHEN Spider follows weaver `spider-sdlc` for artifact kinds: DESIGN, FEATURES, FEATURE
+ALWAYS open and follow `specs/domain-model.md` WHEN Spider follows weaver `spider-sdlc` for artifact kinds: DESIGN, DECOMPOSITION, FEATURE
 ```
 
 **Invalid examples** ❌:
@@ -182,7 +180,7 @@ ALWAYS open and follow `specs/tech-stack.md` WHEN Spider follows weaver `spider-
 
 ## Spec Discovery Guide
 
-This section defines **what to look for** and **where to find it** when discovering project-specific knowledge for adapter specs. The domains are derived from the expertise areas in Spider checklists (PRD, DESIGN, FEATURES, ADR, FEATURE, and codebase).
+This section defines **what to look for** and **where to find it** when discovering project-specific knowledge for adapter specs. The domains are derived from the expertise areas in Spider checklists (PRD, DESIGN, DECOMPOSITION, ADR, FEATURE, and codebase).
 
 ### Discovery Methodology
 
@@ -447,18 +445,10 @@ Each spec file MUST include:
 
 ### Missing Referenced Files
 
-**If template file not found** (`../templates/adapter-AGENTS.template.md`):
-```
-⚠️ Template not found: {path}
-→ Verify Spider installation is complete
-→ Check path is relative to requirements/ directory
-```
-**Action**: STOP — cannot generate without template.
-
-**If example file not found** (`../templates/examples/adapter/AGENTS-EXAMPLE.md`):
+**If adapter example file not found** (`../.spider-adapter/AGENTS.md`):
 ```
 ⚠️ Example not found: {path}
-→ Proceed with template only (reduced quality assurance)
+→ Proceed without example (reduced quality assurance)
 ```
 **Action**: WARN and continue.
 
@@ -493,10 +483,10 @@ Each spec file MUST include:
 
 | # | Check | Required | How to Verify |
 |---|-------|----------|---------------|
-| 1.1 | `.spider-config.json` exists at project root | YES | File exists check |
-| 1.2 | `.spider-config.json` is valid JSON | YES | JSON parse succeeds |
+| 1.1 | `{project-root}/.spider-config.json` exists at project root | YES | File exists check |
+| 1.2 | `{project-root}/.spider-config.json` is valid JSON | YES | JSON parse succeeds |
 | 1.3 | `spiderAdapterPath` field present | YES | Field exists in JSON |
-| 1.4 | Adapter path points to directory with AGENTS.md | YES | Path + `/AGENTS.md` exists |
+| 1.4 | Adapter path points to directory with AGENTS.md | YES | Path + `AGENTS.md` exists |
 | 1.5 | AGENTS.md has project name heading | YES | `# Spider Adapter: {name}` present |
 | 1.6 | AGENTS.md has `**Extends**:` declaration | YES | Pattern match |
 | 1.7 | Extends path resolves to valid file | YES | File exists at path |
@@ -550,9 +540,7 @@ Each spec file MUST include:
 
 ## References
 
-**Template**: `../templates/adapter-AGENTS.template.md`
-
-**Example**: `../templates/examples/adapter/AGENTS-EXAMPLE.md`
+**Example (this repo)**: `../.spider-adapter/AGENTS.md`
 
 **Related**:
 - `../AGENTS.md` — Core Spider requirements

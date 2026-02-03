@@ -40,7 +40,7 @@
 - `{adapter-dir}/AGENTS.md` — project conventions
 - **Source** (one of, in priority order):
   1. FEATURE design — registered artifact with `to_code="true"` IDs
-  2. Other Spider artifact — PRD, DESIGN, ADR, FEATURES
+  2. Other Spider artifact — PRD, DESIGN, ADR, DECOMPOSITION
   3. Similar content — user-provided description, spec, or requirements
   4. Prompt only — direct user instructions
 
@@ -72,10 +72,10 @@ CODE implementation triggers upstream checkbox updates through markers:
 
 | Code Marker | FEATURE ID | Upstream Effect |
 |-------------|-----------|-----------------|
-| `@spider-flow:{id}:ph-{N}` | `id:flow` | When all ph-N markers exist → check `id:flow` in FEATURE |
-| `@spider-algo:{id}:ph-{N}` | `id:algo` | When all ph-N markers exist → check `id:algo` in FEATURE |
-| `@spider-state:{id}:ph-{N}` | `id:state` | When all ph-N markers exist → check `id:state` in FEATURE |
-| `@spider-req:{id}:ph-{N}` | `id:req` | When all ph-N markers exist + tests pass → check `id:req` in FEATURE |
+| `@spider-flow:{spd-id}:p{N}` | `id:flow` | When all pN markers exist → check `id:flow` in FEATURE |
+| `@spider-algo:{spd-id}:p{N}` | `id:algo` | When all pN markers exist → check `id:algo` in FEATURE |
+| `@spider-state:{spd-id}:p{N}` | `id:state` | When all pN markers exist → check `id:state` in FEATURE |
+| `@spider-req:{spd-id}:p{N}` | `id:req` | When all pN markers exist + tests pass → check `id:req` in FEATURE |
 
 **Full Cascade Chain**:
 
@@ -84,9 +84,9 @@ CODE markers exist
     ↓
 FEATURE: id:flow/algo/state/req → [x]
     ↓
-FEATURE: ALL IDs [x] → id-ref:feature [x] in FEATURES
+FEATURE: ALL IDs [x] → id-ref:feature [x] in DECOMPOSITION
     ↓
-FEATURES: id:feature [x] → id-ref:* (fr, principle, component, etc.) → [x]
+DECOMPOSITION: id:feature [x] → id-ref:* (fr, principle, component, etc.) → [x]
     ↓
 PRD: id:fr/nfr [x] when ALL downstream refs [x]
 DESIGN: id:principle/constraint/component/seq/dbtable [x] when ALL refs [x]
@@ -95,7 +95,7 @@ DESIGN: id:principle/constraint/component/seq/dbtable [x] when ALL refs [x]
 **When to Update Upstream Checkboxes**:
 
 1. **After implementing SDSL instruction**:
-   - Add `@spider-begin:{id}:ph-{N}:inst-{slug}` / `@spider-end:...` markers
+   - Add `@spider-begin:{spd-id}:p{N}:inst-{slug}` / `@spider-end:...` markers
    - Mark corresponding SDSL step `[x]` in FEATURE
 
 2. **After completing flow/algo/state/req**:
@@ -103,10 +103,10 @@ DESIGN: id:principle/constraint/component/seq/dbtable [x] when ALL refs [x]
    - For `id:req`: also verify tests pass
 
 3. **After completing FEATURE**:
-   - All `id:*` in FEATURE are `[x]` → mark `id-ref:feature` as `[x]` in FEATURES manifest
+   - All `id:*` in FEATURE are `[x]` → mark `id-ref:feature` as `[x]` in DECOMPOSITION
    - Update feature status: `⏳ PLANNED` → `🔄 IN_PROGRESS` → `✅ IMPLEMENTED`
 
-4. **After FEATURES manifest updated**:
+4. **After DECOMPOSITION updated**:
    - Check if all `id-ref:fr`, `id-ref:principle`, etc. are `[x]`
    - If all refs for a PRD/DESIGN ID are `[x]` → mark that ID as `[x]` in PRD/DESIGN
 
@@ -118,7 +118,7 @@ DESIGN: id:principle/constraint/component/seq/dbtable [x] when ALL refs [x]
 ### Versioning Requirements
 
 - [ ] When design ID versioned (`-v2`): update code markers to match
-- [ ] Marker format with version: `@spider-flow:{id}-v2:ph-{N}`
+- [ ] Marker format with version: `@spider-flow:{spd-id}-v2:p{N}`
 - [ ] Migration: update all markers when design version increments
 - [ ] Keep old markers commented during transition (optional)
 
@@ -223,16 +223,16 @@ If implementation cannot be completed in a single session:
 **Reference**: `{Spider}/requirements/traceability.md` for full marker syntax
 
 **Apply markers per spec:**
-- Scope markers: `@spd-{kind}:{id}:ph-{N}` at function/class entry
-- Block markers: `@spider-begin:{id}:ph-{N}:inst-{local}` / `@spider-end:...` wrapping SDSL steps
+- Scope markers: `@spider-{kind}:{spd-id}:p{N}` at function/class entry
+- Block markers: `@spider-begin:{spd-id}:p{N}:inst-{local}` / `@spider-end:...` wrapping SDSL steps
 
 **Quick reference:**
 ```python
-# @spider-begin:spd-myapp-feature-auth-flow-login:ph-1:inst-validate-creds
+# @spider-begin:spd-myapp-feature-auth-flow-login:p1:inst-validate-creds
 def validate_credentials(username, password):
     # implementation here
     pass
-# @spider-end:spd-myapp-feature-auth-flow-login:ph-1:inst-validate-creds
+# @spider-end:spd-myapp-feature-auth-flow-login:p1:inst-validate-creds
 ```
 
 ### Phase 4: Sync Feature DESIGN.md (Traceability Mode ON only)
@@ -486,7 +486,7 @@ After code generation/validation, offer these options to user:
 
 | Condition | Suggested Next Step |
 |-----------|---------------------|
-| Feature complete | Update feature status to IMPLEMENTED in FEATURES manifest |
+| Feature complete | Update feature status to IMPLEMENTED in DECOMPOSITION |
 | All features done | `/spider-validate DESIGN` — validate overall design completion |
 | New feature needed | `/spider-generate FEATURE` — design next feature |
 | Want expert review only | `/spider-validate semantic` — semantic validation (skip deterministic) |
@@ -504,5 +504,5 @@ After code generation/validation, offer these options to user:
 | Scenario | Suggested Next Step |
 |----------|---------------------|
 | Implementing new feature | `/spider-generate FEATURE` — create feature design first |
-| Implementing from PRD | `/spider-generate DESIGN` then `/spider-generate FEATURES` — create design hierarchy |
+| Implementing from PRD | `/spider-generate DESIGN` then `/spider-generate DECOMPOSITION` — create design hierarchy |
 | Quick prototype | Proceed without traceability, suggest `/spider-generate FEATURE` later |

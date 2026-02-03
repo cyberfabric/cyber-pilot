@@ -846,7 +846,7 @@ class Artifact:
         For each ID definition with has="task", find all tasks within that ID block's
         line range and validate that their completion status is consistent with the ID's status.
 
-        Also enforces cascade logic for nested ID definitions (e.g., id:status → id:feature in FEATURES).
+        Also enforces cascade logic for nested ID definitions (e.g., id:status → id:feature in DECOMPOSITION).
         """
         if not self.id_definitions:
             return
@@ -867,7 +867,7 @@ class Artifact:
                     tasks_in_block.append(checked)
 
             # Also find nested ID definitions within this ID block's range (cascade validation)
-            # E.g., id:status contains id:feature blocks in FEATURES manifest
+            # E.g., id:status contains id:feature blocks in DECOMPOSITION artifact
             nested_ids: List[bool] = []
             for other_d in self.id_definitions:
                 if other_d is d:

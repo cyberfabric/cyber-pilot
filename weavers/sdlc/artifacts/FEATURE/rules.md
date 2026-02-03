@@ -42,7 +42,7 @@ Agent confirms understanding of requirements:
 - [ ] FEATURE follows `template.md` structure
 - [ ] **DO NOT copy `spider-template:` frontmatter** — that is template metadata only
 - [ ] Artifact frontmatter (optional): use `spd:` format for document metadata
-- [ ] References parent feature from FEATURES manifest
+- [ ] References parent feature from DECOMPOSITION manifest
 - [ ] All flows, algorithms, states, requirements have unique IDs
 - [ ] All IDs follow `spd-{system}-feature-{feature}-{kind}-{slug}` pattern
 - [ ] All IDs have priority markers (`p1`-`p9`)
@@ -56,7 +56,7 @@ Agent confirms understanding of requirements:
 - [ ] When flow/algorithm/requirement significantly changes: add `-v{N}` suffix to ID
 - [ ] Format: `spd-{system}-feature-{feature}-flow-{slug}-v2`
 - [ ] Keep changelog of significant changes
-- [ ] Versioning code markers must match: `@spider-flow:{id}-v2:ph-{N}`
+- [ ] Versioning code markers must match: `@spider-flow:{spd-id}-v2:p{N}`
 
 ### Semantic Requirements
 
@@ -72,12 +72,12 @@ Agent confirms understanding of requirements:
 ### Traceability Requirements
 
 - [ ] All IDs with `to_code="true"` must be traced to code
-- [ ] Code must contain markers: `@spd-{kind}:{id}:ph-{N}`
+- [ ] Code must contain markers: `@spider-{kind}:{spd-id}:p{N}`
 - [ ] Each SDSL instruction maps to code marker
 
 ### FEATURE Scope Guidelines
 
-**One FEATURE per feature from FEATURES manifest**. Match scope to implementation unit.
+**One FEATURE per feature from DECOMPOSITION manifest**. Match scope to implementation unit.
 
 | Scope | Examples | Guideline |
 |-------|----------|-----------|
@@ -99,14 +99,14 @@ Agent confirms understanding of requirements:
 - Multiple unrelated capabilities → Split into FEATUREs
 
 **Relationship to other artifacts**:
-- **FEATURES** → FEATURE: FEATURES lists what to build, FEATURE details how
+- **FEATURES** → FEATURE: DECOMPOSITION lists what to build, FEATURE details how
 - **DESIGN** → FEATURE: DESIGN provides architecture context, FEATURE details implementation
 - **FEATURE** → CODE: FEATURE defines behavior, CODE implements with traceability markers
 
 ### Upstream Traceability
 
-- [ ] When all flows/algorithms/requirements `[x]` → mark feature as `[x]` in FEATURES manifest
-- [ ] When feature complete → update status in FEATURES manifest (→ IMPLEMENTED)
+- [ ] When all flows/algorithms/requirements `[x]` → mark feature as `[x]` in DECOMPOSITION
+- [ ] When feature complete → update status in DECOMPOSITION (→ IMPLEMENTED)
 
 ### Checkbox Management (`to_code` Attribute)
 
@@ -114,9 +114,9 @@ Agent confirms understanding of requirements:
 
 | Element | Check when... |
 |---------|---------------|
-| `id:flow` | ALL `@spider-flow:{id}:ph-{N}` markers exist in code |
-| `id:algo` | ALL `@spider-algo:{id}:ph-{N}` markers exist in code |
-| `id:state` | ALL `@spider-state:{id}:ph-{N}` markers exist in code |
+| `id:flow` | ALL `@spider-flow:{spd-id}:p{N}` markers exist in code |
+| `id:algo` | ALL `@spider-algo:{spd-id}:p{N}` markers exist in code |
+| `id:state` | ALL `@spider-state:{spd-id}:p{N}` markers exist in code |
 | `id:req` | Implementation complete AND tests pass |
 
 **Detailed Rules**:
@@ -134,15 +134,15 @@ FEATURE defines IDs with `to_code="true"` attribute that track code implementati
 
 1. **Flow Checkbox** (`id:flow`):
    - `[ ] - spd-{system}-feature-{feature}-flow-{slug}` — unchecked until implemented
-   - `[x] - spd-{system}-feature-{feature}-flow-{slug}` — checked when ALL code markers `@spider-flow:{id}:ph-{N}` exist
+   - `[x] - spd-{system}-feature-{feature}-flow-{slug}` — checked when ALL code markers `@spider-flow:{spd-id}:p{N}` exist
 
 2. **Algorithm Checkbox** (`id:algo`):
    - `[ ] - spd-{system}-feature-{feature}-algo-{slug}` — unchecked until implemented
-   - `[x] - spd-{system}-feature-{feature}-algo-{slug}` — checked when ALL code markers `@spider-algo:{id}:ph-{N}` exist
+   - `[x] - spd-{system}-feature-{feature}-algo-{slug}` — checked when ALL code markers `@spider-algo:{spd-id}:p{N}` exist
 
 3. **State Machine Checkbox** (`id:state`):
    - `[ ] - spd-{system}-feature-{feature}-state-{slug}` — unchecked until implemented
-   - `[x] - spd-{system}-feature-{feature}-state-{slug}` — checked when ALL code markers `@spider-state:{id}:ph-{N}` exist
+   - `[x] - spd-{system}-feature-{feature}-state-{slug}` — checked when ALL code markers `@spider-state:{spd-id}:p{N}` exist
 
 4. **Requirement Checkbox** (`id:req`):
    - `[ ] p1 - spd-{system}-feature-{feature}-req-{slug}` — unchecked until satisfied
@@ -154,7 +154,7 @@ FEATURE references elements from PRD and DESIGN:
 
 | Reference Type | Source Artifact | Purpose |
 |----------------|-----------------|---------|
-| `id-ref:feature` | FEATURES | Links to parent feature in manifest |
+| `id-ref:feature` | DECOMPOSITION | Links to parent feature in manifest |
 | `id-ref:actor` | PRD | Identifies actors involved in flows |
 | `id-ref:fr` | PRD | Covers functional requirement |
 | `id-ref:nfr` | PRD | Covers non-functional requirement |
@@ -170,8 +170,8 @@ FEATURE references elements from PRD and DESIGN:
 - [ ] When `id:algo` is checked → verify algorithm logic is implemented
 - [ ] When `id:state` is checked → verify all transitions are implemented
 - [ ] When `id:req` is checked → verify requirement is satisfied and tested
-- [ ] When ALL `id:*` in FEATURE are `[x]` → mark `id-ref:feature` as `[x]` in FEATURES manifest
-- [ ] When feature is `[x]` → update upstream `id-ref` checkboxes in FEATURES (which cascades to PRD/DESIGN)
+- [ ] When ALL `id:*` in FEATURE are `[x]` → mark `id-ref:feature` as `[x]` in DECOMPOSITION
+- [ ] When feature is `[x]` → update upstream `id-ref` checkboxes in DECOMPOSITION (which cascades to PRD/DESIGN)
 
 **Validation Checks**:
 - `spider validate` will warn if `to_code="true"` ID has no code markers
@@ -189,17 +189,17 @@ Agent executes tasks during generation:
 - [ ] Load `template.md` for structure
 - [ ] Load `checklist.md` for semantic guidance
 - [ ] Load `examples/example.md` for reference style
-- [ ] Read FEATURES manifest to get feature ID and context
+- [ ] Read DECOMPOSITION to get feature ID and context
 - [ ] Read DESIGN to understand domain types and components
 
-**If FEATURES manifest not found**:
+**If DECOMPOSITION not found**:
 ```
-⚠ FEATURES manifest not found
-→ Option 1: Run /spider-generate FEATURES first (recommended)
+⚠ DECOMPOSITION not found
+→ Option 1: Run /spider-generate DECOMPOSITION first (recommended)
 → Option 2: Continue without manifest (FEATURE will lack traceability)
-   - Document "FEATURES pending" in FEATURE frontmatter
+   - Document "DECOMPOSITION pending" in FEATURE frontmatter
    - Skip parent feature reference validation
-   - Plan to update when FEATURES available
+   - Plan to update when DECOMPOSITION available
 ```
 
 **If DESIGN not found or incomplete**:
@@ -212,11 +212,11 @@ Agent executes tasks during generation:
    - Plan to update when DESIGN available
 ```
 
-**If parent feature not in FEATURES manifest**:
+**If parent feature not in DECOMPOSITION**:
 ```
-⚠ Parent feature ID not found in FEATURES manifest
+⚠ Parent feature ID not found in DECOMPOSITION
 → Verify feature ID: spd-{system}-feature-{slug}
-→ If new feature: add to FEATURES manifest first
+→ If new feature: add to DECOMPOSITION first
 → If typo: correct the ID reference
 ```
 
@@ -259,7 +259,7 @@ If FEATURE cannot be completed in a single session:
    - Resume: Continue with algorithm definition
    ```
 4. **On resume**:
-   - Verify FEATURES manifest unchanged since last session
+   - Verify DECOMPOSITION unchanged since last session
    - Verify DESIGN unchanged since last session
    - Continue from documented checkpoint
    - Remove incomplete markers as sections are finished
@@ -316,7 +316,7 @@ Apply `checklist.md` systematically:
 ### Phase 3: Traceability Validation (if FULL mode)
 
 For IDs with `to_code="true"`:
-- [ ] Verify code markers exist: `@spd-{kind}:{id}:ph-{N}`
+- [ ] Verify code markers exist: `@spider-{kind}:{spd-id}:p{N}`
 - [ ] Report missing markers
 - [ ] Report orphaned markers
 
@@ -345,7 +345,7 @@ After FEATURE generation/validation, offer these options:
 |-----------|---------------------|
 | FEATURE design complete | `/spider-generate CODE` — implement feature |
 | Code implementation done | `/spider-validate CODE` — validate implementation |
-| Feature IMPLEMENTED | Update status in FEATURES manifest |
+| Feature IMPLEMENTED | Update status in DECOMPOSITION |
 | Another feature to design | `/spider-generate FEATURE` — design next feature |
 | FEATURE needs revision | Continue editing FEATURE design |
 | Want checklist review only | `/spider-validate semantic` — semantic validation (skip deterministic) |

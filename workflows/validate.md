@@ -15,6 +15,8 @@ ALWAYS open and follow `../requirements/execution-protocol.md` FIRST
 
 ALWAYS open and follow `../requirements/code-checklist.md` WHEN user requests validation of code, codebase changes, or implementation behavior (Code mode)
 
+ALWAYS open and follow `../requirements/consistency-checklist.md` WHEN user requests validation of documentation/artifact consistency, contradiction detection, or cross-document alignment (Consistency mode)
+
 OPEN and follow `../requirements/prompt-engineering.md` WHEN user requests validation of:
 - System prompts, agent prompts, or LLM prompts
 - Agent instructions or agent guidelines
@@ -371,7 +373,7 @@ Check (from rules.md + standard):
 - [ ] All flow IDs have code markers
 - [ ] All algorithm IDs have code markers
 - [ ] All test IDs have test implementations
-- [ ] Code markers use correct format defined by the loaded codebase rules (prefer `@spider-*` markers; `@spd-*` scope markers may also be used if specified by the rules)
+- [ ] Code markers use the canonical format from `requirements/traceability.md` (`@spider-*` scope markers and `@spider-begin`/`@spider-end` blocks)
 - [ ] No stale markers (ID no longer in design)
 
 ### ID Uniqueness & Format

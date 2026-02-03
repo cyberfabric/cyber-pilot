@@ -24,8 +24,8 @@ class TestDetectKind(unittest.TestCase):
     """Test detect_artifact_kind function."""
 
     def test_detect_features_manifest(self):
-        """Test detecting FEATURES.md."""
-        path = Path("/test/FEATURES.md")
+        """Test detecting DECOMPOSITION.md."""
+        path = Path("/test/DECOMPOSITION.md")
         kind = detect_artifact_kind(path)
         self.assertEqual(kind, "features-manifest")
 

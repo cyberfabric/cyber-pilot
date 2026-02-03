@@ -68,7 +68,7 @@ Where `{Spider}` is resolved from the adapter's `**Extends**:` declaration.
 
 Current version: `1.0`
 
-Schema file: `schemas/artifacts.schema.json`
+Schema file: `../schemas/artifacts.schema.json`
 
 ---
 
@@ -122,9 +122,9 @@ Schema file: `schemas/artifacts.schema.json`
 Template file path is resolved as: `{weaver.path}/artifacts/{KIND}/template.md`
 
 **Example**: For artifact with `kind: "PRD"` and weaver with `path: "weavers/sdlc"`:
-- Template path: `weavers/sdlc/artifacts/PRD/template.md`
-- Checklist path: `weavers/sdlc/artifacts/PRD/checklist.md`
-- Example path: `weavers/sdlc/artifacts/PRD/examples/example.md`
+- Template path: `{project-root}/weavers/sdlc/artifacts/PRD/template.md`
+- Checklist path: `{project-root}/weavers/sdlc/artifacts/PRD/checklist.md`
+- Example path: `{project-root}/weavers/sdlc/artifacts/PRD/examples/example.md`
 
 ### Format Values
 
@@ -192,7 +192,7 @@ System (root)
 
 ## Artifacts
 
-**Purpose**: Declare documentation artifacts (PRD, DESIGN, ADR, FEATURES, FEATURE).
+**Purpose**: Declare documentation artifacts (PRD, DESIGN, ADR, DECOMPOSITION, FEATURE).
 
 **Structure**:
 ```json
@@ -214,7 +214,7 @@ System (root)
 |-------|------|----------|---------|-------------|
 | `name` | string | NO | - | Human-readable name (for display) |
 | `path` | string | YES | - | Path to artifact file (relative to project_root) |
-| `kind` | string | YES | - | Artifact kind (PRD, DESIGN, ADR, FEATURES, FEATURE) |
+| `kind` | string | YES | - | Artifact kind (PRD, DESIGN, ADR, DECOMPOSITION, FEATURE) |
 | `traceability` | string | NO | `"FULL"` | Traceability level |
 
 ### Path Requirements
@@ -222,12 +222,18 @@ System (root)
 **CRITICAL**: `path` MUST be a file path, NOT a directory.
 
 **Valid**:
-- `architecture/PRD.md`
-- `architecture/ADR/0001-initial-architecture.md`
+
+```text
+architecture/PRD.md
+architecture/ADR/0001-initial-architecture.md
+```
 
 **Invalid**:
-- `architecture/ADR/` (directory)
-- `architecture/ADR` (no extension = likely directory)
+
+```text
+architecture/ADR/    # directory
+architecture/ADR     # no extension = likely directory
+```
 
 ### Traceability Values
 
@@ -242,11 +248,11 @@ System (root)
 
 | Kind | Template Path | Description |
 |------|---------------|-------------|
-| `PRD` | `artifacts/PRD/template.md` | Product Requirements Document |
-| `DESIGN` | `artifacts/DESIGN/template.md` | Overall Design (system-level) |
-| `ADR` | `artifacts/ADR/template.md` | Architecture Decision Record |
-| `FEATURES` | `artifacts/FEATURES/template.md` | Features Manifest |
-| `FEATURE` | `artifacts/FEATURE/template.md` | Feature Design (feature-level) |
+| `PRD` | `{weaver.path}/artifacts/PRD/template.md` | Product Requirements Document |
+| `DESIGN` | `{weaver.path}/artifacts/DESIGN/template.md` | Overall Design (system-level) |
+| `ADR` | `{weaver.path}/artifacts/ADR/template.md` | Architecture Decision Record |
+| `FEATURES` | `{weaver.path}/artifacts/DECOMPOSITION/template.md` | Features Manifest |
+| `FEATURE` | `{weaver.path}/artifacts/FEATURE/template.md` | Feature Design (feature-level) |
 
 ---
 
@@ -488,7 +494,7 @@ else:
         { "name": "Product Requirements", "path": "architecture/PRD.md", "kind": "PRD", "traceability": "DOCS-ONLY" },
         { "name": "Overall Design", "path": "architecture/DESIGN.md", "kind": "DESIGN", "traceability": "FULL" },
         { "name": "Initial Architecture", "path": "architecture/ADR/0001-initial-architecture.md", "kind": "ADR", "traceability": "DOCS-ONLY" },
-        { "name": "Features Manifest", "path": "architecture/features/FEATURES.md", "kind": "FEATURES", "traceability": "DOCS-ONLY" }
+        { "name": "Design Decomposition", "path": "architecture/DECOMPOSITION.md", "kind": "DECOMPOSITION", "traceability": "DOCS-ONLY" }
       ],
       "codebase": [
         {
@@ -530,7 +536,7 @@ else:
 
 ## References
 
-**Schema**: `schemas/artifacts.schema.json`
+**Schema**: `../schemas/artifacts.schema.json`
 
 **CLI**: `skills/spider/spider.clispec`
 
@@ -563,7 +569,7 @@ else:
 |---|-------|----------|---------------|
 | A.1 | Each artifact has `path` and `kind` fields | YES | Both fields exist |
 | A.2 | Artifact paths are files, not directories | YES | Path has extension, doesn't end with `/` |
-| A.3 | Artifact kinds are valid | YES | One of: PRD, DESIGN, ADR, FEATURES, FEATURE |
+| A.3 | Artifact kinds are valid | YES | One of: PRD, DESIGN, ADR, DECOMPOSITION, FEATURE |
 | A.4 | Artifact files exist (if validating content) | CONDITIONAL | File exists at resolved path |
 
 ### Codebase Entries (C)

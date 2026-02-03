@@ -3,7 +3,7 @@
 Use this guide when you have a single repository and a single deployable (a monolith), but the codebase is organized into **modules** with strict boundaries.
 
 Examples use Windsurf slash commands (like `/spider-design`).
-You can apply the same flow in any agent by opening the corresponding workflow files under `workflows/`.
+You can apply the same flow in any agent by opening the corresponding workflow files under [`workflows/`](../../../workflows/).
 
 ## Goal
 
@@ -12,18 +12,22 @@ Maintain:
 - A validated **module-level architecture** for each module.
 
 In a modular monolith:
-- Project-level artifacts are defined by `{adapter-dir}/artifacts.json` (defaults: `architecture/DESIGN.md`, `architecture/ADR/**`).
+- Project-level artifacts are defined by `{adapter-dir}/artifacts.json` (defaults like `{project-root}/architecture/DESIGN.md`, `{project-root}/architecture/ADR/**`).
 - Each module MUST have its architecture isolated inside the module folder (co-located with the code).
 
 A practical convention is:
-- Module code lives under `src/modules/{module}/`.
-- Module architecture lives under `src/modules/{module}/architecture/`.
-- The module architecture is a full set of Spider artifacts (module-level scope):
-  - `src/modules/{module}/architecture/PRD.md`
-  - `src/modules/{module}/architecture/DESIGN.md`
-  - `src/modules/{module}/architecture/ADR/**`
-  - `src/modules/{module}/architecture/features/FEATURES.md`
-  - `src/modules/{module}/architecture/features/feature-{slug}/DESIGN.md`
+
+```text
+{project-root}/src/modules/{module}/
+{project-root}/src/modules/{module}/architecture/
+
+# Module architecture artifacts (module-level scope)
+{project-root}/src/modules/{module}/architecture/PRD.md
+{project-root}/src/modules/{module}/architecture/DESIGN.md
+{project-root}/src/modules/{module}/architecture/ADR/**
+{project-root}/src/modules/{module}/architecture/DECOMPOSITION.md
+{project-root}/src/modules/{module}/architecture/features/feature-{slug}/DESIGN.md
+```
 
 ## Recommended Structure (Example)
 
@@ -33,19 +37,24 @@ Monolith repo example:
 - `src/modules/notifications/`
 
 Spider artifacts (defaults; actual paths are adapter-defined via `{adapter-dir}/artifacts.json`):
-- `architecture/PRD.md`
-- `architecture/DESIGN.md`
-- `architecture/ADR/**`
-- `architecture/features/FEATURES.md` (project-level features)
-- `architecture/features/feature-{slug}/DESIGN.md`
-- `src/modules/auth/architecture/PRD.md`
-- `src/modules/auth/architecture/DESIGN.md`
-- `src/modules/auth/architecture/ADR/**`
-- `src/modules/auth/architecture/features/FEATURES.md`
-- `src/modules/billing/architecture/PRD.md`
-- `src/modules/billing/architecture/DESIGN.md`
-- `src/modules/billing/architecture/ADR/**`
-- `src/modules/billing/architecture/features/FEATURES.md`
+
+```text
+{project-root}/architecture/PRD.md
+{project-root}/architecture/DESIGN.md
+{project-root}/architecture/ADR/**
+{project-root}/architecture/DECOMPOSITION.md        # project-level decomposition
+{project-root}/architecture/features/feature-{slug}/DESIGN.md
+
+{project-root}/src/modules/auth/architecture/PRD.md
+{project-root}/src/modules/auth/architecture/DESIGN.md
+{project-root}/src/modules/auth/architecture/ADR/**
+{project-root}/src/modules/auth/architecture/DECOMPOSITION.md
+
+{project-root}/src/modules/billing/architecture/PRD.md
+{project-root}/src/modules/billing/architecture/DESIGN.md
+{project-root}/src/modules/billing/architecture/ADR/**
+{project-root}/src/modules/billing/architecture/DECOMPOSITION.md
+```
 
 ## How to Provide Context in Prompts
 
@@ -160,7 +169,7 @@ Context:
 ### 5. `/spider-features` (Project-level Features)
 
 **What it does**:
-- Creates or updates the FEATURES manifest artifact ([taxonomy](TAXONOMY.md#featuresmd)).
+- Creates or updates the DECOMPOSITION artifact ([taxonomy](TAXONOMY.md#decompositionmd)).
 
 **Provide context**:
 - Project-level features (core product features, shared libraries, cross-cutting capabilities)
@@ -187,10 +196,10 @@ Context:
 
 ## Module-Level Architecture (Repeat per Module)
 
-Use this section when you want a module to have a fully self-contained architecture (including module-level PRD/DESIGN/ADR/FEATURES).
+Use this section when you want a module to have a fully self-contained architecture (including module-level PRD/DESIGN/ADR/DECOMPOSITION).
 
 Notes:
-- Module-level `FEATURES.md` describes features inside that module.
+- Module-level `DECOMPOSITION.md` describes features inside that module.
 - Module features are not the same as project-level features.
 
 ### 7. `/spider-prd` (Module)
@@ -232,8 +241,8 @@ Context:
 ### 9. `/spider-features` (Module)
 
 **What it does**:
-- Creates or updates module features manifest:
-  - `src/modules/{module}/architecture/features/FEATURES.md`
+- Creates or updates module decomposition:
+  - `src/modules/{module}/architecture/DECOMPOSITION.md`
 
 Prompt example:
 ```text
@@ -319,7 +328,7 @@ Context:
 
 Below is an example of what you typically encode in your project adapter.
 
-### `.spider-adapter/AGENTS.md`
+### Adapter AGENTS.md
 
 ```markdown
 # Project Spider Adapter
@@ -333,7 +342,7 @@ WHEN working in this repo:
   - `src/modules/{module}/architecture/PRD.md`
   - `src/modules/{module}/architecture/DESIGN.md`
   - `src/modules/{module}/architecture/ADR/**`
-  - `src/modules/{module}/architecture/features/FEATURES.md`
+  - `src/modules/{module}/architecture/DECOMPOSITION.md`
   - `src/modules/{module}/architecture/features/feature-{slug}/DESIGN.md`
 - Module boundaries are enforced by code structure and dependency rules.
 
@@ -344,7 +353,7 @@ WHEN asked to generate/validate feature artifacts:
 - Ask for the module architecture path(s).
 ```
 
-### `.spider-adapter/specs/patterns.md` (excerpt)
+### Adapter patterns spec (excerpt)
 
 ```markdown
 # Modular Monolith Patterns

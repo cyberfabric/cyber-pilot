@@ -4,7 +4,7 @@ ALWAYS open and follow `../../../requirements/code-checklist.md` FIRST
 
 **Artifact**: Code Implementation (Spider SDLC)
 **Version**: 1.0
-**Purpose**: Weaver-specific checks that require Spider SDLC artifacts (PRD/DESIGN/FEATURES/FEATURE/ADR) and/or Spider traceability.
+**Purpose**: Weaver-specific checks that require Spider SDLC artifacts (PRD/DESIGN/DECOMPOSITION/FEATURE/ADR) and/or Spider traceability.
 
 ---
 

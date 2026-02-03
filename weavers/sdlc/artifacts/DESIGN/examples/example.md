@@ -99,7 +99,7 @@ Use PostgreSQL for durable task storage. Chosen for strong ACID guarantees, rela
 <!-- spd:####:principle-title repeat="many" -->
 #### Real-time First
 
-<!-- spd:id:principle has="priority,task" covered_by="FEATURES,FEATURE" -->
+<!-- spd:id:principle has="priority,task" covered_by="DECOMPOSITION,FEATURE" -->
 - [ ] `p1` - **ID**: `spd-taskflow-principle-realtime-first`
 
 <!-- spd:paragraph:principle-body -->
@@ -111,7 +111,7 @@ Prefer architectures that keep task state and notifications consistent and obser
 <!-- spd:####:principle-title repeat="many" -->
 #### Simplicity over Features
 
-<!-- spd:id:principle has="priority,task" covered_by="FEATURES,FEATURE" -->
+<!-- spd:id:principle has="priority,task" covered_by="DECOMPOSITION,FEATURE" -->
 - [ ] `p2` - **ID**: `spd-taskflow-principle-simplicity`
 
 <!-- spd:paragraph:principle-body -->
@@ -127,7 +127,7 @@ Choose simpler solutions over feature-rich ones. Avoid premature optimization an
 <!-- spd:####:constraint-title repeat="many" -->
 #### Supported Platforms
 
-<!-- spd:id:constraint has="priority,task" covered_by="FEATURES,FEATURE" -->
+<!-- spd:id:constraint has="priority,task" covered_by="DECOMPOSITION,FEATURE" -->
 - [ ] `p1` - **ID**: `spd-taskflow-constraint-platforms`
 
 <!-- spd:paragraph:constraint-body -->
@@ -165,7 +165,7 @@ graph LR
 <!-- spd:####:component-title repeat="many" -->
 #### API Server
 
-<!-- spd:id:component has="priority,task" covered_by="FEATURES,FEATURE" -->
+<!-- spd:id:component has="priority,task" covered_by="DECOMPOSITION,FEATURE" -->
 - [ ] `p1` - **ID**: `spd-taskflow-component-api-server`
 
 <!-- spd:list:component-payload -->
@@ -192,7 +192,7 @@ REST API at `/api/v1/` with JSON request/response. Authentication via Bearer JWT
 <!-- spd:####:sequence-title repeat="many" -->
 #### Create Task Flow
 
-<!-- spd:id:seq has="priority,task" covered_by="FEATURES,FEATURE" -->
+<!-- spd:id:seq has="priority,task" covered_by="DECOMPOSITION,FEATURE" -->
 - [ ] `p1` - **ID**: `spd-taskflow-seq-create-task`
 
 <!-- spd:code:sequences -->
@@ -219,7 +219,7 @@ Lead or member creates task via REST API. Server validates input, inserts into d
 <!-- spd:####:db-table-title repeat="many" -->
 #### Table tasks
 
-<!-- spd:id:dbtable has="priority,task" covered_by="FEATURES,FEATURE" -->
+<!-- spd:id:dbtable has="priority,task" covered_by="DECOMPOSITION,FEATURE" -->
 - [ ] `p1` - **ID**: `spd-taskflow-dbtable-tasks`
 
 Schema

@@ -135,7 +135,7 @@ Detect:
 Search for Spider artifacts:
   - PRD.md (product requirements)
   - DESIGN.md (architecture design)
-  - FEATURES.md (features manifest)
+  - DECOMPOSITION.md (features manifest)
   - ADR/ directory (architecture decisions)
   - features/ directory (feature designs)
 
@@ -305,7 +305,7 @@ Based on scan, proposed structure:
 │   ├── artifacts:
 │   │   ├── PRD.md
 │   │   ├── DESIGN.md
-│   │   └── FEATURES.md
+│   │   └── DECOMPOSITION.md
 │   ├── codebase:
 │   │   └── src/ [.ts, .tsx]
 │   └── children:
@@ -336,7 +336,7 @@ For each artifact, choose traceability level:
 Artifact traceability:
   - PRD.md: [FULL] [DOCS-ONLY]
   - DESIGN.md: [FULL] [DOCS-ONLY]
-  - FEATURES.md: [FULL] [DOCS-ONLY]
+  - DECOMPOSITION.md: [FULL] [DOCS-ONLY]
 ```
 
 Store as: `TRACEABILITY_CONFIG`
@@ -380,7 +380,7 @@ Create `{ADAPTER_DIR}/artifacts.json` following schema:
       "artifacts": [
         { "name": "Product Requirements", "path": "{artifacts_dir}/PRD.md", "kind": "PRD", "traceability": "{TRACEABILITY}" },
         { "name": "Overall Design", "path": "{artifacts_dir}/DESIGN.md", "kind": "DESIGN", "traceability": "{TRACEABILITY}" },
-        { "name": "Features Manifest", "path": "{artifacts_dir}/features/FEATURES.md", "kind": "FEATURES", "traceability": "{TRACEABILITY}" }
+        { "name": "Design Decomposition", "path": "{artifacts_dir}/DECOMPOSITION.md", "kind": "DECOMPOSITION", "traceability": "{TRACEABILITY}" }
       ],
       "codebase": [
         { "name": "{codebase_name}", "path": "{src_dir}", "extensions": ["{extensions}"] }
@@ -746,7 +746,7 @@ Run adapter workflow with --agent {windsurf|cursor|claude|copilot}
 **After successful adapter setup**:
 - `/spider-generate PRD` — Define product requirements
 - `/spider-generate DESIGN` — Create architecture design
-- `/spider-generate FEATURES` — Create features manifest
+- `/spider-generate DECOMPOSITION` — Create features manifest
 
 **For existing projects**:
 - Review detected artifacts
