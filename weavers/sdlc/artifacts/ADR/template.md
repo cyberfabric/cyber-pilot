@@ -40,39 +40,41 @@
 <!-- spd:decision-drivers -->
 
 <!-- spd:options repeat="many" -->
-
 **Option 1: {Option Name}**
+<!-- spd:options repeat="many" -->
 
 - Description: {What this option entails}
 - Pros:
   - {advantage 1}
   - {advantage 2}
-- Cons:
-  - {disadvantage 1}
-  - {disadvantage 2}
-- Trade-offs: {key trade-offs to consider}
-
-**Option 2: {Option Name}**
-
-- Description: {What this option entails}
-- Pros:
-  - {advantage 1}
-  - {advantage 2}
-- Cons:
-  - {disadvantage 1}
-- Trade-offs: {key trade-offs to consider}
-
-**Option 3: {Option Name}**
-
-- Description: {What this option entails}
-- Pros:
-  - {advantage 1}
 - Cons:
   - {disadvantage 1}
   - {disadvantage 2}
 - Trade-offs: {key trade-offs to consider}
 
 <!-- spd:options repeat="many" -->
+**Option 2: {Option Name}**
+<!-- spd:options repeat="many" -->
+
+- Description: {What this option entails}
+- Pros:
+  - {advantage 1}
+  - {advantage 2}
+- Cons:
+  - {disadvantage 1}
+- Trade-offs: {key trade-offs to consider}
+
+<!-- spd:options repeat="many" -->
+**Option 3: {Option Name}**
+<!-- spd:options repeat="many" -->
+
+- Description: {What this option entails}
+- Pros:
+  - {advantage 1}
+- Cons:
+  - {disadvantage 1}
+  - {disadvantage 2}
+- Trade-offs: {key trade-offs to consider}
 
 <!-- spd:decision-outcome -->
 **Decision Outcome**:

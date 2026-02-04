@@ -124,6 +124,7 @@ The system MUST send push notifications for task assignments. The system MUST se
 
 <!-- spd:###:uc-title repeat="many" -->
 ### UC-001 Create and Assign Task
+<!-- spd:###:uc-title repeat="many" -->
 
 <!-- spd:id:usecase -->
 **ID**: `spd-taskflow-usecase-create-task`
@@ -158,7 +159,7 @@ The system MUST send push notifications for task assignments. The system MUST se
 - **Validation fails**: If step 4 fails validation (e.g., no assignee selected), system displays error and returns to step 2
 <!-- spd:list:alternative-flows -->
 <!-- spd:id:usecase -->
-<!-- spd:###:uc-title repeat="many" -->
+
 <!-- spd:##:usecases -->
 
 <!-- spd:##:nfrs -->

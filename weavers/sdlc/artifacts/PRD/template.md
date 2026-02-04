@@ -41,7 +41,6 @@
 ## 2. Actors
 
 <!-- spd:###:actor-title repeat="many" -->
-
 ### {Actor Name 1}
 
 <!-- spd:id:actor has="task" -->
@@ -51,7 +50,9 @@
 **Role**: {1-3 sentences describing responsibilities and goals}
 <!-- spd:paragraph:actor-role -->
 <!-- spd:id:actor -->
+<!-- spd:###:actor-title repeat="many" -->
 
+<!-- spd:###:actor-title repeat="many" -->
 ### {Actor Name 2}
 
 <!-- spd:id:actor has="task" -->
@@ -61,7 +62,9 @@
 **Role**: {1-3 sentences describing responsibilities and goals}
 <!-- spd:paragraph:actor-role -->
 <!-- spd:id:actor -->
+<!-- spd:###:actor-title repeat="many" -->
 
+<!-- spd:###:actor-title repeat="many" -->
 ### {Actor Name 3}
 
 <!-- spd:id:actor has="task" -->
@@ -71,15 +74,14 @@
 **Role**: {1-3 sentences describing responsibilities and goals}
 <!-- spd:paragraph:actor-role -->
 <!-- spd:id:actor -->
-
 <!-- spd:###:actor-title repeat="many" -->
+
 <!-- spd:##:actors -->
 
 <!-- spd:##:frs -->
 ## 3. Functional Requirements
 
 <!-- spd:###:fr-title repeat="many" -->
-
 ### FR-001 {Requirement Title}
 
 <!-- spd:id:fr has="priority,task" covered_by="DESIGN,DECOMPOSITION,SPEC" -->
@@ -94,7 +96,9 @@
 `spd-{system}-actor-{slug-1}`, `spd-{system}-actor-{slug-2}`
 <!-- spd:id-ref:actor -->
 <!-- spd:id:fr -->
+<!-- spd:###:fr-title repeat="many" -->
 
+<!-- spd:###:fr-title repeat="many" -->
 ### FR-002 {Requirement Title}
 
 <!-- spd:id:fr has="priority,task" covered_by="DESIGN,DECOMPOSITION,SPEC" -->
@@ -109,15 +113,14 @@
 `spd-{system}-actor-{slug}`
 <!-- spd:id-ref:actor -->
 <!-- spd:id:fr -->
-
 <!-- spd:###:fr-title repeat="many" -->
+
 <!-- spd:##:frs -->
 
 <!-- spd:##:usecases -->
 ## 4. Use Cases
 
 <!-- spd:###:uc-title repeat="many" -->
-
 ### UC-001 {Use Case Title}
 
 <!-- spd:id:usecase -->
@@ -152,15 +155,14 @@
 - **{condition}**: {what happens, may reference other use cases}
 <!-- spd:list:alternative-flows -->
 <!-- spd:id:usecase -->
-
 <!-- spd:###:uc-title repeat="many" -->
+
 <!-- spd:##:usecases -->
 
 <!-- spd:##:nfrs -->
 ## 5. Non-functional requirements
 
 <!-- spd:###:nfr-title repeat="many" -->
-
 ### {NFR Category 1, e.g. Security}
 
 <!-- spd:id:nfr has="priority,task" covered_by="DESIGN,DECOMPOSITION,SPEC" -->
@@ -171,7 +173,9 @@
 - {Another measurable requirement}
 <!-- spd:list:nfr-statements -->
 <!-- spd:id:nfr -->
+<!-- spd:###:nfr-title repeat="many" -->
 
+<!-- spd:###:nfr-title repeat="many" -->
 ### {NFR Category 2, e.g. Performance}
 
 <!-- spd:id:nfr has="priority,task" covered_by="DESIGN,DECOMPOSITION,SPEC" -->
@@ -182,7 +186,6 @@
 - {Another measurable requirement}
 <!-- spd:list:nfr-statements -->
 <!-- spd:id:nfr -->
-
 <!-- spd:###:nfr-title repeat="many" -->
 
 <!-- spd:###:intentional-exclusions -->
@@ -244,25 +247,28 @@
 ## 8. Additional context
 
 <!-- spd:###:context-title repeat="many" -->
-
 ### {Context Topic 1, e.g. Stakeholder Notes}
 
 <!-- spd:free:prd-context-notes -->
 {Context notes, links, or background information}
 <!-- spd:free:prd-context-notes -->
+<!-- spd:###:context-title repeat="many" -->
 
+<!-- spd:###:context-title repeat="many" -->
 ### {Context Topic 2, e.g. Market Research}
 
 <!-- spd:free:prd-context-notes -->
 {More context notes}
 <!-- spd:free:prd-context-notes -->
+<!-- spd:###:context-title repeat="many" -->
 
+<!-- spd:###:context-title repeat="many" -->
 ### {Context Topic 3, e.g. Technical Constraints}
 
 <!-- spd:free:prd-context-notes -->
 {Additional context}
 <!-- spd:free:prd-context-notes -->
-
 <!-- spd:###:context-title repeat="many" -->
+
 <!-- spd:##:context -->
 <!-- spd:#:prd -->

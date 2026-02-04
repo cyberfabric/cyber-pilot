@@ -17,7 +17,6 @@
 - [ ] `p1` - **ID**: `spd-{system}-status-overall`
 
 <!-- spd:###:spec-title repeat="many" -->
-
 ### 1. [{Spec Title 1}](spec-{slug}/) - HIGH
 
 <!-- spd:id:spec has="priority,task" -->
@@ -88,7 +87,9 @@
 <!-- spd:id-ref:dbtable -->
 
 <!-- spd:id:spec -->
+<!-- spd:###:spec-title repeat="many" -->
 
+<!-- spd:###:spec-title repeat="many" -->
 ### 2. [{Spec Title 2}](spec-{slug}/) - MEDIUM
 
 <!-- spd:id:spec has="priority,task" -->
@@ -155,7 +156,9 @@
 <!-- spd:id-ref:dbtable -->
 
 <!-- spd:id:spec -->
+<!-- spd:###:spec-title repeat="many" -->
 
+<!-- spd:###:spec-title repeat="many" -->
 ### 3. [{Spec Title 3}](spec-{slug}/) - LOW
 
 <!-- spd:id:spec has="priority,task" -->
@@ -220,8 +223,8 @@
 <!-- spd:id-ref:dbtable -->
 
 <!-- spd:id:spec -->
-
 <!-- spd:###:spec-title repeat="many" -->
+
 <!-- spd:id:status -->
 <!-- spd:##:entries -->
 <!-- spd:#:decomposition -->

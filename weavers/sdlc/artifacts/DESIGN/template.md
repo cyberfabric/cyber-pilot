@@ -24,7 +24,6 @@
 #### Product requirements
 
 <!-- spd:fr-title repeat="many" -->
-
 ##### {FR Name 1}
 
 <!-- spd:id-ref:fr has="priority,task" -->
@@ -32,7 +31,9 @@
 <!-- spd:id-ref:fr -->
 
 **Solution**: {How the design addresses this requirement}
+<!-- spd:fr-title repeat="many" -->
 
+<!-- spd:fr-title repeat="many" -->
 ##### {FR Name 2}
 
 <!-- spd:id-ref:fr has="priority,task" -->
@@ -40,11 +41,9 @@
 <!-- spd:id-ref:fr -->
 
 **Solution**: {How the design addresses this requirement}
-
 <!-- spd:fr-title repeat="many" -->
 
 <!-- spd:nfr-title repeat="many" -->
-
 ##### {NFR Name 1}
 
 <!-- spd:id-ref:nfr has="priority,task" -->
@@ -52,7 +51,9 @@
 <!-- spd:id-ref:nfr -->
 
 **Solution**: {How the design addresses this NFR}
+<!-- spd:nfr-title repeat="many" -->
 
+<!-- spd:nfr-title repeat="many" -->
 ##### {NFR Name 2}
 
 <!-- spd:id-ref:nfr has="priority,task" -->
@@ -60,15 +61,14 @@
 <!-- spd:id-ref:nfr -->
 
 **Solution**: {How the design addresses this NFR}
-
 <!-- spd:nfr-title repeat="many" -->
+
 <!-- spd:####:prd-requirements -->
 
 <!-- spd:####:adr-records -->
 #### Architecture Decisions Records
 
 <!-- spd:adr-title repeat="many" -->
-
 ##### {ADR Title 1}
 
 <!-- spd:id-ref:adr has="priority,task" -->
@@ -76,7 +76,9 @@
 <!-- spd:id-ref:adr -->
 
 {2-4 sentences describing what decision was taken and why. Include key tradeoffs if relevant.}
+<!-- spd:adr-title repeat="many" -->
 
+<!-- spd:adr-title repeat="many" -->
 ##### {ADR Title 2}
 
 <!-- spd:id-ref:adr has="priority,task" -->
@@ -84,8 +86,8 @@
 <!-- spd:id-ref:adr -->
 
 {2-4 sentences describing what decision was taken and why. Include key tradeoffs if relevant.}
-
 <!-- spd:adr-title repeat="many" -->
+
 <!-- spd:####:adr-records -->
 <!-- spd:###:architecture-drivers -->
 
@@ -109,7 +111,6 @@
 ### 2.1: Design Principles
 
 <!-- spd:####:principle-title repeat="many" -->
-
 #### {Principle Name 1}
 
 <!-- spd:id:principle has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
@@ -119,7 +120,9 @@
 {Rationale and guidance for this principle.}
 <!-- spd:paragraph:principle-body -->
 <!-- spd:id:principle -->
+<!-- spd:####:principle-title repeat="many" -->
 
+<!-- spd:####:principle-title repeat="many" -->
 #### {Principle Name 2}
 
 <!-- spd:id:principle has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
@@ -129,15 +132,14 @@
 {Rationale and guidance for this principle.}
 <!-- spd:paragraph:principle-body -->
 <!-- spd:id:principle -->
-
 <!-- spd:####:principle-title repeat="many" -->
+
 <!-- spd:###:principles -->
 
 <!-- spd:###:constraints -->
 ### 2.2: Constraints
 
 <!-- spd:####:constraint-title repeat="many" -->
-
 #### {Constraint Name 1}
 
 <!-- spd:id:constraint has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
@@ -147,7 +149,9 @@
 {What constraint exists and why.}
 <!-- spd:paragraph:constraint-body -->
 <!-- spd:id:constraint -->
+<!-- spd:####:constraint-title repeat="many" -->
 
+<!-- spd:####:constraint-title repeat="many" -->
 #### {Constraint Name 2}
 
 <!-- spd:id:constraint has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
@@ -157,8 +161,8 @@
 {What constraint exists and why.}
 <!-- spd:paragraph:constraint-body -->
 <!-- spd:id:constraint -->
-
 <!-- spd:####:constraint-title repeat="many" -->
+
 <!-- spd:###:constraints -->
 <!-- spd:##:principles-and-constraints -->
 
@@ -183,7 +187,6 @@
 <!-- spd:code:component-model -->
 
 <!-- spd:####:component-title repeat="many" -->
-
 #### {Component Name 1}
 
 <!-- spd:id:component has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
@@ -196,7 +199,9 @@
 - **Key interfaces**: {public API or contracts}
 <!-- spd:list:component-payload -->
 <!-- spd:id:component -->
+<!-- spd:####:component-title repeat="many" -->
 
+<!-- spd:####:component-title repeat="many" -->
 #### {Component Name 2}
 
 <!-- spd:id:component has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
@@ -209,8 +214,8 @@
 - **Key interfaces**: {public API or contracts}
 <!-- spd:list:component-payload -->
 <!-- spd:id:component -->
-
 <!-- spd:####:component-title repeat="many" -->
+
 <!-- spd:###:component-model -->
 
 <!-- spd:###:api-contracts -->
@@ -225,7 +230,6 @@
 ### 3.4: Interactions & Sequences
 
 <!-- spd:####:sequence-title repeat="many" -->
-
 #### {Sequence Name 1}
 
 <!-- spd:id:seq has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
@@ -245,7 +249,9 @@ sequenceDiagram
 {Explain the interaction, participants, and success/failure outcomes.}
 <!-- spd:paragraph:sequence-body -->
 <!-- spd:id:seq -->
+<!-- spd:####:sequence-title repeat="many" -->
 
+<!-- spd:####:sequence-title repeat="many" -->
 #### {Sequence Name 2}
 
 <!-- spd:id:seq has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
@@ -268,15 +274,14 @@ sequenceDiagram
 {Explain the interaction, participants, and success/failure outcomes.}
 <!-- spd:paragraph:sequence-body -->
 <!-- spd:id:seq -->
-
 <!-- spd:####:sequence-title repeat="many" -->
+
 <!-- spd:###:interactions -->
 
 <!-- spd:###:database -->
 ### 3.5 Database schemas & tables (optional)
 
 <!-- spd:####:db-table-title repeat="many" -->
-
 #### Table {name 1}
 
 <!-- spd:id:dbtable has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
@@ -304,7 +309,9 @@ sequenceDiagram
 | abc-123 | Example | 2024-01-01 |
 <!-- spd:table:db-table-example -->
 <!-- spd:id:dbtable -->
+<!-- spd:####:db-table-title repeat="many" -->
 
+<!-- spd:####:db-table-title repeat="many" -->
 #### Table {name 2}
 
 <!-- spd:id:dbtable has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
@@ -332,8 +339,8 @@ sequenceDiagram
 | xyz-456 | active | 2024-01-15 |
 <!-- spd:table:db-table-example -->
 <!-- spd:id:dbtable -->
-
 <!-- spd:####:db-table-title repeat="many" -->
+
 <!-- spd:###:database -->
 
 <!-- spd:###:topology -->

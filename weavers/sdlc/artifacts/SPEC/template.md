@@ -43,7 +43,6 @@
 ## 2. Actor Flows
 
 <!-- spd:###:flow-title repeat="many" -->
-
 ### {Flow Name 1}
 
 <!-- spd:id:flow has="task" to_code="true" -->
@@ -62,7 +61,9 @@
 5. [ ] - `p1` - API: RETURN 201 Created (id, status) - `inst-return`
 <!-- spd:sdsl:flow-steps -->
 <!-- spd:id:flow -->
+<!-- spd:###:flow-title repeat="many" -->
 
+<!-- spd:###:flow-title repeat="many" -->
 ### {Flow Name 2}
 
 <!-- spd:id:flow has="task" to_code="true" -->
@@ -82,15 +83,14 @@
 5. [ ] - `p1` - API: RETURN 200 OK (resource) - `inst-return-ok`
 <!-- spd:sdsl:flow-steps -->
 <!-- spd:id:flow -->
-
 <!-- spd:###:flow-title repeat="many" -->
+
 <!-- spd:##:flows -->
 
 <!-- spd:##:algorithms -->
 ## 3. Algorithms
 
 <!-- spd:###:algo-title repeat="many" -->
-
 ### {Algorithm Name 1}
 
 <!-- spd:id:algo has="task" to_code="true" -->
@@ -103,7 +103,9 @@
 4. [ ] - `p1` - **RETURN** {result description} - `inst-return`
 <!-- spd:sdsl:algo-steps -->
 <!-- spd:id:algo -->
+<!-- spd:###:algo-title repeat="many" -->
 
+<!-- spd:###:algo-title repeat="many" -->
 ### {Algorithm Name 2}
 
 <!-- spd:id:algo has="task" to_code="true" -->
@@ -118,15 +120,14 @@
 3. [ ] - `p1` - **RETURN** {transformed collection} - `inst-return`
 <!-- spd:sdsl:algo-steps -->
 <!-- spd:id:algo -->
-
 <!-- spd:###:algo-title repeat="many" -->
+
 <!-- spd:##:algorithms -->
 
 <!-- spd:##:states -->
 ## 4. States
 
 <!-- spd:###:state-title repeat="many" -->
-
 ### {State Machine Name 1}
 
 <!-- spd:id:state has="task" to_code="true" -->
@@ -138,7 +139,9 @@
 3. [ ] - `p2` - **FROM** ACTIVE **TO** CANCELLED **WHEN** user cancels - `inst-transition-cancel`
 <!-- spd:sdsl:state-transitions -->
 <!-- spd:id:state -->
+<!-- spd:###:state-title repeat="many" -->
 
+<!-- spd:###:state-title repeat="many" -->
 ### {State Machine Name 2}
 
 <!-- spd:id:state has="task" to_code="true" -->
@@ -150,15 +153,14 @@
 3. [ ] - `p2` - **FROM** SUBMITTED **TO** REJECTED **WHEN** reviewer rejects - `inst-transition-reject`
 <!-- spd:sdsl:state-transitions -->
 <!-- spd:id:state -->
-
 <!-- spd:###:state-title repeat="many" -->
+
 <!-- spd:##:states -->
 
 <!-- spd:##:requirements -->
 ## 5. Definition of Done
 
 <!-- spd:###:req-title repeat="many" -->
-
 ### {Requirement Name 1}
 
 <!-- spd:id:req has="priority,task" to_code="true" -->
@@ -215,7 +217,9 @@
 <!-- spd:id-ref:dbtable -->
 
 <!-- spd:id:req -->
+<!-- spd:###:req-title repeat="many" -->
 
+<!-- spd:###:req-title repeat="many" -->
 ### {Requirement Name 2}
 
 <!-- spd:id:req has="priority,task" to_code="true" -->
@@ -272,8 +276,8 @@
 <!-- spd:id-ref:dbtable -->
 
 <!-- spd:id:req -->
-
 <!-- spd:###:req-title repeat="many" -->
+
 <!-- spd:##:requirements -->
 
 <!-- spd:##:additional-context -->
