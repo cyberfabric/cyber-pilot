@@ -2,7 +2,7 @@
 # Technical Design: TaskFlow
 
 <!-- spd:##:architecture-overview -->
-## A. Architecture Overview
+## 1. Architecture Overview
 
 <!-- spd:###:architectural-vision -->
 ### Architectural Vision
@@ -91,10 +91,10 @@ Use PostgreSQL for durable task storage. Chosen for strong ACID guarantees, rela
 <!-- spd:##:architecture-overview -->
 
 <!-- spd:##:principles-and-constraints -->
-## B. Principles & Constraints
+## 2. Principles & Constraints
 
 <!-- spd:###:principles -->
-### B.1: Design Principles
+### 2.1: Design Principles
 
 <!-- spd:####:principle-title repeat="many" -->
 #### Real-time First
@@ -122,7 +122,7 @@ Choose simpler solutions over spec-rich ones. Avoid premature optimization and u
 <!-- spd:###:principles -->
 
 <!-- spd:###:constraints -->
-### B.2: Constraints
+### 2.2: Constraints
 
 <!-- spd:####:constraint-title repeat="many" -->
 #### Supported Platforms
@@ -139,10 +139,10 @@ Must run on Node.js 18+. PostgreSQL 14+ required for JSONB support. Browser supp
 <!-- spd:##:principles-and-constraints -->
 
 <!-- spd:##:technical-architecture -->
-## C. Technical Architecture
+## 3. Technical Architecture
 
 <!-- spd:###:domain-model -->
-### C.1: Domain Model
+### 3.1: Domain Model
 
 <!-- spd:paragraph:domain-model -->
 Core entities: **Task** (id, title, description, status, priority, dueDate, assigneeId, createdBy, createdAt, updatedAt) and **User** (id, email, name, role). Task status follows state machine: TODO -> IN_PROGRESS -> DONE. Invariants: assignee must be team member, due date must be future.
@@ -150,7 +150,7 @@ Core entities: **Task** (id, title, description, status, priority, dueDate, assi
 <!-- spd:###:domain-model -->
 
 <!-- spd:###:component-model -->
-### C.2: Component Model
+### 3.2: Component Model
 
 <!-- spd:code:component-model -->
 ```mermaid
@@ -179,7 +179,7 @@ graph LR
 <!-- spd:###:component-model -->
 
 <!-- spd:###:api-contracts -->
-### C.3: API Contracts
+### 3.3: API Contracts
 
 <!-- spd:paragraph:api-contracts -->
 REST API at `/api/v1/` with JSON request/response. Authentication via Bearer JWT token. Standard endpoints: `POST /tasks`, `GET /tasks`, `PATCH /tasks/:id`, `DELETE /tasks/:id`. WebSocket at `/ws` for real-time events: `task.created`, `task.updated`, `task.deleted`.
@@ -187,7 +187,7 @@ REST API at `/api/v1/` with JSON request/response. Authentication via Bearer JWT
 <!-- spd:###:api-contracts -->
 
 <!-- spd:###:interactions -->
-### C.4: Interactions & Sequences
+### 3.4: Interactions & Sequences
 
 <!-- spd:####:sequence-title repeat="many" -->
 #### Create Task Flow
@@ -214,7 +214,7 @@ Lead or member creates task via REST API. Server validates input, inserts into d
 <!-- spd:###:interactions -->
 
 <!-- spd:###:database -->
-### C.5 Database schemas & tables (optional)
+### 3.5 Database schemas & tables (optional)
 
 <!-- spd:####:db-table-title repeat="many" -->
 #### Table tasks
@@ -248,7 +248,7 @@ Example
 <!-- spd:###:database -->
 
 <!-- spd:###:topology -->
-### C.6: Topology (optional)
+### 3.6: Topology (optional)
 
 <!-- spd:id:topology has="task" -->
 - [ ] **ID**: `spd-taskflow-topology-local`
@@ -260,7 +260,7 @@ Local development: React SPA (port 3000) + API server (port 4000) + PostgreSQL (
 <!-- spd:###:topology -->
 
 <!-- spd:###:tech-stack -->
-### C.7: Tech stack (optional)
+### 3.7: Tech stack (optional)
 
 <!-- spd:paragraph:status -->
 **Status**: Accepted
@@ -273,7 +273,7 @@ Backend: Node.js 18 LTS, TypeScript 5.x, Express 4.x, pg-pool for PostgreSQL, io
 <!-- spd:##:technical-architecture -->
 
 <!-- spd:##:design-context -->
-## D. Additional Context
+## 4. Additional Context
 
 <!-- spd:free:design-context-body -->
 TaskFlow prioritizes real-time collaboration and predictable REST semantics. Future considerations include mobile app support and Slack integration. Trade-offs accepted: PostgreSQL requires operational overhead vs SQLite simplicity.

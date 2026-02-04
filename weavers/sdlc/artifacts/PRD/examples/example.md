@@ -2,7 +2,7 @@
 # PRD
 
 <!-- spd:##:overview -->
-## A. Vision
+## 1. Overview
 
 <!-- spd:paragraph:purpose -->
 **Purpose**: TaskFlow is a lightweight task management system for small teams, enabling task creation, assignment, and progress tracking with real-time notifications.
@@ -42,7 +42,7 @@ The system focuses on simplicity and speed, allowing teams to manage their daily
 <!-- spd:##:overview -->
 
 <!-- spd:##:actors -->
-## B. Actors
+## 2. Actors
 
 <!-- spd:###:actor-title repeat="many" -->
 ### Team Member
@@ -82,7 +82,7 @@ The system focuses on simplicity and speed, allowing teams to manage their daily
 <!-- spd:##:actors -->
 
 <!-- spd:##:frs -->
-## C. Functional Requirements
+## 3. Functional Requirements
 
 <!-- spd:###:fr-title repeat="many" -->
 ### FR-001 Task Management
@@ -120,7 +120,7 @@ The system MUST send push notifications for task assignments. The system MUST se
 <!-- spd:##:frs -->
 
 <!-- spd:##:usecases -->
-## D. Use Cases
+## 4. Use Cases
 
 <!-- spd:###:uc-title repeat="many" -->
 ### UC-001 Create and Assign Task
@@ -162,7 +162,7 @@ The system MUST send push notifications for task assignments. The system MUST se
 <!-- spd:##:usecases -->
 
 <!-- spd:##:nfrs -->
-## E. Non-functional requirements
+## 5. Non-functional requirements
 
 <!-- spd:###:nfr-title repeat="many" -->
 ### Security
@@ -203,7 +203,7 @@ The system MUST send push notifications for task assignments. The system MUST se
 <!-- spd:##:nfrs -->
 
 <!-- spd:##:nongoals -->
-## F. Non-Goals & Risks
+## 6. Non-Goals & Risks
 
 <!-- spd:###:nongoals-title -->
 ### Non-Goals
@@ -226,7 +226,7 @@ The system MUST send push notifications for task assignments. The system MUST se
 <!-- spd:##:nongoals -->
 
 <!-- spd:##:assumptions -->
-## G. Assumptions & Open Questions
+## 7. Assumptions & Open Questions
 
 <!-- spd:###:assumptions-title -->
 ### Assumptions
@@ -249,7 +249,7 @@ The system MUST send push notifications for task assignments. The system MUST se
 <!-- spd:##:assumptions -->
 
 <!-- spd:##:context -->
-## H. Additional context
+## 8. Additional context
 
 <!-- spd:###:context-title repeat="many" -->
 ### Stakeholder Notes
