@@ -49,11 +49,11 @@ Add Spider to your repo, then initialize and generate agent proxy files.
 
 ```bash
 # Option A: git submodule (recommended)
-git submodule add https://github.com/cyberfabric/spider spider
+git submodule add https://github.com/cyberfabric/Spider spider
 git submodule update --init --recursive
 
 # Option B: plain clone
-git clone https://github.com/cyberfabric/spider spider
+git clone https://github.com/cyberfabric/Spider spider
 ```
 
 ```bash

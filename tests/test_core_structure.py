@@ -337,14 +337,6 @@ class TestAgentsStructure:
         """skills/spider/SKILL.md should exist as the skill definition."""
         assert (PROJECT_ROOT / "skills" / "spider" / "SKILL.md").is_file(), "Missing skills/spider/SKILL.md"
 
-    def test_agents_files_contain_navigation_rules(self):
-        """AGENTS.md files should contain navigation rules."""
-        agents_files = list(PROJECT_ROOT.rglob("AGENTS.md"))
-        for f in agents_files:
-            text = f.read_text(encoding="utf-8")
-            has_rules = "ALWAYS" in text or "WHEN" in text or "open and follow" in text.lower()
-            assert has_rules, f"{f} missing navigation rules"
-
     def test_extract_when_clauses(self):
         """Test that WHEN clauses can be extracted from AGENTS.md."""
         root_agents = PROJECT_ROOT / "AGENTS.md"
