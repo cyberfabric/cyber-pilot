@@ -178,7 +178,67 @@ def _default_agents_config() -> dict:
                                 "{custom_content}",
                                 "ALWAYS open and follow `{target_skill_path}`",
                             ],
-                        }
+                        },
+                        {
+                            "path": ".claude/skills/spider/SKILL.md",
+                            "template": [
+                                "---",
+                                "name: spider",
+                                "description: {description}",
+                                "disable-model-invocation: false",
+                                "user-invocable: true",
+                                "allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Task, WebFetch",
+                                "---",
+                                "",
+                                "{custom_content}",
+                                "ALWAYS open and follow `{target_skill_path}`",
+                            ],
+                        },
+                        {
+                            "path": ".claude/skills/spider-adapter/SKILL.md",
+                            "target": "workflows/adapter.md",
+                            "template": [
+                                "---",
+                                "name: spider-adapter",
+                                "description: {description}",
+                                "disable-model-invocation: false",
+                                "user-invocable: true",
+                                "allowed-tools: Bash, Read, Write, Edit, Glob, Grep",
+                                "---",
+                                "",
+                                "ALWAYS open and follow `{target_path}`",
+                            ],
+                        },
+                        {
+                            "path": ".claude/skills/spider-generate/SKILL.md",
+                            "target": "workflows/generate.md",
+                            "template": [
+                                "---",
+                                "name: spider-generate",
+                                "description: {description}",
+                                "disable-model-invocation: false",
+                                "user-invocable: true",
+                                "allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Task",
+                                "---",
+                                "",
+                                "ALWAYS open and follow `{target_path}`",
+                            ],
+                        },
+                        {
+                            "path": ".claude/skills/spider-analyze/SKILL.md",
+                            "target": "workflows/analyze.md",
+                            "template": [
+                                "---",
+                                "name: spider-analyze",
+                                "description: {description}",
+                                "disable-model-invocation: false",
+                                "user-invocable: true",
+                                "allowed-tools: Bash, Read, Glob, Grep",
+                                "---",
+                                "",
+                                "ALWAYS open and follow `{target_path}`",
+                            ],
+                        },
                     ],
                 },
             },
@@ -668,15 +728,30 @@ def _cmd_agents(argv: List[str]) -> int:
 
                     out_path = (project_root / rel_path).resolve()
                     out_dir = out_path.parent
-                    target_skill_rel = _safe_relpath_from_dir(target_skill_abs, out_dir)
+
+                    # Support custom target path (e.g., for workflow outputs)
+                    custom_target = out_cfg.get("target")
+                    if custom_target:
+                        target_abs = (spider_root / custom_target).resolve()
+                        target_rel = _safe_relpath_from_dir(target_abs, out_dir)
+                        # Parse frontmatter from custom target
+                        target_fm = _parse_frontmatter(target_abs)
+                        out_name = target_fm.get("name", skill_source_name)
+                        out_description = target_fm.get("description", skill_source_description)
+                    else:
+                        target_rel = _safe_relpath_from_dir(target_skill_abs, out_dir)
+                        out_name = skill_source_name
+                        out_description = skill_source_description
+
                     content = _render_template(
                         template,
                         {
                             "agent": agent,
                             "skill_name": str(skill_name),
-                            "target_skill_path": target_skill_rel,
-                            "name": skill_source_name,
-                            "description": skill_source_description,
+                            "target_skill_path": target_rel,
+                            "target_path": target_rel,
+                            "name": out_name,
+                            "description": out_description,
                             "custom_content": custom_content,
                         },
                     )
