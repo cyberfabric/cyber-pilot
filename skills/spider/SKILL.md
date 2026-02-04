@@ -47,6 +47,16 @@ ALWAYS use `=` form for pattern args starting with `-`: `--pattern=-req-`
 
 ---
 
+## Quick Commands (No Protocol)
+
+ALWAYS SKIP Protocol Guard and workflow loading WHEN user invokes quick commands
+
+ALWAYS run `python3 {spider_path}/skills/spider/scripts/spider.py init --yes` directly WHEN user invokes `spider init`
+
+ALWAYS run `python3 {spider_path}/skills/spider/scripts/spider.py agents --agent <name>` directly WHEN user invokes `spider agents <name>`
+
+---
+
 ## Workflow Routing
 
 Spider has exactly **TWO** workflows. No exceptions.
