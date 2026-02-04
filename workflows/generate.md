@@ -15,7 +15,9 @@ Set `{spider_mode}` = `on` FIRST
 
 ALWAYS open and follow `{spider_path}/requirements/execution-protocol.md` FIRST
 
-ALWAYS open and follow `{spider_path}/requirements/reverse-engineering.md` WHEN user requests to analyze codebase, search in code, search in project documentation, or generate artifacts or code based on existing project structure
+ALWAYS open and follow `{spider_path}/requirements/reverse-engineering.md` WHEN BROWNFIELD project AND user requests to analyze codebase, search in code, or generate artifacts from existing code
+
+NEVER open reverse-engineering.md WHEN GREENFIELD project — there is no code to reverse-engineer
 
 ALWAYS open and follow `{spider_path}/requirements/code-checklist.md` WHEN user requests implementing, generating, or editing code (Code mode)
 
@@ -72,34 +74,33 @@ For context compaction recovery during multi-phase workflows, follow `{spider_pa
 
 ---
 
-## Reverse Engineering Prerequisite
+## Reverse Engineering Prerequisite (BROWNFIELD only)
 
-**When trigger conditions above are met**, before proceeding with generation:
+**GREENFIELD vs BROWNFIELD**:
+- **GREENFIELD**: New project with no existing code — skip this section entirely, proceed to Phase 0
+- **BROWNFIELD**: Existing project with source code — reverse-engineering helps extract design from code
+
+ALWAYS SKIP this section WHEN GREENFIELD — nothing to reverse-engineer
+
+**BROWNFIELD only** — when existing code needs to inform artifacts:
 
 1. **Check if adapter has project analysis**:
   - Does `spider.py adapter-info` report any `specs`?
   - If specs exist, load and follow them before generating.
-  - If no specs exist, proceed with best effort or run a rescan.
+  - If no specs exist, offer rescan.
 
-2. **If no project analysis exists**:
+2. **Offer reverse-engineering scan**:
    ```
-   To generate quality artifacts/code based on the existing project,
-   I recommend running adapter in reverse engineering mode first:
+   BROWNFIELD project detected — existing code found.
 
-   /spider-adapter --rescan
+   To generate artifacts informed by your codebase:
+   → `spider init --rescan` — analyze codebase structure and patterns
 
-   This will:
-   - Analyze codebase structure (Layers 1-3)
-   - Detect tech stack and patterns
-   - Populate adapter specs
-
-   After scan completes, we can continue with your request.
-
-   Proceed with adapter scan? [yes/skip]
+   Skip? Artifacts will be created without codebase context.
    ```
 
-3. **If user confirms**: Run adapter workflow Phase 1, then return to original task
-4. **If user skips**: Proceed with best-effort generation using `reverse-engineering.md` inline
+3. **If user confirms**: Run adapter rescan, then continue
+4. **If user skips**: Proceed without codebase analysis
 
 ---
 

@@ -120,9 +120,17 @@ ALWAYS read `weavers` section from `artifacts.json` WHEN BOOTSTRAP mode detected
 
 ALWAYS scan `{weaver.path}/artifacts/` directories WHEN listing available artifact kinds
 
-ALWAYS show welcome message with available weavers WHEN BOOTSTRAP mode:
+ALWAYS determine project type WHEN BOOTSTRAP mode:
+- **GREENFIELD**: No existing source code — starting fresh, design-first approach
+- **BROWNFIELD**: Existing source code — needs reverse-engineering to extract design from code
+
+ALWAYS detect GREENFIELD WHEN codebase directories in `artifacts.json` are empty OR contain only config files (no `.py`, `.ts`, `.js`, `.go`, `.rs`, `.java` etc.)
+
+ALWAYS detect BROWNFIELD WHEN codebase directories contain source code files
+
+ALWAYS show welcome message with project type WHEN BOOTSTRAP mode:
 ```
-🚀 New Project Detected
+🚀 New Project Detected ({GREENFIELD|BROWNFIELD})
 
 Available weavers:
 • {weaver_name} ({weaver.path})
@@ -132,6 +140,12 @@ Available weavers:
 ```
 
 ALWAYS proceed with generate workflow without blocking WHEN user requests artifact generation in BOOTSTRAP mode
+
+NEVER trigger reverse-engineering WHEN GREENFIELD — there is no code to analyze
+
+ALWAYS offer reverse-engineering WHEN BROWNFIELD AND adapter has no specs — existing code should inform design artifacts
+
+NEVER offer reverse-engineering WHEN adapter already has specs — project analysis already done
 
 NEVER show warnings or "reduced rigor" messages WHEN in BOOTSTRAP mode
 
@@ -158,8 +172,16 @@ ALWAYS proceed as normal coding assistant WHEN user declines initialization
 | Behavior | Full enforcement | Welcome + propose SDLC | Suggest init |
 | Template enforcement | ✓ Required | ✓ Required | ✗ None |
 | Checklist validation | ✓ Mandatory | ✓ Mandatory | ✗ Skipped |
+| Reverse-engineering | When needed | BROWNFIELD only | N/A |
 | Blocking | No | No | No |
-| Next step | Continue workflow | `spider generate PRD` | `spider init` |
+| Next step | Continue workflow | `spider generate <KIND>` | `spider init` |
+
+### Project Type (BOOTSTRAP mode)
+
+| Type | Condition | Reverse-engineering |
+|------|-----------|---------------------|
+| **GREENFIELD** | No source code in codebase dirs | ✗ Skip — nothing to analyze |
+| **BROWNFIELD** | Source code exists | ✓ Offer — code informs design |
 
 ---
 
