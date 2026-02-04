@@ -285,6 +285,25 @@ def _default_agents_config() -> dict:
                     ],
                 },
             },
+            "openai": {
+                "skills": {
+                    "custom_content": "",
+                    "outputs": [
+                        {
+                            "path": ".agents/skills/spider/SKILL.md",
+                            "template": [
+                                "---",
+                                "name: {name}",
+                                "description: {description}",
+                                "---",
+                                "",
+                                "{custom_content}",
+                                "ALWAYS open and follow `{target_skill_path}`",
+                            ],
+                        }
+                    ],
+                },
+            },
         },
     }
 
@@ -466,14 +485,16 @@ def _cmd_self_check(argv: List[str]) -> int:
 def _cmd_agents(argv: List[str]) -> int:
     """Unified command to register both workflows and skills for an agent."""
     p = argparse.ArgumentParser(prog="agents", description="Generate/update agent-specific workflow proxies and skill outputs")
-    p.add_argument("--agent", required=True, help="Agent/IDE key (e.g., windsurf, cursor, claude, copilot)")
+    agent_group = p.add_mutually_exclusive_group(required=True)
+    agent_group.add_argument("--agent", help="Agent/IDE key (e.g., windsurf, cursor, claude, copilot, openai)")
+    agent_group.add_argument("--openai", action="store_true", help="Shortcut for --agent openai (OpenAI Codex)")
     p.add_argument("--root", default=".", help="Project root directory (default: current directory)")
     p.add_argument("--spider-root", default=None, help="Explicit Spider core root (optional override)")
     p.add_argument("--config", default=None, help="Path to unified agents config JSON (default: spider-agents.json in project root)")
     p.add_argument("--dry-run", action="store_true", help="Compute changes without writing files")
     args = p.parse_args(argv)
 
-    agent = str(args.agent).strip()
+    agent = "openai" if bool(getattr(args, "openai", False)) else str(args.agent).strip()
     if not agent:
         raise SystemExit("--agent must be non-empty")
 
@@ -496,7 +517,7 @@ def _cmd_agents(argv: List[str]) -> int:
     cfg_path = Path(args.config).resolve() if args.config else (project_root / "spider-agents.json")
     cfg = _load_json_file(cfg_path)
 
-    recognized = agent in {"windsurf", "cursor", "claude", "copilot"}
+    recognized = agent in {"windsurf", "cursor", "claude", "copilot", "openai"}
     if cfg is None:
         cfg = _default_agents_config() if recognized else {"version": 1, "agents": {agent: {"workflows": {}, "skills": {}}}}
         if not args.dry_run:

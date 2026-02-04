@@ -123,7 +123,12 @@ python3 {spider_path}/skills/spider/scripts/spider.py init [--yes] [--dry-run]
 ```bash
 python3 {spider_path}/skills/spider/scripts/spider.py agents --agent <name>
 ```
-Supported: windsurf, cursor, claude, copilot
+Supported: windsurf, cursor, claude, copilot, openai
+
+Shortcut:
+```bash
+python3 {spider_path}/skills/spider/scripts/spider.py agents --openai
+```
 
 ---
 

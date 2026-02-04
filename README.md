@@ -43,7 +43,7 @@ Before using **Spider**, ensure you have:
 
 - **Python 3.8+** — Required for `spider` tool execution
 - **Git** — For version control and submodule installation (recommended)
-- **AI Agent** — Claude Code, Windsurf, Cursor, GH Copilot, or similar LLM-powered coding assistant integrated with your IDE
+- **AI Agent** — OpenAI Codex, Claude Code, Windsurf, Cursor, GH Copilot, or similar LLM-powered coding assistant integrated with your IDE
 
 ---
 
@@ -66,7 +66,7 @@ python3 spider/skills/spider/scripts/spider.py init
 python3 spider/skills/spider/scripts/spider.py agents --agent windsurf
 ```
 
-Supported agents: `windsurf`, `cursor`, `claude`, `copilot`.
+Supported agents: `windsurf`, `cursor`, `claude`, `copilot`, `openai`.
 
 If you update the Spider submodule later, re-run:
 

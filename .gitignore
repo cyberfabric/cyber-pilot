@@ -41,6 +41,7 @@ coverage.json
 .windsurf
 .claude
 .cursor
+.agents/
 spider-agents.json
 .tmp/
 spider-flow-layers-2a.drawio.svg

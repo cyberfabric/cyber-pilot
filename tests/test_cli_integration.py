@@ -198,6 +198,21 @@ class TestCLIInitCommand(unittest.TestCase):
             out = json.loads(stdout.getvalue())
             self.assertEqual(out.get("status"), "PASS")
 
+            stdout = io.StringIO()
+            with redirect_stdout(stdout):
+                exit_code = main([
+                    "agents",
+                    "--openai",
+                    "--root",
+                    str(project),
+                    "--spider-root",
+                    str(spider_core),
+                    "--dry-run",
+                ])
+            self.assertEqual(exit_code, 0)
+            out = json.loads(stdout.getvalue())
+            self.assertEqual(out.get("status"), "PASS")
+
     def test_init_interactive_defaults(self):
         with TemporaryDirectory() as tmpdir:
             project = Path(tmpdir) / "project"
