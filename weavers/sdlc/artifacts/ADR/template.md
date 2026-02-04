@@ -1,12 +1,3 @@
----
-spider-template:
-  version:
-    major: 1
-    minor: 0
-  kind: ADR
-  unknown_sections: warn
----
-
 <!-- spd:#:adr -->
 # ADR-0001: {short title, representative of solved problem and found solution}
 
@@ -49,25 +40,62 @@ spider-template:
 <!-- spd:decision-drivers -->
 
 <!-- spd:options repeat="many" -->
-**Considered Options**:
-{List the options considered with pros/cons/trade-offs.}
-<!-- spd:options -->
+
+**Option 1: {Option Name}**
+
+- Description: {What this option entails}
+- Pros:
+  - {advantage 1}
+  - {advantage 2}
+- Cons:
+  - {disadvantage 1}
+  - {disadvantage 2}
+- Trade-offs: {key trade-offs to consider}
+
+**Option 2: {Option Name}**
+
+- Description: {What this option entails}
+- Pros:
+  - {advantage 1}
+  - {advantage 2}
+- Cons:
+  - {disadvantage 1}
+- Trade-offs: {key trade-offs to consider}
+
+**Option 3: {Option Name}**
+
+- Description: {What this option entails}
+- Pros:
+  - {advantage 1}
+- Cons:
+  - {disadvantage 1}
+  - {disadvantage 2}
+- Trade-offs: {key trade-offs to consider}
+
+<!-- spd:options repeat="many" -->
 
 <!-- spd:decision-outcome -->
 **Decision Outcome**:
-{State the chosen option and why.}
+{State the chosen option (e.g., Option 2) and why it was selected over alternatives.}
+
+{Include:
+- Rationale for the choice
+- Why rejected options were not suitable
+- Any conditions or caveats}
 <!-- spd:decision-outcome -->
 
 <!-- spd:list:consequences -->
 **Consequences**:
-- Positive: ...
-- Negative: ...
-- Follow-up: ...
+- Positive: {benefit 1}, {benefit 2}
+- Negative: {drawback 1}, {drawback 2}
+- Follow-up: {action items or future considerations}
 <!-- spd:list:consequences -->
 
 <!-- spd:list:links -->
 **Links**:
 - [`PRD`](PRD.md)
+- [`DESIGN`](DESIGN.md)
+- {External reference or documentation}
 <!-- spd:list:links -->
 <!-- spd:##:body -->
 

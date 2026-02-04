@@ -83,28 +83,33 @@ Spider templates use paired HTML comment markers to define structural blocks in 
 
 ## Template Frontmatter
 
-Every template MUST begin with YAML frontmatter:
+Templates MAY optionally begin with YAML frontmatter. If frontmatter is absent, the `kind` is inferred from the template path (`.../artifacts/{KIND}/template.md`).
 
 ```yaml
 ---
 spider-template:
   version:
-    major: 1
+    major: 2
     minor: 0
   kind: <KIND>
   unknown_sections: warn
 ---
 ```
 
-**IMPORTANT**: This `spider-template:` frontmatter is **template metadata only**. It MUST NOT be copied into generated artifacts. Artifacts may optionally have their own `spd:` frontmatter for document metadata.
+**NOTE**: Frontmatter is optional. When omitted:
+- `kind` is inferred from path pattern `.../artifacts/{KIND}/template.md`
+- `version` defaults to the current supported version (2.0)
+- `unknown_sections` defaults to `warn`
 
-### Fields
+Artifacts may optionally have their own `spd:` frontmatter for document metadata.
+
+### Fields (when frontmatter is present)
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `version.major` | integer | YES | Major version (breaking changes) |
-| `version.minor` | integer | YES | Minor version (compatible changes) |
-| `kind` | string | YES | Artifact kind (PRD, DESIGN, ADR, DECOMPOSITION, SPEC) |
+| `version.major` | integer | NO | Major version (defaults to current) |
+| `version.minor` | integer | NO | Minor version (defaults to current) |
+| `kind` | string | NO | Artifact kind (inferred from path if absent) |
 | `unknown_sections` | string | NO | How to handle markers not in template: `error`, `warn`, `allow`. Default: `warn` |
 
 ---
@@ -408,8 +413,8 @@ Brief description of the spec.
 
 ## Validation Checklist
 
-- [ ] Template has valid `spider-template` frontmatter
-- [ ] Template version is supported (≤ 1.0)
+- [ ] Template has valid frontmatter OR kind can be inferred from path
+- [ ] Template version is supported (≤ 2.0)
 - [ ] All markers are properly paired (open/close)
 - [ ] Artifact has all required blocks
 - [ ] Block content matches type constraints

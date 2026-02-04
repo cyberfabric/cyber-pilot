@@ -193,12 +193,32 @@ Summary
     report = cross_validate_artifacts([art_prd, art_design])
     assert report["errors"] == []
 
-    # Missing ref for covered_by should fail
+    # Missing ref for covered_by should fail when DESIGN exists for same system
+    # DESIGN must have at least one ID from the same system to be "in scope"
+    art_design_wrong_ref = tmpl_design.parse(
+      _write(
+        tmp_path / "design-wrong-ref.md",
+        """
+<!-- spd:id-ref:item has="priority,task" -->
+[x] `p1` - `spd-demo-item-other`
+<!-- spd:id-ref:item -->
+
+<!-- spd:paragraph:summary -->
+Summary
+<!-- spd:paragraph:summary -->
+""",
+      ),
+    )
+    report2 = cross_validate_artifacts([art_prd, art_design_wrong_ref])
+    assert any(e.get("message") == "ID not covered by required artifact kinds" for e in report2["errors"])
+
+    # Empty DESIGN (no IDs from same system) results in warning, not error
     art_design_empty = tmpl_design.parse(
       _write(tmp_path / "design-empty.md", "<!-- spd:paragraph:summary -->x<!-- spd:paragraph:summary -->"),
     )
-    report2 = cross_validate_artifacts([art_prd, art_design_empty])
-    assert any(e.get("message") == "ID not covered by required artifact kinds" for e in report2["errors"])
+    report3 = cross_validate_artifacts([art_prd, art_design_empty])
+    assert report3["errors"] == []
+    assert any(e.get("message") == "ID not covered (target artifact kinds not in scope)" for e in report3["warnings"])
 
     # Ref done but def not done should fail
     art_prd_undone = tmpl_prd.parse(
@@ -299,7 +319,7 @@ spider-template:
 
 
 def test_template_missing_version(tmp_path: Path):
-    """Cover template missing version."""
+    """Cover template missing version - now uses default version."""
     text = """---
 spider-template:
   kind: TEST
@@ -307,12 +327,16 @@ spider-template:
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, errs = load_template(tmpl_path)
-    assert tmpl is None
-    assert any("version" in str(e.get("message", "")).lower() for e in errs)
+    # Now succeeds with default version (frontmatter is optional, version defaults to SUPPORTED_VERSION)
+    assert tmpl is not None
+    assert errs == []
+    assert tmpl.kind == "TEST"
+    assert tmpl.version.major == 2  # default from SUPPORTED_VERSION
+    assert tmpl.version.minor == 0
 
 
 def test_template_invalid_unknown_sections(tmp_path: Path):
-    """Cover invalid unknown_sections value."""
+    """Cover invalid unknown_sections value - now falls back to 'warn'."""
     text = """---
 spider-template:
   version:
@@ -324,8 +348,11 @@ spider-template:
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, errs = load_template(tmpl_path)
-    assert tmpl is None
-    assert any("unknown_sections" in str(e.get("message", "")).lower() for e in errs)
+    # Now succeeds with fallback to 'warn' (frontmatter values are optional)
+    assert tmpl is not None
+    assert errs == []
+    assert tmpl.kind == "TEST"
+    assert tmpl.policy.unknown_sections == "warn"  # fallback value
 
 
 def test_template_version_too_high(tmp_path: Path):

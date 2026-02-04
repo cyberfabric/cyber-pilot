@@ -44,7 +44,6 @@ Agent confirms understanding of requirements:
 ### Structural Requirements
 
 - [ ] ADR follows `template.md` structure
-- [ ] **DO NOT copy `spider-template:` frontmatter** — that is template metadata only
 - [ ] Artifact frontmatter (optional): use `spd:` format for document metadata
 - [ ] ADR has unique ID: `spd-{hierarchy-prefix}-adr-{slug}` (e.g., `spd-myapp-adr-use-postgresql`)
 - [ ] ID has priority marker (`p1`-`p9`)

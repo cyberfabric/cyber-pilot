@@ -30,7 +30,6 @@ Agent confirms understanding of requirements:
 ### Structural Requirements
 
 - [ ] PRD follows `template.md` structure
-- [ ] **DO NOT copy `spider-template:` frontmatter** — that is template metadata only
 - [ ] Artifact frontmatter (optional): use `spd:` format for document metadata
 - [ ] All required sections present and non-empty
 - [ ] All IDs follow `spd-{hierarchy-prefix}-{kind}-{slug}` convention (see artifacts.json for hierarchy)

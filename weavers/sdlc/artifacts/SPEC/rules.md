@@ -40,7 +40,6 @@ Agent confirms understanding of requirements:
 ### Structural Requirements
 
 - [ ] SPEC follows `template.md` structure
-- [ ] **DO NOT copy `spider-template:` frontmatter** — that is template metadata only
 - [ ] Artifact frontmatter (optional): use `spd:` format for document metadata
 - [ ] References parent spec from DECOMPOSITION manifest
 - [ ] All flows, algorithms, states, requirements have unique IDs

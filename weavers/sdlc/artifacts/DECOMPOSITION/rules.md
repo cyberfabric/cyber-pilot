@@ -37,7 +37,6 @@ Agent confirms understanding of requirements:
 ### Structural Requirements
 
 - [ ] DECOMPOSITION follows `template.md` structure
-- [ ] **DO NOT copy `spider-template:` frontmatter** — that is template metadata only
 - [ ] Artifact frontmatter (optional): use `spd:` format for document metadata
 - [ ] All required sections present and non-empty
 - [ ] Each spec has unique ID: `spd-{hierarchy-prefix}-spec-{slug}` (see artifacts.json for hierarchy)

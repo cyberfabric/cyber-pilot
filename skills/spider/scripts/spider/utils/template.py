@@ -211,32 +211,41 @@ class Template:
         except Exception:
             return [Template.error("template", "Failed to read template file", path=self.path, line=1)]
 
+        # Frontmatter is optional - if present, use it; otherwise infer from path
+        kind: Optional[str] = None
+        template_version = TemplateVersion(int(SUPPORTED_VERSION["major"]), int(SUPPORTED_VERSION["minor"]))
+        unknown_sections = "warn"
+
         try:
             fm, _fm_end = Template.parse_frontmatter_yaml(text)
         except Exception as e:
             return [Template.error("template", f"Invalid template frontmatter: {e}", path=self.path, line=1)]
-        if not isinstance(fm, dict):
-            return [Template.error("template", "Missing required spider-template frontmatter", path=self.path, line=1)]
 
-        # Canonical key is `spider-template`.
-        # Accept a couple of legacy/accidental variants to tolerate refactors.
-        ft = fm.get("spider-template")
-        if ft is None:
-            return [Template.error("template", "Missing required spider-template frontmatter", path=self.path, line=1)]
-        if not isinstance(ft, dict):
-            return [Template.error("template", "Invalid spider-template frontmatter", path=self.path, line=1)]
+        if isinstance(fm, dict):
+            # Check for spider-template key (legacy format)
+            ft = fm.get("spider-template")
+            if isinstance(ft, dict):
+                kind = ft.get("kind")
+                ver = ft.get("version")
+                unknown_sections = ft.get("unknown_sections", "warn")
+                if ver and isinstance(ver, dict) and isinstance(ver.get("major"), int) and isinstance(ver.get("minor"), int):
+                    template_version = TemplateVersion(int(ver["major"]), int(ver["minor"]))
 
-        kind = ft.get("kind")
-        ver = ft.get("version")
-        unknown_sections = ft.get("unknown_sections", "warn")
-        if not isinstance(kind, str) or not kind.strip():
-            return [Template.error("template", "Template frontmatter missing 'kind'", path=self.path, line=1)]
-        if not isinstance(ver, dict) or not isinstance(ver.get("major"), int) or not isinstance(ver.get("minor"), int):
-            return [Template.error("template", "Template frontmatter missing version.major/minor", path=self.path, line=1)]
+        # Infer kind from path if not in frontmatter
+        # Path pattern: .../artifacts/{KIND}/template.md
+        if not kind:
+            parts = self.path.parts
+            for i, part in enumerate(parts):
+                if part == "artifacts" and i + 1 < len(parts):
+                    kind = parts[i + 1].upper()
+                    break
+
+        if not kind:
+            return [Template.error("template", "Cannot determine template kind (no frontmatter and path doesn't match .../artifacts/{KIND}/template.md)", path=self.path, line=1)]
+
         if unknown_sections not in {"error", "warn", "allow"}:
-            return [Template.error("template", "Invalid unknown_sections value", path=self.path, line=1)]
+            unknown_sections = "warn"
 
-        template_version = TemplateVersion(int(ver["major"]), int(ver["minor"]))
         supported = TemplateVersion(int(SUPPORTED_VERSION["major"]), int(SUPPORTED_VERSION["minor"]))
         if template_version.major > supported.major or (
             template_version.major == supported.major and template_version.minor > supported.minor
@@ -982,6 +991,22 @@ def cross_validate_artifacts(
     defs_by_kind: Dict[str, List[IdDefinition]] = {}
     refs_by_kind: Dict[str, List[IdReference]] = {}
 
+    # Per-system tracking for covered_by scoping
+    # Key is system slug (lowercase), value is refs grouped by artifact kind
+    refs_by_system_kind: Dict[str, Dict[str, List[IdReference]]] = {}
+    present_kinds_by_system: Dict[str, set[str]] = {}
+
+    # Helper to extract system from Spider ID (e.g., "spd-bookcatalog-fr-search" -> "bookcatalog")
+    def _extract_system_from_id(spd: str) -> Optional[str]:
+        """Extract the system segment from a Spider ID."""
+        if not spd.lower().startswith("spd-"):
+            return None
+        # Format: spd-{system}-{kind}-{slug}
+        parts = spd.split("-")
+        if len(parts) < 3:
+            return None
+        return parts[1].lower()
+
     present_kinds: set[str] = set()
     for art in artifacts:
         art._extract_ids_and_refs()
@@ -990,11 +1015,21 @@ def cross_validate_artifacts(
         for d in art.id_definitions:
             id_defs.setdefault(d.id, []).append(d)
             defs_by_kind.setdefault(kind, []).append(d)
+            # Track by system for covered_by scoping
+            sys = _extract_system_from_id(d.id)
+            if sys:
+                present_kinds_by_system.setdefault(sys, set()).add(kind)
         for r in art.id_references:
             id_refs.append(r)
             refs_by_kind.setdefault(kind, []).append(r)
+            # Track by system for covered_by scoping
+            sys = _extract_system_from_id(r.id)
+            if sys:
+                refs_by_system_kind.setdefault(sys, {}).setdefault(kind, []).append(r)
+                # Also track that this artifact kind exists for this system
+                present_kinds_by_system.setdefault(sys, set()).add(kind)
 
-    # covered_by check (case-sensitive kind matching)
+    # covered_by check (case-sensitive kind matching, scoped by system)
     for art in artifacts:
         for blk in art.blocks:
             if blk.template_block.type != "id":
@@ -1005,15 +1040,24 @@ def cross_validate_artifacts(
             target_kinds = [c.strip() for c in covered.split(",") if c.strip()]
             if not target_kinds:
                 continue
-            # Check if any target kind is present in validation scope
-            kinds_in_scope = [tk for tk in target_kinds if tk in present_kinds]
             # find ids defined in this block
             for d in art.id_definitions:
                 if d.block is not blk:
                     continue
+                # Extract system from this ID to scope the check
+                id_system = _extract_system_from_id(d.id)
+                # Get system-scoped data (fall back to global if no system detected)
+                if id_system:
+                    system_refs_by_kind = refs_by_system_kind.get(id_system, {})
+                    system_present_kinds = present_kinds_by_system.get(id_system, set())
+                else:
+                    system_refs_by_kind = refs_by_kind
+                    system_present_kinds = present_kinds
+                # Check if any target kind is present in THIS SYSTEM's scope
+                kinds_in_scope = [tk for tk in target_kinds if tk in system_present_kinds]
                 found = False
                 for tk in target_kinds:
-                    refs_in_kind = refs_by_kind.get(tk, [])
+                    refs_in_kind = system_refs_by_kind.get(tk, [])
                     if any(r.id == d.id for r in refs_in_kind):
                         found = True
                         break
