@@ -1836,6 +1836,116 @@ ccc
             self.assertEqual(out.get("status"), "FOUND")
             self.assertEqual(out.get("text"), "bbb")
 
+    def test_get_content_without_markers_id_line_under_heading(self):
+        """Fallback get-content: ID definition line under a normal heading scopes content to next heading."""
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            templates_dir = root / "weavers" / "sdlc" / "artifacts" / "PRD"
+            templates_dir.mkdir(parents=True)
+
+            tmpl_content = """---
+spider-template:
+  version:
+    major: 1
+    minor: 0
+  kind: PRD
+---
+<!-- spd:free:body -->
+text
+<!-- spd:free:body -->
+"""
+            (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
+
+            art_dir = root / "architecture"
+            art_dir.mkdir(parents=True)
+            art_content = """#### SaaS Developer
+
+**ID**: `spd-hyperspot-actor-saas-developer`
+
+**Role**: Software engineer building business logic modules.
+
+#### Platform Operator
+
+**ID**: `spd-hyperspot-actor-platform-operator`
+"""
+            art_path = art_dir / "PRD.md"
+            art_path.write_text(art_content, encoding="utf-8")
+
+            _bootstrap_registry_new_format(
+                root,
+                weavers={"spider": {"format": "Spider", "path": "weavers/sdlc"}},
+                systems=[{
+                    "name": "Test",
+                    "weavers": "spider",
+                    "artifacts": [{"path": "architecture/PRD.md", "kind": "PRD"}],
+                }],
+            )
+
+            stdout = io.StringIO()
+            with redirect_stdout(stdout):
+                exit_code = main(["get-content", "--artifact", str(art_path), "--id", "spd-hyperspot-actor-saas-developer"])
+
+            self.assertEqual(exit_code, 0)
+            out = json.loads(stdout.getvalue())
+            self.assertEqual(out.get("status"), "FOUND")
+            self.assertEqual(out.get("text"), "**Role**: Software engineer building business logic modules.")
+
+    def test_get_content_without_markers_id_line_stops_at_next_defined_id(self):
+        """Fallback get-content: stop at the next ID definition line before the next heading."""
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            templates_dir = root / "weavers" / "sdlc" / "artifacts" / "PRD"
+            templates_dir.mkdir(parents=True)
+
+            tmpl_content = """---
+spider-template:
+  version:
+    major: 1
+    minor: 0
+  kind: PRD
+---
+<!-- spd:free:body -->
+text
+<!-- spd:free:body -->
+"""
+            (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
+
+            art_dir = root / "architecture"
+            art_dir.mkdir(parents=True)
+            art_content = """#### People
+
+**ID**: `spd-aa`
+aaa
+
+**ID**: `spd-bb`
+bbb
+
+#### Next
+**ID**: `spd-cc`
+ccc
+"""
+            art_path = art_dir / "PRD.md"
+            art_path.write_text(art_content, encoding="utf-8")
+
+            _bootstrap_registry_new_format(
+                root,
+                weavers={"spider": {"format": "Spider", "path": "weavers/sdlc"}},
+                systems=[{
+                    "name": "Test",
+                    "weavers": "spider",
+                    "artifacts": [{"path": "architecture/PRD.md", "kind": "PRD"}],
+                }],
+            )
+
+            stdout = io.StringIO()
+            with redirect_stdout(stdout):
+                exit_code = main(["get-content", "--artifact", str(art_path), "--id", "spd-aa"])
+
+            self.assertEqual(exit_code, 0)
+            out = json.loads(stdout.getvalue())
+            self.assertEqual(out.get("status"), "FOUND")
+            self.assertEqual(out.get("text"), "aaa")
+
 
 class TestCLIIdCommandsWithoutMarkers(unittest.TestCase):
     """Fallback behavior for ID commands when artifacts have no `<!-- spd:... -->` markers."""
@@ -1982,6 +2092,174 @@ text
             out = json.loads(stdout.getvalue())
             self.assertEqual(out.get("id"), "spd-test-ref-1")
             self.assertEqual(out.get("count"), 1)
+
+
+class TestValidateMarkerlessCrossKindCoverage(unittest.TestCase):
+    def test_validate_markerless_definition_fails_when_other_kind_exists_but_no_ref(self):
+        """If other artifact kinds exist, markerless **ID** definitions must be referenced from another kind."""
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+
+            # Templates
+            prd_dir = root / "weavers" / "sdlc" / "artifacts" / "PRD"
+            dsn_dir = root / "weavers" / "sdlc" / "artifacts" / "DESIGN"
+            prd_dir.mkdir(parents=True)
+            dsn_dir.mkdir(parents=True)
+            tmpl = """---
+spider-template:
+  version:
+    major: 1
+    minor: 0
+  kind: {KIND}
+---
+<!-- spd:free:body -->
+text
+<!-- spd:free:body -->
+"""
+            (prd_dir / "template.md").write_text(tmpl.format(KIND="PRD"), encoding="utf-8")
+            (dsn_dir / "template.md").write_text(tmpl.format(KIND="DESIGN"), encoding="utf-8")
+
+            # Artifacts (markerless)
+            arch = root / "architecture"
+            arch.mkdir(parents=True)
+            prd_path = arch / "PRD.md"
+            dsn_path = arch / "DESIGN.md"
+            prd_path.write_text("**ID**: `spd-test-aa`\ncontent\n", encoding="utf-8")
+            dsn_path.write_text("# Design\n(no refs)\n", encoding="utf-8")
+
+            _bootstrap_registry_new_format(
+                root,
+                weavers={"spider": {"format": "Spider", "path": "weavers/sdlc"}},
+                systems=[{
+                    "name": "Test",
+                    "weavers": "spider",
+                    "artifacts": [
+                        {"path": "architecture/PRD.md", "kind": "PRD"},
+                        {"path": "architecture/DESIGN.md", "kind": "DESIGN"},
+                    ],
+                }],
+            )
+
+            cwd = os.getcwd()
+            try:
+                os.chdir(str(root))
+                stdout = io.StringIO()
+                with redirect_stdout(stdout):
+                    exit_code = main(["validate", "--artifact", str(prd_path), "--skip-code", "--verbose"])
+            finally:
+                os.chdir(cwd)
+
+            self.assertEqual(exit_code, 2)
+            out = json.loads(stdout.getvalue())
+            self.assertEqual(out.get("status"), "FAIL")
+            self.assertGreater(out.get("error_count", 0), 0)
+
+    def test_validate_markerless_definition_warns_when_no_other_kind_exists(self):
+        """If no other artifact kinds exist, markerless definitions emit a warning (not an error)."""
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+
+            prd_dir = root / "weavers" / "sdlc" / "artifacts" / "PRD"
+            prd_dir.mkdir(parents=True)
+            (prd_dir / "template.md").write_text(
+                """---
+spider-template:
+  version:
+    major: 1
+    minor: 0
+  kind: PRD
+---
+<!-- spd:free:body -->
+text
+<!-- spd:free:body -->
+""",
+                encoding="utf-8",
+            )
+
+            arch = root / "architecture"
+            arch.mkdir(parents=True)
+            prd_path = arch / "PRD.md"
+            prd_path.write_text("**ID**: `spd-test-aa`\ncontent\n", encoding="utf-8")
+
+            _bootstrap_registry_new_format(
+                root,
+                weavers={"spider": {"format": "Spider", "path": "weavers/sdlc"}},
+                systems=[{
+                    "name": "Test",
+                    "weavers": "spider",
+                    "artifacts": [{"path": "architecture/PRD.md", "kind": "PRD"}],
+                }],
+            )
+
+            cwd = os.getcwd()
+            try:
+                os.chdir(str(root))
+                stdout = io.StringIO()
+                with redirect_stdout(stdout):
+                    exit_code = main(["validate", "--artifact", str(prd_path), "--skip-code", "--verbose"])
+            finally:
+                os.chdir(cwd)
+
+            self.assertEqual(exit_code, 0)
+            out = json.loads(stdout.getvalue())
+            self.assertEqual(out.get("status"), "PASS")
+            self.assertGreaterEqual(out.get("warning_count", 0), 1)
+
+    def test_validate_markerless_definition_passes_when_referenced_from_other_kind(self):
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+
+            prd_dir = root / "weavers" / "sdlc" / "artifacts" / "PRD"
+            dsn_dir = root / "weavers" / "sdlc" / "artifacts" / "DESIGN"
+            prd_dir.mkdir(parents=True)
+            dsn_dir.mkdir(parents=True)
+            tmpl = """---
+spider-template:
+  version:
+    major: 1
+    minor: 0
+  kind: {KIND}
+---
+<!-- spd:free:body -->
+text
+<!-- spd:free:body -->
+"""
+            (prd_dir / "template.md").write_text(tmpl.format(KIND="PRD"), encoding="utf-8")
+            (dsn_dir / "template.md").write_text(tmpl.format(KIND="DESIGN"), encoding="utf-8")
+
+            arch = root / "architecture"
+            arch.mkdir(parents=True)
+            prd_path = arch / "PRD.md"
+            dsn_path = arch / "DESIGN.md"
+            prd_path.write_text("**ID**: `spd-test-aa`\ncontent\n", encoding="utf-8")
+            dsn_path.write_text("ref `spd-test-aa`\n", encoding="utf-8")
+
+            _bootstrap_registry_new_format(
+                root,
+                weavers={"spider": {"format": "Spider", "path": "weavers/sdlc"}},
+                systems=[{
+                    "name": "Test",
+                    "weavers": "spider",
+                    "artifacts": [
+                        {"path": "architecture/PRD.md", "kind": "PRD"},
+                        {"path": "architecture/DESIGN.md", "kind": "DESIGN"},
+                    ],
+                }],
+            )
+
+            cwd = os.getcwd()
+            try:
+                os.chdir(str(root))
+                stdout = io.StringIO()
+                with redirect_stdout(stdout):
+                    exit_code = main(["validate", "--artifact", str(prd_path), "--skip-code", "--verbose"])
+            finally:
+                os.chdir(cwd)
+
+            self.assertEqual(exit_code, 0)
+            out = json.loads(stdout.getvalue())
+            self.assertEqual(out.get("status"), "PASS")
+            self.assertEqual(out.get("error_count"), 0)
 
 
 class TestCLIWhereDefinedCommand(unittest.TestCase):

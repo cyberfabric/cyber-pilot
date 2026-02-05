@@ -228,7 +228,6 @@ def get_content_scoped_without_markers(path: Path, *, id_value: str) -> Optional
     # Extract from the line after the matching ID definition until the next heading
     # at the same-or-higher level as the nearest preceding heading (or any heading if none).
     in_fence = False
-    last_heading_idx: Optional[int] = None
     last_heading_level: Optional[int] = None
 
     for idx, ln in enumerate(lines):
@@ -240,7 +239,6 @@ def get_content_scoped_without_markers(path: Path, *, id_value: str) -> Optional
 
         mh = _HEADING_RE.match(ln)
         if mh:
-            last_heading_idx = idx
             last_heading_level = len(mh.group(1))
             continue
 
@@ -257,19 +255,18 @@ def get_content_scoped_without_markers(path: Path, *, id_value: str) -> Optional
         # If we have a preceding heading, stop at the next heading with level <= that.
         # Otherwise, stop at the next heading (any level).
         cutoff_level = last_heading_level if last_heading_level is not None else 6
+        in_fence2 = False
         for j in range(idx + 1, len(lines)):
             if _CODE_FENCE_RE.match(lines[j]):
-                # If a fence starts, we still consider headings outside fences only;
-                # simplest safe approach: ignore fenced content entirely for boundary detection.
-                # Toggle and continue scanning.
-                in_fence = True
-                # Scan forward to end of fence
-                for k in range(j + 1, len(lines)):
-                    if _CODE_FENCE_RE.match(lines[k]):
-                        in_fence = False
-                        j = k
-                        break
+                in_fence2 = not in_fence2
                 continue
+            if in_fence2:
+                continue
+            # Stop at the next ID definition (acts as a delimiter within the same section).
+            mnext = _ID_DEF_RE.match(lines[j].strip())
+            if mnext:
+                end = j - 1
+                break
             m2 = _HEADING_RE.match(lines[j])
             if not m2:
                 continue

@@ -1210,13 +1210,22 @@ def _cmd_validate(argv: List[str]) -> int:
                 })
                 continue
 
+        from .utils.document import file_has_spider_markers
+
+        is_markerless = not file_has_spider_markers(artifact_path)
         artifact: TemplateArtifact = tmpl.parse(artifact_path)
         parsed_artifacts.append(artifact)
 
         # Structure validation
-        result = artifact.validate()
-        errors = result.get("errors", [])
-        warnings = result.get("warnings", [])
+        # If artifact has no `<!-- spd:... -->` markers, skip template-structure validation
+        # and rely on markerless checks + cross-artifact consistency.
+        if is_markerless:
+            errors = []
+            warnings = []
+        else:
+            result = artifact.validate()
+            errors = result.get("errors", [])
+            warnings = result.get("warnings", [])
 
         artifact_report: Dict[str, object] = {
             "artifact": str(artifact_path),
@@ -1274,6 +1283,74 @@ def _cmd_validate(argv: List[str]) -> int:
             warn_path = warn.get("path", "")
             if warn_path in validated_paths:
                 all_warnings.append(warn)
+
+    # Markerless covered-by (simplified):
+    # If an artifact has no markers, each `**ID**: ...` definition must be referenced
+    # from at least one OTHER artifact kind. If no other kinds exist in scope → warn.
+    if len(all_artifacts_for_cross) > 0:
+        from .utils.document import scan_spd_ids_without_markers, file_has_spider_markers
+
+        present_kinds: Set[str] = set()
+        refs_by_id: Dict[str, Set[str]] = {}
+
+        # Build reference index across ALL artifacts (including markerless).
+        for art in all_artifacts_for_cross:
+            kind = art.template.kind
+            present_kinds.add(kind)
+
+            if not file_has_spider_markers(art.path):
+                for h in scan_spd_ids_without_markers(art.path):
+                    if h.get("type") != "reference":
+                        continue
+                    rid = str(h.get("id", "")).strip()
+                    if not rid:
+                        continue
+                    refs_by_id.setdefault(rid, set()).add(kind)
+                continue
+
+            art._extract_ids_and_refs()
+            for r in art.id_references:
+                refs_by_id.setdefault(r.id, set()).add(kind)
+
+        # Enforce rule for validated markerless artifacts.
+        for art in all_artifacts_for_cross:
+            art_path_str = str(art.path)
+            if art_path_str not in validated_paths:
+                continue
+            if file_has_spider_markers(art.path):
+                continue
+
+            kind = art.template.kind
+            other_kinds = sorted(k for k in present_kinds if k != kind)
+
+            for h in scan_spd_ids_without_markers(art.path):
+                if h.get("type") != "definition":
+                    continue
+                did = str(h.get("id", "")).strip()
+                if not did:
+                    continue
+                line = int(h.get("line", 1) or 1)
+
+                if not other_kinds:
+                    all_warnings.append(Template.error(
+                        "structure",
+                        "ID not referenced (no other artifact kinds in scope)",
+                        path=art.path,
+                        line=line,
+                        id=did,
+                    ))
+                    continue
+
+                referenced_kinds = sorted(k for k in refs_by_id.get(did, set()) if k != kind)
+                if not referenced_kinds:
+                    all_errors.append(Template.error(
+                        "structure",
+                        "ID not referenced from other artifact kinds",
+                        path=art.path,
+                        line=line,
+                        id=did,
+                        other_kinds=other_kinds,
+                    ))
 
     # Code traceability validation (unless skipped)
     code_files_scanned: List[Dict[str, object]] = []
