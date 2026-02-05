@@ -1837,6 +1837,153 @@ ccc
             self.assertEqual(out.get("text"), "bbb")
 
 
+class TestCLIIdCommandsWithoutMarkers(unittest.TestCase):
+    """Fallback behavior for ID commands when artifacts have no `<!-- spd:... -->` markers."""
+
+    def test_list_ids_without_markers_finds_definitions_and_refs(self):
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            templates_dir = root / "weavers" / "sdlc" / "artifacts" / "PRD"
+            templates_dir.mkdir(parents=True)
+
+            tmpl_content = """---
+spider-template:
+  version:
+    major: 1
+    minor: 0
+  kind: PRD
+---
+<!-- spd:free:body -->
+text
+<!-- spd:free:body -->
+"""
+            (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
+
+            art_dir = root / "architecture"
+            art_dir.mkdir(parents=True)
+            art_content = """# PRD
+
+**ID**: `spd-test-define-1`
+
+See also `spd-test-ref-1` in text.
+
+```md
+**ID**: `spd-test-ignored`
+```
+"""
+            art_path = art_dir / "PRD.md"
+            art_path.write_text(art_content, encoding="utf-8")
+
+            _bootstrap_registry_new_format(
+                root,
+                weavers={"spider": {"format": "Spider", "path": "weavers/sdlc"}},
+                systems=[{
+                    "name": "Test",
+                    "weavers": "spider",
+                    "artifacts": [{"path": "architecture/PRD.md", "kind": "PRD"}],
+                }],
+            )
+
+            stdout = io.StringIO()
+            with redirect_stdout(stdout):
+                exit_code = main(["list-ids", "--artifact", str(art_path)])
+
+            self.assertEqual(exit_code, 0)
+            out = json.loads(stdout.getvalue())
+            ids = {h.get("id") for h in out.get("ids", [])}
+            self.assertIn("spd-test-define-1", ids)
+            self.assertIn("spd-test-ref-1", ids)
+            self.assertNotIn("spd-test-ignored", ids)
+
+    def test_where_defined_without_markers(self):
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            templates_dir = root / "weavers" / "sdlc" / "artifacts" / "PRD"
+            templates_dir.mkdir(parents=True)
+            (templates_dir / "template.md").write_text(
+                """---
+spider-template:
+  version:
+    major: 1
+    minor: 0
+  kind: PRD
+---
+<!-- spd:free:body -->
+text
+<!-- spd:free:body -->
+""",
+                encoding="utf-8",
+            )
+
+            art_dir = root / "architecture"
+            art_dir.mkdir(parents=True)
+            art_path = art_dir / "PRD.md"
+            art_path.write_text("**ID**: `spd-test-def-1`\n", encoding="utf-8")
+
+            _bootstrap_registry_new_format(
+                root,
+                weavers={"spider": {"format": "Spider", "path": "weavers/sdlc"}},
+                systems=[{
+                    "name": "Test",
+                    "weavers": "spider",
+                    "artifacts": [{"path": "architecture/PRD.md", "kind": "PRD"}],
+                }],
+            )
+
+            stdout = io.StringIO()
+            with redirect_stdout(stdout):
+                exit_code = main(["where-defined", "--artifact", str(art_path), "--id", "spd-test-def-1"])
+
+            self.assertEqual(exit_code, 0)
+            out = json.loads(stdout.getvalue())
+            self.assertEqual(out.get("status"), "FOUND")
+            self.assertEqual(out.get("count"), 1)
+
+    def test_where_used_without_markers(self):
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            templates_dir = root / "weavers" / "sdlc" / "artifacts" / "PRD"
+            templates_dir.mkdir(parents=True)
+            (templates_dir / "template.md").write_text(
+                """---
+spider-template:
+  version:
+    major: 1
+    minor: 0
+  kind: PRD
+---
+<!-- spd:free:body -->
+text
+<!-- spd:free:body -->
+""",
+                encoding="utf-8",
+            )
+
+            art_dir = root / "architecture"
+            art_dir.mkdir(parents=True)
+            art_path = art_dir / "PRD.md"
+            art_path.write_text("ref `spd-test-ref-1`\n", encoding="utf-8")
+
+            _bootstrap_registry_new_format(
+                root,
+                weavers={"spider": {"format": "Spider", "path": "weavers/sdlc"}},
+                systems=[{
+                    "name": "Test",
+                    "weavers": "spider",
+                    "artifacts": [{"path": "architecture/PRD.md", "kind": "PRD"}],
+                }],
+            )
+
+            stdout = io.StringIO()
+            with redirect_stdout(stdout):
+                exit_code = main(["where-used", "--artifact", str(art_path), "--id", "spd-test-ref-1"])
+
+            self.assertEqual(exit_code, 0)
+            out = json.loads(stdout.getvalue())
+            self.assertEqual(out.get("id"), "spd-test-ref-1")
+            self.assertEqual(out.get("count"), 1)
+
+
 class TestCLIWhereDefinedCommand(unittest.TestCase):
     """Additional tests for where-defined command."""
 

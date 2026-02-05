@@ -6,11 +6,27 @@ Functions for working with documents and file paths.
 
 from pathlib import Path
 import re
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 
 _SPD_ID_RE = re.compile(r"(spd-[a-z0-9][a-z0-9-]+)")
 _HEADING_RE = re.compile(r"^\s*(#{1,6})\s+(.+?)\s*$")
+_CODE_FENCE_RE = re.compile(r"^\s*```")
+
+_ID_DEF_RE = re.compile(
+    r"^(?:"
+    r"\*\*ID\*\*:\s*`(?P<id>spd-[a-z0-9][a-z0-9-]+)`"
+    r"|"
+    r"`(?P<priority_only>p\d+)`\s*-\s*\*\*ID\*\*:\s*`(?P<id2>spd-[a-z0-9][a-z0-9-]+)`"
+    r"|"
+    r"[-*]\s+(?P<task>\[\s*[xX]?\s*\])\s*(?:`(?P<priority>p\d+)`\s*-\s*)?\*\*ID\*\*:\s*`(?P<id3>spd-[a-z0-9][a-z0-9-]+)`"
+    r")\s*$"
+)
+_ID_REF_RE = re.compile(
+    r"^(?:(?P<task>\[\s*[xX]?\s*\])\s*(?:`(?P<priority>p\d+)`\s*-\s*|\-\s*)|`(?P<priority_only>p\d+)`\s*-\s*)?"
+    r"`(?P<id>spd-[a-z0-9][a-z0-9-]+)`\s*$"
+)
+_BACKTICK_ID_RE = re.compile(r"`(spd-[a-z0-9][a-z0-9-]+)`")
 
 
 def _normalize_spd_id_from_line(line: str) -> Optional[str]:
@@ -32,6 +48,76 @@ def _normalize_spd_id_from_line(line: str) -> Optional[str]:
 
     matches = _SPD_ID_RE.findall(stripped)
     return matches[0] if matches else None
+
+
+def file_has_spider_markers(path: Path) -> bool:
+    lines = read_text_safe(path)
+    if lines is None:
+        return False
+    return any("<!--" in ln and "spd:" in ln for ln in lines)
+
+
+def scan_spd_ids_without_markers(path: Path) -> List[Dict[str, object]]:
+    """Scan a file for Spider IDs without relying on `<!-- spd:... -->` markers.
+
+    Heuristics:
+    - Only scans outside fenced code blocks (```...```).
+    - Treats `**ID**: `...`` and task list `**ID**:` lines as *definitions*.
+    - Treats lines like `` `spd-...` `` / checkbox variants as *references*.
+    - Treats any `` `spd-...` `` occurrence as a *reference* (unless it was a definition line).
+    """
+    lines = read_text_safe(path)
+    if lines is None:
+        return []
+    if any("<!--" in ln and "spd:" in ln for ln in lines):
+        return []
+
+    hits: List[Dict[str, object]] = []
+    in_fence = False
+
+    for idx0, raw in enumerate(lines):
+        if _CODE_FENCE_RE.match(raw):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+
+        stripped = raw.strip()
+        if not stripped:
+            continue
+
+        m = _ID_DEF_RE.match(stripped)
+        if m:
+            checked = (m.group("task") or "").lower().find("x") != -1
+            priority = m.group("priority") or m.group("priority_only")
+            id_value = m.group("id") or m.group("id2") or m.group("id3")
+            h: Dict[str, object] = {"id": id_value, "line": idx0 + 1, "type": "definition", "checked": checked}
+            if priority:
+                h["priority"] = priority
+            hits.append(h)
+            continue
+
+        # Reference line format (optionally checkbox / priority).
+        stripped_ref = stripped
+        if stripped_ref.startswith("- "):
+            stripped_ref = stripped_ref[2:].strip()
+        elif stripped_ref.startswith("* "):
+            stripped_ref = stripped_ref[2:].strip()
+        mref = _ID_REF_RE.match(stripped_ref)
+        if mref:
+            checked = (mref.group("task") or "").lower().find("x") != -1
+            priority = mref.group("priority") or mref.group("priority_only")
+            h = {"id": mref.group("id"), "line": idx0 + 1, "type": "reference", "checked": checked}
+            if priority:
+                h["priority"] = priority
+            hits.append(h)
+            continue
+
+        # Generic inline backticked references.
+        for mm in _BACKTICK_ID_RE.finditer(raw):
+            hits.append({"id": mm.group(1), "line": idx0 + 1, "type": "reference", "checked": False})
+
+    return hits
 
 
 def get_content_scoped_without_markers(path: Path, *, id_value: str) -> Optional[Tuple[str, int, int]]:
@@ -129,6 +215,68 @@ def get_content_scoped_without_markers(path: Path, *, id_value: str) -> Optional
             if len(m2.group(1)) <= level:
                 end = j - 1
                 break
+        if start > end:
+            return None
+        return emit(lines[start : end + 1], start, end)
+
+    # (3) ID-definition scoped by nearest heading: support common pattern
+    #     #### Human Title
+    #     **ID**: `spd-...`
+    #     content...
+    #     #### Next Title
+    #
+    # Extract from the line after the matching ID definition until the next heading
+    # at the same-or-higher level as the nearest preceding heading (or any heading if none).
+    in_fence = False
+    last_heading_idx: Optional[int] = None
+    last_heading_level: Optional[int] = None
+
+    for idx, ln in enumerate(lines):
+        if _CODE_FENCE_RE.match(ln):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+
+        mh = _HEADING_RE.match(ln)
+        if mh:
+            last_heading_idx = idx
+            last_heading_level = len(mh.group(1))
+            continue
+
+        mdef = _ID_DEF_RE.match(ln.strip())
+        if not mdef:
+            continue
+        id_found = mdef.group("id") or mdef.group("id2") or mdef.group("id3")
+        if id_found != wanted:
+            continue
+
+        start = idx + 1
+        end = len(lines) - 1
+
+        # If we have a preceding heading, stop at the next heading with level <= that.
+        # Otherwise, stop at the next heading (any level).
+        cutoff_level = last_heading_level if last_heading_level is not None else 6
+        for j in range(idx + 1, len(lines)):
+            if _CODE_FENCE_RE.match(lines[j]):
+                # If a fence starts, we still consider headings outside fences only;
+                # simplest safe approach: ignore fenced content entirely for boundary detection.
+                # Toggle and continue scanning.
+                in_fence = True
+                # Scan forward to end of fence
+                for k in range(j + 1, len(lines)):
+                    if _CODE_FENCE_RE.match(lines[k]):
+                        in_fence = False
+                        j = k
+                        break
+                continue
+            m2 = _HEADING_RE.match(lines[j])
+            if not m2:
+                continue
+            if len(m2.group(1)) <= cutoff_level:
+                end = j - 1
+                break
+
         if start > end:
             return None
         return emit(lines[start : end + 1], start, end)
@@ -258,4 +406,6 @@ __all__ = [
     "read_text_safe",
     "to_relative_posix",
     "get_content_scoped_without_markers",
+    "scan_spd_ids_without_markers",
+    "file_has_spider_markers",
 ]

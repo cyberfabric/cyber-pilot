@@ -1513,13 +1513,32 @@ def _cmd_list_ids(argv: List[str]) -> int:
     hits: List[Dict[str, object]] = []
 
     for artifact_path, tmpl, artifact_type in artifacts_to_scan:
+        from .utils.document import scan_spd_ids_without_markers
+
+        fallback_hits = scan_spd_ids_without_markers(artifact_path)
+        if fallback_hits:
+            for fh in fallback_hits:
+                h: Dict[str, object] = {
+                    "id": fh.get("id"),
+                    "kind": None,
+                    "type": fh.get("type"),
+                    "artifact_type": artifact_type,
+                    "line": fh.get("line"),
+                    "artifact": str(artifact_path),
+                    "checked": bool(fh.get("checked", False)),
+                }
+                if fh.get("priority") is not None:
+                    h["priority"] = fh.get("priority")
+                hits.append(h)
+            continue
+
         parsed: TemplateArtifact = tmpl.parse(artifact_path)
         parsed._extract_ids_and_refs()  # Populate id_definitions and id_references
 
         # Collect ID definitions
         for id_def in parsed.id_definitions:
             block_kind = id_def.block.template_block.name if id_def.block else None
-            h: Dict[str, object] = {
+            h = {
                 "id": id_def.id,
                 "kind": block_kind,
                 "type": "definition",
@@ -1945,6 +1964,24 @@ def _cmd_where_defined(argv: List[str]) -> int:
     definitions: List[Dict[str, object]] = []
 
     for artifact_path, tmpl, artifact_type in artifacts_to_scan:
+        from .utils.document import scan_spd_ids_without_markers
+
+        fallback_hits = scan_spd_ids_without_markers(artifact_path)
+        if fallback_hits:
+            for fh in fallback_hits:
+                if fh.get("type") != "definition":
+                    continue
+                if str(fh.get("id", "")) != target_id:
+                    continue
+                definitions.append({
+                    "artifact": str(artifact_path),
+                    "artifact_type": artifact_type,
+                    "line": int(fh.get("line", 0)),
+                    "kind": None,
+                    "checked": bool(fh.get("checked", False)),
+                })
+            continue
+
         parsed: TemplateArtifact = tmpl.parse(artifact_path)
         parsed._extract_ids_and_refs()  # Populate id_definitions
 
@@ -2054,6 +2091,26 @@ def _cmd_where_used(argv: List[str]) -> int:
     references: List[Dict[str, object]] = []
 
     for artifact_path, tmpl, artifact_type in artifacts_to_scan:
+        from .utils.document import scan_spd_ids_without_markers
+
+        fallback_hits = scan_spd_ids_without_markers(artifact_path)
+        if fallback_hits:
+            for fh in fallback_hits:
+                fh_type = str(fh.get("type", ""))
+                if fh_type == "definition" and not args.include_definitions:
+                    continue
+                if str(fh.get("id", "")) != target_id:
+                    continue
+                references.append({
+                    "artifact": str(artifact_path),
+                    "artifact_type": artifact_type,
+                    "line": int(fh.get("line", 0)),
+                    "kind": None,
+                    "type": fh_type,
+                    "checked": bool(fh.get("checked", False)),
+                })
+            continue
+
         parsed: TemplateArtifact = tmpl.parse(artifact_path)
         parsed._extract_ids_and_refs()  # Populate id_definitions and id_references
 
