@@ -294,6 +294,31 @@ class TestCLIAgentsCommand(unittest.TestCase):
             self.assertEqual(out.get("status"), "PASS")
             self.assertGreater(out.get("workflows", {}).get("counts", {}).get("created", 0), 0)
 
+            # Ensure description is always double-quoted in generated skill frontmatter
+            skill_file = root / ".windsurf" / "skills" / "cypilot" / "SKILL.md"
+            self.assertTrue(skill_file.exists())
+            content = skill_file.read_text(encoding="utf-8")
+            self.assertRegex(content, r"(?m)^description:\s+\".*\"\s*$", msg="description not quoted in windsurf skill output")
+
+    def test_agents_claude_workflow_description_is_quoted(self):
+        """Test claude workflow proxies render description in quoted YAML frontmatter."""
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / ".git").mkdir()
+            self._write_minimal_cypilot_skill(root)
+            self._write_workflows_with_frontmatter(root)
+
+            stdout = io.StringIO()
+            with redirect_stdout(stdout):
+                exit_code = main(["agents", "--agent", "claude", "--root", str(root), "--cypilot-root", str(root)])
+            self.assertEqual(exit_code, 0)
+
+            # One of the generated workflow command proxies should contain quoted description
+            proxy = root / ".claude" / "commands" / "cypilot-generate.md"
+            self.assertTrue(proxy.exists())
+            txt = proxy.read_text(encoding="utf-8")
+            self.assertRegex(txt, r"(?m)^description:\s+\".*\"\s*$", msg="description not quoted in claude workflow proxy")
+
     def test_agents_dry_run_does_not_write_files(self):
         """Test agents command dry-run mode."""
         with TemporaryDirectory() as tmpdir:
@@ -553,7 +578,15 @@ class TestCLIAgentsCommand(unittest.TestCase):
                             "skills": {
                                 "outputs": [{
                                     "path": ".test/skill.md",
-                                    "template": ["# {name}", "", "ALWAYS open and follow `{target_skill_path}`"]
+                                    "template": [
+                                        "---",
+                                        "name: {name}",
+                                        "description: {description}",
+                                        "---",
+                                        "# {name}",
+                                        "",
+                                        "ALWAYS open and follow `{target_skill_path}`",
+                                    ]
                                 }]
                             }
                         }
@@ -575,6 +608,7 @@ class TestCLIAgentsCommand(unittest.TestCase):
             self.assertTrue(skill_file.exists())
             content = skill_file.read_text(encoding="utf-8")
             self.assertIn("# cypilot", content)
+            self.assertRegex(content, r"(?m)^description:\s+\".*\"\s*$", msg="description not quoted in skill output")
 
             # Modify file and run again to test update
             skill_file.write_text("# Modified\n", encoding="utf-8")
@@ -598,6 +632,18 @@ class TestCLIParseFrontmatter(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             f = Path(tmpdir) / "test.md"
             f.write_text("---\nname: test\ndescription: A test file\n---\n# Content\n", encoding="utf-8")
+
+            result = _parse_frontmatter(f)
+            self.assertEqual(result.get("name"), "test")
+            self.assertEqual(result.get("description"), "A test file")
+
+    def test_parse_frontmatter_strips_quotes(self):
+        """Test parsing frontmatter unquotes quoted scalars."""
+        from cypilot.cli import _parse_frontmatter
+
+        with TemporaryDirectory() as tmpdir:
+            f = Path(tmpdir) / "test.md"
+            f.write_text('---\nname: "test"\ndescription: "A test file"\n---\n# Content\n', encoding="utf-8")
 
             result = _parse_frontmatter(f)
             self.assertEqual(result.get("name"), "test")
@@ -2938,7 +2984,10 @@ class TestCLIValidateKitsErrorBranches(unittest.TestCase):
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
                     exit_code = main(["validate-kits"])
-                self.assertNotEqual(exit_code, 0)
+                self.assertEqual(exit_code, 0)
+                out = json.loads(stdout.getvalue())
+                self.assertEqual(out.get("status"), "PASS")
+                self.assertEqual(out.get("mode"), "MARKERLESS")
             finally:
                 os.chdir(cwd)
 

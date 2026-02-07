@@ -335,9 +335,65 @@ def _parse_frontmatter(file_path: Path) -> Dict[str, str]:
             key = key.strip()
             value = value.strip()
             if key and value:
-                result[key] = value
+                result[key] = _strip_wrapping_yaml_quotes(value)
 
     return result
+
+
+def _strip_wrapping_yaml_quotes(value: str) -> str:
+    v = str(value).strip()
+    if len(v) >= 2 and ((v[0] == v[-1] == '"') or (v[0] == v[-1] == "'")):
+        inner = v[1:-1]
+        if v[0] == '"':
+            inner = inner.replace("\\\"", '"')
+            inner = inner.replace("\\\\", "\\")
+            inner = inner.replace("\\n", "\n").replace("\\r", "\r").replace("\\t", "\t")
+        return inner
+    return v
+
+
+def _yaml_double_quote(value: str) -> str:
+    v = str(value)
+    v = v.replace("\\", "\\\\")
+    v = v.replace('"', "\\\"")
+    v = v.replace("\r", "\\r").replace("\n", "\\n").replace("\t", "\\t")
+    return f'"{v}"'
+
+
+def _ensure_frontmatter_description_quoted(content: str) -> str:
+    lines = content.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return content
+
+    end_idx = -1
+    for i, line in enumerate(lines[1:], start=1):
+        if line.strip() == "---":
+            end_idx = i
+            break
+    if end_idx < 0:
+        return content
+
+    for i in range(1, end_idx):
+        raw = lines[i]
+        if not raw.lstrip().startswith("description:"):
+            continue
+
+        indent_len = len(raw) - len(raw.lstrip())
+        indent = raw[:indent_len]
+
+        _, _, rest = raw.lstrip().partition(":")
+        rest = rest.strip()
+
+        comment = ""
+        if " #" in rest:
+            val_part, _, comment_part = rest.partition(" #")
+            rest = val_part.strip()
+            comment = " #" + comment_part
+
+        rest = _strip_wrapping_yaml_quotes(rest)
+        lines[i] = f"{indent}description: {_yaml_double_quote(rest)}{comment}".rstrip()
+
+    return "\n".join(lines).rstrip() + "\n"
 
 
 def _render_template(lines: List[str], variables: Dict[str, str]) -> str:
@@ -347,7 +403,8 @@ def _render_template(lines: List[str], variables: Dict[str, str]) -> str:
             out.append(line.format(**variables))
         except KeyError as e:
             raise SystemExit(f"Missing template variable: {e}")
-    return "\n".join(out).rstrip() + "\n"
+    rendered = "\n".join(out).rstrip() + "\n"
+    return _ensure_frontmatter_description_quoted(rendered)
 
 
 def _cmd_self_check(argv: List[str]) -> int:
@@ -1181,7 +1238,7 @@ def _cmd_validate(argv: List[str]) -> int:
             template_path_str = pkg.get_template_path(artifact_meta.kind)
             artifact_path = (project_root / artifact_meta.path).resolve()
             template_path = (project_root / template_path_str).resolve()
-            if artifact_path.exists() and template_path.exists():
+            if artifact_path.exists():
                 artifacts_to_validate.append((artifact_path, template_path, artifact_meta.kind, artifact_meta.traceability))
 
     if not artifacts_to_validate:
@@ -1196,23 +1253,35 @@ def _cmd_validate(argv: List[str]) -> int:
 
     for artifact_path, template_path, artifact_type, traceability in artifacts_to_validate:
         # Use pre-loaded template from context if available
+        used_synthetic_template = False
         tmpl = ctx.get_template_for_kind(artifact_type)
         if tmpl is None:
-            # Fallback: load from disk
-            tmpl, tmpl_errs = Template.from_path(template_path)
-            if tmpl_errs or tmpl is None:
-                all_errors.append({
-                    "type": "template",
-                    "message": f"Failed to load template for {artifact_type}",
-                    "artifact": str(artifact_path),
-                    "template": str(template_path),
-                    "errors": tmpl_errs,
-                })
-                continue
+            if template_path.exists():
+                # Fallback: load from disk
+                tmpl, tmpl_errs = Template.from_path(template_path)
+                if tmpl_errs or tmpl is None:
+                    all_errors.append({
+                        "type": "template",
+                        "message": f"Failed to load template for {artifact_type}",
+                        "artifact": str(artifact_path),
+                        "template": str(template_path),
+                        "errors": tmpl_errs,
+                    })
+                    continue
+            else:
+                tmpl = Template(
+                    path=Path("<synthetic-template>"),
+                    kind=str(artifact_type),
+                    version=None,
+                    policy=None,
+                    blocks=[],
+                    _loaded=True,
+                )
+                used_synthetic_template = True
 
         from .utils.document import file_has_cypilot_markers
 
-        is_markerless = not file_has_cypilot_markers(artifact_path)
+        is_markerless = used_synthetic_template or (not file_has_cypilot_markers(artifact_path))
         artifact: TemplateArtifact = tmpl.parse(artifact_path)
         parsed_artifacts.append(artifact)
 
@@ -1263,7 +1332,14 @@ def _cmd_validate(argv: List[str]) -> int:
             continue
         tmpl = ctx.get_template_for_kind(artifact_meta.kind)
         if tmpl is None:
-            continue
+            tmpl = Template(
+                path=Path("<synthetic-template>"),
+                kind=str(artifact_meta.kind),
+                version=None,
+                policy=None,
+                blocks=[],
+                _loaded=True,
+            )
         try:
             art = tmpl.parse(art_path)
             all_artifacts_for_cross.append(art)
@@ -1940,7 +2016,7 @@ def _cmd_list_id_kinds(argv: List[str]) -> int:
                     alt_path = (project_root / alt).resolve()
                     if alt_path.exists():
                         template_path = alt_path
-            if artifact_path.exists() and template_path.exists():
+            if artifact_path.exists():
                 artifacts_to_scan.append((artifact_path, template_path, artifact_meta.kind))
 
         if not artifacts_to_scan:
@@ -1953,9 +2029,19 @@ def _cmd_list_id_kinds(argv: List[str]) -> int:
     kind_counts: Dict[str, int] = {}
 
     for artifact_path, template_path, artifact_type in artifacts_to_scan:
-        tmpl, errs = Template.from_path(template_path)
-        if errs or tmpl is None:
-            continue
+        if template_path.exists():
+            tmpl, errs = Template.from_path(template_path)
+            if errs or tmpl is None:
+                continue
+        else:
+            tmpl = Template(
+                path=Path("<synthetic-template>"),
+                kind=str(artifact_type),
+                version=None,
+                policy=None,
+                blocks=[],
+                _loaded=True,
+            )
 
         parsed: TemplateArtifact = tmpl.parse(artifact_path)
         parsed._extract_ids_and_refs()  # Populate id_definitions
@@ -2068,8 +2154,14 @@ def _cmd_get_content(argv: List[str]) -> int:
     artifact_meta, system = artifact_entry
     tmpl = ctx.get_template(system.kit, artifact_meta.kind)
     if tmpl is None:
-        print(json.dumps({"status": "ERROR", "message": f"No template found for artifact type: {artifact_meta.type}"}, indent=None, ensure_ascii=False))
-        return 1
+        tmpl = Template(
+            path=Path("<synthetic-template>"),
+            kind=str(artifact_meta.kind),
+            version=None,
+            policy=None,
+            blocks=[],
+            _loaded=True,
+        )
 
     # Parse artifact using pre-loaded template
     artifact = tmpl.parse(artifact_path)
@@ -2414,8 +2506,18 @@ def _cmd_validate_kits(argv: List[str]) -> int:
                 templates_to_validate.append(tmpl_path)
 
         if not templates_to_validate:
-            print(json.dumps({"status": "ERROR", "message": "No Cypilot templates found in registry"}, indent=None, ensure_ascii=False))
-            return 1
+            result: Dict[str, object] = {
+                "status": "PASS",
+                "mode": "MARKERLESS",
+                "message": "No Cypilot templates found in registry (template validation skipped)",
+                "templates_validated": 0,
+                "error_count": 0,
+            }
+            out = json.dumps(result, indent=2 if args.verbose else None, ensure_ascii=False)
+            if args.verbose:
+                out += "\n"
+            print(out)
+            return 0
 
     # Validate each template
     all_errors: List[Dict[str, object]] = []
