@@ -1,5 +1,5 @@
 ---
-spaider: true
+cypilot: true
 type: requirement
 name: Documentation Consistency Expert Checklist (Code-Excluded)
 version: 1.0
@@ -265,7 +265,7 @@ For each edge (from → to):
 ### TERM-DOC-001: Stable term glossary (implicit or explicit)
 **Severity**: HIGH
 - [ ] Project/product names used consistently
-- [ ] Key nouns are stable (no “rule/weaver”-style drift without migration notes)
+- [ ] Key nouns are stable (no “rule/kit”-style drift without migration notes)
 - [ ] Acronyms expanded on first use (unless globally obvious)
 
 ### TERM-DOC-002: Command and file names are exact

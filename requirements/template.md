@@ -1,16 +1,16 @@
 ---
-spaider: true
+cypilot: true
 type: requirement
-name: Spaider Template Specification
+name: Cypilot Template Specification
 version: 1.1
-purpose: Define marker-based template syntax for Spaider artifacts
+purpose: Define marker-based template syntax for Cypilot artifacts
 ---
 
-# Spaider Template Specification
+# Cypilot Template Specification
 
 ## Table of Contents
 
-- [Spaider Template Specification](#spaider-template-specification)
+- [Cypilot Template Specification](#cypilot-template-specification)
   - [Table of Contents](#table-of-contents)
   - [Quick Reference](#quick-reference)
   - [Prerequisite Checklist](#prerequisite-checklist)
@@ -26,8 +26,8 @@ purpose: Define marker-based template syntax for Spaider artifacts
     - [ID Reference (`id-ref` block)](#id-reference-id-ref-block)
     - [Inline ID Reference](#inline-id-reference)
     - [ID Naming Convention](#id-naming-convention)
-  - [Spaider DSL (SDSL) Format](#spaider-dsl-sdsl-format)
-    - [SDSL Line Format](#sdsl-line-format)
+  - [Cypilot DSL (CDSL) Format](#cypilot-dsl-cdsl-format)
+    - [CDSL Line Format](#cdsl-line-format)
   - [Template Example](#template-example)
   - [Artifact Validation](#artifact-validation)
     - [Structure Validation](#structure-validation)
@@ -49,18 +49,18 @@ purpose: Define marker-based template syntax for Spaider artifacts
 
 **Marker syntax**:
 ```html
-<!-- spd:TYPE:NAME ATTRS -->
+<!-- cpt:TYPE:NAME ATTRS -->
 content
-<!-- spd:TYPE:NAME -->
+<!-- cpt:TYPE:NAME -->
 ```
 
-**Common marker types**: `free`, `id`, `id-ref`, `list`, `table`, `paragraph`, `sdsl`, `#`-`######`
+**Common marker types**: `free`, `id`, `id-ref`, `list`, `table`, `paragraph`, `cdsl`, `#`-`######`
 
-**ID format**: `` `spd-{hierarchy-prefix}-{kind}-{slug}` `` (see [ID Naming Convention](#id-naming-convention))
+**ID format**: `` `cpt-{hierarchy-prefix}-{kind}-{slug}` `` (see [ID Naming Convention](#id-naming-convention))
 
 **Validate template**:
 ```bash
-python3 {spaider_path}/skills/spaider/scripts/spaider.py validate --artifact <path>
+python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py validate --artifact <path>
 ```
 
 ---
@@ -75,7 +75,7 @@ python3 {spaider_path}/skills/spaider/scripts/spaider.py validate --artifact <pa
 
 ## Overview
 
-Spaider templates use paired HTML comment markers to define structural blocks in markdown documents. This enables deterministic validation of artifacts against their templates.
+Cypilot templates use paired HTML comment markers to define structural blocks in markdown documents. This enables deterministic validation of artifacts against their templates.
 
 **Supported Version**: `1.0`
 
@@ -87,7 +87,7 @@ Templates MAY optionally begin with YAML frontmatter. If frontmatter is absent, 
 
 ```yaml
 ---
-spaider-template:
+cypilot-template:
   version:
     major: 2
     minor: 0
@@ -101,7 +101,7 @@ spaider-template:
 - `version` defaults to the current supported version (2.0)
 - `unknown_sections` defaults to `warn`
 
-Artifacts may optionally have their own `spd:` frontmatter for document metadata.
+Artifacts may optionally have their own `cpt:` frontmatter for document metadata.
 
 ### Fields (when frontmatter is present)
 
@@ -119,12 +119,12 @@ Artifacts may optionally have their own `spd:` frontmatter for document metadata
 ### Basic Structure
 
 ```html
-<!-- spd:TYPE:NAME ATTRS -->
+<!-- cpt:TYPE:NAME ATTRS -->
 content goes here
-<!-- spd:TYPE:NAME -->
+<!-- cpt:TYPE:NAME -->
 ```
 
-**Pattern**: `<!-- spd:(?:TYPE:)?NAME ATTRS -->`
+**Pattern**: `<!-- cpt:(?:TYPE:)?NAME ATTRS -->`
 
 - `TYPE` — block type (optional, defaults to `free`)
 - `NAME` — unique identifier within the template
@@ -146,7 +146,7 @@ content goes here
 | `#` - `######` | Heading (level 1-6) | First line must be heading of specified level |
 | `link` | Markdown link | Must contain `[text](url)` |
 | `image` | Markdown image | Must start with `!` |
-| `sdsl` | SDSL instruction list | Lines matching SDSL format |
+| `cdsl` | CDSL instruction list | Lines matching CDSL format |
 
 ### Marker Attributes
 
@@ -168,46 +168,46 @@ content goes here
 ### ID Definition (`id` block)
 
 ```
-**ID**: `spd-myapp-fr-must-authenticate`
-- [ ] **ID**: `spd-myapp-actor-admin-user`
-- [x] `p1` - **ID**: `spd-myapp-core-comp-api-gateway`
-`p2` - **ID**: `spd-myapp-core-auth-flow-login`
+**ID**: `cpt-myapp-fr-must-authenticate`
+- [ ] **ID**: `cpt-myapp-actor-admin-user`
+- [x] `p1` - **ID**: `cpt-myapp-core-comp-api-gateway`
+`p2` - **ID**: `cpt-myapp-core-auth-flow-login`
 ```
 
 **Pattern**:
 
 ```regex
-^(?:\*\*ID\*\*:\s*`spd-[a-z0-9][a-z0-9-]+`|`p\d+`\s*-\s*\*\*ID\*\*:\s*`spd-[a-z0-9][a-z0-9-]+`|[-*]\s+\[\s*[xX]?\s*\]\s*(?:`p\d+`\s*-\s*)?\*\*ID\*\*:\s*`spd-[a-z0-9][a-z0-9-]+`)\s*$
+^(?:\*\*ID\*\*:\s*`cpt-[a-z0-9][a-z0-9-]+`|`p\d+`\s*-\s*\*\*ID\*\*:\s*`cpt-[a-z0-9][a-z0-9-]+`|[-*]\s+\[\s*[xX]?\s*\]\s*(?:`p\d+`\s*-\s*)?\*\*ID\*\*:\s*`cpt-[a-z0-9][a-z0-9-]+`)\s*$
 ```
 
 Components:
 - `**ID**:` — literal prefix (required)
 - `- [ ]` or `- [x]` — optional task checkbox (task list item)
 - `` `p1` `` - `` `p9` `` — optional priority
-- `` `spd-{hierarchy-prefix}-{kind}-{slug}` `` — the ID in backticks (required)
+- `` `cpt-{hierarchy-prefix}-{kind}-{slug}` `` — the ID in backticks (required)
 
 ### ID Reference (`id-ref` block)
 
 ```
-`spd-myapp-fr-must-authenticate`
-[ ] `spd-myapp-core-comp-api-gateway`
-[x] `p1` - `spd-myapp-core-auth-flow-login`
+`cpt-myapp-fr-must-authenticate`
+[ ] `cpt-myapp-core-comp-api-gateway`
+[x] `p1` - `cpt-myapp-core-auth-flow-login`
 ```
 
 **Pattern**:
 
 ```regex
-^(?:(?:\[\s*[xX]?\s*\])\s*(?:`p\d+`\s*-\s*)?)?`spd-[a-z0-9][a-z0-9-]+`\s*$
+^(?:(?:\[\s*[xX]?\s*\])\s*(?:`p\d+`\s*-\s*)?)?`cpt-[a-z0-9][a-z0-9-]+`\s*$
 ```
 
 ### Inline ID Reference
 
-Any `` `spd-xxx` `` in content is treated as a reference.
+Any `` `cpt-xxx` `` in content is treated as a reference.
 
 **Pattern**:
 
 ```regex
-`(spd-[a-z0-9][a-z0-9-]+)`
+`(cpt-[a-z0-9][a-z0-9-]+)`
 ```
 
 ### ID Naming Convention
@@ -215,11 +215,11 @@ Any `` `spd-xxx` `` in content is treated as a reference.
 IDs are built by concatenating **slugs** through the hierarchy chain (from `artifacts.json`), followed by the element kind and a descriptive slug.
 
 ```
-spd-{hierarchy-prefix}-{kind}-{slug}
+cpt-{hierarchy-prefix}-{kind}-{slug}
 ```
 
 Where:
-- `spd-` — literal prefix (required)
+- `cpt-` — literal prefix (required)
 - `{hierarchy-prefix}` — concatenated slugs from system → subsystem → component (e.g., `myapp-core-auth`)
 - `{kind}` — element kind in lowercase (actor, cap, fr, nfr, comp, flow, algo, state, req, etc.)
 - `{slug}` — descriptive slug (lowercase, alphanumeric, hyphens)
@@ -240,25 +240,25 @@ A **slug** is a machine-readable identifier derived from a human name. Slugs are
 
 | Hierarchy Level | ID Pattern | Example |
 |-----------------|------------|---------|
-| System | `spd-{system}-{kind}-{slug}` | `spd-saas-fr-user-auth` |
-| Subsystem | `spd-{system}-{subsystem}-{kind}-{slug}` | `spd-saas-core-comp-api-gateway` |
-| Component | `spd-{system}-{subsystem}-{component}-{kind}-{slug}` | `spd-saas-core-auth-flow-login` |
+| System | `cpt-{system}-{kind}-{slug}` | `cpt-saas-fr-user-auth` |
+| Subsystem | `cpt-{system}-{subsystem}-{kind}-{slug}` | `cpt-saas-core-comp-api-gateway` |
+| Component | `cpt-{system}-{subsystem}-{component}-{kind}-{slug}` | `cpt-saas-core-auth-flow-login` |
 
 **Element Kind Examples**:
-- `spd-myapp-actor-admin-user` — Actor at system level
-- `spd-myapp-cap-user-management` — Capability at system level
-- `spd-myapp-fr-must-authenticate` — Functional requirement
-- `spd-myapp-core-comp-api-gateway` — Component at subsystem level
-- `spd-myapp-core-auth-flow-login` — Flow at component level
-- `spd-myapp-core-auth-algo-password-hash` — Algorithm at component level
+- `cpt-myapp-actor-admin-user` — Actor at system level
+- `cpt-myapp-cap-user-management` — Capability at system level
+- `cpt-myapp-fr-must-authenticate` — Functional requirement
+- `cpt-myapp-core-comp-api-gateway` — Component at subsystem level
+- `cpt-myapp-core-auth-flow-login` — Flow at component level
+- `cpt-myapp-core-auth-algo-password-hash` — Algorithm at component level
 
 ---
 
-## Spaider DSL (SDSL) Format
+## Cypilot DSL (CDSL) Format
 
-Spaider DSL (SDSL) is used in `sdsl` blocks to define step-by-step instructions with traceability.
+Cypilot DSL (CDSL) is used in `cdsl` blocks to define step-by-step instructions with traceability.
 
-### SDSL Line Format
+### CDSL Line Format
 
 ```
 N. [ ] - `pN` - Description - `inst-slug`
@@ -291,7 +291,7 @@ Components:
 
 ```markdown
 ---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
@@ -301,21 +301,21 @@ spaider-template:
 
 # Spec: {Name}
 
-<!-- spd:##:overview -->
+<!-- cpt:##:overview -->
 ## Overview
-<!-- spd:##:overview -->
+<!-- cpt:##:overview -->
 
-<!-- spd:paragraph:description required="true" -->
+<!-- cpt:paragraph:description required="true" -->
 Brief description of the spec.
-<!-- spd:paragraph:description -->
+<!-- cpt:paragraph:description -->
 
-<!-- spd:id:requirements required="true" repeat="many" covered_by="CODE" has="task" -->
-- [ ] **ID**: `spd-system-req-xxx`
-<!-- spd:id:requirements -->
+<!-- cpt:id:requirements required="true" repeat="many" covered_by="CODE" has="task" -->
+- [ ] **ID**: `cpt-system-req-xxx`
+<!-- cpt:id:requirements -->
 
-<!-- spd:sdsl:flow required="true" -->
+<!-- cpt:cdsl:flow required="true" -->
 1. [ ] - `p1` - Step description - `inst-step-name`
-<!-- spd:sdsl:flow -->
+<!-- cpt:cdsl:flow -->
 ```
 
 ---
@@ -344,7 +344,7 @@ Brief description of the spec.
 | `#`-`######` | First line is heading of correct level |
 | `link` | Contains `[text](url)` |
 | `image` | Starts with `!` |
-| `sdsl` | Each line matches SDSL pattern |
+| `cdsl` | Each line matches CDSL pattern |
 
 ### Cross-Validation
 
@@ -405,9 +405,9 @@ Brief description of the spec.
 
 | Task | Command |
 |------|---------|
-| Validate artifact | `python3 {spaider_path}/skills/spaider/scripts/spaider.py validate --artifact <path>` |
-| List IDs | `python3 {spaider_path}/skills/spaider/scripts/spaider.py list-ids` |
-| Check references | `python3 {spaider_path}/skills/spaider/scripts/spaider.py check-refs` |
+| Validate artifact | `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py validate --artifact <path>` |
+| List IDs | `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py list-ids` |
+| Check references | `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py check-refs` |
 
 ---
 
@@ -426,6 +426,6 @@ Brief description of the spec.
 
 ## References
 
-- **Schema**: `schemas/spaider-template-frontmatter.schema.json`
-- **Implementation**: `skills/spaider/scripts/spaider/utils/template.py`
-- **CLI**: `python3 {spaider_path}/skills/spaider/scripts/spaider.py validate --artifact <path>`
+- **Schema**: `schemas/cypilot-template-frontmatter.schema.json`
+- **Implementation**: `skills/cypilot/scripts/cypilot/utils/template.py`
+- **CLI**: `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py validate --artifact <path>`

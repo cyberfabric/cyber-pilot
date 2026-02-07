@@ -2,7 +2,7 @@
 Test language configuration loading and dynamic regex building.
 
 Validates that language_config module correctly:
-- Loads configuration from .spaider-config.json
+- Loads configuration from .cypilot-config.json
 - Falls back to defaults when config missing
 - Builds correct regex patterns for different comment styles
 """
@@ -13,19 +13,19 @@ import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "spaider" / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "cypilot" / "scripts"))
 
-from spaider.utils import (
+from cypilot.utils import (
     load_language_config,
-    build_spaider_begin_regex,
-    build_spaider_end_regex,
-    build_no_spaider_begin_regex,
-    build_no_spaider_end_regex,
+    build_cypilot_begin_regex,
+    build_cypilot_end_regex,
+    build_no_cypilot_begin_regex,
+    build_no_cypilot_end_regex,
     LanguageConfig,
     DEFAULT_FILE_EXTENSIONS,
 )
 
-from spaider.utils.language_config import (
+from cypilot.utils.language_config import (
     DEFAULT_SINGLE_LINE_COMMENTS,
     DEFAULT_MULTI_LINE_COMMENTS,
     DEFAULT_BLOCK_COMMENT_PREFIXES,
@@ -33,10 +33,10 @@ from spaider.utils.language_config import (
 
 
 class TestLanguageConfigLoading(unittest.TestCase):
-    """Test language configuration loading from .spaider-config.json."""
+    """Test language configuration loading from .cypilot-config.json."""
 
     def test_default_config_when_no_project_config(self):
-        """Verify default config is used when no .spaider-config.json exists."""
+        """Verify default config is used when no .cypilot-config.json exists."""
         with TemporaryDirectory() as tmpdir:
             config = load_language_config(Path(tmpdir))
             
@@ -52,14 +52,14 @@ class TestLanguageConfigLoading(unittest.TestCase):
             self.assertIn("--", config.single_line_comments)
 
     def test_custom_config_overrides_defaults(self):
-        """Verify custom config from .spaider-config.json overrides defaults."""
+        """Verify custom config from .cypilot-config.json overrides defaults."""
         with TemporaryDirectory() as tmpdir:
             tmppath = Path(tmpdir)
             
             # Write custom config
-            config_file = tmppath / ".spaider-config.json"
+            config_file = tmppath / ".cypilot-config.json"
             config_file.write_text(json.dumps({
-                "spaiderAdapterPath": "adapter",
+                "cypilotAdapterPath": "adapter",
                 "codeScanning": {
                     "fileExtensions": [".php", ".rb"],
                     "singleLineComments": ["#", "//"],
@@ -85,9 +85,9 @@ class TestLanguageConfigLoading(unittest.TestCase):
             tmppath = Path(tmpdir)
             
             # Write config with only fileExtensions
-            config_file = tmppath / ".spaider-config.json"
+            config_file = tmppath / ".cypilot-config.json"
             config_file.write_text(json.dumps({
-                "spaiderAdapterPath": "adapter",
+                "cypilotAdapterPath": "adapter",
                 "codeScanning": {
                     "fileExtensions": [".kt", ".swift"]
                 }
@@ -106,9 +106,9 @@ class TestLanguageConfigLoading(unittest.TestCase):
         """Cover: codeScanning exists but is not a dict."""
         with TemporaryDirectory() as tmpdir:
             tmppath = Path(tmpdir)
-            (tmppath / ".spaider-config.json").write_text(
+            (tmppath / ".cypilot-config.json").write_text(
                 json.dumps({
-                    "spaiderAdapterPath": "adapter",
+                    "cypilotAdapterPath": "adapter",
                     "codeScanning": "not-a-dict",
                 })
             )
@@ -121,9 +121,9 @@ class TestLanguageConfigLoading(unittest.TestCase):
         """Cover: wrong types inside codeScanning for list-like fields."""
         with TemporaryDirectory() as tmpdir:
             tmppath = Path(tmpdir)
-            (tmppath / ".spaider-config.json").write_text(
+            (tmppath / ".cypilot-config.json").write_text(
                 json.dumps({
-                    "spaiderAdapterPath": "adapter",
+                    "cypilotAdapterPath": "adapter",
                     "codeScanning": {
                         "fileExtensions": "not-a-list",
                         "singleLineComments": "not-a-list",
@@ -143,8 +143,8 @@ class TestLanguageConfigLoading(unittest.TestCase):
 class TestRegexPatternBuilding(unittest.TestCase):
     """Test dynamic regex pattern building from language config."""
 
-    def test_spaider_begin_regex_matches_python_style(self):
-        """Verify spaider-begin regex matches Python # comments."""
+    def test_cypilot_begin_regex_matches_python_style(self):
+        """Verify cpt-begin regex matches Python # comments."""
         config = LanguageConfig(
             file_extensions={".py"},
             single_line_comments=["#"],
@@ -152,18 +152,18 @@ class TestRegexPatternBuilding(unittest.TestCase):
             block_comment_prefixes=[]
         )
         
-        regex = build_spaider_begin_regex(config)
+        regex = build_cypilot_begin_regex(config)
         
         # Should match Python comment
-        self.assertIsNotNone(regex.match("# spaider-begin spd-test-spec-x-flow-y:p1:inst-step"))
-        self.assertIsNotNone(regex.match("  # spaider-begin spd-test-spec-x-flow-y:p1:inst-step"))
+        self.assertIsNotNone(regex.match("# cpt-begin cpt-test-spec-x-flow-y:p1:inst-step"))
+        self.assertIsNotNone(regex.match("  # cpt-begin cpt-test-spec-x-flow-y:p1:inst-step"))
         
         # Should extract tag
-        match = regex.match("# spaider-begin spd-test-spec-x-flow-y:p1:inst-step")
-        self.assertEqual(match.group(1), "spd-test-spec-x-flow-y:p1:inst-step")
+        match = regex.match("# cpt-begin cpt-test-spec-x-flow-y:p1:inst-step")
+        self.assertEqual(match.group(1), "cpt-test-spec-x-flow-y:p1:inst-step")
 
-    def test_spaider_begin_regex_matches_javascript_style(self):
-        """Verify spaider-begin regex matches JavaScript // comments."""
+    def test_cypilot_begin_regex_matches_javascript_style(self):
+        """Verify cpt-begin regex matches JavaScript // comments."""
         config = LanguageConfig(
             file_extensions={".js"},
             single_line_comments=["//"],
@@ -171,14 +171,14 @@ class TestRegexPatternBuilding(unittest.TestCase):
             block_comment_prefixes=[]
         )
         
-        regex = build_spaider_begin_regex(config)
+        regex = build_cypilot_begin_regex(config)
         
         # Should match JS comment
-        self.assertIsNotNone(regex.match("// spaider-begin spd-test-spec-x-flow-y:p1:inst-step"))
-        self.assertIsNotNone(regex.match("  // spaider-begin spd-test-spec-x-flow-y:p1:inst-step"))
+        self.assertIsNotNone(regex.match("// cpt-begin cpt-test-spec-x-flow-y:p1:inst-step"))
+        self.assertIsNotNone(regex.match("  // cpt-begin cpt-test-spec-x-flow-y:p1:inst-step"))
 
-    def test_spaider_begin_regex_matches_sql_style(self):
-        """Verify spaider-begin regex matches SQL -- comments."""
+    def test_cypilot_begin_regex_matches_sql_style(self):
+        """Verify cpt-begin regex matches SQL -- comments."""
         config = LanguageConfig(
             file_extensions={".sql"},
             single_line_comments=["--"],
@@ -186,13 +186,13 @@ class TestRegexPatternBuilding(unittest.TestCase):
             block_comment_prefixes=[]
         )
         
-        regex = build_spaider_begin_regex(config)
+        regex = build_cypilot_begin_regex(config)
         
         # Should match SQL comment
-        self.assertIsNotNone(regex.match("-- spaider-begin spd-test-spec-x-flow-y:p1:inst-step"))
+        self.assertIsNotNone(regex.match("-- cpt-begin cpt-test-spec-x-flow-y:p1:inst-step"))
 
-    def test_spaider_begin_regex_matches_html_comment(self):
-        """Verify spaider-begin regex matches HTML <!-- comments."""
+    def test_cypilot_begin_regex_matches_html_comment(self):
+        """Verify cpt-begin regex matches HTML <!-- comments."""
         config = LanguageConfig(
             file_extensions={".html"},
             single_line_comments=[],
@@ -200,13 +200,13 @@ class TestRegexPatternBuilding(unittest.TestCase):
             block_comment_prefixes=[]
         )
         
-        regex = build_spaider_begin_regex(config)
+        regex = build_cypilot_begin_regex(config)
         
         # Should match HTML comment
-        self.assertIsNotNone(regex.match("<!-- spaider-begin spd-test-spec-x-flow-y:p1:inst-step"))
+        self.assertIsNotNone(regex.match("<!-- cpt-begin cpt-test-spec-x-flow-y:p1:inst-step"))
 
-    def test_spaider_begin_regex_matches_multiple_styles(self):
-        """Verify spaider-begin regex matches multiple comment styles."""
+    def test_cypilot_begin_regex_matches_multiple_styles(self):
+        """Verify cpt-begin regex matches multiple comment styles."""
         config = LanguageConfig(
             file_extensions={".py", ".js", ".sql"},
             single_line_comments=["#", "//", "--"],
@@ -214,17 +214,17 @@ class TestRegexPatternBuilding(unittest.TestCase):
             block_comment_prefixes=["*"]
         )
         
-        regex = build_spaider_begin_regex(config)
+        regex = build_cypilot_begin_regex(config)
         
         # Should match all styles
-        self.assertIsNotNone(regex.match("# spaider-begin spd-test-spec-x-flow-y:p1:inst-step"))
-        self.assertIsNotNone(regex.match("// spaider-begin spd-test-spec-x-flow-y:p1:inst-step"))
-        self.assertIsNotNone(regex.match("-- spaider-begin spd-test-spec-x-flow-y:p1:inst-step"))
-        self.assertIsNotNone(regex.match("/* spaider-begin spd-test-spec-x-flow-y:p1:inst-step"))
-        self.assertIsNotNone(regex.match("* spaider-begin spd-test-spec-x-flow-y:p1:inst-step"))
+        self.assertIsNotNone(regex.match("# cpt-begin cpt-test-spec-x-flow-y:p1:inst-step"))
+        self.assertIsNotNone(regex.match("// cpt-begin cpt-test-spec-x-flow-y:p1:inst-step"))
+        self.assertIsNotNone(regex.match("-- cpt-begin cpt-test-spec-x-flow-y:p1:inst-step"))
+        self.assertIsNotNone(regex.match("/* cpt-begin cpt-test-spec-x-flow-y:p1:inst-step"))
+        self.assertIsNotNone(regex.match("* cpt-begin cpt-test-spec-x-flow-y:p1:inst-step"))
 
-    def test_spaider_end_regex_matches_same_styles_as_begin(self):
-        """Verify spaider-end regex matches same styles as spaider-begin."""
+    def test_cypilot_end_regex_matches_same_styles_as_begin(self):
+        """Verify cpt-end regex matches same styles as cpt-begin."""
         config = LanguageConfig(
             file_extensions={".py", ".js"},
             single_line_comments=["#", "//"],
@@ -232,14 +232,14 @@ class TestRegexPatternBuilding(unittest.TestCase):
             block_comment_prefixes=[]
         )
         
-        end_regex = build_spaider_end_regex(config)
+        end_regex = build_cypilot_end_regex(config)
         
         # Should match both styles
-        self.assertIsNotNone(end_regex.match("# spaider-end spd-test-spec-x-flow-y:p1:inst-step"))
-        self.assertIsNotNone(end_regex.match("// spaider-end spd-test-spec-x-flow-y:p1:inst-step"))
+        self.assertIsNotNone(end_regex.match("# cpt-end cpt-test-spec-x-flow-y:p1:inst-step"))
+        self.assertIsNotNone(end_regex.match("// cpt-end cpt-test-spec-x-flow-y:p1:inst-step"))
 
-    def test_no_spaider_begin_regex_matches_exclusion_marker(self):
-        """Verify !no-spaider-begin regex matches exclusion markers."""
+    def test_no_cypilot_begin_regex_matches_exclusion_marker(self):
+        """Verify !no-cpt-begin regex matches exclusion markers."""
         config = LanguageConfig(
             file_extensions={".py"},
             single_line_comments=["#"],
@@ -247,15 +247,15 @@ class TestRegexPatternBuilding(unittest.TestCase):
             block_comment_prefixes=[]
         )
         
-        regex = build_no_spaider_begin_regex(config)
+        regex = build_no_cypilot_begin_regex(config)
         
         # Should match exclusion markers
-        self.assertIsNotNone(regex.match("# !no-spaider-begin"))
-        self.assertIsNotNone(regex.match("# Some text !no-spaider-begin"))
-        self.assertIsNotNone(regex.match("<!-- !no-spaider-begin -->"))
+        self.assertIsNotNone(regex.match("# !no-cpt-begin"))
+        self.assertIsNotNone(regex.match("# Some text !no-cpt-begin"))
+        self.assertIsNotNone(regex.match("<!-- !no-cpt-begin -->"))
 
-    def test_no_spaider_end_regex_matches_exclusion_marker(self):
-        """Verify !no-spaider-end regex matches exclusion end markers."""
+    def test_no_cypilot_end_regex_matches_exclusion_marker(self):
+        """Verify !no-cpt-end regex matches exclusion end markers."""
         config = LanguageConfig(
             file_extensions={".py"},
             single_line_comments=["#"],
@@ -263,11 +263,11 @@ class TestRegexPatternBuilding(unittest.TestCase):
             block_comment_prefixes=[]
         )
         
-        regex = build_no_spaider_end_regex(config)
+        regex = build_no_cypilot_end_regex(config)
         
         # Should match exclusion end markers
-        self.assertIsNotNone(regex.match("# !no-spaider-end"))
-        self.assertIsNotNone(regex.match("<!-- !no-spaider-end -->"))
+        self.assertIsNotNone(regex.match("# !no-cpt-end"))
+        self.assertIsNotNone(regex.match("<!-- !no-cpt-end -->"))
 
 
 class TestCommentPatternBuilding(unittest.TestCase):

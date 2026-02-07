@@ -6,13 +6,13 @@ import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "spaider" / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "cypilot" / "scripts"))
 
-from spaider.utils.artifacts_meta import (
+from cypilot.utils.artifacts_meta import (
     Artifact,
     ArtifactsMeta,
     CodebaseEntry,
-    Weaver,
+    Kit,
     SystemNode,
     create_backup,
     generate_default_registry,
@@ -20,24 +20,24 @@ from spaider.utils.artifacts_meta import (
 )
 
 
-class TestWeaver(unittest.TestCase):
-    def test_weaver_from_dict(self):
-        data = {"format": "Spaider", "path": "templates"}
-        weaver = Weaver.from_dict("test-weaver", data)
-        self.assertEqual(weaver.weaver_id, "test-weaver")
-        self.assertEqual(weaver.format, "Spaider")
-        self.assertEqual(weaver.path, "templates")
+class TestKit(unittest.TestCase):
+    def test_kit_from_dict(self):
+        data = {"format": "Cypilot", "path": "templates"}
+        kit = Kit.from_dict("test-kit", data)
+        self.assertEqual(kit.kit_id, "test-kit")
+        self.assertEqual(kit.format, "Cypilot")
+        self.assertEqual(kit.path, "templates")
 
-    def test_weaver_is_spaider_format(self):
-        weaver = Weaver("id", "Spaider", "path")
-        self.assertTrue(weaver.is_spaider_format())
-        weaver2 = Weaver("id", "OTHER", "path")
-        self.assertFalse(weaver2.is_spaider_format())
+    def test_kit_is_cypilot_format(self):
+        kit = Kit("id", "Cypilot", "path")
+        self.assertTrue(kit.is_cypilot_format())
+        kit2 = Kit("id", "OTHER", "path")
+        self.assertFalse(kit2.is_cypilot_format())
 
-    def test_weaver_get_template_path(self):
-        weaver = Weaver("id", "Spaider", "weavers/sdlc")
-        self.assertEqual(weaver.get_template_path("PRD"), "weavers/sdlc/artifacts/PRD/template.md")
-        self.assertEqual(weaver.get_template_path("UNKNOWN"), "weavers/sdlc/artifacts/UNKNOWN/template.md")
+    def test_kit_get_template_path(self):
+        kit = Kit("id", "Cypilot", "kits/sdlc")
+        self.assertEqual(kit.get_template_path("PRD"), "kits/sdlc/artifacts/PRD/template.md")
+        self.assertEqual(kit.get_template_path("UNKNOWN"), "kits/sdlc/artifacts/UNKNOWN/template.md")
 
 
 class TestArtifact(unittest.TestCase):
@@ -80,13 +80,13 @@ class TestSystemNode(unittest.TestCase):
     def test_system_node_from_dict_basic(self):
         data = {
             "name": "MySystem",
-            "weaver": "spaider-sdlc",
+            "kit": "cypilot-sdlc",
             "artifacts": [{"path": "PRD.md", "kind": "PRD"}],
             "codebase": [{"path": "src/", "extensions": [".py"]}],
         }
         node = SystemNode.from_dict(data)
         self.assertEqual(node.name, "MySystem")
-        self.assertEqual(node.weaver, "spaider-sdlc")
+        self.assertEqual(node.kit, "cypilot-sdlc")
         self.assertEqual(len(node.artifacts), 1)
         self.assertEqual(len(node.codebase), 1)
 
@@ -94,10 +94,10 @@ class TestSystemNode(unittest.TestCase):
         """Cover lines 135-136: parsing children."""
         data = {
             "name": "Parent",
-            "weaver": "spaider",
+            "kit": "cypilot",
             "children": [
-                {"name": "Child1", "weaver": "spaider"},
-                {"name": "Child2", "weaver": "spaider"},
+                {"name": "Child1", "kit": "cypilot"},
+                {"name": "Child2", "kit": "cypilot"},
             ],
         }
         node = SystemNode.from_dict(data)
@@ -111,13 +111,13 @@ class TestArtifactsMeta(unittest.TestCase):
         data = {
             "version": "1.0",
             "project_root": "..",
-            "weavers": {"spaider": {"format": "Spaider", "path": "templates"}},
-            "systems": [{"name": "Test", "weaver": "spaider", "artifacts": [{"path": "PRD.md", "kind": "PRD"}]}],
+            "kits": {"cypilot": {"format": "Cypilot", "path": "templates"}},
+            "systems": [{"name": "Test", "kit": "cypilot", "artifacts": [{"path": "PRD.md", "kind": "PRD"}]}],
         }
         meta = ArtifactsMeta.from_dict(data)
         self.assertEqual(meta.version, "1.0")
         self.assertEqual(meta.project_root, "..")
-        self.assertEqual(len(meta.weavers), 1)
+        self.assertEqual(len(meta.kits), 1)
         self.assertEqual(len(meta.systems), 1)
 
     def test_from_json(self):
@@ -125,7 +125,7 @@ class TestArtifactsMeta(unittest.TestCase):
         data = {
             "version": "1.0",
             "project_root": "..",
-            "weavers": {},
+            "kits": {},
             "systems": [],
         }
         meta = ArtifactsMeta.from_json(json.dumps(data))
@@ -135,7 +135,7 @@ class TestArtifactsMeta(unittest.TestCase):
         """Cover lines 228-229: from_file method."""
         with TemporaryDirectory() as tmpdir:
             path = Path(tmpdir) / "artifacts.json"
-            data = {"version": "1.0", "project_root": "..", "weavers": {}, "systems": []}
+            data = {"version": "1.0", "project_root": "..", "kits": {}, "systems": []}
             path.write_text(json.dumps(data), encoding="utf-8")
             meta = ArtifactsMeta.from_file(path)
             self.assertEqual(meta.version, "1.0")
@@ -145,8 +145,8 @@ class TestArtifactsMeta(unittest.TestCase):
         data = {
             "version": "1.0",
             "project_root": "..",
-            "weavers": {"spaider": {"format": "Spaider", "path": "templates"}},
-            "systems": [{"name": "Test", "weaver": "spaider", "artifacts": [{"path": "architecture/PRD.md", "kind": "PRD"}]}],
+            "kits": {"cypilot": {"format": "Cypilot", "path": "templates"}},
+            "systems": [{"name": "Test", "kit": "cypilot", "artifacts": [{"path": "architecture/PRD.md", "kind": "PRD"}]}],
         }
         meta = ArtifactsMeta.from_dict(data)
         result = meta.get_artifact_by_path("architecture/PRD.md")
@@ -156,7 +156,7 @@ class TestArtifactsMeta(unittest.TestCase):
         self.assertEqual(system.name, "Test")
 
     def test_get_artifact_by_path_not_found(self):
-        data = {"version": "1.0", "project_root": "..", "weavers": {}, "systems": []}
+        data = {"version": "1.0", "project_root": "..", "kits": {}, "systems": []}
         meta = ArtifactsMeta.from_dict(data)
         result = meta.get_artifact_by_path("nonexistent.md")
         self.assertIsNone(result)
@@ -166,8 +166,8 @@ class TestArtifactsMeta(unittest.TestCase):
         data = {
             "version": "1.0",
             "project_root": "..",
-            "weavers": {},
-            "systems": [{"name": "Test", "weaver": "", "artifacts": [{"path": "./PRD.md", "kind": "PRD"}]}],
+            "kits": {},
+            "systems": [{"name": "Test", "kit": "", "artifacts": [{"path": "./PRD.md", "kind": "PRD"}]}],
         }
         meta = ArtifactsMeta.from_dict(data)
         result = meta.get_artifact_by_path("PRD.md")
@@ -177,8 +177,8 @@ class TestArtifactsMeta(unittest.TestCase):
         data = {
             "version": "1.0",
             "project_root": "..",
-            "weavers": {},
-            "systems": [{"name": "Test", "weaver": "", "artifacts": [{"path": "a.md", "kind": "A"}, {"path": "b.md", "kind": "B"}]}],
+            "kits": {},
+            "systems": [{"name": "Test", "kit": "", "artifacts": [{"path": "a.md", "kind": "A"}, {"path": "b.md", "kind": "B"}]}],
         }
         meta = ArtifactsMeta.from_dict(data)
         artifacts = list(meta.iter_all_artifacts())
@@ -189,16 +189,16 @@ class TestArtifactsMeta(unittest.TestCase):
         data = {
             "version": "1.0",
             "project_root": "..",
-            "weavers": {},
+            "kits": {},
             "systems": [
                 {
                     "name": "Parent",
-                    "weaver": "",
+                    "kit": "",
                     "artifacts": [{"path": "parent.md", "kind": "P"}],
                     "children": [
                         {
                             "name": "Child",
-                            "weaver": "",
+                            "kit": "",
                             "artifacts": [{"path": "child.md", "kind": "C"}],
                         }
                     ],
@@ -217,17 +217,17 @@ class TestArtifactsMeta(unittest.TestCase):
         data = {
             "version": "1.0",
             "project_root": "..",
-            "weavers": {},
+            "kits": {},
             "systems": [
                 {
                     "name": "myapp",
-                    "weaver": "",
+                    "kit": "",
                     "children": [
-                        {"name": "account-server", "weaver": ""},
-                        {"name": "billing", "weaver": "", "children": [{"name": "invoicing", "weaver": ""}]},
+                        {"name": "account-server", "kit": ""},
+                        {"name": "billing", "kit": "", "children": [{"name": "invoicing", "kit": ""}]},
                     ],
                 },
-                {"name": "other-system", "weaver": ""},
+                {"name": "other-system", "kit": ""},
             ],
         }
         meta = ArtifactsMeta.from_dict(data)
@@ -244,10 +244,10 @@ class TestArtifactsMeta(unittest.TestCase):
         data = {
             "version": "1.0",
             "project_root": "..",
-            "weavers": {},
+            "kits": {},
             "systems": [
-                {"name": "MyApp", "weaver": ""},
-                {"name": "Account-Server", "weaver": ""},
+                {"name": "MyApp", "kit": ""},
+                {"name": "Account-Server", "kit": ""},
             ],
         }
         meta = ArtifactsMeta.from_dict(data)
@@ -265,7 +265,7 @@ class TestLoadArtifactsMeta(unittest.TestCase):
         """Cover lines 275-284: load_artifacts_meta success path."""
         with TemporaryDirectory() as tmpdir:
             ad = Path(tmpdir)
-            data = {"version": "1.0", "project_root": "..", "weavers": {}, "systems": []}
+            data = {"version": "1.0", "project_root": "..", "kits": {}, "systems": []}
             (ad / "artifacts.json").write_text(json.dumps(data), encoding="utf-8")
             meta, err = load_artifacts_meta(ad)
             self.assertIsNotNone(meta)
@@ -358,16 +358,16 @@ class TestCreateBackup(unittest.TestCase):
 
 class TestGenerateDefaultRegistry(unittest.TestCase):
     def test_generate_default_registry(self):
-        result = generate_default_registry("MyProject", "../Spaider")
+        result = generate_default_registry("MyProject", "../Cypilot")
         self.assertEqual(result["version"], "1.0")
         self.assertEqual(result["project_root"], "..")
-        self.assertIn("spaider-sdlc", result["weavers"])
+        self.assertIn("cypilot-sdlc", result["kits"])
         self.assertEqual(len(result["systems"]), 1)
         self.assertEqual(result["systems"][0]["name"], "MyProject")
 
     def test_join_path_edge_cases(self):
         """Cover line 321: _join_path with empty base."""
-        from spaider.utils.artifacts_meta import _join_path
+        from cypilot.utils.artifacts_meta import _join_path
 
         self.assertEqual(_join_path("", "tail"), "tail")
         self.assertEqual(_join_path(".", "tail"), "tail")
@@ -382,22 +382,22 @@ class TestSystemNodeHierarchy(unittest.TestCase):
         data = {
             "version": "1.0",
             "project_root": "..",
-            "weavers": {},
+            "kits": {},
             "systems": [
                 {
                     "name": "Platform",
                     "slug": "platform",
-                    "weaver": "spaider-sdlc",
+                    "kit": "cypilot-sdlc",
                     "children": [
                         {
                             "name": "Core",
                             "slug": "core",
-                            "weaver": "spaider-sdlc",
+                            "kit": "cypilot-sdlc",
                             "children": [
                                 {
                                     "name": "Auth",
                                     "slug": "auth",
-                                    "weaver": "spaider-sdlc",
+                                    "kit": "cypilot-sdlc",
                                 }
                             ],
                         }
@@ -417,20 +417,20 @@ class TestSystemNodeHierarchy(unittest.TestCase):
 
     def test_validate_slug_valid(self):
         """Cover validate_slug method with valid slug."""
-        node = SystemNode(name="Test", slug="valid-slug", weaver="test")
+        node = SystemNode(name="Test", slug="valid-slug", kit="test")
         result = node.validate_slug()
         self.assertIsNone(result)
 
     def test_validate_slug_missing(self):
         """Cover validate_slug method with missing slug."""
-        node = SystemNode(name="Test", slug="", weaver="test")
+        node = SystemNode(name="Test", slug="", kit="test")
         result = node.validate_slug()
         self.assertIsNotNone(result)
         self.assertIn("Missing slug", result)
 
     def test_validate_slug_invalid_format(self):
         """Cover validate_slug method with invalid slug format."""
-        node = SystemNode(name="Test", slug="Invalid_Slug!", weaver="test")
+        node = SystemNode(name="Test", slug="Invalid_Slug!", kit="test")
         result = node.validate_slug()
         self.assertIsNotNone(result)
         self.assertIn("Invalid slug", result)
@@ -444,18 +444,18 @@ class TestArtifactsMetaIterators(unittest.TestCase):
         data = {
             "version": "1.0",
             "project_root": "..",
-            "weavers": {},
+            "kits": {},
             "systems": [
                 {
                     "name": "Parent",
                     "slug": "parent",
-                    "weaver": "spaider-sdlc",
+                    "kit": "cypilot-sdlc",
                     "codebase": [{"name": "Parent Code", "path": "src/parent"}],
                     "children": [
                         {
                             "name": "Child",
                             "slug": "child",
-                            "weaver": "spaider-sdlc",
+                            "kit": "cypilot-sdlc",
                             "codebase": [{"name": "Child Code", "path": "src/child"}],
                         }
                     ],
@@ -474,19 +474,19 @@ class TestArtifactsMetaIterators(unittest.TestCase):
         data = {
             "version": "1.0",
             "project_root": "..",
-            "weavers": {},
+            "kits": {},
             "systems": [
                 {
                     "name": "Root",
                     "slug": "root",
-                    "weaver": "spaider-sdlc",
+                    "kit": "cypilot-sdlc",
                     "children": [
                         {
                             "name": "Child1",
                             "slug": "child1",
-                            "weaver": "spaider-sdlc",
+                            "kit": "cypilot-sdlc",
                             "children": [
-                                {"name": "Grandchild", "slug": "grandchild", "weaver": "spaider-sdlc"}
+                                {"name": "Grandchild", "slug": "grandchild", "kit": "cypilot-sdlc"}
                             ],
                         }
                     ],
@@ -506,13 +506,13 @@ class TestArtifactsMetaIterators(unittest.TestCase):
         data = {
             "version": "1.0",
             "project_root": "..",
-            "weavers": {},
+            "kits": {},
             "systems": [
                 {
                     "name": "MyApp",
                     "slug": "myapp",
-                    "weaver": "spaider-sdlc",
-                    "children": [{"name": "Module", "slug": "module", "weaver": "spaider-sdlc"}],
+                    "kit": "cypilot-sdlc",
+                    "children": [{"name": "Module", "slug": "module", "kit": "cypilot-sdlc"}],
                 }
             ],
         }
@@ -528,10 +528,10 @@ class TestArtifactsMetaIterators(unittest.TestCase):
         data = {
             "version": "1.0",
             "project_root": "..",
-            "weavers": {},
+            "kits": {},
             "systems": [
-                {"name": "Valid", "slug": "valid", "weaver": "spaider-sdlc"},
-                {"name": "Invalid", "slug": "Invalid_Slug!", "weaver": "spaider-sdlc"},
+                {"name": "Valid", "slug": "valid", "kit": "cypilot-sdlc"},
+                {"name": "Invalid", "slug": "Invalid_Slug!", "kit": "cypilot-sdlc"},
             ],
         }
         meta = ArtifactsMeta.from_dict(data)

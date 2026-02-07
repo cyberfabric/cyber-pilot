@@ -1,12 +1,12 @@
 ---
-spaider: true
+cypilot: true
 type: requirement
 name: Artifacts Registry
 version: 1.0
 purpose: Define structure and usage of artifacts.json for agent operations
 ---
 
-# Spaider Artifacts Registry Specification
+# Cypilot Artifacts Registry Specification
 
 ---
 
@@ -16,7 +16,7 @@ purpose: Define structure and usage of artifacts.json for agent operations
 - [Overview](#overview)
 - [Schema Version](#schema-version)
 - [Root Structure](#root-structure)
-- [Weavers](#weavers)
+- [Kits](#kits)
 - [Systems](#systems)
 - [Artifacts](#artifacts)
 - [Codebase](#codebase)
@@ -35,13 +35,13 @@ purpose: Define structure and usage of artifacts.json for agent operations
 
 **Add to adapter AGENTS.md** (path relative to adapter directory):
 ```
-ALWAYS open and follow `{spaider_path}/requirements/artifacts-registry.md` WHEN working with artifacts.json
+ALWAYS open and follow `{cypilot_path}/requirements/artifacts-registry.md` WHEN working with artifacts.json
 ```
-Where `{spaider_path}` is resolved from the adapter's `**Extends**:` declaration.
+Where `{cypilot_path}` is resolved from the adapter's `**Extends**:` declaration.
 
-**ALWAYS use**: `python3 {spaider_path}/skills/spaider/scripts/spaider.py adapter-info` to discover adapter location
+**ALWAYS use**: `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py adapter-info` to discover adapter location
 
-**ALWAYS use**: `spaider.py` CLI commands for artifact operations (list-ids, where-defined, where-used, validate)
+**ALWAYS use**: `cypilot.py` CLI commands for artifact operations (list-ids, where-defined, where-used, validate)
 
 **Prerequisite**: Agent confirms understanding before proceeding:
 - [ ] Agent has read and understood this requirement
@@ -52,7 +52,7 @@ Where `{spaider_path}` is resolved from the adapter's `**Extends**:` declaration
 
 ## Overview
 
-**What**: `artifacts.json` is the Spaider artifact registry - a JSON file that declares all Spaider artifacts, their templates, and codebase locations.
+**What**: `artifacts.json` is the Cypilot artifact registry - a JSON file that declares all Cypilot artifacts, their templates, and codebase locations.
 
 **Location**: `{adapter-directory}/artifacts.json`
 
@@ -78,7 +78,7 @@ Schema file: `../schemas/artifacts.schema.json`
 {
   "version": "1.0",
   "project_root": "..",
-  "weavers": { ... },
+  "kits": { ... },
   "systems": [ ... ]
 }
 ```
@@ -89,52 +89,52 @@ Schema file: `../schemas/artifacts.schema.json`
 |-------|------|----------|-------------|
 | `version` | string | YES | Schema version (currently "1.0") |
 | `project_root` | string | NO | Relative path from artifacts.json to project root. Default: `".."` |
-| `weavers` | object | YES | Weaver package registry |
+| `kits` | object | YES | Kit package registry |
 | `systems` | array | YES | Root-level system nodes |
 
 ---
 
-## Weavers
+## Kits
 
-**Purpose**: Define weaver packages that can be referenced by systems.
+**Purpose**: Define kit packages that can be referenced by systems.
 
 **Structure**:
 ```json
 {
-  "weavers": {
-    "weaver-id": {
-      "format": "Spaider",
-      "path": "weavers/sdlc"
+  "kits": {
+    "kit-id": {
+      "format": "Cypilot",
+      "path": "kits/sdlc"
     }
   }
 }
 ```
 
-### Weaver Fields
+### Kit Fields
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `format` | string | YES | Template format. `"Spaider"` = full tooling support. Other values = custom (LLM-only) |
-| `path` | string | YES | Path to weaver package directory (relative to project_root). Contains `artifacts/` and `codebase/` subdirectories. |
+| `format` | string | YES | Template format. `"Cypilot"` = full tooling support. Other values = custom (LLM-only) |
+| `path` | string | YES | Path to kit package directory (relative to project_root). Contains `artifacts/` and `codebase/` subdirectories. |
 
 ### Template Resolution
 
-Template file path is resolved as: `{weaver.path}/artifacts/{KIND}/template.md`
+Template file path is resolved as: `{kit.path}/artifacts/{KIND}/template.md`
 
-**Example**: For artifact with `kind: "PRD"` and weaver with `path: "weavers/sdlc"`:
-- Template path: `{project-root}/weavers/sdlc/artifacts/PRD/template.md`
-- Checklist path: `{project-root}/weavers/sdlc/artifacts/PRD/checklist.md`
-- Example path: `{project-root}/weavers/sdlc/artifacts/PRD/examples/example.md`
+**Example**: For artifact with `kind: "PRD"` and kit with `path: "kits/sdlc"`:
+- Template path: `{project-root}/kits/sdlc/artifacts/PRD/template.md`
+- Checklist path: `{project-root}/kits/sdlc/artifacts/PRD/checklist.md`
+- Example path: `{project-root}/kits/sdlc/artifacts/PRD/examples/example.md`
 
 ### Format Values
 
 | Format | Meaning |
 |--------|---------|
-| `"Spaider"` | Full Spaider tooling support: validation, parsing, ID extraction |
+| `"Cypilot"` | Full Cypilot tooling support: validation, parsing, ID extraction |
 | Other | Custom format: LLM-only semantic processing, no CLI validation |
 
 **Agent behavior**:
-- `format: "Spaider"` → Use `spaider validate`, `list-ids`, `where-defined`, etc.
+- `format: "Cypilot"` → Use `cypilot validate`, `list-ids`, `where-defined`, etc.
 - Other format → Skip CLI validation, process semantically
 
 ---
@@ -150,7 +150,7 @@ Template file path is resolved as: `{weaver.path}/artifacts/{KIND}/template.md`
     {
       "name": "SystemName",
       "slug": "system-name",
-      "weaver": "weaver-id",
+      "kit": "kit-id",
       "artifacts_dir": "architecture",
       "artifacts": [ ... ],
       "codebase": [ ... ],
@@ -166,8 +166,8 @@ Template file path is resolved as: `{weaver.path}/artifacts/{KIND}/template.md`
 |-------|------|----------|-------------|
 | `name` | string | YES | Human-readable system/subsystem/component name |
 | `slug` | string | YES | Machine-readable identifier (lowercase, no spaces, hyphen-separated). Used for hierarchical ID generation. Pattern: `^[a-z0-9]+(-[a-z0-9]+)*$` |
-| `weaver` | string | YES | Reference to weaver ID from `weavers` section |
-| `artifacts_dir` | string | NO | Default base directory for NEW artifacts (default: `architecture`). Subdirectories defined by weaver. |
+| `kit` | string | YES | Reference to kit ID from `kits` section |
+| `artifacts_dir` | string | NO | Default base directory for NEW artifacts (default: `architecture`). Subdirectories defined by kit. |
 | `artifacts` | array | NO | Artifacts belonging to this node. Paths are FULL paths relative to `project_root`. |
 | `codebase` | array | NO | Source code directories for this node |
 | `children` | array | NO | Nested child systems (subsystems, components) |
@@ -196,7 +196,7 @@ System (root)
 ├── artifacts_dir: "architecture"     (default for NEW artifacts)
 ├── artifacts: [...]                  (FULL paths, can be anywhere)
 │   ├── "architecture/PRD.md"
-│   ├── "architecture/specs/auth.md"   (subdir defined by weaver)
+│   ├── "architecture/specs/auth.md"   (subdir defined by kit)
 │   └── "docs/custom/DESIGN.md"           (user can place anywhere!)
 ├── codebase (source directories)
 └── children
@@ -207,7 +207,7 @@ System (root)
 **Agent behavior**:
 - Iterate systems recursively to find all artifacts
 - Resolve artifact paths: `{project_root}/{artifact.path}` (paths are FULL)
-- For NEW artifacts: use `artifacts_dir` as base, subdirectories defined by weaver
+- For NEW artifacts: use `artifacts_dir` as base, subdirectories defined by kit
 - Respect system boundaries for traceability
 
 ---
@@ -267,7 +267,7 @@ artifact path: "docs/custom/DESIGN.md"
 
 **Default directory for NEW artifacts**:
 - `artifacts_dir` — base directory (default: `architecture`)
-- Subdirectories for specific artifact kinds (`specs/`, `ADR/`) are defined by the weaver
+- Subdirectories for specific artifact kinds (`specs/`, `ADR/`) are defined by the kit
 
 ### Path Requirements
 
@@ -301,11 +301,11 @@ specs    # no extension = likely directory
 
 | Kind | Template Path | Description |
 |------|---------------|-------------|
-| `PRD` | `{weaver.path}/artifacts/PRD/template.md` | Product Requirements Document |
-| `DESIGN` | `{weaver.path}/artifacts/DESIGN/template.md` | Overall Design (system-level) |
-| `ADR` | `{weaver.path}/artifacts/ADR/template.md` | Architecture Decision Record |
-| `DECOMPOSITION` | `{weaver.path}/artifacts/DECOMPOSITION/template.md` | Spec breakdown and dependencies |
-| `SPEC` | `{weaver.path}/artifacts/SPEC/template.md` | Spec Design (spec-level) |
+| `PRD` | `{kit.path}/artifacts/PRD/template.md` | Product Requirements Document |
+| `DESIGN` | `{kit.path}/artifacts/DESIGN/template.md` | Overall Design (system-level) |
+| `ADR` | `{kit.path}/artifacts/ADR/template.md` | Architecture Decision Record |
+| `DECOMPOSITION` | `{kit.path}/artifacts/DECOMPOSITION/template.md` | Spec breakdown and dependencies |
+| `SPEC` | `{kit.path}/artifacts/SPEC/template.md` | Spec Design (spec-level) |
 
 ---
 
@@ -396,14 +396,14 @@ artifact path: "docs/custom/DESIGN.md"
 
 When creating NEW artifacts:
 - Base directory: `artifacts_dir` (default: `architecture`)
-- Subdirectories for specific artifact kinds are defined by the weaver
+- Subdirectories for specific artifact kinds are defined by the kit
 
-**Example** (spaider-sdlc weaver):
+**Example** (cypilot-sdlc kit):
 ```
 artifacts_dir: "architecture"
 spec slug: "auth"
 
-→ New SPEC created at: architecture/specs/auth.md (subdir defined by weaver)
+→ New SPEC created at: architecture/specs/auth.md (subdir defined by kit)
 → Registered in artifacts array with FULL path: "architecture/specs/auth.md"
 ```
 
@@ -415,38 +415,38 @@ Codebase paths are resolved directly: `{project_root}/{codebase.path}`
 
 ## CLI Commands
 
-**Note**: All commands use `python3 {spaider_path}/skills/spaider/scripts/spaider.py` where `{spaider_path}` is the Spaider installation path. Examples below use `spaider.py` as shorthand.
+**Note**: All commands use `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py` where `{cypilot_path}` is the Cypilot installation path. Examples below use `cypilot.py` as shorthand.
 
 ### Discovery
 
 ```bash
 # Find adapter and registry
-spaider.py adapter-info --root /project
+cypilot.py adapter-info --root /project
 ```
 
 ### Artifact Operations
 
 ```bash
-# List all IDs from registered Spaider artifacts
-spaider.py list-ids
+# List all IDs from registered Cypilot artifacts
+cypilot.py list-ids
 
 # List IDs from specific artifact
-spaider.py list-ids --artifact architecture/PRD.md
+cypilot.py list-ids --artifact architecture/PRD.md
 
 # Find where ID is defined
-spaider.py where-defined --id "myapp-actor-user"
+cypilot.py where-defined --id "myapp-actor-user"
 
 # Find where ID is referenced
-spaider.py where-used --id "myapp-actor-user"
+cypilot.py where-used --id "myapp-actor-user"
 
 # Validate artifact against template
-spaider.py validate --artifact architecture/PRD.md
+cypilot.py validate --artifact architecture/PRD.md
 
 # Validate all registered artifacts
-spaider.py validate
+cypilot.py validate
 
-# Validate weavers and templates
-spaider.py validate-weavers
+# Validate kits and templates
+cypilot.py validate-kits
 ```
 
 ---
@@ -456,7 +456,7 @@ spaider.py validate-weavers
 ### Finding the Registry
 
 1. Run `adapter-info` to discover adapter location
-2. Registry is at `{spaider_adapter_path}/artifacts.json`
+2. Registry is at `{cypilot_adapter_path}/artifacts.json`
 3. Parse JSON to get registry data
 
 ### Iterating Artifacts
@@ -473,19 +473,19 @@ for system in registry.systems:
 ### Resolving Template Path
 
 ```python
-# For artifact with kind="PRD" in system with weaver="spaider-sdlc"
-weaver = registry.weavers["spaider-sdlc"]
-template_path = f"{weaver.path}/artifacts/{artifact.kind}/template.md"
-# → "weavers/sdlc/artifacts/PRD/template.md"
+# For artifact with kind="PRD" in system with kit="cypilot-sdlc"
+kit = registry.kits["cypilot-sdlc"]
+template_path = f"{kit.path}/artifacts/{artifact.kind}/template.md"
+# → "kits/sdlc/artifacts/PRD/template.md"
 ```
 
 ### Checking Format
 
 ```python
-weaver = registry.weavers[system.weaver]
-if weaver.format == "Spaider":
+kit = registry.kits[system.kit]
+if kit.format == "Cypilot":
     # Use CLI validation
-    run("spaider validate --artifact {path}")
+    run("cypilot validate --artifact {path}")
 else:
     # Custom format - LLM-only processing
     process_semantically(artifact)
@@ -499,9 +499,9 @@ else:
 
 **If artifacts.json doesn't exist at adapter location**:
 ```
-⚠️ Registry not found: {spaider_adapter_path}/artifacts.json
+⚠️ Registry not found: {cypilot_adapter_path}/artifacts.json
 → Adapter exists but registry not initialized
-→ Fix: Run /spaider-adapter to create registry
+→ Fix: Run /cypilot-adapter to create registry
 ```
 **Action**: STOP — cannot process artifacts without registry.
 
@@ -515,12 +515,12 @@ else:
 ```
 **Action**: STOP — cannot process malformed registry.
 
-### Missing Weaver Reference
+### Missing Kit Reference
 
-**If system references non-existent weaver**:
+**If system references non-existent kit**:
 ```
-⚠️ Invalid weaver reference: system "MyApp" references weaver "custom-weaver" not in weavers section
-→ Fix: Add weaver to weavers section OR change system.weaver to an existing weaver ID
+⚠️ Invalid kit reference: system "MyApp" references kit "custom-kit" not in kits section
+→ Fix: Add kit to kits section OR change system.kit to an existing kit ID
 ```
 **Action**: FAIL validation for that system, continue with others.
 
@@ -538,9 +538,9 @@ else:
 
 **If template for artifact kind doesn't exist**:
 ```
-⚠️ Template not found: weavers/sdlc/artifacts/PRD/template.md
+⚠️ Template not found: kits/sdlc/artifacts/PRD/template.md
 → Kind "PRD" registered but template missing
-→ Fix: Create template OR use different weaver package
+→ Fix: Create template OR use different kit package
 ```
 **Action**: FAIL validation for that artifact, continue with others.
 
@@ -552,17 +552,17 @@ else:
 {
   "version": "1.0",
   "project_root": "..",
-  "weavers": {
-    "spaider-sdlc": {
-      "format": "Spaider",
-      "path": "weavers/sdlc"
+  "kits": {
+    "cypilot-sdlc": {
+      "format": "Cypilot",
+      "path": "kits/sdlc"
     }
   },
   "systems": [
     {
       "name": "MyApp",
       "slug": "myapp",
-      "weaver": "spaider-sdlc",
+      "kit": "cypilot-sdlc",
       "artifacts_dir": "architecture",
       "artifacts": [
         { "name": "Product Requirements", "path": "architecture/PRD.md", "kind": "PRD", "traceability": "DOCS-ONLY" },
@@ -584,7 +584,7 @@ else:
         {
           "name": "Auth",
           "slug": "auth",
-          "weaver": "spaider-sdlc",
+          "kit": "cypilot-sdlc",
           "artifacts_dir": "modules/auth/architecture",
           "artifacts": [
             { "path": "modules/auth/architecture/PRD.md", "kind": "PRD", "traceability": "DOCS-ONLY" },
@@ -601,7 +601,7 @@ else:
 }
 ```
 
-**Note**: Artifact paths are FULL paths relative to `project_root`. The `artifacts_dir` defines the default base directory for NEW artifacts — subdirectories for specific kinds (`specs/`, `ADR/`) are defined by the weaver.
+**Note**: Artifact paths are FULL paths relative to `project_root`. The `artifacts_dir` defines the default base directory for NEW artifacts — subdirectories for specific kinds (`specs/`, `ADR/`) are defined by the kit.
 
 ---
 
@@ -609,9 +609,9 @@ else:
 
 | Issue | Cause | Fix |
 |-------|-------|-----|
-| "Artifact not in Spaider registry" | Path not registered | Add artifact to system's `artifacts` array |
-| "Could not find template" | Missing template file | Create template at `{weaver.path}/artifacts/{KIND}/template.md` |
-| "Invalid weaver reference" | System references non-existent weaver | Add weaver to `weavers` section or fix `weaver` field |
+| "Artifact not in Cypilot registry" | Path not registered | Add artifact to system's `artifacts` array |
+| "Could not find template" | Missing template file | Create template at `{kit.path}/artifacts/{KIND}/template.md` |
+| "Invalid kit reference" | System references non-existent kit | Add kit to `kits` section or fix `kit` field |
 | "Path is a directory" | Artifact path ends with `/` or has no extension | Change to specific file path |
 
 ---
@@ -620,7 +620,7 @@ else:
 
 **Schema**: `../schemas/artifacts.schema.json`
 
-**CLI**: `skills/spaider/spaider.clispec`
+**CLI**: `skills/cypilot/cypilot.clispec`
 
 **Related**:
 - `adapter-structure.md` - Adapter AGENTS.md requirements
@@ -636,14 +636,14 @@ else:
 
 | # | Check | Required | How to Verify |
 |---|-------|----------|---------------|
-| R.1 | artifacts.json exists at adapter location | YES | File exists at `{spaider_adapter_path}/artifacts.json` |
+| R.1 | artifacts.json exists at adapter location | YES | File exists at `{cypilot_adapter_path}/artifacts.json` |
 | R.2 | JSON parses without errors | YES | `json.loads()` succeeds |
 | R.3 | `version` field present and non-empty | YES | Field exists and is string |
-| R.4 | `weavers` object present with ≥1 weaver | YES | Object with at least one key |
+| R.4 | `kits` object present with ≥1 kit | YES | Object with at least one key |
 | R.5 | `systems` array present | YES | Array (may be empty) |
-| R.6 | Each weaver has `format` and `path` fields | YES | Both fields exist per weaver |
-| R.7 | Each system has `name`, `slug`, and `weaver` fields | YES | All three fields exist per system |
-| R.8 | System `weaver` references exist in `weavers` section | YES | Lookup succeeds |
+| R.6 | Each kit has `format` and `path` fields | YES | Both fields exist per kit |
+| R.7 | Each system has `name`, `slug`, and `kit` fields | YES | All three fields exist per system |
+| R.8 | System `kit` references exist in `kits` section | YES | Lookup succeeds |
 | R.9 | `artifacts_dir` is valid path (if specified) | CONDITIONAL | Non-empty string |
 | R.10 | `slug` matches pattern `^[a-z0-9]+(-[a-z0-9]+)*$` | YES | Lowercase, no spaces, hyphen-separated |
 | R.11 | `slug` is unique among siblings | YES | No duplicate slugs at same level |

@@ -43,10 +43,11 @@ coverage.json
 .claude
 .cursor
 .agents/
-spaider-agents.json
+cypilot-agents.json
 .tmp/
-spaider-flow-layers-2a.drawio.svg
+cypilot-flow-layers-2a.drawio.svg
 .github/prompts/*
 .github/copilot-instructions.md
 /tmp
+Cypilot.code-workspace
 Spaider.code-workspace

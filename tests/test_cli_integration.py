@@ -14,21 +14,21 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from contextlib import redirect_stdout, redirect_stderr
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "spaider" / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "cypilot" / "scripts"))
 
-from spaider.cli import main
+from cypilot.cli import main
 
 
 def _bootstrap_registry(project_root: Path, *, entries: list) -> None:
     (project_root / ".git").mkdir(exist_ok=True)
-    (project_root / ".spaider-config.json").write_text(
-        '{\n  "spaiderAdapterPath": "adapter"\n}\n',
+    (project_root / ".cypilot-config.json").write_text(
+        '{\n  "cypilotAdapterPath": "adapter"\n}\n',
         encoding="utf-8",
     )
     adapter_dir = project_root / "adapter"
     adapter_dir.mkdir(parents=True, exist_ok=True)
     (adapter_dir / "AGENTS.md").write_text(
-        "# Spaider Adapter: Test\n\n**Extends**: `../AGENTS.md`\n",
+        "# Cypilot Adapter: Test\n\n**Extends**: `../AGENTS.md`\n",
         encoding="utf-8",
     )
     (adapter_dir / "artifacts.json").write_text(
@@ -111,8 +111,8 @@ class TestCLIValidateCommand(unittest.TestCase):
             _bootstrap_registry(
                 root,
                 entries=[
-                    {"kind": "SPEC", "system": "Test", "path": "architecture/specs/spec-a/DESIGN.md", "format": "Spaider"},
-                    {"kind": "SPEC", "system": "Test", "path": "architecture/specs/spec-b/DESIGN.md", "format": "Spaider"},
+                    {"kind": "SPEC", "system": "Test", "path": "architecture/specs/spec-a/DESIGN.md", "format": "Cypilot"},
+                    {"kind": "SPEC", "system": "Test", "path": "architecture/specs/spec-b/DESIGN.md", "format": "Cypilot"},
                     {"kind": "SRC", "system": "Test", "path": "src", "format": "CONTEXT", "traceability_enabled": True, "extensions": [".py"]},
                 ],
             )
@@ -137,7 +137,7 @@ class TestCLIValidateCommand(unittest.TestCase):
             _bootstrap_registry(
                 root,
                 entries=[
-                    {"kind": "SPEC", "system": "Test", "path": "architecture/specs/spec-x/DESIGN.md", "format": "Spaider"},
+                    {"kind": "SPEC", "system": "Test", "path": "architecture/specs/spec-x/DESIGN.md", "format": "Cypilot"},
                 ],
             )
 
@@ -155,14 +155,14 @@ class TestCLIInitCommand(unittest.TestCase):
             project = Path(tmpdir) / "project"
             project.mkdir()
 
-            spaider_core = project / "Spaider"
-            spaider_core.mkdir()
-            (spaider_core / "AGENTS.md").write_text("# Spaider Core\n", encoding="utf-8")
-            (spaider_core / "requirements").mkdir()
-            (spaider_core / "workflows").mkdir()
-            (spaider_core / "skills" / "spaider").mkdir(parents=True)
-            (spaider_core / "skills" / "spaider" / "SKILL.md").write_text(
-                "---\nname: spaider\ndescription: Spaider skill\n---\n# Spaider\n",
+            cypilot_core = project / "Cypilot"
+            cypilot_core.mkdir()
+            (cypilot_core / "AGENTS.md").write_text("# Cypilot Core\n", encoding="utf-8")
+            (cypilot_core / "requirements").mkdir()
+            (cypilot_core / "workflows").mkdir()
+            (cypilot_core / "skills" / "cypilot").mkdir(parents=True)
+            (cypilot_core / "skills" / "cypilot" / "SKILL.md").write_text(
+                "---\nname: cypilot\ndescription: Cypilot skill\n---\n# Cypilot\n",
                 encoding="utf-8",
             )
 
@@ -172,15 +172,15 @@ class TestCLIInitCommand(unittest.TestCase):
                     "init",
                     "--project-root",
                     str(project),
-                    "--spaider-root",
-                    str(spaider_core),
+                    "--cypilot-root",
+                    str(cypilot_core),
                     "--yes",
                 ])
             self.assertEqual(exit_code, 0)
             out = json.loads(stdout.getvalue())
             self.assertEqual(out.get("status"), "PASS")
-            self.assertTrue((project / ".spaider-config.json").exists())
-            self.assertTrue((project / ".spaider-adapter" / "AGENTS.md").exists())
+            self.assertTrue((project / ".cypilot-config.json").exists())
+            self.assertTrue((project / ".cypilot-adapter" / "AGENTS.md").exists())
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
@@ -190,8 +190,8 @@ class TestCLIInitCommand(unittest.TestCase):
                     "windsurf",
                     "--root",
                     str(project),
-                    "--spaider-root",
-                    str(spaider_core),
+                    "--cypilot-root",
+                    str(cypilot_core),
                     "--dry-run",
                 ])
             self.assertEqual(exit_code, 0)
@@ -205,8 +205,8 @@ class TestCLIInitCommand(unittest.TestCase):
                     "--openai",
                     "--root",
                     str(project),
-                    "--spaider-root",
-                    str(spaider_core),
+                    "--cypilot-root",
+                    str(cypilot_core),
                     "--dry-run",
                 ])
             self.assertEqual(exit_code, 0)
@@ -218,11 +218,11 @@ class TestCLIInitCommand(unittest.TestCase):
             project = Path(tmpdir) / "project"
             project.mkdir()
 
-            spaider_core = project / "Spaider"
-            spaider_core.mkdir()
-            (spaider_core / "AGENTS.md").write_text("# Spaider Core\n", encoding="utf-8")
-            (spaider_core / "requirements").mkdir()
-            (spaider_core / "workflows").mkdir()
+            cypilot_core = project / "Cypilot"
+            cypilot_core.mkdir()
+            (cypilot_core / "AGENTS.md").write_text("# Cypilot Core\n", encoding="utf-8")
+            (cypilot_core / "requirements").mkdir()
+            (cypilot_core / "workflows").mkdir()
 
             orig_cwd = os.getcwd()
             try:
@@ -230,12 +230,12 @@ class TestCLIInitCommand(unittest.TestCase):
                 with unittest.mock.patch("builtins.input", side_effect=["", ""]):
                     stdout = io.StringIO()
                     with redirect_stdout(stdout), redirect_stderr(io.StringIO()):
-                        exit_code = main(["init", "--spaider-root", str(spaider_core)])
+                        exit_code = main(["init", "--cypilot-root", str(cypilot_core)])
                 self.assertEqual(exit_code, 0)
                 out = json.loads(stdout.getvalue())
                 self.assertEqual(out.get("status"), "PASS")
-                self.assertTrue((project / ".spaider-config.json").exists())
-                self.assertTrue((project / ".spaider-adapter" / "AGENTS.md").exists())
+                self.assertTrue((project / ".cypilot-config.json").exists())
+                self.assertTrue((project / ".cypilot-adapter" / "AGENTS.md").exists())
             finally:
                 os.chdir(orig_cwd)
 
@@ -243,21 +243,21 @@ class TestCLIInitCommand(unittest.TestCase):
 class TestCLIAgentsCommand(unittest.TestCase):
     """Test agents command for workflow and skill proxy generation."""
 
-    def _write_minimal_spaider_skill(self, root: Path) -> None:
-        (root / "skills" / "spaider").mkdir(parents=True, exist_ok=True)
-        (root / "skills" / "spaider" / "SKILL.md").write_text(
-            "---\nname: spaider\ndescription: Spaider skill for testing\n---\n# Spaider\n",
+    def _write_minimal_cypilot_skill(self, root: Path) -> None:
+        (root / "skills" / "cypilot").mkdir(parents=True, exist_ok=True)
+        (root / "skills" / "cypilot" / "SKILL.md").write_text(
+            "---\nname: cypilot\ndescription: Cypilot skill for testing\n---\n# Cypilot\n",
             encoding="utf-8",
         )
 
     def _write_workflows_with_frontmatter(self, root: Path) -> None:
         (root / "workflows").mkdir(parents=True, exist_ok=True)
         (root / "workflows" / "generate.md").write_text(
-            "---\nspaider: true\ntype: workflow\nname: spaider-generate\ndescription: Generate Spaider artifacts\n---\n# Generate\n",
+            "---\ncypilot: true\ntype: workflow\nname: cypilot-generate\ndescription: Generate Cypilot artifacts\n---\n# Generate\n",
             encoding="utf-8",
         )
         (root / "workflows" / "analyze.md").write_text(
-            "---\nspaider: true\ntype: workflow\nname: spaider-analyze\ndescription: Analyze Spaider artifacts\n---\n# Analyze\n",
+            "---\ncypilot: true\ntype: workflow\nname: cypilot-analyze\ndescription: Analyze Cypilot artifacts\n---\n# Analyze\n",
             encoding="utf-8",
         )
 
@@ -282,12 +282,12 @@ class TestCLIAgentsCommand(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            self._write_minimal_spaider_skill(root)
+            self._write_minimal_cypilot_skill(root)
             self._write_workflows_with_frontmatter(root)
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["agents", "--agent", "windsurf", "--root", str(root), "--spaider-root", str(root)])
+                exit_code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root)])
             self.assertEqual(exit_code, 0)
 
             out = json.loads(stdout.getvalue())
@@ -299,12 +299,12 @@ class TestCLIAgentsCommand(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            self._write_minimal_spaider_skill(root)
+            self._write_minimal_cypilot_skill(root)
             self._write_workflows_with_frontmatter(root)
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["agents", "--agent", "windsurf", "--root", str(root), "--spaider-root", str(root), "--dry-run"])
+                exit_code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root), "--dry-run"])
             self.assertEqual(exit_code, 0)
 
             out = json.loads(stdout.getvalue())
@@ -317,15 +317,15 @@ class TestCLIAgentsCommand(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            self._write_minimal_spaider_skill(root)
+            self._write_minimal_cypilot_skill(root)
             self._write_workflows_with_frontmatter(root)
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["agents", "--agent", "mystery-agent", "--root", str(root), "--spaider-root", str(root)])
+                exit_code = main(["agents", "--agent", "mystery-agent", "--root", str(root), "--cypilot-root", str(root)])
             self.assertEqual(exit_code, 0)
 
-            cfg_path = root / "spaider-agents.json"
+            cfg_path = root / "cypilot-agents.json"
             self.assertTrue(cfg_path.exists())
             cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
             self.assertIn("mystery-agent", cfg.get("agents", {}))
@@ -335,7 +335,7 @@ class TestCLIAgentsCommand(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            (root / "spaider-agents.json").write_text(
+            (root / "cypilot-agents.json").write_text(
                 json.dumps({"version": 1, "agents": "bad"}, indent=2) + "\n",
                 encoding="utf-8",
             )
@@ -351,9 +351,9 @@ class TestCLIAgentsCommand(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            self._write_minimal_spaider_skill(root)
+            self._write_minimal_cypilot_skill(root)
             self._write_workflows_with_frontmatter(root)
-            (root / "spaider-agents.json").write_text(
+            (root / "cypilot-agents.json").write_text(
                 json.dumps({
                     "version": 1,
                     "agents": {
@@ -367,7 +367,7 @@ class TestCLIAgentsCommand(unittest.TestCase):
             )
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--spaider-root", str(root)])
+                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root)])
             # Should return partial status due to workflow error
             out = json.loads(stdout.getvalue())
             self.assertIn("Missing workflow_dir", str(out.get("errors", [])))
@@ -377,9 +377,9 @@ class TestCLIAgentsCommand(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            self._write_minimal_spaider_skill(root)
+            self._write_minimal_cypilot_skill(root)
             self._write_workflows_with_frontmatter(root)
-            (root / "spaider-agents.json").write_text(
+            (root / "cypilot-agents.json").write_text(
                 json.dumps({
                     "version": 1,
                     "agents": {
@@ -396,7 +396,7 @@ class TestCLIAgentsCommand(unittest.TestCase):
             )
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--spaider-root", str(root)])
+                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root)])
             out = json.loads(stdout.getvalue())
             self.assertIn("Missing or invalid template", str(out.get("errors", [])))
 
@@ -405,9 +405,9 @@ class TestCLIAgentsCommand(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            self._write_minimal_spaider_skill(root)
+            self._write_minimal_cypilot_skill(root)
             self._write_workflows_with_frontmatter(root)
-            (root / "spaider-agents.json").write_text(
+            (root / "cypilot-agents.json").write_text(
                 json.dumps({
                     "version": 1,
                     "agents": {
@@ -421,7 +421,7 @@ class TestCLIAgentsCommand(unittest.TestCase):
             )
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--spaider-root", str(root)])
+                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root)])
             out = json.loads(stdout.getvalue())
             self.assertIn("outputs must be an array", str(out.get("errors", [])))
 
@@ -430,8 +430,8 @@ class TestCLIAgentsCommand(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            self._write_minimal_spaider_skill(root)
-            (root / "spaider-agents.json").write_text(
+            self._write_minimal_cypilot_skill(root)
+            (root / "cypilot-agents.json").write_text(
                 json.dumps({
                     "version": 1,
                     "agents": {
@@ -447,7 +447,7 @@ class TestCLIAgentsCommand(unittest.TestCase):
             )
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--spaider-root", str(root)])
+                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root)])
             out = json.loads(stdout.getvalue())
             self.assertIn("missing path", str(out.get("errors", [])))
 
@@ -456,8 +456,8 @@ class TestCLIAgentsCommand(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            self._write_minimal_spaider_skill(root)
-            (root / "spaider-agents.json").write_text(
+            self._write_minimal_cypilot_skill(root)
+            (root / "cypilot-agents.json").write_text(
                 json.dumps({
                     "version": 1,
                     "agents": {
@@ -473,7 +473,7 @@ class TestCLIAgentsCommand(unittest.TestCase):
             )
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--spaider-root", str(root)])
+                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root)])
             out = json.loads(stdout.getvalue())
             self.assertIn("invalid template", str(out.get("errors", [])))
 
@@ -482,13 +482,13 @@ class TestCLIAgentsCommand(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            self._write_minimal_spaider_skill(root)
+            self._write_minimal_cypilot_skill(root)
             self._write_workflows_with_frontmatter(root)
 
             # First run - create files
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                main(["agents", "--agent", "windsurf", "--root", str(root), "--spaider-root", str(root)])
+                main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root)])
 
             # Modify a file to trigger update
             wf_dir = root / ".windsurf" / "workflows"
@@ -500,7 +500,7 @@ class TestCLIAgentsCommand(unittest.TestCase):
             # Second run - should update
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["agents", "--agent", "windsurf", "--root", str(root), "--spaider-root", str(root)])
+                exit_code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root)])
             self.assertEqual(exit_code, 0)
             out = json.loads(stdout.getvalue())
             # Should have some updated files
@@ -512,11 +512,11 @@ class TestCLIAgentsCommand(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            self._write_minimal_spaider_skill(root)
+            self._write_minimal_cypilot_skill(root)
             self._write_workflows_with_frontmatter(root)
 
             # Create config with only cursor
-            cfg_path = root / "spaider-agents.json"
+            cfg_path = root / "cypilot-agents.json"
             cfg_path.write_text(
                 json.dumps({
                     "version": 1,
@@ -529,7 +529,7 @@ class TestCLIAgentsCommand(unittest.TestCase):
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--spaider-root", str(root)])
+                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root)])
             self.assertEqual(code, 0)
 
             cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
@@ -542,9 +542,9 @@ class TestCLIAgentsCommand(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            self._write_minimal_spaider_skill(root)
+            self._write_minimal_cypilot_skill(root)
 
-            (root / "spaider-agents.json").write_text(
+            (root / "cypilot-agents.json").write_text(
                 json.dumps({
                     "version": 1,
                     "agents": {
@@ -564,7 +564,7 @@ class TestCLIAgentsCommand(unittest.TestCase):
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["agents", "--agent", "test", "--root", str(root), "--spaider-root", str(root)])
+                exit_code = main(["agents", "--agent", "test", "--root", str(root), "--cypilot-root", str(root)])
             self.assertEqual(exit_code, 0)
 
             out = json.loads(stdout.getvalue())
@@ -574,14 +574,14 @@ class TestCLIAgentsCommand(unittest.TestCase):
             skill_file = root / ".test" / "skill.md"
             self.assertTrue(skill_file.exists())
             content = skill_file.read_text(encoding="utf-8")
-            self.assertIn("# spaider", content)
+            self.assertIn("# cypilot", content)
 
             # Modify file and run again to test update
             skill_file.write_text("# Modified\n", encoding="utf-8")
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["agents", "--agent", "test", "--root", str(root), "--spaider-root", str(root)])
+                exit_code = main(["agents", "--agent", "test", "--root", str(root), "--cypilot-root", str(root)])
             self.assertEqual(exit_code, 0)
 
             out = json.loads(stdout.getvalue())
@@ -593,7 +593,7 @@ class TestCLIParseFrontmatter(unittest.TestCase):
 
     def test_parse_frontmatter_valid(self):
         """Test parsing valid frontmatter."""
-        from spaider.cli import _parse_frontmatter
+        from cypilot.cli import _parse_frontmatter
 
         with TemporaryDirectory() as tmpdir:
             f = Path(tmpdir) / "test.md"
@@ -605,7 +605,7 @@ class TestCLIParseFrontmatter(unittest.TestCase):
 
     def test_parse_frontmatter_no_frontmatter(self):
         """Test parsing file without frontmatter."""
-        from spaider.cli import _parse_frontmatter
+        from cypilot.cli import _parse_frontmatter
 
         with TemporaryDirectory() as tmpdir:
             f = Path(tmpdir) / "test.md"
@@ -616,7 +616,7 @@ class TestCLIParseFrontmatter(unittest.TestCase):
 
     def test_parse_frontmatter_unclosed(self):
         """Test parsing file with unclosed frontmatter."""
-        from spaider.cli import _parse_frontmatter
+        from cypilot.cli import _parse_frontmatter
 
         with TemporaryDirectory() as tmpdir:
             f = Path(tmpdir) / "test.md"
@@ -627,14 +627,14 @@ class TestCLIParseFrontmatter(unittest.TestCase):
 
     def test_parse_frontmatter_file_not_found(self):
         """Test parsing non-existent file."""
-        from spaider.cli import _parse_frontmatter
+        from cypilot.cli import _parse_frontmatter
 
         result = _parse_frontmatter(Path("/tmp/does-not-exist-abc123.md"))
         self.assertEqual(result, {})
 
     def test_parse_frontmatter_empty_values_skipped(self):
         """Test that empty values are skipped."""
-        from spaider.cli import _parse_frontmatter
+        from cypilot.cli import _parse_frontmatter
 
         with TemporaryDirectory() as tmpdir:
             f = Path(tmpdir) / "test.md"
@@ -648,41 +648,41 @@ class TestCLIParseFrontmatter(unittest.TestCase):
 class TestCLIAgentsEdgeCases(unittest.TestCase):
     """Test agents command edge cases for better coverage."""
 
-    def _write_minimal_spaider_skill(self, root: Path) -> None:
-        (root / "skills" / "spaider").mkdir(parents=True, exist_ok=True)
-        (root / "skills" / "spaider" / "SKILL.md").write_text(
-            "---\nname: spaider\ndescription: Spaider skill\n---\n# Spaider\n",
+    def _write_minimal_cypilot_skill(self, root: Path) -> None:
+        (root / "skills" / "cypilot").mkdir(parents=True, exist_ok=True)
+        (root / "skills" / "cypilot" / "SKILL.md").write_text(
+            "---\nname: cypilot\ndescription: Cypilot skill\n---\n# Cypilot\n",
             encoding="utf-8",
         )
 
     def _write_workflows_with_frontmatter(self, root: Path) -> None:
         (root / "workflows").mkdir(parents=True, exist_ok=True)
         (root / "workflows" / "generate.md").write_text(
-            "---\nspaider: true\ntype: workflow\nname: spaider-generate\ndescription: Generate\n---\n# Generate\n",
+            "---\ncypilot: true\ntype: workflow\nname: cypilot-generate\ndescription: Generate\n---\n# Generate\n",
             encoding="utf-8",
         )
 
     def test_agents_renames_misnamed_proxy(self):
         """Test agents command renames misnamed proxy files."""
-        from spaider import cli as spaider_cli
+        from cypilot import cli as cypilot_cli
 
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            self._write_minimal_spaider_skill(root)
+            self._write_minimal_cypilot_skill(root)
             self._write_workflows_with_frontmatter(root)
 
             wf_dir = root / ".windsurf" / "workflows"
             wf_dir.mkdir(parents=True)
 
             # Create misnamed proxy file (wrong filename but correct target)
-            target_rel = spaider_cli._safe_relpath(root / "workflows" / "generate.md", root)
+            target_rel = cypilot_cli._safe_relpath(root / "workflows" / "generate.md", root)
             misnamed = wf_dir / "old-name.md"
-            misnamed.write_text(f"# /spaider-generate\n\nALWAYS open and follow `{target_rel}`\n", encoding="utf-8")
+            misnamed.write_text(f"# /cypilot-generate\n\nALWAYS open and follow `{target_rel}`\n", encoding="utf-8")
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["agents", "--agent", "windsurf", "--root", str(root), "--spaider-root", str(root)])
+                exit_code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root)])
             self.assertEqual(exit_code, 0)
 
             out = json.loads(stdout.getvalue())
@@ -695,19 +695,19 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            self._write_minimal_spaider_skill(root)
+            self._write_minimal_cypilot_skill(root)
             self._write_workflows_with_frontmatter(root)
 
             wf_dir = root / ".windsurf" / "workflows"
             wf_dir.mkdir(parents=True)
 
             # Create stale proxy pointing to non-existent workflow
-            stale = wf_dir / "spaider-stale.md"
-            stale.write_text(f"# /spaider-stale\n\nALWAYS open and follow `{root}/workflows/does-not-exist.md`\n", encoding="utf-8")
+            stale = wf_dir / "cypilot-stale.md"
+            stale.write_text(f"# /cypilot-stale\n\nALWAYS open and follow `{root}/workflows/does-not-exist.md`\n", encoding="utf-8")
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["agents", "--agent", "windsurf", "--root", str(root), "--spaider-root", str(root)])
+                exit_code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root)])
             self.assertEqual(exit_code, 0)
 
             out = json.loads(stdout.getvalue())
@@ -719,14 +719,14 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            self._write_minimal_spaider_skill(root)
+            self._write_minimal_cypilot_skill(root)
             self._write_workflows_with_frontmatter(root)
 
             wf_dir = root / ".windsurf" / "workflows"
             wf_dir.mkdir(parents=True)
 
             # Create a proxy file
-            proxy = wf_dir / "spaider-generate.md"
+            proxy = wf_dir / "cypilot-generate.md"
             proxy.write_text("# existing\n", encoding="utf-8")
 
             orig = Path.read_text
@@ -739,7 +739,7 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
             with unittest.mock.patch.object(Path, "read_text", _rt):
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    code = main(["agents", "--agent", "windsurf", "--root", str(root), "--spaider-root", str(root)])
+                    code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root)])
             self.assertEqual(code, 0)
 
     def test_agents_skills_read_error_on_output(self):
@@ -747,13 +747,13 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            self._write_minimal_spaider_skill(root)
+            self._write_minimal_cypilot_skill(root)
 
             skill_out = root / ".test" / "skill.md"
             skill_out.parent.mkdir(parents=True)
             skill_out.write_text("# existing\n", encoding="utf-8")
 
-            (root / "spaider-agents.json").write_text(
+            (root / "cypilot-agents.json").write_text(
                 json.dumps({
                     "version": 1,
                     "agents": {
@@ -781,7 +781,7 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
             with unittest.mock.patch.object(Path, "read_text", _rt):
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    code = main(["agents", "--agent", "test", "--root", str(root), "--spaider-root", str(root)])
+                    code = main(["agents", "--agent", "test", "--root", str(root), "--cypilot-root", str(root)])
             self.assertEqual(code, 0)
 
     def test_agents_delete_stale_unlink_error(self):
@@ -789,15 +789,15 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            self._write_minimal_spaider_skill(root)
+            self._write_minimal_cypilot_skill(root)
             self._write_workflows_with_frontmatter(root)
 
             wf_dir = root / ".windsurf" / "workflows"
             wf_dir.mkdir(parents=True)
 
             # Create stale proxy
-            stale = wf_dir / "spaider-stale.md"
-            stale.write_text(f"# /spaider-stale\n\nALWAYS open and follow `{root}/workflows/does-not-exist.md`\n", encoding="utf-8")
+            stale = wf_dir / "cypilot-stale.md"
+            stale.write_text(f"# /cypilot-stale\n\nALWAYS open and follow `{root}/workflows/does-not-exist.md`\n", encoding="utf-8")
 
             orig_unlink = Path.unlink
 
@@ -809,7 +809,7 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
             with unittest.mock.patch.object(Path, "unlink", _unlink):
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    code = main(["agents", "--agent", "windsurf", "--root", str(root), "--spaider-root", str(root)])
+                    code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root)])
             # Should still succeed (error is silently ignored)
             self.assertEqual(code, 0)
 
@@ -818,7 +818,7 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            self._write_minimal_spaider_skill(root)
+            self._write_minimal_cypilot_skill(root)
             self._write_workflows_with_frontmatter(root)
 
             wf_dir = root / ".windsurf" / "workflows"
@@ -841,7 +841,7 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
             with unittest.mock.patch.object(Path, "read_text", _rt):
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    code = main(["agents", "--agent", "windsurf", "--root", str(root), "--spaider-root", str(root)])
+                    code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root)])
             self.assertEqual(code, 0)
 
     def test_agents_rename_skip_non_proxy_files(self):
@@ -849,7 +849,7 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            self._write_minimal_spaider_skill(root)
+            self._write_minimal_cypilot_skill(root)
             self._write_workflows_with_frontmatter(root)
 
             wf_dir = root / ".windsurf" / "workflows"
@@ -869,34 +869,34 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--spaider-root", str(root)])
+                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root)])
             self.assertEqual(code, 0)
 
     def test_agents_rename_conflict_skips(self):
         """Test agents command skips rename when destination already exists."""
-        from spaider import cli as spaider_cli
+        from cypilot import cli as cypilot_cli
 
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            self._write_minimal_spaider_skill(root)
+            self._write_minimal_cypilot_skill(root)
             self._write_workflows_with_frontmatter(root)
 
             wf_dir = root / ".windsurf" / "workflows"
             wf_dir.mkdir(parents=True)
 
             # Create misnamed proxy
-            target_rel = spaider_cli._safe_relpath(root / "workflows" / "generate.md", root)
+            target_rel = cypilot_cli._safe_relpath(root / "workflows" / "generate.md", root)
             misnamed = wf_dir / "old-name.md"
-            misnamed.write_text(f"# /spaider-generate\n\nALWAYS open and follow `{target_rel}`\n", encoding="utf-8")
+            misnamed.write_text(f"# /cypilot-generate\n\nALWAYS open and follow `{target_rel}`\n", encoding="utf-8")
 
             # Also create the destination file (conflict)
-            dst = wf_dir / "spaider-generate.md"
+            dst = wf_dir / "cypilot-generate.md"
             dst.write_text("preexisting content\n", encoding="utf-8")
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--spaider-root", str(root)])
+                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root)])
             self.assertEqual(code, 0)
 
             # Both files should still exist (no rename due to conflict)
@@ -908,42 +908,42 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            self._write_minimal_spaider_skill(root)
+            self._write_minimal_cypilot_skill(root)
             self._write_workflows_with_frontmatter(root)
 
             wf_dir = root / ".windsurf" / "workflows"
             wf_dir.mkdir(parents=True)
 
             # Proxy pointing to non-workflow path (not in workflows/ dir)
-            non_wf = wf_dir / "spaider-other.md"
-            non_wf.write_text("# /spaider-other\n\nALWAYS open and follow `some/other/path.md`\n", encoding="utf-8")
+            non_wf = wf_dir / "cypilot-other.md"
+            non_wf.write_text("# /cypilot-other\n\nALWAYS open and follow `some/other/path.md`\n", encoding="utf-8")
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--spaider-root", str(root)])
+                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root)])
             self.assertEqual(code, 0)
 
             # File should not be deleted (not a workflow proxy)
             self.assertTrue(non_wf.exists())
 
-    def test_agents_delete_stale_skips_non_spaider_workflow(self):
-        """Test agents command skips deletion for proxies pointing outside spaider_root."""
+    def test_agents_delete_stale_skips_non_cypilot_workflow(self):
+        """Test agents command skips deletion for proxies pointing outside cypilot_root."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            self._write_minimal_spaider_skill(root)
+            self._write_minimal_cypilot_skill(root)
             self._write_workflows_with_frontmatter(root)
 
             wf_dir = root / ".windsurf" / "workflows"
             wf_dir.mkdir(parents=True)
 
-            # Proxy pointing to workflow outside spaider_root
-            outside = wf_dir / "spaider-outside.md"
-            outside.write_text("# /spaider-outside\n\nALWAYS open and follow `/other/workflows/x.md`\n", encoding="utf-8")
+            # Proxy pointing to workflow outside cypilot_root
+            outside = wf_dir / "cypilot-outside.md"
+            outside.write_text("# /cypilot-outside\n\nALWAYS open and follow `/other/workflows/x.md`\n", encoding="utf-8")
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--spaider-root", str(root)])
+                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root)])
             self.assertEqual(code, 0)
 
     def test_agents_delete_stale_read_error(self):
@@ -951,14 +951,14 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            self._write_minimal_spaider_skill(root)
+            self._write_minimal_cypilot_skill(root)
             self._write_workflows_with_frontmatter(root)
 
             wf_dir = root / ".windsurf" / "workflows"
             wf_dir.mkdir(parents=True)
 
             # Create a stale-looking file
-            stale = wf_dir / "spaider-stale.md"
+            stale = wf_dir / "cypilot-stale.md"
             stale.write_text("# stale\n", encoding="utf-8")
 
             orig = Path.read_text
@@ -975,7 +975,7 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
             with unittest.mock.patch.object(Path, "read_text", _rt):
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    code = main(["agents", "--agent", "windsurf", "--root", str(root), "--spaider-root", str(root)])
+                    code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root)])
             self.assertEqual(code, 0)
 
     def test_agents_delete_stale_no_regex_match(self):
@@ -983,19 +983,19 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            self._write_minimal_spaider_skill(root)
+            self._write_minimal_cypilot_skill(root)
             self._write_workflows_with_frontmatter(root)
 
             wf_dir = root / ".windsurf" / "workflows"
             wf_dir.mkdir(parents=True)
 
             # Create file with ALWAYS but malformed (no backtick)
-            malformed = wf_dir / "spaider-malformed.md"
-            malformed.write_text("# /spaider-malformed\n\nALWAYS open and follow something\n", encoding="utf-8")
+            malformed = wf_dir / "cypilot-malformed.md"
+            malformed.write_text("# /cypilot-malformed\n\nALWAYS open and follow something\n", encoding="utf-8")
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--spaider-root", str(root)])
+                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root)])
             self.assertEqual(code, 0)
 
     def test_agents_unrecognized_agent_added_to_existing_config(self):
@@ -1003,11 +1003,11 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            self._write_minimal_spaider_skill(root)
+            self._write_minimal_cypilot_skill(root)
             self._write_workflows_with_frontmatter(root)
 
             # Create config with only cursor
-            cfg_path = root / "spaider-agents.json"
+            cfg_path = root / "cypilot-agents.json"
             cfg_path.write_text(
                 json.dumps({
                     "version": 1,
@@ -1020,7 +1020,7 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                code = main(["agents", "--agent", "new-mystery-agent", "--root", str(root), "--spaider-root", str(root)])
+                code = main(["agents", "--agent", "new-mystery-agent", "--root", str(root), "--cypilot-root", str(root)])
             self.assertEqual(code, 0)
 
             cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
@@ -1030,21 +1030,21 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
 
     def test_agents_rename_scan_second_read_error(self):
         """Test agents command handles second read error during rename scan."""
-        from spaider import cli as spaider_cli
+        from cypilot import cli as cypilot_cli
 
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            self._write_minimal_spaider_skill(root)
+            self._write_minimal_cypilot_skill(root)
             self._write_workflows_with_frontmatter(root)
 
             wf_dir = root / ".windsurf" / "workflows"
             wf_dir.mkdir(parents=True)
 
             # Create misnamed proxy file
-            target_rel = spaider_cli._safe_relpath(root / "workflows" / "generate.md", root)
+            target_rel = cypilot_cli._safe_relpath(root / "workflows" / "generate.md", root)
             misnamed = wf_dir / "old.md"
-            misnamed.write_text(f"# /spaider-generate\n\nALWAYS open and follow `{target_rel}`\n", encoding="utf-8")
+            misnamed.write_text(f"# /cypilot-generate\n\nALWAYS open and follow `{target_rel}`\n", encoding="utf-8")
 
             orig = Path.read_text
             call_count = [0]
@@ -1060,7 +1060,7 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
             with unittest.mock.patch.object(Path, "read_text", _rt):
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    code = main(["agents", "--agent", "windsurf", "--root", str(root), "--spaider-root", str(root)])
+                    code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root)])
             self.assertEqual(code, 0)
 
 
@@ -1081,7 +1081,7 @@ class TestCLISearchCommands(unittest.TestCase):
             doc.write_text("# Doc\n\n## A. A\n\nX\n", encoding="utf-8")
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["get-content", "--artifact", str(doc), "--id", "spd-test-id"])
+                exit_code = main(["get-content", "--artifact", str(doc), "--id", "cpt-test-id"])
             self.assertEqual(exit_code, 1)
             out = json.loads(stdout.getvalue())
             self.assertEqual(out.get("status"), "ERROR")
@@ -1090,7 +1090,7 @@ class TestCLISearchCommands(unittest.TestCase):
         """Cover ERROR for get-content when artifact file not found."""
         stdout = io.StringIO()
         with redirect_stdout(stdout):
-            exit_code = main(["get-content", "--artifact", "/tmp/does-not-exist.md", "--id", "spd-test-id"])
+            exit_code = main(["get-content", "--artifact", "/tmp/does-not-exist.md", "--id", "cpt-test-id"])
         self.assertEqual(exit_code, 1)
         out = json.loads(stdout.getvalue())
         self.assertEqual(out.get("status"), "ERROR")
@@ -1114,7 +1114,7 @@ class TestCLITraceabilityCommands(unittest.TestCase):
                         "# Design",
                         "## A. x",
                         "## B. Requirements",
-                        "- [ ] **ID**: `spd-test-req-auth`",
+                        "- [ ] **ID**: `cpt-test-req-auth`",
                     ]
                 )
                 + "\n",
@@ -1124,13 +1124,13 @@ class TestCLITraceabilityCommands(unittest.TestCase):
             _bootstrap_registry(
                 root,
                 entries=[
-                    {"kind": "DESIGN", "system": "Test", "path": "architecture/DESIGN.md", "format": "Spaider", "traceability_enabled": True},
+                    {"kind": "DESIGN", "system": "Test", "path": "architecture/DESIGN.md", "format": "Cypilot", "traceability_enabled": True},
                 ],
             )
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["where-defined", "--id", "spd-test-req-auth"])
+                exit_code = main(["where-defined", "--id", "cpt-test-req-auth"])
             self.assertIn(exit_code, (0, 1, 2))
 
     def test_where_used_basic(self):
@@ -1148,8 +1148,8 @@ class TestCLITraceabilityCommands(unittest.TestCase):
                         "# Design",
                         "## A. x",
                         "## B. Requirements",
-                        "**ID**: `spd-test-req-auth`",
-                        "Uses: `spd-test-req-auth`",
+                        "**ID**: `cpt-test-req-auth`",
+                        "Uses: `cpt-test-req-auth`",
                     ]
                 )
                 + "\n",
@@ -1159,40 +1159,40 @@ class TestCLITraceabilityCommands(unittest.TestCase):
             _bootstrap_registry(
                 root,
                 entries=[
-                    {"kind": "DESIGN", "system": "Test", "path": "architecture/DESIGN.md", "format": "Spaider", "traceability_enabled": True},
+                    {"kind": "DESIGN", "system": "Test", "path": "architecture/DESIGN.md", "format": "Cypilot", "traceability_enabled": True},
                 ],
             )
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["where-used", "--id", "spd-test-req-auth"])
+                exit_code = main(["where-used", "--id", "cpt-test-req-auth"])
             self.assertIn(exit_code, (0, 1))
 
 
 class TestCLICoreHelpers(unittest.TestCase):
     def test_safe_relpath_from_dir_relpath_exception_returns_abs(self):
-        from spaider import cli as spaider_cli
+        from cypilot import cli as cypilot_cli
 
         target = Path("/tmp/x")
-        with unittest.mock.patch.object(spaider_cli.os.path, "relpath", side_effect=Exception("boom")):
-            out = spaider_cli._safe_relpath_from_dir(target, Path("/tmp"))
+        with unittest.mock.patch.object(cypilot_cli.os.path, "relpath", side_effect=Exception("boom")):
+            out = cypilot_cli._safe_relpath_from_dir(target, Path("/tmp"))
         self.assertEqual(out, target.as_posix())
 
     def test_render_template_missing_variable_raises_system_exit(self):
-        from spaider import cli as spaider_cli
+        from cypilot import cli as cypilot_cli
 
         with self.assertRaises(SystemExit):
-            spaider_cli._render_template(["{missing}"], {})
+            cypilot_cli._render_template(["{missing}"], {})
 
     def test_list_workflow_files_missing_dir_returns_empty(self):
-        from spaider import cli as spaider_cli
+        from cypilot import cli as cypilot_cli
 
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            self.assertEqual(spaider_cli._list_workflow_files(root), [])
+            self.assertEqual(cypilot_cli._list_workflow_files(root), [])
 
     def test_list_workflow_files_filters_and_handles_read_error(self):
-        from spaider import cli as spaider_cli
+        from cypilot import cli as cypilot_cli
 
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
@@ -1216,11 +1216,11 @@ class TestCLICoreHelpers(unittest.TestCase):
                 return orig(self, *a, **k)
 
             with unittest.mock.patch.object(Path, "read_text", _rt):
-                out = spaider_cli._list_workflow_files(root)
+                out = cypilot_cli._list_workflow_files(root)
             self.assertEqual(out, ["ok.md"])
 
     def test_list_workflow_files_iterdir_error_returns_empty(self):
-        from spaider import cli as spaider_cli
+        from cypilot import cli as cypilot_cli
 
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
@@ -1235,30 +1235,30 @@ class TestCLICoreHelpers(unittest.TestCase):
                 return orig(self)
 
             with unittest.mock.patch.object(Path, "iterdir", _it):
-                self.assertEqual(spaider_cli._list_workflow_files(root), [])
+                self.assertEqual(cypilot_cli._list_workflow_files(root), [])
 
     def test_resolve_user_path_relative_uses_base(self):
-        from spaider import cli as spaider_cli
+        from cypilot import cli as cypilot_cli
 
         with TemporaryDirectory() as tmpdir:
             base = Path(tmpdir)
-            out = spaider_cli._resolve_user_path("foo", base)
+            out = cypilot_cli._resolve_user_path("foo", base)
             self.assertEqual(out, (base / "foo").resolve())
 
     def test_prompt_path_returns_user_input_over_default(self):
-        from spaider import cli as spaider_cli
+        from cypilot import cli as cypilot_cli
 
         with unittest.mock.patch("builtins.input", return_value="abc"):
-            out = spaider_cli._prompt_path("Q?", "def")
+            out = cypilot_cli._prompt_path("Q?", "def")
         self.assertEqual(out, "abc")
 
     def test_load_json_file_invalid_json_returns_none(self):
-        from spaider import cli as spaider_cli
+        from cypilot import cli as cypilot_cli
 
         with TemporaryDirectory() as tmpdir:
             p = Path(tmpdir) / "x.json"
             p.write_text("{not-json}", encoding="utf-8")
-            self.assertIsNone(spaider_cli._load_json_file(p))
+            self.assertIsNone(cypilot_cli._load_json_file(p))
 
 
 class TestCLIErrorHandling(unittest.TestCase):
@@ -1330,11 +1330,11 @@ class TestCLIAdapterInfo(unittest.TestCase):
         self.assertIn("status", out)
 
     def test_adapter_info_config_error_when_path_invalid(self):
-        """Cover adapter-info CONFIG_ERROR when .spaider-config.json points to missing adapter directory."""
+        """Cover adapter-info CONFIG_ERROR when .cypilot-config.json points to missing adapter directory."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            (root / ".spaider-config.json").write_text('{"spaiderAdapterPath": "missing-adapter"}', encoding="utf-8")
+            (root / ".cypilot-config.json").write_text('{"cypilotAdapterPath": "missing-adapter"}', encoding="utf-8")
 
             cwd = os.getcwd()
             try:
@@ -1348,10 +1348,10 @@ class TestCLIAdapterInfo(unittest.TestCase):
             finally:
                 os.chdir(cwd)
 
-    def test_validate_code_markerless_sdsl_implemented_requires_block_marker(self):
+    def test_validate_code_markerless_cdsl_implemented_requires_block_marker(self):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project_with_markerless_sdsl_missing_block(root)
+            _setup_cypilot_project_with_markerless_cdsl_missing_block(root)
 
             cwd = os.getcwd()
             try:
@@ -1365,18 +1365,18 @@ class TestCLIAdapterInfo(unittest.TestCase):
                 errors = out.get("errors", [])
                 self.assertTrue(any(
                     (e.get("type") == "coverage")
-                    and ("Implemented SDSL instruction has no code block marker" in str(e.get("message", "")))
-                    and (e.get("id") == "spd-test-1")
+                    and ("Implemented CDSL instruction has no code block marker" in str(e.get("message", "")))
+                    and (e.get("id") == "cpt-test-1")
                     and (e.get("inst") == "inst-load-config")
                     for e in errors
                 ))
             finally:
                 os.chdir(cwd)
 
-    def test_validate_code_sdsl_implemented_requires_block_marker(self):
+    def test_validate_code_cdsl_implemented_requires_block_marker(self):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project_with_sdsl_to_code_missing_block(root)
+            _setup_cypilot_project_with_cdsl_to_code_missing_block(root)
 
             cwd = os.getcwd()
             try:
@@ -1390,7 +1390,7 @@ class TestCLIAdapterInfo(unittest.TestCase):
                 errors = out.get("errors", [])
                 self.assertTrue(any(
                     (e.get("type") == "coverage")
-                    and ("Implemented SDSL instruction has no code block marker" in str(e.get("message", "")))
+                    and ("Implemented CDSL instruction has no code block marker" in str(e.get("message", "")))
                     for e in errors
                 ))
             finally:
@@ -1405,10 +1405,10 @@ class TestCLIAdapterInfo(unittest.TestCase):
 
             outside = Path(tmpdir) / "outside-adapter"
             outside.mkdir(parents=True)
-            (outside / "AGENTS.md").write_text("# Spaider Adapter: Outside\n\n**Extends**: `../AGENTS.md`\n", encoding="utf-8")
+            (outside / "AGENTS.md").write_text("# Cypilot Adapter: Outside\n\n**Extends**: `../AGENTS.md`\n", encoding="utf-8")
 
             # Point config path outside the project.
-            (root / ".spaider-config.json").write_text('{"spaiderAdapterPath": "../outside-adapter"}', encoding="utf-8")
+            (root / ".cypilot-config.json").write_text('{"cypilotAdapterPath": "../outside-adapter"}', encoding="utf-8")
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
@@ -1420,23 +1420,23 @@ class TestCLIAdapterInfo(unittest.TestCase):
             self.assertEqual(out.get("relative_path"), str(outside.resolve().as_posix()))
 
 
-def _bootstrap_registry_new_format(project_root: Path, *, systems: list, weavers: dict = None) -> None:
+def _bootstrap_registry_new_format(project_root: Path, *, systems: list, kits: dict = None) -> None:
     """Bootstrap registry with new format (systems instead of artifacts)."""
     (project_root / ".git").mkdir(exist_ok=True)
-    (project_root / ".spaider-config.json").write_text(
-        '{\n  "spaiderAdapterPath": "adapter"\n}\n',
+    (project_root / ".cypilot-config.json").write_text(
+        '{\n  "cypilotAdapterPath": "adapter"\n}\n',
         encoding="utf-8",
     )
     adapter_dir = project_root / "adapter"
     adapter_dir.mkdir(parents=True, exist_ok=True)
     (adapter_dir / "AGENTS.md").write_text(
-        "# Spaider Adapter: Test\n\n**Extends**: `../AGENTS.md`\n",
+        "# Cypilot Adapter: Test\n\n**Extends**: `../AGENTS.md`\n",
         encoding="utf-8",
     )
     registry = {
         "version": "1.0",
         "project_root": "..",
-        "weavers": weavers if weavers is not None else {"spaider": {"format": "Spaider", "path": "weavers/sdlc"}},
+        "kits": kits if kits is not None else {"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
         "systems": systems,
     }
     (adapter_dir / "artifacts.json").write_text(
@@ -1470,38 +1470,38 @@ class TestCLIListIdsCommand(unittest.TestCase):
         """Test list-ids with specific artifact."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            templates_dir = root / "weavers" / "sdlc" / "artifacts" / "PRD"
+            templates_dir = root / "kits" / "sdlc" / "artifacts" / "PRD"
             templates_dir.mkdir(parents=True)
 
             # Create template
             tmpl_content = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: PRD
 ---
-<!-- spd:id:item -->
-- [ ] `p1` - **ID**: `spd-test-1`
-<!-- spd:id:item -->
+<!-- cpt:id:item -->
+- [ ] `p1` - **ID**: `cpt-test-1`
+<!-- cpt:id:item -->
 """
             (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
 
             # Create artifact
             art_dir = root / "architecture"
             art_dir.mkdir(parents=True)
-            art_content = """<!-- spd:id:item -->
-- [x] `p1` - **ID**: `spd-test-1`
-<!-- spd:id:item -->
+            art_content = """<!-- cpt:id:item -->
+- [x] `p1` - **ID**: `cpt-test-1`
+<!-- cpt:id:item -->
 """
             (art_dir / "PRD.md").write_text(art_content, encoding="utf-8")
 
             _bootstrap_registry_new_format(
                 root,
-                weavers={"spaider": {"format": "Spaider", "path": "weavers/sdlc"}},
+                kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
                 systems=[{
                     "name": "Test",
-                    "weavers": "spaider",
+                    "kits": "cypilot",
                     "artifacts": [{"path": "architecture/PRD.md", "kind": "PRD"}],
                 }],
             )
@@ -1551,11 +1551,11 @@ class TestCLIListIdKindsCommand(unittest.TestCase):
                 os.chdir(cwd)
 
 
-class TestCLIValidateWeaversCommand(unittest.TestCase):
-    """Tests for validate-weavers command."""
+class TestCLIValidateKitsCommand(unittest.TestCase):
+    """Tests for validate-kits command."""
 
     def test_validate_rules_no_adapter(self):
-        """Test validate-weavers without adapter."""
+        """Test validate-kits without adapter."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
@@ -1565,7 +1565,7 @@ class TestCLIValidateWeaversCommand(unittest.TestCase):
                 os.chdir(str(root))
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["validate-weavers"])
+                    exit_code = main(["validate-kits"])
                 self.assertNotEqual(exit_code, 0)
                 out = json.loads(stdout.getvalue())
                 self.assertEqual(out.get("status"), "ERROR")
@@ -1573,35 +1573,35 @@ class TestCLIValidateWeaversCommand(unittest.TestCase):
                 os.chdir(cwd)
 
     def test_validate_rules_with_template(self):
-        """Test validate-weavers with specific template."""
+        """Test validate-kits with specific template."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
 
             # Create valid template
             tmpl_content = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:paragraph:summary -->
+<!-- cpt:paragraph:summary -->
 text
-<!-- spd:paragraph:summary -->
+<!-- cpt:paragraph:summary -->
 """
             tmpl_path = root / "test.template.md"
             tmpl_path.write_text(tmpl_content, encoding="utf-8")
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["validate-weavers", "--template", str(tmpl_path)])
+                exit_code = main(["validate-kits", "--template", str(tmpl_path)])
 
             self.assertEqual(exit_code, 0)
             out = json.loads(stdout.getvalue())
             self.assertEqual(out.get("status"), "PASS")
 
     def test_validate_rules_with_invalid_template(self):
-        """Test validate-weavers with invalid template."""
+        """Test validate-kits with invalid template."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
 
@@ -1611,46 +1611,46 @@ text
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["validate-weavers", "--template", str(tmpl_path)])
+                exit_code = main(["validate-kits", "--template", str(tmpl_path)])
 
             self.assertNotEqual(exit_code, 0)
             out = json.loads(stdout.getvalue())
             self.assertEqual(out.get("status"), "FAIL")
 
     def test_validate_rules_nonexistent_template(self):
-        """Test validate-weavers with nonexistent template."""
+        """Test validate-kits with nonexistent template."""
         with TemporaryDirectory() as tmpdir:
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["validate-weavers", "--template", str(Path(tmpdir) / "nonexistent.md")])
+                exit_code = main(["validate-kits", "--template", str(Path(tmpdir) / "nonexistent.md")])
 
             self.assertNotEqual(exit_code, 0)
             out = json.loads(stdout.getvalue())
             self.assertEqual(out.get("status"), "ERROR")
 
     def test_validate_rules_verbose(self):
-        """Test validate-weavers with verbose flag."""
+        """Test validate-kits with verbose flag."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
 
             # Create valid template
             tmpl_content = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:paragraph:summary -->
+<!-- cpt:paragraph:summary -->
 text
-<!-- spd:paragraph:summary -->
+<!-- cpt:paragraph:summary -->
 """
             tmpl_path = root / "test.template.md"
             tmpl_path.write_text(tmpl_content, encoding="utf-8")
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["validate-weavers", "--template", str(tmpl_path), "--verbose"])
+                exit_code = main(["validate-kits", "--template", str(tmpl_path), "--verbose"])
 
             self.assertEqual(exit_code, 0)
             out = json.loads(stdout.getvalue())
@@ -1672,7 +1672,7 @@ class TestCLIGetContentCommand(unittest.TestCase):
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["get-content", "--artifact", str(art_path), "--id", "spd-test-1"])
+                exit_code = main(["get-content", "--artifact", str(art_path), "--id", "cpt-test-1"])
             self.assertNotEqual(exit_code, 0)
             out = json.loads(stdout.getvalue())
             self.assertEqual(out.get("status"), "ERROR")
@@ -1681,68 +1681,68 @@ class TestCLIGetContentCommand(unittest.TestCase):
         """Test get-content with specific artifact."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            templates_dir = root / "weavers" / "sdlc" / "artifacts" / "PRD"
+            templates_dir = root / "kits" / "sdlc" / "artifacts" / "PRD"
             templates_dir.mkdir(parents=True)
 
             # Create template
             tmpl_content = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: PRD
 ---
-<!-- spd:id:item -->
-- [ ] `p1` - **ID**: `spd-test-1`
-<!-- spd:id:item -->
+<!-- cpt:id:item -->
+- [ ] `p1` - **ID**: `cpt-test-1`
+<!-- cpt:id:item -->
 """
             (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
 
             # Create artifact
             art_dir = root / "architecture"
             art_dir.mkdir(parents=True)
-            art_content = """<!-- spd:id:item -->
-- [x] `p1` - **ID**: `spd-test-1`
-<!-- spd:id:item -->
+            art_content = """<!-- cpt:id:item -->
+- [x] `p1` - **ID**: `cpt-test-1`
+<!-- cpt:id:item -->
 """
             art_path = art_dir / "PRD.md"
             art_path.write_text(art_content, encoding="utf-8")
 
             _bootstrap_registry_new_format(
                 root,
-                weavers={"spaider": {"format": "Spaider", "path": "weavers/sdlc"}},
+                kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
                 systems=[{
                     "name": "Test",
-                    "weavers": "spaider",
+                    "kits": "cypilot",
                     "artifacts": [{"path": "architecture/PRD.md", "kind": "PRD"}],
                 }],
             )
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["get-content", "--artifact", str(art_path), "--id", "spd-test-1"])
+                exit_code = main(["get-content", "--artifact", str(art_path), "--id", "cpt-test-1"])
 
             self.assertEqual(exit_code, 0)
             out = json.loads(stdout.getvalue())
             self.assertIn("text", out)  # get-content returns "text" field
 
     def test_get_content_without_markers_uses_heading_scope(self):
-        """Fallback get-content for artifacts with no `<!-- spd:... -->` markers (heading scope)."""
+        """Fallback get-content for artifacts with no `<!-- cpt:... -->` markers (heading scope)."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            templates_dir = root / "weavers" / "sdlc" / "artifacts" / "PRD"
+            templates_dir = root / "kits" / "sdlc" / "artifacts" / "PRD"
             templates_dir.mkdir(parents=True)
 
             tmpl_content = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: PRD
 ---
-<!-- spd:free:body -->
+<!-- cpt:free:body -->
 text
-<!-- spd:free:body -->
+<!-- cpt:free:body -->
 """
             (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
 
@@ -1750,11 +1750,11 @@ text
             art_dir.mkdir(parents=True)
             art_content = """# PRD
 
-### spd-test-1
+### cpt-test-1
 alpha
 beta
 
-### spd-test-2
+### cpt-test-2
 gamma
 """
             art_path = art_dir / "PRD.md"
@@ -1762,17 +1762,17 @@ gamma
 
             _bootstrap_registry_new_format(
                 root,
-                weavers={"spaider": {"format": "Spaider", "path": "weavers/sdlc"}},
+                kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
                 systems=[{
                     "name": "Test",
-                    "weavers": "spaider",
+                    "kits": "cypilot",
                     "artifacts": [{"path": "architecture/PRD.md", "kind": "PRD"}],
                 }],
             )
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["get-content", "--artifact", str(art_path), "--id", "spd-test-1"])
+                exit_code = main(["get-content", "--artifact", str(art_path), "--id", "cpt-test-1"])
 
             self.assertEqual(exit_code, 0)
             out = json.loads(stdout.getvalue())
@@ -1783,19 +1783,19 @@ gamma
         """Fallback get-content for artifacts with no markers using ## scope fences."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            templates_dir = root / "weavers" / "sdlc" / "artifacts" / "PRD"
+            templates_dir = root / "kits" / "sdlc" / "artifacts" / "PRD"
             templates_dir.mkdir(parents=True)
 
             tmpl_content = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: PRD
 ---
-<!-- spd:free:body -->
+<!-- cpt:free:body -->
 text
-<!-- spd:free:body -->
+<!-- cpt:free:body -->
 """
             (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
 
@@ -1803,7 +1803,7 @@ text
             art_dir.mkdir(parents=True)
             art_content = """intro
 ##
-spd-test-1
+cpt-test-1
 line-a
 line-b
 ##
@@ -1814,17 +1814,17 @@ outro
 
             _bootstrap_registry_new_format(
                 root,
-                weavers={"spaider": {"format": "Spaider", "path": "weavers/sdlc"}},
+                kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
                 systems=[{
                     "name": "Test",
-                    "weavers": "spaider",
+                    "kits": "cypilot",
                     "artifacts": [{"path": "architecture/PRD.md", "kind": "PRD"}],
                 }],
             )
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["get-content", "--artifact", str(art_path), "--id", "spd-test-1"])
+                exit_code = main(["get-content", "--artifact", str(art_path), "--id", "cpt-test-1"])
 
             self.assertEqual(exit_code, 0)
             out = json.loads(stdout.getvalue())
@@ -1835,30 +1835,30 @@ outro
         """Hash-fence scope variant: IDs are delimiters within the same fence."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            templates_dir = root / "weavers" / "sdlc" / "artifacts" / "PRD"
+            templates_dir = root / "kits" / "sdlc" / "artifacts" / "PRD"
             templates_dir.mkdir(parents=True)
 
             tmpl_content = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: PRD
 ---
-<!-- spd:free:body -->
+<!-- cpt:free:body -->
 text
-<!-- spd:free:body -->
+<!-- cpt:free:body -->
 """
             (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
 
             art_dir = root / "architecture"
             art_dir.mkdir(parents=True)
             art_content = """##
-spd-aa
+cpt-aa
 aaa
-spd-bb
+cpt-bb
 bbb
-spd-cc
+cpt-cc
 ccc
 ##
 """
@@ -1867,17 +1867,17 @@ ccc
 
             _bootstrap_registry_new_format(
                 root,
-                weavers={"spaider": {"format": "Spaider", "path": "weavers/sdlc"}},
+                kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
                 systems=[{
                     "name": "Test",
-                    "weavers": "spaider",
+                    "kits": "cypilot",
                     "artifacts": [{"path": "architecture/PRD.md", "kind": "PRD"}],
                 }],
             )
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["get-content", "--artifact", str(art_path), "--id", "spd-bb"])
+                exit_code = main(["get-content", "--artifact", str(art_path), "--id", "cpt-bb"])
 
             self.assertEqual(exit_code, 0)
             out = json.loads(stdout.getvalue())
@@ -1888,19 +1888,19 @@ ccc
         """Fallback get-content: ID definition line under a normal heading scopes content to next heading."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            templates_dir = root / "weavers" / "sdlc" / "artifacts" / "PRD"
+            templates_dir = root / "kits" / "sdlc" / "artifacts" / "PRD"
             templates_dir.mkdir(parents=True)
 
             tmpl_content = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: PRD
 ---
-<!-- spd:free:body -->
+<!-- cpt:free:body -->
 text
-<!-- spd:free:body -->
+<!-- cpt:free:body -->
 """
             (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
 
@@ -1908,30 +1908,30 @@ text
             art_dir.mkdir(parents=True)
             art_content = """#### SaaS Developer
 
-**ID**: `spd-hyperspot-actor-saas-developer`
+**ID**: `cpt-hyperspot-actor-saas-developer`
 
 **Role**: Software engineer building business logic modules.
 
 #### Platform Operator
 
-**ID**: `spd-hyperspot-actor-platform-operator`
+**ID**: `cpt-hyperspot-actor-platform-operator`
 """
             art_path = art_dir / "PRD.md"
             art_path.write_text(art_content, encoding="utf-8")
 
             _bootstrap_registry_new_format(
                 root,
-                weavers={"spaider": {"format": "Spaider", "path": "weavers/sdlc"}},
+                kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
                 systems=[{
                     "name": "Test",
-                    "weavers": "spaider",
+                    "kits": "cypilot",
                     "artifacts": [{"path": "architecture/PRD.md", "kind": "PRD"}],
                 }],
             )
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["get-content", "--artifact", str(art_path), "--id", "spd-hyperspot-actor-saas-developer"])
+                exit_code = main(["get-content", "--artifact", str(art_path), "--id", "cpt-hyperspot-actor-saas-developer"])
 
             self.assertEqual(exit_code, 0)
             out = json.loads(stdout.getvalue())
@@ -1942,19 +1942,19 @@ text
         """Fallback get-content: stop at the next ID definition line before the next heading."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            templates_dir = root / "weavers" / "sdlc" / "artifacts" / "PRD"
+            templates_dir = root / "kits" / "sdlc" / "artifacts" / "PRD"
             templates_dir.mkdir(parents=True)
 
             tmpl_content = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: PRD
 ---
-<!-- spd:free:body -->
+<!-- cpt:free:body -->
 text
-<!-- spd:free:body -->
+<!-- cpt:free:body -->
 """
             (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
 
@@ -1962,14 +1962,14 @@ text
             art_dir.mkdir(parents=True)
             art_content = """#### People
 
-**ID**: `spd-aa`
+**ID**: `cpt-aa`
 aaa
 
-**ID**: `spd-bb`
+**ID**: `cpt-bb`
 bbb
 
 #### Next
-**ID**: `spd-cc`
+**ID**: `cpt-cc`
 ccc
 """
             art_path = art_dir / "PRD.md"
@@ -1977,17 +1977,17 @@ ccc
 
             _bootstrap_registry_new_format(
                 root,
-                weavers={"spaider": {"format": "Spaider", "path": "weavers/sdlc"}},
+                kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
                 systems=[{
                     "name": "Test",
-                    "weavers": "spaider",
+                    "kits": "cypilot",
                     "artifacts": [{"path": "architecture/PRD.md", "kind": "PRD"}],
                 }],
             )
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["get-content", "--artifact", str(art_path), "--id", "spd-aa"])
+                exit_code = main(["get-content", "--artifact", str(art_path), "--id", "cpt-aa"])
 
             self.assertEqual(exit_code, 0)
             out = json.loads(stdout.getvalue())
@@ -1996,24 +1996,24 @@ ccc
 
 
 class TestCLIIdCommandsWithoutMarkers(unittest.TestCase):
-    """Fallback behavior for ID commands when artifacts have no `<!-- spd:... -->` markers."""
+    """Fallback behavior for ID commands when artifacts have no `<!-- cpt:... -->` markers."""
 
     def test_list_ids_without_markers_finds_definitions_and_refs(self):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            templates_dir = root / "weavers" / "sdlc" / "artifacts" / "PRD"
+            templates_dir = root / "kits" / "sdlc" / "artifacts" / "PRD"
             templates_dir.mkdir(parents=True)
 
             tmpl_content = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: PRD
 ---
-<!-- spd:free:body -->
+<!-- cpt:free:body -->
 text
-<!-- spd:free:body -->
+<!-- cpt:free:body -->
 """
             (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
 
@@ -2021,12 +2021,12 @@ text
             art_dir.mkdir(parents=True)
             art_content = """# PRD
 
-**ID**: `spd-test-define-1`
+**ID**: `cpt-test-define-1`
 
-See also `spd-test-ref-1` in text.
+See also `cpt-test-ref-1` in text.
 
 ```md
-**ID**: `spd-test-ignored`
+**ID**: `cpt-test-ignored`
 ```
 """
             art_path = art_dir / "PRD.md"
@@ -2034,10 +2034,10 @@ See also `spd-test-ref-1` in text.
 
             _bootstrap_registry_new_format(
                 root,
-                weavers={"spaider": {"format": "Spaider", "path": "weavers/sdlc"}},
+                kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
                 systems=[{
                     "name": "Test",
-                    "weavers": "spaider",
+                    "kits": "cypilot",
                     "artifacts": [{"path": "architecture/PRD.md", "kind": "PRD"}],
                 }],
             )
@@ -2049,26 +2049,26 @@ See also `spd-test-ref-1` in text.
             self.assertEqual(exit_code, 0)
             out = json.loads(stdout.getvalue())
             ids = {h.get("id") for h in out.get("ids", [])}
-            self.assertIn("spd-test-define-1", ids)
-            self.assertIn("spd-test-ref-1", ids)
-            self.assertNotIn("spd-test-ignored", ids)
+            self.assertIn("cpt-test-define-1", ids)
+            self.assertIn("cpt-test-ref-1", ids)
+            self.assertNotIn("cpt-test-ignored", ids)
 
     def test_where_defined_without_markers(self):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            templates_dir = root / "weavers" / "sdlc" / "artifacts" / "PRD"
+            templates_dir = root / "kits" / "sdlc" / "artifacts" / "PRD"
             templates_dir.mkdir(parents=True)
             (templates_dir / "template.md").write_text(
                 """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: PRD
 ---
-<!-- spd:free:body -->
+<!-- cpt:free:body -->
 text
-<!-- spd:free:body -->
+<!-- cpt:free:body -->
 """,
                 encoding="utf-8",
             )
@@ -2076,21 +2076,21 @@ text
             art_dir = root / "architecture"
             art_dir.mkdir(parents=True)
             art_path = art_dir / "PRD.md"
-            art_path.write_text("**ID**: `spd-test-def-1`\n", encoding="utf-8")
+            art_path.write_text("**ID**: `cpt-test-def-1`\n", encoding="utf-8")
 
             _bootstrap_registry_new_format(
                 root,
-                weavers={"spaider": {"format": "Spaider", "path": "weavers/sdlc"}},
+                kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
                 systems=[{
                     "name": "Test",
-                    "weavers": "spaider",
+                    "kits": "cypilot",
                     "artifacts": [{"path": "architecture/PRD.md", "kind": "PRD"}],
                 }],
             )
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["where-defined", "--artifact", str(art_path), "--id", "spd-test-def-1"])
+                exit_code = main(["where-defined", "--artifact", str(art_path), "--id", "cpt-test-def-1"])
 
             self.assertEqual(exit_code, 0)
             out = json.loads(stdout.getvalue())
@@ -2100,19 +2100,19 @@ text
     def test_where_used_without_markers(self):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            templates_dir = root / "weavers" / "sdlc" / "artifacts" / "PRD"
+            templates_dir = root / "kits" / "sdlc" / "artifacts" / "PRD"
             templates_dir.mkdir(parents=True)
             (templates_dir / "template.md").write_text(
                 """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: PRD
 ---
-<!-- spd:free:body -->
+<!-- cpt:free:body -->
 text
-<!-- spd:free:body -->
+<!-- cpt:free:body -->
 """,
                 encoding="utf-8",
             )
@@ -2120,25 +2120,25 @@ text
             art_dir = root / "architecture"
             art_dir.mkdir(parents=True)
             art_path = art_dir / "PRD.md"
-            art_path.write_text("ref `spd-test-ref-1`\n", encoding="utf-8")
+            art_path.write_text("ref `cpt-test-ref-1`\n", encoding="utf-8")
 
             _bootstrap_registry_new_format(
                 root,
-                weavers={"spaider": {"format": "Spaider", "path": "weavers/sdlc"}},
+                kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
                 systems=[{
                     "name": "Test",
-                    "weavers": "spaider",
+                    "kits": "cypilot",
                     "artifacts": [{"path": "architecture/PRD.md", "kind": "PRD"}],
                 }],
             )
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["where-used", "--artifact", str(art_path), "--id", "spd-test-ref-1"])
+                exit_code = main(["where-used", "--artifact", str(art_path), "--id", "cpt-test-ref-1"])
 
             self.assertEqual(exit_code, 0)
             out = json.loads(stdout.getvalue())
-            self.assertEqual(out.get("id"), "spd-test-ref-1")
+            self.assertEqual(out.get("id"), "cpt-test-ref-1")
             self.assertEqual(out.get("count"), 1)
 
 
@@ -2149,20 +2149,20 @@ class TestValidateMarkerlessCrossKindCoverage(unittest.TestCase):
             root = Path(tmpdir)
 
             # Templates
-            prd_dir = root / "weavers" / "sdlc" / "artifacts" / "PRD"
-            dsn_dir = root / "weavers" / "sdlc" / "artifacts" / "DESIGN"
+            prd_dir = root / "kits" / "sdlc" / "artifacts" / "PRD"
+            dsn_dir = root / "kits" / "sdlc" / "artifacts" / "DESIGN"
             prd_dir.mkdir(parents=True)
             dsn_dir.mkdir(parents=True)
             tmpl = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: {KIND}
 ---
-<!-- spd:free:body -->
+<!-- cpt:free:body -->
 text
-<!-- spd:free:body -->
+<!-- cpt:free:body -->
 """
             (prd_dir / "template.md").write_text(tmpl.format(KIND="PRD"), encoding="utf-8")
             (dsn_dir / "template.md").write_text(tmpl.format(KIND="DESIGN"), encoding="utf-8")
@@ -2172,15 +2172,15 @@ text
             arch.mkdir(parents=True)
             prd_path = arch / "PRD.md"
             dsn_path = arch / "DESIGN.md"
-            prd_path.write_text("**ID**: `spd-test-aa`\ncontent\n", encoding="utf-8")
+            prd_path.write_text("**ID**: `cpt-test-aa`\ncontent\n", encoding="utf-8")
             dsn_path.write_text("# Design\n(no refs)\n", encoding="utf-8")
 
             _bootstrap_registry_new_format(
                 root,
-                weavers={"spaider": {"format": "Spaider", "path": "weavers/sdlc"}},
+                kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
                 systems=[{
                     "name": "Test",
-                    "weavers": "spaider",
+                    "kits": "cypilot",
                     "artifacts": [
                         {"path": "architecture/PRD.md", "kind": "PRD"},
                         {"path": "architecture/DESIGN.md", "kind": "DESIGN"},
@@ -2207,19 +2207,19 @@ text
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
 
-            prd_dir = root / "weavers" / "sdlc" / "artifacts" / "PRD"
+            prd_dir = root / "kits" / "sdlc" / "artifacts" / "PRD"
             prd_dir.mkdir(parents=True)
             (prd_dir / "template.md").write_text(
                 """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: PRD
 ---
-<!-- spd:free:body -->
+<!-- cpt:free:body -->
 text
-<!-- spd:free:body -->
+<!-- cpt:free:body -->
 """,
                 encoding="utf-8",
             )
@@ -2227,14 +2227,14 @@ text
             arch = root / "architecture"
             arch.mkdir(parents=True)
             prd_path = arch / "PRD.md"
-            prd_path.write_text("**ID**: `spd-test-aa`\ncontent\n", encoding="utf-8")
+            prd_path.write_text("**ID**: `cpt-test-aa`\ncontent\n", encoding="utf-8")
 
             _bootstrap_registry_new_format(
                 root,
-                weavers={"spaider": {"format": "Spaider", "path": "weavers/sdlc"}},
+                kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
                 systems=[{
                     "name": "Test",
-                    "weavers": "spaider",
+                    "kits": "cypilot",
                     "artifacts": [{"path": "architecture/PRD.md", "kind": "PRD"}],
                 }],
             )
@@ -2257,20 +2257,20 @@ text
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
 
-            prd_dir = root / "weavers" / "sdlc" / "artifacts" / "PRD"
-            dsn_dir = root / "weavers" / "sdlc" / "artifacts" / "DESIGN"
+            prd_dir = root / "kits" / "sdlc" / "artifacts" / "PRD"
+            dsn_dir = root / "kits" / "sdlc" / "artifacts" / "DESIGN"
             prd_dir.mkdir(parents=True)
             dsn_dir.mkdir(parents=True)
             tmpl = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: {KIND}
 ---
-<!-- spd:free:body -->
+<!-- cpt:free:body -->
 text
-<!-- spd:free:body -->
+<!-- cpt:free:body -->
 """
             (prd_dir / "template.md").write_text(tmpl.format(KIND="PRD"), encoding="utf-8")
             (dsn_dir / "template.md").write_text(tmpl.format(KIND="DESIGN"), encoding="utf-8")
@@ -2279,15 +2279,15 @@ text
             arch.mkdir(parents=True)
             prd_path = arch / "PRD.md"
             dsn_path = arch / "DESIGN.md"
-            prd_path.write_text("**ID**: `spd-test-aa`\ncontent\n", encoding="utf-8")
-            dsn_path.write_text("ref `spd-test-aa`\n", encoding="utf-8")
+            prd_path.write_text("**ID**: `cpt-test-aa`\ncontent\n", encoding="utf-8")
+            dsn_path.write_text("ref `cpt-test-aa`\n", encoding="utf-8")
 
             _bootstrap_registry_new_format(
                 root,
-                weavers={"spaider": {"format": "Spaider", "path": "weavers/sdlc"}},
+                kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
                 systems=[{
                     "name": "Test",
-                    "weavers": "spaider",
+                    "kits": "cypilot",
                     "artifacts": [
                         {"path": "architecture/PRD.md", "kind": "PRD"},
                         {"path": "architecture/DESIGN.md", "kind": "DESIGN"},
@@ -2314,20 +2314,20 @@ text
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
 
-            prd_dir = root / "weavers" / "sdlc" / "artifacts" / "PRD"
-            dsn_dir = root / "weavers" / "sdlc" / "artifacts" / "DESIGN"
+            prd_dir = root / "kits" / "sdlc" / "artifacts" / "PRD"
+            dsn_dir = root / "kits" / "sdlc" / "artifacts" / "DESIGN"
             prd_dir.mkdir(parents=True)
             dsn_dir.mkdir(parents=True)
             tmpl = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: {KIND}
 ---
-<!-- spd:free:body -->
+<!-- cpt:free:body -->
 text
-<!-- spd:free:body -->
+<!-- cpt:free:body -->
 """
             (prd_dir / "template.md").write_text(tmpl.format(KIND="PRD"), encoding="utf-8")
             (dsn_dir / "template.md").write_text(tmpl.format(KIND="DESIGN"), encoding="utf-8")
@@ -2336,19 +2336,19 @@ text
             arch.mkdir(parents=True)
             prd_path = arch / "PRD.md"
             dsn_path = arch / "DESIGN.md"
-            prd_path.write_text("**ID**: `spd-test-aa`\ncontent\n", encoding="utf-8")
+            prd_path.write_text("**ID**: `cpt-test-aa`\ncontent\n", encoding="utf-8")
             dsn_path.write_text("# Design\n(no refs)\n", encoding="utf-8")
 
             src = root / "src"
             src.mkdir(parents=True)
-            (src / "app.py").write_text("# @spaider-actor:spd-test-aa:p1\n", encoding="utf-8")
+            (src / "app.py").write_text("# @cpt-actor:cpt-test-aa:p1\n", encoding="utf-8")
 
             _bootstrap_registry_new_format(
                 root,
-                weavers={"spaider": {"format": "Spaider", "path": "weavers/sdlc"}},
+                kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
                 systems=[{
                     "name": "Test",
-                    "weavers": "spaider",
+                    "kits": "cypilot",
                     "artifacts": [
                         {"path": "architecture/PRD.md", "kind": "PRD", "traceability": "FULL"},
                         {"path": "architecture/DESIGN.md", "kind": "DESIGN", "traceability": "FULL"},
@@ -2385,7 +2385,7 @@ class TestCLIWhereDefinedCommand(unittest.TestCase):
                 os.chdir(str(root))
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["where-defined", "--id", "spd-test-1"])
+                    exit_code = main(["where-defined", "--id", "cpt-test-1"])
                 self.assertNotEqual(exit_code, 0)
                 out = json.loads(stdout.getvalue())
                 self.assertEqual(out.get("status"), "ERROR")
@@ -2407,7 +2407,7 @@ class TestCLIWhereUsedCommand(unittest.TestCase):
                 os.chdir(str(root))
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["where-used", "--id", "spd-test-1"])
+                    exit_code = main(["where-used", "--id", "cpt-test-1"])
                 self.assertNotEqual(exit_code, 0)
                 out = json.loads(stdout.getvalue())
                 self.assertEqual(out.get("status"), "ERROR")
@@ -2415,41 +2415,41 @@ class TestCLIWhereUsedCommand(unittest.TestCase):
                 os.chdir(cwd)
 
 
-def _setup_spaider_project(root: Path) -> None:
-    """Setup a complete Spaider project with template and artifact."""
-    # Create template at new path: weavers/sdlc/artifacts/PRD/template.md
-    templates_dir = root / "weavers" / "sdlc" / "artifacts" / "PRD"
+def _setup_cypilot_project(root: Path) -> None:
+    """Setup a complete Cypilot project with template and artifact."""
+    # Create template at new path: kits/sdlc/artifacts/PRD/template.md
+    templates_dir = root / "kits" / "sdlc" / "artifacts" / "PRD"
     templates_dir.mkdir(parents=True)
 
     # Create template with ID block
     tmpl_content = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: PRD
 ---
-<!-- spd:id:item -->
-- [ ] `p1` - **ID**: `spd-test-1`
-<!-- spd:id:item -->
+<!-- cpt:id:item -->
+- [ ] `p1` - **ID**: `cpt-test-1`
+<!-- cpt:id:item -->
 """
     (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
 
     # Create artifact
     art_dir = root / "architecture"
     art_dir.mkdir(parents=True)
-    art_content = """<!-- spd:id:item -->
-- [x] `p1` - **ID**: `spd-test-1`
-<!-- spd:id:item -->
+    art_content = """<!-- cpt:id:item -->
+- [x] `p1` - **ID**: `cpt-test-1`
+<!-- cpt:id:item -->
 """
     (art_dir / "PRD.md").write_text(art_content, encoding="utf-8")
 
     _bootstrap_registry_new_format(
         root,
-        weavers={"spaider": {"format": "Spaider", "path": "weavers/sdlc"}},
+        kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
         systems=[{
             "name": "Test",
-            "weavers": "spaider",
+            "kits": "cypilot",
             "artifacts": [{"path": "architecture/PRD.md", "kind": "PRD"}],
         }],
     )
@@ -2462,14 +2462,14 @@ class TestCLIWhereDefinedWithArtifacts(unittest.TestCase):
         """Test where-defined finds an ID."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             cwd = os.getcwd()
             try:
                 os.chdir(str(root))
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["where-defined", "--id", "spd-test-1"])
+                    exit_code = main(["where-defined", "--id", "cpt-test-1"])
                 self.assertEqual(exit_code, 0)
                 out = json.loads(stdout.getvalue())
                 self.assertEqual(out.get("status"), "FOUND")
@@ -2481,14 +2481,14 @@ class TestCLIWhereDefinedWithArtifacts(unittest.TestCase):
         """Test where-defined returns NOT_FOUND for missing ID."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             cwd = os.getcwd()
             try:
                 os.chdir(str(root))
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["where-defined", "--id", "spd-nonexistent"])
+                    exit_code = main(["where-defined", "--id", "cpt-nonexistent"])
                 self.assertEqual(exit_code, 2)  # NOT_FOUND returns 2
                 out = json.loads(stdout.getvalue())
                 self.assertEqual(out.get("status"), "NOT_FOUND")
@@ -2499,7 +2499,7 @@ class TestCLIWhereDefinedWithArtifacts(unittest.TestCase):
         """Test where-defined with --artifact flag."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             cwd = os.getcwd()
             try:
@@ -2507,7 +2507,7 @@ class TestCLIWhereDefinedWithArtifacts(unittest.TestCase):
                 stdout = io.StringIO()
                 art_path = root / "architecture" / "PRD.md"
                 with redirect_stdout(stdout):
-                    exit_code = main(["where-defined", "--id", "spd-test-1", "--artifact", str(art_path)])
+                    exit_code = main(["where-defined", "--id", "cpt-test-1", "--artifact", str(art_path)])
                 self.assertEqual(exit_code, 0)
                 out = json.loads(stdout.getvalue())
                 self.assertEqual(out.get("status"), "FOUND")
@@ -2522,14 +2522,14 @@ class TestCLIWhereUsedWithArtifacts(unittest.TestCase):
         """Test where-used finds references."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             cwd = os.getcwd()
             try:
                 os.chdir(str(root))
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["where-used", "--id", "spd-test-1"])
+                    exit_code = main(["where-used", "--id", "cpt-test-1"])
                 # Will succeed or return NOT_FOUND (no refs in simple setup)
                 self.assertIn(exit_code, [0, 2])
             finally:
@@ -2543,7 +2543,7 @@ class TestCLIListIdKindsWithArtifacts(unittest.TestCase):
         """Test list-id-kinds with --artifact flag."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             cwd = os.getcwd()
             try:
@@ -2562,7 +2562,7 @@ class TestCLIListIdKindsWithArtifacts(unittest.TestCase):
         """Test list-id-kinds without --artifact scans all."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             cwd = os.getcwd()
             try:
@@ -2585,7 +2585,7 @@ class TestCLIListIdsWithArtifacts(unittest.TestCase):
         """Test list-ids without --artifact scans all."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             cwd = os.getcwd()
             try:
@@ -2604,7 +2604,7 @@ class TestCLIListIdsWithArtifacts(unittest.TestCase):
         """Test list-ids with --kind and --pattern filters."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             cwd = os.getcwd()
             try:
@@ -2626,7 +2626,7 @@ class TestCLIListIdsErrorBranches(unittest.TestCase):
         """Test list-ids when artifact exists but not in registry."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             # Create artifact NOT in registry
             unregistered = root / "unregistered.md"
@@ -2643,14 +2643,14 @@ class TestCLIListIdsErrorBranches(unittest.TestCase):
         """Test list-ids with --regex filter."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             cwd = os.getcwd()
             try:
                 os.chdir(str(root))
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["list-ids", "--pattern", "spd-.*", "--regex"])
+                    exit_code = main(["list-ids", "--pattern", "cpt-.*", "--regex"])
                 self.assertEqual(exit_code, 0)
             finally:
                 os.chdir(cwd)
@@ -2659,7 +2659,7 @@ class TestCLIListIdsErrorBranches(unittest.TestCase):
         """Test list-ids with --all flag."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             cwd = os.getcwd()
             try:
@@ -2679,7 +2679,7 @@ class TestCLIListIdKindsErrorBranches(unittest.TestCase):
         """Test list-id-kinds when artifact file doesn't exist."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             cwd = os.getcwd()
             try:
@@ -2698,7 +2698,7 @@ class TestCLIListIdKindsErrorBranches(unittest.TestCase):
         """Test list-id-kinds when artifact not in registry."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             # Create artifact NOT in registry
             unregistered = root / "unregistered.md"
@@ -2722,12 +2722,12 @@ class TestCLIGetContentErrorBranches(unittest.TestCase):
         """Test get-content when artifact file doesn't exist."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             stdout = io.StringIO()
             nonexistent = root / "nonexistent.md"
             with redirect_stdout(stdout):
-                exit_code = main(["get-content", "--artifact", str(nonexistent), "--id", "spd-test-1"])
+                exit_code = main(["get-content", "--artifact", str(nonexistent), "--id", "cpt-test-1"])
             self.assertNotEqual(exit_code, 0)
             out = json.loads(stdout.getvalue())
             self.assertEqual(out.get("status"), "ERROR")
@@ -2736,7 +2736,7 @@ class TestCLIGetContentErrorBranches(unittest.TestCase):
         """Test get-content when artifact not in registry."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             # Create artifact NOT in registry
             unregistered = root / "unregistered.md"
@@ -2744,14 +2744,14 @@ class TestCLIGetContentErrorBranches(unittest.TestCase):
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["get-content", "--artifact", str(unregistered), "--id", "spd-test-1"])
+                exit_code = main(["get-content", "--artifact", str(unregistered), "--id", "cpt-test-1"])
             self.assertNotEqual(exit_code, 0)
 
     def test_get_content_id_not_found(self):
         """Test get-content when ID doesn't exist."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             cwd = os.getcwd()
             try:
@@ -2759,7 +2759,7 @@ class TestCLIGetContentErrorBranches(unittest.TestCase):
                 art_path = root / "architecture" / "PRD.md"
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["get-content", "--artifact", str(art_path), "--id", "spd-nonexistent"])
+                    exit_code = main(["get-content", "--artifact", str(art_path), "--id", "cpt-nonexistent"])
                 self.assertEqual(exit_code, 2)  # NOT_FOUND
                 out = json.loads(stdout.getvalue())
                 self.assertEqual(out.get("status"), "NOT_FOUND")
@@ -2774,7 +2774,7 @@ class TestCLIWhereDefinedErrorBranches(unittest.TestCase):
         """Test where-defined with empty ID."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             cwd = os.getcwd()
             try:
@@ -2790,7 +2790,7 @@ class TestCLIWhereDefinedErrorBranches(unittest.TestCase):
         """Test where-defined with nonexistent artifact."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             cwd = os.getcwd()
             try:
@@ -2798,7 +2798,7 @@ class TestCLIWhereDefinedErrorBranches(unittest.TestCase):
                 stdout = io.StringIO()
                 nonexistent = root / "nonexistent.md"
                 with redirect_stdout(stdout):
-                    exit_code = main(["where-defined", "--id", "spd-test-1", "--artifact", str(nonexistent)])
+                    exit_code = main(["where-defined", "--id", "cpt-test-1", "--artifact", str(nonexistent)])
                 self.assertNotEqual(exit_code, 0)
             finally:
                 os.chdir(cwd)
@@ -2811,7 +2811,7 @@ class TestCLIWhereUsedErrorBranches(unittest.TestCase):
         """Test where-used with empty ID."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             cwd = os.getcwd()
             try:
@@ -2827,14 +2827,14 @@ class TestCLIWhereUsedErrorBranches(unittest.TestCase):
         """Test where-used with --include-definitions flag."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             cwd = os.getcwd()
             try:
                 os.chdir(str(root))
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["where-used", "--id", "spd-test-1", "--include-definitions"])
+                    exit_code = main(["where-used", "--id", "cpt-test-1", "--include-definitions"])
                 # May return FOUND or NOT_FOUND depending on refs
                 self.assertIn(exit_code, [0, 2])
             finally:
@@ -2844,7 +2844,7 @@ class TestCLIWhereUsedErrorBranches(unittest.TestCase):
         """Test where-used with nonexistent artifact."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             cwd = os.getcwd()
             try:
@@ -2852,7 +2852,7 @@ class TestCLIWhereUsedErrorBranches(unittest.TestCase):
                 stdout = io.StringIO()
                 nonexistent = root / "nonexistent.md"
                 with redirect_stdout(stdout):
-                    exit_code = main(["where-used", "--id", "spd-test-1", "--artifact", str(nonexistent)])
+                    exit_code = main(["where-used", "--id", "cpt-test-1", "--artifact", str(nonexistent)])
                 self.assertNotEqual(exit_code, 0)
             finally:
                 os.chdir(cwd)
@@ -2861,7 +2861,7 @@ class TestCLIWhereUsedErrorBranches(unittest.TestCase):
         """Test where-used with artifact not in registry."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             # Create artifact NOT in registry
             unregistered = root / "unregistered.md"
@@ -2872,7 +2872,7 @@ class TestCLIWhereUsedErrorBranches(unittest.TestCase):
                 os.chdir(str(root))
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["where-used", "--id", "spd-test-1", "--artifact", str(unregistered)])
+                    exit_code = main(["where-used", "--id", "cpt-test-1", "--artifact", str(unregistered)])
                 self.assertNotEqual(exit_code, 0)
             finally:
                 os.chdir(cwd)
@@ -2881,7 +2881,7 @@ class TestCLIWhereUsedErrorBranches(unittest.TestCase):
         """Test where-used with valid artifact flag."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             cwd = os.getcwd()
             try:
@@ -2889,22 +2889,22 @@ class TestCLIWhereUsedErrorBranches(unittest.TestCase):
                 stdout = io.StringIO()
                 art_path = root / "architecture" / "PRD.md"
                 with redirect_stdout(stdout):
-                    exit_code = main(["where-used", "--id", "spd-test-1", "--artifact", str(art_path)])
+                    exit_code = main(["where-used", "--id", "cpt-test-1", "--artifact", str(art_path)])
                 # Will succeed or return NOT_FOUND
                 self.assertIn(exit_code, [0, 2])
             finally:
                 os.chdir(cwd)
 
 
-class TestCLIValidateWeaversErrorBranches(unittest.TestCase):
-    """Tests for validate-weavers error branches."""
+class TestCLIValidateKitsErrorBranches(unittest.TestCase):
+    """Tests for validate-kits error branches."""
 
     def test_validate_rules_registry_error(self):
-        """Test validate-weavers when registry has errors."""
+        """Test validate-kits when registry has errors."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            (root / ".spaider-config.json").write_text('{"spaiderAdapterPath": "adapter"}', encoding="utf-8")
+            (root / ".cypilot-config.json").write_text('{"cypilotAdapterPath": "adapter"}', encoding="utf-8")
             adapter = root / "adapter"
             adapter.mkdir()
             (adapter / "AGENTS.md").write_text("# Test\n", encoding="utf-8")
@@ -2916,20 +2916,20 @@ class TestCLIValidateWeaversErrorBranches(unittest.TestCase):
                 os.chdir(str(root))
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["validate-weavers"])
+                    exit_code = main(["validate-kits"])
                 self.assertNotEqual(exit_code, 0)
             finally:
                 os.chdir(cwd)
 
-    def test_validate_rules_no_spaider_templates(self):
-        """Test validate-weavers when no Spaider templates in registry."""
+    def test_validate_rules_no_cypilot_templates(self):
+        """Test validate-kits when no Cypilot templates in registry."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            # Setup with non-Spaider format
+            # Setup with non-Cypilot format
             _bootstrap_registry_new_format(
                 root,
-                weavers={"other": {"format": "OTHER", "path": "templates"}},
-                systems=[{"name": "Test", "weavers": "other", "artifacts": []}],
+                kits={"other": {"format": "OTHER", "path": "templates"}},
+                systems=[{"name": "Test", "kits": "other", "artifacts": []}],
             )
 
             cwd = os.getcwd()
@@ -2937,7 +2937,7 @@ class TestCLIValidateWeaversErrorBranches(unittest.TestCase):
                 os.chdir(str(root))
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["validate-weavers"])
+                    exit_code = main(["validate-kits"])
                 self.assertNotEqual(exit_code, 0)
             finally:
                 os.chdir(cwd)
@@ -2956,10 +2956,10 @@ class TestCLIInitBackupBranch(unittest.TestCase):
             adapter = root / "adapter"
             adapter.mkdir()
             (adapter / "AGENTS.md").write_text("# Old adapter\n", encoding="utf-8")
-            (adapter / ".spaider-config.json").write_text('{"spaiderAdapterPath": "adapter"}', encoding="utf-8")
+            (adapter / ".cypilot-config.json").write_text('{"cypilotAdapterPath": "adapter"}', encoding="utf-8")
 
             # Point config to existing adapter
-            (root / ".spaider-config.json").write_text('{"spaiderAdapterPath": "adapter"}', encoding="utf-8")
+            (root / ".cypilot-config.json").write_text('{"cypilotAdapterPath": "adapter"}', encoding="utf-8")
 
             cwd = os.getcwd()
             stdout = io.StringIO()
@@ -2967,7 +2967,7 @@ class TestCLIInitBackupBranch(unittest.TestCase):
                 os.chdir(str(root))
                 with redirect_stdout(stdout):
                     exit_code = main(["init", "--yes"])
-                # May fail if Spaider core not found, but should at least try backup
+                # May fail if Cypilot core not found, but should at least try backup
                 self.assertIn(exit_code, [0, 1, 2])
             finally:
                 os.chdir(cwd)
@@ -3018,7 +3018,7 @@ class TestCLISelfCheckCommand(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            (root / ".spaider-config.json").write_text('{"spaiderAdapterPath": "adapter"}', encoding="utf-8")
+            (root / ".cypilot-config.json").write_text('{"cypilotAdapterPath": "adapter"}', encoding="utf-8")
             adapter = root / "adapter"
             adapter.mkdir()
             (adapter / "AGENTS.md").write_text("# Test\n", encoding="utf-8")
@@ -3039,7 +3039,7 @@ class TestCLISelfCheckCommand(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             # Bootstrap with empty rules
-            _bootstrap_registry_new_format(root, systems=[], weavers={})
+            _bootstrap_registry_new_format(root, systems=[], kits={})
 
             cwd = os.getcwd()
             try:
@@ -3061,12 +3061,12 @@ class TestCLIGetContentErrorBranches(unittest.TestCase):
         """Test get-content when artifact is not under project root."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             # Create artifact outside project root
             outside = Path(tmpdir) / "outside" / "test.md"
             outside.parent.mkdir(parents=True)
-            outside.write_text("<!-- spd:id:item -->\n- [x] `p1` - **ID**: `test`\n<!-- spd:id:item -->", encoding="utf-8")
+            outside.write_text("<!-- cpt:id:item -->\n- [x] `p1` - **ID**: `test`\n<!-- cpt:id:item -->", encoding="utf-8")
 
             cwd = os.getcwd()
             try:
@@ -3084,11 +3084,11 @@ class TestCLIGetContentErrorBranches(unittest.TestCase):
         """Test get-content when artifact is not in registry."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             # Create artifact file under project root but not registered
             unregistered = root / "unregistered.md"
-            unregistered.write_text("<!-- spd:id:item -->\n- [x] `p1` - **ID**: `test`\n<!-- spd:id:item -->", encoding="utf-8")
+            unregistered.write_text("<!-- cpt:id:item -->\n- [x] `p1` - **ID**: `test`\n<!-- cpt:id:item -->", encoding="utf-8")
 
             cwd = os.getcwd()
             try:
@@ -3111,7 +3111,7 @@ class TestCLIListIdKindsErrorBranches(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            (root / ".spaider-config.json").write_text('{"spaiderAdapterPath": "adapter"}', encoding="utf-8")
+            (root / ".cypilot-config.json").write_text('{"cypilotAdapterPath": "adapter"}', encoding="utf-8")
             adapter = root / "adapter"
             adapter.mkdir()
             (adapter / "AGENTS.md").write_text("# Test\n", encoding="utf-8")
@@ -3133,7 +3133,7 @@ class TestCLIListIdKindsErrorBranches(unittest.TestCase):
         """Test list-id-kinds when artifact is outside project root."""
         with TemporaryDirectory() as tmpdir1, TemporaryDirectory() as tmpdir2:
             root = Path(tmpdir1)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             # Create artifact in different temp dir
             outside = Path(tmpdir2) / "outside.md"
@@ -3151,14 +3151,14 @@ class TestCLIListIdKindsErrorBranches(unittest.TestCase):
             finally:
                 os.chdir(cwd)
 
-    def test_list_id_kinds_no_spaider_artifacts(self):
-        """Test list-id-kinds when no Spaider-format artifacts in registry."""
+    def test_list_id_kinds_no_cypilot_artifacts(self):
+        """Test list-id-kinds when no Cypilot-format artifacts in registry."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             _bootstrap_registry_new_format(
                 root,
-                weavers={"other": {"format": "OTHER", "path": "templates"}},
-                systems=[{"name": "Test", "weavers": "other", "artifacts": []}],
+                kits={"other": {"format": "OTHER", "path": "templates"}},
+                systems=[{"name": "Test", "kits": "other", "artifacts": []}],
             )
 
             cwd = os.getcwd()
@@ -3182,7 +3182,7 @@ class TestCLIWhereDefinedErrorBranches(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            (root / ".spaider-config.json").write_text('{"spaiderAdapterPath": "adapter"}', encoding="utf-8")
+            (root / ".cypilot-config.json").write_text('{"cypilotAdapterPath": "adapter"}', encoding="utf-8")
             adapter = root / "adapter"
             adapter.mkdir()
             (adapter / "AGENTS.md").write_text("# Test\n", encoding="utf-8")
@@ -3204,7 +3204,7 @@ class TestCLIWhereDefinedErrorBranches(unittest.TestCase):
         """Test where-defined when artifact is outside project root."""
         with TemporaryDirectory() as tmpdir1, TemporaryDirectory() as tmpdir2:
             root = Path(tmpdir1)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             # Create artifact in different temp dir
             outside = Path(tmpdir2) / "outside.md"
@@ -3233,18 +3233,18 @@ class TestCLIValidateTemplatesVerbose(unittest.TestCase):
             templates_dir = root / "templates"
             templates_dir.mkdir(parents=True)
 
-            # Create invalid template (missing spaider-template frontmatter)
+            # Create invalid template (missing cypilot-template frontmatter)
             (templates_dir / "PRD.template.md").write_text(
-                "<!-- spd:id:item -->\nNo frontmatter here\n<!-- spd:id:item -->",
+                "<!-- cpt:id:item -->\nNo frontmatter here\n<!-- cpt:id:item -->",
                 encoding="utf-8"
             )
 
             _bootstrap_registry_new_format(
                 root,
-                weavers={"spaider": {"format": "Spaider", "path": "templates"}},
+                kits={"cypilot": {"format": "Cypilot", "path": "templates"}},
                 systems=[{
                     "name": "Test",
-                    "weavers": "spaider",
+                    "kits": "cypilot",
                     "artifacts": [{"path": "architecture/PRD.md", "kind": "PRD"}],
                 }],
             )
@@ -3270,7 +3270,7 @@ class TestCLIValidateTemplatesVerbose(unittest.TestCase):
         """Test validate-templates --verbose with valid templates."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             cwd = os.getcwd()
             try:
@@ -3295,7 +3295,7 @@ class TestCLIInitErrorBranches(unittest.TestCase):
             root = Path(tmpdir)
             (root / ".git").mkdir()
             # Create config as directory
-            (root / ".spaider-config.json").mkdir()
+            (root / ".cypilot-config.json").mkdir()
 
             cwd = os.getcwd()
             try:
@@ -3313,7 +3313,7 @@ class TestCLIInitErrorBranches(unittest.TestCase):
             root = Path(tmpdir)
             (root / ".git").mkdir()
             # Create incomplete config
-            (root / ".spaider-config.json").write_text('{"someOtherKey": "value"}', encoding="utf-8")
+            (root / ".cypilot-config.json").write_text('{"someOtherKey": "value"}', encoding="utf-8")
 
             cwd = os.getcwd()
             try:
@@ -3321,7 +3321,7 @@ class TestCLIInitErrorBranches(unittest.TestCase):
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
                     exit_code = main(["init", "--yes", "--project-root", str(root)])
-                # May fail due to incomplete config or Spaider core not found
+                # May fail due to incomplete config or Cypilot core not found
                 self.assertIn(exit_code, [0, 1, 2])
             finally:
                 os.chdir(cwd)
@@ -3332,8 +3332,8 @@ class TestCLIInitErrorBranches(unittest.TestCase):
             root = Path(tmpdir)
             (root / ".git").mkdir()
             # Create config with different paths
-            (root / ".spaider-config.json").write_text(
-                '{"spaiderCorePath": "different/path", "spaiderAdapterPath": "different/adapter"}',
+            (root / ".cypilot-config.json").write_text(
+                '{"cypilotCorePath": "different/path", "cypilotAdapterPath": "different/adapter"}',
                 encoding="utf-8"
             )
 
@@ -3353,7 +3353,7 @@ class TestCLIInitErrorBranches(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            adapter = root / ".spaider-adapter"
+            adapter = root / ".cypilot-adapter"
             adapter.mkdir(parents=True)
             # Create AGENTS.md as directory
             (adapter / "AGENTS.md").mkdir()
@@ -3374,7 +3374,7 @@ class TestCLIInitErrorBranches(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            adapter = root / ".spaider-adapter"
+            adapter = root / ".cypilot-adapter"
             adapter.mkdir(parents=True)
             # Create artifacts.json as directory
             (adapter / "artifacts.json").mkdir()
@@ -3397,7 +3397,7 @@ class TestCLIInitErrorBranches(unittest.TestCase):
             (root / ".git").mkdir()
 
             # Create existing adapter
-            adapter = root / ".spaider-adapter"
+            adapter = root / ".cypilot-adapter"
             adapter.mkdir(parents=True)
             (adapter / "AGENTS.md").write_text("# Old content\n", encoding="utf-8")
             (adapter / "artifacts.json").write_text('{"version": "old"}', encoding="utf-8")
@@ -3420,11 +3420,11 @@ class TestCLIInitErrorBranches(unittest.TestCase):
             (root / ".git").mkdir()
 
             # Create existing valid config with extra fields
-            config = root / ".spaider-config.json"
-            config.write_text('{"spaiderCorePath": "old/path", "spaiderAdapterPath": "old/adapter", "customField": "keep-me"}', encoding="utf-8")
+            config = root / ".cypilot-config.json"
+            config.write_text('{"cypilotCorePath": "old/path", "cypilotAdapterPath": "old/adapter", "customField": "keep-me"}', encoding="utf-8")
 
             # Create existing adapter
-            adapter = root / ".spaider-adapter"
+            adapter = root / ".cypilot-adapter"
             adapter.mkdir(parents=True)
             (adapter / "AGENTS.md").write_text("# Old content\n", encoding="utf-8")
             (adapter / "artifacts.json").write_text('{"version": 1}', encoding="utf-8")
@@ -3453,7 +3453,7 @@ class TestCLIWhereUsedErrorBranches(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            (root / ".spaider-config.json").write_text('{"spaiderAdapterPath": "adapter"}', encoding="utf-8")
+            (root / ".cypilot-config.json").write_text('{"cypilotAdapterPath": "adapter"}', encoding="utf-8")
             adapter = root / "adapter"
             adapter.mkdir()
             (adapter / "AGENTS.md").write_text("# Test\n", encoding="utf-8")
@@ -3475,7 +3475,7 @@ class TestCLIWhereUsedErrorBranches(unittest.TestCase):
         """Test where-used when artifact is outside project root."""
         with TemporaryDirectory() as tmpdir1, TemporaryDirectory() as tmpdir2:
             root = Path(tmpdir1)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             # Create artifact in different temp dir
             outside = Path(tmpdir2) / "outside.md"
@@ -3502,7 +3502,7 @@ class TestCLIListIdsErrorBranches(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            (root / ".spaider-config.json").write_text('{"spaiderAdapterPath": "adapter"}', encoding="utf-8")
+            (root / ".cypilot-config.json").write_text('{"cypilotAdapterPath": "adapter"}', encoding="utf-8")
             adapter = root / "adapter"
             adapter.mkdir()
             (adapter / "AGENTS.md").write_text("# Test\n", encoding="utf-8")
@@ -3524,7 +3524,7 @@ class TestCLIListIdsErrorBranches(unittest.TestCase):
         """Test list-ids when artifact is outside project root."""
         with TemporaryDirectory() as tmpdir1, TemporaryDirectory() as tmpdir2:
             root = Path(tmpdir1)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             # Create artifact in different temp dir
             outside = Path(tmpdir2) / "outside.md"
@@ -3542,14 +3542,14 @@ class TestCLIListIdsErrorBranches(unittest.TestCase):
             finally:
                 os.chdir(cwd)
 
-    def test_list_ids_no_spaider_artifacts(self):
-        """Test list-ids when no Spaider-format artifacts in registry."""
+    def test_list_ids_no_cypilot_artifacts(self):
+        """Test list-ids when no Cypilot-format artifacts in registry."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             _bootstrap_registry_new_format(
                 root,
-                weavers={"other": {"format": "OTHER", "path": "templates"}},
-                systems=[{"name": "Test", "weavers": "other", "artifacts": []}],
+                kits={"other": {"format": "OTHER", "path": "templates"}},
+                systems=[{"name": "Test", "kits": "other", "artifacts": []}],
             )
 
             cwd = os.getcwd()
@@ -3592,7 +3592,7 @@ class TestCLIValidateCommandBranches(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            (root / ".spaider-config.json").write_text('{"spaiderAdapterPath": "adapter"}', encoding="utf-8")
+            (root / ".cypilot-config.json").write_text('{"cypilotAdapterPath": "adapter"}', encoding="utf-8")
             adapter = root / "adapter"
             adapter.mkdir()
             (adapter / "AGENTS.md").write_text("# Test\n", encoding="utf-8")
@@ -3610,14 +3610,14 @@ class TestCLIValidateCommandBranches(unittest.TestCase):
             finally:
                 os.chdir(cwd)
 
-    def test_validate_no_spaider_artifacts(self):
-        """Test validate when no Spaider-format artifacts in registry."""
+    def test_validate_no_cypilot_artifacts(self):
+        """Test validate when no Cypilot-format artifacts in registry."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             _bootstrap_registry_new_format(
                 root,
-                weavers={"other": {"format": "OTHER", "path": "templates"}},
-                systems=[{"name": "Test", "weavers": "other", "artifacts": []}],
+                kits={"other": {"format": "OTHER", "path": "templates"}},
+                systems=[{"name": "Test", "kits": "other", "artifacts": []}],
             )
 
             cwd = os.getcwd()
@@ -3636,7 +3636,7 @@ class TestCLIValidateCommandBranches(unittest.TestCase):
         """Test validate --verbose output includes detailed info."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             cwd = os.getcwd()
             try:
@@ -3654,7 +3654,7 @@ class TestCLIValidateCommandBranches(unittest.TestCase):
         """Test validate --output writes to file."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
             output_file = root / "report.json"
 
             cwd = os.getcwd()
@@ -3671,10 +3671,10 @@ class TestCLIValidateCommandBranches(unittest.TestCase):
                 os.chdir(cwd)
 
     def test_validate_artifact_not_in_registry(self):
-        """Test validate when artifact is not in Spaider registry."""
+        """Test validate when artifact is not in Cypilot registry."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             # Create artifact file not in registry
             unregistered = root / "unregistered.md"
@@ -3709,10 +3709,10 @@ class TestCLIValidateCommandBranches(unittest.TestCase):
 
             _bootstrap_registry_new_format(
                 root,
-                weavers={"spaider": {"format": "Spaider", "path": "templates"}},
+                kits={"cypilot": {"format": "Cypilot", "path": "templates"}},
                 systems=[{
                     "name": "Test",
-                    "weavers": "spaider",
+                    "kits": "cypilot",
                     "artifacts": [{"path": "architecture/PRD.md", "kind": "PRD"}],
                 }],
             )
@@ -3736,14 +3736,14 @@ class TestCLIWhereUsedWithIncludeDefinitions(unittest.TestCase):
         """Test where-used --include-definitions includes definitions."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             cwd = os.getcwd()
             try:
                 os.chdir(str(root))
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["where-used", "--id", "spd-test-1", "--include-definitions"])
+                    exit_code = main(["where-used", "--id", "cpt-test-1", "--include-definitions"])
                 self.assertEqual(exit_code, 0)
                 out = json.loads(stdout.getvalue())
                 # Should have references that may include definitions
@@ -3759,7 +3759,7 @@ class TestCLIListIdsFilters(unittest.TestCase):
         """Test list-ids --kind filter."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             cwd = os.getcwd()
             try:
@@ -3777,14 +3777,14 @@ class TestCLIListIdsFilters(unittest.TestCase):
         """Test list-ids --pattern filter."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             cwd = os.getcwd()
             try:
                 os.chdir(str(root))
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["list-ids", "--pattern", "spaider"])
+                    exit_code = main(["list-ids", "--pattern", "cypilot"])
                 self.assertEqual(exit_code, 0)
                 out = json.loads(stdout.getvalue())
                 self.assertIn("ids", out)
@@ -3795,14 +3795,14 @@ class TestCLIListIdsFilters(unittest.TestCase):
         """Test list-ids --pattern --regex filter."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             cwd = os.getcwd()
             try:
                 os.chdir(str(root))
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["list-ids", "--pattern", "spaider.*1", "--regex"])
+                    exit_code = main(["list-ids", "--pattern", "cypilot.*1", "--regex"])
                 self.assertEqual(exit_code, 0)
                 out = json.loads(stdout.getvalue())
                 self.assertIn("ids", out)
@@ -3813,7 +3813,7 @@ class TestCLIListIdsFilters(unittest.TestCase):
         """Test list-ids --all to include duplicates."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             cwd = os.getcwd()
             try:
@@ -3831,42 +3831,42 @@ class TestCLIListIdsFilters(unittest.TestCase):
         """Test list-ids captures priority in output."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            templates_dir = root / "weavers" / "sdlc" / "artifacts" / "PRD"
+            templates_dir = root / "kits" / "sdlc" / "artifacts" / "PRD"
             templates_dir.mkdir(parents=True)
 
             # Create template with priority
             tmpl_content = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: PRD
 ---
-<!-- spd:id:item -->
-- [ ] `p1` - **ID**: `spd-test-1`
-<!-- spd:id:item -->
+<!-- cpt:id:item -->
+- [ ] `p1` - **ID**: `cpt-test-1`
+<!-- cpt:id:item -->
 """
             (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
 
             # Create artifact with priority marker
             art_dir = root / "architecture"
             art_dir.mkdir(parents=True)
-            art_content = """<!-- spd:id:item -->
-- [x] `p1` - **ID**: `spd-test-1`
-<!-- spd:id:item -->
+            art_content = """<!-- cpt:id:item -->
+- [x] `p1` - **ID**: `cpt-test-1`
+<!-- cpt:id:item -->
 
-<!-- spd:id-ref:item -->
-- [x] `p2` - `spd-test-1`: referenced here
-<!-- spd:id-ref:item -->
+<!-- cpt:id-ref:item -->
+- [x] `p2` - `cpt-test-1`: referenced here
+<!-- cpt:id-ref:item -->
 """
             (art_dir / "PRD.md").write_text(art_content, encoding="utf-8")
 
             _bootstrap_registry_new_format(
                 root,
-                weavers={"spaider": {"format": "Spaider", "path": "weavers/sdlc"}},
+                kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
                 systems=[{
                     "name": "Test",
-                    "weavers": "spaider",
+                    "kits": "cypilot",
                     "artifacts": [{"path": "architecture/PRD.md", "kind": "PRD"}],
                 }],
             )
@@ -3906,7 +3906,7 @@ class TestCLIGetContentBranches(unittest.TestCase):
         """Test get-content when ID is found."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
             artifact = root / "architecture" / "PRD.md"
 
             cwd = os.getcwd()
@@ -3944,7 +3944,7 @@ class TestCLIAdapterInfoCommand(unittest.TestCase):
         """Test adapter-info with valid adapter."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project(root)
+            _setup_cypilot_project(root)
 
             cwd = os.getcwd()
             try:
@@ -3957,76 +3957,76 @@ class TestCLIAdapterInfoCommand(unittest.TestCase):
                 os.chdir(cwd)
 
 
-def _setup_spaider_project_with_codebase(root: Path) -> None:
-    """Setup complete Spaider project with codebase entries for testing."""
+def _setup_cypilot_project_with_codebase(root: Path) -> None:
+    """Setup complete Cypilot project with codebase entries for testing."""
     # Create template
-    templates_dir = root / "weavers" / "sdlc" / "artifacts" / "PRD"
+    templates_dir = root / "kits" / "sdlc" / "artifacts" / "PRD"
     templates_dir.mkdir(parents=True)
     tmpl_content = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: PRD
 ---
-<!-- spd:id:item -->
-- [ ] `p1` - **ID**: `spd-test-1`
-<!-- spd:id:item -->
+<!-- cpt:id:item -->
+- [ ] `p1` - **ID**: `cpt-test-1`
+<!-- cpt:id:item -->
 """
     (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
 
     # Create artifact
     art_dir = root / "architecture"
     art_dir.mkdir(parents=True)
-    art_content = """<!-- spd:id:item -->
-- [x] `p1` - **ID**: `spd-test-1`
-<!-- spd:id:item -->
+    art_content = """<!-- cpt:id:item -->
+- [x] `p1` - **ID**: `cpt-test-1`
+<!-- cpt:id:item -->
 """
     (art_dir / "PRD.md").write_text(art_content, encoding="utf-8")
 
-    # Create code directory with Spaider markers
+    # Create code directory with Cypilot markers
     code_dir = root / "src"
     code_dir.mkdir(parents=True)
     (code_dir / "module.py").write_text(
-        "# @spaider-flow:spd-test-1:p1\ndef test(): pass\n",
+        "# @cpt-flow:cpt-test-1:p1\ndef test(): pass\n",
         encoding="utf-8"
     )
 
     # Bootstrap registry with codebase entry
     _bootstrap_registry_new_format(
         root,
-        weavers={"spaider": {"format": "Spaider", "path": "weavers/sdlc"}},
+        kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
         systems=[{
             "name": "Test",
-            "weaver": "spaider",
+            "kit": "cypilot",
             "artifacts": [{"path": "architecture/PRD.md", "kind": "PRD", "traceability": "FULL"}],
             "codebase": [{"path": "src", "extensions": [".py"]}],
         }],
     )
 
 
-def _setup_spaider_project_with_markerless_sdsl_missing_block(root: Path) -> None:
+def _setup_cypilot_project_with_markerless_cdsl_missing_block(root: Path) -> None:
     # Create template (minimal, any template to allow registry/template loading)
-    templates_dir = root / "weavers" / "sdlc" / "artifacts" / "PRD"
+    templates_dir = root / "kits" / "sdlc" / "artifacts" / "PRD"
     templates_dir.mkdir(parents=True)
     tmpl_content = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: PRD
 ---
-<!-- spd:id:item -->
-- [ ] **ID**: `spd-test-1`
-<!-- spd:id:item -->
+<!-- cpt:id:item -->
+- [ ] **ID**: `cpt-test-1`
+<!-- cpt:id:item -->
 """
     (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
 
-    # Create markerless artifact: no <!-- spd: --> markers.
-    # Parent binding rule: the last ID definition above SDSL is the parent.
+    # Create markerless artifact: no <!-- cpt: --> markers.
+    # Parent binding rule: the last ID definition above CDSL is the parent.
     art_dir = root / "architecture"
     art_dir.mkdir(parents=True)
-    art_content = """- [x] `p1` - **ID**: `spd-test-1`
+    art_content = """- [x] `p1` - **ID**: `cpt-test-1`
 
 1. [x] - `p1` - Daemon loads effective configuration (defaults + validation) - `inst-load-config`
 """
@@ -4036,53 +4036,53 @@ spaider-template:
     code_dir.mkdir(parents=True)
     # No block markers.
     (code_dir / "module.py").write_text(
-        "# @spaider-flow:spd-test-1:p1\ndef test():\n    return 1\n",
+        "# @cpt-flow:cpt-test-1:p1\ndef test():\n    return 1\n",
         encoding="utf-8",
     )
 
     _bootstrap_registry_new_format(
         root,
-        weavers={"spaider": {"format": "Spaider", "path": "weavers/sdlc"}},
+        kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
         systems=[{
             "name": "Test",
-            "weaver": "spaider",
+            "kit": "cypilot",
             "artifacts": [{"path": "architecture/PRD.md", "kind": "PRD", "traceability": "FULL"}],
             "codebase": [{"path": "src", "extensions": [".py"]}],
         }],
     )
 
 
-def _setup_spaider_project_with_sdsl_to_code_missing_block(root: Path) -> None:
+def _setup_cypilot_project_with_cdsl_to_code_missing_block(root: Path) -> None:
     # Create template
-    templates_dir = root / "weavers" / "sdlc" / "artifacts" / "PRD"
+    templates_dir = root / "kits" / "sdlc" / "artifacts" / "PRD"
     templates_dir.mkdir(parents=True)
     tmpl_content = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: PRD
 ---
-<!-- spd:id:flow has=\"task\" to_code=\"true\" -->
-- [ ] **ID**: `spd-test-1`
+<!-- cpt:id:flow has=\"task\" to_code=\"true\" -->
+- [ ] **ID**: `cpt-test-1`
 
-<!-- spd:sdsl:flow-steps -->
+<!-- cpt:cdsl:flow-steps -->
 1. [ ] - `p1` - Step - `inst-a`
-<!-- spd:sdsl:flow-steps -->
-<!-- spd:id:flow -->
+<!-- cpt:cdsl:flow-steps -->
+<!-- cpt:id:flow -->
 """
     (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
 
     # Create artifact (instruction implemented but no code block markers)
     art_dir = root / "architecture"
     art_dir.mkdir(parents=True)
-    art_content = """<!-- spd:id:flow has=\"task\" to_code=\"true\" -->
-- [x] **ID**: `spd-test-1`
+    art_content = """<!-- cpt:id:flow has=\"task\" to_code=\"true\" -->
+- [x] **ID**: `cpt-test-1`
 
-<!-- spd:sdsl:flow-steps -->
+<!-- cpt:cdsl:flow-steps -->
 1. [x] - `p1` - Step - `inst-a`
-<!-- spd:sdsl:flow-steps -->
-<!-- spd:id:flow -->
+<!-- cpt:cdsl:flow-steps -->
+<!-- cpt:id:flow -->
 """
     (art_dir / "PRD.md").write_text(art_content, encoding="utf-8")
 
@@ -4090,16 +4090,16 @@ spaider-template:
     code_dir.mkdir(parents=True)
     # Only a scope marker exists; no begin/end markers.
     (code_dir / "module.py").write_text(
-        "# @spaider-flow:spd-test-1:p1\ndef test():\n    return 1\n",
+        "# @cpt-flow:cpt-test-1:p1\ndef test():\n    return 1\n",
         encoding="utf-8",
     )
 
     _bootstrap_registry_new_format(
         root,
-        weavers={"spaider": {"format": "Spaider", "path": "weavers/sdlc"}},
+        kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
         systems=[{
             "name": "Test",
-            "weaver": "spaider",
+            "kit": "cypilot",
             "artifacts": [{"path": "architecture/PRD.md", "kind": "PRD", "traceability": "FULL"}],
             "codebase": [{"path": "src", "extensions": [".py"]}],
         }],
@@ -4144,7 +4144,7 @@ class TestCLIValidateCodeCommand(unittest.TestCase):
         """Test validate-code is integrated into validate command."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project_with_codebase(root)
+            _setup_cypilot_project_with_codebase(root)
 
             cwd = os.getcwd()
             try:
@@ -4164,7 +4164,7 @@ class TestCLIValidateCodeCommand(unittest.TestCase):
         """Test validate-code with verbose output."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project_with_codebase(root)
+            _setup_cypilot_project_with_codebase(root)
 
             cwd = os.getcwd()
             try:
@@ -4183,7 +4183,7 @@ class TestCLIValidateCodeCommand(unittest.TestCase):
         """Test validate-code with output file."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project_with_codebase(root)
+            _setup_cypilot_project_with_codebase(root)
             output_file = root / "report.json"
 
             cwd = os.getcwd()
@@ -4204,7 +4204,7 @@ class TestCLIValidateCodeCommand(unittest.TestCase):
         """Test validate-code scanning codebase entries."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project_with_codebase(root)
+            _setup_cypilot_project_with_codebase(root)
 
             cwd = os.getcwd()
             try:
@@ -4222,12 +4222,12 @@ class TestCLIValidateCodeCommand(unittest.TestCase):
         """Test validate detects orphaned markers (ID not in artifacts)."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project_with_codebase(root)
+            _setup_cypilot_project_with_codebase(root)
 
             # Add code file with orphaned marker (ID not in artifacts)
             orphan_file = root / "src" / "orphan.py"
             orphan_file.write_text(
-                "# @spaider-flow:spd-unknown-id:p1\ndef orphan(): pass\n",
+                "# @cpt-flow:cpt-unknown-id:p1\ndef orphan(): pass\n",
                 encoding="utf-8"
             )
 
@@ -4250,8 +4250,8 @@ class TestCLIValidateCodeCommand(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            (root / ".spaider-config.json").write_text(
-                '{"spaiderAdapterPath": "adapter"}',
+            (root / ".cypilot-config.json").write_text(
+                '{"cypilotAdapterPath": "adapter"}',
                 encoding="utf-8"
             )
             adapter_dir = root / "adapter"
@@ -4276,7 +4276,7 @@ class TestCLIValidateCodeCommand(unittest.TestCase):
         """Test validate with --skip-code flag."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            _setup_spaider_project_with_codebase(root)
+            _setup_cypilot_project_with_codebase(root)
 
             cwd = os.getcwd()
             try:
@@ -4298,43 +4298,43 @@ class TestCLIValidateCodeCommand(unittest.TestCase):
             root = Path(tmpdir)
 
             # Setup templates
-            templates_dir = root / "weavers" / "sdlc" / "artifacts" / "PRD"
+            templates_dir = root / "kits" / "sdlc" / "artifacts" / "PRD"
             templates_dir.mkdir(parents=True)
             (templates_dir / "template.md").write_text("""---
-spaider-template:
+cypilot-template:
   version: {major: 1, minor: 0}
   kind: PRD
 ---
-<!-- spd:id:item -->
-- [ ] `p1` - **ID**: `spd-test-1`
-<!-- spd:id:item -->
+<!-- cpt:id:item -->
+- [ ] `p1` - **ID**: `cpt-test-1`
+<!-- cpt:id:item -->
 """, encoding="utf-8")
 
             # Create artifact
             (root / "architecture").mkdir(parents=True)
-            (root / "architecture" / "PRD.md").write_text("""<!-- spd:id:item -->
-- [x] `p1` - **ID**: `spd-test-1`
-<!-- spd:id:item -->
+            (root / "architecture" / "PRD.md").write_text("""<!-- cpt:id:item -->
+- [x] `p1` - **ID**: `cpt-test-1`
+<!-- cpt:id:item -->
 """, encoding="utf-8")
 
             # Create code with markers
             (root / "src").mkdir(parents=True)
             (root / "src" / "module.py").write_text(
-                "# @spaider-flow:spd-test-1:p1\ndef test(): pass\n",
+                "# @cpt-flow:cpt-test-1:p1\ndef test(): pass\n",
                 encoding="utf-8"
             )
 
             # Bootstrap registry with nested systems
             _bootstrap_registry_new_format(
                 root,
-                weavers={"spaider": {"format": "Spaider", "path": "weavers/sdlc"}},
+                kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
                 systems=[{
                     "name": "Parent",
-                    "weavers": "spaider",
+                    "kits": "cypilot",
                     "artifacts": [{"path": "architecture/PRD.md", "kind": "PRD"}],
                     "children": [{
                         "name": "Child",
-                        "weavers": "spaider",
+                        "kits": "cypilot",
                         "artifacts": [],
                         "codebase": [{"path": "src", "extensions": [".py"]}],
                     }],
@@ -4357,31 +4357,31 @@ spaider-template:
             root = Path(tmpdir)
 
             # Setup minimal project
-            templates_dir = root / "weavers" / "sdlc" / "artifacts" / "PRD"
+            templates_dir = root / "kits" / "sdlc" / "artifacts" / "PRD"
             templates_dir.mkdir(parents=True)
             (templates_dir / "template.md").write_text("""---
-spaider-template:
+cypilot-template:
   version: {major: 1, minor: 0}
   kind: PRD
 ---
-<!-- spd:id:item -->
-- [ ] `p1` - **ID**: `spd-test-1`
-<!-- spd:id:item -->
+<!-- cpt:id:item -->
+- [ ] `p1` - **ID**: `cpt-test-1`
+<!-- cpt:id:item -->
 """, encoding="utf-8")
 
             (root / "architecture").mkdir(parents=True)
-            (root / "architecture" / "PRD.md").write_text("""<!-- spd:id:item -->
-- [x] `p1` - **ID**: `spd-test-1`
-<!-- spd:id:item -->
+            (root / "architecture" / "PRD.md").write_text("""<!-- cpt:id:item -->
+- [x] `p1` - **ID**: `cpt-test-1`
+<!-- cpt:id:item -->
 """, encoding="utf-8")
 
             # Bootstrap with codebase pointing to nonexistent directory
             _bootstrap_registry_new_format(
                 root,
-                weavers={"spaider": {"format": "Spaider", "path": "weavers/sdlc"}},
+                kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
                 systems=[{
                     "name": "Test",
-                    "weavers": "spaider",
+                    "kits": "cypilot",
                     "artifacts": [{"path": "architecture/PRD.md", "kind": "PRD"}],
                     "codebase": [{"path": "nonexistent/dir", "extensions": [".py"]}],
                 }],
@@ -4419,13 +4419,13 @@ class TestCLIGetContentCodeFile(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             code_file = Path(tmpdir) / "test.py"
             code_file.write_text(
-                "# @spaider-flow:spd-test-flow-login:p1\ndef login(): pass\n",
+                "# @cpt-flow:cpt-test-flow-login:p1\ndef login(): pass\n",
                 encoding="utf-8"
             )
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["get-content", "--code", str(code_file), "--id", "spd-test-flow-login"])
+                exit_code = main(["get-content", "--code", str(code_file), "--id", "cpt-test-flow-login"])
             self.assertEqual(exit_code, 0)
             out = json.loads(stdout.getvalue())
             self.assertEqual(out.get("status"), "FOUND")
@@ -4448,9 +4448,9 @@ class TestCLIGetContentCodeFile(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             code_file = Path(tmpdir) / "test.py"
             code_file.write_text(
-                "# @spaider-begin:spd-test-flow-login:p1:inst-validate\n"
+                "# @cpt-begin:cpt-test-flow-login:p1:inst-validate\n"
                 "def validate(): return True\n"
-                "# @spaider-end:spd-test-flow-login:p1:inst-validate\n",
+                "# @cpt-end:cpt-test-flow-login:p1:inst-validate\n",
                 encoding="utf-8"
             )
 
@@ -4458,7 +4458,7 @@ class TestCLIGetContentCodeFile(unittest.TestCase):
             with redirect_stdout(stdout):
                 exit_code = main([
                     "get-content", "--code", str(code_file),
-                    "--id", "spd-test-flow-login", "--inst", "validate"
+                    "--id", "cpt-test-flow-login", "--inst", "validate"
                 ])
             self.assertEqual(exit_code, 0)
             out = json.loads(stdout.getvalue())
@@ -4500,26 +4500,26 @@ class TestCLIListIdsIncludeCode(unittest.TestCase):
             root = Path(tmpdir)
 
             # Setup project with codebase entry
-            templates_dir = root / "weavers" / "sdlc" / "artifacts" / "PRD"
+            templates_dir = root / "kits" / "sdlc" / "artifacts" / "PRD"
             templates_dir.mkdir(parents=True)
             tmpl_content = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: PRD
 ---
-<!-- spd:id:item -->
-- [ ] `p1` - **ID**: `spd-test-1`
-<!-- spd:id:item -->
+<!-- cpt:id:item -->
+- [ ] `p1` - **ID**: `cpt-test-1`
+<!-- cpt:id:item -->
 """
             (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
 
             art_dir = root / "architecture"
             art_dir.mkdir(parents=True)
-            art_content = """<!-- spd:id:item -->
-- [x] `p1` - **ID**: `spd-test-1`
-<!-- spd:id:item -->
+            art_content = """<!-- cpt:id:item -->
+- [x] `p1` - **ID**: `cpt-test-1`
+<!-- cpt:id:item -->
 """
             (art_dir / "PRD.md").write_text(art_content, encoding="utf-8")
 
@@ -4527,17 +4527,17 @@ spaider-template:
             code_dir = root / "src"
             code_dir.mkdir(parents=True)
             (code_dir / "module.py").write_text(
-                "# @spaider-flow:spd-test-flow-test:p1\ndef test(): pass\n",
+                "# @cpt-flow:cpt-test-flow-test:p1\ndef test(): pass\n",
                 encoding="utf-8"
             )
 
             # Bootstrap registry with codebase entry
             _bootstrap_registry_new_format(
                 root,
-                weavers={"spaider": {"format": "Spaider", "path": "weavers/sdlc"}},
+                kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
                 systems=[{
                     "name": "Test",
-                    "weavers": "spaider",
+                    "kits": "cypilot",
                     "artifacts": [{"path": "architecture/PRD.md", "kind": "PRD"}],
                     "codebase": [{"path": "src", "extensions": [".py"]}],
                 }],
@@ -4581,7 +4581,7 @@ class TestCLIGetContentCodePath(unittest.TestCase):
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["get-content", "--code", str(code_file), "--id", "spd-test-id"])
+                exit_code = main(["get-content", "--code", str(code_file), "--id", "cpt-test-id"])
             # Should fail or return not found
             self.assertIn(exit_code, (1, 2))
 
@@ -4593,7 +4593,7 @@ class TestCLIGetContentCodePath(unittest.TestCase):
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["get-content", "--code", str(code_file), "--id", "spd-nonexistent-id"])
+                exit_code = main(["get-content", "--code", str(code_file), "--id", "cpt-nonexistent-id"])
             self.assertEqual(exit_code, 2)
             out = json.loads(stdout.getvalue())
             self.assertEqual(out.get("status"), "NOT_FOUND")
@@ -4603,7 +4603,7 @@ class TestCLIGetContentCodePath(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             code_file = Path(tmpdir) / "test.py"
             code_file.write_text(
-                "# @spaider-flow:spd-test-flow-auth:inst-validate\ndef validate(): pass\n# @spaider-flow\n",
+                "# @cpt-flow:cpt-test-flow-auth:inst-validate\ndef validate(): pass\n# @cpt-flow\n",
                 encoding="utf-8"
             )
 
@@ -4612,7 +4612,7 @@ class TestCLIGetContentCodePath(unittest.TestCase):
                 exit_code = main([
                     "get-content",
                     "--code", str(code_file),
-                    "--id", "spd-test-flow-auth",
+                    "--id", "cpt-test-flow-auth",
                     "--inst", "inst-validate"
                 ])
             # May succeed or fail depending on implementation
@@ -4622,7 +4622,7 @@ class TestCLIGetContentCodePath(unittest.TestCase):
         """Cover ERROR when neither --artifact nor --code specified."""
         stdout = io.StringIO()
         with redirect_stdout(stdout):
-            exit_code = main(["get-content", "--id", "spd-test-id"])
+            exit_code = main(["get-content", "--id", "cpt-test-id"])
         self.assertEqual(exit_code, 1)
         out = json.loads(stdout.getvalue())
         self.assertEqual(out.get("status"), "ERROR")
@@ -4640,7 +4640,7 @@ class TestCLIWhereDefinedEdgeCases(unittest.TestCase):
                 os.chdir(tmpdir)
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["where-defined", "--id", "spd-test-id"])
+                    exit_code = main(["where-defined", "--id", "cpt-test-id"])
                 self.assertEqual(exit_code, 1)
             finally:
                 os.chdir(cwd)
@@ -4659,7 +4659,7 @@ class TestCLIWhereDefinedEdgeCases(unittest.TestCase):
         """where-defined with nonexistent artifact returns error."""
         stdout = io.StringIO()
         with redirect_stdout(stdout):
-            exit_code = main(["where-defined", "--id", "spd-test-id", "--artifact", "/nonexistent/path.md"])
+            exit_code = main(["where-defined", "--id", "cpt-test-id", "--artifact", "/nonexistent/path.md"])
         self.assertEqual(exit_code, 1)
         out = json.loads(stdout.getvalue())
         self.assertEqual(out.get("status"), "ERROR")
@@ -4672,7 +4672,7 @@ class TestCLIWhereDefinedEdgeCases(unittest.TestCase):
                 os.chdir(tmpdir)
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["where-used", "--id", "spd-test-id"])
+                    exit_code = main(["where-used", "--id", "cpt-test-id"])
                 self.assertEqual(exit_code, 1)
             finally:
                 os.chdir(cwd)
@@ -4691,7 +4691,7 @@ class TestCLIWhereDefinedEdgeCases(unittest.TestCase):
         """where-used with nonexistent artifact returns error."""
         stdout = io.StringIO()
         with redirect_stdout(stdout):
-            exit_code = main(["where-used", "--id", "spd-test-id", "--artifact", "/nonexistent/path.md"])
+            exit_code = main(["where-used", "--id", "cpt-test-id", "--artifact", "/nonexistent/path.md"])
         self.assertEqual(exit_code, 1)
         out = json.loads(stdout.getvalue())
         self.assertEqual(out.get("status"), "ERROR")
@@ -4728,20 +4728,20 @@ class TestCLIValidateCrossRef(unittest.TestCase):
 
             # Create two artifacts that reference each other
             (art_dir / "PRD.md").write_text(
-                "# PRD\n\n## A. Overview\n\n**ID**: `spd-test-fr-auth`\n\nRefs: `spd-test-component-db`\n",
+                "# PRD\n\n## A. Overview\n\n**ID**: `cpt-test-fr-auth`\n\nRefs: `cpt-test-component-db`\n",
                 encoding="utf-8"
             )
             (art_dir / "DESIGN.md").write_text(
-                "# DESIGN\n\n## A. Overview\n\n**ID**: `spd-test-component-db`\n\nRefs: `spd-test-fr-auth`\n",
+                "# DESIGN\n\n## A. Overview\n\n**ID**: `cpt-test-component-db`\n\nRefs: `cpt-test-fr-auth`\n",
                 encoding="utf-8"
             )
 
             _bootstrap_registry_new_format(
                 root,
-                weavers={"spaider": {"format": "Spaider", "path": "weavers/sdlc"}},
+                kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
                 systems=[{
                     "name": "Test",
-                    "weavers": "spaider",
+                    "kits": "cypilot",
                     "artifacts": [
                         {"path": "architecture/PRD.md", "kind": "PRD"},
                         {"path": "architecture/DESIGN.md", "kind": "DESIGN"},

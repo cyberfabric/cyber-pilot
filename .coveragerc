@@ -1,6 +1,6 @@
 [run]
 omit =
-    */spaider/__main__.py
+    */cypilot/__main__.py
     */__main__.py
 
 [report]

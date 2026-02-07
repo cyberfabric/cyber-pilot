@@ -1,7 +1,7 @@
 """
 Unit tests for CLI helper functions.
 
-Tests utility functions from spaider.utils.document that perform parsing, filtering, and formatting.
+Tests utility functions from cypilot.utils.document that perform parsing, filtering, and formatting.
 """
 
 import unittest
@@ -13,21 +13,21 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "spaider" / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "cypilot" / "scripts"))
 
-from spaider.utils.document import (
-    file_has_spaider_markers,
+from cypilot.utils.document import (
+    file_has_cypilot_markers,
     get_content_scoped_without_markers,
     iter_text_files,
     read_text_safe,
-    scan_sdsl_instructions_without_markers,
-    scan_spd_ids_without_markers,
+    scan_cdsl_instructions_without_markers,
+    scan_cpt_ids_without_markers,
     to_relative_posix,
 )
 
-from spaider.utils import document as doc
+from cypilot.utils import document as doc
 
-from spaider import cli as spaider_cli
+from cypilot import cli as cypilot_cli
 
 
 class TestRelativePosix(unittest.TestCase):
@@ -132,38 +132,38 @@ class TestCliInternalHelpers(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             p = Path(tmpdir) / "bad.json"
             p.write_text("{bad}", encoding="utf-8")
-            self.assertIsNone(spaider_cli._load_json_file(p))
+            self.assertIsNone(cypilot_cli._load_json_file(p))
 
     def test_load_json_file_non_dict_returns_none(self):
         with TemporaryDirectory() as tmpdir:
             p = Path(tmpdir) / "list.json"
             p.write_text(json.dumps([1, 2, 3]), encoding="utf-8")
-            self.assertIsNone(spaider_cli._load_json_file(p))
+            self.assertIsNone(cypilot_cli._load_json_file(p))
 
     def test_safe_relpath_from_dir_fallbacks_to_absolute_on_error(self):
         with TemporaryDirectory() as tmpdir:
             base = Path(tmpdir)
             target = base / "x" / "y"
             with patch("os.path.relpath", side_effect=Exception("boom")):
-                rel = spaider_cli._safe_relpath_from_dir(target, base)
+                rel = cypilot_cli._safe_relpath_from_dir(target, base)
             self.assertEqual(rel, target.as_posix())
 
     def test_prompt_path_eof_returns_default(self):
         with patch("builtins.input", side_effect=EOFError()):
-            out = spaider_cli._prompt_path("Q?", "default")
+            out = cypilot_cli._prompt_path("Q?", "default")
         self.assertEqual(out, "default")
 
     def test_safe_relpath_outside_base_returns_absolute(self):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir) / "root"
             other = Path(tmpdir) / "other" / "x.txt"
-            out = spaider_cli._safe_relpath(other, root)
+            out = cypilot_cli._safe_relpath(other, root)
             self.assertEqual(out, other.as_posix())
 
     def test_write_json_file_writes_trailing_newline(self):
         with TemporaryDirectory() as tmpdir:
             p = Path(tmpdir) / "out.json"
-            spaider_cli._write_json_file(p, {"a": 1})
+            cypilot_cli._write_json_file(p, {"a": 1})
             raw = p.read_text(encoding="utf-8")
             self.assertTrue(raw.endswith("\n"))
             self.assertEqual(json.loads(raw), {"a": 1})
@@ -172,65 +172,65 @@ class TestCliInternalHelpers(unittest.TestCase):
 class TestCliCommandCoverage(unittest.TestCase):
     def test_self_check_project_root_not_found(self):
         with TemporaryDirectory() as td:
-            with patch.object(spaider_cli, "find_project_root", return_value=None):
+            with patch.object(cypilot_cli, "find_project_root", return_value=None):
                 buf = io.StringIO()
                 with contextlib.redirect_stdout(buf):
-                    code = spaider_cli._cmd_self_check(["--root", td])
+                    code = cypilot_cli._cmd_self_check(["--root", td])
         self.assertEqual(code, 1)
 
     def test_self_check_adapter_dir_not_found(self):
         with TemporaryDirectory() as td:
             root = Path(td)
             (root / ".git").mkdir()
-            with patch.object(spaider_cli, "find_project_root", return_value=root):
-                with patch.object(spaider_cli, "find_adapter_directory", return_value=None):
+            with patch.object(cypilot_cli, "find_project_root", return_value=root):
+                with patch.object(cypilot_cli, "find_adapter_directory", return_value=None):
                     buf = io.StringIO()
                     with contextlib.redirect_stdout(buf):
-                        code = spaider_cli._cmd_self_check(["--root", td])
+                        code = cypilot_cli._cmd_self_check(["--root", td])
         self.assertEqual(code, 1)
 
     def test_self_check_registry_no_rules(self):
         with TemporaryDirectory() as td:
             root = Path(td)
             (root / ".git").mkdir()
-            adapter = root / ".spaider-adapter"
+            adapter = root / ".cypilot-adapter"
             adapter.mkdir()
-            with patch.object(spaider_cli, "find_project_root", return_value=root):
-                with patch.object(spaider_cli, "find_adapter_directory", return_value=adapter):
-                    with patch.object(spaider_cli, "load_artifacts_registry", return_value=({"version": "1.0"}, None)):
+            with patch.object(cypilot_cli, "find_project_root", return_value=root):
+                with patch.object(cypilot_cli, "find_adapter_directory", return_value=adapter):
+                    with patch.object(cypilot_cli, "load_artifacts_registry", return_value=({"version": "1.0"}, None)):
                         buf = io.StringIO()
                         with contextlib.redirect_stdout(buf):
-                            code = spaider_cli._cmd_self_check(["--root", td])
+                            code = cypilot_cli._cmd_self_check(["--root", td])
         self.assertEqual(code, 1)
 
     def test_self_check_with_rules_structure(self):
         with TemporaryDirectory() as td:
             root = Path(td)
             (root / ".git").mkdir()
-            adapter = root / ".spaider-adapter"
+            adapter = root / ".cypilot-adapter"
             adapter.mkdir()
             # Create rules structure
-            weavers_dir = root / "weavers" / "test" / "artifacts" / "PRD"
-            weavers_dir.mkdir(parents=True)
-            (weavers_dir / "template.md").write_text(
+            kits_dir = root / "kits" / "test" / "artifacts" / "PRD"
+            kits_dir.mkdir(parents=True)
+            (kits_dir / "template.md").write_text(
                 "---\n"
-                "spaider-template:\n  version:\n    major: 1\n    minor: 0\n  kind: PRD\n"
+                "cypilot-template:\n  version:\n    major: 1\n    minor: 0\n  kind: PRD\n"
                 "---\n\n# PRD\n",
                 encoding="utf-8",
             )
             # No example - should warn but pass (no examples = no failures)
             registry = {
                 "version": "1.0",
-                "weavers": {
-                    "test-rules": {"format": "Spaider", "path": "weavers/test"}
+                "kits": {
+                    "test-rules": {"format": "Cypilot", "path": "kits/test"}
                 },
             }
-            with patch.object(spaider_cli, "find_project_root", return_value=root):
-                with patch.object(spaider_cli, "find_adapter_directory", return_value=adapter):
-                    with patch.object(spaider_cli, "load_artifacts_registry", return_value=(registry, None)):
+            with patch.object(cypilot_cli, "find_project_root", return_value=root):
+                with patch.object(cypilot_cli, "find_adapter_directory", return_value=adapter):
+                    with patch.object(cypilot_cli, "load_artifacts_registry", return_value=(registry, None)):
                         buf = io.StringIO()
                         with contextlib.redirect_stdout(buf):
-                            code = spaider_cli._cmd_self_check(["--root", td])
+                            code = cypilot_cli._cmd_self_check(["--root", td])
         # PASS when no examples exist (warnings only)
         self.assertEqual(code, 0)
 
@@ -239,92 +239,92 @@ class TestCliCommandCoverage(unittest.TestCase):
             root = Path(td)
             buf = io.StringIO()
             with contextlib.redirect_stdout(buf):
-                rc = spaider_cli.main(["init", "--project-root", str(root), "--yes", "--dry-run"])
+                rc = cypilot_cli.main(["init", "--project-root", str(root), "--yes", "--dry-run"])
         self.assertEqual(rc, 0)
 
     def test_main_missing_subcommand_returns_error(self):
-        rc = spaider_cli.main([])
+        rc = cypilot_cli.main([])
         self.assertEqual(rc, 1)
 
     def test_main_unknown_command_returns_error(self):
-        rc = spaider_cli.main(["does-not-exist"])
+        rc = cypilot_cli.main(["does-not-exist"])
         self.assertEqual(rc, 1)
 
 
-class TestNormalizeSpdIdFromLine(unittest.TestCase):
+class TestNormalizeCptIdFromLine(unittest.TestCase):
     def test_normalize_empty_returns_none(self):
-        self.assertIsNone(doc._normalize_spd_id_from_line(""))
+        self.assertIsNone(doc._normalize_cpt_id_from_line(""))
 
     def test_normalize_id_label_line(self):
-        self.assertEqual(doc._normalize_spd_id_from_line("**ID**: `spd-test-1`"), "spd-test-1")
+        self.assertEqual(doc._normalize_cpt_id_from_line("**ID**: `cpt-test-1`"), "cpt-test-1")
 
     def test_normalize_backticked_exact(self):
-        self.assertEqual(doc._normalize_spd_id_from_line("`spd-test-2`"), "spd-test-2")
+        self.assertEqual(doc._normalize_cpt_id_from_line("`cpt-test-2`"), "cpt-test-2")
 
     def test_normalize_fullmatch_and_fallback_findall(self):
-        self.assertEqual(doc._normalize_spd_id_from_line("spd-test-3"), "spd-test-3")
-        self.assertEqual(doc._normalize_spd_id_from_line("prefix spd-test-4 suffix"), "spd-test-4")
+        self.assertEqual(doc._normalize_cpt_id_from_line("cpt-test-3"), "cpt-test-3")
+        self.assertEqual(doc._normalize_cpt_id_from_line("prefix cpt-test-4 suffix"), "cpt-test-4")
 
 
 class TestMarkerlessScanners(unittest.TestCase):
-    def test_file_has_spaider_markers_false_on_read_error(self):
+    def test_file_has_cypilot_markers_false_on_read_error(self):
         with TemporaryDirectory() as td:
             p = Path(td) / "missing.md"
-            self.assertFalse(file_has_spaider_markers(p))
+            self.assertFalse(file_has_cypilot_markers(p))
 
-    def test_scan_spd_ids_without_markers_skips_when_markers_present(self):
+    def test_scan_cpt_ids_without_markers_skips_when_markers_present(self):
         with TemporaryDirectory() as td:
             p = Path(td) / "a.md"
-            p.write_text("<!-- spd:id:item -->\n- [ ] **ID**: `spd-test-1`\n<!-- spd:id:item -->\n", encoding="utf-8")
-            self.assertEqual(scan_spd_ids_without_markers(p), [])
+            p.write_text("<!-- cpt:id:item -->\n- [ ] **ID**: `cpt-test-1`\n<!-- cpt:id:item -->\n", encoding="utf-8")
+            self.assertEqual(scan_cpt_ids_without_markers(p), [])
 
-    def test_scan_spd_ids_without_markers_def_ref_inline_and_fences(self):
+    def test_scan_cpt_ids_without_markers_def_ref_inline_and_fences(self):
         with TemporaryDirectory() as td:
             p = Path(td) / "a.md"
             p.write_text(
-                "- [x] `p1` - **ID**: `spd-test-1`\n"
-                "- `spd-test-1`\n"
-                "* `spd-test-2`\n"
-                "Inline `spd-test-3` here\n"
+                "- [x] `p1` - **ID**: `cpt-test-1`\n"
+                "- `cpt-test-1`\n"
+                "* `cpt-test-2`\n"
+                "Inline `cpt-test-3` here\n"
                 "```\n"
-                "- [x] `p1` - **ID**: `spd-in-fence`\n"
-                "- `spd-in-fence`\n"
+                "- [x] `p1` - **ID**: `cpt-in-fence`\n"
+                "- `cpt-in-fence`\n"
                 "```\n",
                 encoding="utf-8",
             )
-            hits = scan_spd_ids_without_markers(p)
+            hits = scan_cpt_ids_without_markers(p)
             types_by_id = {(h.get("type"), h.get("id")) for h in hits}
-            self.assertIn(("definition", "spd-test-1"), types_by_id)
-            self.assertIn(("reference", "spd-test-1"), types_by_id)
-            self.assertIn(("reference", "spd-test-2"), types_by_id)
-            self.assertIn(("reference", "spd-test-3"), types_by_id)
-            self.assertNotIn(("definition", "spd-in-fence"), types_by_id)
-            self.assertNotIn(("reference", "spd-in-fence"), types_by_id)
+            self.assertIn(("definition", "cpt-test-1"), types_by_id)
+            self.assertIn(("reference", "cpt-test-1"), types_by_id)
+            self.assertIn(("reference", "cpt-test-2"), types_by_id)
+            self.assertIn(("reference", "cpt-test-3"), types_by_id)
+            self.assertNotIn(("definition", "cpt-in-fence"), types_by_id)
+            self.assertNotIn(("reference", "cpt-in-fence"), types_by_id)
 
-    def test_scan_sdsl_instructions_without_markers_basic_and_parent_binding(self):
+    def test_scan_cdsl_instructions_without_markers_basic_and_parent_binding(self):
         with TemporaryDirectory() as td:
             p = Path(td) / "a.md"
             p.write_text(
-                "- [x] `p1` - **ID**: `spd-test-1`\n"
+                "- [x] `p1` - **ID**: `cpt-test-1`\n"
                 "\n"
                 "1. [x] - `p1` - Step - `inst-a`\n",
                 encoding="utf-8",
             )
-            hits = scan_sdsl_instructions_without_markers(p)
+            hits = scan_cdsl_instructions_without_markers(p)
             self.assertEqual(len(hits), 1)
-            self.assertEqual(hits[0].get("parent_id"), "spd-test-1")
+            self.assertEqual(hits[0].get("parent_id"), "cpt-test-1")
             self.assertEqual(hits[0].get("phase"), 1)
             self.assertEqual(hits[0].get("inst"), "a")
 
-    def test_scan_sdsl_instructions_without_markers_skips_marked_files_and_fences_and_bad_phase(self):
+    def test_scan_cdsl_instructions_without_markers_skips_marked_files_and_fences_and_bad_phase(self):
         with TemporaryDirectory() as td:
             p_marked = Path(td) / "marked.md"
-            p_marked.write_text("<!-- spd:sdsl:x -->\n1. [x] - `p1` - Step - `inst-a`\n<!-- spd:sdsl:x -->\n", encoding="utf-8")
-            self.assertEqual(scan_sdsl_instructions_without_markers(p_marked), [])
+            p_marked.write_text("<!-- cpt:cdsl:x -->\n1. [x] - `p1` - Step - `inst-a`\n<!-- cpt:cdsl:x -->\n", encoding="utf-8")
+            self.assertEqual(scan_cdsl_instructions_without_markers(p_marked), [])
 
             p = Path(td) / "a.md"
             p.write_text(
-                "- [x] **ID**: `spd-test-1`\n"
+                "- [x] **ID**: `cpt-test-1`\n"
                 "```\n"
                 "1. [x] - `p1` - Step - `inst-in-fence`\n"
                 "```\n"
@@ -332,7 +332,7 @@ class TestMarkerlessScanners(unittest.TestCase):
                 "1. [x] - `ph-2` - Step - `inst-ok`\n",
                 encoding="utf-8",
             )
-            hits = scan_sdsl_instructions_without_markers(p)
+            hits = scan_cdsl_instructions_without_markers(p)
             self.assertEqual(len(hits), 1)
             self.assertEqual(hits[0].get("phase"), 2)
             self.assertEqual(hits[0].get("inst"), "ok")
@@ -342,7 +342,7 @@ class TestMarkerlessContentScopes(unittest.TestCase):
     def test_get_content_scoped_without_markers_none_on_read_error(self):
         with TemporaryDirectory() as td:
             p = Path(td) / "missing.md"
-            self.assertIsNone(get_content_scoped_without_markers(p, id_value="spd-x"))
+            self.assertIsNone(get_content_scoped_without_markers(p, id_value="cpt-x"))
 
     def test_get_content_scoped_without_markers_hash_fence_segments_and_edge_cases(self):
         with TemporaryDirectory() as td:
@@ -350,63 +350,63 @@ class TestMarkerlessContentScopes(unittest.TestCase):
             p.write_text(
                 "##\n##\n"
                 "##\nnot an id\nline\n##\n"
-                "##\nspd-aa\nline-a\nspd-bb\nline-b\n##\n",
+                "##\ncpt-aa\nline-a\ncpt-bb\nline-b\n##\n",
                 encoding="utf-8",
             )
-            out = get_content_scoped_without_markers(p, id_value="spd-aa")
+            out = get_content_scoped_without_markers(p, id_value="cpt-aa")
             self.assertIsNotNone(out)
             text, _start, _end = out or ("", 0, 0)
             self.assertIn("line-a", text)
 
             p2 = Path(td) / "b.md"
-            p2.write_text("##\nspd-aa\nspd-bb\n##\n", encoding="utf-8")
-            self.assertIsNone(get_content_scoped_without_markers(p2, id_value="spd-aa"))
+            p2.write_text("##\ncpt-aa\ncpt-bb\n##\n", encoding="utf-8")
+            self.assertIsNone(get_content_scoped_without_markers(p2, id_value="cpt-aa"))
 
     def test_get_content_scoped_without_markers_heading_scope_and_empty_scope(self):
         with TemporaryDirectory() as td:
             p = Path(td) / "a.md"
             p.write_text(
-                "### spd-aa\n"
+                "### cpt-aa\n"
                 "content-a\n"
                 "### other\n"
                 "x\n",
                 encoding="utf-8",
             )
-            out = get_content_scoped_without_markers(p, id_value="spd-aa")
+            out = get_content_scoped_without_markers(p, id_value="cpt-aa")
             self.assertIsNotNone(out)
             self.assertIn("content-a", (out or ("", 0, 0))[0])
 
             p2 = Path(td) / "b.md"
-            p2.write_text("### spd-aa\n\n### next\n", encoding="utf-8")
-            self.assertIsNone(get_content_scoped_without_markers(p2, id_value="spd-aa"))
+            p2.write_text("### cpt-aa\n\n### next\n", encoding="utf-8")
+            self.assertIsNone(get_content_scoped_without_markers(p2, id_value="cpt-aa"))
 
             p3 = Path(td) / "c.md"
-            p3.write_text("### spd-aa\n", encoding="utf-8")
-            self.assertIsNone(get_content_scoped_without_markers(p3, id_value="spd-aa"))
+            p3.write_text("### cpt-aa\n", encoding="utf-8")
+            self.assertIsNone(get_content_scoped_without_markers(p3, id_value="cpt-aa"))
 
     def test_get_content_scoped_without_markers_id_definition_heading_nearest_and_fences(self):
         with TemporaryDirectory() as td:
             p = Path(td) / "a.md"
             p.write_text(
                 "#### Title\n"
-                "**ID**: `spd-aa`\n"
+                "**ID**: `cpt-aa`\n"
                 "```\n"
                 "#### Not a heading (in fence)\n"
                 "```\n"
                 "line-a\n"
-                "**ID**: `spd-bb`\n"
+                "**ID**: `cpt-bb`\n"
                 "line-b\n",
                 encoding="utf-8",
             )
-            out = get_content_scoped_without_markers(p, id_value="spd-aa")
+            out = get_content_scoped_without_markers(p, id_value="cpt-aa")
             self.assertIsNotNone(out)
             self.assertIn("line-a", (out or ("", 0, 0))[0])
 
             p2 = Path(td) / "b.md"
-            p2.write_text("#### Title\n**ID**: `spd-aa`\n", encoding="utf-8")
-            self.assertIsNone(get_content_scoped_without_markers(p2, id_value="spd-aa"))
+            p2.write_text("#### Title\n**ID**: `cpt-aa`\n", encoding="utf-8")
+            self.assertIsNone(get_content_scoped_without_markers(p2, id_value="cpt-aa"))
 
-            self.assertIsNone(get_content_scoped_without_markers(p, id_value="spd-x"))
+            self.assertIsNone(get_content_scoped_without_markers(p, id_value="cpt-x"))
 
 
 class TestIterTextFilesMoreCoverage(unittest.TestCase):

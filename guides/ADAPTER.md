@@ -1,11 +1,11 @@
-# Spaider Adapter Creation Guide
+# Cypilot Adapter Creation Guide
 
 ## Core Principle
 
-Adapters extend Spaider with project-specific context. Start files with:
+Adapters extend Cypilot with project-specific context. Start files with:
 
 ```text
-Extends: ../Spaider/path/to/file.md
+Extends: ../Cypilot/path/to/file.md
 ```
 
 **You can override/add anything EXCEPT the immutable rules below.**
@@ -28,9 +28,9 @@ Must reference parent level, never contradict.
 - **SPEC DESIGN**: Actor flows, algorithms, requirements
 - **CODE**: Implementation following spec design
 
-### 2. Mandatory Spaider Rules
+### 2. Mandatory Cypilot Rules
 - Actor Flows (Section B) are PRIMARY - always start from what actors do
-- Use Spaider DSL (SDSL) for flows/algorithms/states - NEVER code in DESIGN.md
+- Use Cypilot DSL (CDSL) for flows/algorithms/states - NEVER code in DESIGN.md
 - Never redefine types - reference domain model from Overall Design
 - Validate before proceeding (Overall ≥90/100, Spec 100/100)
 - Spec size limits: ≤3000 lines (recommended), ≤4000 (hard limit)
@@ -60,7 +60,7 @@ architecture/
 - Section C: Algorithms
 - Section D: States (optional)
 - Section E: Technical Details
-- Section F: Requirements (formalized scope + Testing Scenarios in Spaider DSL (SDSL))
+- Section F: Requirements (formalized scope + Testing Scenarios in Cypilot DSL (CDSL))
 
 ### 5. Validation Scores
 - Overall Design: ≥90/100
@@ -72,14 +72,14 @@ architecture/
 
 Everything else is adapter-specific. Define as needed:
 
-**Note**: All Spaider operation workflows now support **CREATE and UPDATE modes**. Adapters can be created once and updated anytime as project evolves. Use `adapter.md` workflow to create or update your adapter.
+**Note**: All Cypilot operation workflows now support **CREATE and UPDATE modes**. Adapters can be created once and updated anytime as project evolves. Use `adapter.md` workflow to create or update your adapter.
 
 ### Tech Stack
 
 Example location (in your adapter):
 
 ```text
-.spaider-adapter/specs/tech-stack.md
+.cypilot-adapter/specs/tech-stack.md
 ```
 - Primary language and version
 - Frameworks (backend, frontend)
@@ -92,7 +92,7 @@ Example location (in your adapter):
 Example location (in your adapter):
 
 ```text
-.spaider-adapter/specs/domain-model.md
+.cypilot-adapter/specs/domain-model.md
 ```
 - Technology (TypeScript, JSON Schema, Protobuf, GTS, etc.)
 - Location (`architecture/domain-model/`, per-spec, etc.)
@@ -106,7 +106,7 @@ Example location (in your adapter):
 Example location (in your adapter):
 
 ```text
-.spaider-adapter/specs/api-contracts.md
+.cypilot-adapter/specs/api-contracts.md
 ```
 - Technology (OpenAPI, GraphQL, gRPC, CLISPEC, etc.)
 - Location (`architecture/api-specs/`, `architecture/cli-specs/`, etc.)
@@ -122,7 +122,7 @@ Example location (in your adapter):
 Example location (in your adapter):
 
 ```text
-.spaider-adapter/specs/patterns.md
+.cypilot-adapter/specs/patterns.md
 ```
 - Architecture style (layered, hexagonal, microservices, etc.)
 - Core design patterns (DI, repository, error handling, etc.)
@@ -134,7 +134,7 @@ Example location (in your adapter):
 Example location (in your adapter):
 
 ```text
-.spaider-adapter/specs/conventions.md
+.cypilot-adapter/specs/conventions.md
 ```
 - Naming conventions (files, directories, variables, functions, classes)
 - Code style (indentation, line length, braces, imports)
@@ -146,7 +146,7 @@ Example location (in your adapter):
 Example location (in your adapter):
 
 ```text
-.spaider-adapter/specs/testing.md
+.cypilot-adapter/specs/testing.md
 ```
 - Test frameworks (unit, integration, E2E)
 - Test organization and structure
@@ -159,7 +159,7 @@ Example location (in your adapter):
 Example location (in your adapter):
 
 ```text
-.spaider-adapter/specs/build-deploy.md
+.cypilot-adapter/specs/build-deploy.md
 ```
 - Build tool and commands
 - Development environment setup
@@ -172,7 +172,7 @@ Example location (in your adapter):
 Example location (in your adapter):
 
 ```text
-.spaider-adapter/specs/linting.md
+.cypilot-adapter/specs/linting.md
 ```
 - Linter configuration
 - Formatting tools
@@ -185,7 +185,7 @@ Example location (in your adapter):
 Example location (in your adapter):
 
 ```text
-.spaider-adapter/specs/security.md
+.cypilot-adapter/specs/security.md
 ```
 - Authentication and authorization strategy
 - Input validation requirements
@@ -199,7 +199,7 @@ Example location (in your adapter):
 Example location (in your adapter):
 
 ```text
-.spaider-adapter/specs/performance.md
+.cypilot-adapter/specs/performance.md
 ```
 - Performance requirements and SLAs
 - Benchmarking strategy and tools
@@ -213,11 +213,11 @@ Example location (in your adapter):
 Example location (in your adapter):
 
 ```text
-.spaider-adapter/specs/project-structure.md
+.cypilot-adapter/specs/project-structure.md
 ```
 - Directory organization
 - File naming conventions
-- Spaider artifact locations
+- Cypilot artifact locations
 - Source code structure
 - Test and documentation locations
 
@@ -226,12 +226,12 @@ Example location (in your adapter):
 Examples (in your adapter):
 
 ```text
-.spaider-adapter/specs/rest-api-guidelines.md
-.spaider-adapter/specs/graphql-guidelines.md
-.spaider-adapter/specs/architectural-lints.md
-.spaider-adapter/specs/module-creation.md
-.spaider-adapter/specs/rust-guidelines.md
-.spaider-adapter/specs/typescript-guidelines.md
+.cypilot-adapter/specs/rest-api-guidelines.md
+.cypilot-adapter/specs/graphql-guidelines.md
+.cypilot-adapter/specs/architectural-lints.md
+.cypilot-adapter/specs/module-creation.md
+.cypilot-adapter/specs/rust-guidelines.md
+.cypilot-adapter/specs/typescript-guidelines.md
 ```
 
 **Required in all spec files**:
@@ -242,13 +242,13 @@ Examples (in your adapter):
 **Validation output format**: MUST be chat output only, NO report files
 
 ### Behavior Description Language (Optional Override)
-- **Default**: Spaider DSL (SDSL) for flows/algorithms/states
+- **Default**: Cypilot DSL (CDSL) for flows/algorithms/states
 - **Can override**: Create custom behavior specification in `{adapter-directory}/`
 - **Example**:
 
 ```text
-Replace: {spaider_path}/requirements/SDSL.md
-With:    {project-root}/.spaider-adapter/CustomBDL.md
+Replace: {cypilot_path}/requirements/CDSL.md
+With:    {project-root}/.cypilot-adapter/CustomBDL.md
 ```
 - **Requirements**: Define control flow keywords, syntax rules, validation criteria
 - **Note**: Must update workflows 05 and 06 to reference custom spec
@@ -265,7 +265,7 @@ With:    {project-root}/.spaider-adapter/CustomBDL.md
 
 ```bash
 {project-root}/
-├── .spaider-adapter/                 # Your project-specific extensions (at root level)
+├── .cypilot-adapter/                 # Your project-specific extensions (at root level)
 │   ├── AGENTS.md                # Navigation rules (WHEN executing workflows: ...)
 │   └── specs/                   # Detailed specifications
 │       ├── tech-stack.md        # Languages, frameworks, databases, versions
@@ -279,17 +279,17 @@ With:    {project-root}/.spaider-adapter/CustomBDL.md
 │       ├── security.md          # Security requirements and practices
 │       ├── performance.md       # Performance requirements and optimization
 │       └── project-structure.md # Directory structure and organization
-└── Spaider/                         # Core Spaider (as git submodule or direct copy)
+└── Cypilot/                         # Core Cypilot (as git submodule or direct copy)
 ```
 
-**Important**: .spaider-adapter MUST be at project root level, discoverable from `{project-root}/.spaider-adapter/`
+**Important**: .cypilot-adapter MUST be at project root level, discoverable from `{project-root}/.cypilot-adapter/`
 
 **Alternative locations** (if needed):
-- `{project-root}/guidelines/.spaider-adapter/`
-- `{project-root}/spec/.spaider-adapter/`
-- `{project-root}/docs/.spaider-adapter/`
+- `{project-root}/guidelines/.cypilot-adapter/`
+- `{project-root}/spec/.cypilot-adapter/`
+- `{project-root}/docs/.cypilot-adapter/`
 
-**Avoid**: Deep nesting like `{project-root}/guidelines/subfolder/.spaider-adapter/` ❌
+**Avoid**: Deep nesting like `{project-root}/guidelines/subfolder/.cypilot-adapter/` ❌
 
 **Common spec files** (create as needed):
 - **Core**: tech-stack, domain-model, api-contracts, conventions, testing, build-deploy
@@ -302,9 +302,9 @@ With:    {project-root}/.spaider-adapter/CustomBDL.md
 ## Template: AGENTS.md
 
 ```markdown
-# Spaider Adapter: {Project Name}
+# Cypilot Adapter: {Project Name}
 
-**Extends**: `../../Spaider/AGENTS.md`
+**Extends**: `../../Cypilot/AGENTS.md`
 
 **Version**: 1.0  
 **Status**: COMPLETE  
@@ -328,7 +328,7 @@ ALWAYS open and follow `specs/conventions.md` WHEN executing workflows: adapter.
 **Example spec file** (in your adapter):
 
 ```text
-.spaider-adapter/specs/domain-model.md
+.cypilot-adapter/specs/domain-model.md
 ```
 ```markdown
 # Domain Model Specification

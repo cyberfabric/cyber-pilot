@@ -1,0 +1,204 @@
+<!-- cpt:#:adr -->
+# ADR-0003: Template-Centric Architecture and Workflow Consolidation
+
+<!-- cpt:id:adr has="priority,task" covered_by="DESIGN" -->
+- [x] `p1` - **ID**: `cpt-cypilot-adr-template-centric-architecture-v1`
+
+<!-- cpt:##:meta -->
+## Meta
+
+<!-- cpt:paragraph:adr-title -->
+**Title**: ADR-0003 Template-Centric Architecture and Workflow Consolidation
+<!-- cpt:paragraph:adr-title -->
+
+<!-- cpt:paragraph:date -->
+**Date**: 2026-01-31
+<!-- cpt:paragraph:date -->
+
+<!-- cpt:paragraph:status -->
+**Status**: Proposed
+<!-- cpt:paragraph:status -->
+<!-- cpt:##:meta -->
+
+<!-- cpt:##:body -->
+## Body
+
+<!-- cpt:context -->
+**Context**:
+The current Cypilot architecture has grown organically with many separate workflow files (`prd.md`, `design.md`, `specs.md`, `spec.md`, `adr.md`, `code.md` plus their `-validate` variants) and content requirements scattered across `requirements/*-content.md` files. This creates several problems:
+
+1. **Maintenance burden**: Changes to common patterns require updates in multiple files
+2. **Customization difficulty**: Adding a new artifact type requires creating multiple files (workflow, validate workflow, requirements, checklist)
+3. **Scattered documentation**: Requirements, checklists, and workflows for one artifact type live in different directories
+4. **No content versioning**: When an Cypilot ID's content changes, references to that ID cannot detect the change, leading to stale cross-references
+5. **Naming confusion**: "Cypilot" has evolved beyond "Spec-Driven Design" and needs a name that reflects its broader scope as a documentation and development framework
+
+In this ADR, "Cypilot" is interpreted as **Framework for Documentation and Development** (working title).
+<!-- cpt:context -->
+
+<!-- cpt:decision-drivers -->
+**Decision Drivers**:
+- Enable high customizability of the documentation platform without core modifications
+- Templates should be self-contained units with their own generation and validation logic
+- Reduce workflow proliferation and simplify the entry points
+- Provide Cypilot ID versioning to detect stale references
+- Consolidate type-specific documentation (requirements, checklists, workflows) with templates
+- Support the "start anywhere" adaptive execution model established in ADR-0002
+<!-- cpt:decision-drivers -->
+
+<!-- cpt:options repeat="many" -->
+**Considered Options**:
+
+### Option 1: Keep Current Structure
+
+Maintain the existing structure with many separate workflow files and scattered requirements.
+
+**Pros**: No migration needed
+**Cons**: Growing complexity, difficult customization, maintenance burden
+
+### Option 2: Template-Centric Architecture with Consolidated Workflows (SELECTED)
+
+Make templates the foundation of everything. Each template type becomes a self-contained package with:
+- The template file itself
+- Type-specific generate workflow
+- Type-specific validate workflow
+- Content requirements (embedded or adjacent)
+- Checklists
+
+Consolidate main workflows to just 5:
+- `cypilot.md` - Entrypoint and orchestrator
+- `generate.md` - Universal artifact/code generation (dispatches to template-specific generate)
+- `analyze.md` - Universal analysis/validation (dispatches to template-specific validate)
+- `adapter.md` - Adapter management
+- `rules.md` - Rules management (templates, checklists, examples)
+
+### Option 3: Full Monolithic Approach
+
+Single generate workflow with all logic inline, single validate workflow with all logic inline.
+
+**Pros**: Simple structure
+**Cons**: Monolithic files become unmaintainable, no customization per type
+<!-- cpt:options -->
+
+<!-- cpt:decision-outcome -->
+**Decision Outcome**:
+Chosen option: **Template-Centric Architecture with Consolidated Workflows**, because it provides the best balance of simplicity at the orchestration level while enabling deep customization at the template level.
+
+### What Changes
+
+#### 1. Template Package Structure
+
+Each template package will contain:
+
+```
+templates/
+├── PRD/
+│   ├── template.md              # The template itself
+│   ├── workflows/
+│   │   ├── generate.md          # Type-specific generation workflow
+│   │   └── analyze.md          # Universal analysis/validation workflow
+│   ├── checklists/
+│   │   └── checklist.md         # Pre/post-generation checklists
+│   └── examples/
+│       └── example.md           # Canonical example
+├── DESIGN/
+│   └── ...
+├── ADR/
+│   └── ...
+├── DECOMPOSITION/
+│   └── ...
+└── SPEC/
+    └── ...
+```
+
+#### 2. Consolidated Main Workflows
+
+Only 5 main workflows remain in `workflows/`:
+
+| Workflow | Purpose |
+|----------|---------|
+| `cypilot.md` | Entrypoint - determines intent and dispatches to appropriate workflow |
+| `generate.md` | Universal generation - asks for artifact type, system, format; dispatches to template-specific generate workflow |
+| `analyze.md` | Universal analysis/validation - determines artifact type from path/registry; dispatches to template-specific validate workflow |
+| `adapter.md` | Adapter management - initialization, bootstrap, manual/auto configuration |
+| `rules.md` | Rules management - create rules, add templates, validate rule configuration |
+
+**`generate.md` and `analyze.md`** are orchestrators that:
+1. Resolve artifact type from user input or `artifacts.json`
+2. Load the appropriate template package
+3. Execute the template-specific workflow
+
+**`rules.md`** enables rule management:
+1. Create new rules (configuration in `artifacts.json`)
+2. Add templates to existing rules (`{rule.path}/{KIND}.template.md`)
+3. Create checklists for templates (`checklists/{KIND}.md`)
+4. Validate rule configuration and template structure
+5. Generate examples for templates
+
+#### 3. Cypilot ID Versioning
+
+Introduce version suffix to Cypilot IDs to enable content change detection:
+
+**Format**: `cpt-{system}-{type}-{name}[-v{N}]`
+
+**Rules**:
+- Version suffix is optional for backward compatibility
+- When content of an ID block changes materially, increment the version
+- References to an ID without version match any version (loose)
+- References to an ID with version require exact match (strict)
+- Validation can warn about version mismatches
+
+**Example**:
+```markdown
+**ID**: `cpt-myapp-req-auth-v2`
+<!-- Content here has changed from v1 -->
+```
+
+#### 4. Requirements Restructuring
+
+`requirements/` folder will contain only universal execution rules:
+
+| File | Content |
+|------|---------|
+| `execution-protocol.md` | Core execution protocol for all workflows |
+| `CDSL.md` | Cypilot DSL (CDSL) specification |
+
+Content requirements (what goes into each artifact type) move to the template package.
+
+#### 5. Rebranding
+
+Cypilot is rebranded to **Framework for Documentation and Development**:
+- Reflects broader scope beyond "specs"
+- Maintains the "Cypilot" acronym for continuity
+- Better describes the platform's purpose
+<!-- cpt:decision-outcome -->
+
+**Consequences**:
+<!-- cpt:list:consequences -->
+- Positive: Better modularity - each template type is self-contained
+- Positive: Easier customization - add/modify template packages without touching core
+- Positive: Cleaner navigation - fewer main workflows, clearer dispatch
+- Positive: Version tracking - detect stale cross-references
+- Positive: Consistent structure - all template packages follow same pattern
+- Negative: Migration effort - existing content and workflows need restructuring
+- Negative: Learning curve - new structure requires documentation update
+- Negative: Tooling updates - `cypilot` CLI needs updates for template package discovery
+- Follow-up: Update `artifacts.json` schema to reference template packages
+- Follow-up: Migrate existing templates to new package structure
+- Follow-up: Update `cypilot` CLI for template package workflow dispatch
+- Follow-up: Implement `rules.md` workflow for rule and template management
+- Follow-up: Create migration guide for existing Cypilot users
+- Follow-up: Document template marker syntax and semantics
+<!-- cpt:list:consequences -->
+
+**Links**:
+<!-- cpt:list:links -->
+- Related Actors: `cpt-cypilot-actor-technical-lead`, `cpt-cypilot-actor-ai-assistant`, `cpt-cypilot-actor-architect`
+- Related Capabilities: `cpt-cypilot-fr-workflow-execution`, `cpt-cypilot-fr-validation`, `cpt-cypilot-fr-adapter-config`, `cpt-cypilot-fr-artifact-templates`, `cpt-cypilot-fr-brownfield-support`
+- Related Principles: `cpt-cypilot-principle-adapter-variability-boundary`, `cpt-cypilot-principle-tech-agnostic`, `cpt-cypilot-principle-machine-readable`, `cpt-cypilot-principle-traceability`
+- Related ADRs: ADR-0001 (Initial Cypilot Architecture), ADR-0002 (Adaptive Cypilot)
+<!-- cpt:list:links -->
+<!-- cpt:##:body -->
+<!-- cpt:id:adr -->
+
+<!-- cpt:#:adr -->

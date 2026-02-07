@@ -1,15 +1,15 @@
 ---
-spaider: true
+cypilot: true
 type: workflow
-name: spaider-adapter
-description: Create/update project Spaider adapter - scan structure, configure rules, generate AGENTS.md and artifacts.json
+name: cypilot-adapter
+description: Create/update project Cypilot adapter - scan structure, configure rules, generate AGENTS.md and artifacts.json
 version: 1.0
-purpose: Unified Spaider adapter workflow - scan, configure, validate
+purpose: Unified Cypilot adapter workflow - scan, configure, validate
 ---
 
-# Spaider Adapter Workflow
+# Cypilot Adapter Workflow
 
-Set `{spaider_mode}` = `on` FIRST
+Set `{cypilot_mode}` = `on` FIRST
 
 **Type**: Operation
 **Role**: Any
@@ -19,14 +19,14 @@ Set `{spaider_mode}` = `on` FIRST
 
 ## Routing
 
-This workflow is invoked through the main Spaider workflows:
+This workflow is invoked through the main Cypilot workflows:
 
 | User Intent | Route | Example |
 |-------------|-------|---------|
 | Create/modify adapter | **generate.md** → adapter.md | "setup adapter", "update adapter" |
 | Check/validate adapter | **analyze.md** (adapter target) | "check adapter", "verify adapter" |
 
-**Direct invocation** via `/spaider-adapter` routes to **generate.md** (assumes write intent).
+**Direct invocation** via `/cypilot-adapter` routes to **generate.md** (assumes write intent).
 
 ---
 
@@ -52,27 +52,27 @@ This workflow is invoked through the main Spaider workflows:
 
 Unified adapter workflow that handles the complete lifecycle:
 1. **Scan** - Discover project structure, existing artifacts, tech stack
-2. **Configure** - Propose hierarchy, weaver packages, traceability settings
+2. **Configure** - Propose hierarchy, kit packages, traceability settings
 3. **Generate** - Create/update adapter files
 4. **Integrate** - Configure AI agent integration
 5. **Validate** - Verify adapter completeness
 
 ---
 
-ALWAYS open and follow `{spaider_path}/requirements/execution-protocol.md` WHEN executing this workflow
+ALWAYS open and follow `{cypilot_path}/requirements/execution-protocol.md` WHEN executing this workflow
 
 ## Requirements
 
-**ALWAYS open and follow**: `{spaider_path}/requirements/adapter-structure.md`
+**ALWAYS open and follow**: `{cypilot_path}/requirements/adapter-structure.md`
 
-**ALWAYS open and follow**: `{spaider_path}/schemas/artifacts.schema.json` WHEN generating artifacts.json
+**ALWAYS open and follow**: `{cypilot_path}/schemas/artifacts.schema.json` WHEN generating artifacts.json
 
-**ALWAYS open and follow**: `{spaider_path}/requirements/reverse-engineering.md` WHEN scanning project structure (Phase 1)
+**ALWAYS open and follow**: `{cypilot_path}/requirements/reverse-engineering.md` WHEN scanning project structure (Phase 1)
 
 Extract:
 - Adapter structure requirements
 - artifacts.json schema
-- Spec-to-artifact-kind mapping from each weaver
+- Spec-to-artifact-kind mapping from each kit
 
 ---
 
@@ -91,7 +91,7 @@ Extract:
 Search for project root:
 ```yaml
 Markers (in priority order):
-  1. .spaider-config.json (explicit Spaider project)
+  1. .cypilot-config.json (explicit Cypilot project)
   2. .git directory (git repository root)
   3. package.json, pyproject.toml, Cargo.toml, go.mod (language markers)
 ```
@@ -103,8 +103,8 @@ Store as: `PROJECT_ROOT`
 Search for existing adapter:
 ```yaml
 Check in order:
-  1. .spaider-config.json → spaiderAdapterPath
-  2. Common locations: .spaider-adapter/, spec/.spaider-adapter/, docs/.spaider-adapter/
+  1. .cypilot-config.json → cypilotAdapterPath
+  2. Common locations: .cypilot-adapter/, spec/.cypilot-adapter/, docs/.cypilot-adapter/
 
 If found:
   ADAPTER_EXISTS = true
@@ -145,7 +145,7 @@ Detect:
 
 #### Existing Artifacts Detection
 ```yaml
-Search for Spaider artifacts:
+Search for Cypilot artifacts:
   - PRD.md (product requirements)
   - DESIGN.md (architecture design)
   - DECOMPOSITION.md (specs manifest)
@@ -175,9 +175,9 @@ Propose level structure:
 
 ### 1.4 Spec Discovery Scan
 
-**Reference**: `{spaider_path}/requirements/adapter-structure.md` → Spec Discovery Guide
+**Reference**: `{cypilot_path}/requirements/adapter-structure.md` → Spec Discovery Guide
 
-Scan for domain-specific knowledge following the 12-domain model from Spaider checklists:
+Scan for domain-specific knowledge following the 12-domain model from Cypilot checklists:
 
 #### Core Specs (Always Scan)
 
@@ -224,7 +224,7 @@ Display discovered information:
 
 ```
 ═══════════════════════════════════════════════════════════════════════════════
-Spaider Adapter: Project Scan Results
+Cypilot Adapter: Project Scan Results
 ═══════════════════════════════════════════════════════════════════════════════
 
 Project: {PROJECT_NAME}
@@ -269,9 +269,9 @@ If adapter doesn't exist, ask user:
 Adapter Location
 
 Choose adapter directory:
-  1. .spaider-adapter/ (recommended - hidden, clean)
-  2. .spaider-adapter/ (visible, explicit)
-  3. docs/.spaider-adapter/ (documentation-focused)
+  1. .cypilot-adapter/ (recommended - hidden, clean)
+  2. .cypilot-adapter/ (visible, explicit)
+  3. docs/.cypilot-adapter/ (documentation-focused)
   4. Custom path
 
 Choice: [1-4]
@@ -279,30 +279,30 @@ Choice: [1-4]
 
 Store as: `ADAPTER_DIR`
 
-### 2.3 Configure Weaver Package
+### 2.3 Configure Kit Package
 
-Ask user about weaver preference:
+Ask user about kit preference:
 
 ```
-Weaver Package
+Kit Package
 
-Spaider supports multiple weaver packages:
+Cypilot supports multiple kit packages:
 
-  1. spaider-sdlc (Recommended)
-     - Full Spaider tooling support
+  1. cypilot-sdlc (Recommended)
+     - Full Cypilot tooling support
      - Code traceability
      - Complete validation rules
      - Templates, checklists, examples included
 
   2. Custom
-      - Define your own weaver
+      - Define your own kit
      - Use existing project conventions
      - Must follow rules.md format
 
 Choice: [1-2]
 ```
 
-Store as: `WEAVER_PACKAGE`
+Store as: `KIT_PACKAGE`
 
 ### 2.4 Configure Hierarchy
 
@@ -340,7 +340,7 @@ Traceability Configuration
 
 For each artifact, choose traceability level:
 
-  FULL - Full code traceability (Spaider markers in code)
+  FULL - Full code traceability (Cypilot markers in code)
          Best for: New code, active development
 
   DOCS-ONLY - Documentation only (no code markers)
@@ -358,7 +358,7 @@ Store as: `TRACEABILITY_CONFIG`
 
 **If user cancels** (selects "Cancel", provides no response, or explicitly declines):
 - Do NOT create any files
-- Inform user: "Adapter setup cancelled. Run `/spaider-adapter` to restart."
+- Inform user: "Adapter setup cancelled. Run `/cypilot-adapter` to restart."
 - Return to normal assistant mode
 - Do NOT partially save configuration
 
@@ -380,17 +380,17 @@ Create `{ADAPTER_DIR}/artifacts.json` following schema:
 {
   "version": "1.0",
   "project_root": "{relative_path_to_project_root}",
-  "weavers": {
-    "spaider-sdlc": {
-      "format": "Spaider",
-      "path": "{spaider_core}/weavers/sdlc"
+  "kits": {
+    "cypilot-sdlc": {
+      "format": "Cypilot",
+      "path": "{cypilot_core}/kits/sdlc"
     }
   },
   "systems": [
     {
       "name": "{SYSTEM_NAME}",
       "slug": "{system-slug}",
-      "weaver": "spaider-sdlc",
+      "kit": "cypilot-sdlc",
       "artifacts_dir": "{artifacts_dir}",
       "artifacts": [
         { "name": "Product Requirements", "path": "{artifacts_dir}/PRD.md", "kind": "PRD", "traceability": "{TRACEABILITY}" },
@@ -410,7 +410,7 @@ Create `{ADAPTER_DIR}/artifacts.json` following schema:
 
 **Directory configuration**:
 - `artifacts_dir` — Default base directory for NEW artifacts (default: `architecture`)
-- Subdirectories for specific artifact kinds (`specs/`, `ADR/`) are defined by the weaver
+- Subdirectories for specific artifact kinds (`specs/`, `ADR/`) are defined by the kit
 - Individual artifact `path` values are FULL paths relative to `project_root` (user can place artifacts anywhere)
 
 
@@ -418,7 +418,7 @@ Create `{ADAPTER_DIR}/artifacts.json` following schema:
 
 **For each spec file discovered**:
 1. Match spec name to Universal WHEN Rule from table below
-2. Generate action-based WHEN rule (not tied to weaver/artifact kind)
+2. Generate action-based WHEN rule (not tied to kit/artifact kind)
 
 #### Universal WHEN Rules Table
 
@@ -441,9 +441,9 @@ Create `{ADAPTER_DIR}/artifacts.json` following schema:
 Create `{ADAPTER_DIR}/AGENTS.md`:
 
 ```markdown
-# Spaider Adapter: {PROJECT_NAME}
+# Cypilot Adapter: {PROJECT_NAME}
 
-**Extends**: `{relative_path_to_spaider}/AGENTS.md`
+**Extends**: `{relative_path_to_cypilot}/AGENTS.md`
 
 **Version**: 1.0
 **Last Updated**: {DATE}
@@ -472,7 +472,7 @@ ALWAYS open and follow `specs/{SPEC_NAME}` {UNIVERSAL_WHEN_RULE}
 - **Specs**: `{ADAPTER_DIR}/specs/`
 ```
 
-**Key principle**: Rules are action-based, not weaver-based. Agent loads specs when the action matches, regardless of which workflow or artifact type is active.
+**Key principle**: Rules are action-based, not kit-based. Agent loads specs when the action matches, regardless of which workflow or artifact type is active.
 
 ### 3.4 Generate Spec Files
 
@@ -577,14 +577,14 @@ Generate these only if discovery signals found:
 | `reliability.md` | Health checks found | Error handling, recovery, circuit breakers |
 | `compliance.md` | Regulatory markers found | Regulations, standards, audit |
 
-### 3.5 Create .spaider-config.json
+### 3.5 Create .cypilot-config.json
 
 At project root:
 
 ```json
 {
-  "spaiderAdapterPath": "{relative_adapter_path}",
-  "spaiderCorePath": "{relative_spaider_core_path}"
+  "cypilotAdapterPath": "{relative_adapter_path}",
+  "cypilotCorePath": "{relative_cypilot_core_path}"
 }
 ```
 
@@ -594,7 +594,7 @@ At project root:
 1. Note which files were created successfully
 2. Delete partially created files (incomplete AGENTS.md, malformed JSON, etc.)
 3. Log error to user with specific failure point
-4. Suggest: "Run `/spaider-adapter` again to restart from Phase 1"
+4. Suggest: "Run `/cypilot-adapter` again to restart from Phase 1"
 
 **Do NOT leave adapter in inconsistent state** — either complete all files or rollback to previous state.
 
@@ -623,12 +623,12 @@ AI Agent Integration
 
 Detected: {agent_name}
 
-Would you like to configure Spaider integration?
+Would you like to configure Cypilot integration?
 
 This will:
-  - Add Spaider workflow commands
+  - Add Cypilot workflow commands
   - Configure adapter references
-  - Enable Spaider skill invocation
+  - Enable Cypilot skill invocation
 
 Configure {agent_name}? [Yes] [No] [Later]
 ```
@@ -638,14 +638,14 @@ Configure {agent_name}? [Yes] [No] [Later]
 For each confirmed agent, run:
 
 ```bash
-spaider agent-workflows --agent {agent}
-spaider agent-skills --agent {agent}
+cypilot agent-workflows --agent {agent}
+cypilot agent-skills --agent {agent}
 ```
 
 **If CLI command fails**:
 - Log error output to user
 - Note which agent configuration failed
-- Suggest manual configuration or `/spaider` to verify setup
+- Suggest manual configuration or `/cypilot` to verify setup
 - Continue with other agents if multiple configured
 
 ---
@@ -658,10 +658,10 @@ Execute validation checks:
 
 ```yaml
 Validate:
-  1. .spaider-config.json
+  1. .cypilot-config.json
      - Exists at project root
      - Valid JSON
-     - Contains spaiderAdapterPath
+     - Contains cypilotAdapterPath
      - Path points to valid adapter
 
   2. AGENTS.md
@@ -672,7 +672,7 @@ Validate:
   3. artifacts.json
      - Valid against schema
      - All paths resolve correctly
-      - Weaver packages configured
+      - Kit packages configured
      - Systems hierarchy valid
 
   4. Spec files
@@ -684,7 +684,7 @@ Validate:
 
 ```
 ═══════════════════════════════════════════════════════════════════════════════
-Spaider Adapter: Validation Report
+Cypilot Adapter: Validation Report
 ═══════════════════════════════════════════════════════════════════════════════
 
 Status: PASS ✅ | FAIL ❌
@@ -692,9 +692,9 @@ Status: PASS ✅ | FAIL ❌
 ───────────────────────────────────────────────────────────────────────────────
 CONFIGURATION
 ───────────────────────────────────────────────────────────────────────────────
-✅ .spaider-config.json valid
-✅ spaiderAdapterPath correct
-✅ spaiderCorePath correct (if set)
+✅ .cypilot-config.json valid
+✅ cypilotAdapterPath correct
+✅ cypilotCorePath correct (if set)
 
 ───────────────────────────────────────────────────────────────────────────────
 ADAPTER FILES
@@ -776,9 +776,9 @@ Run adapter workflow with --agent {windsurf|cursor|claude|copilot}
 ## Next Steps
 
 **After successful adapter setup**:
-- `/spaider-generate PRD` — Define product requirements
-- `/spaider-generate DESIGN` — Create architecture design
-- `/spaider-generate DECOMPOSITION` — Create specs manifest
+- `/cypilot-generate PRD` — Define product requirements
+- `/cypilot-generate DESIGN` — Create architecture design
+- `/cypilot-generate DECOMPOSITION` — Create specs manifest
 
 **For existing projects**:
 - Review detected artifacts
@@ -789,6 +789,6 @@ Run adapter workflow with --agent {windsurf|cursor|claude|copilot}
 
 ## References
 
-**Requirements**: `{spaider_path}/requirements/adapter-structure.md`
-**Schema**: `{spaider_path}/schemas/artifacts.schema.json`
-**Methodology**: `{spaider_path}/requirements/reverse-engineering.md`
+**Requirements**: `{cypilot_path}/requirements/adapter-structure.md`
+**Schema**: `{cypilot_path}/schemas/artifacts.schema.json`
+**Methodology**: `{cypilot_path}/requirements/reverse-engineering.md`

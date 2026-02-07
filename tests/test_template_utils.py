@@ -1,7 +1,7 @@
 import pytest
 from pathlib import Path
 
-from skills.spaider.scripts.spaider.utils.template import (
+from skills.cypilot.scripts.cypilot.utils.template import (
     Artifact,
     Template,
     cross_validate_artifacts,
@@ -18,7 +18,7 @@ def _write(path: Path, text: str) -> Path:
 def _sample_template_text(kind: str = "PRD") -> str:
     return f"""
 ---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
@@ -26,75 +26,75 @@ spaider-template:
   unknown_sections: warn
 ---
 
-<!-- spd:id:item has="priority,task" repeat="one" covered_by="DESIGN" -->
-- [ ] `p1` - **ID**: `spd-demo-item-1`
-<!-- spd:id:item -->
+<!-- cpt:id:item has="priority,task" repeat="one" covered_by="DESIGN" -->
+- [ ] `p1` - **ID**: `cpt-demo-item-1`
+<!-- cpt:id:item -->
 
-<!-- spd:paragraph:summary -->
+<!-- cpt:paragraph:summary -->
 Some summary paragraph.
-<!-- spd:paragraph:summary -->
+<!-- cpt:paragraph:summary -->
 
-<!-- spd:list:bullets -->
+<!-- cpt:list:bullets -->
 - a
 - b
-<!-- spd:list:bullets -->
+<!-- cpt:list:bullets -->
 
-<!-- spd:table:data -->
+<!-- cpt:table:data -->
 | h1 | h2 |
 |----|----|
 | v1 | v2 |
-<!-- spd:table:data -->
+<!-- cpt:table:data -->
 
-<!-- spd:code:snippet -->
+<!-- cpt:code:snippet -->
 ```
 print('hi')
 ```
-<!-- spd:code:snippet -->
+<!-- cpt:code:snippet -->
 
-<!-- spd:sdsl:flow -->
+<!-- cpt:cdsl:flow -->
 1. [ ] - `p1` - Do step - `inst-step-1`
-<!-- spd:sdsl:flow -->
+<!-- cpt:cdsl:flow -->
 
-<!-- spd:id-ref:item-ref has="priority,task" -->
-- [x] `p1` - `spd-demo-item-1`
-<!-- spd:id-ref:item-ref -->
+<!-- cpt:id-ref:item-ref has="priority,task" -->
+- [x] `p1` - `cpt-demo-item-1`
+<!-- cpt:id-ref:item-ref -->
 """
 
 
 def _good_artifact_text() -> str:
     return """
-<!-- spd:id:item -->
-- [x] `p1` - **ID**: `spd-demo-item-1`
-<!-- spd:id:item -->
+<!-- cpt:id:item -->
+- [x] `p1` - **ID**: `cpt-demo-item-1`
+<!-- cpt:id:item -->
 
-<!-- spd:paragraph:summary -->
+<!-- cpt:paragraph:summary -->
 Some summary paragraph.
-<!-- spd:paragraph:summary -->
+<!-- cpt:paragraph:summary -->
 
-<!-- spd:list:bullets -->
+<!-- cpt:list:bullets -->
 - a
 - b
-<!-- spd:list:bullets -->
+<!-- cpt:list:bullets -->
 
-<!-- spd:table:data -->
+<!-- cpt:table:data -->
 | h1 | h2 |
 |----|----|
 | v1 | v2 |
-<!-- spd:table:data -->
+<!-- cpt:table:data -->
 
-<!-- spd:code:snippet -->
+<!-- cpt:code:snippet -->
 ```
 print('hi')
 ```
-<!-- spd:code:snippet -->
+<!-- cpt:code:snippet -->
 
-<!-- spd:sdsl:flow -->
+<!-- cpt:cdsl:flow -->
 1. [x] - `p1` - Do step - `inst-step-1`
-<!-- spd:sdsl:flow -->
+<!-- cpt:cdsl:flow -->
 
-<!-- spd:id-ref:item-ref -->
-- [x] `p1` - `spd-demo-item-1`
-<!-- spd:id-ref:item-ref -->
+<!-- cpt:id-ref:item-ref -->
+- [x] `p1` - `cpt-demo-item-1`
+<!-- cpt:id-ref:item-ref -->
 """
 
 
@@ -116,14 +116,14 @@ def test_template_parses_and_validates_happy_path(tmp_path: Path):
     assert report["errors"] == []
 
     art = tmpl.parse(art_path)
-    assert set(art.list_defined()) == {"spd-demo-item-1"}
-    assert set(art.list_refs()) == {"spd-demo-item-1"}
+    assert set(art.list_defined()) == {"cpt-demo-item-1"}
+    assert set(art.list_refs()) == {"cpt-demo-item-1"}
 
 
 def test_missing_required_block_fails(tmp_path: Path):
     tmpl_path = _write(tmp_path / "tmpl.template.md", _sample_template_text())
     tmpl, _ = load_template(tmpl_path)
-    art_path = _write(tmp_path / "artifact.md", "<!-- spd:paragraph:summary -->\ntext\n<!-- spd:paragraph:summary -->")
+    art_path = _write(tmp_path / "artifact.md", "<!-- cpt:paragraph:summary -->\ntext\n<!-- cpt:paragraph:summary -->")
     report = tmpl.validate(art_path)
     assert any(e.get("message") == "Required block missing" for e in report["errors"])
 
@@ -132,15 +132,15 @@ def test_invalid_id_ref_and_table_validation(tmp_path: Path):
     tmpl_path = _write(tmp_path / "tmpl.template.md", _sample_template_text())
     tmpl, _ = load_template(tmpl_path)
     bad_art = """
-<!-- spd:id:item -->
+<!-- cpt:id:item -->
 - [ ] `p1` - **ID**: `not-an-id`
-<!-- spd:id:item -->
+<!-- cpt:id:item -->
 
-<!-- spd:table:data -->
+<!-- cpt:table:data -->
 | h1 | h2 |
 |----|
 | onlyone |
-<!-- spd:table:data -->
+<!-- cpt:table:data -->
 """
     art_path = _write(tmp_path / "bad.md", bad_art)
     report = tmpl.validate(art_path)
@@ -154,7 +154,7 @@ def test_cross_validate_covered_by_and_refs(tmp_path: Path):
     # DESIGN template needs id-ref:item with has="priority,task" to match definition
     design_template = """
 ---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
@@ -162,13 +162,13 @@ spaider-template:
   unknown_sections: warn
 ---
 
-<!-- spd:id-ref:item has="priority,task" -->
-[x] `p1` - `spd-demo-item-1`
-<!-- spd:id-ref:item -->
+<!-- cpt:id-ref:item has="priority,task" -->
+[x] `p1` - `cpt-demo-item-1`
+<!-- cpt:id-ref:item -->
 
-<!-- spd:paragraph:summary -->
+<!-- cpt:paragraph:summary -->
 Summary
-<!-- spd:paragraph:summary -->
+<!-- cpt:paragraph:summary -->
 """
     tmpl_design_path = _write(tmp_path / "design.template.md", design_template)
     tmpl_prd, _ = load_template(tmpl_prd_path)
@@ -179,13 +179,13 @@ Summary
       _write(
         tmp_path / "design.md",
         """
-<!-- spd:id-ref:item has="priority,task" -->
-[x] `p1` - `spd-demo-item-1`
-<!-- spd:id-ref:item -->
+<!-- cpt:id-ref:item has="priority,task" -->
+[x] `p1` - `cpt-demo-item-1`
+<!-- cpt:id-ref:item -->
 
-<!-- spd:paragraph:summary -->
+<!-- cpt:paragraph:summary -->
 Summary
-<!-- spd:paragraph:summary -->
+<!-- cpt:paragraph:summary -->
 """,
         ),
     )
@@ -199,13 +199,13 @@ Summary
       _write(
         tmp_path / "design-wrong-ref.md",
         """
-<!-- spd:id-ref:item has="priority,task" -->
-[x] `p1` - `spd-demo-item-other`
-<!-- spd:id-ref:item -->
+<!-- cpt:id-ref:item has="priority,task" -->
+[x] `p1` - `cpt-demo-item-other`
+<!-- cpt:id-ref:item -->
 
-<!-- spd:paragraph:summary -->
+<!-- cpt:paragraph:summary -->
 Summary
-<!-- spd:paragraph:summary -->
+<!-- cpt:paragraph:summary -->
 """,
       ),
     )
@@ -214,7 +214,7 @@ Summary
 
     # Empty DESIGN (no IDs from same system) results in warning, not error
     art_design_empty = tmpl_design.parse(
-      _write(tmp_path / "design-empty.md", "<!-- spd:paragraph:summary -->x<!-- spd:paragraph:summary -->"),
+      _write(tmp_path / "design-empty.md", "<!-- cpt:paragraph:summary -->x<!-- cpt:paragraph:summary -->"),
     )
     report3 = cross_validate_artifacts([art_prd, art_design_empty])
     assert report3["errors"] == []
@@ -231,13 +231,13 @@ Summary
       _write(
         tmp_path / "design-done-ref.md",
         """
-<!-- spd:id-ref:item has="priority,task" -->
-[x] `p1` - `spd-demo-item-1`
-<!-- spd:id-ref:item -->
+<!-- cpt:id-ref:item has="priority,task" -->
+[x] `p1` - `cpt-demo-item-1`
+<!-- cpt:id-ref:item -->
 
-<!-- spd:paragraph:summary -->
+<!-- cpt:paragraph:summary -->
 Summary
-<!-- spd:paragraph:summary -->
+<!-- cpt:paragraph:summary -->
 """,
         ),
     )
@@ -265,7 +265,7 @@ def test_first_nonempty_all_empty():
 
 def test_frontmatter_no_closing_marker(tmp_path: Path):
     """Cover frontmatter without closing ---."""
-    bad = _write(tmp_path / "bad.template.md", "---\nspaider-template:\n  kind: X")
+    bad = _write(tmp_path / "bad.template.md", "---\ncypilot-template:\n  kind: X")
     tmpl, errs = load_template(bad)
     assert tmpl is None
     assert errs
@@ -273,7 +273,7 @@ def test_frontmatter_no_closing_marker(tmp_path: Path):
 
 def test_frontmatter_invalid_indentation(tmp_path: Path):
     """Cover invalid frontmatter indentation."""
-    bad = _write(tmp_path / "bad.template.md", "---\nspaider-template:\n   kind: X\n---")
+    bad = _write(tmp_path / "bad.template.md", "---\ncypilot-template:\n   kind: X\n---")
     tmpl, errs = load_template(bad)
     assert tmpl is None
     assert any("indentation" in str(e.get("message", "")).lower() for e in errs)
@@ -281,7 +281,7 @@ def test_frontmatter_invalid_indentation(tmp_path: Path):
 
 def test_frontmatter_invalid_line(tmp_path: Path):
     """Cover invalid frontmatter line (no colon)."""
-    bad = _write(tmp_path / "bad.template.md", "---\nspaider-template:\n  invalid line no colon\n---")
+    bad = _write(tmp_path / "bad.template.md", "---\ncypilot-template:\n  invalid line no colon\n---")
     tmpl, errs = load_template(bad)
     assert tmpl is None
 
@@ -289,7 +289,7 @@ def test_frontmatter_invalid_line(tmp_path: Path):
 def test_frontmatter_comment_line_ignored(tmp_path: Path):
     """Cover frontmatter with comment lines."""
     text = """---
-spaider-template:
+cypilot-template:
   # this is a comment
   version:
     major: 1
@@ -306,7 +306,7 @@ spaider-template:
 def test_template_missing_kind(tmp_path: Path):
     """Cover template missing kind."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
@@ -321,7 +321,7 @@ spaider-template:
 def test_template_missing_version(tmp_path: Path):
     """Cover template missing version - now uses default version."""
     text = """---
-spaider-template:
+cypilot-template:
   kind: TEST
 ---
 """
@@ -338,7 +338,7 @@ spaider-template:
 def test_template_invalid_unknown_sections(tmp_path: Path):
     """Cover invalid unknown_sections value - now falls back to 'warn'."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
@@ -358,7 +358,7 @@ spaider-template:
 def test_template_version_too_high(tmp_path: Path):
     """Cover template version higher than supported."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 99
     minor: 0
@@ -374,13 +374,13 @@ spaider-template:
 def test_template_unclosed_marker(tmp_path: Path):
     """Cover unclosed marker in template."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:paragraph:summary -->
+<!-- cpt:paragraph:summary -->
 Content without closing marker
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
@@ -392,15 +392,15 @@ Content without closing marker
 def test_template_unknown_marker_type(tmp_path: Path):
     """Cover unknown marker type in template - should fail loading."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:line:summary -->
+<!-- cpt:line:summary -->
 Content with unknown type
-<!-- spd:line:summary -->
+<!-- cpt:line:summary -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, errs = load_template(tmpl_path)
@@ -412,19 +412,19 @@ Content with unknown type
 def test_block_validation_free_type(tmp_path: Path):
     """Cover free block type (no validation)."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:free:anything -->
+<!-- cpt:free:anything -->
 Any content here
-<!-- spd:free:anything -->
+<!-- cpt:free:anything -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
-    art_path = _write(tmp_path / "art.md", "<!-- spd:free:anything -->\nstuff\n<!-- spd:free:anything -->")
+    art_path = _write(tmp_path / "art.md", "<!-- cpt:free:anything -->\nstuff\n<!-- cpt:free:anything -->")
     report = tmpl.validate(art_path)
     assert report["errors"] == []
 
@@ -432,19 +432,19 @@ Any content here
 def test_block_validation_id_empty(tmp_path: Path):
     """Cover ID block with empty content."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:id:item -->
-- [ ] `p1` - **ID**: `spd-test-1`
-<!-- spd:id:item -->
+<!-- cpt:id:item -->
+- [ ] `p1` - **ID**: `cpt-test-1`
+<!-- cpt:id:item -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
-    art_path = _write(tmp_path / "art.md", "<!-- spd:id:item -->\n<!-- spd:id:item -->")
+    art_path = _write(tmp_path / "art.md", "<!-- cpt:id:item -->\n<!-- cpt:id:item -->")
     report = tmpl.validate(art_path)
     assert any("ID block missing content" in str(e.get("message", "")) for e in report["errors"])
 
@@ -452,19 +452,19 @@ spaider-template:
 def test_block_validation_id_ref_empty(tmp_path: Path):
     """Cover ID ref block with empty content."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:id-ref:item -->
-[x] - `spd-test-1`
-<!-- spd:id-ref:item -->
+<!-- cpt:id-ref:item -->
+[x] - `cpt-test-1`
+<!-- cpt:id-ref:item -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
-    art_path = _write(tmp_path / "art.md", "<!-- spd:id-ref:item -->\n<!-- spd:id-ref:item -->")
+    art_path = _write(tmp_path / "art.md", "<!-- cpt:id-ref:item -->\n<!-- cpt:id-ref:item -->")
     report = tmpl.validate(art_path)
     assert any("ID ref block missing content" in str(e.get("message", "")) for e in report["errors"])
 
@@ -472,19 +472,19 @@ spaider-template:
 def test_block_validation_id_ref_invalid_format(tmp_path: Path):
     """Cover ID ref with invalid format."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:id-ref:item -->
-[x] - `spd-test-1`
-<!-- spd:id-ref:item -->
+<!-- cpt:id-ref:item -->
+[x] - `cpt-test-1`
+<!-- cpt:id-ref:item -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
-    art_path = _write(tmp_path / "art.md", "<!-- spd:id-ref:item -->\ninvalid-ref\n<!-- spd:id-ref:item -->")
+    art_path = _write(tmp_path / "art.md", "<!-- cpt:id-ref:item -->\ninvalid-ref\n<!-- cpt:id-ref:item -->")
     report = tmpl.validate(art_path)
     assert any("Invalid ID ref format" in str(e.get("message", "")) for e in report["errors"])
 
@@ -492,19 +492,19 @@ spaider-template:
 def test_block_validation_list_empty(tmp_path: Path):
     """Cover empty list block."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:list:items -->
+<!-- cpt:list:items -->
 - item
-<!-- spd:list:items -->
+<!-- cpt:list:items -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
-    art_path = _write(tmp_path / "art.md", "<!-- spd:list:items -->\n<!-- spd:list:items -->")
+    art_path = _write(tmp_path / "art.md", "<!-- cpt:list:items -->\n<!-- cpt:list:items -->")
     report = tmpl.validate(art_path)
     assert any("List block empty" in str(e.get("message", "")) for e in report["errors"])
 
@@ -512,19 +512,19 @@ spaider-template:
 def test_block_validation_list_not_bullet(tmp_path: Path):
     """Cover list block without bullet format."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:list:items -->
+<!-- cpt:list:items -->
 - item
-<!-- spd:list:items -->
+<!-- cpt:list:items -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
-    art_path = _write(tmp_path / "art.md", "<!-- spd:list:items -->\nnot a bullet\n<!-- spd:list:items -->")
+    art_path = _write(tmp_path / "art.md", "<!-- cpt:list:items -->\nnot a bullet\n<!-- cpt:list:items -->")
     report = tmpl.validate(art_path)
     assert any("Expected bullet list" in str(e.get("message", "")) for e in report["errors"])
 
@@ -532,19 +532,19 @@ spaider-template:
 def test_block_validation_numbered_list_invalid(tmp_path: Path):
     """Cover numbered-list with non-numbered content."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:numbered-list:steps -->
+<!-- cpt:numbered-list:steps -->
 1. step
-<!-- spd:numbered-list:steps -->
+<!-- cpt:numbered-list:steps -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
-    art_path = _write(tmp_path / "art.md", "<!-- spd:numbered-list:steps -->\nnot numbered\n<!-- spd:numbered-list:steps -->")
+    art_path = _write(tmp_path / "art.md", "<!-- cpt:numbered-list:steps -->\nnot numbered\n<!-- cpt:numbered-list:steps -->")
     report = tmpl.validate(art_path)
     assert any("Expected numbered list" in str(e.get("message", "")) for e in report["errors"])
 
@@ -552,19 +552,19 @@ spaider-template:
 def test_block_validation_task_list_invalid(tmp_path: Path):
     """Cover task-list with invalid format."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:task-list:tasks -->
+<!-- cpt:task-list:tasks -->
 - [ ] task
-<!-- spd:task-list:tasks -->
+<!-- cpt:task-list:tasks -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
-    art_path = _write(tmp_path / "art.md", "<!-- spd:task-list:tasks -->\nnot a task\n<!-- spd:task-list:tasks -->")
+    art_path = _write(tmp_path / "art.md", "<!-- cpt:task-list:tasks -->\nnot a task\n<!-- cpt:task-list:tasks -->")
     report = tmpl.validate(art_path)
     assert any("Expected task list" in str(e.get("message", "")) for e in report["errors"])
 
@@ -572,19 +572,19 @@ spaider-template:
 def test_block_validation_task_list_missing_priority(tmp_path: Path):
     """Cover task-list with priority requirement but missing priority."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:task-list:tasks has="priority" -->
+<!-- cpt:task-list:tasks has="priority" -->
 - [ ] `p1` task
-<!-- spd:task-list:tasks -->
+<!-- cpt:task-list:tasks -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
-    art_path = _write(tmp_path / "art.md", "<!-- spd:task-list:tasks -->\n- [ ] task without priority\n<!-- spd:task-list:tasks -->")
+    art_path = _write(tmp_path / "art.md", "<!-- cpt:task-list:tasks -->\n- [ ] task without priority\n<!-- cpt:task-list:tasks -->")
     report = tmpl.validate(art_path)
     assert any("Task item missing priority" in str(e.get("message", "")) for e in report["errors"])
 
@@ -592,21 +592,21 @@ spaider-template:
 def test_block_validation_table_too_few_rows(tmp_path: Path):
     """Cover table with less than 2 rows."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:table:data -->
+<!-- cpt:table:data -->
 | h1 | h2 |
 |----|----|
 | v1 | v2 |
-<!-- spd:table:data -->
+<!-- cpt:table:data -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
-    art_path = _write(tmp_path / "art.md", "<!-- spd:table:data -->\n| only header |\n<!-- spd:table:data -->")
+    art_path = _write(tmp_path / "art.md", "<!-- cpt:table:data -->\n| only header |\n<!-- cpt:table:data -->")
     report = tmpl.validate(art_path)
     assert any("Table must have header and separator" in str(e.get("message", "")) for e in report["errors"])
 
@@ -614,21 +614,21 @@ spaider-template:
 def test_block_validation_table_invalid_header(tmp_path: Path):
     """Cover table with invalid header."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:table:data -->
+<!-- cpt:table:data -->
 | h1 | h2 |
 |----|----|
 | v1 | v2 |
-<!-- spd:table:data -->
+<!-- cpt:table:data -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
-    art_path = _write(tmp_path / "art.md", "<!-- spd:table:data -->\nno pipes\nalso no pipes\n<!-- spd:table:data -->")
+    art_path = _write(tmp_path / "art.md", "<!-- cpt:table:data -->\nno pipes\nalso no pipes\n<!-- cpt:table:data -->")
     report = tmpl.validate(art_path)
     assert any("Invalid table" in str(e.get("message", "")) or "Table must have" in str(e.get("message", "")) for e in report["errors"])
 
@@ -636,21 +636,21 @@ spaider-template:
 def test_block_validation_table_no_data_rows(tmp_path: Path):
     """Cover table with no data rows."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:table:data -->
+<!-- cpt:table:data -->
 | h1 | h2 |
 |----|----|
 | v1 | v2 |
-<!-- spd:table:data -->
+<!-- cpt:table:data -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
-    art_path = _write(tmp_path / "art.md", "<!-- spd:table:data -->\n| h1 | h2 |\n|----|----|<!-- spd:table:data -->")
+    art_path = _write(tmp_path / "art.md", "<!-- cpt:table:data -->\n| h1 | h2 |\n|----|----|<!-- cpt:table:data -->")
     report = tmpl.validate(art_path)
     # Should fail due to no data rows or format issues
     assert len(report["errors"]) > 0
@@ -659,21 +659,21 @@ spaider-template:
 def test_block_validation_table_row_mismatch(tmp_path: Path):
     """Cover table with row column mismatch."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:table:data -->
+<!-- cpt:table:data -->
 | h1 | h2 |
 |----|----|
 | v1 | v2 |
-<!-- spd:table:data -->
+<!-- cpt:table:data -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
-    art_path = _write(tmp_path / "art.md", "<!-- spd:table:data -->\n| h1 | h2 |\n|----|----|---|\n| v1 |\n<!-- spd:table:data -->")
+    art_path = _write(tmp_path / "art.md", "<!-- cpt:table:data -->\n| h1 | h2 |\n|----|----|---|\n| v1 |\n<!-- cpt:table:data -->")
     report = tmpl.validate(art_path)
     assert any("mismatch" in str(e.get("message", "")).lower() for e in report["errors"])
 
@@ -681,19 +681,19 @@ spaider-template:
 def test_block_validation_paragraph_empty(tmp_path: Path):
     """Cover empty paragraph block."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:paragraph:summary -->
+<!-- cpt:paragraph:summary -->
 Some text
-<!-- spd:paragraph:summary -->
+<!-- cpt:paragraph:summary -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
-    art_path = _write(tmp_path / "art.md", "<!-- spd:paragraph:summary -->\n\n<!-- spd:paragraph:summary -->")
+    art_path = _write(tmp_path / "art.md", "<!-- cpt:paragraph:summary -->\n\n<!-- cpt:paragraph:summary -->")
     report = tmpl.validate(art_path)
     assert any("Paragraph block empty" in str(e.get("message", "")) for e in report["errors"])
 
@@ -701,21 +701,21 @@ Some text
 def test_block_validation_code_no_fence(tmp_path: Path):
     """Cover code block without opening fence."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:code:snippet -->
+<!-- cpt:code:snippet -->
 ```
 code
 ```
-<!-- spd:code:snippet -->
+<!-- cpt:code:snippet -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
-    art_path = _write(tmp_path / "art.md", "<!-- spd:code:snippet -->\nnot a fence\n<!-- spd:code:snippet -->")
+    art_path = _write(tmp_path / "art.md", "<!-- cpt:code:snippet -->\nnot a fence\n<!-- cpt:code:snippet -->")
     report = tmpl.validate(art_path)
     assert any("Code block must start with" in str(e.get("message", "")) for e in report["errors"])
 
@@ -723,21 +723,21 @@ code
 def test_block_validation_code_unclosed_fence(tmp_path: Path):
     """Cover code block with unclosed fence."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:code:snippet -->
+<!-- cpt:code:snippet -->
 ```
 code
 ```
-<!-- spd:code:snippet -->
+<!-- cpt:code:snippet -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
-    art_path = _write(tmp_path / "art.md", "<!-- spd:code:snippet -->\n```\ncode without closing\n<!-- spd:code:snippet -->")
+    art_path = _write(tmp_path / "art.md", "<!-- cpt:code:snippet -->\n```\ncode without closing\n<!-- cpt:code:snippet -->")
     report = tmpl.validate(art_path)
     assert any("Code fence must be closed" in str(e.get("message", "")) for e in report["errors"])
 
@@ -745,20 +745,20 @@ code
 def test_block_validation_heading(tmp_path: Path):
     """Cover heading block validation."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:##:section -->
+<!-- cpt:##:section -->
 ## Heading
-<!-- spd:##:section -->
+<!-- cpt:##:section -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
     # Wrong heading level
-    art_path = _write(tmp_path / "art.md", "<!-- spd:##:section -->\n# Wrong level\n<!-- spd:##:section -->")
+    art_path = _write(tmp_path / "art.md", "<!-- cpt:##:section -->\n# Wrong level\n<!-- cpt:##:section -->")
     report = tmpl.validate(art_path)
     assert any("Heading level mismatch" in str(e.get("message", "")) for e in report["errors"])
 
@@ -766,19 +766,19 @@ spaider-template:
 def test_block_validation_heading_empty(tmp_path: Path):
     """Cover empty heading block."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:##:section -->
+<!-- cpt:##:section -->
 ## Heading
-<!-- spd:##:section -->
+<!-- cpt:##:section -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
-    art_path = _write(tmp_path / "art.md", "<!-- spd:##:section -->\n\n<!-- spd:##:section -->")
+    art_path = _write(tmp_path / "art.md", "<!-- cpt:##:section -->\n\n<!-- cpt:##:section -->")
     report = tmpl.validate(art_path)
     assert any("Heading block empty" in str(e.get("message", "")) for e in report["errors"])
 
@@ -786,19 +786,19 @@ spaider-template:
 def test_block_validation_link_invalid(tmp_path: Path):
     """Cover invalid link block."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:link:ref -->
+<!-- cpt:link:ref -->
 [text](url)
-<!-- spd:link:ref -->
+<!-- cpt:link:ref -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
-    art_path = _write(tmp_path / "art.md", "<!-- spd:link:ref -->\nnot a link\n<!-- spd:link:ref -->")
+    art_path = _write(tmp_path / "art.md", "<!-- cpt:link:ref -->\nnot a link\n<!-- cpt:link:ref -->")
     report = tmpl.validate(art_path)
     assert any("Invalid link" in str(e.get("message", "")) for e in report["errors"])
 
@@ -806,61 +806,61 @@ spaider-template:
 def test_block_validation_image_invalid(tmp_path: Path):
     """Cover invalid image block."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:image:pic -->
+<!-- cpt:image:pic -->
 ![alt](url)
-<!-- spd:image:pic -->
+<!-- cpt:image:pic -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
-    art_path = _write(tmp_path / "art.md", "<!-- spd:image:pic -->\nnot an image\n<!-- spd:image:pic -->")
+    art_path = _write(tmp_path / "art.md", "<!-- cpt:image:pic -->\nnot an image\n<!-- cpt:image:pic -->")
     report = tmpl.validate(art_path)
     assert any("Invalid image" in str(e.get("message", "")) for e in report["errors"])
 
 
-def test_block_validation_sdsl_empty(tmp_path: Path):
-    """Cover empty SDSL block."""
+def test_block_validation_cdsl_empty(tmp_path: Path):
+    """Cover empty CDSL block."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:sdsl:flow -->
+<!-- cpt:cdsl:flow -->
 1. [ ] - `p1` - Step - `inst-1`
-<!-- spd:sdsl:flow -->
+<!-- cpt:cdsl:flow -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
-    art_path = _write(tmp_path / "art.md", "<!-- spd:sdsl:flow -->\n\n<!-- spd:sdsl:flow -->")
+    art_path = _write(tmp_path / "art.md", "<!-- cpt:cdsl:flow -->\n\n<!-- cpt:cdsl:flow -->")
     report = tmpl.validate(art_path)
-    assert any("SDSL block empty" in str(e.get("message", "")) for e in report["errors"])
+    assert any("CDSL block empty" in str(e.get("message", "")) for e in report["errors"])
 
 
-def test_block_validation_sdsl_invalid_line(tmp_path: Path):
-    """Cover SDSL block with invalid line."""
+def test_block_validation_cdsl_invalid_line(tmp_path: Path):
+    """Cover CDSL block with invalid line."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:sdsl:flow -->
+<!-- cpt:cdsl:flow -->
 1. [ ] - `p1` - Step - `inst-1`
-<!-- spd:sdsl:flow -->
+<!-- cpt:cdsl:flow -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
-    art_path = _write(tmp_path / "art.md", "<!-- spd:sdsl:flow -->\ninvalid sdsl line\n<!-- spd:sdsl:flow -->")
+    art_path = _write(tmp_path / "art.md", "<!-- cpt:cdsl:flow -->\ninvalid cdsl line\n<!-- cpt:cdsl:flow -->")
     report = tmpl.validate(art_path)
-    assert any("Invalid SDSL line" in str(e.get("message", "")) for e in report["errors"])
+    assert any("Invalid CDSL line" in str(e.get("message", "")) for e in report["errors"])
 
 
 def test_validate_artifact_file_against_template_success(tmp_path: Path):
@@ -891,7 +891,7 @@ def test_artifact_unclosed_marker(tmp_path: Path):
     """Cover unclosed marker in artifact."""
     tmpl_path = _write(tmp_path / "tmpl.template.md", _sample_template_text())
     tmpl, _ = load_template(tmpl_path)
-    art_path = _write(tmp_path / "art.md", "<!-- spd:paragraph:summary -->\nunclosed")
+    art_path = _write(tmp_path / "art.md", "<!-- cpt:paragraph:summary -->\nunclosed")
     report = tmpl.validate(art_path)
     assert any("Unclosed marker" in str(e.get("message", "")) for e in report["errors"])
 
@@ -899,20 +899,20 @@ def test_artifact_unclosed_marker(tmp_path: Path):
 def test_artifact_unknown_marker_warning(tmp_path: Path):
     """Cover unknown marker producing error (unknown markers are always errors, regardless of unknown_sections policy)."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
   unknown_sections: warn
 ---
-<!-- spd:paragraph:known -->
+<!-- cpt:paragraph:known -->
 text
-<!-- spd:paragraph:known -->
+<!-- cpt:paragraph:known -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
-    art_path = _write(tmp_path / "art.md", "<!-- spd:paragraph:known -->\ntext\n<!-- spd:paragraph:known -->\n<!-- spd:paragraph:unknown -->\ntext\n<!-- spd:paragraph:unknown -->")
+    art_path = _write(tmp_path / "art.md", "<!-- cpt:paragraph:known -->\ntext\n<!-- cpt:paragraph:known -->\n<!-- cpt:paragraph:unknown -->\ntext\n<!-- cpt:paragraph:unknown -->")
     report = tmpl.validate(art_path)
     # Unknown markers are always errors (unknown_sections policy applies only to markdown sections without markers)
     assert any("Unknown marker" in str(e.get("message", "")) for e in report["errors"])
@@ -921,20 +921,20 @@ text
 def test_artifact_unknown_marker_error(tmp_path: Path):
     """Cover unknown marker producing error when policy is error."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
   unknown_sections: error
 ---
-<!-- spd:paragraph:known -->
+<!-- cpt:paragraph:known -->
 text
-<!-- spd:paragraph:known -->
+<!-- cpt:paragraph:known -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
-    art_path = _write(tmp_path / "art.md", "<!-- spd:paragraph:known -->\ntext\n<!-- spd:paragraph:known -->\n<!-- spd:paragraph:unknown -->\ntext\n<!-- spd:paragraph:unknown -->")
+    art_path = _write(tmp_path / "art.md", "<!-- cpt:paragraph:known -->\ntext\n<!-- cpt:paragraph:known -->\n<!-- cpt:paragraph:unknown -->\ntext\n<!-- cpt:paragraph:unknown -->")
     report = tmpl.validate(art_path)
     assert any("Unknown marker" in str(e.get("message", "")) for e in report["errors"])
 
@@ -942,19 +942,19 @@ text
 def test_artifact_block_repeat_once_violation(tmp_path: Path):
     """Cover block appearing more than once when repeat=one."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:paragraph:unique repeat="one" -->
+<!-- cpt:paragraph:unique repeat="one" -->
 text
-<!-- spd:paragraph:unique -->
+<!-- cpt:paragraph:unique -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
-    art_path = _write(tmp_path / "art.md", "<!-- spd:paragraph:unique -->\ntext\n<!-- spd:paragraph:unique -->\n<!-- spd:paragraph:unique -->\ntext2\n<!-- spd:paragraph:unique -->")
+    art_path = _write(tmp_path / "art.md", "<!-- cpt:paragraph:unique -->\ntext\n<!-- cpt:paragraph:unique -->\n<!-- cpt:paragraph:unique -->\ntext2\n<!-- cpt:paragraph:unique -->")
     report = tmpl.validate(art_path)
     assert any("Block must appear once" in str(e.get("message", "")) for e in report["errors"])
 
@@ -984,16 +984,16 @@ def test_artifact_get_and_list_methods(tmp_path: Path):
     art = tmpl.parse(art_path)
 
     # Test get method
-    result = art.get("spd-demo-item-1")
+    result = art.get("cpt-demo-item-1")
     assert result is not None
-    assert "spd-demo-item-1" in result
+    assert "cpt-demo-item-1" in result
 
     # Test get with nonexistent ID
     result2 = art.get("nonexistent-id")
     assert result2 is None
 
     # Test list method
-    results = art.list(["spd-demo-item-1", "nonexistent"])
+    results = art.list(["cpt-demo-item-1", "nonexistent"])
     assert len(results) == 2
     assert results[0] is not None
     assert results[1] is None
@@ -1007,33 +1007,33 @@ def test_artifact_list_ids(tmp_path: Path):
     art = tmpl.parse(art_path)
 
     ids = art.list_ids()
-    assert "spd-demo-item-1" in ids
+    assert "cpt-demo-item-1" in ids
 
 
 def test_id_task_status_all_done_but_id_not_marked(tmp_path: Path):
     """Cover ID task status validation - all tasks done but ID not marked."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:id:item has="task" -->
-- [ ] `p1` - **ID**: `spd-test-1`
-<!-- spd:task-list:tasks -->
+<!-- cpt:id:item has="task" -->
+- [ ] `p1` - **ID**: `cpt-test-1`
+<!-- cpt:task-list:tasks -->
 - [x] task
-<!-- spd:task-list:tasks -->
-<!-- spd:id:item -->
+<!-- cpt:task-list:tasks -->
+<!-- cpt:id:item -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
-    art_text = """<!-- spd:id:item -->
-- [ ] `p1` - **ID**: `spd-test-1`
-<!-- spd:task-list:tasks -->
+    art_text = """<!-- cpt:id:item -->
+- [ ] `p1` - **ID**: `cpt-test-1`
+<!-- cpt:task-list:tasks -->
 - [x] all done
-<!-- spd:task-list:tasks -->
-<!-- spd:id:item -->
+<!-- cpt:task-list:tasks -->
+<!-- cpt:id:item -->
 """
     art_path = _write(tmp_path / "art.md", art_text)
     report = tmpl.validate(art_path)
@@ -1043,27 +1043,27 @@ spaider-template:
 def test_id_task_status_id_done_but_tasks_not(tmp_path: Path):
     """Cover ID task status validation - ID marked done but tasks not all done."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:id:item has="task" -->
-- [x] `p1` - **ID**: `spd-test-1`
-<!-- spd:task-list:tasks -->
+<!-- cpt:id:item has="task" -->
+- [x] `p1` - **ID**: `cpt-test-1`
+<!-- cpt:task-list:tasks -->
 - [ ] task
-<!-- spd:task-list:tasks -->
-<!-- spd:id:item -->
+<!-- cpt:task-list:tasks -->
+<!-- cpt:id:item -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
-    art_text = """<!-- spd:id:item -->
-- [x] `p1` - **ID**: `spd-test-1`
-<!-- spd:task-list:tasks -->
+    art_text = """<!-- cpt:id:item -->
+- [x] `p1` - **ID**: `cpt-test-1`
+<!-- cpt:task-list:tasks -->
 - [ ] not done
-<!-- spd:task-list:tasks -->
-<!-- spd:id:item -->
+<!-- cpt:task-list:tasks -->
+<!-- cpt:id:item -->
 """
     art_path = _write(tmp_path / "art.md", art_text)
     report = tmpl.validate(art_path)
@@ -1073,19 +1073,19 @@ spaider-template:
 def test_cross_validate_ref_no_definition(tmp_path: Path):
     """Cover cross validation when reference has no definition."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:id-ref:item -->
-[x] - `spd-test-1`
-<!-- spd:id-ref:item -->
+<!-- cpt:id-ref:item -->
+[x] - `cpt-test-1`
+<!-- cpt:id-ref:item -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
-    art_path = _write(tmp_path / "art.md", "<!-- spd:id-ref:item -->\n[x] - `spd-nonexistent`\n<!-- spd:id-ref:item -->")
+    art_path = _write(tmp_path / "art.md", "<!-- cpt:id-ref:item -->\n[x] - `cpt-nonexistent`\n<!-- cpt:id-ref:item -->")
     art = tmpl.parse(art_path)
     report = cross_validate_artifacts([art])
     assert any("Reference has no definition" in str(e.get("message", "")) for e in report["errors"])
@@ -1096,17 +1096,17 @@ def test_artifact_with_template_frontmatter_detected(tmp_path: Path):
     tmpl_path = _write(tmp_path / "tmpl.template.md", _sample_template_text())
     tmpl, _ = load_template(tmpl_path)
 
-    # Artifact should NOT have spaider-template frontmatter
+    # Artifact should NOT have cypilot-template frontmatter
     bad_artifact = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: PRD
 ---
-<!-- spd:paragraph:summary -->
+<!-- cpt:paragraph:summary -->
 Some content
-<!-- spd:paragraph:summary -->
+<!-- cpt:paragraph:summary -->
 """
     art_path = _write(tmp_path / "bad-artifact.md", bad_artifact)
     report = tmpl.validate(art_path)
@@ -1114,7 +1114,7 @@ Some content
 
 
 def test_artifact_without_template_frontmatter_ok(tmp_path: Path):
-    """Cover that normal frontmatter (without spaider-template) is OK."""
+    """Cover that normal frontmatter (without cypilot-template) is OK."""
     tmpl_path = _write(tmp_path / "tmpl.template.md", _sample_template_text())
     tmpl, _ = load_template(tmpl_path)
 
@@ -1123,28 +1123,28 @@ def test_artifact_without_template_frontmatter_ok(tmp_path: Path):
 title: My Document
 author: Test
 ---
-<!-- spd:id:item -->
-- [x] `p1` - **ID**: `spd-demo-item-1`
-<!-- spd:id:item -->
-<!-- spd:paragraph:summary -->
+<!-- cpt:id:item -->
+- [x] `p1` - **ID**: `cpt-demo-item-1`
+<!-- cpt:id:item -->
+<!-- cpt:paragraph:summary -->
 Some content
-<!-- spd:paragraph:summary -->
-<!-- spd:list:bullets -->
+<!-- cpt:paragraph:summary -->
+<!-- cpt:list:bullets -->
 - a
-<!-- spd:list:bullets -->
-<!-- spd:table:data -->
+<!-- cpt:list:bullets -->
+<!-- cpt:table:data -->
 | h1 | h2 |
 |----|----|
 | v1 | v2 |
-<!-- spd:table:data -->
-<!-- spd:code:snippet -->
+<!-- cpt:table:data -->
+<!-- cpt:code:snippet -->
 ```
 code
 ```
-<!-- spd:code:snippet -->
-<!-- spd:sdsl:flow -->
+<!-- cpt:code:snippet -->
+<!-- cpt:cdsl:flow -->
 1. [x] - `p1` - Step - `inst-step-1`
-<!-- spd:sdsl:flow -->
+<!-- cpt:cdsl:flow -->
 """
     art_path = _write(tmp_path / "ok-artifact.md", ok_artifact)
     report = tmpl.validate(art_path)
@@ -1155,27 +1155,27 @@ code
 def test_cross_validate_external_system_ref_no_error(tmp_path: Path):
     """External system references should not error when registered_systems is provided."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:id:item -->
-**ID**: `spd-myapp-item-1`
-<!-- spd:id:item -->
-<!-- spd:id-ref:ref -->
-`spd-other-system-spec-auth`
-<!-- spd:id-ref:ref -->
+<!-- cpt:id:item -->
+**ID**: `cpt-myapp-item-1`
+<!-- cpt:id:item -->
+<!-- cpt:id-ref:ref -->
+`cpt-other-system-spec-auth`
+<!-- cpt:id-ref:ref -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
-    art_path = _write(tmp_path / "art.md", """<!-- spd:id:item -->
-**ID**: `spd-myapp-item-1`
-<!-- spd:id:item -->
-<!-- spd:id-ref:ref -->
-`spd-other-system-spec-auth`
-<!-- spd:id-ref:ref -->
+    art_path = _write(tmp_path / "art.md", """<!-- cpt:id:item -->
+**ID**: `cpt-myapp-item-1`
+<!-- cpt:id:item -->
+<!-- cpt:id-ref:ref -->
+`cpt-other-system-spec-auth`
+<!-- cpt:id-ref:ref -->
 """)
     art = tmpl.parse(art_path)
     # With registered_systems containing only "myapp", "other-system" is external
@@ -1188,60 +1188,60 @@ spaider-template:
 def test_cross_validate_internal_system_ref_errors(tmp_path: Path):
     """Internal system references without definition should error."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
 ---
-<!-- spd:id:item -->
-**ID**: `spd-myapp-item-1`
-<!-- spd:id:item -->
-<!-- spd:id-ref:ref -->
-`spd-myapp-missing-thing`
-<!-- spd:id-ref:ref -->
+<!-- cpt:id:item -->
+**ID**: `cpt-myapp-item-1`
+<!-- cpt:id:item -->
+<!-- cpt:id-ref:ref -->
+`cpt-myapp-missing-thing`
+<!-- cpt:id-ref:ref -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
-    art_path = _write(tmp_path / "art.md", """<!-- spd:id:item -->
-**ID**: `spd-myapp-item-1`
-<!-- spd:id:item -->
-<!-- spd:id-ref:ref -->
-`spd-myapp-missing-thing`
-<!-- spd:id-ref:ref -->
+    art_path = _write(tmp_path / "art.md", """<!-- cpt:id:item -->
+**ID**: `cpt-myapp-item-1`
+<!-- cpt:id:item -->
+<!-- cpt:id-ref:ref -->
+`cpt-myapp-missing-thing`
+<!-- cpt:id-ref:ref -->
 """)
     art = tmpl.parse(art_path)
     # With registered_systems containing "myapp", internal ref without def should error
     report = cross_validate_artifacts([art], registered_systems={"myapp"})
     ref_errors = [e for e in report["errors"] if "Reference has no definition" in str(e.get("message", ""))]
     assert len(ref_errors) == 1
-    assert "spd-myapp-missing-thing" in str(ref_errors[0])
+    assert "cpt-myapp-missing-thing" in str(ref_errors[0])
 
 
 def test_cross_validate_multi_word_system_external(tmp_path: Path):
     """Multi-word system names should be handled correctly."""
     text = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: SPEC
 ---
-<!-- spd:id:item -->
-**ID**: `spd-account-server-spec-billing`
-<!-- spd:id:item -->
-<!-- spd:id-ref:ref -->
-`spd-other-app-spec-auth`
-<!-- spd:id-ref:ref -->
+<!-- cpt:id:item -->
+**ID**: `cpt-account-server-spec-billing`
+<!-- cpt:id:item -->
+<!-- cpt:id-ref:ref -->
+`cpt-other-app-spec-auth`
+<!-- cpt:id-ref:ref -->
 """
     tmpl_path = _write(tmp_path / "tmpl.template.md", text)
     tmpl, _ = load_template(tmpl_path)
-    art_path = _write(tmp_path / "art.md", """<!-- spd:id:item -->
-**ID**: `spd-account-server-spec-billing`
-<!-- spd:id:item -->
-<!-- spd:id-ref:ref -->
-`spd-other-app-spec-auth`
-<!-- spd:id-ref:ref -->
+    art_path = _write(tmp_path / "art.md", """<!-- cpt:id:item -->
+**ID**: `cpt-account-server-spec-billing`
+<!-- cpt:id:item -->
+<!-- cpt:id-ref:ref -->
+`cpt-other-app-spec-auth`
+<!-- cpt:id-ref:ref -->
 """)
     art = tmpl.parse(art_path)
     # "account-server" is registered, "other-app" is external
@@ -1254,42 +1254,42 @@ def test_cross_validate_ref_has_attribute_is_optional(tmp_path: Path):
     """Reference decides its own has= attributes; not required to match definition."""
     # Definition template with has="priority,task"
     def_tmpl = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: DEF
   unknown_sections: warn
 ---
-<!-- spd:id:item has="priority,task" -->
-- [ ] `p1` - **ID**: `spd-test-item-1`
-<!-- spd:id:item -->
+<!-- cpt:id:item has="priority,task" -->
+- [ ] `p1` - **ID**: `cpt-test-item-1`
+<!-- cpt:id:item -->
 """
     # Reference template WITHOUT has attribute (should pass - ref decides its own attrs)
     ref_tmpl_simple = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: REF
   unknown_sections: warn
 ---
-<!-- spd:id-ref:item -->
-`spd-test-item-1`
-<!-- spd:id-ref:item -->
+<!-- cpt:id-ref:item -->
+`cpt-test-item-1`
+<!-- cpt:id-ref:item -->
 """
     # Reference template WITH has attribute (should also pass)
     ref_tmpl_full = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: REF
   unknown_sections: warn
 ---
-<!-- spd:id-ref:item has="priority,task" -->
-[ ] `p1` - `spd-test-item-1`
-<!-- spd:id-ref:item -->
+<!-- cpt:id-ref:item has="priority,task" -->
+[ ] `p1` - `cpt-test-item-1`
+<!-- cpt:id-ref:item -->
 """
     def_tmpl_path = _write(tmp_path / "def.template.md", def_tmpl)
     ref_tmpl_simple_path = _write(tmp_path / "ref-simple.template.md", ref_tmpl_simple)
@@ -1300,25 +1300,25 @@ spaider-template:
     tmpl_ref_full, _ = load_template(ref_tmpl_full_path)
 
     art_def = tmpl_def.parse(
-      _write(tmp_path / "def.md", """<!-- spd:id:item -->
-- [ ] `p1` - **ID**: `spd-test-item-1`
-<!-- spd:id:item -->"""),
+      _write(tmp_path / "def.md", """<!-- cpt:id:item -->
+- [ ] `p1` - **ID**: `cpt-test-item-1`
+<!-- cpt:id:item -->"""),
     )
 
     # Reference without has attribute should pass (ref decides its own attrs)
     art_ref_simple = tmpl_ref_simple.parse(
-      _write(tmp_path / "ref-simple.md", """<!-- spd:id-ref:item -->
-`spd-test-item-1`
-<!-- spd:id-ref:item -->"""),
+      _write(tmp_path / "ref-simple.md", """<!-- cpt:id-ref:item -->
+`cpt-test-item-1`
+<!-- cpt:id-ref:item -->"""),
     )
     report_simple = cross_validate_artifacts([art_def, art_ref_simple])
     assert not any("Reference missing" in str(e.get("message", "")) for e in report_simple["errors"])
 
     # Reference with has attribute should also pass
     art_ref_full = tmpl_ref_full.parse(
-      _write(tmp_path / "ref-full.md", """<!-- spd:id-ref:item has="priority,task" -->
-[ ] `p1` - `spd-test-item-1`
-<!-- spd:id-ref:item -->"""),
+      _write(tmp_path / "ref-full.md", """<!-- cpt:id-ref:item has="priority,task" -->
+[ ] `p1` - `cpt-test-item-1`
+<!-- cpt:id-ref:item -->"""),
     )
     report_full = cross_validate_artifacts([art_def, art_ref_full])
     assert not any("Reference missing" in str(e.get("message", "")) for e in report_full["errors"])
@@ -1328,35 +1328,35 @@ def test_nesting_validation_errors_on_wrong_parent(tmp_path: Path):
     """Nesting validation should error when artifact block has wrong parent."""
     # Template with nested structure: ##:outer contains ##:inner
     template_content = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
   unknown_sections: warn
 ---
-<!-- spd:##:outer -->
+<!-- cpt:##:outer -->
 ## Outer
-<!-- spd:##:inner -->
+<!-- cpt:##:inner -->
 ### Inner
-<!-- spd:##:inner -->
-<!-- spd:##:outer -->
+<!-- cpt:##:inner -->
+<!-- cpt:##:outer -->
 """
     # Artifact with correct nesting
-    artifact_correct = """<!-- spd:##:outer -->
+    artifact_correct = """<!-- cpt:##:outer -->
 ## Outer
-<!-- spd:##:inner -->
+<!-- cpt:##:inner -->
 ### Inner
-<!-- spd:##:inner -->
-<!-- spd:##:outer -->"""
+<!-- cpt:##:inner -->
+<!-- cpt:##:outer -->"""
 
     # Artifact with WRONG nesting (inner NOT inside outer)
-    artifact_wrong = """<!-- spd:##:outer -->
+    artifact_wrong = """<!-- cpt:##:outer -->
 ## Outer
-<!-- spd:##:outer -->
-<!-- spd:##:inner -->
+<!-- cpt:##:outer -->
+<!-- cpt:##:inner -->
 ### Inner
-<!-- spd:##:inner -->"""
+<!-- cpt:##:inner -->"""
 
     tmpl_path = _write(tmp_path / "test.template.md", template_content)
     tmpl, _ = load_template(tmpl_path)
@@ -1383,27 +1383,27 @@ def test_nesting_validation_skips_repeat_many_parents(tmp_path: Path):
     """Nesting validation should skip blocks inside repeat='many' parents."""
     # Template with repeat="many" outer block
     template_content = """---
-spaider-template:
+cypilot-template:
   version:
     major: 1
     minor: 0
   kind: TEST
   unknown_sections: warn
 ---
-<!-- spd:##:section repeat="many" -->
+<!-- cpt:##:section repeat="many" -->
 ## Section
-<!-- spd:paragraph:content -->
+<!-- cpt:paragraph:content -->
 Content here
-<!-- spd:paragraph:content -->
-<!-- spd:##:section -->
+<!-- cpt:paragraph:content -->
+<!-- cpt:##:section -->
 """
     # Artifact with different nesting (paragraph directly inside section is fine)
-    artifact = """<!-- spd:##:section repeat="many" -->
+    artifact = """<!-- cpt:##:section repeat="many" -->
 ## Section 1
-<!-- spd:paragraph:content -->
+<!-- cpt:paragraph:content -->
 Content here
-<!-- spd:paragraph:content -->
-<!-- spd:##:section -->"""
+<!-- cpt:paragraph:content -->
+<!-- cpt:##:section -->"""
 
     tmpl_path = _write(tmp_path / "test.template.md", template_content)
     tmpl, _ = load_template(tmpl_path)

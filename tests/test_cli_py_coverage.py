@@ -9,7 +9,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "spaider" / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "cypilot" / "scripts"))
 
 
 def _write_json(path: Path, data: dict) -> None:
@@ -19,8 +19,8 @@ def _write_json(path: Path, data: dict) -> None:
 
 def _bootstrap_project_root(root: Path, adapter_rel: str = "adapter") -> Path:
     (root / ".git").mkdir()
-    (root / ".spaider-config.json").write_text(
-        json.dumps({"spaiderAdapterPath": adapter_rel}, ensure_ascii=False),
+    (root / ".cypilot-config.json").write_text(
+        json.dumps({"cypilotAdapterPath": adapter_rel}, ensure_ascii=False),
         encoding="utf-8",
     )
     adapter = root / adapter_rel
@@ -29,72 +29,72 @@ def _bootstrap_project_root(root: Path, adapter_rel: str = "adapter") -> Path:
     return adapter
 
 
-def _bootstrap_self_check_weavers(root: Path, adapter: Path, *, with_example: bool = True, bad_example: bool = False) -> None:
-    # Minimal artifacts registry that passes `load_artifacts_registry` and contains weavers.
+def _bootstrap_self_check_kits(root: Path, adapter: Path, *, with_example: bool = True, bad_example: bool = False) -> None:
+    # Minimal artifacts registry that passes `load_artifacts_registry` and contains kits.
     _write_json(
         adapter / "artifacts.json",
         {
             "project_root": "..",
             "systems": [],
-            "weavers": {
-                "spaider-sdlc": {"format": "Spaider", "path": "weavers/spaider-sdlc"},
+            "kits": {
+                "cypilot-sdlc": {"format": "Cypilot", "path": "kits/cypilot-sdlc"},
             },
         },
     )
 
-    weavers_base = root / "weavers" / "spaider-sdlc" / "artifacts" / "req"
-    weavers_base.mkdir(parents=True, exist_ok=True)
+    kits_base = root / "kits" / "cypilot-sdlc" / "artifacts" / "req"
+    kits_base.mkdir(parents=True, exist_ok=True)
 
-    template = weavers_base / "template.md"
+    template = kits_base / "template.md"
     template.write_text(
         "---\n"
-        "spaider-template:\n"
+        "cypilot-template:\n"
         "  kind: req\n"
         "  version:\n"
         "    major: 1\n"
         "    minor: 0\n"
         "---\n"
         "\n"
-        "<!-- spd:id:item to_code=\"true\" -->\n"
-        "<!-- spd:id:item -->\n",
+        "<!-- cpt:id:item to_code=\"true\" -->\n"
+        "<!-- cpt:id:item -->\n",
         encoding="utf-8",
     )
 
     if with_example:
-        ex_dir = weavers_base / "examples"
+        ex_dir = kits_base / "examples"
         ex_dir.mkdir(parents=True, exist_ok=True)
         example = ex_dir / "example.md"
 
         if bad_example:
             example.write_text(
                 "---\n"
-                "spaider-template:\n"
+                "cypilot-template:\n"
                 "  kind: req\n"
                 "  version: 1.0\n"
                 "---\n"
                 "\n"
-                "<!-- spd:id:item -->\n"
-                "- [x] `p1` - **ID**: `spd-req-1`\n"
-                "<!-- spd:id:item -->\n",
+                "<!-- cpt:id:item -->\n"
+                "- [x] `p1` - **ID**: `cpt-req-1`\n"
+                "<!-- cpt:id:item -->\n",
                 encoding="utf-8",
             )
         else:
             example.write_text(
-                "<!-- spd:id:item -->\n"
-                "- [x] `p1` - **ID**: `spd-req-1`\n"
-                "<!-- spd:id:item -->\n",
+                "<!-- cpt:id:item -->\n"
+                "- [x] `p1` - **ID**: `cpt-req-1`\n"
+                "<!-- cpt:id:item -->\n",
                 encoding="utf-8",
             )
 
 
 class TestCLIPyCoverageSelfCheck(unittest.TestCase):
     def test_self_check_pass(self):
-        from spaider.cli import main
+        from cypilot.cli import main
 
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             adapter = _bootstrap_project_root(root)
-            _bootstrap_self_check_weavers(root, adapter, with_example=True, bad_example=False)
+            _bootstrap_self_check_kits(root, adapter, with_example=True, bad_example=False)
 
             cwd = os.getcwd()
             try:
@@ -105,19 +105,19 @@ class TestCLIPyCoverageSelfCheck(unittest.TestCase):
                 self.assertEqual(exit_code, 0)
                 out = json.loads(stdout.getvalue())
                 self.assertEqual(out.get("status"), "PASS")
-                self.assertEqual(out.get("weavers_checked"), 1)
+                self.assertEqual(out.get("kits_checked"), 1)
                 self.assertEqual(out.get("templates_checked"), 1)
                 self.assertEqual(out["results"][0]["status"], "PASS")
             finally:
                 os.chdir(cwd)
 
     def test_self_check_fail_on_validation_errors(self):
-        from spaider.cli import main
+        from cypilot.cli import main
 
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             adapter = _bootstrap_project_root(root)
-            _bootstrap_self_check_weavers(root, adapter, with_example=True, bad_example=True)
+            _bootstrap_self_check_kits(root, adapter, with_example=True, bad_example=True)
 
             cwd = os.getcwd()
             try:
@@ -134,12 +134,12 @@ class TestCLIPyCoverageSelfCheck(unittest.TestCase):
                 os.chdir(cwd)
 
     def test_self_check_verbose_includes_warnings(self):
-        from spaider.cli import main
+        from cypilot.cli import main
 
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             adapter = _bootstrap_project_root(root)
-            _bootstrap_self_check_weavers(root, adapter, with_example=False)
+            _bootstrap_self_check_kits(root, adapter, with_example=False)
 
             cwd = os.getcwd()
             try:
@@ -158,22 +158,22 @@ class TestCLIPyCoverageSelfCheck(unittest.TestCase):
 
     def test_self_check_template_validation_module_missing(self):
         # Force the inner import in `_cmd_self_check` to fail.
-        from spaider import cli as spaider_cli
+        from cypilot import cli as cypilot_cli
 
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             adapter = _bootstrap_project_root(root)
-            _bootstrap_self_check_weavers(root, adapter, with_example=True, bad_example=False)
+            _bootstrap_self_check_kits(root, adapter, with_example=True, bad_example=False)
 
-            dummy = types.ModuleType("spaider.utils.template")
+            dummy = types.ModuleType("cypilot.utils.template")
 
             cwd = os.getcwd()
             try:
                 os.chdir(root)
                 stdout = io.StringIO()
-                with patch.dict("sys.modules", {"spaider.utils.template": dummy}):
+                with patch.dict("sys.modules", {"cypilot.utils.template": dummy}):
                     with redirect_stdout(stdout):
-                        exit_code = spaider_cli._cmd_self_check([])
+                        exit_code = cypilot_cli._cmd_self_check([])
                 self.assertEqual(exit_code, 1)
                 out = json.loads(stdout.getvalue())
                 self.assertEqual(out.get("status"), "ERROR")
@@ -185,26 +185,26 @@ class TestCLIPyCoverageSelfCheck(unittest.TestCase):
 class TestCLIPyCoverageValidateCode(unittest.TestCase):
     def test_validate_with_code_and_output_file(self):
         """Test validate command with code validation and output file."""
-        from spaider.cli import main
+        from cypilot.cli import main
 
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             adapter = _bootstrap_project_root(root)
 
-            # Weavers + template for kind=req
-            weavers_base = root / "weavers" / "spaider-sdlc" / "artifacts" / "req"
-            weavers_base.mkdir(parents=True, exist_ok=True)
-            (weavers_base / "template.md").write_text(
+            # Kits + template for kind=req
+            kits_base = root / "kits" / "cypilot-sdlc" / "artifacts" / "req"
+            kits_base.mkdir(parents=True, exist_ok=True)
+            (kits_base / "template.md").write_text(
                 "---\n"
-                "spaider-template:\n"
+                "cypilot-template:\n"
                 "  kind: req\n"
                 "  version:\n"
                 "    major: 1\n"
                 "    minor: 0\n"
                 "---\n"
                 "\n"
-                "<!-- spd:id:item to_code=\"true\" -->\n"
-                "<!-- spd:id:item -->\n",
+                "<!-- cpt:id:item to_code=\"true\" -->\n"
+                "<!-- cpt:id:item -->\n",
                 encoding="utf-8",
             )
 
@@ -212,9 +212,9 @@ class TestCLIPyCoverageValidateCode(unittest.TestCase):
             art_dir = root / "artifacts"
             art_dir.mkdir(parents=True, exist_ok=True)
             (art_dir / "reqs.md").write_text(
-                "<!-- spd:id:item -->\n"
-                "- [x] `p1` - **ID**: `spd-req-1`\n"
-                "<!-- spd:id:item -->\n",
+                "<!-- cpt:id:item -->\n"
+                "- [x] `p1` - **ID**: `cpt-req-1`\n"
+                "<!-- cpt:id:item -->\n",
                 encoding="utf-8",
             )
 
@@ -223,7 +223,7 @@ class TestCLIPyCoverageValidateCode(unittest.TestCase):
             src.mkdir(parents=True, exist_ok=True)
             code_file = src / "code.py"
             code_file.write_text(
-                "# @spaider-req:spd-req-1:p1\n"
+                "# @cpt-req:cpt-req-1:p1\n"
                 "print('ok')\n",
                 encoding="utf-8",
             )
@@ -232,11 +232,11 @@ class TestCLIPyCoverageValidateCode(unittest.TestCase):
                 adapter / "artifacts.json",
                 {
                     "project_root": "..",
-                    "weavers": {"spaider-sdlc": {"format": "Spaider", "path": "weavers/spaider-sdlc"}},
+                    "kits": {"cypilot-sdlc": {"format": "Cypilot", "path": "kits/cypilot-sdlc"}},
                     "systems": [
                         {
                             "name": "S",
-                            "weaver": "spaider-sdlc",
+                            "kit": "cypilot-sdlc",
                             "artifacts": [
                                 {"path": "artifacts/reqs.md", "kind": "req", "traceability": "FULL"},
                             ],
@@ -268,14 +268,14 @@ class TestCLIPyCoverageValidateCode(unittest.TestCase):
 
 class TestCLIPyCoverageHelpers(unittest.TestCase):
     def test_prompt_path_eof_returns_default(self):
-        from spaider.cli import _prompt_path
+        from cypilot.cli import _prompt_path
 
         with patch("builtins.input", side_effect=EOFError):
             got = _prompt_path("Question?", "default")
         self.assertEqual(got, "default")
 
     def test_list_workflow_files_iterdir_exception(self):
-        from spaider.cli import _list_workflow_files
+        from cypilot.cli import _list_workflow_files
 
         with TemporaryDirectory() as tmpdir:
             core = Path(tmpdir)
@@ -287,48 +287,48 @@ class TestCLIPyCoverageHelpers(unittest.TestCase):
 
 
 class TestCLIPyCoverageSelfCheckFiltering(unittest.TestCase):
-    """Tests for self-check --weaver filtering (line 317)."""
+    """Tests for self-check --kit filtering (line 317)."""
 
     def test_self_check_filter_by_rule(self):
-        """self-check --weaver filters to specific weaver."""
-        from spaider.cli import main
+        """self-check --kit filters to specific kit."""
+        from cypilot.cli import main
 
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             adapter = _bootstrap_project_root(root)
-            _bootstrap_self_check_weavers(root, adapter, with_example=True, bad_example=False)
+            _bootstrap_self_check_kits(root, adapter, with_example=True, bad_example=False)
 
             cwd = os.getcwd()
             try:
                 os.chdir(root)
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    # Filter to non-existent weaver - should check 0 weavers
-                    exit_code = main(["self-check", "--weaver", "nonexistent-weaver"])
+                    # Filter to non-existent kit - should check 0 kits
+                    exit_code = main(["self-check", "--kit", "nonexistent-kit"])
                 self.assertEqual(exit_code, 0)
                 out = json.loads(stdout.getvalue())
-                self.assertEqual(out.get("weavers_checked"), 0)
+                self.assertEqual(out.get("kits_checked"), 0)
             finally:
                 os.chdir(cwd)
 
-    def test_self_check_filter_matches_weaver(self):
-        """self-check --weaver matches existing weaver."""
-        from spaider.cli import main
+    def test_self_check_filter_matches_kit(self):
+        """self-check --kit matches existing kit."""
+        from cypilot.cli import main
 
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             adapter = _bootstrap_project_root(root)
-            _bootstrap_self_check_weavers(root, adapter, with_example=True, bad_example=False)
+            _bootstrap_self_check_kits(root, adapter, with_example=True, bad_example=False)
 
             cwd = os.getcwd()
             try:
                 os.chdir(root)
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["self-check", "--weaver", "spaider-sdlc"])
+                    exit_code = main(["self-check", "--kit", "cypilot-sdlc"])
                 self.assertEqual(exit_code, 0)
                 out = json.loads(stdout.getvalue())
-                self.assertEqual(out.get("weavers_checked"), 1)
+                self.assertEqual(out.get("kits_checked"), 1)
             finally:
                 os.chdir(cwd)
 
@@ -338,7 +338,7 @@ class TestCLIPyCoverageInitUnchanged(unittest.TestCase):
 
     def test_init_unchanged_files(self):
         """init reports unchanged when files match desired content."""
-        from spaider.cli import main
+        from cypilot.cli import main
 
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
@@ -368,30 +368,30 @@ class TestCLIPyCoverageInitUnchanged(unittest.TestCase):
 
 
 class TestCLIPyCoverageValidateRules(unittest.TestCase):
-    """Tests for validate-weavers command (lines 2155-2162)."""
+    """Tests for validate-kits command (lines 2155-2162)."""
 
     def test_validate_rules_single_template(self):
-        """validate-weavers --template validates a single template file."""
-        from spaider.cli import main
+        """validate-kits --template validates a single template file."""
+        from cypilot.cli import main
 
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
 
             # Create a valid template (no adapter needed for --template)
-            weavers_base = root / "weavers" / "spaider-sdlc" / "artifacts" / "req"
-            weavers_base.mkdir(parents=True, exist_ok=True)
-            template_path = weavers_base / "template.md"
+            kits_base = root / "kits" / "cypilot-sdlc" / "artifacts" / "req"
+            kits_base.mkdir(parents=True, exist_ok=True)
+            template_path = kits_base / "template.md"
             template_path.write_text(
                 "---\n"
-                "spaider-template:\n"
+                "cypilot-template:\n"
                 "  kind: req\n"
                 "  version:\n"
                 "    major: 1\n"
                 "    minor: 0\n"
                 "---\n"
                 "\n"
-                "<!-- spd:id:item -->\n"
-                "<!-- spd:id:item -->\n",
+                "<!-- cpt:id:item -->\n"
+                "<!-- cpt:id:item -->\n",
                 encoding="utf-8",
             )
 
@@ -400,7 +400,7 @@ class TestCLIPyCoverageValidateRules(unittest.TestCase):
                 os.chdir(root)
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["validate-weavers", "--template", str(template_path)])
+                    exit_code = main(["validate-kits", "--template", str(template_path)])
                 self.assertEqual(exit_code, 0)
                 out = json.loads(stdout.getvalue())
                 self.assertEqual(out.get("status"), "PASS")
@@ -409,23 +409,23 @@ class TestCLIPyCoverageValidateRules(unittest.TestCase):
                 os.chdir(cwd)
 
     def test_validate_rules_verbose_with_errors(self):
-        """validate-weavers --verbose shows template errors."""
-        from spaider.cli import main
+        """validate-kits --verbose shows template errors."""
+        from cypilot.cli import main
 
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
 
             # Create an invalid template (missing version)
-            weavers_base = root / "weavers" / "spaider-sdlc" / "artifacts" / "req"
-            weavers_base.mkdir(parents=True, exist_ok=True)
-            template_path = weavers_base / "template.md"
+            kits_base = root / "kits" / "cypilot-sdlc" / "artifacts" / "req"
+            kits_base.mkdir(parents=True, exist_ok=True)
+            template_path = kits_base / "template.md"
             template_path.write_text(
                 "---\n"
-                "spaider-template:\n"
+                "cypilot-template:\n"
                 "  kind: req\n"
                 "---\n"
                 "\n"
-                "<!-- spd:id:item -->\n",
+                "<!-- cpt:id:item -->\n",
                 encoding="utf-8",
             )
 
@@ -434,7 +434,7 @@ class TestCLIPyCoverageValidateRules(unittest.TestCase):
                 os.chdir(root)
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["validate-weavers", "--template", str(template_path), "--verbose"])
+                    exit_code = main(["validate-kits", "--template", str(template_path), "--verbose"])
                 self.assertEqual(exit_code, 2)
                 out = json.loads(stdout.getvalue())
                 self.assertEqual(out.get("status"), "FAIL")
@@ -444,28 +444,28 @@ class TestCLIPyCoverageValidateRules(unittest.TestCase):
                 os.chdir(cwd)
 
     def test_validate_rules_all_from_registry(self):
-        """validate-weavers without --template validates all templates from registry."""
-        from spaider.cli import main
+        """validate-kits without --template validates all templates from registry."""
+        from cypilot.cli import main
 
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             adapter = _bootstrap_project_root(root)
 
-            # Create weavers structure
-            weavers_base = root / "weavers" / "spaider-sdlc" / "artifacts" / "req"
-            weavers_base.mkdir(parents=True, exist_ok=True)
-            template_path = weavers_base / "template.md"
+            # Create kits structure
+            kits_base = root / "kits" / "cypilot-sdlc" / "artifacts" / "req"
+            kits_base.mkdir(parents=True, exist_ok=True)
+            template_path = kits_base / "template.md"
             template_path.write_text(
                 "---\n"
-                "spaider-template:\n"
+                "cypilot-template:\n"
                 "  kind: req\n"
                 "  version:\n"
                 "    major: 1\n"
                 "    minor: 0\n"
                 "---\n"
                 "\n"
-                "<!-- spd:id:item -->\n"
-                "<!-- spd:id:item -->\n",
+                "<!-- cpt:id:item -->\n"
+                "<!-- cpt:id:item -->\n",
                 encoding="utf-8",
             )
 
@@ -473,9 +473,9 @@ class TestCLIPyCoverageValidateRules(unittest.TestCase):
             art_dir = root / "artifacts"
             art_dir.mkdir(parents=True, exist_ok=True)
             (art_dir / "reqs.md").write_text(
-                "<!-- spd:id:item -->\n"
-                "- [x] `p1` - **ID**: `spd-req-1`\n"
-                "<!-- spd:id:item -->\n",
+                "<!-- cpt:id:item -->\n"
+                "- [x] `p1` - **ID**: `cpt-req-1`\n"
+                "<!-- cpt:id:item -->\n",
                 encoding="utf-8",
             )
 
@@ -483,11 +483,11 @@ class TestCLIPyCoverageValidateRules(unittest.TestCase):
                 adapter / "artifacts.json",
                 {
                     "project_root": "..",
-                    "weavers": {"spaider-sdlc": {"format": "Spaider", "path": "weavers/spaider-sdlc"}},
+                    "kits": {"cypilot-sdlc": {"format": "Cypilot", "path": "kits/cypilot-sdlc"}},
                     "systems": [
                         {
                             "name": "S",
-                            "weaver": "spaider-sdlc",
+                            "kit": "cypilot-sdlc",
                             "artifacts": [
                                 {"path": "artifacts/reqs.md", "kind": "req"},
                             ],
@@ -501,7 +501,7 @@ class TestCLIPyCoverageValidateRules(unittest.TestCase):
                 os.chdir(root)
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["validate-weavers"])
+                    exit_code = main(["validate-kits"])
                 self.assertEqual(exit_code, 0)
                 out = json.loads(stdout.getvalue())
                 self.assertEqual(out.get("status"), "PASS")
@@ -511,32 +511,32 @@ class TestCLIPyCoverageValidateRules(unittest.TestCase):
 
 
 class TestCLIPyCoverageTopLevelHelp(unittest.TestCase):
-    """Tests for spaider --help (lines 2379-2392)."""
+    """Tests for cypilot --help (lines 2379-2392)."""
 
     def test_top_level_help_flag(self):
-        """spaider --help shows usage and commands."""
-        from spaider.cli import main
+        """cypilot --help shows usage and commands."""
+        from cypilot.cli import main
 
         stdout = io.StringIO()
         with redirect_stdout(stdout):
             exit_code = main(["--help"])
         self.assertEqual(exit_code, 0)
         output = stdout.getvalue()
-        self.assertIn("usage: spaider <command>", output)
+        self.assertIn("usage: cypilot <command>", output)
         self.assertIn("Validation commands:", output)
         self.assertIn("Search and utility commands:", output)
         self.assertIn("validate", output)
 
     def test_top_level_help_short_flag(self):
-        """spaider -h also shows usage."""
-        from spaider.cli import main
+        """cypilot -h also shows usage."""
+        from cypilot.cli import main
 
         stdout = io.StringIO()
         with redirect_stdout(stdout):
             exit_code = main(["-h"])
         self.assertEqual(exit_code, 0)
         output = stdout.getvalue()
-        self.assertIn("usage: spaider <command>", output)
+        self.assertIn("usage: cypilot <command>", output)
 
 
 class TestCLIPyCoverageSlugValidation(unittest.TestCase):
@@ -544,18 +544,18 @@ class TestCLIPyCoverageSlugValidation(unittest.TestCase):
 
     def test_self_check_invalid_slugs(self):
         """self-check reports invalid slugs in artifacts.json."""
-        from spaider.cli import main
+        from cypilot.cli import main
 
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             adapter = _bootstrap_project_root(root)
 
-            # Create weavers structure with template
-            weavers_base = root / "weavers" / "spaider-sdlc" / "artifacts" / "req"
-            weavers_base.mkdir(parents=True, exist_ok=True)
-            (weavers_base / "template.md").write_text(
-                "---\nspaider-template:\n  kind: req\n  version:\n    major: 1\n    minor: 0\n---\n"
-                "<!-- spd:id:item -->\n<!-- spd:id:item -->\n",
+            # Create kits structure with template
+            kits_base = root / "kits" / "cypilot-sdlc" / "artifacts" / "req"
+            kits_base.mkdir(parents=True, exist_ok=True)
+            (kits_base / "template.md").write_text(
+                "---\ncypilot-template:\n  kind: req\n  version:\n    major: 1\n    minor: 0\n---\n"
+                "<!-- cpt:id:item -->\n<!-- cpt:id:item -->\n",
                 encoding="utf-8",
             )
 
@@ -564,12 +564,12 @@ class TestCLIPyCoverageSlugValidation(unittest.TestCase):
                 adapter / "artifacts.json",
                 {
                     "project_root": "..",
-                    "weavers": {"spaider-sdlc": {"format": "Spaider", "path": "weavers/spaider-sdlc"}},
+                    "kits": {"cypilot-sdlc": {"format": "Cypilot", "path": "kits/cypilot-sdlc"}},
                     "systems": [
                         {
                             "name": "S",
                             "slug": "Invalid Slug With Spaces",  # Invalid: contains spaces
-                            "weaver": "spaider-sdlc",
+                            "kit": "cypilot-sdlc",
                             "artifacts": [],
                         }
                     ],
@@ -595,7 +595,7 @@ class TestCLIPyCoverageAgentsCommand(unittest.TestCase):
 
     def test_agents_dry_run_default_config(self):
         """agents command creates default config for recognized agent."""
-        from spaider.cli import main
+        from cypilot.cli import main
 
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
@@ -606,7 +606,7 @@ class TestCLIPyCoverageAgentsCommand(unittest.TestCase):
                 adapter / "artifacts.json",
                 {
                     "project_root": "..",
-                    "weavers": {},
+                    "kits": {},
                     "systems": [],
                 },
             )
@@ -629,19 +629,19 @@ class TestCLIPyCoverageListIdsWithCode(unittest.TestCase):
 
     def test_list_ids_include_code_with_refs(self):
         """list-ids --include-code shows ID references from artifacts."""
-        from spaider.cli import main
+        from cypilot.cli import main
 
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             adapter = _bootstrap_project_root(root)
 
-            # Create weavers structure with id-ref block
-            weavers_base = root / "weavers" / "spaider-sdlc" / "artifacts" / "req"
-            weavers_base.mkdir(parents=True, exist_ok=True)
-            (weavers_base / "template.md").write_text(
-                "---\nspaider-template:\n  kind: req\n  version:\n    major: 1\n    minor: 0\n---\n"
-                "<!-- spd:id:item -->\n<!-- spd:id:item -->\n"
-                "<!-- spd:id-ref:other -->\n<!-- spd:id-ref:other -->\n",
+            # Create kits structure with id-ref block
+            kits_base = root / "kits" / "cypilot-sdlc" / "artifacts" / "req"
+            kits_base.mkdir(parents=True, exist_ok=True)
+            (kits_base / "template.md").write_text(
+                "---\ncypilot-template:\n  kind: req\n  version:\n    major: 1\n    minor: 0\n---\n"
+                "<!-- cpt:id:item -->\n<!-- cpt:id:item -->\n"
+                "<!-- cpt:id-ref:other -->\n<!-- cpt:id-ref:other -->\n",
                 encoding="utf-8",
             )
 
@@ -649,12 +649,12 @@ class TestCLIPyCoverageListIdsWithCode(unittest.TestCase):
             art_dir = root / "artifacts"
             art_dir.mkdir(parents=True, exist_ok=True)
             (art_dir / "reqs.md").write_text(
-                "<!-- spd:id:item -->\n"
-                "- [x] `p1` - **ID**: `spd-test-item-1`\n"
-                "<!-- spd:id:item -->\n"
-                "<!-- spd:id-ref:other -->\n"
-                "- [ ] `p2` - `spd-external-ref-abc`\n"
-                "<!-- spd:id-ref:other -->\n",
+                "<!-- cpt:id:item -->\n"
+                "- [x] `p1` - **ID**: `cpt-test-item-1`\n"
+                "<!-- cpt:id:item -->\n"
+                "<!-- cpt:id-ref:other -->\n"
+                "- [ ] `p2` - `cpt-external-ref-abc`\n"
+                "<!-- cpt:id-ref:other -->\n",
                 encoding="utf-8",
             )
 
@@ -662,7 +662,7 @@ class TestCLIPyCoverageListIdsWithCode(unittest.TestCase):
             src = root / "src"
             src.mkdir(parents=True, exist_ok=True)
             (src / "code.py").write_text(
-                "# @spaider-req:spd-test-item-1:p1\nprint('ok')\n",
+                "# @cpt-req:cpt-test-item-1:p1\nprint('ok')\n",
                 encoding="utf-8",
             )
 
@@ -670,11 +670,11 @@ class TestCLIPyCoverageListIdsWithCode(unittest.TestCase):
                 adapter / "artifacts.json",
                 {
                     "project_root": "..",
-                    "weavers": {"spaider-sdlc": {"format": "Spaider", "path": "weavers/spaider-sdlc"}},
+                    "kits": {"cypilot-sdlc": {"format": "Cypilot", "path": "kits/cypilot-sdlc"}},
                     "systems": [
                         {
                             "name": "test",
-                            "weaver": "spaider-sdlc",
+                            "kit": "cypilot-sdlc",
                             "artifacts": [{"path": "artifacts/reqs.md", "kind": "req"}],
                             "codebase": [{"path": "src", "extensions": [".py"]}],
                         }

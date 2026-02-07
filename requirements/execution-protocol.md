@@ -1,5 +1,5 @@
 ---
-spaider: true
+cypilot: true
 type: requirement
 name: Execution Protocol
 version: 2.0
@@ -17,7 +17,7 @@ purpose: Common protocol executed by generate.md and analyze.md workflows
 - [Overview](#overview)
 - [Execution Protocol Violations](#-execution-protocol-violations)
 - [Compaction Recovery](#-compaction-recovery)
-- [Spaider Mode Detection](#spaider-mode-detection)
+- [Cypilot Mode Detection](#cypilot-mode-detection)
 - [Rules Mode Detection](#rules-mode-detection)
 - [Discover Adapter](#discover-adapter)
 - [Understand Registry](#understand-registry)
@@ -41,7 +41,7 @@ Common steps shared by `generate.md` and `analyze.md`. Both workflows MUST execu
 
 **Common violations**:
 1. ❌ Not reading this protocol first
-2. ❌ Not running `spaider adapter-info`
+2. ❌ Not running `cypilot adapter-info`
 3. ❌ Not following invoked workflow rules (`generate.md` / `analyze.md`)
 
 **Recovery**:
@@ -54,39 +54,39 @@ Common steps shared by `generate.md` and `analyze.md`. Both workflows MUST execu
 ## 🔄 Compaction Recovery
 
 **Problem**: After context compaction (conversation summarization), agent may lose:
-- Knowledge that Spaider workflow was active
+- Knowledge that Cypilot workflow was active
 - List of loaded specs
 - Current workflow phase
 
 **Detection signals** (agent should suspect compaction occurred):
 - Conversation starts with "This session is being continued from a previous conversation"
-- Summary mentions `/spaider-generate`, `/spaider-analyze`, or other Spaider commands
-- Todo list contains Spaider-related tasks in progress
+- Summary mentions `/cypilot-generate`, `/cypilot-analyze`, or other Cypilot commands
+- Todo list contains Cypilot-related tasks in progress
 
 **Recovery protocol**:
 
 1. Detect compaction from conversation summary signals
-2. Re-run: `spaider adapter-info` + load required specs from `{spaider_adapter_path}/AGENTS.md`
+2. Re-run: `cypilot adapter-info` + load required specs from `{cypilot_adapter_path}/AGENTS.md`
 3. Announce restored context (workflow, target, loaded specs), then continue
 
 **Agent MUST NOT**:
-- Continue Spaider work without re-loading specs after compaction
+- Continue Cypilot work without re-loading specs after compaction
 - Assume specs are "still loaded" from before compaction
 - Skip protocol because "it was already done"
 
 ---
 
-## Spaider Mode Detection
+## Cypilot Mode Detection
 
 **Default behavior**:
-- Treat request as workflow execution ONLY when Spaider is enabled
-- User invoking Spaider workflow (`/spaider`, `/prd`, `/design`, etc.) = Spaider enabled
-- User requesting `/spaider off` = Spaider disabled for conversation
+- Treat request as workflow execution ONLY when Cypilot is enabled
+- User invoking Cypilot workflow (`/cypilot`, `/prd`, `/design`, etc.) = Cypilot enabled
+- User requesting `/cypilot off` = Cypilot disabled for conversation
 - When disabled, behave as normal coding assistant
 
-**Announce Spaider mode** (non-blocking):
+**Announce Cypilot mode** (non-blocking):
 ```
-Spaider mode: ENABLED. To disable: /spaider off
+Cypilot mode: ENABLED. To disable: /cypilot off
 ```
 
 ---
@@ -95,7 +95,7 @@ Spaider mode: ENABLED. To disable: /spaider off
 
 After adapter discovery, determine **Rules Mode**:
 
-### Rules Mode: STRICT (Spaider rules enabled)
+### Rules Mode: STRICT (Cypilot rules enabled)
 
 **Condition**: `artifacts.json` found AND contains `rules` section AND target artifact/code matches registered system.
 
@@ -108,7 +108,7 @@ After adapter discovery, determine **Rules Mode**:
 
 **Announce**:
 ```
-Rules Mode: STRICT (spaider-sdlc rules loaded)
+Rules Mode: STRICT (cypilot-sdlc rules loaded)
 → Full validation protocol enforced
 ```
 
@@ -116,9 +116,9 @@ Rules Mode: STRICT (spaider-sdlc rules loaded)
 
 ALWAYS detect BOOTSTRAP mode WHEN adapter found AND `artifacts.json` has empty `systems[].artifacts` array
 
-ALWAYS read `weavers` section from `artifacts.json` WHEN BOOTSTRAP mode detected
+ALWAYS read `kits` section from `artifacts.json` WHEN BOOTSTRAP mode detected
 
-ALWAYS scan `{weaver.path}/artifacts/` directories WHEN listing available artifact kinds
+ALWAYS scan `{kit.path}/artifacts/` directories WHEN listing available artifact kinds
 
 ALWAYS determine project type WHEN BOOTSTRAP mode:
 - **GREENFIELD**: No existing source code — starting fresh, design-first approach
@@ -132,11 +132,11 @@ ALWAYS show welcome message with project type WHEN BOOTSTRAP mode:
 ```
 🚀 New Project Detected ({GREENFIELD|BROWNFIELD})
 
-Available weavers:
-• {weaver_name} ({weaver.path})
-  Artifacts: {kinds from weaver.path/artifacts/}
+Available kits:
+• {kit_name} ({kit.path})
+  Artifacts: {kinds from kit.path/artifacts/}
 
-→ `spaider generate <KIND>` to create your first artifact
+→ `cypilot generate <KIND>` to create your first artifact
 ```
 
 ALWAYS proceed with generate workflow without blocking WHEN user requests artifact generation in BOOTSTRAP mode
@@ -153,13 +153,13 @@ NEVER show warnings or "reduced rigor" messages WHEN in BOOTSTRAP mode
 
 ### Rules Mode: RELAXED (no adapter)
 
-ALWAYS detect RELAXED mode WHEN no adapter found OR no `weavers` in artifacts.json
+ALWAYS detect RELAXED mode WHEN no adapter found OR no `kits` in artifacts.json
 
 ALWAYS propose initialization WHEN RELAXED mode:
 ```
-Spaider adapter not configured
+Cypilot adapter not configured
 
-→ `spaider init` to initialize for this project
+→ `cypilot init` to initialize for this project
 ```
 
 ALWAYS proceed as normal coding assistant WHEN user declines initialization
@@ -174,7 +174,7 @@ ALWAYS proceed as normal coding assistant WHEN user declines initialization
 | Checklist validation | ✓ Mandatory | ✓ Mandatory | ✗ Skipped |
 | Reverse-engineering | When needed | BROWNFIELD only | N/A |
 | Blocking | No | No | No |
-| Next step | Continue workflow | `spaider generate <KIND>` | `spaider init` |
+| Next step | Continue workflow | `cypilot generate <KIND>` | `cypilot init` |
 
 ### Project Type (BOOTSTRAP mode)
 
@@ -188,22 +188,22 @@ ALWAYS proceed as normal coding assistant WHEN user declines initialization
 ## Discover Adapter
 
 ```bash
-python3 {spaider_path}/skills/spaider/scripts/spaider.py adapter-info --root {PROJECT_ROOT} --spaider-root {spaider_path}
+python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py adapter-info --root {PROJECT_ROOT} --cypilot-root {cypilot_path}
 ```
 
 **Parse output**: `status`, `adapter_dir`, `project_root`, `specs`, `rules`
 
-**If FOUND**: Load `{spaider_adapter_path}/AGENTS.md` for navigation rules
+**If FOUND**: Load `{cypilot_adapter_path}/AGENTS.md` for navigation rules
 
-**If NOT_FOUND**: Suggest running `/spaider-adapter` to bootstrap
+**If NOT_FOUND**: Suggest running `/cypilot-adapter` to bootstrap
 
 ---
 
 ## Understand Registry
 
-**MUST read** `{spaider_adapter_path}/artifacts.json`:
+**MUST read** `{cypilot_adapter_path}/artifacts.json`:
 
-1. **Rules**: What rule packages exist (`spaider-sdlc`, `spd-core`, etc.)
+1. **Rules**: What rule packages exist (`cypilot-sdlc`, `cpt-core`, etc.)
 2. **Systems**: What systems are registered and their hierarchy
 3. **Artifacts**: What artifacts exist, their kinds, and traceability settings
 4. **Codebase**: What code directories are tracked
@@ -220,47 +220,47 @@ python3 {spaider_path}/skills/spaider/scripts/spaider.py adapter-info --root {PR
 
 **If unclear from context, ask user**:
 
-### 1. Weaver Context
-Ask which weaver to use (or manual dependencies) if unclear.
+### 1. Kit Context
+Ask which kit to use (or manual dependencies) if unclear.
 
 ### 2. Target Type
 Ask whether target is **Artifact** or **Code** (and which kind/path).
 
-### 3. Specific System (if using weaver)
-Ask which system (from `artifacts.json`) if using a weaver and system is unclear.
+### 3. Specific System (if using kit)
+Ask which system (from `artifacts.json`) if using a kit and system is unclear.
 
 **If context is clear**: proceed silently, don't ask unnecessary questions.
 
 ---
 
-## Load Weavers
+## Load Kits
 
 **After determining target type**:
 
-### 1. Resolve Weaver Package
+### 1. Resolve Kit Package
 
 From `artifacts.json`:
 
 ```
 1. Find system containing target artifact
-2. Get weaver name: system.weaver (e.g., "spaider-sdlc")
-3. Look up path: artifacts.json.weavers[weaver_name].path
-4. WEAVER_BASE = resolved path (could be anything: "weavers/sdlc", "my-weaver", etc.)
+2. Get kit name: system.kit (e.g., "cypilot-sdlc")
+3. Look up path: artifacts.json.kits[kit_name].path
+4. KIT_BASE = resolved path (could be anything: "kits/sdlc", "my-kit", etc.)
 ```
 
 **Example**:
 ```json
 {
-  "weavers": {
-    "spaider-sdlc": { "path": "weavers/sdlc" }
+  "kits": {
+    "cypilot-sdlc": { "path": "kits/sdlc" }
   },
   "systems": [{
     "name": "MySystem",
-    "weaver": "spaider-sdlc"
+    "kit": "cypilot-sdlc"
   }]
 }
 ```
-→ `WEAVER_BASE = "weavers/sdlc"`
+→ `KIT_BASE = "kits/sdlc"`
 
 ### 2. Determine Artifact Type
 
@@ -268,19 +268,19 @@ From explicit parameter or artifacts.json lookup:
 
 | Source | Resolution |
 |--------|------------|
-| `spaider generate PRD` | Explicit: PRD |
-| `spaider analyze {path}` | Lookup: `artifacts.json.systems[].artifacts[path].kind` |
+| `cypilot generate PRD` | Explicit: PRD |
+| `cypilot analyze {path}` | Lookup: `artifacts.json.systems[].artifacts[path].kind` |
 | Path in `codebase[]` | CODE |
 
 ### 3. Load Rules.md
 
 ```
-WEAVERS_PATH = {WEAVER_BASE}/artifacts/{ARTIFACT_TYPE}/rules.md
+KITS_PATH = {KIT_BASE}/artifacts/{ARTIFACT_TYPE}/rules.md
 ```
 
 For CODE:
 ```
-WEAVERS_PATH = {WEAVER_BASE}/codebase/rules.md
+KITS_PATH = {KIT_BASE}/codebase/rules.md
 ```
 
 **MUST read rules.md** and parse:
@@ -316,8 +316,8 @@ I understand the following requirements for {ARTIFACT_TYPE}:
 ```
 
 **Store loaded context**:
-- `WEAVER_BASE` — base path from artifacts.json
-- `WEAVERS_PATH` — full path to rules.md
+- `KIT_BASE` — base path from artifacts.json
+- `KITS_PATH` — full path to rules.md
 - `TEMPLATE` — loaded template content
 - `CHECKLIST` — loaded checklist content
 - `EXAMPLE` — loaded example content
@@ -327,13 +327,13 @@ I understand the following requirements for {ARTIFACT_TYPE}:
 
 **After rules loaded and target type determined**, load applicable adapter specs:
 
-**Read adapter AGENTS.md** at `{spaider_adapter_path}/AGENTS.md`
+**Read adapter AGENTS.md** at `{cypilot_adapter_path}/AGENTS.md`
 
 **Parse WHEN clauses** matching current context:
 
 ```
-For each line matching: ALWAYS open and follow `{spec}` WHEN Spaider follows rules `{rule}` for {target}
-  IF {rule} == loaded rules ID (e.g., "spaider-sdlc"):
+For each line matching: ALWAYS open and follow `{spec}` WHEN Cypilot follows rules `{rule}` for {target}
+  IF {rule} == loaded rules ID (e.g., "cypilot-sdlc"):
     IF target includes current artifact kind:
       → Open and follow {spec}
     IF target includes "codebase" AND working on code:
@@ -342,7 +342,7 @@ For each line matching: ALWAYS open and follow `{spec}` WHEN Spaider follows rul
 
 **Example resolution**:
 
-- Loaded rules: `spaider-sdlc`
+- Loaded rules: `cypilot-sdlc`
 - Target: `DESIGN`
 - Match WHEN clauses for that ruleset/target
 - Open matched specs (e.g. `specs/tech-stack.md`, `specs/domain-model.md`)
@@ -388,7 +388,7 @@ For each line matching: ALWAYS open and follow `{spec}` WHEN Spaider follows rul
 **If adapter not found**:
 ```
 ⚠️ Adapter not found
-→ Run /spaider-adapter to bootstrap
+→ Run /cypilot-adapter to bootstrap
 ```
 **Action**: STOP.
 
@@ -397,7 +397,7 @@ For each line matching: ALWAYS open and follow `{spec}` WHEN Spaider follows rul
 **If artifacts.json is malformed**:
 ```
 ⚠️ Cannot parse artifacts.json: {parse error}
-→ Fix JSON syntax errors in {spaider_adapter_path}/artifacts.json
+→ Fix JSON syntax errors in {cypilot_adapter_path}/artifacts.json
 → Validate with: python3 -m json.tool artifacts.json
 ```
 **Action**: STOP.
@@ -406,10 +406,10 @@ For each line matching: ALWAYS open and follow `{spec}` WHEN Spaider follows rul
 
 **If rules.md cannot be loaded**:
 ```
-⚠️ Rules file not found: {WEAVERS_PATH}
-→ Verify weaver package exists at {WEAVER_BASE}
-→ Check artifacts.json weavers section has correct path
-→ Run /spaider-adapter --rescan to regenerate
+⚠️ Rules file not found: {KITS_PATH}
+→ Verify kit package exists at {KIT_BASE}
+→ Check artifacts.json kits section has correct path
+→ Run /cypilot-adapter --rescan to regenerate
 ```
 **Action**: STOP.
 
@@ -418,9 +418,9 @@ For each line matching: ALWAYS open and follow `{spec}` WHEN Spaider follows rul
 **If dependency from rules.md not found**:
 ```
 ⚠️ Dependency not found: {dependency_path}
-→ Referenced in: {WEAVERS_PATH}
+→ Referenced in: {KITS_PATH}
 → Expected at: {resolved_path}
-→ Verify weaver package is complete
+→ Verify kit package is complete
 ```
 **Action**: STOP.
 
@@ -431,7 +431,7 @@ For each line matching: ALWAYS open and follow `{spec}` WHEN Spaider follows rul
 ⚠️ System not found: {system_name}
 → Registered systems: {list from artifacts.json}
 → Options:
-  1. Register system via /spaider-adapter
+  1. Register system via /cypilot-adapter
   2. Use existing system
   3. Continue in RELAXED mode (no rules enforcement)
 ```
@@ -439,10 +439,10 @@ For each line matching: ALWAYS open and follow `{spec}` WHEN Spaider follows rul
 
 ### Artifact Kind Not Supported
 
-**If artifact kind not in weaver package**:
+**If artifact kind not in kit package**:
 ```
 ⚠️ Unsupported artifact kind: {KIND}
-→ Available kinds in {WEAVER_BASE}: {list}
+→ Available kinds in {KIT_BASE}: {list}
 → Options:
   1. Use supported kind
   2. Create custom templates for {KIND}
@@ -458,12 +458,12 @@ For each line matching: ALWAYS open and follow `{spec}` WHEN Spaider follows rul
 
 ### Detection (D)
 
-- D.1 (YES): Spaider mode detected (agent states Spaider enabled)
+- D.1 (YES): Cypilot mode detected (agent states Cypilot enabled)
 - D.2 (YES): Rules mode determined (STRICT/RELAXED + reason)
 
 ### Discovery (DI)
 
-- DI.1 (YES): Adapter discovery executed (`spaider adapter-info`)
+- DI.1 (YES): Adapter discovery executed (`cypilot adapter-info`)
 - DI.2 (YES): `artifacts.json` read/understood (agent lists systems/rules)
 - DI.3 (YES): Rules directories explored (agent lists artifact kinds)
 
@@ -476,7 +476,7 @@ For each line matching: ALWAYS open and follow `{spec}` WHEN Spaider follows rul
 
 ### Loading (L)
 
-- L.1 (YES): `WEAVERS_PATH` resolved (correct `RULES.md`)
+- L.1 (YES): `KITS_PATH` resolved (correct `RULES.md`)
 - L.2 (YES): Dependencies loaded (template/checklist/example)
 - L.3 (YES): Requirements confirmed (agent enumerates requirements)
 - L.4 (CONDITIONAL): Adapter specs loaded (matched WHEN clauses)

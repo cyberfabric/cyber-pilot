@@ -1,7 +1,7 @@
 ---
-spaider: true
+cypilot: true
 type: workflow
-name: spaider-generate
+name: cypilot-generate
 description: Create/update artifacts or implement code
 version: 1.0
 purpose: Universal workflow for creating or updating any artifact or code
@@ -9,26 +9,26 @@ purpose: Universal workflow for creating or updating any artifact or code
 
 # Generate
 
-Set `{spaider_mode}` = `on` FIRST
+Set `{cypilot_mode}` = `on` FIRST
 
 **Type**: Operation
 
-ALWAYS open and follow `{spaider_path}/requirements/execution-protocol.md` FIRST
+ALWAYS open and follow `{cypilot_path}/requirements/execution-protocol.md` FIRST
 
-ALWAYS open and follow `{spaider_path}/requirements/reverse-engineering.md` WHEN BROWNFIELD project AND user requests to analyze codebase, search in code, or generate artifacts from existing code
+ALWAYS open and follow `{cypilot_path}/requirements/reverse-engineering.md` WHEN BROWNFIELD project AND user requests to analyze codebase, search in code, or generate artifacts from existing code
 
 NEVER open reverse-engineering.md WHEN GREENFIELD project — there is no code to reverse-engineer
 
-ALWAYS open and follow `{spaider_path}/requirements/code-checklist.md` WHEN user requests implementing, generating, or editing code (Code mode)
+ALWAYS open and follow `{cypilot_path}/requirements/code-checklist.md` WHEN user requests implementing, generating, or editing code (Code mode)
 
-OPEN and follow `{spaider_path}/requirements/prompt-engineering.md` WHEN user requests generation or updates of:
+OPEN and follow `{cypilot_path}/requirements/prompt-engineering.md` WHEN user requests generation or updates of:
 - System prompts, agent prompts, or LLM prompts
 - Agent instructions or agent guidelines
 - Skills, workflows, or methodologies
 - AGENTS.md or navigation rules
 - Any document containing instructions for AI agents
 
-For context compaction recovery during multi-phase workflows, follow `{spaider_path}/requirements/execution-protocol.md` Section "Compaction Recovery".
+For context compaction recovery during multi-phase workflows, follow `{cypilot_path}/requirements/execution-protocol.md` Section "Compaction Recovery".
 
 ---
 
@@ -85,7 +85,7 @@ ALWAYS SKIP this section WHEN GREENFIELD — nothing to reverse-engineer
 **BROWNFIELD only** — when existing code needs to inform artifacts:
 
 1. **Check if adapter has project analysis**:
-  - Does `spaider.py adapter-info` report any `specs`?
+  - Does `cypilot.py adapter-info` report any `specs`?
   - If specs exist, load and follow them before generating.
   - If no specs exist, offer rescan.
 
@@ -94,7 +94,7 @@ ALWAYS SKIP this section WHEN GREENFIELD — nothing to reverse-engineer
    BROWNFIELD project detected — existing code found.
 
    To generate artifacts informed by your codebase:
-   → `spaider init --rescan` — analyze codebase structure and patterns
+   → `cypilot init --rescan` — analyze codebase structure and patterns
 
    Skip? Artifacts will be created without codebase context.
    ```
@@ -111,18 +111,18 @@ Universal generation workflow. Handles three modes:
 - **Code mode**: Uses checklist only (implementation, fixes, refactoring)
 - **Adapter mode**: Uses adapter.md workflow (create/update adapter, specs, artifacts.json)
 
-**Adapter mode trigger**: When target is adapter files (AGENTS.md, artifacts.json, specs/), delegate to `{spaider_path}/workflows/adapter.md`.
+**Adapter mode trigger**: When target is adapter files (AGENTS.md, artifacts.json, specs/), delegate to `{cypilot_path}/workflows/adapter.md`.
 
 After executing `execution-protocol.md`, you have: TARGET_TYPE, RULES, KIND, PATH, MODE, and resolved dependencies.
 
 ### Resolved Variables (from `execution-protocol.md` + adapter-info)
 
-- `{spaider_adapter_path}` — adapter directory from `spaider.py adapter-info` (contains `artifacts.json`)
-- `{ARTIFACTS_REGISTRY}` — `{spaider_adapter_path}/artifacts.json`
-- `{WEAVERS_PATH}` — weaver package base directory resolved from registry (registry schema uses `weavers`/`weaver`)
+- `{cypilot_adapter_path}` — adapter directory from `cypilot.py adapter-info` (contains `artifacts.json`)
+- `{ARTIFACTS_REGISTRY}` — `{cypilot_adapter_path}/artifacts.json`
+- `{KITS_PATH}` — kit package base directory resolved from registry (registry schema uses `kits`/`kit`)
 - `{PATH}` — target artifact/code path for the current operation
 
-**Examples**: Each artifact type has examples in `{WEAVERS_PATH}/artifacts/{KIND}/examples/`. Reference these during Phase 1 (input collection) and Phase 2 (content generation) for style and quality guidance.
+**Examples**: Each artifact type has examples in `{KITS_PATH}/artifacts/{KIND}/examples/`. Reference these during Phase 1 (input collection) and Phase 2 (content generation) for style and quality guidance.
 
 ---
 
@@ -140,7 +140,7 @@ This workflow can require loading multiple long templates/checklists/examples an
 
 ## ⛔ Agent Anti-Patterns (STRICT mode)
 
-**Reference**: `{spaider_path}/requirements/agent-compliance.md` for full list.
+**Reference**: `{cypilot_path}/requirements/agent-compliance.md` for full list.
 
 **Critical anti-patterns for generation**:
 
@@ -170,7 +170,7 @@ This workflow can require loading multiple long templates/checklists/examples an
 
 ## Rules Mode Behavior
 
-| Aspect | STRICT (Spaider rules) | RELAXED (no rules) |
+| Aspect | STRICT (Cypilot rules) | RELAXED (no rules) |
 |--------|-------------------|-------------------|
 | Template | Required | User-provided or best effort |
 | Checklist | Required for self-review | Optional |
@@ -180,7 +180,7 @@ This workflow can require loading multiple long templates/checklists/examples an
 
 **RELAXED mode disclaimer**:
 ```
-⚠️ Generated without Spaider rules (reduced quality assurance)
+⚠️ Generated without Cypilot rules (reduced quality assurance)
 ```
 
 ---
@@ -188,7 +188,7 @@ This workflow can require loading multiple long templates/checklists/examples an
 ## Phase 0: Ensure Dependencies
 
 **After execution-protocol.md, you have**:
-- `WEAVERS_PATH` — path to loaded rules.md
+- `KITS_PATH` — path to loaded rules.md
 - `TEMPLATE` — template content (from rules Dependencies)
 - `CHECKLIST` — checklist content (from rules Dependencies)
 - `EXAMPLE` — example content (from rules Dependencies)
@@ -212,7 +212,7 @@ This workflow can require loading multiple long templates/checklists/examples an
 
 | Dependency | Purpose | If missing |
 |------------|---------|------------|
-| **Code checklist** | Baseline quality criteria for all code work | Load `{spaider_path}/requirements/code-checklist.md` |
+| **Code checklist** | Baseline quality criteria for all code work | Load `{cypilot_path}/requirements/code-checklist.md` |
 | **Design artifact** | Requirements to implement | Ask user to specify source |
 
 **MUST NOT proceed** to Phase 1 until all dependencies are available.
@@ -257,14 +257,14 @@ Where should the result go?
 **If generating code**:
 - Identify design artifact(s) being implemented
 - Extract requirement IDs to trace
-- Plan Spaider markers for traceability (if FULL traceability)
+- Plan Cypilot markers for traceability (if FULL traceability)
 
 ### ID Naming
 
 **For new artifacts with IDs**:
 - Use project prefix from adapter
-- Follow pattern: `spd-{system}-{kind}-{slug}`
-- Verify uniqueness with `spaider list-ids`
+- Follow pattern: `cpt-{system}-{kind}-{slug}`
+- Verify uniqueness with `cypilot list-ids`
 
 ---
 
@@ -360,7 +360,7 @@ Standard checks (subset of [Validation Criteria](#validation-criteria)):
 
 Execute phases from codebase/rules.md:
 - **Phase 1: Setup** — load spec design, checklist
-- **Phase 2: Implementation** — implement with Spaider markers
+- **Phase 2: Implementation** — implement with Cypilot markers
 - **Phase 3: Marker Format** — use correct marker syntax
 - **Phase 4: Quality Check** — verify traceability
 
@@ -368,7 +368,7 @@ Standard checks (subset of [Validation Criteria](#validation-criteria)):
 - [ ] Follows conventions
 - [ ] Implements all requirements
 - [ ] Has tests (if required)
-- [ ] Spaider markers present (if to_code="true")
+- [ ] Cypilot markers present (if to_code="true")
 
 ### Content Rules
 
@@ -377,7 +377,7 @@ Standard checks (subset of [Validation Criteria](#validation-criteria)):
 - Use imperative language
 - Wrap IDs in backticks
 - Reference types from domain model (no redefinition)
-- Use Spaider DSL (SDSL) for behavioral sections (if applicable)
+- Use Cypilot DSL (CDSL) for behavioral sections (if applicable)
 
 **MUST NOT**:
 - Leave placeholders
@@ -402,7 +402,7 @@ Standard checks (subset of [Validation Criteria](#validation-criteria)):
 ```markdown
 ### Generation Checkpoint
 
-**Workflow**: /spaider-generate {KIND}
+**Workflow**: /cypilot-generate {KIND}
 **Phase**: 2 complete, ready for Phase 3
 **Inputs collected**:
 - {section}: {value summary}
@@ -444,7 +444,7 @@ Resume: Re-read this checkpoint, verify no file changes, continue to Phase 3.
 {additional files if any}
 
 ### Artifacts registry:
-- `{spaider_adapter_path}/artifacts.json`: {entry additions/updates, if any}
+- `{cypilot_adapter_path}/artifacts.json`: {entry additions/updates, if any}
 
 **Proceed?** [yes/no/modify]
 ```
@@ -460,7 +460,7 @@ Resume: Re-read this checkpoint, verify no file changes, continue to Phase 3.
 
 **Only after confirmation**:
 
-1. Update `{spaider_adapter_path}/artifacts.json` if new artifact path introduced
+1. Update `{cypilot_adapter_path}/artifacts.json` if new artifact path introduced
 2. Create directories if needed
 3. Write file(s)
 4. Verify content
@@ -481,12 +481,12 @@ Output:
 
 **Automatic**: Run validation after generation (do not list in Next Steps):
 ```
-/spaider-analyze --artifact {PATH}
+/cypilot-analyze --artifact {PATH}
 ```
 
 For code generation, use:
 ```
-/spaider-analyze --code {PATH} --design {design-path}
+/cypilot-analyze --code {PATH} --design {design-path}
 ```
 
 **If PASS**:
@@ -523,12 +523,12 @@ What would you like to do next?
 
 ### Tool Failures
 
-**If `spaider.py` script fails**:
+**If `cypilot.py` script fails**:
 ```
 ⚠️ Tool error: {error message}
 → Check Python environment and dependencies
 → Verify adapter is correctly configured
-→ Run /spaider-adapter --rescan to refresh
+→ Run /cypilot-adapter --rescan to refresh
 ```
 **STOP** — do not continue with incomplete state.
 
@@ -562,7 +562,7 @@ What would you like to do next?
 
 ## Validation Criteria
 
-- [ ] {spaider_path}/requirements/execution-protocol.md executed
+- [ ] {cypilot_path}/requirements/execution-protocol.md executed
 - [ ] Dependencies loaded (checklist, template, example)
 - [ ] System context clarified (if using rules)
 - [ ] Output destination clarified

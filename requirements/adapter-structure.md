@@ -1,12 +1,12 @@
 ---
-spaider: true
+cypilot: true
 type: requirement
 name: Adapter Structure
 version: 1.1
-purpose: Define validation rules for Spaider adapter files
+purpose: Define validation rules for Cypilot adapter files
 ---
 
-# Spaider Adapter Structure Requirements
+# Cypilot Adapter Structure Requirements
 
 ---
 
@@ -29,7 +29,7 @@ purpose: Define validation rules for Spaider adapter files
 
 **ALWAYS open and follow**: `../workflows/adapter.md` WHEN executing workflow
 
-**ALWAYS open**: `../.spaider-adapter/AGENTS.md` WHEN reviewing a valid adapter AGENTS.md example (this repository)
+**ALWAYS open**: `../.cypilot-adapter/AGENTS.md` WHEN reviewing a valid adapter AGENTS.md example (this repository)
 
 **Prerequisite**: Agent confirms understanding before proceeding:
 - [ ] Agent has read and understood this requirement
@@ -43,7 +43,7 @@ purpose: Define validation rules for Spaider adapter files
 - **Template defines**: Structure for generation (HOW to create)
 - **Workflow defines**: Process (STEP by STEP)
 
-**Spaider Adapter** — Dynamic project-specific configuration that evolves with the project
+**Cypilot Adapter** — Dynamic project-specific configuration that evolves with the project
 
 **Philosophy**: 
 - Adapter specs derive from design decisions, not predefined templates
@@ -78,21 +78,21 @@ purpose: Define validation rules for Spaider adapter files
 
 ## Required Files
 
-### .spaider-config.json
+### .cypilot-config.json
 
-**Location**: `{project-root}/.spaider-config.json`
+**Location**: `{project-root}/.cypilot-config.json`
 
 **Mandatory fields**:
 ```json
 {
-  "spaiderAdapterPath": ".spaider-adapter"
+  "cypilotAdapterPath": ".cypilot-adapter"
 }
 ```
 
 **Validation**:
 - [ ] File exists at project root
 - [ ] Valid JSON format
-- [ ] `spaiderAdapterPath` field present
+- [ ] `cypilotAdapterPath` field present
 - [ ] Path points to existing directory with AGENTS.md
 
 ### AGENTS.md
@@ -104,7 +104,7 @@ purpose: Define validation rules for Spaider adapter files
 ALWAYS open and follow `{spec-file}` WHEN {action-description}
 ```
 
-**Action-based rules**: Rules describe WHAT the agent is doing, not which weaver or artifact kind is active. This makes rules universal and easier to match.
+**Action-based rules**: Rules describe WHAT the agent is doing, not which kit or artifact kind is active. This makes rules universal and easier to match.
 
 #### Universal WHEN Rules
 
@@ -139,8 +139,8 @@ ALWAYS open and follow `specs/testing.md` WHEN writing tests, reviewing test cov
 ALWAYS open and follow `specs/tech-stack.md` WHEN working on project
 → FIX: Be specific about the action
 
-# Tied to weaver (legacy format)
-ALWAYS open and follow `specs/tech-stack.md` WHEN Spaider uses weaver `spaider-sdlc` for codebase
+# Tied to kit (legacy format)
+ALWAYS open and follow `specs/tech-stack.md` WHEN Cypilot uses kit `cypilot-sdlc` for codebase
 → FIX: Use action-based format: WHEN writing code, choosing technologies, or adding dependencies
 
 # Tied to artifact kind (legacy format)
@@ -158,9 +158,9 @@ ALWAYS open and follow `specs/domain-model.md` WHEN generating DESIGN
 
 **Required content**:
 ```markdown
-# Spaider Adapter: {Project Name}
+# Cypilot Adapter: {Project Name}
 
-**Extends**: `{path}/Spaider/AGENTS.md`
+**Extends**: `{path}/Cypilot/AGENTS.md`
 ```
 
 ### Phase 2: Evolved Adapter
@@ -172,7 +172,7 @@ ALWAYS open and follow `specs/domain-model.md` WHEN generating DESIGN
 - Last Updated
 - Tech Stack
 
-**Required spec files** (created by `/spaider-adapter` during Discovery phase or manually):
+**Required spec files** (created by `/cypilot-adapter` during Discovery phase or manually):
 
 | Spec File | Contains | Created When |
 |-----------|----------|--------------|
@@ -190,13 +190,13 @@ ALWAYS open and follow `specs/domain-model.md` WHEN generating DESIGN
 | `reliability.md` | Error handling, recovery, fallbacks | Production system |
 | `compliance.md` | Regulations, standards, audit | Regulated industry |
 
-**Creation trigger**: Run `/spaider-adapter --rescan` to auto-detect and propose spec files based on project state.
+**Creation trigger**: Run `/cypilot-adapter --rescan` to auto-detect and propose spec files based on project state.
 
 ---
 
 ## Spec Discovery Guide
 
-This section defines **what to look for** and **where to find it** when discovering project-specific knowledge for adapter specs. The domains are derived from the expertise areas in Spaider checklists (PRD, DESIGN, DECOMPOSITION, ADR, SPEC, and codebase).
+This section defines **what to look for** and **where to find it** when discovering project-specific knowledge for adapter specs. The domains are derived from the expertise areas in Cypilot checklists (PRD, DESIGN, DECOMPOSITION, ADR, SPEC, and codebase).
 
 ### Discovery Methodology
 
@@ -461,7 +461,7 @@ Each spec file MUST include:
 
 ### Missing Referenced Files
 
-**If adapter example file not found** (`../.spaider-adapter/AGENTS.md`):
+**If adapter example file not found** (`../.cypilot-adapter/AGENTS.md`):
 ```
 ⚠️ Example not found: {path}
 → Proceed without example (reduced quality assurance)
@@ -480,14 +480,14 @@ Each spec file MUST include:
 **If Phase 1 validation fails**:
 1. Check AGENTS.md exists at adapter path
 2. Verify `**Extends**:` declaration present
-3. Verify Extends path points to valid Spaider AGENTS.md
+3. Verify Extends path points to valid Cypilot AGENTS.md
 
 **If Phase 2 validation fails**:
 1. Identify which spec files are missing
-2. Run `/spaider-adapter --rescan` to regenerate
+2. Run `/cypilot-adapter --rescan` to regenerate
 3. For each failed check, see [Consolidated Validation Checklist](#consolidated-validation-checklist)
 
-**Recovery**: After fixing issues, re-run `/spaider-analyze` to confirm resolution.
+**Recovery**: After fixing issues, re-run `/cypilot-analyze` to confirm resolution.
 
 ---
 
@@ -499,11 +499,11 @@ Each spec file MUST include:
 
 | # | Check | Required | How to Verify |
 |---|-------|----------|---------------|
-| 1.1 | `{project-root}/.spaider-config.json` exists at project root | YES | File exists check |
-| 1.2 | `{project-root}/.spaider-config.json` is valid JSON | YES | JSON parse succeeds |
-| 1.3 | `spaiderAdapterPath` field present | YES | Field exists in JSON |
+| 1.1 | `{project-root}/.cypilot-config.json` exists at project root | YES | File exists check |
+| 1.2 | `{project-root}/.cypilot-config.json` is valid JSON | YES | JSON parse succeeds |
+| 1.3 | `cypilotAdapterPath` field present | YES | Field exists in JSON |
 | 1.4 | Adapter path points to directory with AGENTS.md | YES | Path + `AGENTS.md` exists |
-| 1.5 | AGENTS.md has project name heading | YES | `# Spaider Adapter: {name}` present |
+| 1.5 | AGENTS.md has project name heading | YES | `# Cypilot Adapter: {name}` present |
 | 1.6 | AGENTS.md has `**Extends**:` declaration | YES | Pattern match |
 | 1.7 | Extends path resolves to valid file | YES | File exists at path |
 | 1.8 | No PRD content in adapter | YES | No problem/solution/scope sections |
@@ -545,19 +545,19 @@ Each spec file MUST include:
 
 | Issue | Symptom | Fix |
 |-------|---------|-----|
-| Missing Extends | Validation fails at 1.6 | Add `**Extends**: \`{path}/Spaider/AGENTS.md\`` |
+| Missing Extends | Validation fails at 1.6 | Add `**Extends**: \`{path}/Cypilot/AGENTS.md\`` |
 | Legacy WHEN format | Validation fails at 2.5 | Convert to action-based: `WHEN writing code, ...` |
 | Orphaned WHEN rules | Validation fails at 2.6 | Create missing spec OR remove rule |
 | Inconsistent tech refs | Spec conflicts with DESIGN | Update spec to match DESIGN source of truth |
-| Missing spec files | Validation fails at 2.7-2.13 | Run `/spaider-adapter --rescan` to generate |
+| Missing spec files | Validation fails at 2.7-2.13 | Run `/cypilot-adapter --rescan` to generate |
 | PRD content in adapter | Validation fails at 1.8 | Move to PRD artifact |
 
 ---
 
 ## References
 
-**Example (this repo)**: `../.spaider-adapter/AGENTS.md`
+**Example (this repo)**: `../.cypilot-adapter/AGENTS.md`
 
 **Related**:
-- `../AGENTS.md` — Core Spaider requirements
+- `../AGENTS.md` — Core Cypilot requirements
 - `workflow-requirements.md` — Workflow structure requirements

@@ -1,5 +1,5 @@
 ---
-spaider: true
+cypilot: true
 type: requirement
 name: Adapter Triggers
 version: 1.0
@@ -61,13 +61,13 @@ This document defines when AI agents should propose running the adapter workflow
 
 ## Mandatory Adapter Initialization
 
-**BEFORE any Spaider workflow execution**:
+**BEFORE any Cypilot workflow execution**:
 
 Agent MUST check that adapter exists:
 - Search for `{adapter-directory}/AGENTS.md` in common locations:
-  - `/.spaider-adapter/AGENTS.md`
-  - `spec/.spaider-adapter/AGENTS.md`
-  - `docs/.spaider-adapter/AGENTS.md`
+  - `/.cypilot-adapter/AGENTS.md`
+  - `spec/.cypilot-adapter/AGENTS.md`
+  - `docs/.cypilot-adapter/AGENTS.md`
 
 IF adapter NOT found:
 - STOP workflow execution
@@ -139,7 +139,7 @@ Run adapter workflow to capture these? [Yes] [No] [Review]
 **Action**:
 ```
 Spec pattern detected:
-  - LRU caching strategy in spaider-context-provider
+  - LRU caching strategy in cypilot-context-provider
   
 Add to adapter specs/patterns.md? [Yes] [No]
 ```
@@ -205,7 +205,7 @@ Capture in adapter specs/tech-stack.md? [Yes] [No]
 
 ### 5. Existing Project Discovery
 
-**Trigger**: First Spaider workflow run in existing codebase
+**Trigger**: First Cypilot workflow run in existing codebase
 
 **Check**:
 - Source code exists (src/, app/, lib/)
@@ -302,7 +302,7 @@ Agent shows:
 ⚠️ Adapter update failed: {error}
 → Original workflow state preserved
 → Technical decisions NOT captured
-→ Fix: Run /spaider-adapter manually after resolving error
+→ Fix: Run /cypilot-adapter manually after resolving error
 ```
 **Action**: Log error, continue original workflow without adapter updates.
 
@@ -366,7 +366,7 @@ User: "Yes"
 Agent: Runs adapter workflow Mode 3 (Evolution)
 Agent: Creates specs/tech-stack.md, specs/domain-model.md, specs/api-contracts.md
 Agent: Updates AGENTS.md with rules-based WHEN clauses:
-       ALWAYS open and follow `specs/tech-stack.md` WHEN Spaider follows rules `spaider-sdlc` for artifact kinds: DESIGN, ADR OR codebase
+       ALWAYS open and follow `specs/tech-stack.md` WHEN Cypilot follows rules `cypilot-sdlc` for artifact kinds: DESIGN, ADR OR codebase
 Agent: Returns to generate workflow completion
 ```
 
@@ -464,7 +464,7 @@ Execute: Monitor triggers during workflow
 |---|-------|----------|
 | I.1 | References execution-protocol.md correctly | YES |
 | I.2 | References adapter-structure.md correctly | YES |
-| I.3 | Consistent with Spaider principles | YES |
+| I.3 | Consistent with Cypilot principles | YES |
 | I.4 | Used by/References sections complete | YES |
 | I.5 | Integration examples provided | YES |
 
@@ -480,7 +480,7 @@ Execute: Monitor triggers during workflow
 ## References
 
 **Used by**:
-- All Spaider workflows (via execution-protocol.md)
+- All Cypilot workflows (via execution-protocol.md)
 - AI agent execution logic
 
 **References**:

@@ -1,25 +1,25 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.com/spaider/artifacts.schema.json",
-  "title": "Spaider Artifact Registry (artifacts.json)",
+  "$id": "https://example.com/cypilot/artifacts.schema.json",
+  "title": "Cypilot Artifact Registry (artifacts.json)",
   "type": "object",
   "additionalProperties": false,
-  "required": ["version", "systems", "weavers"],
+  "required": ["version", "systems", "kits"],
   "examples": [
     {
       "version": "1.0",
       "project_root": "..",
-      "weavers": {
-        "spaider-sdlc": {
-          "format": "Spaider",
-          "path": "weavers/sdlc"
+      "kits": {
+        "cypilot-sdlc": {
+          "format": "Cypilot",
+          "path": "kits/sdlc"
         }
       },
       "systems": [
         {
           "name": "MyApp",
           "slug": "myapp",
-          "weaver": "spaider-sdlc",
+          "kit": "cypilot-sdlc",
           "artifacts_dir": "architecture",
           "artifacts": [
             { "name": "Product Requirements", "path": "architecture/PRD.md", "kind": "PRD", "traceability": "DOCS-ONLY" },
@@ -35,7 +35,7 @@
             {
               "name": "Auth",
               "slug": "auth",
-              "weaver": "spaider-sdlc",
+              "kit": "cypilot-sdlc",
               "artifacts_dir": "modules/auth/architecture",
               "artifacts": [
                 { "path": "modules/auth/architecture/PRD.md", "kind": "PRD", "traceability": "DOCS-ONLY" },
@@ -63,8 +63,8 @@
       "default": "..",
       "description": "Relative path from artifacts.json to the project root directory. All paths in artifacts and codebase are resolved relative to this."
     },
-    "weavers": {
-      "$ref": "#/$defs/weavers"
+    "kits": {
+      "$ref": "#/$defs/kits"
     },
     "systems": {
       "type": "array",
@@ -75,14 +75,14 @@
     }
   },
   "$defs": {
-    "weavers": {
+    "kits": {
       "type": "object",
-      "description": "Registry of weaver packages. Each weaver defines a template directory and format.",
+      "description": "Registry of kit packages. Each kit defines a template directory and format.",
       "additionalProperties": {
-        "$ref": "#/$defs/weaver"
+        "$ref": "#/$defs/kit"
       }
     },
-    "weaver": {
+    "kit": {
       "type": "object",
       "additionalProperties": false,
       "required": ["format", "path"],
@@ -90,19 +90,19 @@
         "format": {
           "type": "string",
           "minLength": 1,
-          "description": "Template format identifier. Use 'Spaider' for full Spaider tooling support with validation. Other values are treated as custom formats with LLM-only semantic processing."
+          "description": "Template format identifier. Use 'Cypilot' for full Cypilot tooling support with validation. Other values are treated as custom formats with LLM-only semantic processing."
         },
         "path": {
           "type": "string",
           "minLength": 1,
-          "description": "Path to weaver package directory (resolved relative to project root). Contains artifacts/{KIND}/ and codebase/ subdirectories."
+          "description": "Path to kit package directory (resolved relative to project root). Contains artifacts/{KIND}/ and codebase/ subdirectories."
         }
       }
     },
     "system_node": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["name", "slug", "weaver"],
+      "required": ["name", "slug", "kit"],
       "properties": {
         "name": {
           "type": "string",
@@ -115,15 +115,15 @@
           "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
           "description": "Machine-readable identifier (lowercase, no spaces, hyphen-separated). Used for hierarchical ID generation: {parent-slug}-{child-slug}-{TYPE}-{N}"
         },
-        "weaver": {
+        "kit": {
           "type": "string",
           "minLength": 1,
-          "description": "Reference to a weaver ID from weavers"
+          "description": "Reference to a kit ID from kits"
         },
         "artifacts_dir": {
           "type": "string",
           "minLength": 1,
-          "description": "Default base directory for NEW artifacts (relative to project_root). Does NOT affect existing artifact paths in 'artifacts' array. Default: 'architecture'. Subdirectories for specific artifact kinds (specs/, ADR/) are defined by the weaver."
+          "description": "Default base directory for NEW artifacts (relative to project_root). Does NOT affect existing artifact paths in 'artifacts' array. Default: 'architecture'. Subdirectories for specific artifact kinds (specs/, ADR/) are defined by the kit."
         },
         "artifacts": {
           "type": "array",
@@ -166,7 +166,7 @@
         "kind": {
           "type": "string",
           "minLength": 1,
-          "description": "Artifact kind (e.g., PRD, DESIGN, ADR, DECOMPOSITION, SPEC). Template resolved at: {weaver.path}/artifacts/{KIND}/template.md"
+          "description": "Artifact kind (e.g., PRD, DESIGN, ADR, DECOMPOSITION, SPEC). Template resolved at: {kit.path}/artifacts/{KIND}/template.md"
         },
         "traceability": {
           "type": "string",

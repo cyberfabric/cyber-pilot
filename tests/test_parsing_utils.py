@@ -9,9 +9,9 @@ import sys
 import re
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "spaider" / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "cypilot" / "scripts"))
 
-from spaider.utils.parsing import (
+from cypilot.utils.parsing import (
     parse_required_sections,
     find_present_section_ids,
     split_by_section_letter,
@@ -21,8 +21,8 @@ from spaider.utils.parsing import (
 )
 
 
-ACTOR_ID_RE = re.compile(r"^spd-[a-z0-9-]+-actor-[a-z0-9-]+$", re.IGNORECASE)
-CAPABILITY_ID_RE = re.compile(r"^spd-[a-z0-9-]+-capability-[a-z0-9-]+$", re.IGNORECASE)
+ACTOR_ID_RE = re.compile(r"^cpt-[a-z0-9-]+-actor-[a-z0-9-]+$", re.IGNORECASE)
+CAPABILITY_ID_RE = re.compile(r"^cpt-[a-z0-9-]+-capability-[a-z0-9-]+$", re.IGNORECASE)
 
 
 class TestFindPresentSectionIds(unittest.TestCase):
@@ -236,26 +236,26 @@ class TestExtractBacktickedIds(unittest.TestCase):
 
     def test_extract_single_id(self):
         """Test extracting single backticked ID."""
-        line = "Actor: `spd-test-actor-user`"
+        line = "Actor: `cpt-test-actor-user`"
         
         ids = extract_backticked_ids(line, ACTOR_ID_RE)
         
         self.assertEqual(len(ids), 1)
-        self.assertEqual(ids[0], "spd-test-actor-user")
+        self.assertEqual(ids[0], "cpt-test-actor-user")
 
     def test_extract_multiple_ids(self):
         """Test extracting multiple backticked IDs."""
-        line = "Actors: `spd-test-actor-user`, `spd-test-actor-admin`"
+        line = "Actors: `cpt-test-actor-user`, `cpt-test-actor-admin`"
         
         ids = extract_backticked_ids(line, ACTOR_ID_RE)
         
         self.assertEqual(len(ids), 2)
-        self.assertIn("spd-test-actor-user", ids)
-        self.assertIn("spd-test-actor-admin", ids)
+        self.assertIn("cpt-test-actor-user", ids)
+        self.assertIn("cpt-test-actor-admin", ids)
 
     def test_extract_no_match(self):
         """Test extracting when pattern doesn't match."""
-        line = "Capability: `spd-test-capability-login`"
+        line = "Capability: `cpt-test-capability-login`"
         
         ids = extract_backticked_ids(line, ACTOR_ID_RE)
         
@@ -263,16 +263,16 @@ class TestExtractBacktickedIds(unittest.TestCase):
 
     def test_extract_with_spaces(self):
         """Test extracting IDs with spaces around them."""
-        line = "ID: `  spd-test-actor-user  `"
+        line = "ID: `  cpt-test-actor-user  `"
         
         ids = extract_backticked_ids(line, ACTOR_ID_RE)
         
         self.assertEqual(len(ids), 1)
-        self.assertEqual(ids[0], "spd-test-actor-user")
+        self.assertEqual(ids[0], "cpt-test-actor-user")
 
     def test_extract_capability_ids(self):
         """Test extracting capability IDs."""
-        line = "**Capabilities**: `spd-test-capability-login`, `spd-test-capability-logout`"
+        line = "**Capabilities**: `cpt-test-capability-login`, `cpt-test-capability-logout`"
         
         ids = extract_backticked_ids(line, CAPABILITY_ID_RE)
         

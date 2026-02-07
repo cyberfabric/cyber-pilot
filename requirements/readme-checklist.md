@@ -1,5 +1,5 @@
 ---
-spaider: true
+cypilot: true
 type: requirement
 name: README Quality Checklist
 version: 1.0

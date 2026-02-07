@@ -1,4 +1,4 @@
-# @spaider-algo:spd-spaider-spec-init-structure-change-infrastructure:p1
+# @cpt-algo:cpt-cypilot-spec-init-structure-change-infrastructure:p1
 .PHONY: test test-verbose test-quick test-coverage validate validate-examples validate-spec validate-code validate-code-spec self-check vulture vulture-ci install install-pipx clean help check-pytest check-pytest-cov check-pipx check-vulture
 
 PYTHON ?= python3
@@ -10,7 +10,7 @@ VULTURE_MIN_CONF ?= 0
 
 # Default target
 help:
-	@echo "Spaider Makefile"
+	@echo "Cypilot Makefile"
 	@echo ""
 	@echo "Available targets:"
 	@echo "  make test                          - Run all tests"
@@ -77,12 +77,12 @@ check-vulture: check-pipx
 	}
 
 test: check-pytest
-	@echo "Running Spaider tests with pipx..."
+	@echo "Running Cypilot tests with pipx..."
 	$(PYTEST_PIPX) tests/ -v --tb=short
 
 # Run tests with verbose output
 test-verbose: check-pytest
-	@echo "Running Spaider tests (verbose) with pipx..."
+	@echo "Running Cypilot tests (verbose) with pipx..."
 	$(PYTEST_PIPX) tests/ -vv
 
 # Run quick tests only
@@ -94,25 +94,25 @@ test-quick: check-pytest
 test-coverage: check-pytest-cov
 	@echo "Running tests with coverage..."
 	$(PYTEST_PIPX_COV) tests/ \
-		--cov=skills/spaider/scripts/spaider \
+		--cov=skills/cypilot/scripts/cypilot \
 		--cov-report=term-missing \
 		--cov-report=json:coverage.json \
 		--cov-report=html \
 		-v --tb=short
-	@$(PYTHON) scripts/check_coverage.py coverage.json --root skills/spaider/scripts/spaider --min 90
+	@$(PYTHON) scripts/check_coverage.py coverage.json --root skills/cypilot/scripts/cypilot --min 90
 	@echo ""
 	@echo "Coverage report generated:"
 	@echo "  HTML: htmlcov/index.html"
 	@echo "  Open with: open htmlcov/index.html"
 
 vulture: check-vulture
-	@echo "Running vulture dead-code scan (excluding tests by scanning only skills/spaider/scripts/spaider)..."
+	@echo "Running vulture dead-code scan (excluding tests by scanning only skills/cypilot/scripts/cypilot)..."
 	@echo "Tip: raise/lower VULTURE_MIN_CONF to reduce false positives (current: $(VULTURE_MIN_CONF))."
-	@$(VULTURE_PIPX) skills/spaider/scripts/spaider --min-confidence $(VULTURE_MIN_CONF) || true
+	@$(VULTURE_PIPX) skills/cypilot/scripts/cypilot --min-confidence $(VULTURE_MIN_CONF) || true
 
 vulture-ci: check-vulture
 	@echo "Running vulture dead-code scan (CI mode, fails if findings)..."
-	$(VULTURE_PIPX) skills/spaider/scripts/spaider --min-confidence $(VULTURE_MIN_CONF)
+	$(VULTURE_PIPX) skills/cypilot/scripts/cypilot --min-confidence $(VULTURE_MIN_CONF)
 
 validate-examples: check-pytest
 	@echo "Validating requirements examples..."
@@ -120,7 +120,10 @@ validate-examples: check-pytest
 
 # Validate core methodology spec
 validate:
-	$(PYTHON) -m skills.spaider.scripts.spaider.cli validate
+	$(PYTHON) -m skills.cypilot.scripts.cypilot.cli validate
+
+validate-code:
+	$(PYTHON) -m skills.cypilot.scripts.cypilot.cli validate-code
 
 # Validate specific spec
 validate-spec:
@@ -130,14 +133,14 @@ validate-spec:
 		exit 1; \
 	fi
 	@echo "Validating spec: $(SPEC)..."
-	@$(PYTHON) -m skills.spaider.scripts.spaider.cli validate \
+	@$(PYTHON) -m skills.cypilot.scripts.cypilot.cli validate \
 		--artifact architecture/specs/$(SPEC)/DESIGN.md
 
 
 # Validate SDLC examples against templates
 self-check:
 	@echo "Running self-check: validating SDLC examples against templates..."
-	$(PYTHON) -m skills.spaider.scripts.spaider.cli self-check
+	$(PYTHON) -m skills.cypilot.scripts.cypilot.cli self-check
 
 # Validate code traceability for specific spec
 validate-code-spec:
@@ -147,7 +150,7 @@ validate-code-spec:
 		exit 1; \
 	fi
 	@echo "Validating code traceability for spec: $(SPEC)..."
-	@$(PYTHON) -m skills.spaider.scripts.spaider.cli validate --artifact architecture/specs/$(SPEC)
+	@$(PYTHON) -m skills.cypilot.scripts.cypilot.cli validate --artifact architecture/specs/$(SPEC)
 
 # Install Python dependencies
 install-pipx: check-pipx

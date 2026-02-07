@@ -62,9 +62,9 @@ def test_validate_all_workflows_have_required_structure():
         if not has_steps:
             errors.append(f"{workflow_path.name}: Missing Steps/Phase section")
 
-        # All workflows must have spaider: true frontmatter
-        if 'spaider: true' not in content:
-            errors.append(f"{workflow_path.name}: Missing spaider: true frontmatter")
+        # All workflows must have cypilot: true frontmatter
+        if 'cypilot: true' not in content:
+            errors.append(f"{workflow_path.name}: Missing cypilot: true frontmatter")
 
     if errors:
         pytest.fail(f"Workflow structure validation failed:\n" + "\n".join(errors))

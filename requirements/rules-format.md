@@ -1,12 +1,12 @@
 ---
-spaider: true
+cypilot: true
 type: requirement
-name: Spaider Rules Format Specification
+name: Cypilot Rules Format Specification
 version: 1.0
 purpose: Define rules.md format and workflow interaction protocol
 ---
 
-# Spaider Rules Format Specification
+# Cypilot Rules Format Specification
 
 ---
 
@@ -14,8 +14,8 @@ purpose: Define rules.md format and workflow interaction protocol
 
 - [Agent Instructions](#agent-instructions)
 - [Overview](#overview)
-- [Weaver Packages](#weaver-packages)
-- [Weaver Discovery](#weaver-discovery)
+- [Kit Packages](#kit-packages)
+- [Kit Discovery](#kit-discovery)
 - [Rules.md Format](#rulesmd-format)
 - [Workflow Interaction Protocol](#workflow-interaction-protocol)
 - [Parsing Rules.md](#parsing-rulesmd)
@@ -46,27 +46,27 @@ purpose: Define rules.md format and workflow interaction protocol
 `rules.md` is the single entry point for each artifact/code type. It contains all requirements, tasks, and validation criteria that workflows need to generate or validate.
 
 **Location** (path from `artifacts.json`):
-- Artifacts: `{WEAVER_BASE}/artifacts/{ARTIFACT_TYPE}/rules.md`
-- Codebase: `{WEAVER_BASE}/codebase/rules.md`
+- Artifacts: `{KIT_BASE}/artifacts/{ARTIFACT_TYPE}/rules.md`
+- Codebase: `{KIT_BASE}/codebase/rules.md`
 
 ---
 
-## Weaver Packages
+## Kit Packages
 
-Weaver packages are defined in `artifacts.json`:
+Kit packages are defined in `artifacts.json`:
 
 ```json
 {
-   "weavers": {
-    "spaider-sdlc": {
-      "format": "Spaider",
-      "path": "weavers/sdlc"
+   "kits": {
+    "cypilot-sdlc": {
+      "format": "Cypilot",
+      "path": "kits/sdlc"
     },
   },
   "systems": [
     {
       "name": "MySystem",
-         "weaver": "spaider-sdlc",  // ← references weaver package
+         "kit": "cypilot-sdlc",  // ← references kit package
       ...
     }
   ]
@@ -75,24 +75,24 @@ Weaver packages are defined in `artifacts.json`:
 
 **Package resolution**:
 1. Find system for target artifact in `artifacts.json`
-2. Get `weaver` name from system (e.g., `"spaider-sdlc"`)
-3. Look up path from `weavers` section (e.g., `"weavers/sdlc"`)
-4. Build full path: `{weaver_path}/artifacts/{ARTIFACT_TYPE}/rules.md`
+2. Get `kit` name from system (e.g., `"cypilot-sdlc"`)
+3. Look up path from `kits` section (e.g., `"kits/sdlc"`)
+4. Build full path: `{kit_path}/artifacts/{ARTIFACT_TYPE}/rules.md`
 
 ---
 
-## Weaver Discovery
+## Kit Discovery
 
 ### Path Resolution
 
 Path comes from `artifacts.json`:
 ```
-WEAVER_BASE = artifacts.json.weavers[{weaver_name}].path
+KIT_BASE = artifacts.json.kits[{kit_name}].path
 ```
 
-**Directory structure** (relative to WEAVER_BASE):
+**Directory structure** (relative to KIT_BASE):
 ```
-{WEAVER_BASE}/
+{KIT_BASE}/
 ├── artifacts/
 │   ├── {ARTIFACT_TYPE}/
 │   │   ├── rules.md
@@ -106,9 +106,9 @@ WEAVER_BASE = artifacts.json.weavers[{weaver_name}].path
     └── checklist.md
 ```
 
-**Example** (if `weavers["spaider-sdlc"].path = "weavers/sdlc"`):
+**Example** (if `kits["cypilot-sdlc"].path = "kits/sdlc"`):
 ```
-weavers/sdlc/
+kits/sdlc/
 ├── artifacts/
 │   ├── PRD/rules.md
 │   ├── DESIGN/rules.md
@@ -122,7 +122,7 @@ weavers/sdlc/
 
 Workflow determines artifact type from:
 
-1. **Explicit parameter**: `spaider generate PRD`
+1. **Explicit parameter**: `cypilot generate PRD`
 2. **From artifacts.json**: lookup artifact by path → get `kind`
    ```json
    { "path": "architecture/PRD.md", "kind": "PRD" }
@@ -207,10 +207,10 @@ Workflow determines artifact type from:
 ```
 1. DETECT artifact type
    ↓
-2. RESOLVE weaver package:
+2. RESOLVE kit package:
    - Find system in artifacts.json
-   - Get weaver name (e.g., "spaider-sdlc")
-   - Look up path (e.g., "weavers/sdlc")
+   - Get kit name (e.g., "cypilot-sdlc")
+   - Look up path (e.g., "kits/sdlc")
    ↓
 3. LOAD rules.md from {rules_path}/artifacts/{TYPE}/rules.md
    ↓
@@ -239,10 +239,10 @@ Workflow determines artifact type from:
 ```
 1. DETECT artifact type from target file
    ↓
-2. RESOLVE weaver package:
+2. RESOLVE kit package:
    - Find system in artifacts.json
-   - Get weaver name (e.g., "spaider-sdlc")
-   - Look up path (e.g., "weavers/sdlc")
+   - Get kit name (e.g., "cypilot-sdlc")
+   - Look up path (e.g., "kits/sdlc")
    ↓
 3. LOAD rules.md from {rules_path}/artifacts/{TYPE}/rules.md
    ↓
@@ -302,18 +302,18 @@ Sections starting with `### Phase N:` under `## Validation`:
 
 When workflow starts, it should:
 
-1. **Check context**: Is this an Spaider-managed project?
-   - Look for `.spaider-adapter/` directory
-   - Read `.spaider-adapter/artifacts.json`
+1. **Check context**: Is this an Cypilot-managed project?
+   - Look for `.cypilot-adapter/` directory
+   - Read `.cypilot-adapter/artifacts.json`
 
-2. **If Spaider context detected**:
-   - Parse `weavers` section from artifacts.json
+2. **If Cypilot context detected**:
+   - Parse `kits` section from artifacts.json
    - Find system for target artifact
-   - Resolve `WEAVER_BASE` from system's weaver reference
+   - Resolve `KIT_BASE` from system's kit reference
    - Load appropriate rules.md
    - Follow interaction protocol
 
-3. **If no Spaider context**:
+3. **If no Cypilot context**:
    - Proceed with standard workflow
    - No rules.md loading
 
@@ -322,14 +322,14 @@ When workflow starts, it should:
 ## Example: Generate PRD
 
 ```
-User: spaider generate PRD
+User: cypilot generate PRD
 
 Workflow:
 1. Artifact type: PRD (explicit)
-2. Resolve weaver:
-   - System "Spaider" uses weaver "spaider-sdlc"
-   - weavers["spaider-sdlc"].path = "weavers/sdlc"
-3. Load: weavers/sdlc/artifacts/PRD/rules.md
+2. Resolve kit:
+   - System "Cypilot" uses kit "cypilot-sdlc"
+   - kits["cypilot-sdlc"].path = "kits/sdlc"
+3. Load: kits/sdlc/artifacts/PRD/rules.md
 4. Parse Dependencies:
    - template.md
    - checklist.md
@@ -338,7 +338,7 @@ Workflow:
 6. Confirm Requirements:
    "I understand the following requirements:
    - PRD follows template.md structure
-   - All IDs follow spd-{system}-{kind}-{slug} convention
+   - All IDs follow cpt-{system}-{kind}-{slug} convention
    ..."
 7. Execute Tasks:
    - Phase 1: Load template, checklist, example
@@ -353,15 +353,15 @@ Workflow:
 ## Example: Validate SPEC
 
 ```
-User: spaider validate architecture/specs/auth.md
+User: cypilot validate architecture/specs/auth.md
 
 Workflow:
 1. Artifact type: SPEC (from path)
-2. Resolve weaver:
+2. Resolve kit:
    - Find system containing artifact
-   - System "Spaider" uses weaver "spaider-sdlc"
-   - weavers["spaider-sdlc"].path = "weavers/sdlc"
-3. Load: weavers/sdlc/artifacts/SPEC/rules.md
+   - System "Cypilot" uses kit "cypilot-sdlc"
+   - kits["cypilot-sdlc"].path = "kits/sdlc"
+3. Load: kits/sdlc/artifacts/SPEC/rules.md
 4. Parse Dependencies
 5. Load: template.md, checklist.md, examples/example.md
 6. Execute Validation:
@@ -375,14 +375,14 @@ Workflow:
 
 ## Error Handling
 
-### Weaver Package Not Found
+### Kit Package Not Found
 
-**If weaver package path doesn't exist**:
+**If kit package path doesn't exist**:
 ```
-⚠️ Weaver package not found: {weaver_path}
-→ Referenced in: artifacts.json weavers["{name}"].path
-→ Expected at: {WEAVER_BASE}
-→ Fix: Create weaver package OR correct path in artifacts.json
+⚠️ Kit package not found: {kit_path}
+→ Referenced in: artifacts.json kits["{name}"].path
+→ Expected at: {KIT_BASE}
+→ Fix: Create kit package OR correct path in artifacts.json
 ```
 **Action**: STOP — cannot load rules.md without package.
 
@@ -424,7 +424,7 @@ Workflow:
 **If artifact type has no rules.md**:
 ```
 ⚠️ No rules found for artifact type: {ARTIFACT_TYPE}
-→ Searched: {WEAVER_BASE}/artifacts/{ARTIFACT_TYPE}/rules.md
+→ Searched: {KIT_BASE}/artifacts/{ARTIFACT_TYPE}/rules.md
 → Available types: {list from directory}
 → Fix: Create rules.md for type OR use existing type
 ```
@@ -440,7 +440,7 @@ Workflow:
 
 | # | Check | Required | How to Verify |
 |---|-------|----------|---------------|
-| S.1 | rules.md exists at correct path | YES | File exists at `{WEAVER_BASE}/artifacts/{KIND}/rules.md` |
+| S.1 | rules.md exists at correct path | YES | File exists at `{KIT_BASE}/artifacts/{KIND}/rules.md` |
 | S.2 | Has valid markdown frontmatter | YES | Artifact and Purpose fields present |
 | S.3 | Dependencies section present | YES | `**Dependencies**:` heading exists |
 | S.4 | Requirements section present | YES | `## Requirements` heading exists |
@@ -501,7 +501,7 @@ Workflow:
 
 ## References
 
-- **Rules registry**: `{spaider_adapter_path}/artifacts.json` → `rules` section
+- **Rules registry**: `{cypilot_adapter_path}/artifacts.json` → `rules` section
 - **Artifact rules**: `{rules_path}/artifacts/{KIND}/rules.md`
 - **Codebase rules**: `{rules_path}/codebase/rules.md`
 - **Template spec**: `requirements/template.md`

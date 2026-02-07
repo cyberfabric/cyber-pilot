@@ -1,7 +1,7 @@
 """
-Tests for Spaider project core structure validation.
+Tests for Cypilot project core structure validation.
 
-Validates that the Spaider project itself follows Spaider conventions:
+Validates that the Cypilot project itself follows Cypilot conventions:
 - Directory structure
 - Base file structure (frontmatter, sections)
 - Requirements file structure
@@ -48,7 +48,7 @@ class TestDirectoriesExist:
 
 
 class TestBaseStructure:
-    """Validate base file structure for Spaider specification files."""
+    """Validate base file structure for Cypilot specification files."""
 
     def _get_spec_files(self):
         """Scan all .md files in requirements/ and workflows/."""
@@ -62,18 +62,18 @@ class TestBaseStructure:
         wf_files = [
             f
             for f in (PROJECT_ROOT / "workflows").glob("*.md")
-            if f.name not in ("README.md", "AGENTS.md", "analyze.md", "generate.md", "spaider.md", "rules.md", "adapter.md")
+            if f.name not in ("README.md", "AGENTS.md", "analyze.md", "generate.md", "cypilot.md", "rules.md", "adapter.md")
         ]
         return req_files + wf_files
 
     def _has_yaml_frontmatter(self, path: Path) -> bool:
-        """Check if file has YAML frontmatter with spaider: true."""
+        """Check if file has YAML frontmatter with cypilot: true."""
         text = path.read_text(encoding="utf-8")
         parsed = self._parse_frontmatter(text)
         if parsed is None:
             return False
         frontmatter, _body = parsed
-        return str(frontmatter.get("spaider", "")).strip().lower() == "true"
+        return str(frontmatter.get("cypilot", "")).strip().lower() == "true"
 
     def _has_required_frontmatter_fields(self, path: Path) -> bool:
         """Check for required frontmatter fields: type, name, version, purpose."""
@@ -95,7 +95,7 @@ class TestBaseStructure:
         return bool(re.fullmatch(r"\d+\.\d+", str(frontmatter.get("version", "")).strip()))
 
     def _has_title_format(self, path: Path) -> bool:
-        """Verify title format # Spaider: {Title} or similar heading."""
+        """Verify title format # Cypilot: {Title} or similar heading."""
         text = path.read_text(encoding="utf-8")
         parsed = self._parse_frontmatter(text)
         if parsed is None:
@@ -175,7 +175,7 @@ class TestBaseStructure:
         spec_files = [f for f in req_dir.glob("*.md") if f.name not in ("README.md",)]
         assert len(spec_files) > 0, "No requirements/*.md files found"
         for f in spec_files:
-            assert self._has_yaml_frontmatter(f), f"{f.name} missing spaider: true frontmatter"
+            assert self._has_yaml_frontmatter(f), f"{f.name} missing cypilot: true frontmatter"
 
     def test_workflow_files_have_frontmatter(self):
         """Workflow files should have YAML frontmatter."""
@@ -183,7 +183,7 @@ class TestBaseStructure:
         wf_files = [f for f in wf_dir.glob("*.md") if f.name not in ("README.md", "AGENTS.md")]
         assert len(wf_files) > 0, "No workflow files found"
         for f in wf_files:
-            assert self._has_yaml_frontmatter(f), f"{f.name} missing spaider: true frontmatter"
+            assert self._has_yaml_frontmatter(f), f"{f.name} missing cypilot: true frontmatter"
 
     def test_all_spec_files_pass_base_structure(self):
         """Assert all files pass base structure check."""
@@ -283,7 +283,7 @@ class TestWorkflowStructure:
         """Workflow steps should be numbered or have phase/step structure."""
         wf_dir = PROJECT_ROOT / "workflows"
         # Exclude meta-workflows that embed protocols rather than having direct steps
-        exclude = {"README.md", "AGENTS.md", "analyze.md", "generate.md", "spaider.md", "rules.md"}
+        exclude = {"README.md", "AGENTS.md", "analyze.md", "generate.md", "cypilot.md", "rules.md"}
         wf_files = [f for f in wf_dir.glob("*.md") if f.name not in exclude]
         for f in wf_files:
             text = f.read_text(encoding="utf-8")
@@ -334,8 +334,8 @@ class TestAgentsStructure:
         assert (PROJECT_ROOT / "AGENTS.md").is_file(), "Missing root AGENTS.md"
 
     def test_skills_agents_exists(self):
-        """skills/spaider/SKILL.md should exist as the skill definition."""
-        assert (PROJECT_ROOT / "skills" / "spaider" / "SKILL.md").is_file(), "Missing skills/spaider/SKILL.md"
+        """skills/cypilot/SKILL.md should exist as the skill definition."""
+        assert (PROJECT_ROOT / "skills" / "cypilot" / "SKILL.md").is_file(), "Missing skills/cypilot/SKILL.md"
 
     def test_extract_when_clauses(self):
         """Test that WHEN clauses can be extracted from AGENTS.md."""
@@ -354,7 +354,7 @@ class TestAgentsStructure:
         refs = ref_pattern.findall(text)
         for ref in refs:
             # Skip adapter-specific paths (project adapts these)
-            if ref.startswith(".spaider-adapter/"):
+            if ref.startswith(".cypilot-adapter/"):
                 continue
             # Skip stale references that are being refactored
             if ref == "workflows/AGENTS.md" or "-content.md" in ref:

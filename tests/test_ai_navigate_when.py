@@ -7,8 +7,8 @@ import sys
 import unittest
 from pathlib import Path
 
-# Add skills/spaider/scripts directory to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "spaider" / "scripts"))
+# Add skills/cypilot/scripts directory to path
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "cypilot" / "scripts"))
 
 
 class TestWhenClauseNavigation(unittest.TestCase):

@@ -23,8 +23,8 @@ except ModuleNotFoundError:  # pragma: no cover
     pytest = _PytestShim()  # type: ignore
 
 
-# Add spaider.py to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "spaider" / "scripts"))
+# Add cypilot.py to path
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "cypilot" / "scripts"))
 
 
 def test_specs_manifest_references_design():

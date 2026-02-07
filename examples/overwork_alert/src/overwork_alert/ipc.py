@@ -37,7 +37,7 @@ def _read_all(rfile) -> bytes:
 class _ControlHandler(socketserver.StreamRequestHandler):
     """Socket handler for a single request/response."""
 
-    # @spaider-state:spd-overwork-alert-spec-cli-control-state-request-lifecycle:p1
+    # @cpt-state:cpt-overwork-alert-spec-cli-control-state-request-lifecycle:p1
     def handle(self) -> None:
         raw = _read_all(self.rfile)
         try:
@@ -55,16 +55,16 @@ class _ControlHandler(socketserver.StreamRequestHandler):
             self.wfile.write(json.dumps({"ok": False, "error": "invalid_command"}).encode("utf-8"))
             return
 
-        # @spaider-begin:spd-overwork-alert-spec-cli-control-state-request-lifecycle:p1:inst-transition-validated
+        # @cpt-begin:cpt-overwork-alert-spec-cli-control-state-request-lifecycle:p1:inst-transition-validated
         req = ControlRequest(cmd=cmd)
-        # @spaider-end:spd-overwork-alert-spec-cli-control-state-request-lifecycle:p1:inst-transition-validated
+        # @cpt-end:cpt-overwork-alert-spec-cli-control-state-request-lifecycle:p1:inst-transition-validated
 
         handler: Callable[[ControlRequest], dict[str, Any]] = self.server.request_handler  # type: ignore[attr-defined]
         resp = handler(req)
 
-        # @spaider-begin:spd-overwork-alert-spec-cli-control-state-request-lifecycle:p1:inst-transition-responded
+        # @cpt-begin:cpt-overwork-alert-spec-cli-control-state-request-lifecycle:p1:inst-transition-responded
         self.wfile.write(json.dumps(resp).encode("utf-8"))
-        # @spaider-end:spd-overwork-alert-spec-cli-control-state-request-lifecycle:p1:inst-transition-responded
+        # @cpt-end:cpt-overwork-alert-spec-cli-control-state-request-lifecycle:p1:inst-transition-responded
 
 
 class _ThreadingUnixStreamServer(socketserver.ThreadingMixIn, socketserver.UnixStreamServer):

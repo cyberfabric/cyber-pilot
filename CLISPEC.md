@@ -67,7 +67,7 @@ COMMAND init-spec
 
 **SYNOPSIS**: Command usage pattern
 ```
-SYNOPSIS: spaider init-spec <slug> [options]
+SYNOPSIS: cypilot init-spec <slug> [options]
 ```
 
 **DESCRIPTION**: Brief description (1-2 sentences)
@@ -102,14 +102,14 @@ EXIT CODES:
 **EXAMPLE**: Usage examples (one or more)
 ```
 EXAMPLE:
-  $ spaider init-spec user-authentication
-  $ spaider init-spec data-export --template minimal
-  $ spaider init-spec payment --skip-validation
+  $ cypilot init-spec user-authentication
+  $ cypilot init-spec data-export --template minimal
+  $ cypilot init-spec payment --skip-validation
 ```
 
 ### Optional Sections
 
-**WORKFLOW**: Reference to Spaider workflow
+**WORKFLOW**: Reference to Cypilot workflow
 ```
 WORKFLOW: 05-init-spec
 ```
@@ -200,7 +200,7 @@ Reference other commands, workflows, or entities:
 ### Workflow References
 
 ```
-@Workflow.NN-workflow-name     # Reference to Spaider workflow
+@Workflow.NN-workflow-name     # Reference to Cypilot workflow
 @Workflow.adapter-config       # Reference to workflow file
 ```
 
@@ -217,8 +217,8 @@ Reference other commands, workflows, or entities:
 
 ```
 COMMAND validate-spec
-SYNOPSIS: spaider validate-spec <slug> [options]
-DESCRIPTION: Validate spec design completeness and Spaider compliance
+SYNOPSIS: cypilot validate-spec <slug> [options]
+DESCRIPTION: Validate spec design completeness and Cypilot compliance
 WORKFLOW: 06-validate-spec
 
 ARGUMENTS:
@@ -236,9 +236,9 @@ EXIT CODES:
   3  Workflow execution error
 
 EXAMPLE:
-  $ spaider validate-spec user-authentication
-  $ spaider validate-spec data-export --strict
-  $ spaider validate-spec payment --output report.txt
+  $ cypilot validate-spec user-authentication
+  $ cypilot validate-spec data-export --strict
+  $ cypilot validate-spec payment --output report.txt
 
 RELATED:
   - @CLI.init-spec
@@ -247,7 +247,7 @@ RELATED:
 ---
 
 COMMAND init-spec
-SYNOPSIS: spaider init-spec <slug> [options]
+SYNOPSIS: cypilot init-spec <slug> [options]
 DESCRIPTION: Initialize a new spec with DESIGN.md template
 WORKFLOW: 05-init-spec
 
@@ -266,9 +266,9 @@ EXIT CODES:
   3  Spec directory already exists
 
 EXAMPLE:
-  $ spaider init-spec user-authentication
-  $ spaider init-spec data-export --template minimal
-  $ spaider init-spec payment --skip-validation
+  $ cypilot init-spec user-authentication
+  $ cypilot init-spec data-export --template minimal
+  $ cypilot init-spec payment --skip-validation
 
 RELATED:
   - @CLI.validate-spec
@@ -335,7 +335,7 @@ def parse_clispec(text):
 
 - Direct workflow references
 - Command relationships via RELATED
-- Integration with Spaider methodology
+- Integration with Cypilot methodology
 
 ### Tool Generation
 
@@ -348,7 +348,7 @@ From CLISPEC, generate:
 
 ---
 
-## Usage in Spaider
+## Usage in Cypilot
 
 ### In Adapter Configuration
 
@@ -370,7 +370,7 @@ Standard location: `architecture/cli-specs/commands.clispec`
 
 ```bash
 # Validate CLISPEC format
-spaider validate-cli-specs
+cypilot validate-cli-specs
 
 # Or custom validator
 your-tool validate-clispec architecture/cli-specs/commands.clispec
@@ -414,7 +414,7 @@ your-tool validate-clispec architecture/cli-specs/commands.clispec
 - ✅ Type system
 - ❌ Less flexible
 
-**Best for**: CLI tools in Spaider projects where agent-readability is priority
+**Best for**: CLI tools in Cypilot projects where agent-readability is priority
 
 ---
 
@@ -459,12 +459,12 @@ Syntax highlighting:
 
 ## References
 
-- **Spaider Methodology**: `AGENTS.md`
+- **Cypilot Methodology**: `AGENTS.md`
 - **Adapter Guide**: `guides/ADAPTER.md`
-- **Example Usage**: See `../spaider-cli-adapter/AGENTS.md` for real-world CLISPEC
+- **Example Usage**: See `../cypilot-cli-adapter/AGENTS.md` for real-world CLISPEC
 
 ---
 
 ## License
 
-This specification is part of the Spaider (Spec-Driven Development) methodology.
+This specification is part of the Cypilot (Spec-Driven Development) methodology.
