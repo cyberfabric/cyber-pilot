@@ -440,13 +440,14 @@ class Template:
                     rep_val = str(open_attrs.get("repeat", "one")).strip().lower() or "one"
                     required = req_val != "false"
                     if rep_val not in {"one", "many"}:
-                        errors.append(Template.error("template", "Invalid repeat", line=open_line, id=open_name, marker_type=open_type))
+                        errors.append(Template.error("template", "Invalid repeat", path=0, line=open_line, id=open_name, marker_type=open_type))
                         rep_val = "one"
                     # Validate kind names for id blocks: must be single word (no hyphens)
                     if open_type == "id" and "-" in open_name:
                         errors.append(Template.error(
                             "template",
                             f"ID kind '{open_name}' must be single word (no hyphens)",
+                            path=0,
                             line=open_line,
                             id=open_name,
                             marker_type=open_type,

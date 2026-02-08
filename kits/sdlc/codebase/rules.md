@@ -50,7 +50,7 @@
 
 **ALWAYS open and follow** `../constraints.json` (kit root) and treat it as the primary validator for:
 - Allowed ID kinds
-- Required cross-artifact references (`defined-id[].references`)
+- Required cross-artifact references (`identifiers[<id_kind>].references`)
 - Heading scoping rules (when constraints specify `headings`)
 
 **ALWAYS read** the SPEC artifact being implemented (the source of `to_code="true"` IDs). The SPEC contains flows, algorithms, state machines, and requirements that define what code must do.

@@ -13,7 +13,7 @@
    - [Semantic Requirements](#semantic-requirements)
    - [DESIGN Scope Guidelines](#design-scope-guidelines)
    - [Upstream Traceability](#upstream-traceability)
-   - [Checkbox Management](#checkbox-management-covered_by-attribute)
+   - [Checkbox Management](#checkbox-management)
 2. [Tasks](#tasks)
    - [Phase 1: Setup](#phase-1-setup)
    - [Phase 2: Content Creation](#phase-2-content-creation)
@@ -114,8 +114,8 @@ Agent confirms understanding of requirements:
 - `{cypilot_path}/schemas/kit-constraints.schema.json`
 
 **Validation Checks**:
-- `cypilot validate` enforces `defined-id[].references` rules (required / optional / prohibited)
-- `cypilot validate` enforces headings scoping for ID definitions/references when constraints specify `headings`
+- `cypilot validate` enforces `identifiers[<kind>].references` rules (required / optional / prohibited)
+- `cypilot validate` enforces headings scoping for ID definitions and references when constraints specify `headings` (identifier-level and reference-rule-level)
 - `cypilot validate` enforces "checked ref implies checked def" consistency
 
 ---

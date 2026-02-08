@@ -64,6 +64,95 @@ print('hi')
 """
 
 
+def test_apply_kind_constraints_reports_missing_template_block(tmp_path: Path):
+    tmpl_text = """
+---
+cypilot-template:
+  version:
+    major: 1
+    minor: 0
+  kind: PRD
+  unknown_sections: warn
+---
+
+<!-- cpt:paragraph:summary -->
+Summary
+<!-- cpt:paragraph:summary -->
+"""
+    tmpl_path = _write(tmp_path / "tmpl.md", tmpl_text)
+    tmpl, errs = load_template(tmpl_path)
+    assert errs == []
+
+    kc, kerrs = parse_kit_constraints({"PRD": {"identifiers": {"item": {}}}})
+    assert kerrs == []
+
+    cerrs = apply_kind_constraints(tmpl, kc.by_kind["PRD"])
+    assert any(e.get("type") == "constraints" and e.get("message") == "Constraint references missing template block" for e in cerrs)
+
+
+def test_template_from_path_reports_invalid_repeat_and_id_kind(tmp_path: Path):
+    tmpl_text = """
+---
+cypilot-template:
+  version:
+    major: 1
+    minor: 0
+  kind: PRD
+  unknown_sections: warn
+---
+
+<!-- cpt:paragraph:summary repeat="bad" -->
+Summary
+<!-- cpt:paragraph:summary -->
+
+<!-- cpt:id:bad-kind -->
+- [ ] **ID**: `cpt-demo-item-1`
+<!-- cpt:id:bad-kind -->
+"""
+    tmpl_path = _write(tmp_path / "tmpl.md", tmpl_text)
+    tmpl, errs = Template.from_path(tmpl_path)
+    assert tmpl is None
+    assert any(e.get("type") == "template" and e.get("message") == "Invalid repeat" for e in errs)
+    assert any("must be single word" in str(e.get("message")) for e in errs)
+
+
+def test_template_parse_returns_artifact_with_template_errors(tmp_path: Path):
+    missing_template_path = tmp_path / "missing.template.md"
+    art_path = _write(tmp_path / "artifact.md", _good_artifact_text())
+    tmpl = Template(path=missing_template_path, kind="PRD", version=None, policy=None, blocks=[], _loaded=False)
+    art = tmpl.parse(art_path)
+    assert isinstance(art, Artifact)
+    assert any(e.get("type") == "template" and e.get("message") == "Failed to read template file" for e in art._errors)
+
+
+def test_apply_kind_constraints_invalid_to_code_marker_value_is_overridden(tmp_path: Path):
+    tmpl_text = """
+---
+cypilot-template:
+  version:
+    major: 1
+    minor: 0
+  kind: PRD
+  unknown_sections: warn
+---
+
+<!-- cpt:id:item to_code="maybe" -->
+- [ ] **ID**: `cpt-demo-item-1`
+<!-- cpt:id:item -->
+"""
+    tmpl_path = _write(tmp_path / "tmpl.md", tmpl_text)
+    tmpl, errs = load_template(tmpl_path)
+    assert errs == []
+
+    kc, kerrs = parse_kit_constraints({"PRD": {"identifiers": {"item": {"to_code": True}}}})
+    assert kerrs == []
+    cerrs = apply_kind_constraints(tmpl, kc.by_kind["PRD"])
+    assert not any(e.get("type") == "constraints" and e.get("message") == "Constraint contradicts template marker" for e in cerrs)
+
+    id_block = [b for b in tmpl.blocks if b.type == "id" and b.name == "item"][0]
+    assert id_block.attrs.get("to_code") == "true"
+
+
 def _good_artifact_text() -> str:
     return """
 <!-- cpt:id:item -->

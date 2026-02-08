@@ -15,7 +15,7 @@
     - [Semantic Requirements](#semantic-requirements)
     - [ADR Scope Guidelines](#adr-scope-guidelines)
     - [Status Traceability](#status-traceability)
-    - [Checkbox Management (`covered_by` Attribute)](#checkbox-management-covered_by-attribute)
+    - [Checkbox Management](#checkbox-management)
   - [Tasks](#tasks)
     - [Phase 1: Setup](#phase-1-setup)
     - [Phase 2: Content Creation](#phase-2-content-creation)
@@ -137,7 +137,7 @@ Keep REJECTED ADRs for historical record — do not delete.
 - `{cypilot_path}/schemas/kit-constraints.schema.json`
 
 **Validation Checks**:
-- `cypilot validate` enforces `defined-id[].references` rules for ADR coverage in DESIGN
+- `cypilot validate` enforces `identifiers[<kind>].references` rules for ADR coverage in DESIGN
 
 ---
 

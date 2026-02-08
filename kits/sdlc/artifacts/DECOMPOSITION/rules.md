@@ -106,17 +106,12 @@ Agent confirms understanding of requirements:
 - [ ] All `id:spec` checkboxes MUST be checked before `id:status` can be checked
 - [ ] If ANY checkbox within a spec block is unchecked, the spec checkbox MUST remain unchecked
 
-**Cross-Artifact Checkbox Synchronization (`covered_by` Relationships)**:
+**Cross-Artifact Checkbox Synchronization (`constraints.json`)**:
 
-| Source Artifact | ID Type | `covered_by` | Meaning |
-|-----------------|---------|--------------|---------|
-| PRD | `id:fr` | `DESIGN,DECOMPOSITION,SPEC` | FR is covered when referenced in downstream artifacts |
-| PRD | `id:nfr` | `DESIGN,DECOMPOSITION,SPEC` | NFR is covered when referenced in downstream artifacts |
-| DESIGN | `id:principle` | `DECOMPOSITION,SPEC` | Principle is covered when applied in specs |
-| DESIGN | `id:constraint` | `DECOMPOSITION,SPEC` | Constraint is covered when satisfied in specs |
-| DESIGN | `id:component` | `DECOMPOSITION,SPEC` | Component is covered when integrated in specs |
-| DESIGN | `id:seq` | `DECOMPOSITION,SPEC` | Sequence is covered when implemented in specs |
-| DESIGN | `id:dbtable` | `DECOMPOSITION,SPEC` | Table is covered when used in specs |
+Cross-artifact reference requirements and prohibitions are enforced using `../../constraints.json` (kit root):
+
+- Coverage rules are defined by `identifiers[<kind>].references[<artifact_kind>].coverage` as `required|optional|prohibited`.
+- The validator is markerless-first: it detects ID definitions and references from document text, even if markers are missing.
 
 ### Constraints (`constraints.json`) — Mandatory
 
