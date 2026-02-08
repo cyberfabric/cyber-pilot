@@ -1207,9 +1207,19 @@ def _cmd_validate(argv: List[str]) -> int:
     project_root = ctx.project_root
     registered_systems = ctx.registered_systems
     known_kinds = ctx.get_known_id_kinds()
+    # Augment known kinds with any kinds from constraints.json so markerless validation works
+    # even when no template.md files exist.
+    for loaded_kit in (ctx.kits or {}).values():
+        kit_constraints = getattr(loaded_kit, "constraints", None)
+        if not kit_constraints:
+            continue
+        for kind_constraints in kit_constraints.by_kind.values():
+            for c in (kind_constraints.defined_id or []):
+                if c and getattr(c, "kind", None):
+                    known_kinds.add(str(c.kind).strip().lower())
 
-    # Collect artifacts to validate: (artifact_path, template_path, artifact_type, traceability)
-    artifacts_to_validate: List[Tuple[Path, Path, str, str]] = []
+    # Collect artifacts to validate: (artifact_path, template_path, artifact_type, traceability, kit_id)
+    artifacts_to_validate: List[Tuple[Path, Path, str, str, str]] = []
 
     if args.artifact:
         artifact_path = Path(args.artifact).resolve()
@@ -1228,7 +1238,7 @@ def _cmd_validate(argv: List[str]) -> int:
                 if pkg and pkg.is_cypilot_format():
                     template_path_str = pkg.get_template_path(artifact_meta.kind)
                     template_path = (project_root / template_path_str).resolve()
-                    artifacts_to_validate.append((artifact_path, template_path, artifact_meta.kind, artifact_meta.traceability))
+                    artifacts_to_validate.append((artifact_path, template_path, artifact_meta.kind, artifact_meta.traceability, system_node.kit))
         if not artifacts_to_validate:
             print(json.dumps({"status": "ERROR", "message": f"Artifact not in Cypilot registry: {args.artifact}"}, indent=None, ensure_ascii=False))
             return 1
@@ -1242,7 +1252,7 @@ def _cmd_validate(argv: List[str]) -> int:
             artifact_path = (project_root / artifact_meta.path).resolve()
             template_path = (project_root / template_path_str).resolve()
             if artifact_path.exists():
-                artifacts_to_validate.append((artifact_path, template_path, artifact_meta.kind, artifact_meta.traceability))
+                artifacts_to_validate.append((artifact_path, template_path, artifact_meta.kind, artifact_meta.traceability, system_node.kit))
 
     if not artifacts_to_validate:
         print(json.dumps({"status": "ERROR", "message": "No Cypilot artifacts found in registry"}, indent=None, ensure_ascii=False))
@@ -1257,10 +1267,10 @@ def _cmd_validate(argv: List[str]) -> int:
     if ctx_errors:
         all_errors.extend(ctx_errors)
 
-    for artifact_path, template_path, artifact_type, traceability in artifacts_to_validate:
+    for artifact_path, template_path, artifact_type, traceability, kit_id in artifacts_to_validate:
         # Use pre-loaded template from context if available
         used_synthetic_template = False
-        tmpl = ctx.get_template_for_kind(artifact_type)
+        tmpl = ctx.get_template(str(kit_id), str(artifact_type)) or ctx.get_template_for_kind(artifact_type)
         if tmpl is None:
             if template_path.exists():
                 # Fallback: load from disk
@@ -1274,13 +1284,25 @@ def _cmd_validate(argv: List[str]) -> int:
                         "errors": tmpl_errs,
                     })
                     continue
+                # Attach constraints even when template was not preloaded in context.
+                loaded_kit = (ctx.kits or {}).get(str(kit_id))
+                if loaded_kit and loaded_kit.constraints and tmpl.kind in loaded_kit.constraints.by_kind:
+                    from .utils.template import apply_kind_constraints
+                    ce = apply_kind_constraints(tmpl, loaded_kit.constraints.by_kind[tmpl.kind])
+                    if ce:
+                        all_errors.extend(ce)
             else:
+                constraints_for_kind = None
+                loaded_kit = (ctx.kits or {}).get(str(kit_id))
+                if loaded_kit and loaded_kit.constraints and str(artifact_type) in loaded_kit.constraints.by_kind:
+                    constraints_for_kind = loaded_kit.constraints.by_kind[str(artifact_type)]
                 tmpl = Template(
                     path=Path("<synthetic-template>"),
                     kind=str(artifact_type),
                     version=None,
                     policy=None,
                     blocks=[],
+                    constraints=constraints_for_kind,
                     _loaded=True,
                 )
                 used_synthetic_template = True
@@ -1324,7 +1346,7 @@ def _cmd_validate(argv: List[str]) -> int:
     # Cross-reference validation - load ALL Cypilot artifacts for context
     # When validating a single artifact, we still need all artifacts to check references
     all_artifacts_for_cross: List[TemplateArtifact] = list(parsed_artifacts)
-    validated_paths = {str(p) for p, _, _, _ in artifacts_to_validate}
+    validated_paths = {str(p) for p, _, _, _, _ in artifacts_to_validate}
 
     # Load remaining artifacts that weren't validated (for cross-reference context)
     for artifact_meta, system_node in meta.iter_all_artifacts():
@@ -1338,12 +1360,17 @@ def _cmd_validate(argv: List[str]) -> int:
             continue
         tmpl = ctx.get_template_for_kind(artifact_meta.kind)
         if tmpl is None:
+            constraints_for_kind = None
+            loaded_kit = (ctx.kits or {}).get(str(system_node.kit))
+            if loaded_kit and loaded_kit.constraints and str(artifact_meta.kind) in loaded_kit.constraints.by_kind:
+                constraints_for_kind = loaded_kit.constraints.by_kind[str(artifact_meta.kind)]
             tmpl = Template(
                 path=Path("<synthetic-template>"),
                 kind=str(artifact_meta.kind),
                 version=None,
                 policy=None,
                 blocks=[],
+                constraints=constraints_for_kind,
                 _loaded=True,
             )
         try:
@@ -1376,7 +1403,7 @@ def _cmd_validate(argv: List[str]) -> int:
 
     # Build map of artifact path to traceability mode
     traceability_by_path: Dict[str, str] = {}
-    for artifact_path, _template_path, _artifact_type, traceability in artifacts_to_validate:
+    for artifact_path, _template_path, _artifact_type, traceability, _kit_id in artifacts_to_validate:
         traceability_by_path[str(artifact_path)] = traceability
 
     from .utils.document import (
@@ -1386,7 +1413,7 @@ def _cmd_validate(argv: List[str]) -> int:
     )
 
     # Determine which markerless FULL-traceability IDs we might accept references from code for.
-    for artifact_path, _template_path, artifact_kind, traceability in artifacts_to_validate:
+    for artifact_path, _template_path, artifact_kind, traceability, _kit_id in artifacts_to_validate:
         if traceability != "FULL":
             continue
         if file_has_cypilot_markers(artifact_path):

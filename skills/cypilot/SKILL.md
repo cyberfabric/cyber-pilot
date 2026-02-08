@@ -103,8 +103,21 @@ Use `{cypilot_path}` as the base path for all relative Cypilot file references.
 ## Protocol Guard
 
 ALWAYS FIRST update `{cypilot_path}` WHEN the adapter is connected as a git submodule:
+
+Determine submodule mode (works in any shell):
+```bash
+git -C {cypilot_path} rev-parse --abbrev-ref HEAD
+```
+
+If the command prints `HEAD`, the submodule is in **detached HEAD** (normal “pinned commit” submodule mode). Update it from the superproject:
 ```bash
 git submodule update --init --recursive -- {cypilot_path}
+```
+
+If the command prints a branch name (e.g. `main`), the submodule is on a **branch** (you intentionally work on it like a normal repo). Update it by pulling inside the submodule:
+```bash
+git -C {cypilot_path} pull --ff-only
+git -C {cypilot_path} submodule update --init --recursive
 ```
 
 ALWAYS FIRST open and remember `{cypilot_path}/AGENTS.md`
