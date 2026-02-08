@@ -171,6 +171,7 @@ Each element of `references` is an object:
   - `coverage: "required"` implies the ID must be referenced from that artifact kind.
   - `coverage: "optional"` means reference may exist but is not required.
   - `coverage: "prohibited"` means reference must not exist from that artifact kind.
+  - Only explicitly declared `references` target kinds participate in validation. The validator MUST NOT require coverage from artifact kinds that are not listed under `references`.
 
 - **`to_code`** is applied via the `to_code="true|false"` marker attribute.
 - **`headings`** is stored as a JSON-encoded string attribute `headings="[...]"` for downstream tooling.
@@ -257,6 +258,11 @@ Cross-artifact validation:
 - Ignores template markers and performs markerless scans of artifacts.
 - Builds an index of ID definitions and references across artifacts.
 - Enforces `identifiers[<kind>].references` rules (`coverage: required|optional|prohibited`).
+
+Notes:
+
+- Cross-artifact coverage requirements are derived ONLY from `identifiers[<kind>].references[<target_kind>]` with `coverage: required`.
+- There is no additional implicit rule like "an ID must be referenced from any other artifact kind" when constraints exist for the artifact kind being validated.
 
 Cross-artifact validation is markerless-first and may detect IDs/references even when artifacts do not contain any `<!-- cpt:... -->` markers.
 
