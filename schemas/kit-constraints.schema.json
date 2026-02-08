@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/cypilot/kit-constraints.schema.json",
+  "title": "Cypilot Kit Constraints (constraints.json)",
+  "type": "object",
+  "description": "Kit-level constraints for artifact IDs. Root keys are artifact kinds (e.g. PRD, DESIGN, SPEC).",
+  "propertyNames": {
+    "type": "string",
+    "minLength": 1
+  },
+  "additionalProperties": {
+    "$ref": "#/$defs/artifact_kind_constraints"
+  },
+  "$defs": {
+    "artifact_kind_constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["defined-id"],
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "defined-id": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/id_constraint" }
+        }
+      }
+    },
+    "id_constraint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": { "type": "string", "minLength": 1 },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "examples": {
+          "type": "array",
+          "items": {}
+        },
+        "task": { "type": "boolean" },
+        "priority": { "type": "boolean" },
+        "to_code": { "type": "boolean" },
+        "headings": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "references": {
+          "type": "object",
+          "description": "Map of artifact kinds to reference rules.",
+          "propertyNames": { "type": "string", "minLength": 1 },
+          "additionalProperties": { "$ref": "#/$defs/reference_rule" }
+        }
+      }
+    },
+    "reference_rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["coverage"],
+      "properties": {
+        "coverage": {
+          "type": "string",
+          "enum": ["required", "optional", "prohibited"]
+        },
+        "task": { "type": "boolean" },
+        "priority": { "type": "boolean" },
+        "headings": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  }
+}

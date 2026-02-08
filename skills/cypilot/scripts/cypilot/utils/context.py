@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set
 
 from .artifacts_meta import ArtifactsMeta, Kit, load_artifacts_meta
+from .constraints import KitConstraints, load_constraints_json
 from .template import Template
 
 
@@ -23,6 +24,7 @@ class LoadedKit:
     """A kit with all its templates loaded."""
     kit: Kit
     templates: Dict[str, Template]  # kind -> Template
+    constraints: Optional[KitConstraints] = None
 
 
 @dataclass
@@ -34,7 +36,7 @@ class CypilotContext:
     meta: ArtifactsMeta
     kits: Dict[str, LoadedKit]  # kit_id -> LoadedKit
     registered_systems: Set[str]
-    _errors: List[str] = field(default_factory=list)
+    _errors: List[Dict[str, object]] = field(default_factory=list)
 
     @classmethod
     def load(cls, start_path: Optional[Path] = None) -> Optional["CypilotContext"]:
@@ -61,13 +63,29 @@ class CypilotContext:
 
         # Load all templates for each Cypilot kit
         kits: Dict[str, LoadedKit] = {}
-        errors: List[str] = []
+        errors: List[Dict[str, object]] = []
 
         for kit_id, kit in meta.kits.items():
             if not kit.is_cypilot_format():
                 continue
 
             templates: Dict[str, Template] = {}
+
+            kit_root = (project_root / str(kit.path or "").strip().strip("/")).resolve()
+            kit_constraints: Optional[KitConstraints] = None
+            constraints_errs: List[str] = []
+            if kit_root.is_dir():
+                kit_constraints, constraints_errs = load_constraints_json(kit_root)
+            if constraints_errs:
+                constraints_path = (kit_root / "constraints.json").resolve()
+                errors.append(Template.error(
+                    "constraints",
+                    "Invalid constraints.json",
+                    path=constraints_path,
+                    line=1,
+                    errors=list(constraints_errs),
+                    kit=kit_id,
+                ))
 
             kit_path = str(kit.path or "").strip().strip("/")
             candidates: List[Path] = []
@@ -95,15 +113,20 @@ class CypilotContext:
                         continue
                     tmpl, tmpl_errs = Template.from_path(template_file)
                     if tmpl:
+                        if kit_constraints and tmpl.kind in kit_constraints.by_kind:
+                            from .template import apply_kind_constraints
+                            ce = apply_kind_constraints(tmpl, kit_constraints.by_kind[tmpl.kind])
+                            if ce:
+                                errors.extend(ce)
                         templates[tmpl.kind] = tmpl
                     else:
-                        errors.extend([str(e) for e in tmpl_errs])
+                        errors.extend(tmpl_errs)
 
                 # Stop at the first candidate that yields any templates.
                 if templates:
                     break
 
-            kits[kit_id] = LoadedKit(kit=kit, templates=templates)
+            kits[kit_id] = LoadedKit(kit=kit, templates=templates, constraints=kit_constraints)
 
         # Get all system names
         registered_systems = meta.get_all_system_names()

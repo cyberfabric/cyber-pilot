@@ -7,6 +7,7 @@ validates structure/content including CDSL blocks.
 """
 from __future__ import annotations
 
+import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -43,6 +44,134 @@ VALID_MARKER_TYPES = frozenset({
     "#", "##", "###", "####", "#####", "######",
     "link", "image", "cdsl",
 })
+
+
+def apply_kind_constraints(template: "Template", constraints: "ArtifactKindConstraints") -> List[Dict[str, object]]:
+    """Apply kit constraints to a loaded Template.
+
+    Constraints have higher priority than marker attrs. If a constraint contradicts an
+    explicitly defined marker attribute, this returns a validation error.
+    """
+    from .constraints import ArtifactKindConstraints  # noqa: F401
+
+    errors: List[Dict[str, object]] = []
+
+    def _normalize_has(raw: str) -> set[str]:
+        return {p.strip() for p in str(raw or "").split(",") if p.strip()}
+
+    def _write_has(attrs: Dict[str, str], tokens: set[str]) -> None:
+        if not tokens:
+            attrs.pop("has", None)
+            return
+        attrs["has"] = ",".join(sorted(tokens))
+
+    def _bool_attr(raw: Optional[str]) -> Optional[bool]:
+        if raw is None:
+            return None
+        v = str(raw).strip().lower()
+        if v in {"true", "false"}:
+            return v == "true"
+        return None
+
+    def _apply_one(block: TemplateBlock, c: "IdConstraint", section: str) -> None:
+        from .constraints import IdConstraint  # noqa: F401
+
+        attrs = block.attrs
+
+        # has= (priority, task)
+        if c.priority is not None or c.task is not None:
+            existing_tokens = _normalize_has(attrs.get("has", ""))
+            desired_tokens = set(existing_tokens)
+
+            if c.priority is not None:
+                marker_val = "priority" in existing_tokens
+                if marker_val and not bool(c.priority):
+                    errors.append(Template.error(
+                        "constraints",
+                        "Constraint contradicts template marker",
+                        path=template.path,
+                        line=block.start_line,
+                        artifact_kind=template.kind,
+                        id_kind=c.kind,
+                        section=section,
+                        field="priority",
+                        marker=marker_val,
+                        constraint=bool(c.priority),
+                    ))
+                if c.priority:
+                    desired_tokens.add("priority")
+                else:
+                    desired_tokens.discard("priority")
+
+            if c.task is not None:
+                marker_val = "task" in existing_tokens
+                if marker_val and not bool(c.task):
+                    errors.append(Template.error(
+                        "constraints",
+                        "Constraint contradicts template marker",
+                        path=template.path,
+                        line=block.start_line,
+                        artifact_kind=template.kind,
+                        id_kind=c.kind,
+                        section=section,
+                        field="task",
+                        marker=marker_val,
+                        constraint=bool(c.task),
+                    ))
+                if c.task:
+                    desired_tokens.add("task")
+                else:
+                    desired_tokens.discard("task")
+
+            _write_has(attrs, desired_tokens)
+
+        # to_code=
+        if c.to_code is not None:
+            if "to_code" in attrs:
+                marker_val = _bool_attr(attrs.get("to_code"))
+                if marker_val is not None and marker_val != bool(c.to_code):
+                    errors.append(Template.error(
+                        "constraints",
+                        "Constraint contradicts template marker",
+                        path=template.path,
+                        line=block.start_line,
+                        artifact_kind=template.kind,
+                        id_kind=c.kind,
+                        section=section,
+                        field="to_code",
+                        marker=marker_val,
+                        constraint=bool(c.to_code),
+                    ))
+            attrs["to_code"] = "true" if c.to_code else "false"
+
+        # headings=
+        if c.headings is not None:
+            attrs["headings"] = json.dumps(list(c.headings), ensure_ascii=False)
+
+    # Apply defined-id constraints to id blocks
+    for c in constraints.defined_id:
+        matches = [b for b in (template.blocks or []) if b.type == "id" and b.name.lower() == c.kind.lower()]
+        if not matches:
+            errors.append(Template.error(
+                "constraints",
+                "Constraint references missing template block",
+                path=template.path,
+                line=1,
+                artifact_kind=template.kind,
+                id_kind=c.kind,
+                section="defined-id",
+            ))
+            continue
+        for b in matches:
+            _apply_one(b, c, "defined-id")
+
+    # Attach constraints to template for strict artifact-time checks.
+    try:
+        object.__setattr__(template, "constraints", constraints)
+    except Exception:
+        pass
+
+    return errors
 
 
 def filter_code_fences(lines: List[str]) -> List[str]:
@@ -114,6 +243,7 @@ class Template:
     version: Optional[TemplateVersion] = None
     policy: Optional[TemplatePolicy] = None  # noqa
     blocks: List[TemplateBlock] = None  # populated on load()
+    constraints: Optional["ArtifactKindConstraints"] = None
     _loaded: bool = False
 
     @staticmethod
@@ -779,6 +909,7 @@ class Artifact:
         self._extract_ids_and_refs()
         self._validate_id_task_statuses(errors)
         self._validate_spec_filename(errors)
+        self._validate_constraints_strict(errors)
 
         # Unknown markers are always errors (markers in artifact not defined in template)
         for key, inst_list in art_by_key.items():
@@ -786,6 +917,141 @@ class Artifact:
                 errors.append(Template.error("structure", "Unknown marker", path=self.path, line=inst_list[0].start_line, marker_type=key[0], id=key[1]))
 
         return {"errors": errors, "warnings": warnings}
+
+    def _validate_constraints_strict(self, errors: List[Dict[str, object]]) -> None:
+        """Strict constraints validation.
+
+        When a template has kit constraints attached, artifacts must:
+        - only contain ID kinds that are listed in constraints
+        - contain at least one instance for each constrained kind
+        - respect headings scoping when specified
+        """
+        constraints = getattr(self.template, "constraints", None)
+        if constraints is None:
+            return
+
+        allowed_defs = {c.kind.strip().lower() for c in constraints.defined_id}
+        allowed_refs = set(allowed_defs)
+
+        defs_by_kind: Dict[str, List[IdDefinition]] = {}
+        for d in self.id_definitions:
+            k = str(getattr(d.block.template_block, "name", "") or "").strip().lower()
+            if not k or k == "markerless":
+                continue
+            defs_by_kind.setdefault(k, []).append(d)
+            if k not in allowed_defs:
+                errors.append(Template.error(
+                    "constraints",
+                    "ID kind not allowed by constraints",
+                    path=self.path,
+                    line=d.line,
+                    artifact_kind=self.template.kind,
+                    id_kind=k,
+                    id=d.id,
+                    section="defined-id",
+                    allowed=sorted(allowed_defs),
+                ))
+
+        refs_by_kind: Dict[str, List[IdReference]] = {}
+        for r in self.id_references:
+            k = str(getattr(r.block.template_block, "name", "") or "").strip().lower()
+            if not k or k == "markerless":
+                continue
+            refs_by_kind.setdefault(k, []).append(r)
+            if k not in allowed_refs:
+                errors.append(Template.error(
+                    "constraints",
+                    "ID ref kind not allowed by constraints",
+                    path=self.path,
+                    line=r.line,
+                    artifact_kind=self.template.kind,
+                    id_kind=k,
+                    id=r.id,
+                    section="referenced-id",
+                    allowed=sorted(allowed_refs),
+                ))
+
+        # Required presence: every constrained kind must appear at least once.
+        for c in constraints.defined_id:
+            k = c.kind.strip().lower()
+            if k and k not in defs_by_kind:
+                errors.append(Template.error(
+                    "constraints",
+                    "Required ID kind missing in artifact",
+                    path=self.path,
+                    line=1,
+                    artifact_kind=self.template.kind,
+                    id_kind=k,
+                    section="defined-id",
+                ))
+
+        # Headings scoping.
+        # Build active heading titles per line (1-indexed), outside code fences.
+        try:
+            lines = self.path.read_text(encoding="utf-8").splitlines()
+        except Exception:
+            return
+
+        headings_at: List[List[str]] = [[] for _ in range(len(lines) + 1)]
+        stack: List[Tuple[int, str]] = []  # (level, title)
+        in_fence = False
+        for idx0, raw in enumerate(lines):
+            line_no = idx0 + 1
+            if _CODE_FENCE_RE.match(raw):
+                in_fence = not in_fence
+                headings_at[line_no] = [t for _, t in stack]
+                continue
+            if not in_fence:
+                m = _HEADING_RE.match(raw)
+                if m:
+                    level = len(m.group(1))
+                    title = str(m.group(2) or "").strip()
+                    while stack and stack[-1][0] >= level:
+                        stack.pop()
+                    stack.append((level, title))
+            headings_at[line_no] = [t for _, t in stack]
+
+        def _check_headings_for_defs(c) -> None:
+            if not c.headings:
+                return
+            k = c.kind.strip().lower()
+            allowed = {h.strip() for h in c.headings if isinstance(h, str) and h.strip()}
+            if not allowed:
+                return
+            defs = defs_by_kind.get(k, [])
+            found_ok = False
+            for d in defs:
+                active = headings_at[d.line] if 0 <= d.line < len(headings_at) else []
+                ok = any(h in allowed for h in active)
+                if not ok:
+                    errors.append(Template.error(
+                        "constraints",
+                        "ID definition not under required headings",
+                        path=self.path,
+                        line=d.line,
+                        artifact_kind=self.template.kind,
+                        id_kind=k,
+                        id=d.id,
+                        section="defined-id",
+                        headings=sorted(allowed),
+                        found_headings=active,
+                    ))
+                else:
+                    found_ok = True
+            if defs and not found_ok:
+                errors.append(Template.error(
+                    "constraints",
+                    "Required headings contain no ID definitions",
+                    path=self.path,
+                    line=1,
+                    artifact_kind=self.template.kind,
+                    id_kind=k,
+                    section="defined-id",
+                    headings=sorted(allowed),
+                ))
+
+        for c in constraints.defined_id:
+            _check_headings_for_defs(c)
 
     def _extract_ids_and_refs(self) -> None:
         if self.id_definitions or self.id_references:
@@ -1043,22 +1309,13 @@ def cross_validate_artifacts(
     registered_systems: Optional[Iterable[str]] = None,
     known_kinds: Optional[Iterable[str]] = None,
 ) -> Dict[str, List[Dict[str, object]]]:
-    """Cross-artifact validation: covered_by presence and refs to defs.
+    """Cross-artifact validation (markerless-first).
 
-    Args:
-        artifacts: Sequence of parsed Artifact objects to validate
-        registered_systems: Set of known system names from artifacts.json.
-            If provided, references to unknown systems are treated as external
-            and not flagged as errors.
-        known_kinds: Set of known kind identifiers from templates (e.g., {"spec", "algo", "fr"}).
-            Used for validating ID structure and kind existence.
+    The validator intentionally ignores template markers and performs a markerless
+    scan of all artifacts (even if markers are present). This yields a stable set of
+    ID definitions and references.
 
-    Validates:
-    - For each ID definition with covered_by attr: ensure at least one reference exists
-      in artifacts whose template.kind is in covered_by list.
-    - For each reference: ensure a definition exists somewhere (unless external system).
-    - For task sync across refs: if a ref is checked and refers to a definable ID with task,
-      ensure corresponding definition is checked.
+    Primary rules are derived from `constraints.json` attached to templates.
     """
     errors: List[Dict[str, object]] = []
     warnings: List[Dict[str, object]] = []
@@ -1068,92 +1325,122 @@ def cross_validate_artifacts(
     if known_kinds is not None:
         kinds_set = {k.lower() for k in known_kinds}
 
-    id_defs: Dict[str, List[IdDefinition]] = {}
-    id_refs: List[IdReference] = []
-    defs_by_kind: Dict[str, List[IdDefinition]] = {}
-    refs_by_kind: Dict[str, List[IdReference]] = {}
+    from .document import headings_by_line_markerless, scan_cpt_ids_markerless
 
-    # Per-system tracking for covered_by scoping
-    # Key is system slug (lowercase), value is refs grouped by artifact kind
-    refs_by_system_kind: Dict[str, Dict[str, List[IdReference]]] = {}
+    # Collected markerless hits
+    defs_by_id: Dict[str, List[Dict[str, object]]] = {}
+    refs_by_id: Dict[str, List[Dict[str, object]]] = {}
+
+    # Per-system scoping
     present_kinds_by_system: Dict[str, set[str]] = {}
+    refs_by_system_kind: Dict[str, Dict[str, List[Dict[str, object]]]] = {}
+    defs_by_system_kind: Dict[str, Dict[str, List[Dict[str, object]]]] = {}
 
-    # Helper to extract system from Cypilot ID (e.g., "cpt-bookcatalog-fr-search" -> "bookcatalog")
-    def _extract_system_from_id(cpt: str) -> Optional[str]:
-        """Extract the system segment from a Cypilot ID."""
-        if not cpt.lower().startswith("cpt-"):
-            return None
-        # Format: cpt-{system}-{kind}-{slug}
-        parts = cpt.split("-")
-        if len(parts) < 3:
-            return None
-        return parts[1].lower()
+    # Constraints by artifact kind
+    constraints_by_artifact_kind: Dict[str, object] = {}
+    missing_constraints_kinds: set[str] = set()
+    all_constrained_id_kinds: set[str] = set()
 
-    present_kinds: set[str] = set()
-    for art in artifacts:
-        art._extract_ids_and_refs()
-        kind = art.template.kind
-        present_kinds.add(kind)
-        for d in art.id_definitions:
-            id_defs.setdefault(d.id, []).append(d)
-            defs_by_kind.setdefault(kind, []).append(d)
-            # Track by system for covered_by scoping
-            sys = _extract_system_from_id(d.id)
-            if sys:
-                present_kinds_by_system.setdefault(sys, set()).add(kind)
-        for r in art.id_references:
-            id_refs.append(r)
-            refs_by_kind.setdefault(kind, []).append(r)
-            # Track by system for covered_by scoping
-            sys = _extract_system_from_id(r.id)
-            if sys:
-                refs_by_system_kind.setdefault(sys, {}).setdefault(kind, []).append(r)
-                # Also track that this artifact kind exists for this system
-                present_kinds_by_system.setdefault(sys, set()).add(kind)
-
-    # covered_by check (case-sensitive kind matching, scoped by system)
-    for art in artifacts:
-        for blk in art.blocks:
-            if blk.template_block.type != "id":
-                continue
-            covered = blk.template_block.attrs.get("covered_by", "").strip()
-            if not covered:
-                continue
-            target_kinds = [c.strip() for c in covered.split(",") if c.strip()]
-            if not target_kinds:
-                continue
-            # find ids defined in this block
-            for d in art.id_definitions:
-                if d.block is not blk:
-                    continue
-                # Extract system from this ID to scope the check
-                id_system = _extract_system_from_id(d.id)
-                # Get system-scoped data (fall back to global if no system detected)
-                if id_system:
-                    system_refs_by_kind = refs_by_system_kind.get(id_system, {})
-                    system_present_kinds = present_kinds_by_system.get(id_system, set())
-                else:
-                    system_refs_by_kind = refs_by_kind
-                    system_present_kinds = present_kinds
-                # Check if any target kind is present in THIS SYSTEM's scope
-                kinds_in_scope = [tk for tk in target_kinds if tk in system_present_kinds]
-                found = False
-                for tk in target_kinds:
-                    refs_in_kind = system_refs_by_kind.get(tk, [])
-                    if any(r.id == d.id for r in refs_in_kind):
-                        found = True
-                        break
-                if not found:
-                    # If no target artifacts exist in scope, warn instead of error
-                    if not kinds_in_scope:
-                        warnings.append(Template.error("structure", "ID not covered (target artifact kinds not in scope)", path=art.path, line=d.line, id=d.id, covered_by=target_kinds))
-                    else:
-                        errors.append(Template.error("structure", "ID not covered by required artifact kinds", path=art.path, line=d.line, id=d.id, covered_by=target_kinds))
-
-    # Normalize registered_systems to lowercase set for matching
+    # Normalize registered_systems to lowercase for matching
     systems_set: set[str] = set()
     if registered_systems is not None:
-        systems_set = {s.lower() for s in registered_systems}
+        systems_set = {str(s).lower() for s in registered_systems}
+
+    def _match_system_from_id(cpt: str) -> Optional[str]:
+        """Match system slug using registered systems (longest prefix match)."""
+        if not cpt.lower().startswith("cpt-"):
+            return None
+        if not systems_set:
+            # Fallback: best-effort second segment
+            parts = cpt.split("-")
+            return parts[1].lower() if len(parts) >= 3 else None
+
+        matched: Optional[str] = None
+        for sys in systems_set:
+            prefix = f"cpt-{sys}-"
+            if cpt.lower().startswith(prefix):
+                if matched is None or len(sys) > len(matched):
+                    matched = sys
+        return matched
+
+    def _extract_kind_from_id(cpt: str, system: Optional[str]) -> Optional[str]:
+        if not cpt.lower().startswith("cpt-"):
+            return None
+        if system is None:
+            return None
+        prefix = f"cpt-{system}-"
+        if not cpt.lower().startswith(prefix.lower()):
+            return None
+        remainder = cpt[len(prefix):]
+        if not remainder:
+            return None
+        return remainder.split("-", 1)[0].lower()
+
+    # Collect constraints and build global set of known ID kinds from constraints
+    for art in artifacts:
+        ak = str(art.template.kind)
+        c = getattr(art.template, "constraints", None)
+        if c is None:
+            missing_constraints_kinds.add(ak)
+            continue
+        constraints_by_artifact_kind[ak] = c
+        for ic in getattr(c, "defined_id", []) or []:
+            try:
+                all_constrained_id_kinds.add(str(getattr(ic, "kind", "")).strip().lower())
+            except Exception:
+                pass
+
+    if missing_constraints_kinds:
+        errors.append(Template.error(
+            "constraints",
+            "Missing constraints for artifact kinds",
+            path=Path("<constraints.json>"),
+            line=1,
+            kinds=sorted(missing_constraints_kinds),
+        ))
+
+    # Build markerless indexes
+    headings_cache: Dict[str, List[List[str]]] = {}
+    for art in artifacts:
+        kind = str(art.template.kind)
+        hits = scan_cpt_ids_markerless(art.path)
+        hkey = str(art.path)
+        if hkey not in headings_cache:
+            headings_cache[hkey] = headings_by_line_markerless(art.path)
+        headings_at = headings_cache[hkey]
+
+        for h in hits:
+            hid = str(h.get("id", "")).strip()
+            if not hid:
+                continue
+            line = int(h.get("line", 1) or 1)
+            checked = bool(h.get("checked", False))
+            system = _match_system_from_id(hid)
+            id_kind = _extract_kind_from_id(hid, system)
+            active_headings = headings_at[line] if 0 <= line < len(headings_at) else []
+
+            row = {
+                "id": hid,
+                "line": line,
+                "checked": checked,
+                "priority": h.get("priority"),
+                "artifact_kind": kind,
+                "artifact_path": art.path,
+                "system": system,
+                "id_kind": id_kind,
+                "headings": active_headings,
+            }
+
+            if str(h.get("type")) == "definition":
+                defs_by_id.setdefault(hid, []).append(row)
+                if system:
+                    present_kinds_by_system.setdefault(system, set()).add(kind)
+                    defs_by_system_kind.setdefault(system, {}).setdefault(kind, []).append(row)
+            elif str(h.get("type")) == "reference":
+                refs_by_id.setdefault(hid, []).append(row)
+                if system:
+                    present_kinds_by_system.setdefault(system, set()).add(kind)
+                    refs_by_system_kind.setdefault(system, {}).setdefault(kind, []).append(row)
 
     # Helper to check if a reference's system is registered
     def _is_external_system_ref(cpt: str) -> bool:
@@ -1193,40 +1480,253 @@ def cross_validate_artifacts(
             return None
         return remainder.split("-", 1)[0].lower()
 
-    # Validate ID kinds against known_kinds (if provided)
+    # Validate ID kinds against constraints (authoritative) and known_kinds (secondary)
+    for did, rows in defs_by_id.items():
+        for r in rows:
+            sys = r.get("system")
+            if sys is None:
+                continue
+            k = r.get("id_kind")
+            if k and all_constrained_id_kinds and str(k).lower() not in all_constrained_id_kinds:
+                errors.append(Template.error(
+                    "constraints",
+                    "ID uses kind not defined in constraints",
+                    path=r.get("artifact_path"),
+                    line=int(r.get("line", 1) or 1),
+                    id=did,
+                    unknown_kind=k,
+                ))
+
+    for rid, rows in refs_by_id.items():
+        for r in rows:
+            sys = r.get("system")
+            if sys is None:
+                continue
+            k = r.get("id_kind")
+            if k and all_constrained_id_kinds and str(k).lower() not in all_constrained_id_kinds:
+                errors.append(Template.error(
+                    "constraints",
+                    "Reference uses kind not defined in constraints",
+                    path=r.get("artifact_path"),
+                    line=int(r.get("line", 1) or 1),
+                    id=rid,
+                    unknown_kind=k,
+                ))
+
     if kinds_set:
-        for d in id_defs.values():
-            for defn in d:
-                kind = _extract_kind_from_id(defn.id)
-                if kind and kind not in kinds_set:
+        for did, rows in defs_by_id.items():
+            for r in rows:
+                k = r.get("id_kind")
+                if k and str(k).lower() not in kinds_set:
                     warnings.append(Template.error(
                         "structure",
-                        f"ID uses unknown kind '{kind}'",
-                        path=defn.artifact_path,
-                        line=defn.line,
-                        id=defn.id,
-                        unknown_kind=kind,
+                        f"ID uses unknown kind '{k}'",
+                        path=r.get("artifact_path"),
+                        line=int(r.get("line", 1) or 1),
+                        id=did,
+                        unknown_kind=k,
                     ))
 
     # refs must have definitions (but only error if system is registered)
-    for r in id_refs:
-        if r.id not in id_defs:
-            if _is_external_system_ref(r.id):
-                # External system reference - not an error
+    for rid, rows in refs_by_id.items():
+        if rid not in defs_by_id:
+            if _is_external_system_ref(rid):
                 continue
-            errors.append(Template.error("structure", "Reference has no definition", path=r.artifact_path, line=r.line, id=r.id))
+            for r in rows:
+                errors.append(Template.error(
+                    "structure",
+                    "Reference has no definition",
+                    path=r.get("artifact_path"),
+                    line=int(r.get("line", 1) or 1),
+                    id=rid,
+                ))
 
-    # checked ref implies checked def (if def has task)
-    for r in id_refs:
-        if not r.checked:
-            continue
-        defs = id_defs.get(r.id, [])
-        if not defs:
-            continue
-        for d in defs:
-            if d.checked:
+    # checked ref implies checked def
+    for rid, rows in refs_by_id.items():
+        for r in rows:
+            if not bool(r.get("checked", False)):
                 continue
-            errors.append(Template.error("structure", "Reference marked done but definition not done", path=r.artifact_path, line=r.line, id=r.id))
+            defs = defs_by_id.get(rid, [])
+            for d in defs:
+                if bool(d.get("checked", False)):
+                    continue
+                errors.append(Template.error(
+                    "structure",
+                    "Reference marked done but definition not done",
+                    path=r.get("artifact_path"),
+                    line=int(r.get("line", 1) or 1),
+                    id=rid,
+                ))
+
+    # Constraints: per-artifact kind strict definition requirements and headings scoping.
+    for art in artifacts:
+        ak = str(art.template.kind)
+        c = constraints_by_artifact_kind.get(ak)
+        if c is None:
+            continue
+
+        allowed_kinds = {str(getattr(ic, "kind", "")).strip().lower() for ic in getattr(c, "defined_id", []) or []}
+        defs_in_file = [r for r in defs_by_id.values() for r in r if str(r.get("artifact_path")) == str(art.path) and r.get("system") is not None]
+        seen_kinds: set[str] = set()
+        for d in defs_in_file:
+            k = str(d.get("id_kind") or "").lower()
+            if k:
+                seen_kinds.add(k)
+                if allowed_kinds and k not in allowed_kinds:
+                    errors.append(Template.error(
+                        "constraints",
+                        "ID kind not allowed by constraints",
+                        path=art.path,
+                        line=int(d.get("line", 1) or 1),
+                        artifact_kind=ak,
+                        id_kind=k,
+                        id=str(d.get("id")),
+                    ))
+
+        for ic in getattr(c, "defined_id", []) or []:
+            k = str(getattr(ic, "kind", "")).strip().lower()
+            if k and k not in seen_kinds:
+                errors.append(Template.error(
+                    "constraints",
+                    "Required ID kind missing in artifact",
+                    path=art.path,
+                    line=1,
+                    artifact_kind=ak,
+                    id_kind=k,
+                ))
+
+            # heading scope for definitions
+            allowed_headings = set([h.strip() for h in (getattr(ic, "headings", None) or []) if isinstance(h, str) and h.strip()])
+            if not allowed_headings:
+                continue
+            defs_of_kind = [d for d in defs_in_file if str(d.get("id_kind") or "").lower() == k]
+            if not defs_of_kind:
+                continue
+            ok_any = False
+            for d in defs_of_kind:
+                active = d.get("headings") or []
+                ok = any(h in allowed_headings for h in active)
+                if ok:
+                    ok_any = True
+                else:
+                    errors.append(Template.error(
+                        "constraints",
+                        "ID definition not under required headings",
+                        path=art.path,
+                        line=int(d.get("line", 1) or 1),
+                        artifact_kind=ak,
+                        id_kind=k,
+                        id=str(d.get("id")),
+                        headings=sorted(allowed_headings),
+                        found_headings=active,
+                    ))
+            if not ok_any:
+                errors.append(Template.error(
+                    "constraints",
+                    "Required headings contain no ID definitions",
+                    path=art.path,
+                    line=1,
+                    artifact_kind=ak,
+                    id_kind=k,
+                    headings=sorted(allowed_headings),
+                ))
+
+    # Constraints: reference coverage rules (required|optional|prohibited)
+    for ak, c in constraints_by_artifact_kind.items():
+        for ic in getattr(c, "defined_id", []) or []:
+            id_kind = str(getattr(ic, "kind", "")).strip().lower()
+            refs_rules = getattr(ic, "references", None) or {}
+            if not isinstance(refs_rules, dict):
+                continue
+
+            # Iterate definitions of this kind
+            for did, rows in defs_by_id.items():
+                for drow in rows:
+                    if str(drow.get("artifact_kind")) != ak:
+                        continue
+                    if str(drow.get("id_kind") or "").lower() != id_kind:
+                        continue
+                    system = drow.get("system")
+                    if system is None:
+                        continue
+
+                    system_present_kinds = present_kinds_by_system.get(system, set())
+                    system_refs_by_kind = refs_by_system_kind.get(system, {})
+
+                    for target_kind, rule in refs_rules.items():
+                        tk = str(target_kind).strip().upper()
+                        cov = str(getattr(rule, "coverage", "optional")).strip().lower()
+                        allowed_headings = set([h.strip() for h in (getattr(rule, "headings", None) or []) if isinstance(h, str) and h.strip()])
+
+                        refs_in_kind = [r for r in system_refs_by_kind.get(tk, []) if str(r.get("id")) == did]
+
+                        if cov == "required":
+                            if tk not in system_present_kinds:
+                                warnings.append(Template.error(
+                                    "constraints",
+                                    "Required reference target kind not in scope",
+                                    path=drow.get("artifact_path"),
+                                    line=int(drow.get("line", 1) or 1),
+                                    id=did,
+                                    artifact_kind=ak,
+                                    target_kind=tk,
+                                ))
+                                continue
+                            if not refs_in_kind:
+                                errors.append(Template.error(
+                                    "constraints",
+                                    "ID not referenced from required artifact kind",
+                                    path=drow.get("artifact_path"),
+                                    line=int(drow.get("line", 1) or 1),
+                                    id=did,
+                                    artifact_kind=ak,
+                                    target_kind=tk,
+                                ))
+                                continue
+
+                        if cov == "prohibited" and refs_in_kind:
+                            first = refs_in_kind[0]
+                            errors.append(Template.error(
+                                "constraints",
+                                "ID referenced from prohibited artifact kind",
+                                path=first.get("artifact_path"),
+                                line=int(first.get("line", 1) or 1),
+                                id=did,
+                                artifact_kind=ak,
+                                target_kind=tk,
+                            ))
+                            continue
+
+                        if allowed_headings and refs_in_kind:
+                            ok_any = False
+                            for rr in refs_in_kind:
+                                active = rr.get("headings") or []
+                                ok = any(h in allowed_headings for h in active)
+                                if ok:
+                                    ok_any = True
+                                else:
+                                    errors.append(Template.error(
+                                        "constraints",
+                                        "ID reference not under required headings",
+                                        path=rr.get("artifact_path"),
+                                        line=int(rr.get("line", 1) or 1),
+                                        id=did,
+                                        artifact_kind=ak,
+                                        target_kind=tk,
+                                        headings=sorted(allowed_headings),
+                                        found_headings=active,
+                                    ))
+                            if cov == "required" and not ok_any:
+                                errors.append(Template.error(
+                                    "constraints",
+                                    "Required headings contain no ID references",
+                                    path=drow.get("artifact_path"),
+                                    line=int(drow.get("line", 1) or 1),
+                                    id=did,
+                                    artifact_kind=ak,
+                                    target_kind=tk,
+                                    headings=sorted(allowed_headings),
+                                ))
 
     # Note: References decide their own has= attributes (task, priority).
     # A reference without has="task" is valid even if the definition has it.
@@ -1385,6 +1885,7 @@ __all__ = [
     "Template",
     "Artifact",
     "ParsedCypilotId",
+    "apply_kind_constraints",
     "load_template",
     "validate_artifact_file_against_template",
     "cross_validate_artifacts",

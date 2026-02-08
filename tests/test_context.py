@@ -81,7 +81,7 @@ class TestCypilotContextMethods:
             meta=meta,
             kits={"cypilot-sdlc": loaded_kit1, "custom": loaded_kit2},
             registered_systems={"myapp", "test-system"},
-            _errors=["error1", "error2"],
+            _errors=[{"type": "context", "message": "error1"}, {"type": "context", "message": "error2"}],
         )
 
     def test_get_template_found(self):

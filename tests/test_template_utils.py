@@ -4,10 +4,13 @@ from pathlib import Path
 from skills.cypilot.scripts.cypilot.utils.template import (
     Artifact,
     Template,
+    apply_kind_constraints,
     cross_validate_artifacts,
     load_template,
     validate_artifact_file_against_template,
 )
+
+from skills.cypilot.scripts.cypilot.utils.constraints import parse_kit_constraints
 
 
 def _write(path: Path, text: str) -> Path:
@@ -174,6 +177,21 @@ Summary
     tmpl_prd, _ = load_template(tmpl_prd_path)
     tmpl_design, _ = load_template(tmpl_design_path)
 
+    kc, kerrs = parse_kit_constraints({
+        "PRD": {
+            "defined-id": [{
+                "kind": "item",
+                "references": {"DESIGN": {"coverage": "required"}},
+            }],
+        },
+        "DESIGN": {
+            "defined-id": [],
+        },
+    })
+    assert kerrs == []
+    assert apply_kind_constraints(tmpl_prd, kc.by_kind["PRD"]) == []
+    assert apply_kind_constraints(tmpl_design, kc.by_kind["DESIGN"]) == []
+
     art_prd = tmpl_prd.parse(_write(tmp_path / "prd.md", _good_artifact_text()))
     art_design = tmpl_design.parse(
       _write(
@@ -210,7 +228,7 @@ Summary
       ),
     )
     report2 = cross_validate_artifacts([art_prd, art_design_wrong_ref])
-    assert any(e.get("message") == "ID not covered by required artifact kinds" for e in report2["errors"])
+    assert any(e.get("message") == "ID not referenced from required artifact kind" for e in report2["errors"])
 
     # Empty DESIGN (no IDs from same system) results in warning, not error
     art_design_empty = tmpl_design.parse(
@@ -218,20 +236,118 @@ Summary
     )
     report3 = cross_validate_artifacts([art_prd, art_design_empty])
     assert report3["errors"] == []
-    assert any(e.get("message") == "ID not covered (target artifact kinds not in scope)" for e in report3["warnings"])
+    assert any(w.get("message") == "Required reference target kind not in scope" for w in report3["warnings"])
 
-    # Ref done but def not done should fail
+
+def test_constraints_override_marker_attrs(tmp_path: Path):
+    tmpl_text = """
+---
+cypilot-template:
+  version:
+    major: 1
+    minor: 0
+  kind: PRD
+  unknown_sections: warn
+---
+
+<!-- cpt:id:item has="task" -->
+- [ ] **ID**: `cpt-demo-item-1`
+<!-- cpt:id:item -->
+"""
+    tmpl_path = _write(tmp_path / "tmpl.md", tmpl_text)
+    tmpl, errs = load_template(tmpl_path)
+    assert errs == []
+
+    constraints_json = {
+        "PRD": {
+            "defined-id": [
+                {
+                    "kind": "item",
+                    "priority": True,
+                    "task": True,
+                    "to_code": True,
+                    "references": {
+                        "DESIGN": {"coverage": "required"},
+                        "SPEC": {"coverage": "required"},
+                    },
+                }
+            ],
+        }
+    }
+    kc, kerrs = parse_kit_constraints(constraints_json)
+    assert kerrs == []
+    cerrs = apply_kind_constraints(tmpl, kc.by_kind["PRD"])
+    assert cerrs == []
+
+    id_block = [b for b in tmpl.blocks if b.type == "id" and b.name == "item"][0]
+    assert "priority" in (id_block.attrs.get("has") or "")
+    assert "task" in (id_block.attrs.get("has") or "")
+    assert id_block.attrs.get("to_code") == "true"
+    assert id_block.attrs.get("covered_by") in (None, "")
+
+
+def test_constraints_contradiction_reports_error(tmp_path: Path):
+    tmpl_text = """
+---
+cypilot-template:
+  version:
+    major: 1
+    minor: 0
+  kind: PRD
+  unknown_sections: warn
+---
+
+<!-- cpt:id:item has="priority" to_code="false" -->
+- [ ] `p1` - **ID**: `cpt-demo-item-1`
+<!-- cpt:id:item -->
+"""
+    tmpl_path = _write(tmp_path / "tmpl.md", tmpl_text)
+    tmpl, errs = load_template(tmpl_path)
+    assert errs == []
+
+    constraints_json = {
+        "PRD": {
+            "defined-id": [{"kind": "item", "priority": False, "to_code": True}],
+        }
+    }
+    kc, kerrs = parse_kit_constraints(constraints_json)
+    assert kerrs == []
+    cerrs = apply_kind_constraints(tmpl, kc.by_kind["PRD"])
+    assert any(e.get("type") == "constraints" and e.get("message") == "Constraint contradicts template marker" for e in cerrs)
+
+
+def test_cross_validate_reference_done_but_definition_not_done(tmp_path: Path):
+    tmpl_prd_path = _write(tmp_path / "prd.template.md", _sample_template_text("PRD"))
+    design_template = """
+---
+cypilot-template:
+  version:
+    major: 1
+    minor: 0
+  kind: DESIGN
+  unknown_sections: warn
+---
+
+<!-- cpt:id-ref:item has="priority,task" -->
+[x] `p1` - `cpt-demo-item-1`
+<!-- cpt:id-ref:item -->
+
+<!-- cpt:paragraph:summary -->
+Summary
+<!-- cpt:paragraph:summary -->
+"""
+    tmpl_design_path = _write(tmp_path / "design.template.md", design_template)
+    tmpl_prd, _ = load_template(tmpl_prd_path)
+    tmpl_design, _ = load_template(tmpl_design_path)
+
     art_prd_undone = tmpl_prd.parse(
-      _write(
-        tmp_path / "prd-undone.md",
-        _good_artifact_text().replace("[x]", "[ ]", 1),
-      ),
+        _write(tmp_path / "prd-undone.md", _good_artifact_text().replace("[x]", "[ ]", 1)),
     )
     art_design_done_ref = tmpl_design.parse(
-      _write(
-        tmp_path / "design-done-ref.md",
-        """
-<!-- cpt:id-ref:item has="priority,task" -->
+        _write(
+            tmp_path / "design-done-ref.md",
+            """
+<!-- cpt:id-ref:item has=\"priority,task\" -->
 [x] `p1` - `cpt-demo-item-1`
 <!-- cpt:id-ref:item -->
 
@@ -241,8 +357,119 @@ Summary
 """,
         ),
     )
-    report3 = cross_validate_artifacts([art_prd_undone, art_design_done_ref])
-    assert any(e.get("message") == "Reference marked done but definition not done" for e in report3["errors"])
+    report = cross_validate_artifacts([art_prd_undone, art_design_done_ref])
+    assert any(e.get("message") == "Reference marked done but definition not done" for e in report["errors"])
+
+
+def test_constraints_strict_rejects_unknown_id_kind_in_artifact(tmp_path: Path):
+    tmpl_text = """
+---
+cypilot-template:
+  version:
+    major: 1
+    minor: 0
+  kind: PRD
+  unknown_sections: warn
+---
+
+<!-- cpt:id:item -->
+- [ ] **ID**: `cpt-demo-item-1`
+<!-- cpt:id:item -->
+
+<!-- cpt:id:extra -->
+- [ ] **ID**: `cpt-demo-extra-1`
+<!-- cpt:id:extra -->
+"""
+    tmpl_path = _write(tmp_path / "tmpl.md", tmpl_text)
+    tmpl, errs = load_template(tmpl_path)
+    assert errs == []
+
+    kc, kerrs = parse_kit_constraints({"PRD": {"defined-id": [{"kind": "item"}]}})
+    assert kerrs == []
+    cerrs = apply_kind_constraints(tmpl, kc.by_kind["PRD"])
+    assert cerrs == []
+
+    art_path = _write(tmp_path / "artifact.md", _good_artifact_text() + "\n<!-- cpt:id:extra -->\n- [ ] **ID**: `cpt-demo-extra-1`\n<!-- cpt:id:extra -->\n")
+    report = tmpl.validate(art_path)
+    assert any(e.get("type") == "constraints" and e.get("message") == "ID kind not allowed by constraints" for e in report["errors"])
+
+
+def test_constraints_strict_requires_presence_of_each_constrained_kind(tmp_path: Path):
+    tmpl_text = """
+---
+cypilot-template:
+  version:
+    major: 1
+    minor: 0
+  kind: PRD
+  unknown_sections: warn
+---
+
+<!-- cpt:id:item -->
+- [ ] **ID**: `cpt-demo-item-1`
+<!-- cpt:id:item -->
+
+<!-- cpt:id:actor -->
+- [ ] **ID**: `cpt-demo-actor-1`
+<!-- cpt:id:actor -->
+"""
+    tmpl_path = _write(tmp_path / "tmpl.md", tmpl_text)
+    tmpl, errs = load_template(tmpl_path)
+    assert errs == []
+
+    kc, kerrs = parse_kit_constraints({"PRD": {"defined-id": [{"kind": "item"}, {"kind": "actor"}]}})
+    assert kerrs == []
+    cerrs = apply_kind_constraints(tmpl, kc.by_kind["PRD"])
+    assert cerrs == []
+
+    art_path = _write(
+        tmp_path / "artifact.md",
+        """
+<!-- cpt:id:item -->
+- [ ] **ID**: `cpt-demo-item-1`
+<!-- cpt:id:item -->
+""",
+    )
+    report = tmpl.validate(art_path)
+    assert any(e.get("type") == "constraints" and e.get("message") == "Required ID kind missing in artifact" and e.get("id_kind") == "actor" for e in report["errors"])
+
+
+def test_constraints_strict_headings_scope_for_definitions(tmp_path: Path):
+    tmpl_text = """
+---
+cypilot-template:
+  version:
+    major: 1
+    minor: 0
+  kind: PRD
+  unknown_sections: warn
+---
+
+<!-- cpt:id:item -->
+- [ ] **ID**: `cpt-demo-item-1`
+<!-- cpt:id:item -->
+"""
+    tmpl_path = _write(tmp_path / "tmpl.md", tmpl_text)
+    tmpl, errs = load_template(tmpl_path)
+    assert errs == []
+
+    kc, kerrs = parse_kit_constraints({"PRD": {"defined-id": [{"kind": "item", "headings": ["Good"]}]}})
+    assert kerrs == []
+    cerrs = apply_kind_constraints(tmpl, kc.by_kind["PRD"])
+    assert cerrs == []
+
+    art_path = _write(
+        tmp_path / "artifact.md",
+        """
+# Bad
+
+<!-- cpt:id:item -->
+- [ ] **ID**: `cpt-demo-item-1`
+<!-- cpt:id:item -->
+""",
+    )
+    report = tmpl.validate(art_path)
+    assert any(e.get("type") == "constraints" and e.get("message") == "ID definition not under required headings" for e in report["errors"])
 
 
 # === Additional coverage tests ===

@@ -125,6 +125,95 @@ def scan_cpt_ids_without_markers(path: Path) -> List[Dict[str, object]]:
     return hits
 
 
+def scan_cpt_ids_markerless(path: Path) -> List[Dict[str, object]]:
+    """Scan a file for Cypilot IDs using markerless heuristics.
+
+    Unlike `scan_cpt_ids_without_markers`, this function DOES NOT require the file
+    to be markerless. It intentionally ignores markers and scans the whole file
+    outside fenced code blocks.
+    """
+    lines = read_text_safe(path)
+    if lines is None:
+        return []
+
+    hits: List[Dict[str, object]] = []
+    in_fence = False
+
+    for idx0, raw in enumerate(lines):
+        if _CODE_FENCE_RE.match(raw):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+
+        stripped = raw.strip()
+        if not stripped:
+            continue
+
+        m = _ID_DEF_RE.match(stripped)
+        if m:
+            checked = (m.group("task") or "").lower().find("x") != -1
+            priority = m.group("priority") or m.group("priority_only")
+            id_value = m.group("id") or m.group("id2") or m.group("id3")
+            h: Dict[str, object] = {"id": id_value, "line": idx0 + 1, "type": "definition", "checked": checked}
+            if priority:
+                h["priority"] = priority
+            hits.append(h)
+            continue
+
+        # Reference line format (optionally checkbox / priority).
+        stripped_ref = stripped
+        if stripped_ref.startswith("- "):
+            stripped_ref = stripped_ref[2:].strip()
+        elif stripped_ref.startswith("* "):
+            stripped_ref = stripped_ref[2:].strip()
+        mref = _ID_REF_RE.match(stripped_ref)
+        if mref:
+            checked = (mref.group("task") or "").lower().find("x") != -1
+            priority = mref.group("priority") or mref.group("priority_only")
+            h = {"id": mref.group("id"), "line": idx0 + 1, "type": "reference", "checked": checked}
+            if priority:
+                h["priority"] = priority
+            hits.append(h)
+            continue
+
+        # Generic inline backticked references.
+        for mm in _BACKTICK_ID_RE.finditer(raw):
+            hits.append({"id": mm.group(1), "line": idx0 + 1, "type": "reference", "checked": False})
+
+    return hits
+
+
+def headings_by_line_markerless(path: Path) -> List[List[str]]:
+    """Return active markdown heading titles for each line (1-indexed).
+
+    Headings are detected outside fenced code blocks.
+    """
+    lines = read_text_safe(path)
+    if lines is None:
+        return [[]]
+
+    out: List[List[str]] = [[] for _ in range(len(lines) + 1)]
+    stack: List[Tuple[int, str]] = []
+    in_fence = False
+    for idx0, raw in enumerate(lines):
+        line_no = idx0 + 1
+        if _CODE_FENCE_RE.match(raw):
+            in_fence = not in_fence
+            out[line_no] = [t for _, t in stack]
+            continue
+        if not in_fence:
+            m = _HEADING_RE.match(raw)
+            if m:
+                level = len(m.group(1))
+                title = str(m.group(2) or "").strip()
+                while stack and stack[-1][0] >= level:
+                    stack.pop()
+                stack.append((level, title))
+        out[line_no] = [t for _, t in stack]
+    return out
+
+
 def scan_cdsl_instructions_without_markers(path: Path) -> List[Dict[str, object]]:
     """Scan a file for CDSL instruction lines without relying on `<!-- cpt:... -->` markers.
 

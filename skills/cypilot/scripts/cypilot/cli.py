@@ -1200,6 +1200,9 @@ def _cmd_validate(argv: List[str]) -> int:
         print(json.dumps({"status": "ERROR", "message": "No adapter found. Run 'init' first."}, indent=None, ensure_ascii=False))
         return 1
 
+    # Surface context-level load errors (e.g., invalid constraints.json) as validation errors.
+    ctx_errors = list(getattr(ctx, "_errors", []) or [])
+
     meta = ctx.meta
     project_root = ctx.project_root
     registered_systems = ctx.registered_systems
@@ -1250,6 +1253,9 @@ def _cmd_validate(argv: List[str]) -> int:
     all_warnings: List[Dict[str, object]] = []
     artifact_reports: List[Dict[str, object]] = []
     parsed_artifacts: List[TemplateArtifact] = []
+
+    if ctx_errors:
+        all_errors.extend(ctx_errors)
 
     for artifact_path, template_path, artifact_type, traceability in artifacts_to_validate:
         # Use pre-loaded template from context if available
@@ -2524,8 +2530,45 @@ def _cmd_validate_kits(argv: List[str]) -> int:
     template_reports: List[Dict[str, object]] = []
     overall_status = "PASS"
 
+    # constraints.json cache by kit root
+    constraints_by_root: Dict[str, object] = {}
+
     for template_path in templates_to_validate:
         tmpl, errs = Template.from_path(template_path)
+
+        # Apply kit-level constraints.json (if present) and surface contradictions.
+        try:
+            from .utils.constraints import load_constraints_json
+            from .utils.template import apply_kind_constraints
+
+            kit_root: Optional[Path] = None
+            for parent in template_path.parents:
+                if parent.name == "artifacts":
+                    kit_root = parent.parent
+                    break
+
+            kit_key = kit_root.resolve().as_posix() if kit_root else ""
+            if kit_root and kit_key not in constraints_by_root:
+                kc, kc_errs = load_constraints_json(kit_root)
+                constraints_by_root[kit_key] = (kc, kc_errs)
+            if kit_root:
+                kc, kc_errs = constraints_by_root.get(kit_key, (None, []))
+                if kc_errs:
+                    all_errors.append(Template.error(
+                        "constraints",
+                        "Invalid constraints.json",
+                        path=(kit_root / "constraints.json").resolve(),
+                        line=1,
+                        errors=list(kc_errs),
+                    ))
+                    overall_status = "FAIL"
+                if tmpl is not None and kc is not None and hasattr(kc, "by_kind") and tmpl.kind in kc.by_kind:
+                    cerrs = apply_kind_constraints(tmpl, kc.by_kind[tmpl.kind])
+                    if cerrs:
+                        errs = list(errs or []) + list(cerrs)
+        except Exception:
+            # constraints are best-effort for validate-kits; avoid crashing template validation.
+            pass
 
         report: Dict[str, object] = {
             "template": str(template_path),
