@@ -1226,6 +1226,29 @@ def _cmd_validate(argv: List[str]) -> int:
         if not artifact_path.exists():
             print(json.dumps({"status": "ERROR", "message": f"Artifact not found: {artifact_path}"}, indent=None, ensure_ascii=False))
             return 1
+
+        # Load context from artifact's location
+        from .utils.context import CypilotContext
+        ctx = CypilotContext.load(artifact_path.parent)
+        if not ctx:
+            print(json.dumps({"status": "ERROR", "message": "No adapter found"}, indent=None, ensure_ascii=False))
+            return 1
+
+        # Refresh context-level errors for this context.
+        ctx_errors = list(getattr(ctx, "_errors", []) or [])
+
+        meta = ctx.meta
+        project_root = ctx.project_root
+        registered_systems = ctx.registered_systems
+        known_kinds = ctx.get_known_id_kinds()
+        for loaded_kit in (ctx.kits or {}).values():
+            kit_constraints = getattr(loaded_kit, "constraints", None)
+            if not kit_constraints:
+                continue
+            for kind_constraints in kit_constraints.by_kind.values():
+                for c in (kind_constraints.defined_id or []):
+                    if c and getattr(c, "kind", None):
+                        known_kinds.add(str(c.kind).strip().lower())
         try:
             rel_path = artifact_path.relative_to(project_root).as_posix()
         except ValueError:
@@ -1994,29 +2017,24 @@ def _cmd_list_id_kinds(argv: List[str]) -> int:
     p.add_argument("--artifact", default=None, help="Scan specific artifact (if omitted, scans all registered Cypilot artifacts)")
     args = p.parse_args(argv)
 
-    # Find adapter and load registry
-    adapter_dir = find_adapter_directory(Path.cwd())
-    if not adapter_dir:
-        print(json.dumps({"status": "ERROR", "message": "No adapter found. Run 'init' first."}, indent=None, ensure_ascii=False))
-        return 1
-
-    registry, reg_err = load_artifacts_registry(adapter_dir)
-    if not registry or reg_err:
-        print(json.dumps({"status": "ERROR", "message": reg_err or "Could not load artifacts.json"}, indent=None, ensure_ascii=False))
-        return 1
-
-    from .utils.artifacts_meta import ArtifactsMeta
-    meta = ArtifactsMeta.from_dict(registry)
-    project_root = (adapter_dir / meta.project_root).resolve()
-
-    # Collect artifacts to scan: (artifact_path, template_path, artifact_type)
-    artifacts_to_scan: List[Tuple[Path, Path, str]] = []
+    # Collect artifacts to scan: (artifact_path, template, artifact_kind)
+    artifacts_to_scan: List[Tuple[Path, Template, str]] = []
+    ctx = None
 
     if args.artifact:
         artifact_path = Path(args.artifact).resolve()
         if not artifact_path.exists():
             print(json.dumps({"status": "ERROR", "message": f"Artifact not found: {artifact_path}"}, indent=None, ensure_ascii=False))
             return 1
+
+        from .utils.context import CypilotContext
+        ctx = CypilotContext.load(artifact_path.parent)
+        if not ctx:
+            print(json.dumps({"status": "ERROR", "message": "No adapter found"}, indent=None, ensure_ascii=False))
+            return 1
+
+        project_root = ctx.project_root
+        meta = ctx.meta
 
         try:
             rel_path = artifact_path.relative_to(project_root).as_posix()
@@ -2027,48 +2045,31 @@ def _cmd_list_id_kinds(argv: List[str]) -> int:
             result = meta.get_artifact_by_path(rel_path)
             if result:
                 artifact_meta, system_node = result
-                pkg = meta.get_kit(system_node.kit)
-                if pkg and pkg.is_cypilot_format():
-                    template_path_str = pkg.get_template_path(artifact_meta.kind)
-                    template_path = (project_root / template_path_str).resolve()
-                    if not template_path.exists():
-                        if template_path_str.startswith("kits/"):
-                            alt = "rules/" + template_path_str[len("kits/"):]
-                            alt_path = (project_root / alt).resolve()
-                            if alt_path.exists():
-                                template_path = alt_path
-                        elif template_path_str.startswith("kits/"):
-                            alt = "rules/" + template_path_str[len("kits/"):]
-                            alt_path = (project_root / alt).resolve()
-                            if alt_path.exists():
-                                template_path = alt_path
-                    artifacts_to_scan.append((artifact_path, template_path, artifact_meta.kind))
+                tmpl = ctx.get_template(system_node.kit, artifact_meta.kind)
+                if tmpl:
+                    artifacts_to_scan.append((artifact_path, tmpl, artifact_meta.kind))
 
         if not artifacts_to_scan:
             print(json.dumps({"status": "ERROR", "message": f"Artifact not found in registry: {args.artifact}"}, indent=None, ensure_ascii=False))
             return 1
     else:
-        # Scan all Cypilot artifacts
+        # Scan all Cypilot artifacts from global context (autodetect-expanded)
+        from .utils.context import get_context
+        ctx = get_context()
+        if not ctx:
+            print(json.dumps({"status": "ERROR", "message": "No adapter found. Run 'init' first."}, indent=None, ensure_ascii=False))
+            return 1
+
+        meta = ctx.meta
+        project_root = ctx.project_root
+
         for artifact_meta, system_node in meta.iter_all_artifacts():
-            pkg = meta.get_kit(system_node.kit)
-            if not pkg or not pkg.is_cypilot_format():
+            tmpl = ctx.get_template(system_node.kit, artifact_meta.kind)
+            if not tmpl:
                 continue
-            template_path_str = pkg.get_template_path(artifact_meta.kind)
             artifact_path = (project_root / artifact_meta.path).resolve()
-            template_path = (project_root / template_path_str).resolve()
-            if not template_path.exists():
-                if template_path_str.startswith("kits/"):
-                    alt = "rules/" + template_path_str[len("kits/"):]
-                    alt_path = (project_root / alt).resolve()
-                    if alt_path.exists():
-                        template_path = alt_path
-                elif template_path_str.startswith("kits/"):
-                    alt = "rules/" + template_path_str[len("kits/"):]
-                    alt_path = (project_root / alt).resolve()
-                    if alt_path.exists():
-                        template_path = alt_path
             if artifact_path.exists():
-                artifacts_to_scan.append((artifact_path, template_path, artifact_meta.kind))
+                artifacts_to_scan.append((artifact_path, tmpl, artifact_meta.kind))
 
         if not artifacts_to_scan:
             print(json.dumps({"status": "ERROR", "message": "No Cypilot-format artifacts found in registry."}, indent=None, ensure_ascii=False))
@@ -2079,21 +2080,7 @@ def _cmd_list_id_kinds(argv: List[str]) -> int:
     kind_to_templates: Dict[str, Set[str]] = {}
     kind_counts: Dict[str, int] = {}
 
-    for artifact_path, template_path, artifact_type in artifacts_to_scan:
-        if template_path.exists():
-            tmpl, errs = Template.from_path(template_path)
-            if errs or tmpl is None:
-                continue
-        else:
-            tmpl = Template(
-                path=Path("<synthetic-template>"),
-                kind=str(artifact_type),
-                version=None,
-                policy=None,
-                blocks=[],
-                _loaded=True,
-            )
-
+    for artifact_path, tmpl, artifact_type in artifacts_to_scan:
         parsed: TemplateArtifact = tmpl.parse(artifact_path)
         parsed._extract_ids_and_refs()  # Populate id_definitions
 
@@ -2526,34 +2513,37 @@ def _cmd_validate_kits(argv: List[str]) -> int:
             return 1
         templates_to_validate.append(template_path)
     else:
-        # Find all templates from adapter registry
-        adapter_dir = find_adapter_directory(Path.cwd())
-        if not adapter_dir:
+        # Find all templates from kit directories using loaded context.
+        from .utils.context import get_context
+        ctx = get_context()
+        if not ctx:
             print(json.dumps({"status": "ERROR", "message": "No adapter found. Run 'init' first or specify --template."}, indent=None, ensure_ascii=False))
             return 1
 
-        registry, reg_err = load_artifacts_registry(adapter_dir)
-        if not registry or reg_err:
-            print(json.dumps({"status": "ERROR", "message": reg_err or "Could not load artifacts.json"}, indent=None, ensure_ascii=False))
-            return 1
-
-        from .utils.artifacts_meta import ArtifactsMeta
-        meta = ArtifactsMeta.from_dict(registry)
-        project_root = (adapter_dir / meta.project_root).resolve()
-
-        # Collect all unique template paths from template packages
-        # Collect unique template paths from all Cypilot artifacts
+        project_root = ctx.project_root
         seen_paths: Set[str] = set()
-        for artifact_meta, system_node in meta.iter_all_artifacts():
-            if args.kit and system_node.kit != args.kit:
+
+        for kit_id, kit in (ctx.meta.kits or {}).items():
+            if args.kit and str(kit_id) != str(args.kit):
                 continue
-            pkg = meta.get_kit(system_node.kit)
-            if not pkg or not pkg.is_cypilot_format():
+            if not kit.is_cypilot_format():
                 continue
-            template_path_str = pkg.get_template_path(artifact_meta.kind)
-            tmpl_path = (project_root / template_path_str).resolve()
-            if tmpl_path.as_posix() not in seen_paths and tmpl_path.exists():
-                seen_paths.add(tmpl_path.as_posix())
+
+            kit_root = (project_root / str(kit.path or "").strip().strip("/")).resolve()
+            artifacts_dir = kit_root / "artifacts"
+            if not artifacts_dir.is_dir():
+                continue
+
+            for kind_dir in artifacts_dir.iterdir():
+                if not kind_dir.is_dir():
+                    continue
+                tmpl_path = (kind_dir / "template.md").resolve()
+                if not tmpl_path.exists():
+                    continue
+                key = tmpl_path.as_posix()
+                if key in seen_paths:
+                    continue
+                seen_paths.add(key)
                 templates_to_validate.append(tmpl_path)
 
         if not templates_to_validate:
