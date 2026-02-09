@@ -58,7 +58,7 @@ class TestAdapterInfoCommand(unittest.TestCase):
             (specs_dir / "tech-stack.md").write_text("# Tech Stack\n")
             (specs_dir / "domain-model.md").write_text("# Domain Model\n")
 
-            # Create artifacts.json in adapter
+            # Create artifacts.json in adapter (legacy format)
             (adapter_dir / "artifacts.json").write_text(
                 json.dumps({"version": "1.0", "artifacts": [{"kind": "PRD", "path": "architecture/PRD.md"}]}, indent=2) + "\n",
                 encoding="utf-8",
@@ -83,6 +83,83 @@ class TestAdapterInfoCommand(unittest.TestCase):
             self.assertIn("artifacts_registry", output)
             self.assertIsNone(output.get("artifacts_registry_error"))
             self.assertEqual(output["artifacts_registry"]["version"], "1.0")
+
+    def test_adapter_info_expands_autodetect_systems(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            project_root = Path(tmp_dir) / "project"
+            project_root.mkdir()
+
+            (project_root / ".git").mkdir()
+            (project_root / ".cypilot-config.json").write_text(json.dumps({"cypilotAdapterPath": ".cypilot-adapter"}))
+
+            adapter_dir = project_root / ".cypilot-adapter"
+            adapter_dir.mkdir()
+            (adapter_dir / "AGENTS.md").write_text("# Cypilot Adapter: TestProject\n\n**Extends**: `../AGENTS.md`\n", encoding="utf-8")
+
+            # Minimal kit with constraints.json (rules-only, no template.md)
+            kit_root = adapter_dir / "kits" / "k"
+            (kit_root / "artifacts" / "PRD").mkdir(parents=True)
+            (kit_root / "constraints.json").write_text(
+                json.dumps({"PRD": {"identifiers": {"fr": {"required": False}}}}, indent=2) + "\n",
+                encoding="utf-8",
+            )
+
+            # A module with autodetected PRD
+            (project_root / "modules" / "m" / "docs").mkdir(parents=True)
+            (project_root / "modules" / "m" / "docs" / "PRD.md").write_text("**ID**: `cpt-testproject-m-fr-x`\n", encoding="utf-8")
+
+            (adapter_dir / "artifacts.json").write_text(
+                json.dumps(
+                    {
+                        "version": "1.1",
+                        "project_root": "..",
+                        "kits": {"k": {"format": "Cypilot", "path": ".cypilot-adapter/kits/k"}},
+                        "systems": [
+                            {
+                                "name": "TestProject",
+                                "slug": "testproject",
+                                "kit": "k",
+                                "autodetect": [
+                                    {
+                                        "system_root": "{project_root}/modules/$system",
+                                        "artifacts_root": "{system_root}/docs",
+                                        "artifacts": {"PRD": {"pattern": "PRD.md", "traceability": "FULL"}},
+                                        "validation": {"require_kind_registered_in_kit": True},
+                                    }
+                                ],
+                            }
+                        ],
+                    },
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            stdout_capture = io.StringIO()
+            with redirect_stdout(stdout_capture):
+                exit_code = main(["adapter-info", "--root", str(project_root)])
+            self.assertEqual(exit_code, 0)
+            output = json.loads(stdout_capture.getvalue())
+            reg = output.get("artifacts_registry")
+            self.assertIsInstance(reg, dict)
+            self.assertEqual(reg.get("version"), "1.1")
+            self.assertIsInstance(reg.get("systems"), list)
+            self.assertGreaterEqual(len(reg.get("systems", [])), 1)
+
+            def _iter_systems(systems):
+                for s in systems or []:
+                    yield s
+                    yield from _iter_systems(s.get("children") or [])
+
+            all_systems = list(_iter_systems(reg.get("systems") or []))
+            self.assertTrue(all("autodetect" not in s for s in all_systems))
+
+            all_artifacts = []
+            for s in all_systems:
+                all_artifacts.extend(s.get("artifacts") or [])
+
+            self.assertTrue(any(a.get("path") == "modules/m/docs/PRD.md" for a in all_artifacts))
     
     def test_adapter_info_found_without_config(self):
         """Test adapter-info finds adapter via recursive search when no config."""

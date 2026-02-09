@@ -2877,7 +2877,69 @@ def _cmd_adapter_info(argv: List[str]) -> int:
         config["artifacts_registry"] = None
         config["artifacts_registry_error"] = "MISSING_OR_INVALID_JSON" if registry_path.exists() else "MISSING"
     else:
-        config["artifacts_registry"] = registry
+        expanded: object = registry
+        if isinstance(registry, dict) and "systems" in registry:
+            try:
+                from .utils.context import CypilotContext
+
+                ctx = CypilotContext.load(adapter_dir)
+                if ctx is not None:
+                    meta = ctx.meta
+
+                    def _artifact_to_dict(a: object) -> dict:
+                        return {
+                            "path": str(getattr(a, "path", "")),
+                            "kind": str(getattr(a, "kind", getattr(a, "type", ""))),
+                            "traceability": str(getattr(a, "traceability", "DOCS-ONLY")),
+                        }
+
+                    def _codebase_to_dict(c: object) -> dict:
+                        d = {
+                            "path": str(getattr(c, "path", "")),
+                        }
+                        exts = getattr(c, "extensions", None)
+                        if isinstance(exts, list) and exts:
+                            d["extensions"] = [str(x) for x in exts if isinstance(x, str)]
+                        nm = getattr(c, "name", None)
+                        if isinstance(nm, str) and nm.strip():
+                            d["name"] = nm
+                        return d
+
+                    def _system_to_dict(s: object) -> dict:
+                        out = {
+                            "name": str(getattr(s, "name", "")),
+                            "slug": str(getattr(s, "slug", "")),
+                            "kit": str(getattr(s, "kit", "")),
+                            "artifacts": [_artifact_to_dict(a) for a in (getattr(s, "artifacts", []) or [])],
+                            "codebase": [_codebase_to_dict(c) for c in (getattr(s, "codebase", []) or [])],
+                            "children": [],
+                        }
+                        out["children"] = [_system_to_dict(ch) for ch in (getattr(s, "children", []) or [])]
+                        return out
+
+                    expanded = {
+                        "version": str(getattr(meta, "version", "")),
+                        "project_root": str(getattr(meta, "project_root", "..")),
+                        "kits": {
+                            str(kid): {
+                                "format": str(getattr(k, "format", "")),
+                                "path": str(getattr(k, "path", "")),
+                            }
+                            for kid, k in (getattr(meta, "kits", {}) or {}).items()
+                        },
+                        "ignore": [
+                            {
+                                "reason": str(getattr(blk, "reason", "")),
+                                "patterns": list(getattr(blk, "patterns", []) or []),
+                            }
+                            for blk in (getattr(meta, "ignore", []) or [])
+                        ],
+                        "systems": [_system_to_dict(s) for s in (getattr(meta, "systems", []) or [])],
+                    }
+            except Exception:
+                expanded = registry
+
+        config["artifacts_registry"] = expanded
         config["artifacts_registry_error"] = None
     
     # Calculate relative path
