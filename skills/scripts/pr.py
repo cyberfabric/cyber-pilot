@@ -470,7 +470,7 @@ def status(pr_number: str):
     pr_created = meta.get("createdAt", "")[:10]
     pr_updated = meta.get("updatedAt", "")[:10]
     merge_state = meta.get("mergeStateStatus", "—")
-    review_decision = meta.get("reviewDecision", "—")
+    review_decision = meta.get("reviewDecision") or "Requires Review"
     state_icon = _STATE_ICON.get(pr_state, "")
     ci_text = _ci_summary(meta)
 

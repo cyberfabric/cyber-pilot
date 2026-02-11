@@ -85,6 +85,11 @@ Previous results are stale the moment a new review request arrives.
    `meta.json`), and the files changed (in `diff.patch`), select the most
    appropriate review prompt. If unsure, default to "Code Review".
    Load the corresponding `promptFile` and `checklist` from the matched entry.
+   **Resolve `{placeholder}` variables** in the prompt using the fields from
+   the matched entry (e.g. `{project_domain}`, `{checklist}`, `{template}`,
+   `{existing_artifacts}`, `{architecture}`, `{coding_guidelines}`,
+   `{security_guidelines}`, etc.). Each prompt entry in `pr-review.json`
+   provides the project-specific paths that the submodule prompts de-reference.
    Use the checklist criteria to guide the review depth and structure.
 
 3. **For each PR** (if ALL, iterate; otherwise single):
