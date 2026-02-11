@@ -159,6 +159,8 @@ ALWAYS run `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py init --yes`
 
 ALWAYS run `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py agents --agent <name>` directly WHEN user invokes `cypilot agents <name>`
 
+ALWAYS run `python3 {project_root}/.cypilot/skills/scripts/pr.py list` directly WHEN user invokes `cypilot list PRs` or any PR listing intent — NEVER use `gh pr list`
+
 ---
 
 ## Workflow Routing
@@ -169,7 +171,58 @@ ALWAYS open and follow `{cypilot_path}/workflows/generate.md` WHEN user intent i
 
 ALWAYS open and follow `{cypilot_path}/workflows/analyze.md` WHEN user intent is READ: analyze, validate, review, analyze, check, inspect, audit, compare, list, show, find
 
-ALWAYS ask user "analyze (read-only) or generate (modify)?" WHEN intent is UNCLEAR: help, look at, work with, handle and STOP WHEN user user cancel or exit 
+ALWAYS ask user "analyze (read-only) or generate (modify)?" WHEN intent is UNCLEAR: help, look at, work with, handle and STOP WHEN user user cancel or exit
+
+## PR Review & Status (Shortcut Routing)
+
+ALWAYS re-fetch and re-analyze from scratch WHEN a PR review or status request is detected — even if the same PR was reviewed earlier in this conversation. Previous results are stale the moment a new request arrives. NEVER skip fetch or reuse earlier analysis.
+
+ALWAYS include the current **IDE name** (e.g. Windsurf, Cursor, VS Code) and **LLM model name** (e.g. Claude Sonnet 4, GPT-4.1) in the review or status report header.
+
+ALWAYS run `python3 {project_root}/.cypilot/skills/scripts/pr.py list` WHEN user intent matches PR list patterns:
+- `list PRs`, `list open PRs`, `cypilot list PRs`
+- `show PRs`, `show open PRs`, `what PRs are open`
+- Any request to enumerate or browse open pull requests
+
+AVOID use `gh pr list` directly — ALWAYS use `pr.py list` for listing PRs.
+
+ALWAYS route to the `/cypilot-pr-review` workflow WHEN user intent matches PR review patterns:
+- `review PR {number}`, `review PR #{number}`, `review PR https://...`
+- `cypilot review PR {number}`, `PR review {number}`
+- `code review PR {number}`, `check PR {number}`
+
+ALWAYS route to the `/cypilot-pr-status` workflow WHEN user intent matches PR status patterns:
+- `PR status {number}`, `cypilot PR status {number}`
+- `status of PR {number}`, `check PR status {number}`
+
+### PR List (Quick Command)
+
+When routed to list PRs:
+1. Run `python3 {project_root}/.cypilot/skills/scripts/pr.py list`
+2. Present the output to the user (respects `.prs/config.yaml` exclude list)
+3. No Protocol Guard or workflow loading required — this is a quick command
+
+### PR Review Workflow
+
+When routed to PR review:
+1. **ALWAYS fetch fresh data first** — run `pr.py fetch` even if data exists from a prior run
+2. Read `{cypilot_path}/workflows/pr-review.md` and follow its steps
+3. Use `python3 {project_root}/.cypilot/skills/scripts/pr.py` as the script
+4. When target is `ALL` or no PR number given, run `pr.py list` first to show available PRs
+5. Select prompt and checklist from `{cypilot_adapter_path}/pr-review.json` → `prompts`
+6. Load prompt from `promptFile` and checklist from `checklist` in matched entry
+7. Use templates from `.cypilot/templates/pr/`
+8. Include IDE name and LLM model name in the report header
+
+### PR Status Workflow
+
+When routed to PR status:
+1. **ALWAYS fetch fresh data first** — `pr.py status` auto-fetches, but never assume prior data is current
+2. Read `{cypilot_path}/workflows/pr-status.md` and follow its steps
+3. Use `python3 {project_root}/.cypilot/skills/scripts/pr.py` as the script
+4. When target is `ALL` or no PR number given, run `pr.py list` first to show available PRs
+5. Include IDE name and LLM model name in the report header
+
 ---
 
 ## Cypilot Mode
