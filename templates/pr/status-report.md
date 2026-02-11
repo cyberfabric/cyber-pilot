@@ -1,7 +1,7 @@
 # PR Status Report Template
 
 This file documents the expected format for generated status reports.
-`pr.py status` generates reports in `.prs/{ID}/status-report.md` following this structure.
+`pr.py status` generates reports in `.prs/{ID}/status.md` following this structure.
 
 ---
 

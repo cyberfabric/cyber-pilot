@@ -104,7 +104,7 @@ No reviewer comments found.
 
 ## Notes
 
-- `{placeholders}` are filled by the LLM during the `/pr-review` workflow.
+- `{placeholders}` are filled by the LLM during the `/cypilotpr-review` workflow.
 - Sections with no findings may use a single "No issues" line.
 - Omit N/A sections entirely for minimal PRs (e.g. docs-only, config-only).
 - The **Reviewer Comment Analysis** section is mandatory — it ensures the

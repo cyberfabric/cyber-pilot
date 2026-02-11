@@ -13,7 +13,7 @@ ALWAYS open and follow `{cypilot_path}/skills/cypilot/SKILL.md` FIRST WHEN {cypi
 
 **Type**: Analysis
 **Role**: Reviewer
-**Output**: `.prs/{ID}/status-report.md`
+**Output**: `.prs/{ID}/status.md`
 
 ---
 
@@ -68,12 +68,12 @@ Previous results are stale the moment a new status request arrives.
    Run: `python3 .cypilot/skills/scripts/pr.py status <ARG>`
    The `status` command auto-fetches the **latest** PR data from GitHub
    before generating each report — no stale data is possible.
-   This creates `.prs/{ID}/status-report.md` for each PR.
+   This creates `.prs/{ID}/status.md` for each PR.
    **ALWAYS run this step, even if the same PR was processed earlier in this conversation.**
    Do NOT skip this step. Do NOT reuse previously generated reports.
 
 2. **Assess severity** (LLM task)
-   For each generated status report, read `.prs/{ID}/status-report.md`.
+   For each generated status report, read `.prs/{ID}/status.md`.
    For every unreplied comment with `Severity: TBD`:
    - Read the comment body and its context.
    - Assign a severity: `CRITICAL`, `HIGH`, `MEDIUM`, or `LOW`.
@@ -99,7 +99,7 @@ Previous results are stale the moment a new status request arrives.
    This re-sorts the unreplied comment sections by severity (CRITICAL first).
 
 5. **Present results**
-   Read the final `.prs/{ID}/status-report.md` and present a summary to the
+   Read the final `.prs/{ID}/status.md` and present a summary to the
    user highlighting:
    - Total unreplied comments and their severity distribution
    - Any CRITICAL or HIGH items that need immediate attention
@@ -112,7 +112,7 @@ Previous results are stale the moment a new status request arrives.
 
 - [ ] `gh` CLI authenticated and functional
 - [ ] PR data fetched successfully (meta.json exists)
-- [ ] Status report generated (status-report.md exists)
+- [ ] Status report generated (status.md exists)
 - [ ] All `Severity: TBD` entries assessed
 - [ ] Resolved comments audited against current code
 - [ ] Suspicious resolutions moved to correct section

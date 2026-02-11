@@ -762,7 +762,7 @@ def status(pr_number: str):
         ln.append("")
 
     report_path = os.path.join(
-        pr_dir, "status-report.md"
+        pr_dir, "status.md"
     )
     with open(report_path, "w") as f:
         f.write("\n".join(ln))
@@ -780,7 +780,7 @@ _SEV_ORDER = {
 
 def reorder(pr_number: str):
     pr_dir = os.path.join(PRS_DIR, pr_number)
-    report_path = os.path.join(pr_dir, "status-report.md")
+    report_path = os.path.join(pr_dir, "status.md")
     if not os.path.exists(report_path):
         print(
             f"No status report for PR #{pr_number}.",
