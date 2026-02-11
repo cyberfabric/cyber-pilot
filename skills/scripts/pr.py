@@ -96,7 +96,7 @@ TEMPLATES_DIR = os.path.join(
     ),
 )
 # Local config path (exclude list, etc.)
-CONFIG_PATH = os.path.join(ROOT, ".prs", "config.yaml")
+CONFIG_PATH = os.path.join(PRS_DIR, "config.yaml")
 
 
 def _run(cmd, **kwargs):
@@ -242,22 +242,39 @@ def fetch(pr_number: str):
     )
 
     # 2. Diff
+    diff_path = os.path.join(pr_dir, "diff.patch")
     diff = _run(["gh", "pr", "diff", pr_number])
     if diff.returncode != 0:
-        print(
-            f"Failed to fetch diff for PR "
-            f"#{pr_number}: {diff.stderr}",
-            file=sys.stderr,
+        err = (diff.stderr or "").strip()
+        too_large = (
+            "PullRequest.diff too_large" in err
+            or "diff exceeded the maximum number of lines" in err
         )
-        sys.exit(1)
-
-    diff_path = os.path.join(pr_dir, "diff.patch")
-    with open(diff_path, "w") as f:
-        f.write(diff.stdout)
-    print(
-        f"  Saved diff → "
-        f"{os.path.relpath(diff_path, ROOT)}"
-    )
+        if too_large:
+            with open(diff_path, "w") as f:
+                f.write(
+                    f"# WARNING: PR #{pr_number} diff is too large to fetch via gh\n"
+                    f"# Original error:\n# {err.replace(chr(10), chr(10) + '# ')}\n"
+                )
+            print(
+                f"  Saved diff placeholder → "
+                f"{os.path.relpath(diff_path, ROOT)}",
+                file=sys.stderr,
+            )
+        else:
+            print(
+                f"Failed to fetch diff for PR "
+                f"#{pr_number}: {diff.stderr}",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+    else:
+        with open(diff_path, "w") as f:
+            f.write(diff.stdout)
+        print(
+            f"  Saved diff → "
+            f"{os.path.relpath(diff_path, ROOT)}"
+        )
 
     # 3. Review comments (REST — keeps diff_hunk etc.)
     comments = _run([
@@ -954,6 +971,7 @@ def main():
         if arg.upper() == "ALL":
             prs = _list_open_prs()
             excludes = _load_exclude_list()
+            failures = []
             for pr in prs:
                 num = str(pr["number"])
                 if num in excludes:
@@ -961,11 +979,16 @@ def main():
                         f"  Skipping PR #{num} (excluded)",
                     )
                     continue
-                p = os.path.join(
-                    PRS_DIR, num, "meta.json",
-                )
-                if os.path.isfile(p):
+                try:
                     status(num)
+                except SystemExit as e:
+                    print(
+                        f"  Failed to generate status for PR #{num} (exit={e.code})",
+                        file=sys.stderr,
+                    )
+                    failures.append(num)
+            if failures:
+                sys.exit(1)
         else:
             status(arg)
 
