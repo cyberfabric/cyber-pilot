@@ -257,7 +257,7 @@ Goal: Create new dashboard
 - Each step line includes `[ ]` or `[x]`, `pN`, and an instruction ID token `inst-{short-id}`
 - For codebase traceability, every implemented instruction marker maps to code via paired Cypilot block markers wrapping non-empty code.
    - Format: `@cpt-begin:{cpt-id}:p{N}:inst-{id}` ... code ... `@cpt-end:{cpt-id}:p{N}:inst-{id}`
-   - Example: `# @cpt-begin:cpt-system-spec-x-algo-validate:p1:inst-check-input`
+   - Example: `# @cpt-begin:cpt-system-feature-x-algo-validate:p1:inst-check-input`
 
 ### ❌ Prohibited
 
@@ -347,9 +347,9 @@ Actual workflow step
 Documentation example (excluded from validation):
 <!-- !no-cpt-begin -->
 \`\`\`rust
-// cpt-begin cpt-example-spec-z-algo-w:p1:inst-example
+// cpt-begin cpt-example-feature-z-algo-w:p1:inst-example
 example_code();
-// cpt-end   cpt-example-spec-z-algo-w:p1:inst-example
+// cpt-end   cpt-example-feature-z-algo-w:p1:inst-example
 \`\`\`
 <!-- !no-cpt-end -->
 ```

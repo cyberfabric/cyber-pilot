@@ -260,7 +260,7 @@ System (root)
 
 ## Artifacts
 
-**Purpose**: Declare documentation artifacts (PRD, DESIGN, ADR, DECOMPOSITION, SPEC).
+**Purpose**: Declare documentation artifacts (PRD, DESIGN, ADR, DECOMPOSITION, FEATURE).
 
 **Structure** (paths are FULL paths relative to `project_root`):
 ```json
@@ -274,7 +274,7 @@ System (root)
     },
     {
       "path": "architecture/features/auth.md",
-      "kind": "SPEC",
+      "kind": "FEATURE",
       "traceability": "FULL"
     },
     {
@@ -294,7 +294,7 @@ System (root)
 |-------|------|----------|---------|-------------|
 | `name` | string | NO | - | Human-readable name (for display) |
 | `path` | string | YES | - | FULL path to artifact file (relative to `project_root`) |
-| `kind` | string | YES | - | Artifact kind (PRD, DESIGN, ADR, DECOMPOSITION, SPEC) |
+| `kind` | string | YES | - | Artifact kind (PRD, DESIGN, ADR, DECOMPOSITION, FEATURE) |
 | `traceability` | string | NO | `"FULL"` | Traceability level |
 
 ### Path Resolution
@@ -313,7 +313,7 @@ artifact path: "docs/custom/DESIGN.md"
 
 **Default directory for NEW artifacts**:
 - `artifacts_dir` — base directory (default: `architecture`)
-- Subdirectories for specific artifact kinds (`specs/`, `ADR/`) are defined by the kit
+- Subdirectories for specific artifact kinds (`features/`, `ADR/`) are defined by the kit
 
 ### Path Requirements
 
@@ -324,7 +324,7 @@ artifact path: "docs/custom/DESIGN.md"
 ```text
 PRD.md
 ADR/0001-initial-architecture.md
-specs/auth.md
+features/auth.md
 ```
 
 **Invalid**:
@@ -350,8 +350,8 @@ specs    # no extension = likely directory
 | `PRD` | `{kit.path}/artifacts/PRD/template.md` | Product Requirements Document |
 | `DESIGN` | `{kit.path}/artifacts/DESIGN/template.md` | Overall Design (system-level) |
 | `ADR` | `{kit.path}/artifacts/ADR/template.md` | Architecture Decision Record |
-| `DECOMPOSITION` | `{kit.path}/artifacts/DECOMPOSITION/template.md` | Spec breakdown and dependencies |
-| `SPEC` | `{kit.path}/artifacts/SPEC/template.md` | Spec Design (spec-level) |
+| `DECOMPOSITION` | `{kit.path}/artifacts/DECOMPOSITION/template.md` | Feature breakdown and dependencies |
+| `FEATURE` | `{kit.path}/artifacts/FEATURE/template.md` | Feature Design (feature-level) |
 
 ---
 
@@ -618,7 +618,7 @@ When creating NEW artifacts:
 artifacts_dir: "architecture"
 spec slug: "auth"
 
-→ New SPEC created at: architecture/features/auth.md (subdir defined by kit)
+→ New FEATURE created at: architecture/features/auth.md (subdir defined by kit)
 → Registered in artifacts array with FULL path: "architecture/features/auth.md"
 ```
 
@@ -831,7 +831,7 @@ else:
         { "name": "Overall Design", "path": "architecture/DESIGN.md", "kind": "DESIGN", "traceability": "FULL" },
         { "name": "Initial Architecture", "path": "architecture/ADR/0001-initial-architecture.md", "kind": "ADR", "traceability": "DOCS-ONLY" },
         { "name": "Design Decomposition", "path": "architecture/DECOMPOSITION.md", "kind": "DECOMPOSITION", "traceability": "DOCS-ONLY" },
-        { "name": "Custom Location Example", "path": "docs/specs/custom-spec.md", "kind": "SPEC", "traceability": "FULL" }
+        { "name": "Custom Location Example", "path": "docs/features/custom-feature.md", "kind": "FEATURE", "traceability": "FULL" }
       ],
       "codebase": [
         {
@@ -850,7 +850,7 @@ else:
           "artifacts_dir": "modules/auth/architecture",
           "artifacts": [
             { "path": "modules/auth/architecture/PRD.md", "kind": "PRD", "traceability": "DOCS-ONLY" },
-            { "path": "modules/auth/architecture/features/sso.md", "kind": "SPEC", "traceability": "FULL" }
+            { "path": "modules/auth/architecture/features/sso.md", "kind": "FEATURE", "traceability": "FULL" }
           ],
           "codebase": [
             { "name": "Auth Module", "path": "src/modules/auth", "extensions": [".ts"] }
@@ -864,6 +864,8 @@ else:
 ```
 
 **Note**: Artifact paths are FULL paths relative to `project_root`. The `artifacts_dir` defines the default base directory for NEW artifacts — subdirectories for specific kinds (`specs/`, `ADR/`) are defined by the kit.
+
+**Note**: Artifact paths are FULL paths relative to `project_root`. The `artifacts_dir` defines the default base directory for NEW artifacts — subdirectories for specific kinds (`features/`, `ADR/`) are defined by the kit.
 
 ---
 
@@ -918,7 +920,7 @@ else:
 |---|-------|----------|---------------|
 | A.1 | Each artifact has `path` and `kind` fields | YES | Both fields exist |
 | A.2 | Artifact paths are files, not directories | YES | Path has extension, doesn't end with `/` |
-| A.3 | Artifact kinds are valid | YES | One of: PRD, DESIGN, ADR, DECOMPOSITION, SPEC |
+| A.3 | Artifact kinds are valid | YES | One of: PRD, DESIGN, ADR, DECOMPOSITION, FEATURE |
 | A.4 | Artifact files exist (if validating content) | CONDITIONAL | File exists at resolved path |
 
 ### Codebase Entries (C)

@@ -133,7 +133,7 @@ def cmd_init(argv: List[str]) -> int:
 
     # Use kit-based WHEN clause format (not workflow-based)
     kit_id = "cypilot-sdlc"
-    artifacts_when = f"ALWAYS open and follow `artifacts.json` WHEN Cypilot uses kit `{kit_id}` for artifact kinds: PRD, DESIGN, DECOMPOSITION, ADR, SPEC OR codebase"
+    artifacts_when = f"ALWAYS open and follow `artifacts.json` WHEN Cypilot uses kit `{kit_id}` for artifact kinds: PRD, DESIGN, DECOMPOSITION, ADR, FEATURE OR codebase"
     desired_agents = "\n".join([
         f"# Cypilot Adapter: {project_name}",
         "",

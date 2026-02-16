@@ -130,7 +130,7 @@ Each element of `references` is an object:
             "priority": "allowed"
           },
           "DECOMPOSITION": {"coverage": "optional"},
-          "SPEC": {"coverage": "optional"},
+          "FEATURE": {"coverage": "optional"},
           "ADR": {"coverage": "prohibited"}
         }
       },
@@ -142,7 +142,7 @@ Each element of `references` is an object:
         "task": "allowed",
         "references": {
           "DESIGN": {"coverage": "required"},
-          "SPEC": {"coverage": "optional"}
+          "FEATURE": {"coverage": "optional"}
         }
       },
       "actor": {

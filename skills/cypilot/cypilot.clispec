@@ -34,7 +34,7 @@ RELATED:
 COMMAND validate
 SYNOPSIS: python3 scripts/cypilot.py validate [--artifact <path>] [--skip-code] [options]
 DESCRIPTION: Validate Cypilot artifacts and code traceability. Validates structure against template, cross-references between artifacts, task statuses, and code traceability markers. By default validates both artifacts and code; use --skip-code to validate artifacts only.
-WORKFLOW: design-validate, specs-validate, spec-validate, prd-validate, adr-validate, code-validate
+WORKFLOW: design-validate, features-validate, feature-validate, prd-validate, adr-validate, code-validate
 
 ARGUMENTS:
 
@@ -74,7 +74,7 @@ RELATED:
   - @CLI.where-used
   - @CLI.validate-kits
   - @Workflow.design-validate
-  - @Workflow.spec-validate
+  - @Workflow.feature-validate
 ---
 
 COMMAND validate-kits
@@ -201,8 +201,8 @@ EXIT CODES:
 EXAMPLE:
   $ python3 scripts/cypilot.py get-content --artifact architecture/PRD.md --id cpt-myapp-actor-admin
   $ python3 scripts/cypilot.py get-content --artifact architecture/DESIGN.md --id cpt-myapp-req-auth
-  $ python3 scripts/cypilot.py get-content --code src/auth.py --id cpt-myapp-spec-auth-flow-login
-  $ python3 scripts/cypilot.py get-content --code src/auth.py --id cpt-myapp-spec-auth-flow-login --inst inst-validate-creds
+  $ python3 scripts/cypilot.py get-content --code src/auth.py --id cpt-myapp-feature-auth-flow-login
+  $ python3 scripts/cypilot.py get-content --code src/auth.py --id cpt-myapp-feature-auth-flow-login --inst inst-validate-creds
 
 RELATED:
   - @CLI.list-ids
@@ -251,7 +251,7 @@ EXIT CODES:
 EXAMPLE:
   $ python3 scripts/cypilot.py where-defined --id cpt-myapp-actor-admin
   $ python3 scripts/cypilot.py where-defined --id cpt-myapp-req-auth
-  $ python3 scripts/cypilot.py where-defined --id cpt-myapp-spec-auth --artifact architecture/DECOMPOSITION.md
+  $ python3 scripts/cypilot.py where-defined --id cpt-myapp-feature-auth --artifact architecture/DECOMPOSITION.md
 
 RELATED:
   - @CLI.where-used
@@ -277,7 +277,7 @@ EXIT CODES:
 EXAMPLE:
   $ python3 scripts/cypilot.py where-used --id cpt-myapp-actor-admin
   $ python3 scripts/cypilot.py where-used --id cpt-myapp-req-auth
-  $ python3 scripts/cypilot.py where-used --id cpt-myapp-spec-auth --artifact architecture/DESIGN.md
+  $ python3 scripts/cypilot.py where-used --id cpt-myapp-feature-auth --artifact architecture/DESIGN.md
 
 RELATED:
   - @CLI.where-defined

@@ -14,8 +14,9 @@
 | `make test-quick` | Run fast tests only (skip slow) |
 | `make test-coverage` | Run tests with coverage report |
 | `make validate` | Validate core methodology |
-| `make validate-spec SPEC=name` | Validate specific spec |
+| `make validate-feature FEATURE=name` | Validate specific feature |
 | `make validate-code` | Validate codebase traceability |
+| `make validate-code-feature FEATURE=name` | Validate code traceability for specific feature |
 | `make self-check` | Validate SDLC examples against templates |
 | `make vulture` | Scan for dead code (report only) |
 | `make vulture-ci` | Scan for dead code (fails if findings) |

@@ -91,7 +91,7 @@ Cypilot tools validate marker structure and referenced IDs; additional constrain
 
 **Example:**
 ```python
-# @cpt-flow:cpt-my-system-spec-core-auth-v2:p1
+# @cpt-flow:cpt-my-system-feature-core-auth-v2:p1
 def login_flow(request):
     ...
 ```
@@ -113,12 +113,12 @@ Wrap specific CDSL instruction implementations:
 
 **Example:**
 ```python
-# @cpt-begin:cpt-my-system-spec-core-auth-v2:p1:inst-fetch-tenant-from-db
+# @cpt-begin:cpt-my-system-feature-core-auth-v2:p1:inst-fetch-tenant-from-db
 def validate_credentials(username, password):
     if not username or not password:
         raise ValidationError("Missing credentials")
     return authenticate(username, password)
-# @cpt-end:cpt-my-system-spec-core-auth-v2:p1:inst-fetch-tenant-from-db
+# @cpt-end:cpt-my-system-feature-core-auth-v2:p1:inst-fetch-tenant-from-db
 ```
 
 ### Language-Specific Comment Syntax
@@ -185,8 +185,8 @@ When design ID is versioned:
 
 | Design ID | Code Marker |
 |-----------|-------------|
-| `cpt-app-spec-auth-flow-login` | `@cpt-flow:cpt-app-spec-auth-flow-login:p1` |
-| `cpt-app-spec-auth-flow-login-v2` | `@cpt-flow:cpt-app-spec-auth-flow-login-v2:p1` |
+| `cpt-app-feature-auth-flow-login` | `@cpt-flow:cpt-app-feature-auth-flow-login:p1` |
+| `cpt-app-feature-auth-flow-login-v2` | `@cpt-flow:cpt-app-feature-auth-flow-login-v2:p1` |
 
 **Migration:**
 - When design version increments, update all code markers
@@ -209,11 +209,11 @@ python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py validate-code
 
 ```python
 # WRONG - missing :pN
-# @cpt-flow:cpt-app-spec-auth-flow-login
+# @cpt-flow:cpt-app-feature-auth-flow-login
 def login(): ...
 
 # CORRECT
-# @cpt-flow:cpt-app-spec-auth-flow-login:p1
+# @cpt-flow:cpt-app-feature-auth-flow-login:p1
 def login(): ...
 ```
 
@@ -221,25 +221,25 @@ def login(): ...
 
 ```python
 # WRONG - IDs don't match
-# @cpt-begin:cpt-app-spec-auth-flow-login:p1:inst-validate
+# @cpt-begin:cpt-app-feature-auth-flow-login:p1:inst-validate
 def validate(): ...
-# @cpt-end:cpt-app-spec-auth-flow-login:p1:inst-check  # DIFFERENT!
+# @cpt-end:cpt-app-feature-auth-flow-login:p1:inst-check  # DIFFERENT!
 
 # CORRECT - IDs match exactly
-# @cpt-begin:cpt-app-spec-auth-flow-login:p1:inst-validate
+# @cpt-begin:cpt-app-feature-auth-flow-login:p1:inst-validate
 def validate(): ...
-# @cpt-end:cpt-app-spec-auth-flow-login:p1:inst-validate
+# @cpt-end:cpt-app-feature-auth-flow-login:p1:inst-validate
 ```
 
 ### ❌ Invented IDs
 
 ```python
 # WRONG - ID doesn't exist in design
-# @cpt-flow:cpt-app-spec-auth-flow-my-custom-thing:p1
+# @cpt-flow:cpt-app-feature-auth-flow-my-custom-thing:p1
 def my_function(): ...
 
 # CORRECT - Use only IDs from design document
-# @cpt-flow:cpt-app-spec-auth-flow-login:p1
+# @cpt-flow:cpt-app-feature-auth-flow-login:p1
 def login_flow(): ...
 ```
 
@@ -247,14 +247,14 @@ def login_flow(): ...
 
 ```python
 # WRONG - no code between markers
-# @cpt-begin:cpt-app-spec-auth-flow-login:p1:inst-validate
-# @cpt-end:cpt-app-spec-auth-flow-login:p1:inst-validate
+# @cpt-begin:cpt-app-feature-auth-flow-login:p1:inst-validate
+# @cpt-end:cpt-app-feature-auth-flow-login:p1:inst-validate
 
 # CORRECT - actual implementation between markers
-# @cpt-begin:cpt-app-spec-auth-flow-login:p1:inst-validate
+# @cpt-begin:cpt-app-feature-auth-flow-login:p1:inst-validate
 def validate_credentials(user, password):
     return authenticate(user, password)
-# @cpt-end:cpt-app-spec-auth-flow-login:p1:inst-validate
+# @cpt-end:cpt-app-feature-auth-flow-login:p1:inst-validate
 ```
 
 ---

@@ -3,7 +3,7 @@
   "$id": "https://example.com/cypilot/kit-constraints.schema.json",
   "title": "Cypilot Kit Constraints (constraints.json)",
   "type": "object",
-  "description": "Kit-level constraints for artifact IDs. Root keys are artifact kinds (e.g. PRD, DESIGN, SPEC).",
+  "description": "Kit-level constraints for artifact IDs. Root keys are artifact kinds (e.g. PRD, DESIGN, FEATURE).",
   "patternProperties": {
     "^\\$": {}
   },

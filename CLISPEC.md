@@ -117,7 +117,7 @@ WORKFLOW: 05-init-spec
 **RELATED**: Related commands/workflows
 ```
 RELATED:
-  - @CLI.validate-spec
+  - @CLI.validate-feature
   - @CLI.init-specs
   - @Workflow.05-init-spec
 ```
@@ -207,7 +207,7 @@ Reference other commands, workflows, or entities:
 ### Spec References
 
 ```
-@Spec.{slug}                # Reference to spec
+@Feature.{slug}                # Reference to feature
 @DomainModel.{TypeName}        # Reference to domain type
 ```
 
@@ -216,36 +216,6 @@ Reference other commands, workflows, or entities:
 ## Complete Example
 
 ```
-COMMAND validate-spec
-SYNOPSIS: cypilot validate-spec <slug> [options]
-DESCRIPTION: Validate spec design completeness and Cypilot compliance
-WORKFLOW: 06-validate-spec
-
-ARGUMENTS:
-  slug  <slug>  required  Spec identifier to validate
-
-OPTIONS:
-  --strict  <boolean>  Enable strict validation mode
-  --fix, -f  <boolean>  Auto-fix common issues
-  --output, -o  <path>  [default: stdout]  Output file for report
-
-EXIT CODES:
-  0  Spec design valid (score 100/100)
-  1  File system error or spec not found
-  2  Validation failed (score < 100/100)
-  3  Workflow execution error
-
-EXAMPLE:
-  $ cypilot validate-spec user-authentication
-  $ cypilot validate-spec data-export --strict
-  $ cypilot validate-spec payment --output report.txt
-
-RELATED:
-  - @CLI.init-spec
-  - @CLI.fix-design
-  - @Workflow.06-validate-spec
----
-
 COMMAND init-spec
 SYNOPSIS: cypilot init-spec <slug> [options]
 DESCRIPTION: Initialize a new spec with DESIGN.md template
@@ -271,7 +241,7 @@ EXAMPLE:
   $ cypilot init-spec payment --skip-validation
 
 RELATED:
-  - @CLI.validate-spec
+  - @CLI.validate-feature
   - @CLI.init-specs
   - @Workflow.05-init-spec
 ---

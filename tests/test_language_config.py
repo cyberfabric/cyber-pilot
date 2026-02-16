@@ -155,12 +155,12 @@ class TestRegexPatternBuilding(unittest.TestCase):
         regex = build_cypilot_begin_regex(config)
         
         # Should match Python comment
-        self.assertIsNotNone(regex.match("# cpt-begin cpt-test-spec-x-flow-y:p1:inst-step"))
-        self.assertIsNotNone(regex.match("  # cpt-begin cpt-test-spec-x-flow-y:p1:inst-step"))
+        self.assertIsNotNone(regex.match("# cpt-begin cpt-test-feature-x-flow-y:p1:inst-step"))
+        self.assertIsNotNone(regex.match("  # cpt-begin cpt-test-feature-x-flow-y:p1:inst-step"))
         
         # Should extract tag
-        match = regex.match("# cpt-begin cpt-test-spec-x-flow-y:p1:inst-step")
-        self.assertEqual(match.group(1), "cpt-test-spec-x-flow-y:p1:inst-step")
+        match = regex.match("# cpt-begin cpt-test-feature-x-flow-y:p1:inst-step")
+        self.assertEqual(match.group(1), "cpt-test-feature-x-flow-y:p1:inst-step")
 
     def test_cypilot_begin_regex_matches_javascript_style(self):
         """Verify cpt-begin regex matches JavaScript // comments."""
@@ -174,8 +174,8 @@ class TestRegexPatternBuilding(unittest.TestCase):
         regex = build_cypilot_begin_regex(config)
         
         # Should match JS comment
-        self.assertIsNotNone(regex.match("// cpt-begin cpt-test-spec-x-flow-y:p1:inst-step"))
-        self.assertIsNotNone(regex.match("  // cpt-begin cpt-test-spec-x-flow-y:p1:inst-step"))
+        self.assertIsNotNone(regex.match("// cpt-begin cpt-test-feature-x-flow-y:p1:inst-step"))
+        self.assertIsNotNone(regex.match("  // cpt-begin cpt-test-feature-x-flow-y:p1:inst-step"))
 
     def test_cypilot_begin_regex_matches_sql_style(self):
         """Verify cpt-begin regex matches SQL -- comments."""
@@ -189,7 +189,7 @@ class TestRegexPatternBuilding(unittest.TestCase):
         regex = build_cypilot_begin_regex(config)
         
         # Should match SQL comment
-        self.assertIsNotNone(regex.match("-- cpt-begin cpt-test-spec-x-flow-y:p1:inst-step"))
+        self.assertIsNotNone(regex.match("-- cpt-begin cpt-test-feature-x-flow-y:p1:inst-step"))
 
     def test_cypilot_begin_regex_matches_html_comment(self):
         """Verify cpt-begin regex matches HTML <!-- comments."""
@@ -203,7 +203,7 @@ class TestRegexPatternBuilding(unittest.TestCase):
         regex = build_cypilot_begin_regex(config)
         
         # Should match HTML comment
-        self.assertIsNotNone(regex.match("<!-- cpt-begin cpt-test-spec-x-flow-y:p1:inst-step"))
+        self.assertIsNotNone(regex.match("<!-- cpt-begin cpt-test-feature-x-flow-y:p1:inst-step"))
 
     def test_cypilot_begin_regex_matches_multiple_styles(self):
         """Verify cpt-begin regex matches multiple comment styles."""
@@ -217,11 +217,11 @@ class TestRegexPatternBuilding(unittest.TestCase):
         regex = build_cypilot_begin_regex(config)
         
         # Should match all styles
-        self.assertIsNotNone(regex.match("# cpt-begin cpt-test-spec-x-flow-y:p1:inst-step"))
-        self.assertIsNotNone(regex.match("// cpt-begin cpt-test-spec-x-flow-y:p1:inst-step"))
-        self.assertIsNotNone(regex.match("-- cpt-begin cpt-test-spec-x-flow-y:p1:inst-step"))
-        self.assertIsNotNone(regex.match("/* cpt-begin cpt-test-spec-x-flow-y:p1:inst-step"))
-        self.assertIsNotNone(regex.match("* cpt-begin cpt-test-spec-x-flow-y:p1:inst-step"))
+        self.assertIsNotNone(regex.match("# cpt-begin cpt-test-feature-x-flow-y:p1:inst-step"))
+        self.assertIsNotNone(regex.match("// cpt-begin cpt-test-feature-x-flow-y:p1:inst-step"))
+        self.assertIsNotNone(regex.match("-- cpt-begin cpt-test-feature-x-flow-y:p1:inst-step"))
+        self.assertIsNotNone(regex.match("/* cpt-begin cpt-test-feature-x-flow-y:p1:inst-step"))
+        self.assertIsNotNone(regex.match("* cpt-begin cpt-test-feature-x-flow-y:p1:inst-step"))
 
     def test_cypilot_end_regex_matches_same_styles_as_begin(self):
         """Verify cpt-end regex matches same styles as cpt-begin."""
@@ -235,8 +235,8 @@ class TestRegexPatternBuilding(unittest.TestCase):
         end_regex = build_cypilot_end_regex(config)
         
         # Should match both styles
-        self.assertIsNotNone(end_regex.match("# cpt-end cpt-test-spec-x-flow-y:p1:inst-step"))
-        self.assertIsNotNone(end_regex.match("// cpt-end cpt-test-spec-x-flow-y:p1:inst-step"))
+        self.assertIsNotNone(end_regex.match("# cpt-end cpt-test-feature-x-flow-y:p1:inst-step"))
+        self.assertIsNotNone(end_regex.match("// cpt-end cpt-test-feature-x-flow-y:p1:inst-step"))
 
     def test_no_cypilot_begin_regex_matches_exclusion_marker(self):
         """Verify !no-cpt-begin regex matches exclusion markers."""

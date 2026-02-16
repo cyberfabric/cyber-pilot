@@ -292,13 +292,13 @@ _Read `ADAPTER.md`_
 - [Create/update `.cypilot-adapter/`]: `AGENTS.md` + spec files that define your tech stack, conventions, testing strategy, build/deploy, project structure, patterns, etc.
 - [Add new adapter specs]: e.g. `security.md`, `performance.md`, `linting.md`, custom API guidelines, module-creation rules.
 
-2) **Architecture artifacts (design → spec → implementation plan)**
+2) **Architecture artifacts (design → feature → implementation plan)**
 
 - [PRD]: create/update `architecture/PRD.md` (actors, capabilities, requirements).
 - [Overall DESIGN]: create/update `architecture/DESIGN.md` (requirements/principles, architecture, ADR index, etc.).
 - [ADRs]: create new ADRs in `architecture/ADR/...` in the required format.
-- [DECOMPOSITION]: update `architecture/DECOMPOSITION.md` to reflect spec breakdown and traceability.
-- [SPEC docs]: create/update spec documents under `architecture/features/...` (e.g. "template system"-style specs).
+- [DECOMPOSITION]: update `architecture/DECOMPOSITION.md` to reflect feature breakdown and traceability.
+- [FEATURE docs]: create/update feature documents under `architecture/features/...` (e.g. "template system"-style features).
 
 3) **Codebase changes (implementation)**
 
@@ -312,10 +312,10 @@ _Read `ADAPTER.md`_
 - [No surprise file creation]: I will ask for confirmation before creating new files (mandatory rule).
 - [No breaking hierarchy]: We won't violate the design chain:
 
-  `ADAPTER → PRD → OVERALL DESIGN → SPEC DESIGN → CODE`
+  `ADAPTER → PRD → OVERALL DESIGN → FEATURE → CODE`
 
 - [No coding in DESIGN.md]: Actor flows / algorithms should be in Cypilot DSL (CDSL) where required, not embedded code.
-- [Validation-first mindset]: We'll aim for the required scores (Overall ≥90/100, Spec 100/100) before "locking in" implementation direction.
+- [Validation-first mindset]: We'll aim for the required scores (Overall ≥90/100, Feature 100/100) before "locking in" implementation direction.
 
 #### How to ask (examples you can copy/paste)
 
@@ -326,6 +326,8 @@ _Read `ADAPTER.md`_
 - New feature from idea → design → code
 
   `cypilot generate: add a new feature "<feature>" — update PRD + DESIGN + spec, then implement`
+
+  `cypilot generate: add a new feature "<feature>" — update PRD + DESIGN + FEATURE, then implement`
 
 - Code-first change
 
@@ -366,7 +368,7 @@ Reply with: `cypilot generate: <your goal>` + which of the three targets.
 |--------|---------------------|
 | `cypilot configure adapter for Python monorepo with FastAPI` | Generates adapter with tech-stack specs, testing conventions, and codebase mappings |
 | `cypilot add src/api/ to tracked codebase` | Updates `artifacts.json` to include directory in traceability scanning |
-| `cypilot register SPEC at docs/specs/payments.md` | Adds artifact entry to `artifacts.json` with kind, path, and system mapping |
+| `cypilot register FEATURE at architecture/features/payments.md` | Adds artifact entry to `artifacts.json` with kind, path, and system mapping |
 | `cypilot add tech-stack spec for PostgreSQL + Redis` | Creates `specs/tech-stack.md` with database and caching conventions |
 | `cypilot update testing conventions` | Modifies `specs/testing.md` with project-specific test patterns |
 | `cypilot show adapter config` | Displays `artifacts.json` structure, registered artifacts, and codebase mappings |
@@ -378,8 +380,8 @@ Reply with: `cypilot generate: <your goal>` + which of the three targets.
 |--------|---------------------|
 | `cypilot make PRD for user authentication system` | Generates PRD with actors, capabilities, requirements, flows, and constraints following the template |
 | `cypilot make DESIGN from PRD.md` | Transforms PRD into architecture design with components, interfaces, data models, and full traceability |
-| `cypilot decompose auth spec into tasks` | Creates DECOMPOSITION artifact breaking the spec into ordered, dependency-mapped implementation units |
-| `cypilot make SPEC spec for login flow` | Produces detailed spec design with acceptance criteria, edge cases, and code implementation instructions |
+| `cypilot decompose auth feature into tasks` | Creates DECOMPOSITION artifact breaking the feature into ordered, dependency-mapped implementation units |
+| `cypilot make FEATURE for login flow` | Produces detailed feature design with acceptance criteria, edge cases, and code implementation instructions |
 
 **Validation & Quality**
 
@@ -387,7 +389,7 @@ Reply with: `cypilot generate: <your goal>` + which of the three targets.
 |--------|---------------------|
 | `cypilot validate PRD.md` | Runs deterministic template validation + semantic quality scoring against PRD checklist (50+ criteria) |
 | `cypilot validate all` | Validates entire artifact hierarchy, checks cross-references, reports broken links and missing IDs |
-| `cypilot validate code for auth module` | Scans code for `@cpt-*` markers, verifies coverage against SPEC specs, reports unimplemented items |
+| `cypilot validate code for auth module` | Scans code for `@cpt-*` markers, verifies coverage against feature docs, reports unimplemented items |
 | `cypilot review DESIGN.md with consistency-checklist` | Performs multi-phase consistency analysis detecting contradictions and alignment issues |
 
 **With Checklists (Deep Review)**
@@ -395,7 +397,7 @@ Reply with: `cypilot generate: <your goal>` + which of the three targets.
 | Prompt | What the agent does |
 |--------|---------------------|
 | `cypilot review PRD with PRD checklist, focus on requirements` | Applies 50+ expert criteria: completeness, testability, atomicity, no implementation leakage |
-| `cypilot review SPEC spec with code-checklist` | Checks implementation readiness: error handling, security, edge cases, testing strategy |
+| `cypilot review FEATURE with code-checklist` | Checks implementation readiness: error handling, security, edge cases, testing strategy |
 | `cypilot validate codebase with reverse-engineering checklist` | Systematic code archaeology: identifies patterns, dependencies, undocumented behaviors |
 | `cypilot improve this prompt with prompt-engineering checklist` | Applies prompt design guidelines: clarity, constraints, examples, output format |
 
@@ -404,8 +406,8 @@ Reply with: `cypilot generate: <your goal>` + which of the three targets.
 | Prompt | What the agent does |
 |--------|---------------------|
 | `cypilot find requirements related to authentication` | Searches artifacts for IDs matching pattern, returns definitions and all references |
-| `cypilot trace REQ-AUTH-001` | Traces requirement through DESIGN → SPEC → code, shows implementation locations |
-| `cypilot list unimplemented specs` | Cross-references SPEC specs with code markers, reports items without `@cpt-*` tags |
+| `cypilot trace REQ-AUTH-001` | Traces requirement through DESIGN → FEATURE → code, shows implementation locations |
+| `cypilot list unimplemented features` | Cross-references feature docs with code markers, reports items without `@cpt-*` tags |
 
 **Code Review & Pull Requests**
 
@@ -414,7 +416,7 @@ Reply with: `cypilot generate: <your goal>` + which of the three targets.
 | `cypilot review PR https://github.com/org/repo/pull/123` | Fetches PR diff, validates changes against design specs, checks traceability markers, reports coverage gaps |
 | `cypilot review PR #59` | Reviews local PR by number — checks code quality, design alignment, and Cypilot marker consistency |
 | `cypilot review PR with code-checklist` | Deep PR review applying code quality criteria: error handling, security, edge cases, testing |
-| `cypilot analyze PR against SPEC spec` | Verifies PR implements all items from linked SPEC spec, reports missing or extra changes |
+| `cypilot analyze PR against FEATURE` | Verifies PR implements all items from linked feature doc, reports missing or extra changes |
 | `cypilot check PR traceability` | Scans PR diff for `@cpt-*` markers, validates they reference existing design IDs |
 
 **Kits & Extensions**
@@ -446,7 +448,7 @@ For agents that don't support the Agent Skills specification, Cypilot provides *
 | Command | Workflow | Description |
 |---------|----------|-------------|
 | `/cypilot` | — | Enable Cypilot mode, discover adapter, show available workflows |
-| `/cypilot-generate` | `workflows/generate.md` | Create/update artifacts (PRD, DESIGN, DECOMPOSITION, ADR, SPEC) or implement code with traceability markers |
+| `/cypilot-generate` | `workflows/generate.md` | Create/update artifacts (PRD, DESIGN, DECOMPOSITION, ADR, FEATURE) or implement code with traceability markers |
 | `/cypilot-analyze` | `workflows/analyze.md` | Validate artifacts against templates or code against design (deterministic + semantic) |
 | `/cypilot-adapter` | `workflows/adapter.md` | Create/update project adapter — scan structure, configure rules, generate `AGENTS.md` and `artifacts.json` |
 
@@ -459,8 +461,8 @@ Cypilot provides **expert-level checklists** for validation at each stage.
 **Artifact checklists** in `kits/sdlc/artifacts/{KIND}/`:
 - [**PRD checklist**](kits/sdlc/artifacts/PRD/checklist.md) — 300+ criteria for requirements completeness, stakeholder coverage, constraint clarity
 - [**DESIGN checklist**](kits/sdlc/artifacts/DESIGN/checklist.md) — 380+ criteria for architecture validation, component boundaries, integration points
-- [**DECOMPOSITION checklist**](kits/sdlc/artifacts/DECOMPOSITION/checklist.md) — 130+ criteria for spec breakdown quality, dependency mapping
-- [**SPEC checklist**](kits/sdlc/artifacts/SPEC/checklist.md) — 380+ criteria for implementation readiness, acceptance criteria, edge cases
+- [**DECOMPOSITION checklist**](kits/sdlc/artifacts/DECOMPOSITION/checklist.md) — 130+ criteria for feature breakdown quality, dependency mapping
+- [**FEATURE checklist**](kits/sdlc/artifacts/FEATURE/checklist.md) — 380+ criteria for implementation readiness, acceptance criteria, edge cases
 - [**ADR checklist**](kits/sdlc/artifacts/ADR/checklist.md) — 270+ criteria for decision rationale, alternatives analysis, consequences
 
 **Generic checklists** in `requirements/`:

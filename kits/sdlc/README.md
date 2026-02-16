@@ -4,19 +4,20 @@
 
 **Cypilot SDLC** is an artifact-first pipeline that turns intent into implementation through a fixed sequence of document layers, with deterministic validation gates and end-to-end traceability.
 
-- **Layered transformation**: PRD → ADR + DESIGN → DECOMPOSITION → FEATURE → CODE.
+- **Layered transformation**: BRD → PRD → ADR + DESIGN → DECOMPOSITION → FEATURE → CODE.
 - **Deterministic gates**: templates, IDs, cross-references, and task/acceptance criteria are validated at every step.
 - **Behavior spec**: the **FEATURE** layer expresses behavior as **Cypilot DSL (CDSL)** flows/algorithms/states plus definitions of done that can be implemented directly.
 - **Traceability chain**: each downstream artifact references upstream IDs, and code keeps links via tags/markers.
 
 ## Pipeline Diagram
 
-![**Cypilot** SDLC pipeline: PRD → DESIGN → DECOMPOSITION → FEATURE → CODE, with validation gates and ID traceability between layers](pipeline.drawio.svg)
+![**Cypilot** SDLC pipeline: BRD → PRD → ADR + DESIGN → DECOMPOSITION → FEATURE → CODE, with validation gates and ID traceability between layers](pipeline.drawio.svg)
 
 Each layer **transforms** the previous artifact into a new form while **preserving traceability through IDs and references**:
 
 | From | To | Transformation |
 |------|-----|----------------|
+| **BRD** | PRD | Commercial intent → product intent |
 | **PRD** | ADR + DESIGN | WHAT → HOW (architecture decisions and design) |
 | **DESIGN** | DECOMPOSITION | Architecture → decomposition to features |
 | **DECOMPOSITION** | FEATURE | Features → detailed behavior + definitions of done |
@@ -41,7 +42,8 @@ Learn **Cypilot** in 10 minutes with:
 
 | Artifact | Generation | Deterministic Validation | Feedback | Acceptance |
 |----------|------------|--------------------------|----------|------------|
-| **PRD** | Drafted from stakeholder input + market context with required IDs | Template structure, ID format | Semantic review vs industry best practices | Product Managers & Architects alignment |
+| **BRD** | Drafted from stakeholder input + market context with required IDs | Template structure, ID format | Semantic review vs industry best practices | Product Managers & Architects alignment |
+| **PRD** | Derived from BRD with product intent | Cross reference ID and tasks validation | Semantic review vs industry best practices | Product Managers & Architects alignment |
 | **ADR** | Captures key architecture decisions with rationale | Template structure, ID format | Semantic review vs industry best practices | Architects alignment |
 | **DESIGN** | Derived from PRD with architecture decisions | Cross reference ID and tasks validation | Semantic review vs PRD + ADR + industry best practices | Architects alignment |
 | **DECOMPOSITION** | Decomposed from DESIGN into implementable feature scope | Cross reference ID and tasks validation | Semantic review vs DESIGN + industry best practices | Architects alignment |

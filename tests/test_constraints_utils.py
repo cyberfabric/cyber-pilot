@@ -397,20 +397,6 @@ def test_load_constraints_json_parses_valid_constraints(tmp_path: Path):
     assert "PRD" in kc.by_kind
 
 
-def test_validate_artifact_file_spec_filename_check(tmp_path: Path):
-    p = tmp_path / "auth.md"
-    p.write_text("**ID**: `cpt-myapp-spec-login`\n", encoding="utf-8")
-
-    rep = validate_artifact_file(artifact_path=p, artifact_kind="SPEC", constraints=None, registered_systems={"myapp"})
-    errs = rep.get("errors") or []
-    assert any(e.get("message") == "Spec filename does not match ID slug" for e in errs)
-
-    p2 = tmp_path / "x.md"
-    p2.write_text("**ID**: `cpt-myapp-spec-flow-login`\n", encoding="utf-8")
-    rep2 = validate_artifact_file(artifact_path=p2, artifact_kind="SPEC", constraints=None, registered_systems={"myapp"})
-    assert rep2.get("errors") == []
-
-
 def test_validate_artifact_file_enforces_constraints_and_required_kinds(tmp_path: Path):
     kc, errs = parse_kit_constraints({
         "PRD": {

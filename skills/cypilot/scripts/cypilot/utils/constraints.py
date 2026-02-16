@@ -308,33 +308,6 @@ def validate_artifact_file(
 
     kind = str(artifact_kind).strip().upper()
 
-    # SPEC filename check (independent of constraints)
-    if kind == "SPEC":
-        hits = scan_cpt_ids(artifact_path)
-        defs = [h for h in hits if str(h.get("type")) == "definition"]
-        filename = artifact_path.stem
-        nested_suffixes = ("-flow-", "-algo-", "-state-", "-req-")
-        for h in defs:
-            hid = str(h.get("id") or "")
-            if "-spec-" not in hid:
-                continue
-            if any(s in hid for s in nested_suffixes):
-                continue
-            parts = hid.split("-spec-", 1)
-            if len(parts) != 2:
-                continue
-            spec_slug = parts[1]
-            if spec_slug != filename:
-                errors.append(error(
-                    "structure",
-                    "Spec filename does not match ID slug",
-                    path=artifact_path,
-                    line=int(h.get("line", 1) or 1),
-                    id=hid,
-                    expected_filename=f"{spec_slug}.md",
-                    actual_filename=f"{filename}.md",
-                ))
-
     if constraints is None:
         return {"errors": errors, "warnings": warnings}
 

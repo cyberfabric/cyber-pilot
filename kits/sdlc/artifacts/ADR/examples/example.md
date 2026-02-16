@@ -75,7 +75,7 @@ Confirmed when:
 ## More Information
 
 - [`cpt-taskflow-fr-task-management`](../PRD.md) — Primary requirement for task storage
-- [`cpt-taskflow-spec-task-crud`](../specs/task-crud/DESIGN.md) — Spec implementing task persistence
+- [`cpt-taskflow-feature-task-crud`](../specs/task-crud/DESIGN.md) — Spec implementing task persistence
 
 
 

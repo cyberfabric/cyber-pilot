@@ -4,7 +4,7 @@ ALWAYS open and follow `{cypilot_path}/requirements/code-checklist.md` FIRST
 
 **Artifact**: Code Implementation (Cypilot SDLC)
 **Version**: 1.0
-**Purpose**: Kit-specific checks that require Cypilot SDLC artifacts (PRD/DESIGN/DECOMPOSITION/SPEC/ADR) and/or Cypilot traceability.
+**Purpose**: Kit-specific checks that require Cypilot SDLC artifacts (PRD/DESIGN/DECOMPOSITION/FEATURE/ADR) and/or Cypilot traceability.
 
 ---
 
@@ -20,27 +20,27 @@ ALWAYS open and follow `{cypilot_path}/requirements/code-checklist.md` FIRST
 Before running the SDLC-specific checks:
 
 - [ ] Determine traceability mode from `artifacts.json` for the relevant system/artifact: `FULL` vs `DOCS-ONLY`
-- [ ] If `FULL`: identify the design source(s) to trace (Spec DESIGN is preferred)
+- [ ] If `FULL`: identify the design source(s) to trace (Feature design is preferred)
 - [ ] If `DOCS-ONLY`: skip traceability requirements and validate semantics against provided design sources
 
 ---
 
 ## Semantic Alignment (SEM)
 
-These checks are **Cypilot SDLC-specific** because they require Cypilot artifacts (Spec Design, Overall Design, ADRs, PRD/DESIGN coverage) and/or Cypilot markers.
+These checks are **Cypilot SDLC-specific** because they require Cypilot artifacts (Feature design, Overall Design, ADRs, PRD/DESIGN coverage) and/or Cypilot markers.
 
 ### SEM-CODE-001: Resolve Design Sources
 **Severity**: HIGH
 
-- [ ] Resolve Spec Design via `@cpt-*` markers using the `cypilot where-defined` or `cypilot where-used` skill
-- [ ] If no `@cpt-*` markers exist, ask the user to provide the Spec Design location before proceeding
-- [ ] If the user is unsure, search the repository for candidate spec designs and present options for user selection
-- [ ] Resolve Overall Design by following references from the Spec Design (or ask the user for the design path)
+- [ ] Resolve Feature design via `@cpt-*` markers using the `cypilot where-defined` or `cypilot where-used` skill
+- [ ] If no `@cpt-*` markers exist, ask the user to provide the Feature design location before proceeding
+- [ ] If the user is unsure, search the repository for candidate feature designs and present options for user selection
+- [ ] Resolve Overall Design by following references from the Feature design (or ask the user for the design path)
 
 ### SEM-CODE-002: Spec Context Semantics
 **Severity**: HIGH
 
-- [ ] Confirm code behavior aligns with the Spec Overview, Purpose, and key assumptions
+- [ ] Confirm code behavior aligns with the Feature Overview, Purpose, and key assumptions
 - [ ] Verify all referenced actors are represented by actual interfaces, entrypoints, or roles in code
 - [ ] Ensure referenced ADRs and related specs do not conflict with current implementation choices
 
@@ -54,14 +54,14 @@ These checks are **Cypilot SDLC-specific** because they require Cypilot artifact
 ### SEM-CODE-004: Algorithms Semantics
 **Severity**: HIGH
 
-- [ ] Validate algorithm steps match the Spec Design algorithms (inputs, rules, outputs)
+- [ ] Validate algorithm steps match the Feature design algorithms (inputs, rules, outputs)
 - [ ] Ensure data transformations and calculations match the described business rules
 - [ ] Confirm loop/iteration behavior and validation rules align with algorithm steps
 
 ### SEM-CODE-005: State Semantics
 **Severity**: HIGH
 
-- [ ] Confirm state transitions match the Spec Design state machine
+- [ ] Confirm state transitions match the Feature design state machine
 - [ ] Verify triggers and guards for transitions match defined conditions
 - [ ] Ensure invalid transitions are prevented or handled explicitly
 

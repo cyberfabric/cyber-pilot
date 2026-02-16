@@ -171,7 +171,7 @@ def extract_backticked_ids(line: str, pattern: re.Pattern) -> List[str]:
     """
     Extract IDs from backticked tokens that match pattern.
     
-    Example: "`cpt-system-spec-x-flow-y`" -> ["cpt-system-spec-x-flow-y"]
+    Example: "`cpt-system-feature-x-flow-y`" -> ["cpt-system-feature-x-flow-y"]
     """
     ids: List[str] = []
     for tok in re.findall(r"`([^`]+)`", line):

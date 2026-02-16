@@ -18,32 +18,31 @@ These are validated by tooling and cannot be changed:
 
 ### 1. Design Hierarchy
 ```
-ADAPTER → PRD CONTEXT → OVERALL DESIGN → SPEC DESIGN → CODE
+ADAPTER → PRD CONTEXT → OVERALL DESIGN → FEATURE → CODE
 ```
 Must reference parent level, never contradict.
 
 - **ADAPTER**: Defines tech stack, formats, conventions (first step, required)
 - **PRD CONTEXT**: Defines actors, capabilities, product requirements
 - **OVERALL DESIGN**: Architecture, domain model, API contracts
-- **SPEC DESIGN**: Actor flows, algorithms, requirements
-- **CODE**: Implementation following spec design
+- **FEATURE**: Actor flows, algorithms, requirements
+- **CODE**: Implementation following feature design
 
 ### 2. Mandatory Cypilot Rules
 - Actor Flows (Section B) are PRIMARY - always start from what actors do
 - Use Cypilot DSL (CDSL) for flows/algorithms/states - NEVER code in DESIGN.md
 - Never redefine types - reference domain model from Overall Design
-- Validate before proceeding (Overall ≥90/100, Spec 100/100)
-- Spec size limits: ≤3000 lines (recommended), ≤4000 (hard limit)
+- Validate before proceeding (Overall ≥90/100, Feature 100/100)
+- Feature size limits: ≤3000 lines (recommended), ≤4000 (hard limit)
 - Design is source of truth - if code contradicts design, fix design first
 
 ### 3. File Structure
 ```
 architecture/
 ├── DESIGN.md                    # Overall Design
-└── specs/
-    ├── DECOMPOSITION.md              # Spec manifest
-    └── spec-{slug}/
-        ├── DESIGN.md            # Spec Design
+├── DECOMPOSITION.md             # Feature manifest
+└── features/
+    └── {slug}.md                # Feature Design
 ```
 
 ### 4. DESIGN.md Sections
@@ -54,8 +53,8 @@ architecture/
 - Section D: Architecture Decision Records (ADR) - REQUIRED, MADR format
 - Section E: Project-Specific Details (optional)
 
-**Spec Design**:
-- Section A: Spec Overview
+**Feature Design**:
+- Section A: Feature Overview
 - Section B: Actor Flows (PRIMARY)
 - Section C: Algorithms
 - Section D: States (optional)
@@ -64,7 +63,7 @@ architecture/
 
 ### 5. Validation Scores
 - Overall Design: ≥90/100
-- Spec Design: 100/100 + 100% completeness
+- Feature Design: 100/100 + 100% completeness
 
 ---
 
@@ -99,7 +98,7 @@ Example location (in your adapter):
 - DML syntax (`@DomainModel.TypeName` for clickable references)
 - Validation commands
 - Naming conventions
-- Traceability requirements (clickable links from Spec→Overall)
+- Traceability requirements (clickable links from Feature→Overall)
 
 ### API Contract Format
 
@@ -113,7 +112,7 @@ Example location (in your adapter):
 - Linking syntax (`@API.GET:/path`, `@CLI.command-name`, `@Spec.{slug}` for clickable references)
 - Validation commands
 - API conventions
-- Traceability requirements (clickable links from Spec→Overall)
+- Traceability requirements (clickable links from Feature→Overall)
 
 **Note**: For CLI tools, consider using **CLISPEC** - a built-in, simple format for CLI command documentation. See `../CLISPEC.md`.
 
@@ -358,7 +357,7 @@ Reference as: `@DomainModel.User`
 
 ## Traceability
 
-All Spec DESIGN.md files MUST use clickable links to domain model types.
+All Feature design files MUST use clickable links to domain model types.
 ```
 
 **Example spec file** (`specs/tech-stack.md`):
