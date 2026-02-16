@@ -134,7 +134,7 @@ validate-spec:
 	fi
 	@echo "Validating spec: $(SPEC)..."
 	@$(PYTHON) -m skills.cypilot.scripts.cypilot.cli validate \
-		--artifact architecture/specs/$(SPEC)/DESIGN.md
+		--artifact architecture/features/$(SPEC)/DESIGN.md
 
 
 # Validate SDLC examples against templates
@@ -150,7 +150,7 @@ validate-code-spec:
 		exit 1; \
 	fi
 	@echo "Validating code traceability for spec: $(SPEC)..."
-	@$(PYTHON) -m skills.cypilot.scripts.cypilot.cli validate --artifact architecture/specs/$(SPEC)
+	@$(PYTHON) -m skills.cypilot.scripts.cypilot.cli validate --artifact architecture/features/$(SPEC)
 
 # Install Python dependencies
 install-pipx: check-pipx

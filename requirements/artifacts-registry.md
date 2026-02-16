@@ -242,7 +242,7 @@ System (root)
 ├── artifacts_dir: "architecture"     (default for NEW artifacts)
 ├── artifacts: [...]                  (FULL paths, can be anywhere)
 │   ├── "architecture/PRD.md"
-│   ├── "architecture/specs/auth.md"   (subdir defined by kit)
+│   ├── "architecture/features/auth.md"   (subdir defined by kit)
 │   └── "docs/custom/DESIGN.md"           (user can place anywhere!)
 ├── codebase (source directories)
 └── children
@@ -273,7 +273,7 @@ System (root)
       "traceability": "FULL"
     },
     {
-      "path": "architecture/specs/auth.md",
+      "path": "architecture/features/auth.md",
       "kind": "SPEC",
       "traceability": "FULL"
     },
@@ -618,8 +618,8 @@ When creating NEW artifacts:
 artifacts_dir: "architecture"
 spec slug: "auth"
 
-→ New SPEC created at: architecture/specs/auth.md (subdir defined by kit)
-→ Registered in artifacts array with FULL path: "architecture/specs/auth.md"
+→ New SPEC created at: architecture/features/auth.md (subdir defined by kit)
+→ Registered in artifacts array with FULL path: "architecture/features/auth.md"
 ```
 
 ### Codebase Paths
@@ -850,7 +850,7 @@ else:
           "artifacts_dir": "modules/auth/architecture",
           "artifacts": [
             { "path": "modules/auth/architecture/PRD.md", "kind": "PRD", "traceability": "DOCS-ONLY" },
-            { "path": "modules/auth/architecture/specs/sso.md", "kind": "SPEC", "traceability": "FULL" }
+            { "path": "modules/auth/architecture/features/sso.md", "kind": "SPEC", "traceability": "FULL" }
           ],
           "codebase": [
             { "name": "Auth Module", "path": "src/modules/auth", "extensions": [".ts"] }

@@ -111,8 +111,8 @@ class TestCLIValidateCommand(unittest.TestCase):
             _bootstrap_registry(
                 root,
                 entries=[
-                    {"kind": "FEATURE", "system": "Test", "path": "architecture/specs/feature-a.md", "format": "Cypilot"},
-                    {"kind": "FEATURE", "system": "Test", "path": "architecture/specs/feature-b.md", "format": "Cypilot"},
+                    {"kind": "FEATURE", "system": "Test", "path": "architecture/features/feature-a.md", "format": "Cypilot"},
+                    {"kind": "FEATURE", "system": "Test", "path": "architecture/features/feature-b.md", "format": "Cypilot"},
                     {"kind": "SRC", "system": "Test", "path": "src", "format": "CONTEXT", "traceability_enabled": True, "extensions": [".py"]},
                 ],
             )
@@ -138,7 +138,7 @@ class TestCLIValidateCommand(unittest.TestCase):
             _bootstrap_registry(
                 root,
                 entries=[
-                    {"kind": "FEATURE", "system": "Test", "path": "architecture/specs/feature-x.md", "format": "Cypilot"},
+                    {"kind": "FEATURE", "system": "Test", "path": "architecture/features/feature-x.md", "format": "Cypilot"},
                 ],
             )
 

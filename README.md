@@ -298,7 +298,7 @@ _Read `ADAPTER.md`_
 - [Overall DESIGN]: create/update `architecture/DESIGN.md` (requirements/principles, architecture, ADR index, etc.).
 - [ADRs]: create new ADRs in `architecture/ADR/...` in the required format.
 - [DECOMPOSITION]: update `architecture/DECOMPOSITION.md` to reflect spec breakdown and traceability.
-- [SPEC docs]: create/update spec documents under `architecture/specs/...` (e.g. "template system"-style specs).
+- [SPEC docs]: create/update spec documents under `architecture/features/...` (e.g. "template system"-style specs).
 
 3) **Codebase changes (implementation)**
 

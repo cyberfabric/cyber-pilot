@@ -353,7 +353,7 @@ Workflow:
 ## Example: Validate SPEC
 
 ```
-User: cypilot validate architecture/specs/auth.md
+User: cypilot validate architecture/features/auth.md
 
 Workflow:
 1. Artifact type: SPEC (from path)

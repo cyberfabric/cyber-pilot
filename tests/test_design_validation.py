@@ -49,7 +49,7 @@ def test_validate_all_spec_designs_have_required_sections():
     """Validate spec-init-structure DESIGN.md has required sections A-F."""
     specs_dir = Path(__file__).parent.parent / "architecture" / "specs"
     if not specs_dir.exists():
-        pytest.skip("architecture/specs/ directory not found")
+        pytest.skip("architecture/features/ directory not found")
     
     # Only validate init-structure spec (others are placeholders)
     design_path = specs_dir / "spec-init-structure" / "DESIGN.md"

@@ -214,7 +214,7 @@ _Read `ADAPTER.md`_
 - [Overall DESIGN]: create/update `architecture/DESIGN.md` (requirements/principles, architecture, ADR index, etc.).
 - [ADRs]: create new ADRs in `architecture/ADR/...` in the required format.
 - [DECOMPOSITION]: update `architecture/DECOMPOSITION.md` to reflect spec breakdown and traceability.
-- [SPEC docs]: create/update spec documents under `architecture/specs/...` (e.g. “template system”-style specs).
+- [SPEC docs]: create/update spec documents under `architecture/features/...` (e.g. “template system”-style specs).
 
 3) **Codebase changes (implementation)**
 
@@ -413,7 +413,7 @@ From the adapter-info output earlier, this repo registers artifacts like:
 - `architecture/DESIGN.md` (kind `DESIGN`)
 - `architecture/DECOMPOSITION.md` (kind `DECOMPOSITION`)
 - `architecture/ADR/general/...md` (kind `ADR`)
-- `architecture/specs/template-system.md` (kind `SPEC`)
+- `architecture/features/template-system.md` (kind `SPEC`)
 
 #### Artifact vs codebase (important distinction)
 
@@ -835,7 +835,7 @@ _Thought for 31s_
   - `examples/overwork_alert/architecture/PRD.md`
   - `examples/overwork_alert/architecture/DESIGN.md`
   - `examples/overwork_alert/architecture/DECOMPOSITION.md`
-  - `examples/overwork_alert/architecture/specs/overwork-alert.md` (SPEC)
+  - `examples/overwork_alert/architecture/features/overwork-alert.md` (SPEC)
 - Then decide whether to register them (strict tooling) or keep them unregistered (docs-only).
 
 #### Decision guide (quick)
@@ -938,7 +938,7 @@ Proposal:
   - `examples/overwork_alert/architecture/PRD.md`
   - `examples/overwork_alert/architecture/DESIGN.md`
   - `examples/overwork_alert/architecture/DECOMPOSITION.md`
-  - `examples/overwork_alert/architecture/specs/overwork-alert.md` (SPEC)
+  - `examples/overwork_alert/architecture/features/overwork-alert.md` (SPEC)
 
 This yields IDs like:
 
@@ -1957,7 +1957,7 @@ _Read `example.md`_
 
 _Thought for 47s_
 
-LOG [DECOMPOSITION + SPEC generation]: I’ll now create `examples/overwork_alert/architecture/DECOMPOSITION.md` plus a small initial set of SPEC files under `examples/overwork_alert/architecture/specs/`, register them in `{ } .cypilot-adapter/artifacts.json`, then run `cypilot validate --skip-code` to ensure deterministic validation passes.
+LOG [DECOMPOSITION + SPEC generation]: I’ll now create `examples/overwork_alert/architecture/DECOMPOSITION.md` plus a small initial set of SPEC files under `examples/overwork_alert/architecture/features/`, register them in `{ } .cypilot-adapter/artifacts.json`, then run `cypilot validate --skip-code` to ensure deterministic validation passes.
 
 Diff preview (as visible in screenshot; truncated):
 
@@ -1993,7 +1993,7 @@ RESPONSE STATISTICS (as visible in screenshot)
 Links:
 
 - DECOMPOSITION: [DECOMPOSITION.md](../examples/overwork_alert/architecture/DECOMPOSITION.md)
-- Specs directory: [architecture/specs/](../examples/overwork_alert/architecture/specs/)
+- Specs directory: [architecture/features/](../examples/overwork_alert/architecture/features/)
 - Registry: [artifacts.json](../.cypilot-adapter/artifacts.json)
 
 #### 1306 — Generate the remaining SPEC set + register in registry
@@ -2007,7 +2007,7 @@ Links:
 
 I’m going to generate the remaining artifacts: register `DECOMPOSITION.md`, create the `specs/` directory with 4 SPEC docs (tracker core, notifications, CLI control, LaunchAgent autostart), register those specs in `{ } .cypilot-adapter/artifacts.json`, then re-run `cypilot validate --skip-code` to ensure everything still passes deterministic validation.
 
-I’ll finish the artifact chain by (1) registering `DECOMPOSITION.md` and creating the 4 SPEC files under `examples/overwork_alert/architecture/specs/`, (2) registering those SPECs in `{ } .cypilot-adapter/artifacts.json`, and (3) running `cypilot validate --skip-code` again to confirm deterministic validation passes.
+I’ll finish the artifact chain by (1) registering `DECOMPOSITION.md` and creating the 4 SPEC files under `examples/overwork_alert/architecture/features/`, (2) registering those SPECs in `{ } .cypilot-adapter/artifacts.json`, and (3) running `cypilot validate --skip-code` again to confirm deterministic validation passes.
 
 _Read `template-system.md` and 3 other files_
 
@@ -2039,10 +2039,10 @@ Diff preview (as visible in screenshot; truncated):
 
 ```json
 ...
-{ "name": "Spec: Tracker Core", "path": "examples/overwork_alert/architecture/specs/tracker-core.md", "kind": "SPEC" }
-{ "name": "Spec: Notifications", "path": "examples/overwork_alert/architecture/specs/notifications.md", "kind": "SPEC" }
-{ "name": "Spec: CLI control", "path": "examples/overwork_alert/architecture/specs/cli-control.md", "kind": "SPEC" }
-{ "name": "Spec: LaunchAgent Autostart", "path": "examples/overwork_alert/architecture/specs/launchagent-autostart.md", "kind": "SPEC" }
+{ "name": "Spec: Tracker Core", "path": "examples/overwork_alert/architecture/features/tracker-core.md", "kind": "SPEC" }
+{ "name": "Spec: Notifications", "path": "examples/overwork_alert/architecture/features/notifications.md", "kind": "SPEC" }
+{ "name": "Spec: CLI control", "path": "examples/overwork_alert/architecture/features/cli-control.md", "kind": "SPEC" }
+{ "name": "Spec: LaunchAgent Autostart", "path": "examples/overwork_alert/architecture/features/launchagent-autostart.md", "kind": "SPEC" }
 ...
 ```
 
@@ -2089,10 +2089,10 @@ New SPEC files (as visible in screenshot):
 Links:
 
 - DECOMPOSITION: [DECOMPOSITION.md](../examples/overwork_alert/architecture/DECOMPOSITION.md)
-- SPEC: [tracker-core.md](../examples/overwork_alert/architecture/specs/tracker-core.md)
-- SPEC: [notifications.md](../examples/overwork_alert/architecture/specs/notifications.md)
-- SPEC: [cli-control.md](../examples/overwork_alert/architecture/specs/cli-control.md)
-- SPEC: [launchagent-autostart.md](../examples/overwork_alert/architecture/specs/launchagent-autostart.md)
+- SPEC: [tracker-core.md](../examples/overwork_alert/architecture/features/tracker-core.md)
+- SPEC: [notifications.md](../examples/overwork_alert/architecture/features/notifications.md)
+- SPEC: [cli-control.md](../examples/overwork_alert/architecture/features/cli-control.md)
+- SPEC: [launchagent-autostart.md](../examples/overwork_alert/architecture/features/launchagent-autostart.md)
 - Registry: [artifacts.json](../.cypilot-adapter/artifacts.json)
 
 #### 1307 — Deterministic validation finds SPEC filename/ID mismatches
@@ -2129,7 +2129,7 @@ Command output (as visible in screenshot; truncated):
       "type": "structure",
       "message": "Spec filename does not match ID slug",
       "line": 36,
-      "path": ".../examples/overwork_alert/architecture/specs/tracker-core.md",
+      "path": ".../examples/overwork_alert/architecture/features/tracker-core.md",
       "id": "cpt-overwork-alert-feature-notifications",
       "expected_filename": "notifications.md",
       "actual_filename": "tracker-core.md"
@@ -2138,7 +2138,7 @@ Command output (as visible in screenshot; truncated):
       "type": "structure",
       "message": "Spec filename does not match ID slug",
       "line": 38,
-      "path": ".../examples/overwork_alert/architecture/specs/tracker-core.md",
+      "path": ".../examples/overwork_alert/architecture/features/tracker-core.md",
       "id": "cpt-overwork-alert-feature-cli-control",
       "expected_filename": "cli-control.md",
       "actual_filename": "tracker-core.md"
@@ -2163,7 +2163,7 @@ Command output (as visible in screenshot; truncated):
       "type": "structure",
       "message": "Spec filename does not match ID slug",
       "line": 34,
-      "path": ".../examples/overwork_alert/architecture/specs/notifications.md",
+      "path": ".../examples/overwork_alert/architecture/features/notifications.md",
       "id": "cpt-overwork-alert-feature-tracker-core",
       "expected_filename": "tracker-core.md",
       "actual_filename": "notifications.md"
@@ -2188,7 +2188,7 @@ Command output (as visible in screenshot; truncated):
       "type": "structure",
       "message": "Spec filename does not match ID slug",
       "line": 30,
-      "path": ".../examples/overwork_alert/architecture/specs/cli-control.md",
+      "path": ".../examples/overwork_alert/architecture/features/cli-control.md",
       "id": "cpt-overwork-alert-feature-tracker-core",
       "expected_filename": "tracker-core.md",
       "actual_filename": "cli-control.md"
@@ -2219,7 +2219,7 @@ Command output (as visible in screenshot; truncated):
 
 Command:
 
-`python3 skills/cypilot/scripts/cypilot.py validate --skip-code --artifact examples/overwork_alert/architecture/specs/launchagent-autostart.md`
+`python3 skills/cypilot/scripts/cypilot.py validate --skip-code --artifact examples/overwork_alert/architecture/features/launchagent-autostart.md`
 
 ```json
 {"status":"PASS","artifacts_validated":1,"error_count":0,"warning_count":0,"next_step":"Deterministic validation passed. Now perform semantic validation: review content quality against checklist.md criteria."}
@@ -2253,19 +2253,19 @@ This spec intentionally excludes manual reset, pause/resume, and CLI control det
 
 Commands (as visible in screenshot; outputs truncated):
 
-- `python3 ... validate --skip-code --artifact examples/overwork_alert/architecture/specs/tracker-core.md` → `{"status":"PASS",...}`
-- `python3 ... validate --skip-code --artifact examples/overwork_alert/architecture/specs/notifications.md` → `{"status":"PASS",...}`
-- `python3 ... validate --skip-code --artifact examples/overwork_alert/architecture/specs/cli-control.md` → `{"status":"PASS",...}`
+- `python3 ... validate --skip-code --artifact examples/overwork_alert/architecture/features/tracker-core.md` → `{"status":"PASS",...}`
+- `python3 ... validate --skip-code --artifact examples/overwork_alert/architecture/features/notifications.md` → `{"status":"PASS",...}`
+- `python3 ... validate --skip-code --artifact examples/overwork_alert/architecture/features/cli-control.md` → `{"status":"PASS",...}`
 
 </details>
 
 Links:
 
 - DECOMPOSITION: [DECOMPOSITION.md](../examples/overwork_alert/architecture/DECOMPOSITION.md)
-- SPEC: [tracker-core.md](../examples/overwork_alert/architecture/specs/tracker-core.md)
-- SPEC: [notifications.md](../examples/overwork_alert/architecture/specs/notifications.md)
-- SPEC: [cli-control.md](../examples/overwork_alert/architecture/specs/cli-control.md)
-- SPEC: [launchagent-autostart.md](../examples/overwork_alert/architecture/specs/launchagent-autostart.md)
+- SPEC: [tracker-core.md](../examples/overwork_alert/architecture/features/tracker-core.md)
+- SPEC: [notifications.md](../examples/overwork_alert/architecture/features/notifications.md)
+- SPEC: [cli-control.md](../examples/overwork_alert/architecture/features/cli-control.md)
+- SPEC: [launchagent-autostart.md](../examples/overwork_alert/architecture/features/launchagent-autostart.md)
 - Registry: [artifacts.json](../.cypilot-adapter/artifacts.json)
 
 #### 1309 — Completion summary + clear next step
@@ -2291,10 +2291,10 @@ Links:
 - Registered artifacts
   - Added `DECOMPOSITION.md`
   - Added 4 SPECs:
-    - `examples/overwork_alert/architecture/specs/tracker-core.md`
-    - `examples/overwork_alert/architecture/specs/notifications.md`
-    - `examples/overwork_alert/architecture/specs/cli-control.md`
-    - `examples/overwork_alert/architecture/specs/launchagent-autostart.md`
+    - `examples/overwork_alert/architecture/features/tracker-core.md`
+    - `examples/overwork_alert/architecture/features/notifications.md`
+    - `examples/overwork_alert/architecture/features/cli-control.md`
+    - `examples/overwork_alert/architecture/features/launchagent-autostart.md`
 - Fixed DECOMPOSITION navigation links
   - Updated spec links to point at `specs/*.md` files.
 - Fixed SPEC filename validation
@@ -2781,8 +2781,8 @@ Out of scope / not applicable (v1):
 
 </details>
 
-- SPEC: [tracker-core.md](../examples/overwork_alert/architecture/specs/tracker-core.md)
-- SPEC: [notifications.md](../examples/overwork_alert/architecture/specs/notifications.md)
+- SPEC: [tracker-core.md](../examples/overwork_alert/architecture/features/tracker-core.md)
+- SPEC: [notifications.md](../examples/overwork_alert/architecture/features/notifications.md)
 
 #### 1601 — Recovery: re-enter Protocol Guard + finish remaining SPEC patches
 
@@ -2852,8 +2852,8 @@ Out of scope / not applicable (v1):
 
 </details>
 
-- SPEC: [cli-control.md](../examples/overwork_alert/architecture/specs/cli-control.md)
-- SPEC: [launchagent-autostart.md](../examples/overwork_alert/architecture/specs/launchagent-autostart.md)
+- SPEC: [cli-control.md](../examples/overwork_alert/architecture/features/cli-control.md)
+- SPEC: [launchagent-autostart.md](../examples/overwork_alert/architecture/features/launchagent-autostart.md)
 
 ### Validation loop until PASS (1602–1604)
 
@@ -2879,7 +2879,7 @@ Command output (as visible in screenshot; truncated):
     {"type":"structure","message":"Required reference coverage missing","line":253,"id_kind":"nfr"}
   ],
   "failed_artifacts": [
-    {"artifact":".../examples/overwork_alert/architecture/specs/launchagent-autostart.md","error_count":2}
+    {"artifact":".../examples/overwork_alert/architecture/features/launchagent-autostart.md","error_count":2}
   ]
 }
 ```
@@ -2906,7 +2906,7 @@ Command output (as visible in screenshot; truncated):
 
 Links:
 
-- SPEC: [launchagent-autostart.md](../examples/overwork_alert/architecture/specs/launchagent-autostart.md)
+- SPEC: [launchagent-autostart.md](../examples/overwork_alert/architecture/features/launchagent-autostart.md)
 
 #### 1603 — Fix remaining validation errors (missing required reference coverages)
 
@@ -2930,7 +2930,7 @@ Command output (as visible in screenshot; truncated):
     {"type":"structure","message":"Required reference coverage missing","line":253,"id_kind":"nfr"}
   ],
   "failed_artifacts": [
-    {"artifact":".../examples/overwork_alert/architecture/specs/launchagent-autostart.md","error_count":2}
+    {"artifact":".../examples/overwork_alert/architecture/features/launchagent-autostart.md","error_count":2}
   ]
 }
 ```
@@ -2957,7 +2957,7 @@ Command output (as visible in screenshot; truncated):
 
 Links:
 
-- SPEC: [launchagent-autostart.md](../examples/overwork_alert/architecture/specs/launchagent-autostart.md)
+- SPEC: [launchagent-autostart.md](../examples/overwork_alert/architecture/features/launchagent-autostart.md)
 
 #### 1604 — SPEC gap fixes complete + deterministic validation PASS
 
@@ -2988,10 +2988,10 @@ Links:
 #### Validation status
 
 - Deterministic validation (`cypilot validate --skip-code`) now PASS for:
-  - `examples/overwork_alert/architecture/specs/tracker-core.md`
-  - `examples/overwork_alert/architecture/specs/notifications.md`
-  - `examples/overwork_alert/architecture/specs/cli-control.md`
-  - `examples/overwork_alert/architecture/specs/launchagent-autostart.md`
+  - `examples/overwork_alert/architecture/features/tracker-core.md`
+  - `examples/overwork_alert/architecture/features/notifications.md`
+  - `examples/overwork_alert/architecture/features/cli-control.md`
+  - `examples/overwork_alert/architecture/features/launchagent-autostart.md`
 
 #### Next step (your choice)
 
@@ -3010,10 +3010,10 @@ Tell me A or B.
 
 Links:
 
-- SPEC: [tracker-core.md](../examples/overwork_alert/architecture/specs/tracker-core.md)
-- SPEC: [notifications.md](../examples/overwork_alert/architecture/specs/notifications.md)
-- SPEC: [cli-control.md](../examples/overwork_alert/architecture/specs/cli-control.md)
-- SPEC: [launchagent-autostart.md](../examples/overwork_alert/architecture/specs/launchagent-autostart.md)
+- SPEC: [tracker-core.md](../examples/overwork_alert/architecture/features/tracker-core.md)
+- SPEC: [notifications.md](../examples/overwork_alert/architecture/features/notifications.md)
+- SPEC: [cli-control.md](../examples/overwork_alert/architecture/features/cli-control.md)
+- SPEC: [launchagent-autostart.md](../examples/overwork_alert/architecture/features/launchagent-autostart.md)
 - Registry: [artifacts.json](../.cypilot-adapter/artifacts.json)
 
 <a id="part-9-implementation"></a>
