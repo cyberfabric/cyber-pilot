@@ -50,9 +50,9 @@
           "system_root": "{project_root}",
           "artifacts_root": "architecture",
           "artifacts": {
-            "PRD": {"pattern": "PRD.md", "traceability": "FULL"},
-            "DESIGN": {"pattern": "DESIGN.md", "traceability": "FULL"},
-            "DECOMPOSITION": {"pattern": "DECOMPOSITION.md", "traceability": "FULL"},
+            "PRD": {"pattern": "PRD.md", "traceability": "FULL", "required": false},
+            "DESIGN": {"pattern": "DESIGN.md", "traceability": "FULL", "required": false},
+            "DECOMPOSITION": {"pattern": "DECOMPOSITION.md", "traceability": "FULL", "required": false},
             "ADR": {"pattern": "ADR/**/*.md", "traceability": "FULL", "required": false},
             "FEATURE": {"pattern": "features/*.md", "traceability": "DOCS-ONLY", "required": false}
           },
