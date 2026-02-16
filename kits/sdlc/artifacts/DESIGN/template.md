@@ -1,383 +1,213 @@
-<!-- cpt:#:design -->
-# Technical Design: {PROJECT_NAME}
 
-<!-- cpt:##:architecture-overview -->
+# Technical Design — {Module Name}
+
 ## 1. Architecture Overview
 
-<!-- cpt:###:architectural-vision -->
-### Architectural Vision
+### 1.1 Architectural Vision
 
-<!-- cpt:architectural-vision-body -->
-{1-3 paragraphs describing the architecture at a high level.}
+{2-3 paragraphs: Technical approach, key decisions, design philosophy. How does this architecture satisfy the requirements?}
 
-{Include:
-- system boundaries
-- major responsibilities
-- what drives the chosen architecture}
-<!-- cpt:architectural-vision-body -->
-<!-- cpt:###:architectural-vision -->
+### 1.2 Architecture Drivers
 
-<!-- cpt:###:architecture-drivers -->
-### Architecture drivers
+Requirements that significantly influence architecture decisions.
 
-<!-- cpt:####:prd-requirements -->
-#### Product requirements
+**ADRs**: `cpt-{system}-adr-{slug}`
 
-<!-- cpt:fr-title repeat="many" -->
-##### {FR Name 1}
+#### Functional Drivers
 
-<!-- cpt:id-ref:fr has="priority,task" -->
-- [ ] `p1` - `cpt-{system}-fr-{slug}`
-<!-- cpt:id-ref:fr -->
+| Requirement | Design Response |
+|-------------|-----------------|
+| `cpt-{system}-fr-{slug}` | {How architecture addresses this requirement} |
 
-**Solution**: {How the design addresses this requirement}
-<!-- cpt:fr-title repeat="many" -->
+#### NFR Allocation
 
-<!-- cpt:fr-title repeat="many" -->
-##### {FR Name 2}
+This table maps non-functional requirements from PRD to specific design/architecture responses, demonstrating how quality attributes are realized.
 
-<!-- cpt:id-ref:fr has="priority,task" -->
-- [ ] `p2` - `cpt-{system}-fr-{slug}`
-<!-- cpt:id-ref:fr -->
+| NFR ID | NFR Summary | Allocated To | Design Response | Verification Approach |
+|--------|-------------|--------------|-----------------|----------------------|
+| `cpt-{system}-nfr-{slug}` | {Brief NFR description} | {Component/layer/mechanism} | {How this design element realizes the NFR} | {How compliance is verified} |
 
-**Solution**: {How the design addresses this requirement}
-<!-- cpt:fr-title repeat="many" -->
+### 1.3 Architecture Layers
 
-<!-- cpt:nfr-title repeat="many" -->
-##### {NFR Name 1}
+{Add architecture diagram here: Mermaid or ASCII}
 
-<!-- cpt:id-ref:nfr has="priority,task" -->
-- [ ] `p1` - `cpt-{system}-nfr-{slug}`
-<!-- cpt:id-ref:nfr -->
+- [ ] `p3` - **ID**: `cpt-{system}-tech-{slug}`
 
-**Solution**: {How the design addresses this NFR}
-<!-- cpt:nfr-title repeat="many" -->
-
-<!-- cpt:nfr-title repeat="many" -->
-##### {NFR Name 2}
-
-<!-- cpt:id-ref:nfr has="priority,task" -->
-- [ ] `p2` - `cpt-{system}-nfr-{slug}`
-<!-- cpt:id-ref:nfr -->
-
-**Solution**: {How the design addresses this NFR}
-<!-- cpt:nfr-title repeat="many" -->
-
-<!-- cpt:####:prd-requirements -->
-
-<!-- cpt:####:adr-records -->
-#### Architecture Decisions Records
-
-<!-- cpt:adr-title repeat="many" -->
-##### {ADR Title 1}
-
-<!-- cpt:id-ref:adr -->
-- [ ] `p1` - `cpt-{system}-adr-{slug}`
-<!-- cpt:id-ref:adr -->
-
-{2-4 sentences describing what decision was taken and why. Include key tradeoffs if relevant.}
-<!-- cpt:adr-title repeat="many" -->
-
-<!-- cpt:adr-title repeat="many" -->
-##### {ADR Title 2}
-
-<!-- cpt:id-ref:adr -->
-- [ ] `p2` - `cpt-{system}-adr-{slug}`
-<!-- cpt:id-ref:adr -->
-
-{2-4 sentences describing what decision was taken and why. Include key tradeoffs if relevant.}
-<!-- cpt:adr-title repeat="many" -->
-
-<!-- cpt:####:adr-records -->
-<!-- cpt:###:architecture-drivers -->
-
-<!-- cpt:###:architecture-layers -->
-### Architecture Layers
-
-<!-- cpt:table:architecture-layers -->
 | Layer | Responsibility | Technology |
 |-------|---------------|------------|
-| {layer 1} | {responsibility} | {tech} |
-| {layer 2} | {responsibility} | {tech} |
-| {layer 3} | {responsibility} | {tech} |
-<!-- cpt:table:architecture-layers -->
-<!-- cpt:###:architecture-layers -->
-<!-- cpt:##:architecture-overview -->
+| Presentation | {description} | {tech} |
+| Application | {description} | {tech} |
+| Domain | {description} | {tech} |
+| Infrastructure | {description} | {tech} |
 
-<!-- cpt:##:principles-and-constraints -->
 ## 2. Principles & Constraints
 
-<!-- cpt:###:principles -->
-### 2.1: Design Principles
+### 2.1 Design Principles
 
-<!-- cpt:####:principle-title repeat="many" -->
-#### {Principle Name 1}
+#### {Principle Name}
 
-<!-- cpt:id:principle has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
-- [ ] `p1` - **ID**: `cpt-{system}-principle-{slug}`
-
-<!-- cpt:paragraph:principle-body -->
-{Rationale and guidance for this principle.}
-<!-- cpt:paragraph:principle-body -->
-<!-- cpt:id:principle -->
-<!-- cpt:####:principle-title repeat="many" -->
-
-<!-- cpt:####:principle-title repeat="many" -->
-#### {Principle Name 2}
-
-<!-- cpt:id:principle has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
 - [ ] `p2` - **ID**: `cpt-{system}-principle-{slug}`
 
-<!-- cpt:paragraph:principle-body -->
-{Rationale and guidance for this principle.}
-<!-- cpt:paragraph:principle-body -->
-<!-- cpt:id:principle -->
-<!-- cpt:####:principle-title repeat="many" -->
+{Description of the principle and why it matters for this system.}
 
-<!-- cpt:###:principles -->
+**ADRs**: `cpt-{system}-adr-{slug}`
 
-<!-- cpt:###:constraints -->
-### 2.2: Constraints
+### 2.2 Constraints
 
-<!-- cpt:####:constraint-title repeat="many" -->
-#### {Constraint Name 1}
+#### {Constraint Name}
 
-<!-- cpt:id:constraint has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
-- [ ] `p1` - **ID**: `cpt-{system}-constraint-{slug}`
-
-<!-- cpt:paragraph:constraint-body -->
-{What constraint exists and why.}
-<!-- cpt:paragraph:constraint-body -->
-<!-- cpt:id:constraint -->
-<!-- cpt:####:constraint-title repeat="many" -->
-
-<!-- cpt:####:constraint-title repeat="many" -->
-#### {Constraint Name 2}
-
-<!-- cpt:id:constraint has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
 - [ ] `p2` - **ID**: `cpt-{system}-constraint-{slug}`
 
-<!-- cpt:paragraph:constraint-body -->
-{What constraint exists and why.}
-<!-- cpt:paragraph:constraint-body -->
-<!-- cpt:id:constraint -->
-<!-- cpt:####:constraint-title repeat="many" -->
+{Description of the constraint (technical, regulatory, organizational) and its impact on design.}
 
-<!-- cpt:###:constraints -->
-<!-- cpt:##:principles-and-constraints -->
+**ADRs**: `cpt-{system}-adr-{slug}`
 
-<!-- cpt:##:technical-architecture -->
 ## 3. Technical Architecture
 
-<!-- cpt:###:domain-model -->
-### 3.1: Domain Model
+### 3.1 Domain Model
 
-<!-- cpt:paragraph:domain-model -->
-{Describe domain entities, invariants, and relationships.}
-<!-- cpt:paragraph:domain-model -->
-<!-- cpt:###:domain-model -->
+**Technology**: {GTS, Rust structs},
 
-<!-- cpt:###:component-model -->
-### 3.2: Component Model
+**Location**: [{domain-model-file}]({path/to/domain-model})
 
-<!-- cpt:code:component-model -->
-```mermaid
-%% Add component diagram here
-```
-<!-- cpt:code:component-model -->
+**Core Entities**:
 
-<!-- cpt:####:component-title repeat="many" -->
-#### {Component Name 1}
+| Entity | Description | Schema |
+|--------|-------------|--------|
+| {EntityName} | {Purpose} | [{file}]({path}) |
 
-<!-- cpt:id:component has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
-- [ ] `p1` - **ID**: `cpt-{system}-component-{slug}`
+**Relationships**:
+- {Entity1} → {Entity2}: {Relationship description}
 
-<!-- cpt:list:component-payload -->
-- **Responsibilities**: {what this component does}
-- **Boundaries**: {what is in/out of scope}
-- **Dependencies**: {other components it depends on}
-- **Key interfaces**: {public API or contracts}
-<!-- cpt:list:component-payload -->
-<!-- cpt:id:component -->
-<!-- cpt:####:component-title repeat="many" -->
+### 3.2 Component Model
 
-<!-- cpt:####:component-title repeat="many" -->
-#### {Component Name 2}
+{Describe all components covered by this design. For single-component designs, document that component. For multi-component designs, list all components with their responsibilities and interfaces. Include a component diagram (Mermaid or ASCII) showing structure and relationships.}
 
-<!-- cpt:id:component has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
+#### {Component Name}
+
 - [ ] `p2` - **ID**: `cpt-{system}-component-{slug}`
 
-<!-- cpt:list:component-payload -->
-- **Responsibilities**: {what this component does}
-- **Boundaries**: {what is in/out of scope}
-- **Dependencies**: {other components it depends on}
-- **Key interfaces**: {public API or contracts}
-<!-- cpt:list:component-payload -->
-<!-- cpt:id:component -->
-<!-- cpt:####:component-title repeat="many" -->
+##### Why this component exists
 
-<!-- cpt:###:component-model -->
+{What problem it solves / why it is needed in the architecture.}
 
-<!-- cpt:###:api-contracts -->
-### 3.3: API Contracts
+##### Responsibility scope
 
-<!-- cpt:paragraph:api-contracts -->
-{Describe public APIs, contracts, and integration boundaries.}
-<!-- cpt:paragraph:api-contracts -->
-<!-- cpt:###:api-contracts -->
+{What this component owns: core responsibilities, invariants, main operations.}
 
-<!-- cpt:###:interactions -->
-### 3.4: Interactions & Sequences
+##### Responsibility boundaries
 
-<!-- cpt:####:sequence-title repeat="many" -->
-#### {Sequence Name 1}
+{What it explicitly does NOT do; what is delegated to other components; constraints on responsibilities.}
 
-<!-- cpt:id:seq has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
-- [ ] `p1` - **ID**: `cpt-{system}-seq-{slug}`
+##### Related components (by ID)
 
-<!-- cpt:code:sequences -->
+{List component-to-component relationships using component IDs.}
+
+- `cpt-{system}-component-{slug}` — {relationship type: depends on | calls | publishes to | subscribes to | shares model with | owns data for | etc.}
+
+### 3.3 API Contracts
+
+{For module-level design: Document all public API contracts exposed by this module. For multi-component design: Document the primary API contracts exposed by each component. Add references to module designs}
+
+- [ ] `p2` - **ID**: `cpt-{system}-interface-{slug}`
+
+- **Contracts**: `cpt-{system}-contract-{slug}`
+- **Technology**: {REST/OpenAPI | GraphQL | gRPC | etc.}
+- **Location**: [{api-spec-file}]({path/to/api-spec})
+
+**Endpoints Overview**:
+
+| Method | Path | Description | Stability |
+|--------|------|-------------|-----------|
+| `{METHOD}` | `{/path}` | {Description} | {stable/unstable} |
+
+### 3.4 Internal Dependencies
+
+{Internal system/module dependencies within the platform. All inter-module communication goes through versioned contracts, SDK clients, or plugin interfaces — never through internal types.}
+
+| Dependency Module | Interface Used | Purpose |
+|-------------------|----------------|---------|
+| {module_name} | {contract / SDK client / plugin} | {Why this module is needed} |
+
+**Dependency Rules** (per project conventions):
+- No circular dependencies
+- Always use SDK modules for inter-module communication
+- No cross-category sideways deps except through contracts
+- Only integration/adapter modules talk to external systems
+- `SecurityContext` must be propagated across all in-process calls
+
+### 3.5 External Dependencies
+
+External systems, databases, and third-party services this module interacts with. Define protocols, data formats, and integration points.
+
+#### {External System / Database / Service Name}
+
+| Dependency Module | Interface Used | Purpose |
+|-------------------|---------------|---------|
+| {module_name} | {contract / SDK client / plugin} | {Why this module is needed} |
+
+**Dependency Rules** (per project conventions):
+- No circular dependencies
+- Always use SDK modules for inter-module communication
+- No cross-category sideways deps except through contracts
+- Only integration/adapter modules talk to external systems
+- `SecurityContext` must be propagated across all in-process calls
+
+### 3.6 Interactions & Sequences
+
+{Document key interaction sequences and message flows between components.}
+
+#### {Sequence Name}
+
+**ID**: `cpt-{system}-seq-{slug}`
+
+**Use cases**: `cpt-{system}-usecase-{slug}` (ID from PRD)
+
+**Actors**: `cpt-{system}-actor-{slug}` (ID from PRD)
+
 ```mermaid
 sequenceDiagram
-    participant A as Actor
-    participant S as System
-    A->>S: Request
-    S-->>A: Response
+    User ->> System: Request
+    System ->> Module B: Call
+    System ->> Database: Query
+    Database -->> System: Result
+    System -->> User: Response
 ```
-<!-- cpt:code:sequences -->
 
-<!-- cpt:paragraph:sequence-body -->
-{Explain the interaction, participants, and success/failure outcomes.}
-<!-- cpt:paragraph:sequence-body -->
-<!-- cpt:id:seq -->
-<!-- cpt:####:sequence-title repeat="many" -->
+**Description**: {Brief description of what this sequence accomplishes}
 
-<!-- cpt:####:sequence-title repeat="many" -->
-#### {Sequence Name 2}
+### 3.7 Database schemas & tables
 
-<!-- cpt:id:seq has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
-- [ ] `p2` - **ID**: `cpt-{system}-seq-{slug}`
+{ For module-level design: Document database tables, schemas, and data models. For multi-component design: refer to component-level design documents. }
 
-<!-- cpt:code:sequences -->
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant API as API
-    participant DB as Database
-    U->>API: Request
-    API->>DB: Query
-    DB-->>API: Result
-    API-->>U: Response
-```
-<!-- cpt:code:sequences -->
+#### Table: {table_name}
 
-<!-- cpt:paragraph:sequence-body -->
-{Explain the interaction, participants, and success/failure outcomes.}
-<!-- cpt:paragraph:sequence-body -->
-<!-- cpt:id:seq -->
-<!-- cpt:####:sequence-title repeat="many" -->
+**ID**: `cpt-{system}-dbtable-{slug}`
 
-<!-- cpt:###:interactions -->
+**Schema**:
 
-<!-- cpt:###:database -->
-### 3.5 Database schemas & tables (optional)
-
-<!-- cpt:####:db-table-title repeat="many" -->
-#### Table {name 1}
-
-<!-- cpt:id:dbtable has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
-- [ ] `p1` - **ID**: `cpt-{system}-dbtable-{slug}`
-
-**Schema**
-<!-- cpt:table:db-table-schema -->
 | Column | Type | Description |
 |--------|------|-------------|
-| id | UUID | Primary key |
-| name | VARCHAR(255) | Display name |
-| created_at | TIMESTAMP | Creation timestamp |
-<!-- cpt:table:db-table-schema -->
+| {col} | {type} | {description} |
 
-**PK**: id
+**PK**: {primary key column(s)}
 
-**Constraints**: name must be unique
+**Constraints**: {NOT NULL, UNIQUE, etc.}
 
-**Additional info**: {Any additional info}
+**Additional info**: {Indexes, relationships, triggers, etc.}
 
-**Example**
-<!-- cpt:table:db-table-example -->
-| id | name | created_at |
-|----|------|------------|
-| abc-123 | Example | 2024-01-01 |
-<!-- cpt:table:db-table-example -->
-<!-- cpt:id:dbtable -->
-<!-- cpt:####:db-table-title repeat="many" -->
+**Example**:
 
-<!-- cpt:####:db-table-title repeat="many" -->
-#### Table {name 2}
+| {col1} | {col2} | {col3} |
+|--------|--------|--------|
+| {val1} | {val2} | {val3} |
 
-<!-- cpt:id:dbtable has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
-- [ ] `p2` - **ID**: `cpt-{system}-dbtable-{slug}`
+## 4. Additional context
 
-**Schema**
-<!-- cpt:table:db-table-schema -->
-| Column | Type | Description |
-|--------|------|-------------|
-| id | UUID | Primary key |
-| status | VARCHAR(50) | Current status |
-| updated_at | TIMESTAMP | Last update |
-<!-- cpt:table:db-table-schema -->
+{whatever useful additional context}
 
-**PK**: id
+## 5. Traceability
 
-**Constraints**: status must be one of: active, inactive, pending
-
-**Additional info**: {Any additional info}
-
-**Example**
-<!-- cpt:table:db-table-example -->
-| id | status | updated_at |
-|----|--------|------------|
-| xyz-456 | active | 2024-01-15 |
-<!-- cpt:table:db-table-example -->
-<!-- cpt:id:dbtable -->
-<!-- cpt:####:db-table-title repeat="many" -->
-
-<!-- cpt:###:database -->
-
-<!-- cpt:###:topology -->
-### 3.6: Topology (optional)
-
-<!-- cpt:id:topology has="task" -->
-- [ ] **ID**: `cpt-{system}-topology-{slug}`
-
-<!-- cpt:free:topology-body -->
-{ Physical view, files, pods, containers, DC, virtual machines, etc. }
-<!-- cpt:free:topology-body -->
-<!-- cpt:id:topology -->
-<!-- cpt:###:topology -->
-
-<!-- cpt:###:tech-stack -->
-### 3.7: Tech stack (optional)
-
-<!-- cpt:paragraph:status -->
-**Status**: Proposed | Rejected | Accepted | Deprecated | Superseded
-<!-- cpt:paragraph:status -->
-
-<!-- cpt:paragraph:tech-body -->
-{Describe tech choices and rationale.}
-<!-- cpt:paragraph:tech-body -->
-<!-- cpt:###:tech-stack -->
-<!-- cpt:##:technical-architecture -->
-
-<!-- cpt:##:design-context -->
-## 4. Additional Context
-
-<!-- cpt:free:design-context-body -->
-{Optional notes, rationale, trade-offs, and links.}
-<!-- cpt:free:design-context-body -->
-
-<!-- cpt:paragraph:date -->
-**Date**: {YYYY-MM-DD}
-<!-- cpt:paragraph:date -->
-<!-- cpt:##:design-context -->
-
-<!-- cpt:#:design -->
+- **PRD**: [PRD.md](./PRD.md)
+- **ADRs**: [ADR/](./ADR/)
+- **Features**: [features/](./features/)

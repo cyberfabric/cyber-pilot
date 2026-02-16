@@ -1,13 +1,13 @@
 ---
 name: cypilot
-description: Template-based artifacts (PRD/DESIGN/ADR/DECOMPOSITION/SPEC) + checklists; deterministic validation & consistency analysis (structure, cross-refs, cross-artifact consistency, tasks, covered-by, markerless ID/CDSL extraction); code↔artifact traceability with `@cpt-*`; ID search/navigation (list-ids, where-defined/used, get-content); coding support via generate workflow; reverse-engineering guidance for brownfield codebases; prompt-engineering methodology for improving agent instructions; adapter + registry discovery (adapter-info, artifacts.json, kits/rules); init/bootstrap; workflow router (analyze/generate); agent integrations (agents: workflow proxies + SKILL outputs for windsurf/cursor/claude/copilot/openai).
+description: Artifacts (PRD/DESIGN/ADR/DECOMPOSITION/SPEC) + checklists; deterministic validation & consistency analysis (structure, cross-refs, cross-artifact consistency, tasks, covered-by, ID/CDSL extraction from artifact text); code↔artifact traceability with `@cpt-*`; ID search/navigation (list-ids, where-defined/used, get-content); coding support via generate workflow; reverse-engineering guidance for brownfield codebases; prompt-engineering methodology for improving agent instructions; adapter + registry discovery (adapter-info, artifacts.json, kits/rules); init/bootstrap; workflow router (analyze/generate); agent integrations (agents: workflow proxies + SKILL outputs for windsurf/cursor/claude/copilot/openai).
 ---
 
 # Cypilot Unified Tool
 
 ## Goal
 
-Cypilot provides: template-based validation, cross-reference validation, code traceability, ID search, and design-to-code implementation with `@cpt-*` markers.
+Cypilot provides: artifact validation, cross-reference validation, code traceability, ID search, and design-to-code implementation with `@cpt-*` markers.
 
 ## Preconditions
 
@@ -140,6 +140,19 @@ ALWAYS STOP and re-run Protocol Guard WHEN specs should be loaded but weren't li
 
 ---
 
+## Cypilot Mode
+
+ALWAYS set `{cypilot_mode}` = `on` FIRST WHEN user invokes `cypilot {prompt}`
+
+ALWAYS run `adapter-info` WHEN enabling Cypilot mode
+
+ALWAYS show status after enabling:
+```
+Cypilot Mode Enabled
+Adapter: {FOUND at path | NOT_FOUND}
+```
+---
+
 ## Agent-Safe Invocation
 
 ALWAYS use script entrypoint:
@@ -218,20 +231,6 @@ When routed to PR status:
 2. Read `{cypilot_path}/workflows/pr-status.md` and follow its steps
 3. Use `python3 {cypilot_path}/skills/scripts/pr.py` as the script
 4. When target is `ALL` or no PR number given, run `pr.py list` first to show available PRs
-
----
-
-## Cypilot Mode
-
-ALWAYS set `{cypilot_mode}` = `on` FIRST WHEN user invokes `cypilot {prompt}`
-
-ALWAYS run `adapter-info` WHEN enabling Cypilot mode
-
-ALWAYS show status after enabling:
-```
-Cypilot Mode Enabled
-Adapter: {FOUND at path | NOT_FOUND}
-```
 
 ---
 

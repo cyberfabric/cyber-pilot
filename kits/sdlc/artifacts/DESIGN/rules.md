@@ -28,7 +28,7 @@
 - `template.md` — required structure
 - `checklist.md` — semantic quality criteria
 - `examples/example.md` — reference implementation
-- `{cypilot_path}/requirements/template.md` — Cypilot template marker syntax specification
+- `{cypilot_path}/requirements/identifiers.md` — ID formats and naming
 - `../../constraints.json` — kit-level constraints (primary rules for ID definitions/references)
 - `{cypilot_path}/requirements/kit-constraints.md` — constraints specification
 - `{cypilot_path}/schemas/kit-constraints.schema.json` — constraints JSON Schema

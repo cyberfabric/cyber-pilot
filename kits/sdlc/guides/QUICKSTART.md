@@ -25,10 +25,10 @@ flowchart LR
     ADR["**ADR**<br/>270+ criteria"]
     DESIGN["**DESIGN**<br/>380+ criteria"]
     DECOMP["**DECOMPOSITION**<br/>130+ criteria"]
-    SPEC["**SPEC**<br/>380+ criteria"]
+    FEATURE["**FEATURE**<br/>380+ criteria"]
     CODE["**CODE**<br/>200+ criteria"]
 
-    PRD --> ADR --> DESIGN --> DECOMP --> SPEC --> CODE
+    PRD --> ADR --> DESIGN --> DECOMP --> FEATURE --> CODE
 ```
 
 | Artifact | Purpose |
@@ -36,8 +36,8 @@ flowchart LR
 | **PRD** | Product requirements — actors, capabilities, requirements, use cases, constraints |
 | **ADR** | Architecture Decision Record — context, options, decision, consequences |
 | **DESIGN** | Technical architecture — components, interfaces, data models, sequences |
-| **DECOMPOSITION** | Spec breakdown — ordered implementation units with dependencies |
-| **SPEC** | Spec acceptance criteria, flows, algorithms, edge cases, definitions of done |
+| **DECOMPOSITION** | Feature breakdown — ordered implementation units with dependencies |
+| **FEATURE** | Feature acceptance criteria, flows, algorithms, edge cases, definitions of done |
 | **CODE** | Implementation — tagged with `@cpt-*` markers for traceability |
 
 **Key principle**: If code contradicts design, fix design first, then regenerate code.
@@ -51,7 +51,7 @@ Learn what each artifact means: [TAXONOMY.md](TAXONOMY.md)
 | Prompt | What happens |
 |--------|--------------|
 | `cypilot on` | Enables Cypilot mode, discovers adapter, loads project context |
-| `cypilot init` | Creates `.cypilot-adapter/` with `artifacts.json` and domain specs |
+| `cypilot init` | Creates `.cypilot-adapter/` with `artifacts.json` and domain context files |
 | `cypilot show pipeline` | Displays current artifact hierarchy and validation status |
 
 **Customizing artifact locations:**
@@ -59,7 +59,7 @@ Learn what each artifact means: [TAXONOMY.md](TAXONOMY.md)
 | Prompt | What happens |
 |--------|--------------|
 | `cypilot set artifacts_dir to docs/design/` | Changes default base directory for new artifacts |
-| `cypilot register PRD at specs/product-requirements.md` | Registers existing file as PRD artifact |
+| `cypilot register PRD at docs/requirements/product-requirements.md` | Registers existing file as PRD artifact |
 | `cypilot move PRD to docs/requirements/PRD.md` | Moves artifact and updates registry |
 | `cypilot show artifact locations` | Displays current paths from `artifacts.json` |
 
@@ -106,37 +106,37 @@ Learn what each artifact means: [TAXONOMY.md](TAXONOMY.md)
 | `cypilot validate DESIGN structural` | Structural validation (format, IDs) |
 | `cypilot validate DESIGN refs` | Check references to PRD/ADR |
 
-**DECOMPOSITION — Spec Breakdown**
+**DECOMPOSITION — Feature Breakdown**
 
 | Prompt | What the agent does |
 |--------|---------------------|
 | `cypilot decompose` | Creates DECOMPOSITION interactively |
-| `cypilot decompose into specs` | Creates ordered spec list with dependencies |
-| `cypilot decompose by capability` | Groups specs by business capability |
-| `cypilot decompose by layer` | Groups specs by technical layer |
-| `cypilot add spec to decomposition` | Adds new spec entry |
+| `cypilot decompose into features` | Creates ordered feature list with dependencies |
+| `cypilot decompose by capability` | Groups features by business capability |
+| `cypilot decompose by layer` | Groups features by technical layer |
+| `cypilot add feature to decomposition` | Adds new feature entry |
 | `cypilot validate DECOMPOSITION` | Full validation (130+ criteria) |
 | `cypilot validate DECOMPOSITION semantic` | Semantic validation (coverage, dependencies) |
 | `cypilot validate DECOMPOSITION structural` | Structural validation (format, IDs) |
 
-**SPEC — Spec Specification**
+**FEATURE — Feature Specification**
 
 | Prompt | What the agent does |
 |--------|---------------------|
-| `cypilot make SPEC for auth` | Creates spec spec for auth |
-| `cypilot make SPEC spec for task-crud` | Creates detailed spec design |
-| `cypilot draft SPEC from code` | Reverse-engineers spec from implementation |
-| `cypilot extend SPEC auth with MFA` | Adds scenario to existing spec |
-| `cypilot validate SPEC auth` | Full validation (380+ criteria) |
-| `cypilot validate SPEC auth semantic` | Semantic validation (flows, edge cases) |
-| `cypilot validate SPEC auth structural` | Structural validation (CDSL format, IDs) |
-| `cypilot validate SPEC auth refs` | Check references to DESIGN/DECOMPOSITION |
+| `cypilot make FEATURE for auth` | Creates feature design for auth |
+| `cypilot make FEATURE for task-crud` | Creates detailed feature design |
+| `cypilot draft FEATURE from code` | Reverse-engineers feature from implementation |
+| `cypilot extend FEATURE auth with MFA` | Adds scenario to existing feature |
+| `cypilot validate FEATURE auth` | Full validation (380+ criteria) |
+| `cypilot validate FEATURE auth semantic` | Semantic validation (flows, edge cases) |
+| `cypilot validate FEATURE auth structural` | Structural validation (CDSL format, IDs) |
+| `cypilot validate FEATURE auth refs` | Check references to DESIGN/DECOMPOSITION |
 
 **CODE — Implementation**
 
 | Prompt | What the agent does |
 |--------|---------------------|
-| `cypilot implement {slug}` | Generates code from SPEC spec |
+| `cypilot implement {slug}` | Generates code from FEATURE |
 | `cypilot implement {slug} step by step` | Implements with user confirmation |
 | `cypilot implement {slug} tests first` | Generates tests first, then code |
 | `cypilot implement {slug} flow {flow-id}` | Implements specific flow only |
@@ -144,25 +144,25 @@ Learn what each artifact means: [TAXONOMY.md](TAXONOMY.md)
 | `cypilot implement {slug} tests` | Generates tests only |
 | `cypilot continue implementing {slug}` | Continues partial implementation |
 | `cypilot implement {slug} remaining` | Implements only unimplemented parts |
-| `cypilot sync code with SPEC {slug}` | Updates code to match SPEC |
+| `cypilot sync code with FEATURE {slug}` | Updates code to match FEATURE |
 | `cypilot add markers to {path}` | Adds markers to existing code |
-| `cypilot add markers for {slug}` | Adds markers matching SPEC |
+| `cypilot add markers for {slug}` | Adds markers matching FEATURE |
 
 **CODE — Validation**
 
 | Prompt | What the agent does |
 |--------|---------------------|
 | `cypilot validate code` | Validates all code markers |
-| `cypilot validate code for {slug}` | Validates specific spec |
+| `cypilot validate code for {slug}` | Validates specific feature |
 | `cypilot validate code coverage` | Reports implementation coverage % |
-| `cypilot validate code coverage for {slug}` | Coverage for specific spec |
+| `cypilot validate code coverage for {slug}` | Coverage for specific feature |
 | `cypilot validate code orphans` | Finds orphaned markers |
 | `cypilot validate code refs` | Validates marker references |
 | `cypilot validate code markers` | Checks marker format |
 | `cypilot list code markers` | Lists all markers |
-| `cypilot list code markers for {slug}` | Lists markers for spec |
+| `cypilot list code markers for {slug}` | Lists markers for feature |
 | `cypilot show uncovered flows` | Lists flows without code |
-| `cypilot compare code to SPEC {slug}` | Shows drift from spec |
+| `cypilot compare code to FEATURE {slug}` | Shows drift from feature |
 | `cypilot find missing implementations` | Lists unimplemented elements |
 
 **Pipeline & Cross-Artifact**
@@ -184,8 +184,8 @@ Learn what each artifact means: [TAXONOMY.md](TAXONOMY.md)
 |--------|---------------------|
 | `cypilot reverse PRD from codebase` | Extracts requirements from existing implementation |
 | `cypilot reverse DESIGN from src/` | Documents current architecture from code |
-| `cypilot reverse SPEC from src/auth/` | Creates SPEC spec from auth module |
-| `cypilot reverse SPEC auth from code` | Same, using spec slug |
+| `cypilot reverse FEATURE from src/auth/` | Creates FEATURE from auth module |
+| `cypilot reverse FEATURE auth from code` | Same, using feature slug |
 | `cypilot analyze src/api/` | Systematic code analysis with checklist |
 
 **Import from existing docs**
@@ -205,7 +205,7 @@ Learn what each artifact means: [TAXONOMY.md](TAXONOMY.md)
 |--------|---------------------|
 | `cypilot compare DESIGN to code` | Shows drift between design and implementation |
 | `cypilot sync DESIGN from code` | Updates DESIGN to match current code |
-| `cypilot diff SPEC auth` | Shows changes since last validation |
+| `cypilot diff FEATURE auth` | Shows changes since last validation |
 
 ---
 
@@ -217,8 +217,8 @@ Learn what each artifact means: [TAXONOMY.md](TAXONOMY.md)
 |--------|---------------------|
 | `cypilot extend PRD with payments` | Adds capability to PRD |
 | `cypilot extend DESIGN with caching` | Adds component to DESIGN |
-| `cypilot extend SPEC auth with MFA` | Adds scenario to spec |
-| `cypilot add spec billing to decomposition` | Adds spec entry |
+| `cypilot extend FEATURE auth with MFA` | Adds scenario to feature |
+| `cypilot add feature billing to decomposition` | Adds feature entry |
 
 **Update and propagate**
 
@@ -234,16 +234,16 @@ Learn what each artifact means: [TAXONOMY.md](TAXONOMY.md)
 |--------|---------------------|
 | `cypilot show impact of removing FR-AUTH-002` | Traces downstream references |
 | `cypilot show impact of changing component auth` | Shows affected artifacts |
-| `cypilot deprecate spec user-import` | Marks deprecated across artifacts |
+| `cypilot deprecate feature user-import` | Marks deprecated across artifacts |
 
 **Refactoring**
 
 | Prompt | What the agent does |
 |--------|---------------------|
-| `cypilot refactor component auth-service` | Updates DESIGN and SPECs |
-| `cypilot rename spec billing to payments` | Renames across all artifacts |
-| `cypilot split spec payments` | Creates sub-specs |
-| `cypilot merge specs billing and invoicing` | Combines specs |
+| `cypilot refactor component auth-service` | Updates DESIGN and FEATUREs |
+| `cypilot rename feature billing to payments` | Renames across all artifacts |
+| `cypilot split feature payments` | Creates sub-features |
+| `cypilot merge features billing and invoicing` | Combines features |
 
 ---
 
@@ -265,12 +265,12 @@ Learn what each artifact means: [TAXONOMY.md](TAXONOMY.md)
 
 | Prompt | What the agent does |
 |--------|---------------------|
-| `cypilot trace FR-AUTH-001` | Shows path: PRD → DESIGN → SPEC → CODE |
-| `cypilot trace spec auth` | Shows all references to auth spec |
+| `cypilot trace FR-AUTH-001` | Shows path: PRD → DESIGN → FEATURE → CODE |
+| `cypilot trace feature auth` | Shows all references to auth feature |
 | `cypilot find orphans` | Lists IDs with no upstream/downstream refs |
 | `cypilot find orphan code` | Code markers referencing non-existent IDs |
 | `cypilot find orphan requirements` | Requirements not covered by DESIGN |
-| `cypilot list unimplemented` | Specs without code coverage |
+| `cypilot list unimplemented` | Features without code coverage |
 | `cypilot coverage report` | Implementation coverage by artifact |
 | `cypilot show refs for DESIGN` | All references in DESIGN artifact |
 
@@ -280,8 +280,8 @@ Learn what each artifact means: [TAXONOMY.md](TAXONOMY.md)
 |--------|---------------------|
 | `cypilot review PRD` | Deep review with 300+ criteria |
 | `cypilot review DESIGN for consistency` | Checks for internal contradictions |
-| `cypilot review SPEC auth for completeness` | Validates edge cases and error handling |
-| `cypilot review PR #42 against SPEC` | Checks PR implements spec items |
+| `cypilot review FEATURE auth for completeness` | Validates edge cases and error handling |
+| `cypilot review PR #42 against FEATURE` | Checks PR implements feature items |
 | `cypilot review code for auth` | Reviews implementation quality |
 
 ---
@@ -300,7 +300,7 @@ Learn what each artifact means: [TAXONOMY.md](TAXONOMY.md)
 | **Brownfield** | [BROWNFIELD.md](BROWNFIELD.md) | Start anywhere — code-only, bottom-up, or full |
 | **Modular monolith** | [MONOLITH.md](MONOLITH.md) | Project-level + module-level artifacts |
 
-**Brownfield flexibility**: No required order. Start with code-only (checklist benefits), add SPEC specs for complex specs, add DESIGN later. Or go full top-down. Your choice.
+**Brownfield flexibility**: No required order. Start with code-only (checklist benefits), add FEATURE designs for complex areas, add DESIGN later. Or go full top-down. Your choice.
 
 ## Reference
 

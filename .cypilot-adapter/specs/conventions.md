@@ -41,9 +41,9 @@ skills/cypilot/scripts/cypilot/    # Main CLI package
 
 ## Cypilot Markers
 
-- **Format**: `@cpt-{kind}:{id}:{phase}`
-- **Example**: `@cpt-fr:cpt-prd-1:impl`
-- **Phases**: `p1`, `p2`, etc. (implementation phases)
+- **Scope marker**: `@cpt-{kind}:{cpt-id}:p{N}`
+- **Block markers**: `@cpt-begin:{cpt-id}:p{N}:inst-{local}` / `@cpt-end:{cpt-id}:p{N}:inst-{local}`
+- **Phases**: `p1`, `p2`, etc.
 
 ---
 

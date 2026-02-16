@@ -1,15 +1,15 @@
-# Spec Expert Checklist
+# FEATURE Expert Checklist
 
-**Artifact**: Spec (SPEC)
+**Artifact**: Feature (FEATURE)
 **Version**: 2.0
-**Last Updated**: 2025-02-03
-**Purpose**: Comprehensive quality checklist for specs
+**Last Updated**: 2026-02-03
+**Purpose**: Comprehensive quality checklist for FEATURE artifacts
 
 ---
 
 ## Referenced Standards
 
-This checklist validates specs based on the following international standards:
+This checklist validates FEATURE artifacts based on the following international standards:
 
 | Standard | Domain | Description |
 |----------|--------|-------------|
@@ -53,27 +53,27 @@ This checklist validates specs based on the following international standards:
 
 ## Review Scope Selection
 
-**Choose review mode based on spec complexity and risk**:
+**Choose review mode based on feature complexity and risk**:
 
 | Review Mode | When to Use | Domains to Check |
 |-------------|-------------|------------------|
 | **Quick** | Simple CRUD, minor updates | ARCH (core) + BIZ + changed domains |
-| **Standard** | New spec, moderate complexity | All applicable domains |
+| **Standard** | New feature, moderate complexity | All applicable domains |
 | **Full** | Security-sensitive, complex logic | All 12 domains with evidence |
 
 ### Quick Review (Core Items Only)
 
 **MUST CHECK** (blocking):
-- [ ] ARCH-FDESIGN-001: Spec Context Completeness
+- [ ] ARCH-FDESIGN-001: Feature Context Completeness
 - [ ] ARCH-FDESIGN-003: Actor Flow Completeness
 - [ ] BIZ-FDESIGN-001: Requirements Alignment
 - [ ] DOC-FDESIGN-001: Explicit Non-Applicability
 
 **Changed sections** — also check relevant domain items for any sections modified.
 
-### Domain Prioritization by Spec Type
+### Domain Prioritization by Feature Type
 
-| Spec Type | Priority Domains (check first) | Secondary Domains | Often N/A |
+| Feature Type | Priority Domains (check first) | Secondary Domains | Often N/A |
 |--------------|-------------------------------|-------------------|-----------|
 | **User-facing UI** | ARCH, UX, SEC, TEST | PERF, REL, DATA | OPS, INT, COMPL |
 | **Backend API** | ARCH, SEC, DATA, INT | PERF, REL, TEST | UX, COMPL |
@@ -90,7 +90,7 @@ This checklist validates specs based on the following international standards:
 
 Before starting the review, confirm:
 
-- [ ] I understand this checklist validates SPEC artifacts
+- [ ] I understand this checklist validates FEATURE artifacts
 - [ ] I will follow the Applicability Context rules below
 - [ ] I will check ALL items in MUST HAVE sections
 - [ ] I will verify ALL items in MUST NOT HAVE sections
@@ -104,12 +104,12 @@ Before starting the review, confirm:
 
 Before evaluating each checklist item, the expert MUST:
 
-1. **Understand the spec's domain** — What kind of spec is this? (e.g., user-facing UI spec, backend API, data processing pipeline, CLI command)
+1. **Understand the feature's domain** — What kind of feature is this? (e.g., user-facing UI feature, backend API feature, data processing pipeline, CLI command)
 
-2. **Determine applicability for each requirement** — Not all checklist items apply to all specs:
-   - A simple CRUD spec may not need complex State Management analysis
-   - A read-only spec may not need Data Integrity analysis
-   - A CLI spec may not need UI/UX analysis
+2. **Determine applicability for each requirement** — Not all checklist items apply to all features:
+   - A simple CRUD feature may not need complex State Management analysis
+   - A read-only feature may not need Data Integrity analysis
+   - A CLI feature may not need UI/UX analysis
 
 3. **Require explicit handling** — For each checklist item:
    - If applicable: The document MUST address it (present and complete)
@@ -144,17 +144,17 @@ Before evaluating each checklist item, the expert MUST:
 >
 > Design entities require: identification, type, purpose, function, subordinates, dependencies, resources, processing, data (§5.4)
 
-### ARCH-FDESIGN-001: Spec Context Completeness
+### ARCH-FDESIGN-001: Feature Context Completeness
 **Severity**: CRITICAL
 **Ref**: IEEE 1016-2009 §5.4.1 (Design entity attributes)
 
-- [ ] Spec identifier is present and stable (unique within the project)
-- [ ] Spec status documented
+- [ ] Feature identifier is present and stable (unique within the project)
+- [ ] Feature status documented
 - [ ] Overall Design reference present
 - [ ] Requirements source reference present
 - [ ] Actors/user roles are defined and referenced consistently
-- [ ] Spec scope clearly stated
-- [ ] Spec boundaries explicit
+- [ ] Feature scope clearly stated
+- [ ] Feature boundaries explicit
 - [ ] Out-of-scope items documented
 
 ### ARCH-FDESIGN-002: Overall Design Alignment
@@ -216,7 +216,7 @@ Before evaluating each checklist item, the expert MUST:
 - [ ] Customization points identified
 - [ ] Plugin/hook opportunities documented
 - [ ] Configuration options documented
-- [ ] Spec flags integration documented
+- [ ] Feature flags integration documented
 - [ ] Versioning considerations documented
 
 ---
@@ -232,26 +232,26 @@ Before evaluating each checklist item, the expert MUST:
 **Ref**: ISO/IEC/IEEE 29148:2018 §6.5 (Traceability)
 
 - [ ] All referenced PRD FR/NFR IDs are valid and correctly cited
-- [ ] Spec requirements do not contradict PRD scope, priorities, or constraints
-- [ ] Spec outcomes preserve PRD intent and success criteria
+- [ ] Feature requirements do not contradict PRD scope, priorities, or constraints
+- [ ] Feature outcomes preserve PRD intent and success criteria
 - [ ] Any PRD trade-offs are explicitly documented and approved
 
 ### SEM-FDESIGN-002: Design Principles and Constraints
 **Severity**: CRITICAL
 
-- [ ] Spec design adheres to design principles referenced in the Overall Design
-- [ ] Spec design respects all design constraints and does not bypass them
+- [ ] Feature design adheres to design principles referenced in the Overall Design
+- [ ] Feature design respects all design constraints and does not bypass them
 - [ ] Any constraint exception is explicitly documented with rationale
 
 ### SEM-FDESIGN-003: Architecture and Component Consistency
 **Severity**: HIGH
 
-- [ ] Spec responsibilities align with component boundaries in the Overall Design
+- [ ] Feature responsibilities align with component boundaries in the Overall Design
 - [ ] Interactions and sequences match the system interaction design
 - [ ] Data models and entities conform to the Overall Design domain model
 - [ ] API contracts and integration boundaries match the Overall Design
 
-### SEM-FDESIGN-004: Spec Semantics Completeness
+### SEM-FDESIGN-004: Feature Semantics Completeness
 **Severity**: HIGH
 
 - [ ] Actor flows, algorithms, and state machines are consistent with the design context
@@ -261,9 +261,9 @@ Before evaluating each checklist item, the expert MUST:
 ### SEM-FDESIGN-005: Design Decomposition Consistency
 **Severity**: HIGH
 
-- [ ] Spec ID matches the entry in the DECOMPOSITION
+- [ ] Feature ID matches the entry in the DECOMPOSITION
 - [ ] Purpose, scope, and out-of-scope items align with the DECOMPOSITION entry
-- [ ] Dependencies in the spec design match the DECOMPOSITION dependency list
+- [ ] Dependencies in the feature design match the DECOMPOSITION dependency list
 - [ ] Requirements covered (FR/NFR) match the DECOMPOSITION mapping
 - [ ] Design principles and constraints covered match the DECOMPOSITION mapping
 - [ ] Domain entities, components, APIs, sequences, and data tables match the DECOMPOSITION entry
@@ -574,7 +574,7 @@ Before evaluating each checklist item, the expert MUST:
 - [ ] Configuration validation documented
 - [ ] Runtime configuration documented
 - [ ] Environment-specific configuration documented
-- [ ] Spec flags documented
+- [ ] Feature flags documented
 
 ### OPS-FDESIGN-003: Health & Diagnostics
 **Severity**: MEDIUM
@@ -588,7 +588,7 @@ Before evaluating each checklist item, the expert MUST:
 ### OPS-FDESIGN-004: Rollout & Rollback
 **Severity**: HIGH
 
-- [ ] Rollout strategy is documented (phased rollout, spec flag, etc.) when applicable
+- [ ] Rollout strategy is documented (phased rollout, feature flag, etc.) when applicable
 - [ ] Rollback strategy is documented
 - [ ] Data migration/backward compatibility considerations are addressed when applicable
 
@@ -733,7 +733,7 @@ Before evaluating each checklist item, the expert MUST:
 **Severity**: CRITICAL
 **Ref**: ISO/IEC/IEEE 29148:2018 §5.2 (Characteristics of requirements)
 
-- [ ] All spec requirements (Section E) documented
+- [ ] All feature requirements (Definitions of Done) documented
 - [ ] Requirements trace to PRD
 - [ ] Requirements trace to a roadmap/backlog item (if used)
 - [ ] Business rules accurately captured
@@ -743,7 +743,7 @@ Before evaluating each checklist item, the expert MUST:
 ### BIZ-FDESIGN-002: Value Delivery
 **Severity**: HIGH
 
-- [ ] Spec delivers stated value
+- [ ] Feature delivers stated value
 - [ ] User needs addressed
 - [ ] Business process supported
 - [ ] Success metrics achievable
@@ -938,7 +938,7 @@ Report **only** problems (do not list what is OK).
 
 For each issue include:
 
-- **Why Applicable**: Explain why this requirement applies to this specific spec's context (e.g., "This spec handles user authentication, therefore security analysis is required")
+- **Why Applicable**: Explain why this requirement applies to this specific feature's context (e.g., "This feature handles user authentication, therefore security analysis is required")
 - **Issue**: What is wrong (requirement missing or incomplete)
 - **Evidence**: Quote the exact text or describe the exact location in the artifact (or note "No mention found")
 - **Why it matters**: Impact (risk, cost, user harm, compliance)
@@ -957,7 +957,7 @@ For each issue include:
 
 #### Why Applicable
 
-{Explain why this requirement applies to this spec's context. E.g., "This spec processes user data, therefore data integrity analysis is required."}
+{Explain why this requirement applies to this feature's context. E.g., "This feature processes user data, therefore data integrity analysis is required."}
 
 #### Issue
 
@@ -986,14 +986,15 @@ For each issue include:
 For quick reviews, use this condensed table format:
 
 ```markdown
-## SPEC Review Summary
+## FEATURE Review Summary
 
 | ID | Severity | Issue | Proposal |
 |----|----------|-------|----------|
-| ARCH-FDESIGN-001 | HIGH | Missing spec scope | Add scope statement to Section A |
+| ARCH-FDESIGN-001 | HIGH | Missing feature scope | Add scope statement to Section A |
 | BIZ-FDESIGN-001 | MEDIUM | No PRD traceability | Add requirement references |
 
-**Applicability**: {Spec type} — checked {N} priority domains, {M} marked N/A
+**Applicability**: {Feature type} — checked {N} priority domains, {M} marked N/A
+
 ```
 
 ---

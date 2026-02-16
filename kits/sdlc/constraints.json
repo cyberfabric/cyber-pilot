@@ -1,234 +1,1302 @@
 {
   "PRD": {
-    "name": "PRD constraints",
-    "description": "How PRD IDs must be represented and how downstream artifacts must reference them",
+    "name": "PRD constraints (cypilot-sdlc)",
+    "description": "Allowed ID kinds in PRD and required/optional downstream references",
+    "headings": [
+      {
+        "id": "prd-h1-title",
+        "level": 1,
+        "pattern": null,
+        "description": "PRD document title (H1).",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "prd-overview",
+        "level": 2,
+        "pattern": "Overview",
+        "description": "High-level overview of the product and problem.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "prd-overview-purpose",
+        "level": 3,
+        "pattern": "Purpose",
+        "description": "Purpose of the PRD and the product.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "prd-overview-background",
+        "level": 3,
+        "pattern": "Background / Problem Statement",
+        "description": "Background and problem statement.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "prd-overview-goals",
+        "level": 3,
+        "pattern": "Goals \\(Business Outcomes\\)",
+        "description": "Business outcomes and goals.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "prd-overview-glossary",
+        "level": 3,
+        "pattern": "Glossary",
+        "description": "Definitions of key terms.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "prd-actors",
+        "level": 2,
+        "pattern": "Actors",
+        "description": "Actors (human and system) that interact with the product.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "prd-actors-human",
+        "level": 3,
+        "pattern": "Human Actors",
+        "description": "Human actors",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "prd-actors-system",
+        "level": 3,
+        "pattern": "System Actors",
+        "description": "System and external actors.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "prd-operational-concept",
+        "level": 2,
+        "pattern": "Operational Concept \u0026 Environment",
+        "description": "Operational concept and environment constraints.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "prd-scope",
+        "level": 2,
+        "pattern": "Scope",
+        "description": "Scope of the product and release.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "prd-scope-in",
+        "level": 3,
+        "pattern": "In Scope",
+        "description": "In-scope items.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "prd-scope-out",
+        "level": 3,
+        "pattern": "Out of Scope",
+        "description": "Out-of-scope items.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "prd-fr",
+        "level": 2,
+        "pattern": "Functional Requirements",
+        "description": "Functional requirements section.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "prd-fr-entry",
+        "level": 3,
+        "pattern": null,
+        "description": "Functional requirement entry heading.",
+        "required": true,
+        "multiple": "allow",
+        "numbered": "allow"
+      },
+      {
+        "id": "prd-nfr",
+        "level": 2,
+        "pattern": "Non-Functional Requirements",
+        "description": "Non-functional requirements section.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "prd-nfr-exclusions",
+        "level": 3,
+        "pattern": "NFR Exclusions",
+        "description": "Explicit non-functional requirement exclusions.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "prd-public-interfaces",
+        "level": 2,
+        "pattern": "Public Library Interfaces",
+        "description": "Public library interfaces and integration contracts.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "prd-public-interfaces-api",
+        "level": 3,
+        "pattern": "Public API Surface",
+        "description": "Public API surface.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "prd-public-interfaces-external-contracts",
+        "level": 3,
+        "pattern": "External Integration Contracts",
+        "description": "External integration contracts.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "prd-use-cases",
+        "level": 2,
+        "pattern": "Use Cases",
+        "description": "Use cases section.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "prd-acceptance-criteria",
+        "level": 2,
+        "pattern": "Acceptance Criteria",
+        "description": "Acceptance criteria for delivery.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "prd-dependencies",
+        "level": 2,
+        "pattern": "Dependencies",
+        "description": "Dependencies required to deliver the PRD.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "prd-assumptions",
+        "level": 2,
+        "pattern": "Assumptions",
+        "description": "Assumptions that must hold.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "prd-risks",
+        "level": 2,
+        "pattern": "Risks",
+        "description": "Risks and mitigations.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      }
+    ],
     "identifiers": {
       "actor": {
+        "kind": "actor",
         "name": "Actor",
-        "description": "A PRD actor definition",
-        "examples": ["cpt-myapp-actor-admin"],
+        "description": "An entity (human or system) that interacts with the product; used in PRD, and referenced by requirements/use cases.",
+        "template": "cpt-{system}-actor-{slug}",
+        "examples": [
+          "cpt-cypilot-actor-ai-assistant",
+          "cpt-overwork-alert-actor-user",
+          "cpt-overwork-alert-actor-macos"
+        ],
+        "required": false,
         "task": "prohibited",
         "priority": "prohibited",
-        "headings": ["2. Actors"]
+        "to_code": false,
+        "headings": ["prd-actors"],
+        "references": {}
       },
       "fr": {
+        "kind": "fr",
         "name": "Functional Requirement",
-        "description": "A functional requirement ID",
-        "examples": ["cpt-myapp-fr-user-login"],
+        "description": "A testable statement of required system behavior (WHAT the system must do).",
+        "template": "cpt-{system}-fr-{slug}",
+        "examples": [
+          "cpt-cypilot-fr-validation",
+          "cpt-overwork-alert-fr-track-active-time",
+          "cpt-overwork-alert-fr-cli-controls"
+        ],
+        "required": true,
         "task": "allowed",
         "priority": "required",
-        "headings": ["3. Functional Requirements"],
+        "to_code": false,
+        "headings": ["prd-fr"],
         "references": {
-          "DESIGN": {"coverage": "required", "task": "allowed", "priority": "allowed"},
-          "DECOMPOSITION": {"coverage": "optional"},
-          "SPEC": {"coverage": "optional"}
-        }
-      },
-      "usecase": {
-        "name": "Use Case",
-        "description": "A PRD use case definition",
-        "task": "allowed",
-        "priority": "allowed",
-        "examples": ["cpt-myapp-usecase-user-login"],
-        "headings": ["4. Use Cases"],
-        "references": {
-          "DESIGN": {"coverage": "optional", "task": "allowed", "priority": "allowed"},
-          "DECOMPOSITION": {"coverage": "optional"}
+          "DESIGN": {
+            "coverage": "required",
+            "task": "allowed",
+            "priority": "allowed",
+            "headings": ["design-arch-overview-drivers"]
+          },
+          "DECOMPOSITION": {
+            "coverage": "optional",
+            "task": "allowed",
+            "priority": "allowed",
+            "headings": ["decomposition-entry"]
+          },
+          "FEATURE": {
+            "coverage": "optional",
+            "task": "allowed",
+            "priority": "allowed",
+            "headings": ["feature-context-purpose"]
+          }
         }
       },
       "nfr": {
+        "kind": "nfr",
         "name": "Non-functional Requirement",
-        "description": "A non-functional requirement ID",
-        "examples": ["cpt-myapp-nfr-latency"],
+        "description": "A measurable quality attribute requirement (performance, security, reliability, usability, etc.).",
+        "template": "cpt-{system}-nfr-{slug}",
+        "examples": [
+          "cpt-cypilot-nfr-validation-performance",
+          "cpt-overwork-alert-nfr-privacy-local-only",
+          "cpt-overwork-alert-nfr-low-overhead"
+        ],
+        "required": true,
         "task": "allowed",
         "priority": "required",
-        "headings": ["5. Non-functional requirements"],
+        "to_code": false,
+        "headings": ["prd-nfr"],
         "references": {
-          "DESIGN": {"coverage": "required", "task": "allowed", "priority": "allowed"},
-          "DECOMPOSITION": {"coverage": "optional"},
-          "SPEC": {"coverage": "optional"}
+          "DESIGN": {
+            "coverage": "required",
+            "task": "allowed",
+            "priority": "allowed",
+            "headings": ["design-arch-overview-drivers"]
+          },
+          "DECOMPOSITION": {
+            "coverage": "optional",
+            "task": "allowed",
+            "priority": "allowed",
+            "headings": ["decomposition-entry"]
+          },
+          "FEATURE": {
+            "coverage": "optional",
+            "task": "allowed",
+            "priority": "allowed",
+            "headings": ["feature-context-purpose"]
+          }
+        }
+      },
+      "usecase": {
+        "kind": "usecase",
+        "name": "Use Case",
+        "description": "An end-to-end interaction scenario (actor + goal + flow) that clarifies behavior beyond individual requirements.",
+        "template": "cpt-{system}-usecase-{slug}",
+        "examples": [
+          "cpt-overwork-alert-usecase-run-and-alert",
+          "cpt-overwork-alert-usecase-configure-limit",
+          "cpt-overwork-alert-usecase-control-session"
+        ],
+        "required": true,
+        "task": "allowed",
+        "priority": "allowed",
+        "to_code": false,
+        "headings": ["prd-use-cases"],
+        "references": {
+          "DESIGN": {
+            "coverage": "optional",
+            "task": "allowed",
+            "priority": "allowed",
+            "headings": ["design-tech-arch-seq"]
+          },
+          "FEATURE": {
+            "coverage": "optional",
+            "task": "allowed",
+            "priority": "allowed",
+            "headings": ["feature-actor-flow"]
+          }
+        }
+      },
+      "interface": {
+        "kind": "interface",
+        "name": "Public Interface",
+        "description": "A public API surface (library interface, protocol, CLI contract) provided by the system.",
+        "template": "cpt-{system}-interface-{slug}",
+        "examples": [
+          "cpt-cypilot-interface-cli-json",
+          "cpt-overwork-alert-interface-cli",
+          "cpt-overwork-alert-interface-ipc-protocol"
+        ],
+        "required": false,
+        "task": "allowed",
+        "priority": "allowed",
+        "to_code": false,
+        "headings": ["prd-public-interfaces"],
+        "references": {
+          "DESIGN": {
+            "coverage": "required",
+            "task": "allowed",
+            "priority": "allowed",
+            "headings": ["design-tech-arch-api-contracts"]
+          }
+        }
+      },
+      "contract": {
+        "kind": "contract",
+        "name": "Integration Contract",
+        "description": "An external integration contract (data format/protocol/compatibility expectations) with another system.",
+        "template": "cpt-{system}-contract-{slug}",
+        "examples": [
+          "cpt-overwork-alert-contract-macos-notification-center",
+          "cpt-overwork-alert-contract-launchd",
+          "cpt-cypilot-contract-openai-api"
+        ],
+        "required": false,
+        "task": "allowed",
+        "priority": "allowed",
+        "to_code": false,
+        "headings": ["prd-public-interfaces"],
+        "references": {
+          "DESIGN": {
+            "coverage": "required",
+            "task": "allowed",
+            "priority": "allowed",
+            "headings": ["design-tech-arch-api-contracts"]
+          }
         }
       }
     }
   },
   "ADR": {
-    "name": "ADR constraints",
-    "description": "How ADR IDs must be represented and referenced in DESIGN",
+    "name": "ADR constraints (cypilot-sdlc)",
+    "description": "Allowed ID kinds in ADR and required references from DESIGN",
+    "headings": [
+      {
+        "id": "adr-h1-title",
+        "level": 1,
+        "pattern": null,
+        "description": "ADR document title (H1).",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "adr-context",
+        "level": 2,
+        "pattern": "Context and Problem Statement",
+        "description": "Problem context and motivating forces.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "adr-decision-drivers",
+        "level": 2,
+        "pattern": "Decision Drivers",
+        "description": "Key decision drivers and constraints.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "adr-considered-options",
+        "level": 2,
+        "pattern": "Considered Options",
+        "description": "Options that were considered.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "adr-decision-outcome",
+        "level": 2,
+        "pattern": "Decision Outcome",
+        "description": "Selected decision and outcome.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "adr-decision-outcome-consequences",
+        "level": 3,
+        "pattern": "Consequences",
+        "description": "Consequences of the decision.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "adr-decision-outcome-confirmation",
+        "level": 3,
+        "pattern": "Confirmation",
+        "description": "How/when the decision will be confirmed.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "adr-pros-cons",
+        "level": 2,
+        "pattern": "Pros and Cons of the Options",
+        "description": "Pros and cons analysis for the options.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "adr-pros-cons-entry",
+        "level": 3,
+        "pattern": null,
+        "description": "A single option evaluation entry (pros/cons).",
+        "required": true,
+        "multiple": "required",
+        "numbered": "allow"
+      },
+      {
+        "id": "adr-more-info",
+        "level": 2,
+        "pattern": "More Information",
+        "description": "Optional additional information and links.",
+        "required": false,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "adr-traceability",
+        "level": 2,
+        "pattern": "Traceability",
+        "description": "Optional traceability links back to requirements/decisions.",
+        "required": false,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      }
+    ],
     "identifiers": {
       "adr": {
+        "kind": "adr",
         "name": "Architecture Decision Record",
-        "description": "An ADR ID",
-        "examples": ["cpt-myapp-adr-use-postgresql"],
+        "description": "A documented architecture decision with context, options, outcome, and consequences; referenced from DESIGN.",
+        "template": "cpt-{system}-adr-{slug}",
+        "examples": [
+          "cpt-cypilot-adr-template-centric-architecture",
+          "cpt-overwork-alert-adr-cli-daemon-launchagent",
+          "cpt-cypilot-adr-markdown-contract"
+        ],
+        "required": true,
         "task": "prohibited",
         "priority": "prohibited",
+        "to_code": false,
+        "headings": ["adr-h1-title"],
         "references": {
-          "PRD": {"coverage": "prohibited"},
-          "DESIGN": {"coverage": "required", "task": "allowed", "priority": "allowed"}
+          "PRD": {
+            "coverage": "prohibited"
+          },
+          "DESIGN": {
+            "coverage": "required",
+            "task": "allowed",
+            "priority": "allowed",
+            "headings": ["design-arch-overview-drivers"]
+          }
         }
       }
     }
   },
   "DESIGN": {
-    "name": "DESIGN constraints",
-    "description": "How DESIGN IDs must be represented and referenced downstream",
+    "name": "DESIGN constraints (cypilot-sdlc)",
+    "description": "Allowed ID kinds in DESIGN",
+    "headings": [
+      {
+        "id": "design-h1-title",
+        "level": 1,
+        "pattern": null,
+        "description": "DESIGN document title (H1).",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "design-arch-overview",
+        "level": 2,
+        "pattern": "Architecture Overview",
+        "description": "Architecture overview section.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "design-arch-overview-vision",
+        "level": 3,
+        "pattern": "Architectural Vision",
+        "description": "High-level architectural vision.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "design-arch-overview-drivers",
+        "level": 3,
+        "pattern": "Architecture Drivers",
+        "description": "Architecture drivers: requirements, constraints, and ADR links.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "design-arch-overview-layers",
+        "level": 3,
+        "pattern": "Architecture Layers",
+        "description": "Architecture layering and responsibilities.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "design-principles-constraints",
+        "level": 2,
+        "pattern": "Principles \u0026 Constraints",
+        "description": "Principles and constraints section.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "design-principles",
+        "level": 3,
+        "pattern": "Design Principles",
+        "description": "Design principles list.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "design-constraints",
+        "level": 3,
+        "pattern": "Constraints",
+        "description": "Design constraints list.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "design-tech-arch",
+        "level": 2,
+        "pattern": "Technical Architecture",
+        "description": "Technical architecture section.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "design-tech-arch-domain",
+        "level": 3,
+        "pattern": "Domain Model",
+        "description": "Domain model.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "design-tech-arch-component-model",
+        "level": 3,
+        "pattern": "Component Model",
+        "description": "Component model and responsibilities.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "design-tech-arch-api-contracts",
+        "level": 3,
+        "pattern": "API Contracts",
+        "description": "API contracts and external interfaces.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "design-tech-arch-internal-deps",
+        "level": 3,
+        "pattern": "Internal Dependencies",
+        "description": "Internal dependencies.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "design-tech-arch-external-deps",
+        "level": 3,
+        "pattern": "External Dependencies",
+        "description": "External dependencies.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "design-tech-arch-seq",
+        "level": 3,
+        "pattern": "Interactions \u0026 Sequences",
+        "description": "Interactions and sequences.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "design-tech-arch-db",
+        "level": 3,
+        "pattern": "Database schemas \u0026 tables",
+        "description": "Database schemas and tables.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "design-additional-context",
+        "level": 2,
+        "pattern": "Additional context",
+        "description": "Optional additional context.",
+        "required": false,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "design-traceability",
+        "level": 2,
+        "pattern": "Traceability",
+        "description": "Optional traceability links.",
+        "required": false,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      }
+    ],
     "identifiers": {
-      "principle": {
-        "name": "Design Principle",
-        "description": "A design principle that must be covered by implementation specs",
-        "examples": ["cpt-myapp-principle-loose-coupling"],
+      "design": {
+        "kind": "design",
+        "name": "Design Element (legacy prefix)",
+        "description": "Legacy/compatibility design identifier (prefer more specific kinds like principle/constraint/component/seq).",
+        "template": "cpt-{system}-design-{slug}",
+        "examples": [
+          "cpt-cypilot-design-core-architecture",
+          "cpt-cypilot-design-validation-pipeline",
+          "cpt-overwork-alert-design-cli-daemon"
+        ],
+        "required": false,
         "task": "allowed",
         "priority": "allowed",
-        "headings": ["2.1: Design Principles"],
+        "to_code": false,
+        "headings": ["design-h1-title"],
         "references": {
-          "PRD": {"coverage": "prohibited"},
-          "DECOMPOSITION": {"coverage": "required"},
-          "SPEC": {"coverage": "optional"}
+          "PRD": {
+            "coverage": "prohibited"
+          }
+        }
+      },
+      "principle": {
+        "kind": "principle",
+        "name": "Design Principle",
+        "description": "A guiding design rule (why/what to prefer) that shapes architecture and implementation decisions.",
+        "template": "cpt-{system}-principle-{slug}",
+        "examples": [
+          "cpt-cypilot-principle-deterministic-gate",
+          "cpt-cypilot-principle-traceability",
+          "cpt-cypilot-principle-machine-readable"
+        ],
+        "required": true,
+        "task": "allowed",
+        "priority": "allowed",
+        "to_code": false,
+        "headings": ["design-principles"],
+        "references": {
+          "PRD": {
+            "coverage": "prohibited"
+          },
+          "DECOMPOSITION": {
+            "coverage": "required",
+            "task": "allowed",
+            "priority": "allowed",
+            "headings": ["decomposition-entry"]
+          },
+          "FEATURE": {
+            "coverage": "optional",
+            "task": "allowed",
+            "priority": "allowed",
+            "headings": ["feature-context-purpose"]
+          }
         }
       },
       "constraint": {
+        "kind": "constraint",
         "name": "Design Constraint",
-        "description": "A design constraint that must be satisfied by implementation specs",
-        "examples": ["cpt-myapp-constraint-data-residency"],
+        "description": "A hard boundary (technical/organizational/regulatory) that the design must satisfy.",
+        "template": "cpt-{system}-constraint-{slug}",
+        "examples": [
+          "cpt-cypilot-constraint-markdown",
+          "cpt-cypilot-constraint-stdlib-only",
+          "cpt-cypilot-constraint-no-weakening-rules"
+        ],
+        "required": true,
         "task": "allowed",
         "priority": "allowed",
-        "headings": ["2.2: Constraints"],
+        "to_code": false,
+        "headings": ["design-constraints"],
         "references": {
-          "PRD": {"coverage": "prohibited"},
-          "DECOMPOSITION": {"coverage": "required"},
-          "SPEC": {"coverage": "optional"}
+          "PRD": {
+            "coverage": "prohibited"
+          },
+          "DECOMPOSITION": {
+            "coverage": "required",
+            "task": "allowed",
+            "priority": "allowed",
+            "headings": ["decomposition-entry"]
+          },
+          "FEATURE": {
+            "coverage": "optional",
+            "task": "allowed",
+            "priority": "allowed",
+            "headings": ["feature-dod-entry"]
+          }
         }
       },
       "component": {
+        "kind": "component",
         "name": "Component",
-        "description": "A design component that must be implemented by at least one spec",
-        "examples": ["cpt-myapp-component-auth-service"],
-        "task": "required",
-        "priority": "required",
-        "headings": ["3.2: Component Model"],
+        "description": "A logical architecture component/module with clear responsibilities and interfaces.",
+        "template": "cpt-{system}-component-{slug}",
+        "examples": [
+          "cpt-cypilot-component-cypilot-skill",
+          "cpt-cypilot-component-validator",
+          "cpt-overwork-alert-component-daemon"
+        ],
+        "required": true,
+        "task": "allowed",
+        "priority": "allowed",
+        "to_code": false,
+        "headings": ["design-tech-arch-component-model"],
         "references": {
-          "PRD": {"coverage": "prohibited"},
-          "DECOMPOSITION": {"coverage": "required"},
-          "SPEC": {"coverage": "optional"}
+          "DECOMPOSITION": {
+            "coverage": "required",
+            "task": "allowed",
+            "priority": "allowed",
+            "headings": ["decomposition-entry"]
+          },
+          "PRD": {
+            "coverage": "prohibited"
+          }
+        }
+      },
+      "interface": {
+        "kind": "interface",
+        "name": "External Interface / Protocol",
+        "description": "A system boundary interface or protocol contract (e.g., CLI, IPC, REST endpoints) described in DESIGN.",
+        "template": "cpt-{system}-interface-{slug}",
+        "examples": [
+          "cpt-cypilot-interface-cli-json",
+          "cpt-overwork-alert-interface-cli",
+          "cpt-overwork-alert-interface-ipc-protocol"
+        ],
+        "required": false,
+        "task": "allowed",
+        "priority": "allowed",
+        "to_code": false,
+        "headings": ["design-tech-arch-api-contracts"],
+        "references": {
+          "PRD": {
+            "coverage": "prohibited"
+          }
         }
       },
       "seq": {
+        "kind": "seq",
         "name": "Sequence",
-        "description": "A sequence that must be implemented by at least one spec",
-        "examples": ["cpt-myapp-seq-user-login"],
+        "description": "A key interaction sequence (message flow) between components/actors, documented as a sequence diagram.",
+        "template": "cpt-{system}-seq-{slug}",
+        "examples": [
+          "cpt-cypilot-seq-validate-overall-design",
+          "cpt-cypilot-seq-traceability-query",
+          "cpt-overwork-alert-seq-cli-to-daemon"
+        ],
+        "required": true,
         "task": "allowed",
         "priority": "allowed",
-        "headings": ["3.4: Interactions & Sequences"],
+        "to_code": false,
+        "headings": ["design-tech-arch-seq"],
         "references": {
-          "PRD": {"coverage": "prohibited"},
-          "DECOMPOSITION": {"coverage": "optional"},
-          "SPEC": {"coverage": "optional"}
+          "PRD": {
+            "coverage": "prohibited"
+          }
+        }
+      },
+      "db": {
+        "kind": "db",
+        "name": "Database (legacy db-table prefix)",
+        "description": "Legacy/compatibility database identifier; prefer explicit table identifiers via dbtable when applicable.",
+        "template": "cpt-{system}-db-{slug}",
+        "examples": [
+          "cpt-cypilot-db-sqlite",
+          "cpt-cypilot-db-postgres",
+          "cpt-overwork-alert-db-local"
+        ],
+        "required": false,
+        "task": "allowed",
+        "priority": "allowed",
+        "to_code": false,
+        "headings": ["design-tech-arch-db"],
+        "references": {
+          "PRD": {
+            "coverage": "prohibited"
+          },
+          "DECOMPOSITION": {
+            "coverage": "optional",
+            "task": "allowed",
+            "priority": "allowed",
+            "headings": ["decomposition-entry"]
+          }
         }
       },
       "dbtable": {
+        "kind": "dbtable",
         "name": "Database Table",
-        "description": "A database table used by at least one spec",
-        "examples": ["cpt-myapp-dbtable-users"],
+        "description": "A concrete database schema/table entity with columns, keys, and constraints documented in DESIGN.",
+        "template": "cpt-{system}-dbtable-{slug}",
+        "examples": [
+          "cpt-cypilot-dbtable-na",
+          "cpt-cypilot-dbtable-artifacts",
+          "cpt-cypilot-dbtable-systems",
+          "cpt-overwork-alert-dbtable-config"
+        ],
+        "required": false,
         "task": "allowed",
         "priority": "allowed",
+        "to_code": false,
+        "headings": ["design-tech-arch-db"],
         "references": {
-          "PRD": {"coverage": "prohibited"},
-          "DECOMPOSITION": {"coverage": "required"},
-          "SPEC": {"coverage": "optional"}
+          "PRD": {
+            "coverage": "prohibited"
+          },
+          "DECOMPOSITION": {
+            "coverage": "required",
+            "task": "allowed",
+            "priority": "allowed",
+            "headings": ["decomposition-entry"]
+          }
         }
       },
       "topology": {
+        "kind": "topology",
         "name": "Topology",
-        "description": "A topology entry",
-        "examples": ["cpt-myapp-topology-prod"],
+        "description": "Deployment/runtime topology descriptor (processes/nodes/tiers) for the system or module.",
+        "template": "cpt-{system}-topology-{slug}",
+        "examples": [
+          "cpt-cypilot-topology-single-process",
+          "cpt-cypilot-topology-cli-daemon",
+          "cpt-overwork-alert-topology-launchagent"
+        ],
+        "required": false,
         "task": "allowed",
-        "priority": "prohibited",
-        "headings": ["3.6: Topology (optional)"],
+        "priority": "allowed",
+        "to_code": false,
+        "headings": ["design-tech-arch"],
         "references": {
-          "PRD": {"coverage": "prohibited"}
+          "PRD": {
+            "coverage": "prohibited"
+          }
+        }
+      },
+      "tech": {
+        "kind": "tech",
+        "name": "Tech Stack",
+        "description": "A technology choice used in the architecture (language, framework, tool, storage, protocol).",
+        "template": "cpt-{system}-tech-{slug}",
+        "examples": [
+          "cpt-cypilot-tech-python-stdlib",
+          "cpt-cypilot-tech-markdown",
+          "cpt-cypilot-tech-json"
+        ],
+        "required": false,
+        "task": "allowed",
+        "priority": "allowed",
+        "to_code": false,
+        "headings": ["design-arch-overview-layers"],
+        "references": {
+          "PRD": {
+            "coverage": "prohibited"
+          }
         }
       }
     }
   },
   "DECOMPOSITION": {
-    "name": "DECOMPOSITION constraints",
-    "description": "How DECOMPOSITION IDs must be represented",
+    "name": "DECOMPOSITION constraints (cypilot-sdlc)",
+    "description": "Allowed ID kinds in DECOMPOSITION",
+    "headings": [
+      {
+        "id": "decomposition-h1-title",
+        "level": 1,
+        "pattern": null,
+        "description": "DECOMPOSITION document title (H1).",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "decomposition-overview",
+        "level": 2,
+        "pattern": "Overview",
+        "description": "Overview of decomposition strategy.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "decomposition-entries",
+        "level": 2,
+        "pattern": "Entries",
+        "description": "List of feature entries.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "decomposition-entry",
+        "level": 3,
+        "pattern": null,
+        "description": "A single feature entry.",
+        "required": true,
+        "multiple": "allow",
+        "numbered": "allow"
+      },
+      {
+        "id": "decomposition-feature-deps",
+        "level": 2,
+        "pattern": "Feature Dependencies",
+        "description": "Cross-feature dependency overview.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      }
+    ],
     "identifiers": {
       "status": {
+        "kind": "status",
         "name": "Overall Status",
-        "description": "Overall status ID for the decomposition manifest",
-        "examples": ["cpt-myapp-status-overall"],
-        "task": "required",
-        "priority": "required",
-        "references": {
-          "PRD": {"coverage": "prohibited"},
-          "DESIGN": {"coverage": "prohibited"},
-          "SPEC": {"coverage": "prohibited"}
-        }
+        "description": "A decomposition-level status indicator used to summarize overall progress/state.",
+        "template": "cpt-{system}-status-overall",
+        "examples": [
+          "cpt-cypilot-status-overall",
+          "cpt-overwork-alert-status-overall",
+          "cpt-cypilot-status-overall"
+        ],
+        "required": false,
+        "task": "allowed",
+        "priority": "allowed",
+        "to_code": false,
+        "headings": ["decomposition-entries"],
+        "references": {}
       },
-      "spec": {
-        "name": "Spec Entry",
-        "description": "A spec entry in the decomposition manifest",
-        "examples": ["cpt-myapp-spec-auth"],
-        "task": "required",
-        "priority": "required",
+      "feature": {
+        "kind": "feature",
+        "name": "Feature Entry",
+        "description": "A DECOMPOSITION entry representing a FEATURE spec, including dependency and coverage links.",
+        "template": "cpt-{system}-feature-{slug}",
+        "examples": [
+          "cpt-cypilot-feature-template-system",
+          "cpt-cypilot-feature-adapter-system",
+          "cpt-overwork-alert-feature-tracker-core"
+        ],
+        "required": true,
+        "task": "allowed",
+        "priority": "allowed",
+        "to_code": false,
+        "headings": ["decomposition-entry"],
         "references": {
-          "PRD": {"coverage": "prohibited"},
-          "DESIGN": {"coverage": "optional", "task": "allowed", "priority": "allowed"},
-          "SPEC": {"coverage": "optional"}
+          "FEATURE": {
+            "coverage": "required",
+            "task": "allowed",
+            "priority": "allowed",
+            "headings": ["feature-h1-title"]
+          }
         }
       }
     }
   },
-  "SPEC": {
-    "name": "SPEC constraints",
-    "description": "How SPEC IDs must be represented and which IDs must be traced to code",
+  "FEATURE": {
+    "name": "FEATURE constraints (cypilot-sdlc)",
+    "description": "Allowed ID kinds in FEATURE",
+    "headings": [
+      {
+        "id": "feature-h1-title",
+        "level": 1,
+        "pattern": null,
+        "description": "FEATURE document title (H1).",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "feature-context",
+        "level": 2,
+        "pattern": "Feature Context",
+        "description": "Feature context section.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "feature-context-overview",
+        "level": 3,
+        "pattern": "Overview",
+        "description": "Feature overview.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "feature-context-purpose",
+        "level": 3,
+        "pattern": "Purpose",
+        "description": "Feature purpose.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "feature-context-actors",
+        "level": 3,
+        "pattern": "Actors",
+        "description": "Actors involved in the feature.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "feature-context-references",
+        "level": 3,
+        "pattern": "References",
+        "description": "References to related artifacts.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "feature-actor-flows",
+        "level": 2,
+        "pattern": "Actor Flows*",
+        "description": "Actor flows section.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "feature-actor-flow",
+        "level": 3,
+        "pattern": null,
+        "description": "A single actor flow.",
+        "required": true,
+        "multiple": "allow",
+        "numbered": "allow"
+      },
+      {
+        "id": "feature-processes",
+        "level": 2,
+        "pattern": "Processes / Business Logic*",
+        "description": "Processes / business logic section.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "feature-process",
+        "level": 3,
+        "pattern": null,
+        "description": "A single process/algorithm.",
+        "required": true,
+        "multiple": "allow",
+        "numbered": "allow"
+      },
+      {
+        "id": "feature-states",
+        "level": 2,
+        "pattern": "States*",
+        "description": "States section.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "feature-state",
+        "level": 3,
+        "pattern": null,
+        "description": "A single state machine.",
+        "required": true,
+        "multiple": "allow",
+        "numbered": "allow"
+      },
+      {
+        "id": "feature-dod",
+        "level": 2,
+        "pattern": "Definitions of Done",
+        "description": "Definitions of done section.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      },
+      {
+        "id": "feature-dod-entry",
+        "level": 3,
+        "pattern": null,
+        "description": "A single definition of done entry.",
+        "required": true,
+        "multiple": "allow",
+        "numbered": "allow"
+      },
+      {
+        "id": "feature-acceptance-criteria",
+        "level": 2,
+        "pattern": "Acceptance Criteria",
+        "description": "Acceptance criteria for the feature.",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow"
+      }
+    ],
     "identifiers": {
-      "flow": {
-        "name": "Flow",
-        "description": "An actor flow definition",
-        "examples": ["cpt-myapp-spec-auth-flow-user-login"],
+      "featstatus": {
+        "kind": "featstatus",
+        "name": "Feature Status",
+        "description": "A feature-level status/anchor marker used in FEATURE context.",
+        "template": "cpt-{system}-featstatus-{feature-slug}",
+        "examples": [
+          "cpt-cypilot-featstatus-template-system",
+          "cpt-overwork-alert-featstatus-tracker-core",
+          "cpt-todo-app-featstatus-task-storage-foundation"
+        ],
+        "required": true,
         "task": "required",
-        "priority": "prohibited",
-        "to_code": true,
-        "headings": ["2. Actor Flows"],
+        "priority": "allowed",
+        "to_code": false,
+        "headings": ["feature-h1-title"],
         "references": {
-          "PRD": {"coverage": "prohibited"}
+          "PRD": {
+            "coverage": "prohibited"
+          },
+          "DESIGN": {
+            "coverage": "prohibited"
+          }
+        }
+      },
+      "flow": {
+        "kind": "flow",
+        "name": "Flow",
+        "description": "An actor-facing CDSL flow describing a user/system interaction end-to-end.",
+        "template": "cpt-{system}-flow-{feature-slug}-{slug}",
+        "examples": [
+          "cpt-cypilot-flow-template-system-load",
+          "cpt-cypilot-flow-template-system-validate",
+          "cpt-overwork-alert-flow-run-tracker"
+        ],
+        "required": false,
+        "task": "allowed",
+        "priority": "allowed",
+        "to_code": true,
+        "headings": ["feature-actor-flow"],
+        "references": {
+          "PRD": {
+            "coverage": "prohibited"
+          }
         }
       },
       "algo": {
+        "kind": "algo",
         "name": "Algorithm",
-        "description": "An algorithm definition",
-        "examples": ["cpt-myapp-spec-auth-algo-validate"],
-        "task": "required",
-        "priority": "prohibited",
+        "description": "A reusable internal process described in CDSL (business logic not directly initiated by an actor).",
+        "template": "cpt-{system}-algo-{feature-slug}-{slug}",
+        "examples": [
+          "cpt-cypilot-algo-template-system-extract-ids",
+          "cpt-cypilot-algo-methodology-core-apply-constraints",
+          "cpt-overwork-alert-algo-track-active-time"
+        ],
+        "required": false,
+        "task": "allowed",
+        "priority": "allowed",
         "to_code": true,
-        "headings": ["3. Algorithms"],
+        "headings": ["feature-processes"],
         "references": {
-          "PRD": {"coverage": "prohibited"}
+          "PRD": {
+            "coverage": "prohibited"
+          }
         }
       },
       "state": {
+        "kind": "state",
         "name": "State Machine",
-        "description": "A state machine definition",
-        "examples": ["cpt-myapp-spec-auth-state-session"],
-        "task": "required",
-        "priority": "prohibited",
+        "description": "A lifecycle/state machine definition for an entity or subsystem, described in CDSL transitions.",
+        "template": "cpt-{system}-state-{feature-slug}-{slug}",
+        "examples": [
+          "cpt-cypilot-state-template-system-lifecycle",
+          "cpt-cypilot-state-methodology-core-validation-outcome",
+          "cpt-overwork-alert-state-daemon-lifecycle"
+        ],
+        "required": false,
+        "task": "allowed",
+        "priority": "allowed",
         "to_code": true,
-        "headings": ["4. States"],
+        "headings": ["feature-state"],
         "references": {
-          "PRD": {"coverage": "prohibited"}
+          "PRD": {
+            "coverage": "prohibited"
+          }
         }
       },
-      "req": {
-        "name": "Definition of Done Requirement",
-        "description": "A testable requirement in Definition of Done",
-        "examples": ["cpt-myapp-spec-auth-req-login-works"],
+      "dod": {
+        "kind": "dod",
+        "name": "Definition of Done",
+        "description": "A concrete implementation task derived from flows/processes/states, with required traceability.",
+        "template": "cpt-{system}-dod-{feature-slug}-{slug}",
+        "examples": [
+          "cpt-cypilot-dod-template-system-validation",
+          "cpt-cypilot-dod-methodology-core",
+          "cpt-overwork-alert-dod-launchagent-autostart"
+        ],
+        "required": true,
         "task": "required",
         "priority": "required",
         "to_code": true,
-        "headings": ["5. Definition of Done"],
+        "headings": ["feature-dod-entry"],
         "references": {
-          "PRD": {"coverage": "prohibited"}
+          "PRD": {
+            "coverage": "prohibited"
+          }
         }
       }
     }

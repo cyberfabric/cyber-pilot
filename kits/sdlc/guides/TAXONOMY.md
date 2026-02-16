@@ -10,7 +10,7 @@ In the SDLC kit, artifacts form a strict chain:
 
 ```mermaid
 graph LR
-  PRD --> ADR --> DESIGN --> DECOMPOSITION --> SPEC --> CODE
+  PRD --> ADR --> DESIGN --> DECOMPOSITION --> FEATURE --> CODE
 ```
 
 ## Kinds
@@ -27,7 +27,7 @@ graph LR
 
 **Transforms into**:
 - **DESIGN**: design drivers reference PRD FR/NFR IDs and describe architectural responses.
-- **DECOMPOSITION**/**SPEC**: downstream layers must keep referencing the same PRD IDs they cover.
+- **DECOMPOSITION**/**FEATURE**: downstream layers must keep referencing the same PRD IDs they cover.
 
 **Traceability**:
 - PRD is the root of many downstream references (FR/NFR coverage).
@@ -53,7 +53,7 @@ graph LR
 - **DESIGN**: design drivers reference ADR IDs and incorporate decisions.
 
 **Traceability**:
-- ADR IDs are referenced from DESIGN (and optionally from SPEC context).
+- ADR IDs are referenced from DESIGN (and optionally from FEATURE context).
 
 **Validation**:
 - Template structure + ID format + required Meta fields
@@ -80,11 +80,11 @@ graph LR
 - DB tables (optional): `cpt-{system}-dbtable-{slug}`
 
 **Transforms into**:
-- **DECOMPOSITION**: specs are defined as work units that cover specific design elements (principles/constraints/components/etc.).
+- **DECOMPOSITION**: features are defined as work units that cover specific design elements (principles/constraints/components/etc.).
 
 **Traceability**:
 - DESIGN references PRD/ADR.
-- DECOMPOSITION/SPEC must keep referencing the DESIGN IDs they implement/cover.
+- DECOMPOSITION/FEATURE must keep referencing the DESIGN IDs they implement/cover.
 
 **Validation**:
 - Template structure + ID formats
@@ -98,24 +98,24 @@ graph LR
 
 ### DECOMPOSITION
 
-**Purpose**: turn DESIGN into a set of implementable specs with explicit coverage links.
+**Purpose**: turn DESIGN into a set of implementable features with explicit coverage links.
 
 **Defines IDs**:
 - Overall status tracker: `cpt-{system}-status-overall`
-- Specs: `cpt-{system}-spec-{slug}`
+- Features: `cpt-{system}-feature-{slug}`
 
 **References upstream IDs**:
 - PRD FR/NFR IDs (requirements covered)
 - DESIGN IDs (principles/constraints/components/sequences/data)
 
 **Transforms into**:
-- **SPEC**: each decomposition entry links to a spec folder (`specs/`) containing a spec design.
+- **FEATURE**: each decomposition entry links to a feature design document (`features/`).
 
 **Traceability**:
-- A spec entry is the upstream anchor for a SPEC design (`SPEC` references the `spec` ID).
+- A feature entry is the upstream anchor for a FEATURE design (FEATURE references the `feature` ID).
 
 **Validation**:
-- Template structure + spec link format
+- Template structure + feature link format
 - Cross-reference validity for all coverage references
 
 **Files**:
@@ -124,21 +124,21 @@ graph LR
 - Checklist: [kits/sdlc/artifacts/DECOMPOSITION/checklist.md](../artifacts/DECOMPOSITION/checklist.md)
 - Examples: [kits/sdlc/artifacts/DECOMPOSITION/examples/](../artifacts/DECOMPOSITION/examples/)
 
-### SPEC
+### FEATURE
 
-**Purpose**: the executable(ish) behavior spec for a single spec, with definition-of-done and implementable steps.
+**Purpose**: implementable behavior design for a single feature, with definition-of-done and implementable steps.
 
 **References upstream IDs**:
-- The decomposition spec ID: `cpt-{system}-spec-{slug}`
+- The decomposition feature ID: `cpt-{system}-feature-{slug}`
 - PRD actor IDs (actors)
 - PRD FR/NFR IDs (coverage)
 - DESIGN IDs (principles/constraints/components/sequences/data)
 
 **Defines IDs** (SDLC code-traceable kinds):
-- Flow: `cpt-{system}-spec-{spec}-flow-{slug}`
-- Algorithm: `cpt-{system}-spec-{spec}-algo-{slug}`
-- State machine: `cpt-{system}-spec-{spec}-state-{slug}`
-- Requirement (definition-of-done): `cpt-{system}-spec-{spec}-req-{slug}`
+- Flow: `cpt-{system}-flow-{feature-slug}-{slug}`
+- Algorithm: `cpt-{system}-algo-{feature-slug}-{slug}`
+- State machine: `cpt-{system}-state-{feature-slug}-{slug}`
+- Definition-of-done: `cpt-{system}-dod-{feature-slug}-{slug}`
 
 These IDs are typically marked `to_code="true"` in the template, which makes them subject to code coverage checks.
 
@@ -146,12 +146,12 @@ These IDs are typically marked `to_code="true"` in the template, which makes the
 - **CODE**: implement flows/algorithms/states/requirements in source code and tag implementation with Cypilot markers.
 
 **Traceability**:
-- SPEC IDs are referenced from code using scope markers: `@cpt-{kind}:{cpt-id}:p{N}`.
+- FEATURE IDs are referenced from code using scope markers: `@cpt-{kind}:{cpt-id}:p{N}`.
 - Instruction-level implementations can be wrapped with block markers:
   - `@cpt-begin:{cpt-id}:p{N}:inst-{local}` / `@cpt-end:...`
 
 Phase tokens:
-- SPEC step lines use `ph-{N}` (as part of the step formatting).
+- FEATURE step lines use `p{N}` (as part of the step formatting).
 - Code markers use `p{N}` (as part of marker syntax).
 
 **Validation**:
@@ -160,14 +160,14 @@ Phase tokens:
 - Code coverage and orphan checks via `validate-code`
 
 **Files**:
-- Template: [kits/sdlc/artifacts/SPEC/template.md](../artifacts/SPEC/template.md)
-- Rules: [kits/sdlc/artifacts/SPEC/rules.md](../artifacts/SPEC/rules.md)
-- Checklist: [kits/sdlc/artifacts/SPEC/checklist.md](../artifacts/SPEC/checklist.md)
-- Example: [kits/sdlc/artifacts/SPEC/examples/example.md](../artifacts/SPEC/examples/example.md)
+- Template: [kits/sdlc/artifacts/FEATURE/template.md](../artifacts/FEATURE/template.md)
+- Rules: [kits/sdlc/artifacts/FEATURE/rules.md](../artifacts/FEATURE/rules.md)
+- Checklist: [kits/sdlc/artifacts/FEATURE/checklist.md](../artifacts/FEATURE/checklist.md)
+- Example: [kits/sdlc/artifacts/FEATURE/examples/](../artifacts/FEATURE/examples/)
 
 ### CODE
 
-**Purpose**: the implementation layer validated against SPEC IDs.
+**Purpose**: the implementation layer validated against FEATURE IDs.
 
 **Defines**:
 - No new Cypilot IDs are defined in code. Code only references IDs that exist in artifacts.
@@ -192,6 +192,6 @@ Phase tokens:
 ## References
 
 - Traceability marker spec: [requirements/traceability.md](../../../requirements/traceability.md)
-- Template marker spec: [requirements/template.md](../../../requirements/template.md)
+- Artifact identifiers spec: [requirements/identifiers.md](../../../requirements/identifiers.md)
 - Rules format spec: [requirements/rules-format.md](../../../requirements/rules-format.md)
 - SDLC behavior language (CDSL): [requirements/CDSL.md](../../../requirements/CDSL.md)

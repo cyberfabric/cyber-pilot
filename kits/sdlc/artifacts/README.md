@@ -13,7 +13,7 @@
 | DESIGN | Overall System Design | `artifacts/DESIGN/template.md` | `artifacts/DESIGN/checklist.md` | `artifacts/DESIGN/examples/example.md` |
 | ADR | Architecture Decision Record | `artifacts/ADR/template.md` | `artifacts/ADR/checklist.md` | `artifacts/ADR/examples/example.md` |
 | DECOMPOSITION | Design Decomposition | `artifacts/DECOMPOSITION/template.md` | `artifacts/DECOMPOSITION/checklist.md` | `artifacts/DECOMPOSITION/examples/example.md` |
-| SPEC | Spec Design | `artifacts/SPEC/template.md` | `artifacts/SPEC/checklist.md` | `artifacts/SPEC/examples/example.md` |
+| FEATURE | Feature Design | `artifacts/FEATURE/template.md` | `artifacts/FEATURE/checklist.md` | `artifacts/FEATURE/examples/task-crud.md` |
 
 ---
 
@@ -43,11 +43,11 @@ kits/sdlc/
 │   │   ├── checklist.md
 │   │   └── examples/
 │   │       └── example.md
-│   └── SPEC/
+│   └── FEATURE/
 │       ├── template.md
 │       ├── checklist.md
 │       └── examples/
-│           └── example.md
+│           └── task-crud.md
 └── codebase/
     ├── rules.md            # Code generation/validation rules
     └── checklist.md        # Kit-specific code checklist
@@ -74,7 +74,7 @@ example:   kits/sdlc/artifacts/{KIND}/examples/example.md
   "rules": {
     "cypilot-sdlc": {
       "path": "kits/sdlc",
-      "artifacts": ["PRD", "DESIGN", "ADR", "DECOMPOSITION", "SPEC"]
+      "artifacts": ["PRD", "DESIGN", "ADR", "DECOMPOSITION", "FEATURE"]
     }
   }
 }
@@ -89,7 +89,7 @@ PRD
  └── DESIGN
       ├── ADR (optional, per decision)
       └── DECOMPOSITION
-           └── SPEC (per spec)
+           └── FEATURE (per feature)
 ```
 
 Each child artifact references IDs from parent artifacts for traceability.

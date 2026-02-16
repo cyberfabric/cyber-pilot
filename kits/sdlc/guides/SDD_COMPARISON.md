@@ -10,7 +10,7 @@ This comparison focuses on how each framework/toolkit structures work for AI-ass
 ## One-paragraph summaries
 
 ### Cypilot (Spec-Driven Design)
-A design-first methodology with a layered artifact hierarchy (adapter → PRD → DESIGN (+ ADR) → DECOMPOSITION → SPEC → code), strict artifact structure requirements (sections, IDs, cross-links), and deterministic validation gates with scoring. It emphasizes plain-English behavioral specs (Cypilot DSL (CDSL)) and traceability from design to code.
+A design-first methodology with a layered artifact hierarchy (adapter → PRD → DESIGN (+ ADR) → DECOMPOSITION → FEATURE → code), strict artifact structure requirements (sections, IDs, cross-links), and deterministic validation gates with scoring. It emphasizes plain-English behavioral designs (Cypilot DSL (CDSL)) and traceability from design to code.
 
 ### OpenSpec
 A change-first, spec-driven workflow centered on explicit change folders and “delta specs” that patch a source-of-truth spec set. It is optimized for brownfield evolution and multi-spec updates by separating current truth (`{project-root}/openspec/specs/`) from proposals (`{project-root}/openspec/changes/`).
@@ -59,7 +59,7 @@ Legend:
 | **✅ Deterministic doc/schema validator (format/placeholders/required fields)** | ✅ Native (`cypilot validate ...`) | ✅ Native (`openspec validate ... --strict`) | ⚠️ Supported (templates + structured analysis/checklists; not a strict doc validator) | ❌ Out of scope | ❌ Out of scope | ❌ Out of scope |
 | **🔍 Deterministic cross-reference validator (doc↔doc)** | ✅ Native (cascading dependency + cross-ref checks) | ❌ Out of scope | ❌ Out of scope | ❌ Out of scope | ❌ Out of scope | ❌ Out of scope |
 | **🏷️ Deterministic code traceability validator (design/spec → code markers)** | ✅ Native (scans for `@cpt-*` tags) | ❌ Out of scope | ❌ Out of scope | ❌ Out of scope | ❌ Out of scope | ❌ Out of scope |
-| **🔬 Traceability granularity** | Instruction-level (`ph-*` + `inst-*`) + code markers | Change-level (proposal/tasks/deltas per change) | Task-level (spec → plan → tasks; tasks include file paths) | Verification-level (docs ↔ tests/analyzers; repo conventions) | Task/story-level (PRD → stories → implementation) | Verification-level (tests/typecheck/build gates + disk state) |
+| **🔬 Traceability granularity** | Instruction-level (`p*` + `inst-*`) + code markers | Change-level (proposal/tasks/deltas per change) | Task-level (spec → plan → tasks; tasks include file paths) | Verification-level (docs ↔ tests/analyzers; repo conventions) | Task/story-level (PRD → stories → implementation) | Verification-level (tests/typecheck/build gates + disk state) |
 | **📊 Scoring / thresholds (beyond pass/fail)** | ✅ Native (100-point scoring + thresholds per workflow) | ❌ Out of scope | ❌ Out of scope | ❌ Out of scope | ❌ Out of scope | ❌ Out of scope |
 | **🚧 Strict phase gates** | ✅ Native (layer-by-layer validation chain) | ⚠️ Supported (legacy workflow is phase-based; OPSX is actions-not-phases) | ✅ Native (phase checkpoints: spec → plan → tasks → implement) | ✅ Native (tests/analyzers gate completion) | ✅ Native (phase pipeline + workflow prerequisites) | ✅ Native (verification-driven loop stop conditions) |
 | **🤖 Agent instructions single source** | ✅ Native (`AGENTS.md` hierarchy) | ⚠️ Supported (generated tool-specific instruction files via `openspec init` / `openspec update`) | ⚠️ Supported (slash commands + generated repo files) | ✅ Native (`AGENTS.md` governance + local AGENTS.md) | ✅ Native (specialized agents are core) | ⚠️ Supported |
@@ -155,7 +155,7 @@ This is a simple linear weighting system for the matrix. "Out of scope" receives
 ## Deep comparison (dimensions)
 
 ### 1) “Center of gravity”
-- **Cypilot**: Design hierarchy + traceability (prd → architecture → spec decomposition → specs manifest → spec designs → code).
+- **Cypilot**: Design hierarchy + traceability (prd → architecture → feature decomposition → features manifest → feature designs → code).
 - **OpenSpec**: Change proposal + delta spec + archiving into living specs.
 - **Spec Kit**: Spec-driven pipeline with a constitution + artifacts generated via slash commands (constitution → spec → plan → tasks → implement).
 - **MCAF**: Predictability via shared repo context + tests/analyzers as gates + explicit agent instructions.
@@ -165,8 +165,8 @@ This is a simple linear weighting system for the matrix. "Out of scope" receives
 ### 2) Artifact model and where truth lives
 - **Cypilot**
   - Truth is captured in a layered architecture of Markdown artifacts.
-  - Strong separation of concerns: PRD vs architecture vs spec designs vs implementation plans.
-  - Living evolution: implementation planning and status live in spec `DESIGN.md` and are updated iteratively during implementation.
+  - Strong separation of concerns: PRD vs architecture vs feature designs vs implementation plans.
+  - Living evolution: implementation planning and status live in feature artifacts and are updated iteratively during implementation.
 - **OpenSpec**
   - Truth lives in `openspec/specs/`.
   - Proposals and deltas live in `openspec/changes/<change-id>/` and are later archived/merged into specs.
@@ -243,7 +243,7 @@ This is a simple linear weighting system for the matrix. "Out of scope" receives
 ## Practical interoperability patterns
 
 ### Pattern A: Cypilot + OpenSpec (layered design + delta change tracking)
-- Use **Cypilot** for layered artifacts and spec decomposition.
+- Use **Cypilot** for layered artifacts and feature decomposition.
 - Use **OpenSpec** for change proposals/deltas when you need an external-facing audit trail, or when multiple specs must be patched in a controlled way.
 
 ### Pattern B: Spec Kit for bootstrap, then migrate to Cypilot-style layering

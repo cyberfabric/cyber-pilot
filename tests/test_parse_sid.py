@@ -10,7 +10,7 @@ Tests cover:
 """
 
 import pytest
-from skills.cypilot.scripts.cypilot.utils.template import parse_cpt, ParsedCypilotId
+from skills.cypilot.scripts.cypilot.utils.constraints import parse_cpt, ParsedCypilotId
 
 
 class TestSimpleIds:
@@ -19,28 +19,26 @@ class TestSimpleIds:
     def test_basic_simple_id(self):
         """Parse a basic simple ID."""
         result = parse_cpt(
-            cpt="cpt-myapp-spec-auth",
-            expected_kind="spec",
+            cpt="cpt-myapp-feature-auth",
+            expected_kind="feature",
             registered_systems={"myapp"},
         )
         assert result is not None
         assert result.system == "myapp"
-        assert result.kind == "spec"
+        assert result.kind == "feature"
         assert result.slug == "auth"
-        assert result.prefix_id is None
 
     def test_simple_id_with_multi_part_slug(self):
         """Parse a simple ID with hyphenated slug."""
         result = parse_cpt(
-            cpt="cpt-myapp-spec-user-authentication",
-            expected_kind="spec",
+            cpt="cpt-myapp-feature-user-authentication",
+            expected_kind="feature",
             registered_systems={"myapp"},
         )
         assert result is not None
         assert result.system == "myapp"
-        assert result.kind == "spec"
+        assert result.kind == "feature"
         assert result.slug == "user-authentication"
-        assert result.prefix_id is None
 
     def test_simple_id_different_kinds(self):
         """Parse simple IDs with different kinds."""
@@ -67,15 +65,14 @@ class TestSimpleIds:
     def test_simple_id_empty_slug(self):
         """Parse a simple ID with no slug (just system-kind)."""
         result = parse_cpt(
-            cpt="cpt-myapp-spec",
-            expected_kind="spec",
+            cpt="cpt-myapp-feature",
+            expected_kind="feature",
             registered_systems={"myapp"},
         )
         assert result is not None
         assert result.system == "myapp"
-        assert result.kind == "spec"
+        assert result.kind == "feature"
         assert result.slug == ""
-        assert result.prefix_id is None
 
 
 class TestMultiWordSystems:
@@ -84,50 +81,49 @@ class TestMultiWordSystems:
     def test_multi_word_system(self):
         """Parse ID with multi-word system name."""
         result = parse_cpt(
-            cpt="cpt-account-server-spec-billing",
-            expected_kind="spec",
+            cpt="cpt-account-server-feature-billing",
+            expected_kind="feature",
             registered_systems={"account-server"},
         )
         assert result is not None
         assert result.system == "account-server"
-        assert result.kind == "spec"
+        assert result.kind == "feature"
         assert result.slug == "billing"
-        assert result.prefix_id is None
 
     def test_multi_word_system_longest_match(self):
         """When multiple systems could match, longest match wins."""
         result = parse_cpt(
-            cpt="cpt-account-server-spec-billing",
-            expected_kind="spec",
+            cpt="cpt-account-server-feature-billing",
+            expected_kind="feature",
             registered_systems={"account", "account-server"},
         )
         assert result is not None
         assert result.system == "account-server"
-        assert result.kind == "spec"
+        assert result.kind == "feature"
         assert result.slug == "billing"
 
     def test_shorter_system_when_longer_doesnt_match(self):
         """Use shorter system when it's the only match."""
         result = parse_cpt(
-            cpt="cpt-account-spec-billing",
-            expected_kind="spec",
+            cpt="cpt-account-feature-billing",
+            expected_kind="feature",
             registered_systems={"account", "account-server"},
         )
         assert result is not None
         assert result.system == "account"
-        assert result.kind == "spec"
+        assert result.kind == "feature"
         assert result.slug == "billing"
 
     def test_three_word_system(self):
         """Parse ID with three-word system name."""
         result = parse_cpt(
-            cpt="cpt-my-cool-app-spec-auth",
-            expected_kind="spec",
+            cpt="cpt-my-cool-app-feature-auth",
+            expected_kind="feature",
             registered_systems={"my-cool-app"},
         )
         assert result is not None
         assert result.system == "my-cool-app"
-        assert result.kind == "spec"
+        assert result.kind == "feature"
         assert result.slug == "auth"
 
 
@@ -135,12 +131,12 @@ class TestCompositeIds:
     """Tests for composite Cypilot IDs: cpt-{system}-{kind1}-{slug1}-{kind2}-{slug2}"""
 
     def test_basic_composite_id(self):
-        """Parse a composite ID (spec-algo)."""
+        """Parse a composite ID (feature-algo)."""
         def where_defined(id_):
-            return id_ == "cpt-myapp-spec-auth"
+            return id_ == "cpt-myapp-feature-auth"
 
         result = parse_cpt(
-            cpt="cpt-myapp-spec-auth-algo-hash",
+            cpt="cpt-myapp-feature-auth-algo-hash",
             expected_kind="algo",
             registered_systems={"myapp"},
             where_defined=where_defined,
@@ -149,15 +145,14 @@ class TestCompositeIds:
         assert result.system == "myapp"
         assert result.kind == "algo"
         assert result.slug == "hash"
-        assert result.prefix_id == "cpt-myapp-spec-auth"
 
     def test_composite_id_spec_flow(self):
-        """Parse a spec-flow composite ID."""
+        """Parse a feature-flow composite ID."""
         def where_defined(id_):
-            return id_ == "cpt-myapp-spec-checkout"
+            return id_ == "cpt-myapp-feature-checkout"
 
         result = parse_cpt(
-            cpt="cpt-myapp-spec-checkout-flow-payment",
+            cpt="cpt-myapp-feature-checkout-flow-payment",
             expected_kind="flow",
             registered_systems={"myapp"},
             where_defined=where_defined,
@@ -165,15 +160,14 @@ class TestCompositeIds:
         assert result is not None
         assert result.kind == "flow"
         assert result.slug == "payment"
-        assert result.prefix_id == "cpt-myapp-spec-checkout"
 
     def test_composite_id_spec_req(self):
-        """Parse a spec-req composite ID."""
+        """Parse a feature-req composite ID."""
         def where_defined(id_):
-            return id_ == "cpt-myapp-spec-auth"
+            return id_ == "cpt-myapp-feature-auth"
 
         result = parse_cpt(
-            cpt="cpt-myapp-spec-auth-req-password-validation",
+            cpt="cpt-myapp-feature-auth-req-password-validation",
             expected_kind="req",
             registered_systems={"myapp"},
             where_defined=where_defined,
@@ -181,7 +175,6 @@ class TestCompositeIds:
         assert result is not None
         assert result.kind == "req"
         assert result.slug == "password-validation"
-        assert result.prefix_id == "cpt-myapp-spec-auth"
 
     def test_composite_id_parent_not_defined(self):
         """Return None when parent ID doesn't exist."""
@@ -189,7 +182,7 @@ class TestCompositeIds:
             return False  # no IDs exist
 
         result = parse_cpt(
-            cpt="cpt-myapp-spec-auth-algo-hash",
+            cpt="cpt-myapp-feature-auth-algo-hash",
             expected_kind="algo",
             registered_systems={"myapp"},
             where_defined=where_defined,
@@ -199,21 +192,20 @@ class TestCompositeIds:
     def test_composite_id_without_where_defined(self):
         """Composite ID parses without validation when where_defined is None."""
         result = parse_cpt(
-            cpt="cpt-myapp-spec-auth-algo-hash",
+            cpt="cpt-myapp-feature-auth-algo-hash",
             expected_kind="algo",
             registered_systems={"myapp"},
             where_defined=None,  # no validation
         )
         assert result is not None
-        assert result.prefix_id == "cpt-myapp-spec-auth"
 
     def test_composite_id_multi_word_system(self):
         """Parse composite ID with multi-word system."""
         def where_defined(id_):
-            return id_ == "cpt-account-server-spec-billing"
+            return id_ == "cpt-account-server-feature-billing"
 
         result = parse_cpt(
-            cpt="cpt-account-server-spec-billing-algo-invoice-calc",
+            cpt="cpt-account-server-feature-billing-algo-invoice-calc",
             expected_kind="algo",
             registered_systems={"account-server"},
             where_defined=where_defined,
@@ -222,7 +214,6 @@ class TestCompositeIds:
         assert result.system == "account-server"
         assert result.kind == "algo"
         assert result.slug == "invoice-calc"
-        assert result.prefix_id == "cpt-account-server-spec-billing"
 
 
 class TestCaseInsensitivity:
@@ -231,8 +222,8 @@ class TestCaseInsensitivity:
     def test_case_insensitive_cypilot_prefix(self):
         """The cpt- prefix should be case-insensitive."""
         result = parse_cpt(
-            cpt="cpt-myapp-spec-auth",
-            expected_kind="spec",
+            cpt="cpt-myapp-feature-auth",
+            expected_kind="feature",
             registered_systems={"myapp"},
         )
         assert result is not None
@@ -241,8 +232,8 @@ class TestCaseInsensitivity:
     def test_case_insensitive_system(self):
         """System matching should be case-insensitive."""
         result = parse_cpt(
-            cpt="cpt-myapp-spec-auth",
-            expected_kind="spec",
+            cpt="cpt-myapp-feature-auth",
+            expected_kind="feature",
             registered_systems={"myapp"},
         )
         assert result is not None
@@ -251,20 +242,20 @@ class TestCaseInsensitivity:
     def test_case_insensitive_kind(self):
         """Kind matching should be case-insensitive."""
         result = parse_cpt(
-            cpt="cpt-myapp-SPEC-auth",
-            expected_kind="spec",
+            cpt="cpt-myapp-FEATURE-auth",
+            expected_kind="feature",
             registered_systems={"myapp"},
         )
         assert result is not None
-        assert result.kind == "spec"  # returns expected_kind as passed
+        assert result.kind == "feature"  # returns expected_kind as passed
 
     def test_case_insensitive_composite_separator(self):
         """Composite ID separator matching should be case-insensitive."""
         def where_defined(id_):
-            return id_.lower() == "cpt-myapp-spec-auth"
+            return id_.lower() == "cpt-myapp-feature-auth"
 
         result = parse_cpt(
-            cpt="cpt-myapp-spec-auth-ALGO-hash",
+            cpt="cpt-myapp-feature-auth-ALGO-hash",
             expected_kind="algo",
             registered_systems={"myapp"},
             where_defined=where_defined,
@@ -272,20 +263,23 @@ class TestCaseInsensitivity:
         assert result is not None
         assert result.kind == "algo"
 
-    def test_preserves_original_case_in_prefix_id(self):
-        """prefix_id should preserve original case."""
+    def test_preserves_original_case_in_parent_id_for_where_defined(self):
+        """Parent ID passed to where_defined should preserve original case."""
+        calls = []
+
         def where_defined(id_):
+            calls.append(id_)
             return True
 
         result = parse_cpt(
-            cpt="cpt-myapp-Spec-Auth-algo-hash",
+            cpt="cpt-myapp-Feature-Auth-algo-hash",
             expected_kind="algo",
             registered_systems={"myapp"},
             where_defined=where_defined,
         )
         assert result is not None
-        # prefix_id preserves original case from the input
-        assert result.prefix_id == "cpt-myapp-Spec-Auth"
+        assert len(calls) == 1
+        assert calls[0] == "cpt-myapp-Feature-Auth"
 
 
 class TestEdgeCases:
@@ -295,7 +289,7 @@ class TestEdgeCases:
         """Return None for None input."""
         result = parse_cpt(
             cpt=None,
-            expected_kind="spec",
+            expected_kind="feature",
             registered_systems={"myapp"},
         )
         assert result is None
@@ -304,7 +298,7 @@ class TestEdgeCases:
         """Return None for empty string."""
         result = parse_cpt(
             cpt="",
-            expected_kind="spec",
+            expected_kind="feature",
             registered_systems={"myapp"},
         )
         assert result is None
@@ -312,8 +306,8 @@ class TestEdgeCases:
     def test_not_cypilot_prefix(self):
         """Return None if doesn't start with cpt-."""
         result = parse_cpt(
-            cpt="myapp-spec-auth",
-            expected_kind="spec",
+            cpt="myapp-feature-auth",
+            expected_kind="feature",
             registered_systems={"myapp"},
         )
         assert result is None
@@ -321,8 +315,8 @@ class TestEdgeCases:
     def test_unknown_system(self):
         """Return None for unknown system."""
         result = parse_cpt(
-            cpt="cpt-unknown-spec-auth",
-            expected_kind="spec",
+            cpt="cpt-unknown-feature-auth",
+            expected_kind="feature",
             registered_systems={"myapp"},
         )
         assert result is None
@@ -330,8 +324,8 @@ class TestEdgeCases:
     def test_empty_registered_systems(self):
         """Return None when no systems registered."""
         result = parse_cpt(
-            cpt="cpt-myapp-spec-auth",
-            expected_kind="spec",
+            cpt="cpt-myapp-feature-auth",
+            expected_kind="feature",
             registered_systems=set(),
         )
         assert result is None
@@ -340,7 +334,7 @@ class TestEdgeCases:
         """Return None for just 'cpt-'."""
         result = parse_cpt(
             cpt="cpt-",
-            expected_kind="spec",
+            expected_kind="feature",
             registered_systems={"myapp"},
         )
         assert result is None
@@ -349,7 +343,7 @@ class TestEdgeCases:
         """Return None for just 'cpt-system-'."""
         result = parse_cpt(
             cpt="cpt-myapp-",
-            expected_kind="spec",
+            expected_kind="feature",
             registered_systems={"myapp"},
         )
         assert result is None
@@ -357,8 +351,8 @@ class TestEdgeCases:
     def test_kind_mismatch_no_composite(self):
         """Return None when kind doesn't match and no composite found."""
         result = parse_cpt(
-            cpt="cpt-myapp-spec-auth",
-            expected_kind="algo",  # looking for algo, but this is a spec
+            cpt="cpt-myapp-feature-auth",
+            expected_kind="algo",  # looking for algo, but this is a feature
             registered_systems={"myapp"},
         )
         assert result is None
@@ -366,8 +360,8 @@ class TestEdgeCases:
     def test_registered_systems_as_list(self):
         """Accept list as registered_systems (not just set)."""
         result = parse_cpt(
-            cpt="cpt-myapp-spec-auth",
-            expected_kind="spec",
+            cpt="cpt-myapp-feature-auth",
+            expected_kind="feature",
             registered_systems=["myapp", "other"],  # list, not set
         )
         assert result is not None
@@ -401,14 +395,14 @@ class TestRealWorldScenarios:
 
     def test_deeply_nested_composite(self):
         """Parse a deeply nested composite ID pattern."""
-        # cpt-myapp-spec-auth-flow-login-step-validate
-        # This is spec-auth with flow-login, and we're looking for step
+        # cpt-myapp-feature-auth-flow-login-step-validate
+        # This is feature-auth with flow-login, and we're looking for step
         def where_defined(id_):
-            # In real usage, we'd check if "cpt-myapp-spec-auth-flow-login" exists
-            return id_ == "cpt-myapp-spec-auth-flow-login"
+            # In real usage, we'd check if "cpt-myapp-feature-auth-flow-login" exists
+            return id_ == "cpt-myapp-feature-auth-flow-login"
 
         result = parse_cpt(
-            cpt="cpt-myapp-spec-auth-flow-login-step-validate",
+            cpt="cpt-myapp-feature-auth-flow-login-step-validate",
             expected_kind="step",
             registered_systems={"myapp"},
             where_defined=where_defined,
@@ -416,7 +410,6 @@ class TestRealWorldScenarios:
         assert result is not None
         assert result.kind == "step"
         assert result.slug == "validate"
-        assert result.prefix_id == "cpt-myapp-spec-auth-flow-login"
 
     def test_principle_id(self):
         """Parse a principle ID."""
@@ -454,8 +447,8 @@ class TestWhereDefinedCallback:
 
         # Simple ID - where_defined should NOT be called
         parse_cpt(
-            cpt="cpt-myapp-spec-auth",
-            expected_kind="spec",
+            cpt="cpt-myapp-feature-auth",
+            expected_kind="feature",
             registered_systems={"myapp"},
             where_defined=where_defined,
         )
@@ -463,13 +456,13 @@ class TestWhereDefinedCallback:
 
         # Composite ID - where_defined SHOULD be called
         parse_cpt(
-            cpt="cpt-myapp-spec-auth-algo-hash",
+            cpt="cpt-myapp-feature-auth-algo-hash",
             expected_kind="algo",
             registered_systems={"myapp"},
             where_defined=where_defined,
         )
         assert len(calls) == 1
-        assert calls[0] == "cpt-myapp-spec-auth"
+        assert calls[0] == "cpt-myapp-feature-auth"
 
     def test_where_defined_receives_full_parent_id(self):
         """where_defined receives the complete parent ID."""
@@ -480,14 +473,14 @@ class TestWhereDefinedCallback:
             return True
 
         parse_cpt(
-            cpt="cpt-account-server-spec-billing-invoice-algo-calc",
+            cpt="cpt-account-server-feature-billing-invoice-algo-calc",
             expected_kind="algo",
             registered_systems={"account-server"},
             where_defined=where_defined,
         )
 
         assert len(received) == 1
-        assert received[0] == "cpt-account-server-spec-billing-invoice"
+        assert received[0] == "cpt-account-server-feature-billing-invoice"
 
 
 class TestDataclassProperties:
@@ -496,8 +489,8 @@ class TestDataclassProperties:
     def test_parsed_cpt_is_frozen(self):
         """ParsedCypilotId should be immutable (frozen dataclass)."""
         result = parse_cpt(
-            cpt="cpt-myapp-spec-auth",
-            expected_kind="spec",
+            cpt="cpt-myapp-feature-auth",
+            expected_kind="feature",
             registered_systems={"myapp"},
         )
         assert result is not None
@@ -508,13 +501,13 @@ class TestDataclassProperties:
     def test_parsed_cpt_equality(self):
         """ParsedCypilotId instances with same values should be equal."""
         result1 = parse_cpt(
-            cpt="cpt-myapp-spec-auth",
-            expected_kind="spec",
+            cpt="cpt-myapp-feature-auth",
+            expected_kind="feature",
             registered_systems={"myapp"},
         )
         result2 = parse_cpt(
-            cpt="cpt-myapp-spec-auth",
-            expected_kind="spec",
+            cpt="cpt-myapp-feature-auth",
+            expected_kind="feature",
             registered_systems={"myapp"},
         )
         assert result1 == result2
@@ -522,13 +515,13 @@ class TestDataclassProperties:
     def test_parsed_cpt_repr(self):
         """ParsedCypilotId should have a readable repr."""
         result = parse_cpt(
-            cpt="cpt-myapp-spec-auth",
-            expected_kind="spec",
+            cpt="cpt-myapp-feature-auth",
+            expected_kind="feature",
             registered_systems={"myapp"},
         )
         repr_str = repr(result)
         assert "myapp" in repr_str
-        assert "spec" in repr_str
+        assert "feature" in repr_str
         assert "auth" in repr_str
 
 
@@ -538,34 +531,34 @@ class TestKnownKindsValidation:
     def test_known_kinds_valid_kind(self):
         """Parse succeeds when kind is in known_kinds."""
         result = parse_cpt(
-            cpt="cpt-myapp-spec-auth",
-            expected_kind="spec",
+            cpt="cpt-myapp-feature-auth",
+            expected_kind="feature",
             registered_systems={"myapp"},
-            known_kinds={"spec", "algo", "fr"},
+            known_kinds={"feature", "algo", "fr"},
         )
         assert result is not None
-        assert result.kind == "spec"
+        assert result.kind == "feature"
 
     def test_known_kinds_invalid_kind_returns_none(self):
         """Parse returns None when first_kind not in known_kinds."""
         result = parse_cpt(
-            cpt="cpt-myapp-featre-auth",  # typo: featre instead of spec
+            cpt="cpt-myapp-featre-auth",  # typo: featre instead of feature
             expected_kind="featre",
             registered_systems={"myapp"},
-            known_kinds={"spec", "algo", "fr"},
+            known_kinds={"feature", "algo", "fr"},
         )
         assert result is None
 
     def test_known_kinds_case_insensitive(self):
         """known_kinds matching should be case-insensitive."""
         result = parse_cpt(
-            cpt="cpt-myapp-SPEC-auth",
-            expected_kind="spec",
+            cpt="cpt-myapp-FEATURE-auth",
+            expected_kind="feature",
             registered_systems={"myapp"},
-            known_kinds={"Spec", "Algo", "FR"},
+            known_kinds={"Feature", "Algo", "FR"},
         )
         assert result is not None
-        assert result.kind == "spec"
+        assert result.kind == "feature"
 
     def test_known_kinds_none_skips_validation(self):
         """When known_kinds is None, kind validation is skipped."""
@@ -584,35 +577,34 @@ class TestKnownKindsValidation:
             return True
 
         result = parse_cpt(
-            cpt="cpt-myapp-spec-auth-unknownkind-hash",
+            cpt="cpt-myapp-feature-auth-unknownkind-hash",
             expected_kind="unknownkind",
             registered_systems={"myapp"},
             where_defined=where_defined,
-            known_kinds={"spec", "algo"},
+            known_kinds={"feature", "algo"},
         )
         assert result is None
 
     def test_known_kinds_composite_valid(self):
         """Composite ID succeeds when both kinds are in known_kinds."""
         def where_defined(id_):
-            return id_ == "cpt-myapp-spec-auth"
+            return id_ == "cpt-myapp-feature-auth"
 
         result = parse_cpt(
-            cpt="cpt-myapp-spec-auth-algo-hash",
+            cpt="cpt-myapp-feature-auth-algo-hash",
             expected_kind="algo",
             registered_systems={"myapp"},
             where_defined=where_defined,
-            known_kinds={"spec", "algo"},
+            known_kinds={"feature", "algo"},
         )
         assert result is not None
         assert result.kind == "algo"
-        assert result.prefix_id == "cpt-myapp-spec-auth"
 
     def test_known_kinds_empty_set_rejects_all(self):
         """Empty known_kinds set rejects all kinds."""
         result = parse_cpt(
-            cpt="cpt-myapp-spec-auth",
-            expected_kind="spec",
+            cpt="cpt-myapp-feature-auth",
+            expected_kind="feature",
             registered_systems={"myapp"},
             known_kinds=set(),
         )

@@ -360,15 +360,15 @@ Standard checks (subset of [Validation Criteria](#validation-criteria)):
 
 Execute phases from codebase/rules.md:
 - **Phase 1: Setup** — load spec design, checklist
-- **Phase 2: Implementation** — implement with Cypilot markers
-- **Phase 3: Marker Format** — use correct marker syntax
+- **Phase 2: Implementation** — implement with traceability markers
+- **Phase 3: Traceability Format** — use correct traceability marker syntax
 - **Phase 4: Quality Check** — verify traceability
 
 Standard checks (subset of [Validation Criteria](#validation-criteria)):
 - [ ] Follows conventions
 - [ ] Implements all requirements
 - [ ] Has tests (if required)
-- [ ] Cypilot markers present (if to_code="true")
+- [ ] Traceability markers present (if to_code="true")
 
 ### Content Rules
 

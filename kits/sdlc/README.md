@@ -4,23 +4,23 @@
 
 **Cypilot SDLC** is an artifact-first pipeline that turns intent into implementation through a fixed sequence of document layers, with deterministic validation gates and end-to-end traceability.
 
-- **Layered transformation**: PRD → ADR + DESIGN → DECOMPOSITION → SPEC → CODE.
+- **Layered transformation**: PRD → ADR + DESIGN → DECOMPOSITION → FEATURE → CODE.
 - **Deterministic gates**: templates, IDs, cross-references, and task/acceptance criteria are validated at every step.
-- **Behavior spec**: the **SPEC** layer expresses behavior as **Cypilot DSL (CDSL)** flows/algorithms that can be implemented directly.
+- **Behavior spec**: the **FEATURE** layer expresses behavior as **Cypilot DSL (CDSL)** flows/algorithms/states plus definitions of done that can be implemented directly.
 - **Traceability chain**: each downstream artifact references upstream IDs, and code keeps links via tags/markers.
 
 ## Pipeline Diagram
 
-![**Cypilot** SDLC pipeline: PRD → DESIGN → DECOMPOSITION → SPEC → CODE, with validation gates and ID traceability between layers](pipeline.drawio.svg)
+![**Cypilot** SDLC pipeline: PRD → DESIGN → DECOMPOSITION → FEATURE → CODE, with validation gates and ID traceability between layers](pipeline.drawio.svg)
 
 Each layer **transforms** the previous artifact into a new form while **preserving traceability through IDs and references**:
 
 | From | To | Transformation |
 |------|-----|----------------|
 | **PRD** | ADR + DESIGN | WHAT → HOW (architecture decisions and design) |
-| **DESIGN** | DECOMPOSITION | Architecture → decomposition to specs |
-| **DECOMPOSITION** | SPEC | Specs → detailed specification and definitions of done |
-| **SPEC** | CODE | Detailed specification → implementation, source code |
+| **DESIGN** | DECOMPOSITION | Architecture → decomposition to features |
+| **DECOMPOSITION** | FEATURE | Features → detailed behavior + definitions of done |
+| **FEATURE** | CODE | Detailed behavior + DoD → implementation, source code |
 
 The LLM reads the upstream artifact, understands its intent, and generates a downstream artifact of a **different kind** with explicit ID references back to the source. This creates a **traceable chain** from requirements to implementation.
 
@@ -44,9 +44,9 @@ Learn **Cypilot** in 10 minutes with:
 | **PRD** | Drafted from stakeholder input + market context with required IDs | Template structure, ID format | Semantic review vs industry best practices | Product Managers & Architects alignment |
 | **ADR** | Captures key architecture decisions with rationale | Template structure, ID format | Semantic review vs industry best practices | Architects alignment |
 | **DESIGN** | Derived from PRD with architecture decisions | Cross reference ID and tasks validation | Semantic review vs PRD + ADR + industry best practices | Architects alignment |
-| **DECOMPOSITION** | Decomposed from DESIGN into implementable spec scope | Cross reference ID and tasks validation | Semantic review vs DESIGN + industry best practices | Architects alignment |
-| **SPEC** | Expanded from DECOMPOSITION into **Cypilot DSL** (**CDSL**) flows/algorithms plus implementation requirements | Cross reference ID and tasks validation | Semantic review vs DESIGN + DECOMPOSITION + industry best practices | Architects & Developers alignment |
-| **CODE** | Implemented from SPEC specs with traceability in code comments | Cross reference ID and tasks validation | Semantic review vs SPEC + DESIGN + DECOMPOSITION + industry best practices | Developers & QA alignment |
+| **DECOMPOSITION** | Decomposed from DESIGN into implementable feature scope | Cross reference ID and tasks validation | Semantic review vs DESIGN + industry best practices | Architects alignment |
+| **FEATURE** | Expanded from DECOMPOSITION into **Cypilot DSL** (**CDSL**) flows/algorithms/states plus definitions of done | Cross reference ID and tasks validation | Semantic review vs DESIGN + DECOMPOSITION + industry best practices | Architects & Developers alignment |
+| **CODE** | Implemented from FEATURE with traceability in code comments | Cross reference ID and tasks validation | Semantic review vs FEATURE + DESIGN + DECOMPOSITION + industry best practices | Developers & QA alignment |
 
 ## Cypilot SDLC vs Popular SDD Methodologies
 
@@ -73,7 +73,7 @@ This document provides:
 ## References
 
 - [Rules Format Specification](../../requirements/rules-format.md) — how to structure rules.md files
-- [Template Specification](../../requirements/template.md) — Marker syntax and validation
+- [Identifiers Specification](../../requirements/identifiers.md) — ID formats and naming
 - [Semantic Checklists](codebase/checklist.md) — Code quality review criteria
 - [Traceability Specification](../../requirements/traceability.md) — Code-to-design linking
 - [**Cypilot DSL** Specification](../../requirements/CDSL.md) — Behavior description language

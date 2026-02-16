@@ -378,7 +378,7 @@ class TestArtifactsMeta(unittest.TestCase):
             ],
         }
         meta = ArtifactsMeta.from_dict(data)
-        names = list(meta.iter_all_system_names())
+        names = [n.name for n in meta.iter_all_systems() if n.name]
         self.assertIn("myapp", names)
         self.assertIn("account-server", names)
         self.assertIn("billing", names)
@@ -398,7 +398,7 @@ class TestArtifactsMeta(unittest.TestCase):
             ],
         }
         meta = ArtifactsMeta.from_dict(data)
-        names = meta.get_all_system_names()
+        names = {str(n.name).lower() for n in meta.iter_all_systems() if n.name}
         self.assertIsInstance(names, set)
         self.assertIn("myapp", names)
         self.assertIn("account-server", names)
@@ -670,11 +670,15 @@ class TestArtifactsMetaIterators(unittest.TestCase):
             ],
         }
         meta = ArtifactsMeta.from_dict(data)
-        node = meta.get_system_by_slug("module")
+        node = None
+        for n in meta.iter_all_systems():
+            if n.slug == "module":
+                node = n
+                break
         self.assertIsNotNone(node)
         self.assertEqual(node.name, "Module")
         # Test not found
-        self.assertIsNone(meta.get_system_by_slug("nonexistent"))
+        self.assertIsNone(next((n for n in meta.iter_all_systems() if n.slug == "nonexistent"), None))
 
     def test_validate_all_slugs(self):
         """Cover validate_all_slugs method."""

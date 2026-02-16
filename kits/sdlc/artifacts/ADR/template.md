@@ -1,105 +1,71 @@
-<!-- cpt:#:adr -->
-# ADR-0001: {short title, representative of solved problem and found solution}
+---
+status: accepted
+date: {YYYY-MM-DD}
+decision-makers: {optionally fill decision makers names, accounts or remove that field}
+--- 
 
-<!-- cpt:id:adr covered_by="DESIGN" -->
+# {Short title describing problem and chosen solution}
+
 **ID**: `cpt-{system}-adr-{slug}`
 
-<!-- cpt:##:meta -->
-## Meta
+## Context and Problem Statement
 
-<!-- cpt:paragraph:adr-title -->
-**Title**: ADR-0001 {short title}
-<!-- cpt:paragraph:adr-title -->
+{Describe the context and problem statement in 2-3 sentences. You may articulate the problem as a question.}
 
-<!-- cpt:paragraph:date -->
-**Date**: {YYYY-MM-DD}
-<!-- cpt:paragraph:date -->
+## Decision Drivers
 
-<!-- cpt:paragraph:status -->
-**Status**: Proposed | Rejected | Accepted | Deprecated | Superseded
-<!-- cpt:paragraph:status -->
-<!-- cpt:##:meta -->
+* {Decision driver 1, e.g., a force, facing concern, …}
+* {Decision driver 2, e.g., a force, facing concern, …}
 
-<!-- cpt:##:body -->
-## Body
+## Considered Options
 
-<!-- cpt:context -->
-**Context**:
-{Describe the current situation and the problem to solve.}
+* {Title of option 1}
+* {Title of option 2}
+* {Title of option 3}
 
-{Include:
-- Context/background
-- Constraints
-- Goals/non-goals
-- Stakeholders and concerns}
-<!-- cpt:context -->
+## Decision Outcome
 
-<!-- cpt:decision-drivers -->
-**Decision Drivers**:
-{List the forces that drive the decision (quality attributes, constraints, risks).}
-<!-- cpt:decision-drivers -->
+Chosen option: "{title of option 1}", because {justification, e.g., only option which meets k.o. criterion decision driver | resolves force | comes out best}.
 
-<!-- cpt:options repeat="many" -->
-**Option 1: {Option Name}**
+### Consequences
 
-- Description: {What this option entails}
-- Pros:
-  - {advantage 1}
-  - {advantage 2}
-- Cons:
-  - {disadvantage 1}
-  - {disadvantage 2}
-- Trade-offs: {key trade-offs to consider}
-<!-- cpt:options repeat="many" -->
+* Good, because {positive consequence, e.g., improvement of one or more desired qualities}
+* Bad, because {negative consequence, e.g., compromising one or more desired qualities}
 
-<!-- cpt:options repeat="many" -->
-**Option 2: {Option Name}**
+### Confirmation
 
-- Description: {What this option entails}
-- Pros:
-  - {advantage 1}
-  - {advantage 2}
-- Cons:
-  - {disadvantage 1}
-- Trade-offs: {key trade-offs to consider}
-<!-- cpt:options repeat="many" -->
+{Describe how the implementation/compliance of the ADR can be confirmed. E.g., design/code review, ArchUnit test, etc.}
 
-<!-- cpt:options repeat="many" -->
-**Option 3: {Option Name}**
+## Pros and Cons of the Options
 
-- Description: {What this option entails}
-- Pros:
-  - {advantage 1}
-- Cons:
-  - {disadvantage 1}
-  - {disadvantage 2}
-- Trade-offs: {key trade-offs to consider}
-<!-- cpt:options repeat="many" -->
+### {Title of option 1}
 
-<!-- cpt:decision-outcome -->
-**Decision Outcome**:
-{State the chosen option (e.g., Option 2) and why it was selected over alternatives.}
+{Description or pointer to more information}
 
-{Include:
-- Rationale for the choice
-- Why rejected options were not suitable
-- Any conditions or caveats}
-<!-- cpt:decision-outcome -->
+* Good, because {argument a}
+* Good, because {argument b}
+* Neutral, because {argument c}
+* Bad, because {argument d}
 
-<!-- cpt:list:consequences -->
-**Consequences**:
-- Positive: {benefit 1}, {benefit 2}
-- Negative: {drawback 1}, {drawback 2}
-- Follow-up: {action items or future considerations}
-<!-- cpt:list:consequences -->
+### {Title of option 2}
 
-<!-- cpt:list:links -->
-**Links**:
-- [`PRD`](PRD.md)
-- [`DESIGN`](DESIGN.md)
-- {External reference or documentation}
-<!-- cpt:list:links -->
-<!-- cpt:##:body -->
+{Description or pointer to more information}
 
-<!-- cpt:id:adr -->
-<!-- cpt:#:adr -->
+* Good, because {argument a}
+* Bad, because {argument b}
+
+## More Information
+
+{Additional evidence, team agreement, links to related decisions and resources.}
+
+## Traceability
+
+- **PRD**: [PRD.md](../PRD.md)
+- **DESIGN**: [DESIGN.md](../DESIGN.md)
+
+This decision directly addresses the following requirements or design elements:
+
+* `cpt-{system}-fr-{slug}` — {Brief description of how this decision satisfies/constrains this requirement}
+* `cpt-{system}-nfr-{slug}` — {Brief description of how this decision satisfies/constrains this requirement}
+* `cpt-{system}-usecase-{slug}` — {Brief description of the interaction/use case impacted}
+* `cpt-{system}-design-{slug}` — {Brief description of design element affected}

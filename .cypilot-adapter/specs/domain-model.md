@@ -14,7 +14,7 @@ kits/sdlc/
 │   ├── PRD/          # Product Requirements Document
 │   ├── DESIGN/       # Technical Design
 │   ├── DECOMPOSITION/     # Specs Manifest
-│   ├── SPEC/      # Individual Spec Design
+│   ├── FEATURE/      # Feature Design
 │   └── ADR/          # Architecture Decision Record
 ├── codebase/
 │   ├── rules.md
@@ -29,24 +29,24 @@ A **project-specific adapter** in `.cypilot-adapter/` that configures Cypilot fo
 - `specs/*.md` - Project-specific specifications
 
 ### Artifact
-A **design document** tracked by Cypilot (PRD, DESIGN, DECOMPOSITION, SPEC, ADR). Each artifact:
+A **design document** tracked by Cypilot (PRD, DESIGN, DECOMPOSITION, FEATURE, ADR). Each artifact:
 - Has a `kind` matching a kit template
 - Has a `path` in the project
 - Has `traceability` level (FULL or DOCS-ONLY)
 
 ### Cypilot ID
-A **unique identifier** in format `cpt-{system}-{kind}-{number}`:
-- `cpt-cypilot-fr-1` - Functional requirement
-- `cpt-cypilot-component-1` - Component definition
-- `cpt-cypilot-flow-1` - Flow definition
+A **unique identifier** in format `cpt-{hierarchy-prefix}-{kind}-{slug}`:
+- `cpt-cypilot-fr-must-authenticate` - Functional requirement
+- `cpt-cypilot-core-comp-api-gateway` - Component definition
+- `cpt-cypilot-core-auth-flow-login` - Flow definition
 
 ### Cypilot Marker
 **Code traceability markers** linking code to design:
-- `@cpt-{kind}:{id}:{phase}` - Reference marker
-- `# @cpt-fr:cpt-cypilot-fr-1:impl` - Implementation marker
+- `@cpt-{kind}:{cpt-id}:p{N}` - Scope marker
+- `@cpt-begin:{cpt-id}:p{N}:inst-{local}` / `@cpt-end:{cpt-id}:p{N}:inst-{local}` - Block markers
 
 ### Traceability Levels
-- **FULL** - Code must have Cypilot markers linking to artifact IDs
+- **FULL** - Code markers are allowed and validated
 - **DOCS-ONLY** - Documentation traceability only, no code markers
 
 ---

@@ -63,10 +63,7 @@ _Thought for 4s_
 
 Next I will:
 
-- Read `requirements/extension.md` because the adapter file declares **Extends**.
 - Run Cypilot’s required **Protocol Guard** command `adapter-info` (read-only) so we can print the “Cypilot Mode Enabled / Adapter: …” status block.
-
-_Read `extension.md`_
 
 Command:
 
@@ -98,14 +95,6 @@ Adapter: FOUND at /Volumes/CaseSensitive/coding/cypilot/.cypilot-adapter
 ```
 
 📟 [skills/cypilot/SKILL.md]: Completed “Protocol Guard” — ran `adapter-info` to confirm adapter status and load adapter registry metadata before any workflow action.
-
-📟 [requirements/extension.md]: Entering “## Agent Instructions” — processing `**Extends**:` rules for the adapter instructions file.
-
-📟 [requirements/extension.md]: Completing checklist task — Agent understands extension mechanism concept.
-
-📟 [requirements/extension.md]: Completing checklist task — Agent has identified the base file being extended (`../AGENTS.md`).
-
-📟 [requirements/extension.md]: Completing checklist task — Agent will follow the rules defined here (base loaded, no contradictions, no base-rule removal).
 
 #### Agent acknowledgment (required)
 
@@ -920,7 +909,7 @@ _Read `rules.md` and 6 other files_
 
 _Thought for 69s_
 
-📟 [kits/sdlc/artifacts/PRD/rules.md]: Entering “Dependencies” — I’m going to load the remaining required PRD dependencies (`requirements/template.md` and `PRD/checklist.md`) so we can generate a PRD that passes deterministic + semantic gates.
+📟 [kits/sdlc/artifacts/PRD/rules.md]: Entering “Dependencies” — I’m going to load the remaining required PRD dependencies (`requirements/identifiers.md` and `PRD/checklist.md`) so we can generate a PRD that passes deterministic + semantic gates.
 
 _Read `template.md` and `checklist.md`_
 
@@ -955,7 +944,7 @@ This yields IDs like:
 
 - `cpt-overwork-alert-actor-user`
 - `cpt-overwork-alert-fr-configurable-limit`
-- `cpt-overwork-alert-spec-overwork-alert`
+- `cpt-overwork-alert-feature-overwork-alert`
 
 Reply: confirm slug (`overwork-alert` OK?) and confirm we should register the system in `{ } artifacts.json` (needed for the cleanest deterministic “end-to-end” flow).
 
@@ -1249,10 +1238,7 @@ Diff preview (as visible in screenshot; truncated):
 `PRD.md` (new)
 
 ```md
-<!-- cpt:##:context-title repeat="many" -->
 
-<!-- cpt:##:context -->
-<!-- cpt:#:prd -->
 ...
 ```
 
@@ -1665,7 +1651,6 @@ Diff preview (as visible in screenshot; truncated):
 `PRD.md` (+10, -11)
 
 ```md
-<!-- cpt:list:nfr-statements -->
 ...
 - The system SHOULD preserve the day/session accumulated work time across restarts.
 ...
@@ -1716,11 +1701,8 @@ Diff preview (as visible in screenshot; truncated):
 `0001-cpt-overwork-alert-adr-cli-daemon-launchagent-no-menubar-v1.md` (new, +108)
 
 ```md
-<!-- cpt:##:body -->
 
-<!-- cpt:id:adr -->
 
-<!-- cpt:##:adr -->
 ...
 ```
 
@@ -1787,7 +1769,6 @@ Diff preview (as visible in screenshot; truncated):
 `0001-cpt-overwork-alert-adr-cli-daemon-launchagent-no-menubar-v1.md` (-2)
 
 ```md
-<!-- cpt:list:links -->
 **Links:**
 ...
 ```
@@ -1859,10 +1840,7 @@ Diff preview (as visible in screenshot; truncated):
 `DESIGN.md` (new, +504)
 
 ```md
-<!-- cpt:paragraph:date -->
-<!-- cpt:##:design-context -->
 
-<!-- cpt:##:design -->
 ...
 ```
 
@@ -1924,9 +1902,6 @@ Diff preview (as visible in screenshot; truncated):
 
 ```md
 | 10800 | 300 | 1800 | /tmp/overwork-alert.sock |
-<!-- cpt:table:db-table-example -->
-<!-- cpt:id:dbtable -->
-<!-- cpt:###:db-table-title repeat="many" -->
 ...
 ```
 
@@ -1989,10 +1964,7 @@ Diff preview (as visible in screenshot; truncated):
 `DECOMPOSITION.md` (new, +328)
 
 ```md
-<!-- cpt:id:status -->
-<!-- cpt:##:entries -->
 
-<!-- cpt:##:decomposition -->
 ...
 ```
 
@@ -2087,40 +2059,28 @@ New SPEC files (as visible in screenshot):
 `tracker-core.md` (new, +243)
 
 ```md
-<!-- cpt:free:context-notes -->
-<!-- cpt:##:additional-context -->
 
-<!-- cpt:##:spec -->
 ...
 ```
 
 `notifications.md` (new, +196)
 
 ```md
-<!-- cpt:free:context-notes -->
-<!-- cpt:##:additional-context -->
 
-<!-- cpt:##:spec -->
 ...
 ```
 
 `cli-control.md` (new, +199)
 
 ```md
-<!-- cpt:free:context-notes -->
-<!-- cpt:##:additional-context -->
 
-<!-- cpt:##:spec -->
 ...
 ```
 
 `launchagent-autostart.md` (new, +196)
 
 ```md
-<!-- cpt:free:context-notes -->
-<!-- cpt:##:additional-context -->
 
-<!-- cpt:##:spec -->
 ...
 ```
 
@@ -2170,7 +2130,7 @@ Command output (as visible in screenshot; truncated):
       "message": "Spec filename does not match ID slug",
       "line": 36,
       "path": ".../examples/overwork_alert/architecture/specs/tracker-core.md",
-      "id": "cpt-overwork-alert-spec-notifications",
+      "id": "cpt-overwork-alert-feature-notifications",
       "expected_filename": "notifications.md",
       "actual_filename": "tracker-core.md"
     },
@@ -2179,7 +2139,7 @@ Command output (as visible in screenshot; truncated):
       "message": "Spec filename does not match ID slug",
       "line": 38,
       "path": ".../examples/overwork_alert/architecture/specs/tracker-core.md",
-      "id": "cpt-overwork-alert-spec-cli-control",
+      "id": "cpt-overwork-alert-feature-cli-control",
       "expected_filename": "cli-control.md",
       "actual_filename": "tracker-core.md"
     }
@@ -2204,7 +2164,7 @@ Command output (as visible in screenshot; truncated):
       "message": "Spec filename does not match ID slug",
       "line": 34,
       "path": ".../examples/overwork_alert/architecture/specs/notifications.md",
-      "id": "cpt-overwork-alert-spec-tracker-core",
+      "id": "cpt-overwork-alert-feature-tracker-core",
       "expected_filename": "tracker-core.md",
       "actual_filename": "notifications.md"
     }
@@ -2229,7 +2189,7 @@ Command output (as visible in screenshot; truncated):
       "message": "Spec filename does not match ID slug",
       "line": 30,
       "path": ".../examples/overwork_alert/architecture/specs/cli-control.md",
-      "id": "cpt-overwork-alert-spec-tracker-core",
+      "id": "cpt-overwork-alert-feature-tracker-core",
       "expected_filename": "tracker-core.md",
       "actual_filename": "cli-control.md"
     }
@@ -2280,9 +2240,7 @@ Diff preview (as visible in screenshot; truncated):
 `tracker-core.md` (+2, -2)
 
 ```md
-<!-- cpt:free:context-notes -->
 This spec intentionally excludes manual reset, pause/resume, and CLI control details; those are defined in `cli-control.md`.
-<!-- cpt:free:context-notes -->
 ```
 
 `notifications.md` (+1, -1)
@@ -2340,7 +2298,7 @@ Links:
 - Fixed DECOMPOSITION navigation links
   - Updated spec links to point at `specs/*.md` files.
 - Fixed SPEC filename validation
-  - Removed backticked references to other `cpt-overwork-alert-spec-*` IDs inside SPEC text where they were being interpreted as “main spec ID must match filename”.
+  - Removed backticked references to other `cpt-overwork-alert-feature-*` IDs inside SPEC text where they were being interpreted as “main spec ID must match filename”.
 
 #### Next step
 
@@ -2839,18 +2797,6 @@ _Thought for 25s_
 
 📟 [workflows/generate.md]: Proceeding with Option A (SPEC gap fixes). Next I’ll (1) load the required Cypilot control docs (AGENTS + SKILL) to stay compliant, (2) re-open the two remaining specs (`cli-control.md`, `launchagent-autostart.md`) to patch precisely, then (3) run `cypilot validate` on the updated artifacts.
 
-_Read `AGENTS.md` and 7 other files_
-
-_Thought for 12s_
-
-📟 [execution-protocol]: Recovery step — I need to re-enter Cypilot workflow correctly (I started edits before running the required Protocol Guard). Next I’ll run `cypilot adapter-info`, then load and follow `workflows/generate.md` for these SPEC edits, and proceed with the remaining SPEC patches + validation.
-
-_Read `extension.md` and 3 other files_
-
-_Thought for 39s_
-
-📟 [skills/cypilot/SKILL.md]: Entering “Protocol Guard” — before I continue editing SPEC files, I’m going to run `cypilot adapter-info` (required) to confirm adapter status + rules mode, then proceed with the remaining SPEC patches (`cli-control.md`, `launchagent-autostart.md`) and finally run `cypilot validate` on all 4 specs.
-
 Command:
 
 `python3 skills/cypilot/scripts/cypilot.py adapter-info`
@@ -2913,66 +2859,7 @@ Out of scope / not applicable (v1):
 
 #### 1602 — Validate updated SPECs + tighten failure-handling and "out of scope" notes
 
-**Summary:** The agent patches `launchagent-autostart.md` and `tracker-core.md` with out-of-scope notes and error-path steps, then runs `cypilot validate --skip-code` on all 4 SPECs — three pass, one still has issues.
-
-<details>
-  <summary>Expand chat details...</summary>
-
-**ASSISTANT**
-
-📟 [workflows/generate.md]: Entering “Phase 2: Generate (update existing SPECs)” — I’ll patch the remaining SPEC (`launchagent-autostart.md`) for idempotency, failure handling, and launchd safety (throttle/crash-loop avoidance), then add explicit “out of scope / N/A” notes where missing. After that, I’ll run `cypilot validate` on the 4 updated SPEC files.
-
-Diff previews (as visible in screenshot; truncated):
-
-`launchagent-autostart.md` (+21, -8)
-
-```md
-Out of scope / not applicable (v1):
-- No system-wide (root) daemon installation.
-- No automatic self-update or signed installer packaging.
-- No network access and no privileged escalation.
-```
-
-`tracker-core.md` (+9)
-
-```md
-Out of scope / not applicable (v1):
-- No persistence of accumulated time across daemon restarts.
-- No network I/O and no telemetry.
-- No UI beyond macOS notifications (notification policy defined in notifications.md).
-```
-
-`launchagent-autostart.md` (+5, -5)
-
-```md
-4. [ ] - `p1` - CLI writes plist to the user LaunchAgents directory - `inst-write-plist`
-5. [ ] - `p1` - **IF** plist cannot be written: **RETURN** error - `inst-write-plist-error`
-6. [ ] - `p1` - CLI loads/starts LaunchAgent via launchctl - `inst-launchctl-load`
-7. [ ] - `p1` - **IF** launchctl fails: **RETURN** error - `inst-launchctl-load-error`
-```
-
-_Thought for 19s_
-
-I’m going to sanity-check the two edited SPEC files (`cli-control.md`, `launchagent-autostart.md`) to ensure the marker structure and CDSL numbering are still valid, then run `cypilot validate --skip-code` on all 4 specs.
-
-_Read `cli-control.md` and `launchagent-autostart.md`_
-
-Command output (as visible in screenshot; truncated):
-
-- `... validate --artifact .../specs/tracker-core.md --skip-code` → `{"status":"PASS",...}`
-- `... validate --artifact .../specs/notifications.md --skip-code` → `{"status":"PASS",...}`
-- `... validate --artifact .../specs/cli-control.md --skip-code` → `{"status":"PASS",...}`
-
-</details>
-
-- SPEC: [tracker-core.md](../examples/overwork_alert/architecture/specs/tracker-core.md)
-- SPEC: [notifications.md](../examples/overwork_alert/architecture/specs/notifications.md)
-- SPEC: [cli-control.md](../examples/overwork_alert/architecture/specs/cli-control.md)
-- SPEC: [launchagent-autostart.md](../examples/overwork_alert/architecture/specs/launchagent-autostart.md)
-
-#### 1603 — Fix remaining validation errors (missing required coverage blocks)
-
-**Summary:** Deterministic validation fails for `launchagent-autostart.md` with two missing `id-ref:nfr` blocks. The agent adds the required coverage markers and reruns validation until it passes.
+**Summary:** Deterministic validation fails for `launchagent-autostart.md` with two missing required NFR reference coverages. The agent adds the required reference lines and reruns validation until it passes.
 
 <details>
   <summary>Expand chat details...</summary>
@@ -2988,8 +2875,8 @@ Command output (as visible in screenshot; truncated):
   "error_count": 2,
   "warning_count": 0,
   "errors": [
-    {"type":"structure","message":"Required block missing","line":194,"id":"id-ref:nfr","marker_type":"id-ref"},
-    {"type":"structure","message":"Required block missing","line":253,"id":"id-ref:nfr","marker_type":"id-ref"}
+    {"type":"structure","message":"Required reference coverage missing","line":194,"id_kind":"nfr"},
+    {"type":"structure","message":"Required reference coverage missing","line":253,"id_kind":"nfr"}
   ],
   "failed_artifacts": [
     {"artifact":".../examples/overwork_alert/architecture/specs/launchagent-autostart.md","error_count":2}
@@ -2999,24 +2886,65 @@ Command output (as visible in screenshot; truncated):
 
 _Thought for 11s_
 
-I’ll inspect `launchagent-autostart.md` around the failing area, then add the missing required `id-ref:nfr` block(s) and re-run `cypilot validate` for that file until it passes.
-
-_Read `launchagent-autostart.md`_
-
-_Thought for 10s_
-
-_Read `template.md` (lines 1–240)_
-
-I’ll fix the failing deterministic validation for `launchagent-autostart.md` by adding the missing required `id-ref:nfr` coverage block in the DoD section, then re-run `cypilot validate --skip-code` for that file.
+I’ll inspect `launchagent-autostart.md` around the failing area, then add the missing required NFR reference line(s) and re-run `cypilot validate` for that file until it passes.
 
 Diff preview (as visible in screenshot):
 
 `launchagent-autostart.md` (+4)
 
 ```md
-<!-- cpt:id-ref:nfr -->
 - `cpt-overwork-alert-nfr-privacy-local-only`
-<!-- cpt:id-ref:nfr -->
+```
+
+Command output (as visible in screenshot; truncated):
+
+```json
+{"status":"PASS","artifacts_validated":1,"error_count":0,"warning_count":0,"next_step":"Deterministic validation passed. Now perform semantic validation: review content quality against checklist.md criteria."}
+```
+
+</details>
+
+Links:
+
+- SPEC: [launchagent-autostart.md](../examples/overwork_alert/architecture/specs/launchagent-autostart.md)
+
+#### 1603 — Fix remaining validation errors (missing required reference coverages)
+
+**Summary:** Deterministic validation fails for `launchagent-autostart.md` with two missing required NFR reference coverages. The agent adds the required reference lines and reruns validation until it passes.
+
+<details>
+  <summary>Expand chat details...</summary>
+
+**ASSISTANT**
+
+Command output (as visible in screenshot; truncated):
+
+```json
+{
+  "status": "FAIL",
+  "artifacts_validated": 1,
+  "error_count": 2,
+  "warning_count": 0,
+  "errors": [
+    {"type":"structure","message":"Required reference coverage missing","line":194,"id_kind":"nfr"},
+    {"type":"structure","message":"Required reference coverage missing","line":253,"id_kind":"nfr"}
+  ],
+  "failed_artifacts": [
+    {"artifact":".../examples/overwork_alert/architecture/specs/launchagent-autostart.md","error_count":2}
+  ]
+}
+```
+
+_Thought for 11s_
+
+I’ll inspect `launchagent-autostart.md` around the failing area, then add the missing required NFR reference line(s) and re-run `cypilot validate` for that file until it passes.
+
+Diff preview (as visible in screenshot):
+
+`launchagent-autostart.md` (+4)
+
+```md
+- `cpt-overwork-alert-nfr-privacy-local-only`
 ```
 
 Command output (as visible in screenshot; truncated):
@@ -3040,7 +2968,7 @@ Links:
 
 **ASSISTANT**
 
-📟 [workflows/generate.md]: Entering “Phase 5: Analyze” — deterministic validation is now complete for all 4 Overwork Alert SPECs after the gap-fix edits.
+ 📟 [workflows/generate.md]: Entering “Phase 5: Analyze” — deterministic validation is now complete for all 4 Overwork Alert SPECs after the gap-fix edits.
 
 ## Result: SPEC gap fixes applied + deterministic validation PASS
 
@@ -3117,7 +3045,7 @@ _4 / 5 tasks done_
 
 _Thought for 38s_
 
-📟 [execution-protocol]: You explicitly asked to proceed with Cypilot (“cypilot, let’s implement it!”), so I’m switching into Cypilot generate mode. Next I’ll load the required Cypilot control docs + the overwork-alert DESIGN/SPECs, inspect the existing `examples/overwork_alert/` layout, then propose a tight implementation plan and start coding.
+ 📟 [execution-protocol]: You explicitly asked to proceed with Cypilot (“cypilot, let’s implement it!”), so I’m switching into Cypilot generate mode. Next I’ll load the required Cypilot control docs + the overwork-alert DESIGN/SPECs, inspect the existing `examples/overwork_alert/` layout, then propose a tight implementation plan and start coding.
 
 _Read `AGENTS.md` and 5 other files_
 
@@ -3127,7 +3055,7 @@ Error while analyzing directory
 
 _Thought for 22s_
 
-📟 [execution-protocol]: I’ll recover cleanly from the missing `src/` directory by (1) re-running Cypilot Protocol Guard (`adapter-info`), (2) loading the required adapter “code writing” specs (tech stack, conventions, project structure, etc.), (3) inspecting `artifacts.json` to confirm the intended code path for this example, and then (4) proposing the exact file layout to create under `examples/overwork_alert/` and asking for your explicit “yes” before creating any new files.
+ 📟 [execution-protocol]: I’ll recover cleanly from the missing `src/` directory by (1) re-running Cypilot Protocol Guard (`adapter-info`), (2) loading the required adapter “code writing” specs (tech stack, conventions, project structure, etc.), (3) inspecting `artifacts.json` to confirm the intended code path for this example, and then (4) proposing the exact file layout to create under `examples/overwork_alert/` and asking for your explicit “yes” before creating any new files.
 
 Command: `python3`
 
@@ -3142,8 +3070,6 @@ _Output (as visible in screenshot; truncated):_
 ```
 
 _Using legacy terminal_
-
-_Read `extension.md` and 11 other files_
 
 _Analyzed `examples/overwork_alert/architecture`_
 
@@ -3519,7 +3445,7 @@ Diff previews (as visible in screenshot; truncated):
 
 ```py
 if cmd == "stop":
-    # @cpt-flow:cpt-overwork-alert-spec-cli-control-flow-stop:p1
+    # @cpt-flow:cpt-overwork-alert-flow-cli-control-stop:p1
     self._stop_event.set()
 ```
 
@@ -3527,7 +3453,7 @@ if cmd == "stop":
 
 ```py
 """Update notification scheduling state after a notification is delivered."""
-# @cpt-state:cpt-overwork-alert-spec-notifications-state-over-limit:p1
+# @cpt-state:cpt-overwork-alert-state-notifications-over-limit:p1
 ```
 
 `ipc.py` (+14)
@@ -3542,35 +3468,14 @@ def send_request(*, socket_path: str, payload: dict[str, Any], timeout_seconds: 
 ```py
 def uninstall(*, label: str = DEFAULT_LABEL) -> None:
     """Unload and remove the user LaunchAgent plist (idempotent)."""
-    # @cpt-state:cpt-overwork-alert-spec-launchagent-autostart-state-installation:p1
+    # @cpt-state:cpt-overwork-alert-state-launchagent-autostart-installation:p1
 ```
-
-</details>
-
-Links:
-
-- Daemon: [daemon.py](../examples/overwork_alert/src/overwork_alert/daemon.py)
-- Policy: [notification_policy.py](../examples/overwork_alert/src/overwork_alert/notification_policy.py)
-- IPC: [ipc.py](../examples/overwork_alert/src/overwork_alert/ipc.py)
-- LaunchAgent: [launchagent.py](../examples/overwork_alert/src/overwork_alert/launchagent.py)
-- CLI: [cli.py](../examples/overwork_alert/src/overwork_alert/cli.py)
-
-#### 1803 — Traceability pass + first test batch
-
-**Summary:** The agent performs a spec-to-code traceability pass ensuring every `to_code="true"` SPEC ID has a marker in code, then prepares the initial unit test suite.
-
-<details>
-  <summary>Expand chat details...</summary>
-
-**ASSISTANT**
-
-Diff previews (as visible in screenshot; truncated):
 
 `cli.py` (+22, -10)
 
 ```py
 elif args.cmd == "stop":
-    # @cpt-flow:cpt-overwork-alert-spec-cli-control-flow-stop:p1
+    # @cpt-flow:cpt-overwork-alert-flow-cli-control-stop:p1
     pass
 ```
 
@@ -3584,7 +3489,7 @@ if first_tick:
 
 _Thought for 30s_
 
-📟 [workflows/generate.md]: Entering Phase 2 (Generate / implement code) — I’ll now do a quick “spec-to-code traceability pass” to ensure every `to_code="true"` SPEC ID has at least one `@cpt-*` marker in the new code, then I’ll add the first batch of unit tests and run `cypilot validate-code` to verify coverage.
+ [workflows/generate.md]: Entering Phase 2 (Generate / implement code) — I’ll now do a quick “spec-to-code traceability pass” to ensure every `to_code="true"` SPEC ID has at least one `@cpt-*` marker in the new code, then I’ll add the first batch of unit tests and run `cypilot validate-code` to verify coverage.
 
 Diff previews (as visible in screenshot; truncated):
 
@@ -3719,7 +3624,7 @@ Command output (as visible in screenshot; truncated):
 ```json
 {
   "path": "/Volumes/CaseSensitive/coding/cypilot/examples/overwork_alert/src/overwork_alert/daemon.py",
-  "id": "cpt-overwork-alert-spec-tracker-core-state-tracker-status",
+  "id": "cpt-overwork-alert-state-tracker-core-tracker-status",
   "first_occurrence": 170
 }
 ```
@@ -3754,16 +3659,16 @@ Diff previews (as visible in screenshot; truncated):
 `daemon.py` (+1, -2)
 
 ```py
-# @cpt-flow:cpt-overwork-alert-spec-cli-control-flow-pause:p1
+# @cpt-flow:cpt-overwork-alert-flow-cli-control-pause:p1
 ...
-# @cpt-flow:cpt-overwork-alert-spec-cli-control-flow-resume:p1
+# @cpt-flow:cpt-overwork-alert-flow-cli-control-resume:p1
 ```
 
 `launchagent.py` (-1)
 
 ```py
 """Unload and remove the user LaunchAgent plist (idempotent)."""
-# @cpt-state:cpt-overwork-alert-spec-launchagent-autostart-state-installation:p1
+# @cpt-state:cpt-overwork-alert-state-launchagent-autostart-installation:p1
 ```
 
 Command:

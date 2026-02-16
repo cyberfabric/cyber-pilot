@@ -129,7 +129,13 @@ This is a hard filter: the tool behaves as if ignored paths do not exist.
   "kits": {
     "kit-id": {
       "format": "Cypilot",
-      "path": "kits/sdlc"
+      "path": "kits/sdlc",
+      "artifacts": {
+        "PRD": {
+          "template": "{project_root}/kits/sdlc/artifacts/PRD/template.md",
+          "examples": "{project_root}/kits/sdlc/artifacts/PRD/examples"
+        }
+      }
     }
   }
 }
@@ -141,10 +147,24 @@ This is a hard filter: the tool behaves as if ignored paths do not exist.
 |-------|------|----------|-------------|
 | `format` | string | YES | Template format. `"Cypilot"` = full tooling support. Other values = custom (LLM-only) |
 | `path` | string | YES | Path to kit package directory (relative to project_root). Contains `artifacts/` and `codebase/` subdirectories. |
+| `artifacts` | object | NO | Optional explicit artifact template/example locations. Mapping `KIND -> {template, examples}`. Supports `{project_root}` token. |
 
 ### Template Resolution
 
-Template file path is resolved as: `{kit.path}/artifacts/{KIND}/template.md`
+Template file path resolution (precedence order):
+
+1. If `kits[kit-id].artifacts[KIND].template` is present, use it.
+2. Otherwise, resolve as: `{kit.path}/artifacts/{KIND}/template.md`
+
+Examples directory resolution (precedence order):
+
+1. If `kits[kit-id].artifacts[KIND].examples` is present, use it.
+2. Otherwise, resolve as: `{kit.path}/artifacts/{KIND}/examples`
+
+`{project_root}` token:
+
+- In `kits[*].artifacts[*].template/examples`, `{project_root}` expands to the project root directory.
+- These paths are still resolved relative to the actual project root (it is effectively a convenience prefix).
 
 **Example**: For artifact with `kind: "PRD"` and kit with `path: "kits/sdlc"`:
 - Template path: `{project-root}/kits/sdlc/artifacts/PRD/template.md`
@@ -739,7 +759,7 @@ else:
 ```
 **Action**:
 
-- Use a synthetic template and continue markerless validation.
+- Use a synthetic template and continue validation using artifact scanning.
 - If `constraints.json` defines constraints for this kind, attach them to the synthetic template.
 - WARN and continue validation.
 

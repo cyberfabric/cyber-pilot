@@ -177,31 +177,6 @@ class TestCodeFileInterface:
         ids = cf.list_ids()
         assert "cpt-myapp-spec-auth-flow-login" in ids
 
-    def test_list_refs_same_as_list_ids(self, tmp_path: Path):
-        code = dedent("""
-            # @cpt-flow:cpt-myapp-spec-auth-flow-login:p1
-            def login():
-                pass
-        """)
-        code_file = tmp_path / "auth.py"
-        code_file.write_text(code)
-
-        cf, _ = CodeFile.from_path(code_file)
-        assert cf.list_ids() == cf.list_refs()
-
-    def test_list_defined_empty(self, tmp_path: Path):
-        """Code files don't define IDs, only reference them."""
-        code = dedent("""
-            # @cpt-flow:cpt-myapp-spec-auth-flow-login:p1
-            def login():
-                pass
-        """)
-        code_file = tmp_path / "auth.py"
-        code_file.write_text(code)
-
-        cf, _ = CodeFile.from_path(code_file)
-        assert cf.list_defined() == []
-
     def test_get_content(self, tmp_path: Path):
         code = dedent("""
             # @cpt-begin:cpt-myapp-spec-auth-flow-login:p1:inst-validate
@@ -291,7 +266,7 @@ class TestCrossValidation:
         code_file.write_text(code)
 
         cf, _ = CodeFile.from_path(code_file)
-        result = cross_validate_code([cf], set(), set(), "DOCS-ONLY")
+        result = cross_validate_code([cf], set(), set(), traceability="DOCS-ONLY")
         assert len(result["errors"]) == 1
         assert "DOCS-ONLY" in result["errors"][0]["message"]
 

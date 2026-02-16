@@ -3,7 +3,7 @@
 ## Root Directory
 
 ```
-FDD/
+./
 ├── .cypilot-adapter/          # Project adapter (this directory)
 ├── .cypilot-config.json       # Cypilot configuration
 ├── AGENTS.md                 # Root navigation rules
@@ -14,10 +14,10 @@ FDD/
 ├── architecture/             # Design artifacts
 │   ├── PRD.md               # Product Requirements Document
 │   ├── DESIGN.md            # Technical Design
-│   ├── specs/
-│   │   └── DECOMPOSITION.md      # Specs Manifest
-│   └── ADR/
-│       └── general/         # Architecture Decision Records
+│   ├── DECOMPOSITION.md     # Design Decomposition
+│   ├── ADR/
+│   │   └── general/         # Architecture Decision Records
+│   └── specs/               # Architecture specs (md)
 │
 ├── kits/                  # Kit packages
 │   └── sdlc/                # SDLC kit
@@ -121,7 +121,7 @@ kits/sdlc/
 │   │       └── example.md   # Canonical example
 │   ├── DESIGN/              # Same structure
 │   ├── DECOMPOSITION/            # Same structure
-│   ├── SPEC/             # Same structure
+│   ├── FEATURE/             # Same structure
 │   └── ADR/                 # Same structure
 ├── codebase/
 │   ├── rules.md             # Code implementation rules

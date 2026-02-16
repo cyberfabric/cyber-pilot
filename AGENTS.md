@@ -6,8 +6,6 @@
 
 ## Navigation Rules
 
-ALWAYS open and follow `{cypilot_path}/requirements/extension.md` WHEN you see **Extends**: {file}
-
 ALWAYS open and follow `{adapter-directory}/AGENTS.md` WHEN starting any Cypilot work
 
 ### Dependency Error Handling

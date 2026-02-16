@@ -4,7 +4,29 @@
   "kits": {
     "cypilot-sdlc": {
       "format": "Cypilot",
-      "path": "kits/sdlc"
+      "path": "kits/sdlc",
+      "artifacts": {
+        "ADR": {
+          "template": "{project_root}/kits/sdlc/artifacts/ADR/template.md",
+          "examples": "{project_root}/kits/sdlc/artifacts/ADR/examples"
+        },
+        "DECOMPOSITION": {
+          "template": "{project_root}/kits/sdlc/artifacts/DECOMPOSITION/template.md",
+          "examples": "{project_root}/kits/sdlc/artifacts/DECOMPOSITION/examples"
+        },
+        "DESIGN": {
+          "template": "{project_root}/kits/sdlc/artifacts/DESIGN/template.md",
+          "examples": "{project_root}/kits/sdlc/artifacts/DESIGN/examples"
+        },
+        "FEATURE": {
+          "template": "{project_root}/kits/sdlc/artifacts/FEATURE/template.md",
+          "examples": "{project_root}/kits/sdlc/artifacts/FEATURE/examples"
+        },
+        "PRD": {
+          "template": "{project_root}/kits/sdlc/artifacts/PRD/template.md",
+          "examples": "{project_root}/kits/sdlc/artifacts/PRD/examples"
+        }
+      }
     }
   },
   "ignore": [
@@ -32,7 +54,7 @@
             "DESIGN": {"pattern": "DESIGN.md", "traceability": "FULL"},
             "DECOMPOSITION": {"pattern": "DECOMPOSITION.md", "traceability": "FULL"},
             "ADR": {"pattern": "ADR/**/*.md", "traceability": "FULL", "required": false},
-            "SPEC": {"pattern": "specs/*.md", "traceability": "DOCS-ONLY", "required": false}
+            "FEATURE": {"pattern": "features/*.md", "traceability": "DOCS-ONLY", "required": false}
           },
           "codebase": [
             {
@@ -61,10 +83,10 @@
           "artifacts_root": "{system_root}/architecture",
           "artifacts": {
             "PRD": {"pattern": "PRD.md", "traceability": "FULL"},
-            "DESIGN": {"pattern": "DESIGN.md", "traceability": "FULL"},
-            "DECOMPOSITION": {"pattern": "DECOMPOSITION.md", "traceability": "FULL"},
+            "DESIGN": {"pattern": "DESIGN.md", "traceability": "FULL", "required": false},
+            "DECOMPOSITION": {"pattern": "DECOMPOSITION.md", "traceability": "FULL", "required": false},
             "ADR": {"pattern": "ADR/**/*.md", "traceability": "FULL", "required": false},
-            "SPEC": {"pattern": "specs/*.md", "traceability": "FULL", "required": false}
+            "FEATURE": {"pattern": "features/*.md", "traceability": "FULL", "required": false}
           },
           "codebase": [
             {

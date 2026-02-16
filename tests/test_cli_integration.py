@@ -73,10 +73,10 @@ class TestCLIValidateCommand(unittest.TestCase):
                     pass
 
     def test_validate_dir_with_design_and_specs_flag_fails(self):
-        """When --artifact is a spec dir containing DESIGN.md, --specs must error."""
+        """When --artifact is a directory containing DESIGN.md, unknown --specs must error."""
         with TemporaryDirectory() as tmpdir:
             feat = Path(tmpdir)
-            (feat / "DESIGN.md").write_text("# Spec: X\n", encoding="utf-8")
+            (feat / "DESIGN.md").write_text("# Feature: X\n", encoding="utf-8")
 
             with self.assertRaises(SystemExit):
                 main(["validate", "--artifact", str(feat), "--specs", "spec-x"]) 
@@ -96,23 +96,23 @@ class TestCLIValidateCommand(unittest.TestCase):
             self.assertIn("status", out)
 
     def test_validate_code_root_with_spec_artifacts(self):
-        """Cover validation when --artifact is a code root directory with specs."""
+        """Cover validation when --artifact is a code root directory with features."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
             (root / "src").mkdir(parents=True, exist_ok=True)
-            (root / "architecture" / "specs" / "spec-a").mkdir(parents=True)
-            (root / "architecture" / "specs" / "spec-b").mkdir(parents=True)
 
-            # Minimal artifacts for spec-a/spec-b so traceability runs.
-            (root / "architecture" / "specs" / "spec-a" / "DESIGN.md").write_text("# Spec: A\n", encoding="utf-8")
-            (root / "architecture" / "specs" / "spec-b" / "DESIGN.md").write_text("# Spec: B\n", encoding="utf-8")
+            (root / "architecture" / "specs").mkdir(parents=True)
+
+            # Minimal artifacts for feature-a/feature-b so traceability runs.
+            (root / "architecture" / "specs" / "feature-a.md").write_text("# Feature: A\n", encoding="utf-8")
+            (root / "architecture" / "specs" / "feature-b.md").write_text("# Feature: B\n", encoding="utf-8")
 
             _bootstrap_registry(
                 root,
                 entries=[
-                    {"kind": "SPEC", "system": "Test", "path": "architecture/specs/spec-a/DESIGN.md", "format": "Cypilot"},
-                    {"kind": "SPEC", "system": "Test", "path": "architecture/specs/spec-b/DESIGN.md", "format": "Cypilot"},
+                    {"kind": "FEATURE", "system": "Test", "path": "architecture/specs/feature-a.md", "format": "Cypilot"},
+                    {"kind": "FEATURE", "system": "Test", "path": "architecture/specs/feature-b.md", "format": "Cypilot"},
                     {"kind": "SRC", "system": "Test", "path": "src", "format": "CONTEXT", "traceability_enabled": True, "extensions": [".py"]},
                 ],
             )
@@ -126,18 +126,19 @@ class TestCLIValidateCommand(unittest.TestCase):
             self.assertIn("status", out)
 
     def test_validate_spec_dir_with_design_md_runs_codebase_traceability(self):
-        """Cover validate branch when --artifact is a spec directory containing DESIGN.md."""
+        """Cover validate branch when --artifact is a feature file under specs/ directory."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir(exist_ok=True)
-            feat = root / "architecture" / "specs" / "spec-x"
-            feat.mkdir(parents=True)
-            (feat / "DESIGN.md").write_text("# Spec: X\n", encoding="utf-8")
+            feat_dir = root / "architecture" / "specs"
+            feat_dir.mkdir(parents=True)
+            feat = feat_dir / "feature-x.md"
+            feat.write_text("# Feature: X\n", encoding="utf-8")
 
             _bootstrap_registry(
                 root,
                 entries=[
-                    {"kind": "SPEC", "system": "Test", "path": "architecture/specs/spec-x/DESIGN.md", "format": "Cypilot"},
+                    {"kind": "FEATURE", "system": "Test", "path": "architecture/specs/feature-x.md", "format": "Cypilot"},
                 ],
             )
 
@@ -206,7 +207,7 @@ class TestCLICommandsRulesOnlyKit(unittest.TestCase):
             root = Path(tmpdir)
 
             # Create kit structure with constraints.json but no template.md (rules-only kit)
-            kit_root = root / "kits" / "cf-sdlc"
+            kit_root = root / "kits" / "cypilot-sdlc"
             (kit_root / "artifacts" / "PRD").mkdir(parents=True)
             (kit_root / "constraints.json").write_text(
                 json.dumps({"PRD": {"identifiers": {"fr": {"required": False}}}}, indent=2) + "\n",
@@ -222,12 +223,12 @@ class TestCLICommandsRulesOnlyKit(unittest.TestCase):
 
             _bootstrap_registry_new_format(
                 root,
-                kits={"cf-sdlc": {"format": "Cypilot", "path": "kits/cf-sdlc"}},
+                kits={"cypilot-sdlc": {"format": "Cypilot", "path": "kits/cypilot-sdlc"}},
                 systems=[
                     {
                         "name": "root",
                         "slug": "root",
-                        "kit": "cf-sdlc",
+                        "kit": "cypilot-sdlc",
                         "autodetect": [
                             {
                                 "system_root": "{project_root}/modules/$system",
@@ -744,7 +745,7 @@ class TestCLIParseFrontmatter(unittest.TestCase):
 
     def test_parse_frontmatter_valid(self):
         """Test parsing valid frontmatter."""
-        from cypilot.cli import _parse_frontmatter
+        from cypilot.commands.agents import _parse_frontmatter
 
         with TemporaryDirectory() as tmpdir:
             f = Path(tmpdir) / "test.md"
@@ -756,7 +757,7 @@ class TestCLIParseFrontmatter(unittest.TestCase):
 
     def test_parse_frontmatter_strips_quotes(self):
         """Test parsing frontmatter unquotes quoted scalars."""
-        from cypilot.cli import _parse_frontmatter
+        from cypilot.commands.agents import _parse_frontmatter
 
         with TemporaryDirectory() as tmpdir:
             f = Path(tmpdir) / "test.md"
@@ -768,7 +769,7 @@ class TestCLIParseFrontmatter(unittest.TestCase):
 
     def test_parse_frontmatter_no_frontmatter(self):
         """Test parsing file without frontmatter."""
-        from cypilot.cli import _parse_frontmatter
+        from cypilot.commands.agents import _parse_frontmatter
 
         with TemporaryDirectory() as tmpdir:
             f = Path(tmpdir) / "test.md"
@@ -779,7 +780,7 @@ class TestCLIParseFrontmatter(unittest.TestCase):
 
     def test_parse_frontmatter_unclosed(self):
         """Test parsing file with unclosed frontmatter."""
-        from cypilot.cli import _parse_frontmatter
+        from cypilot.commands.agents import _parse_frontmatter
 
         with TemporaryDirectory() as tmpdir:
             f = Path(tmpdir) / "test.md"
@@ -790,14 +791,14 @@ class TestCLIParseFrontmatter(unittest.TestCase):
 
     def test_parse_frontmatter_file_not_found(self):
         """Test parsing non-existent file."""
-        from cypilot.cli import _parse_frontmatter
+        from cypilot.commands.agents import _parse_frontmatter
 
         result = _parse_frontmatter(Path("/tmp/does-not-exist-abc123.md"))
         self.assertEqual(result, {})
 
     def test_parse_frontmatter_empty_values_skipped(self):
         """Test that empty values are skipped."""
-        from cypilot.cli import _parse_frontmatter
+        from cypilot.commands.agents import _parse_frontmatter
 
         with TemporaryDirectory() as tmpdir:
             f = Path(tmpdir) / "test.md"
@@ -827,7 +828,7 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
 
     def test_agents_renames_misnamed_proxy(self):
         """Test agents command renames misnamed proxy files."""
-        from cypilot import cli as cypilot_cli
+        from cypilot.commands.agents import _safe_relpath
 
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
@@ -839,7 +840,7 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
             wf_dir.mkdir(parents=True)
 
             # Create misnamed proxy file (wrong filename but correct target)
-            target_rel = cypilot_cli._safe_relpath(root / "workflows" / "generate.md", root)
+            target_rel = _safe_relpath(root / "workflows" / "generate.md", root)
             misnamed = wf_dir / "old-name.md"
             misnamed.write_text(f"# /cypilot-generate\n\nALWAYS open and follow `{target_rel}`\n", encoding="utf-8")
 
@@ -1037,7 +1038,7 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
 
     def test_agents_rename_conflict_skips(self):
         """Test agents command skips rename when destination already exists."""
-        from cypilot import cli as cypilot_cli
+        from cypilot.commands.agents import _safe_relpath
 
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
@@ -1049,7 +1050,7 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
             wf_dir.mkdir(parents=True)
 
             # Create misnamed proxy
-            target_rel = cypilot_cli._safe_relpath(root / "workflows" / "generate.md", root)
+            target_rel = _safe_relpath(root / "workflows" / "generate.md", root)
             misnamed = wf_dir / "old-name.md"
             misnamed.write_text(f"# /cypilot-generate\n\nALWAYS open and follow `{target_rel}`\n", encoding="utf-8")
 
@@ -1193,7 +1194,7 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
 
     def test_agents_rename_scan_second_read_error(self):
         """Test agents command handles second read error during rename scan."""
-        from cypilot import cli as cypilot_cli
+        from cypilot.commands.agents import _safe_relpath
 
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
@@ -1205,7 +1206,7 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
             wf_dir.mkdir(parents=True)
 
             # Create misnamed proxy file
-            target_rel = cypilot_cli._safe_relpath(root / "workflows" / "generate.md", root)
+            target_rel = _safe_relpath(root / "workflows" / "generate.md", root)
             misnamed = wf_dir / "old.md"
             misnamed.write_text(f"# /cypilot-generate\n\nALWAYS open and follow `{target_rel}`\n", encoding="utf-8")
 
@@ -1334,28 +1335,28 @@ class TestCLITraceabilityCommands(unittest.TestCase):
 
 class TestCLICoreHelpers(unittest.TestCase):
     def test_safe_relpath_from_dir_relpath_exception_returns_abs(self):
-        from cypilot import cli as cypilot_cli
-
+        from cypilot.commands.agents import _safe_relpath_from_dir
+        
         target = Path("/tmp/x")
-        with unittest.mock.patch.object(cypilot_cli.os.path, "relpath", side_effect=Exception("boom")):
-            out = cypilot_cli._safe_relpath_from_dir(target, Path("/tmp"))
+        with unittest.mock.patch("os.path.relpath", side_effect=Exception("boom")):
+            out = _safe_relpath_from_dir(target, Path("/tmp"))
         self.assertEqual(out, target.as_posix())
 
     def test_render_template_missing_variable_raises_system_exit(self):
-        from cypilot import cli as cypilot_cli
+        from cypilot.commands.agents import _render_template
 
         with self.assertRaises(SystemExit):
-            cypilot_cli._render_template(["{missing}"], {})
+            _render_template(["{missing}"], {})
 
     def test_list_workflow_files_missing_dir_returns_empty(self):
-        from cypilot import cli as cypilot_cli
+        from cypilot.commands.agents import _list_workflow_files
 
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            self.assertEqual(cypilot_cli._list_workflow_files(root), [])
+            self.assertEqual(_list_workflow_files(root), [])
 
     def test_list_workflow_files_filters_and_handles_read_error(self):
-        from cypilot import cli as cypilot_cli
+        from cypilot.commands.agents import _list_workflow_files
 
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
@@ -1379,11 +1380,11 @@ class TestCLICoreHelpers(unittest.TestCase):
                 return orig(self, *a, **k)
 
             with unittest.mock.patch.object(Path, "read_text", _rt):
-                out = cypilot_cli._list_workflow_files(root)
+                out = _list_workflow_files(root)
             self.assertEqual(out, ["ok.md"])
 
     def test_list_workflow_files_iterdir_error_returns_empty(self):
-        from cypilot import cli as cypilot_cli
+        from cypilot.commands.agents import _list_workflow_files
 
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
@@ -1398,30 +1399,30 @@ class TestCLICoreHelpers(unittest.TestCase):
                 return orig(self)
 
             with unittest.mock.patch.object(Path, "iterdir", _it):
-                self.assertEqual(cypilot_cli._list_workflow_files(root), [])
+                self.assertEqual(_list_workflow_files(root), [])
 
     def test_resolve_user_path_relative_uses_base(self):
-        from cypilot import cli as cypilot_cli
+        from cypilot.commands.init import _resolve_user_path
 
         with TemporaryDirectory() as tmpdir:
             base = Path(tmpdir)
-            out = cypilot_cli._resolve_user_path("foo", base)
+            out = _resolve_user_path("foo", base)
             self.assertEqual(out, (base / "foo").resolve())
 
     def test_prompt_path_returns_user_input_over_default(self):
-        from cypilot import cli as cypilot_cli
+        from cypilot.commands.init import _prompt_path
 
         with unittest.mock.patch("builtins.input", return_value="abc"):
-            out = cypilot_cli._prompt_path("Q?", "def")
+            out = _prompt_path("Q?", "def")
         self.assertEqual(out, "abc")
 
     def test_load_json_file_invalid_json_returns_none(self):
-        from cypilot import cli as cypilot_cli
+        from cypilot.commands.agents import _load_json_file
 
         with TemporaryDirectory() as tmpdir:
             p = Path(tmpdir) / "x.json"
             p.write_text("{not-json}", encoding="utf-8")
-            self.assertIsNone(cypilot_cli._load_json_file(p))
+            self.assertIsNone(_load_json_file(p))
 
 
 class TestCLIErrorHandling(unittest.TestCase):
@@ -1451,7 +1452,7 @@ class TestCLIErrorHandling(unittest.TestCase):
 
 
 class TestCLIBackwardCompatibility(unittest.TestCase):
-    """Test CLI backward compatibility specs."""
+    """Test CLI backward compatibility."""
 
     def test_validate_without_subcommand(self):
         """Test that --artifact without subcommand defaults to validate."""
@@ -1528,9 +1529,8 @@ class TestCLIAdapterInfo(unittest.TestCase):
                 errors = out.get("errors", [])
                 self.assertTrue(any(
                     (e.get("type") == "coverage")
-                    and ("Implemented CDSL instruction has no code block marker" in str(e.get("message", "")))
-                    and (e.get("id") == "cpt-test-1")
-                    and (e.get("inst") == "inst-load-config")
+                    and ("ID marked to_code=\"true\" has no code marker" in str(e.get("message", "")))
+                    and (e.get("id") == "cpt-test-flow-login")
                     for e in errors
                 ))
             finally:
@@ -1553,7 +1553,7 @@ class TestCLIAdapterInfo(unittest.TestCase):
                 errors = out.get("errors", [])
                 self.assertTrue(any(
                     (e.get("type") == "coverage")
-                    and ("Implemented CDSL instruction has no code block marker" in str(e.get("message", "")))
+                    and ("ID marked to_code=\"true\" has no code marker" in str(e.get("message", "")))
                     for e in errors
                 ))
             finally:
@@ -1740,84 +1740,117 @@ class TestCLIValidateKitsCommand(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
 
-            # Create valid template
-            tmpl_content = """---
-cypilot-template:
-  version:
-    major: 1
-    minor: 0
-  kind: TEST
----
-<!-- cpt:paragraph:summary -->
-text
-<!-- cpt:paragraph:summary -->
-"""
-            tmpl_path = root / "test.template.md"
-            tmpl_path.write_text(tmpl_content, encoding="utf-8")
+            (root / "kits" / "sdlc").mkdir(parents=True)
+            (root / "kits" / "sdlc" / "constraints.json").write_text(
+                json.dumps({"PRD": {"identifiers": {"flow": {"to_code": True}}}}, indent=2) + "\n",
+                encoding="utf-8",
+            )
 
-            stdout = io.StringIO()
-            with redirect_stdout(stdout):
-                exit_code = main(["validate-kits", "--template", str(tmpl_path)])
+            _bootstrap_registry_new_format(
+                root,
+                kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
+                systems=[],
+            )
 
-            self.assertEqual(exit_code, 0)
-            out = json.loads(stdout.getvalue())
-            self.assertEqual(out.get("status"), "PASS")
+            cwd = os.getcwd()
+            try:
+                os.chdir(str(root))
+                stdout = io.StringIO()
+                with redirect_stdout(stdout):
+                    exit_code = main(["validate-kits"])
+
+                self.assertEqual(exit_code, 0)
+                out = json.loads(stdout.getvalue())
+                self.assertEqual(out.get("status"), "PASS")
+                self.assertEqual(out.get("kits_validated"), 1)
+            finally:
+                os.chdir(cwd)
 
     def test_validate_rules_with_invalid_template(self):
         """Test validate-kits with invalid template."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
 
-            # Create invalid template
-            tmpl_path = root / "bad.template.md"
-            tmpl_path.write_text("not a valid template", encoding="utf-8")
+            (root / "kits" / "sdlc").mkdir(parents=True)
+            (root / "kits" / "sdlc" / "constraints.json").write_text("not-json", encoding="utf-8")
 
-            stdout = io.StringIO()
-            with redirect_stdout(stdout):
-                exit_code = main(["validate-kits", "--template", str(tmpl_path)])
+            _bootstrap_registry_new_format(
+                root,
+                kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
+                systems=[],
+            )
 
-            self.assertNotEqual(exit_code, 0)
-            out = json.loads(stdout.getvalue())
-            self.assertEqual(out.get("status"), "FAIL")
+            cwd = os.getcwd()
+            try:
+                os.chdir(str(root))
+                stdout = io.StringIO()
+                with redirect_stdout(stdout):
+                    exit_code = main(["validate-kits", "--verbose"])
+
+                self.assertNotEqual(exit_code, 0)
+                out = json.loads(stdout.getvalue())
+                self.assertEqual(out.get("status"), "FAIL")
+                self.assertIn("errors", out)
+            finally:
+                os.chdir(cwd)
 
     def test_validate_rules_nonexistent_template(self):
         """Test validate-kits with nonexistent template."""
         with TemporaryDirectory() as tmpdir:
-            stdout = io.StringIO()
-            with redirect_stdout(stdout):
-                exit_code = main(["validate-kits", "--template", str(Path(tmpdir) / "nonexistent.md")])
+            root = Path(tmpdir)
+            (root / "kits" / "sdlc").mkdir(parents=True)
+            (root / "kits" / "sdlc" / "constraints.json").write_text(
+                json.dumps({"PRD": {"identifiers": {"flow": {"to_code": True}}}}, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            _bootstrap_registry_new_format(
+                root,
+                kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
+                systems=[],
+            )
 
-            self.assertNotEqual(exit_code, 0)
-            out = json.loads(stdout.getvalue())
-            self.assertEqual(out.get("status"), "ERROR")
+            cwd = os.getcwd()
+            try:
+                os.chdir(str(root))
+                stdout = io.StringIO()
+                with redirect_stdout(stdout):
+                    exit_code = main(["validate-kits", "--kit", "missing-kit"])
+
+                self.assertEqual(exit_code, 0)
+                out = json.loads(stdout.getvalue())
+                self.assertEqual(out.get("status"), "PASS")
+                self.assertEqual(out.get("kits_validated"), 0)
+            finally:
+                os.chdir(cwd)
 
     def test_validate_rules_verbose(self):
         """Test validate-kits with verbose flag."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
 
-            # Create valid template
-            tmpl_content = """---
-cypilot-template:
-  version:
-    major: 1
-    minor: 0
-  kind: TEST
----
-<!-- cpt:paragraph:summary -->
-text
-<!-- cpt:paragraph:summary -->
-"""
-            tmpl_path = root / "test.template.md"
-            tmpl_path.write_text(tmpl_content, encoding="utf-8")
+            (root / "kits" / "sdlc").mkdir(parents=True)
+            (root / "kits" / "sdlc" / "constraints.json").write_text(
+                json.dumps({"PRD": {"identifiers": {"flow": {"to_code": True}}}}, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            _bootstrap_registry_new_format(
+                root,
+                kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
+                systems=[],
+            )
 
-            stdout = io.StringIO()
-            with redirect_stdout(stdout):
-                exit_code = main(["validate-kits", "--template", str(tmpl_path), "--verbose"])
+            cwd = os.getcwd()
+            try:
+                os.chdir(str(root))
+                stdout = io.StringIO()
+                with redirect_stdout(stdout):
+                    exit_code = main(["validate-kits", "--verbose"])
 
-            self.assertEqual(exit_code, 0)
-            out = json.loads(stdout.getvalue())
-            self.assertIn("templates", out)
+                self.assertEqual(exit_code, 0)
+                out = json.loads(stdout.getvalue())
+                self.assertIn("kits", out)
+            finally:
+                os.chdir(cwd)
 
 
 class TestCLIGetContentCommand(unittest.TestCase):
@@ -3104,7 +3137,7 @@ class TestCLIValidateKitsErrorBranches(unittest.TestCase):
                 self.assertEqual(exit_code, 0)
                 out = json.loads(stdout.getvalue())
                 self.assertEqual(out.get("status"), "PASS")
-                self.assertEqual(out.get("mode"), "MARKERLESS")
+                self.assertEqual(out.get("kits_validated"), 0)
             finally:
                 os.chdir(cwd)
 
@@ -4172,39 +4205,21 @@ cypilot-template:
 
 
 def _setup_cypilot_project_with_markerless_cdsl_missing_block(root: Path) -> None:
-    # Create template (minimal, any template to allow registry/template loading)
-    templates_dir = root / "kits" / "sdlc" / "artifacts" / "PRD"
-    templates_dir.mkdir(parents=True)
-    tmpl_content = """---
-cypilot-template:
-  version:
-    major: 1
-    minor: 0
-  kind: PRD
----
-<!-- cpt:id:item -->
-- [ ] **ID**: `cpt-test-1`
-<!-- cpt:id:item -->
-"""
-    (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
+    (root / "kits" / "sdlc").mkdir(parents=True)
+    (root / "kits" / "sdlc" / "constraints.json").write_text(
+        json.dumps({"PRD": {"identifiers": {"flow": {"to_code": True}}}}, indent=2) + "\n",
+        encoding="utf-8",
+    )
 
-    # Create markerless artifact: no <!-- cpt: --> markers.
-    # Parent binding rule: the last ID definition above CDSL is the parent.
     art_dir = root / "architecture"
     art_dir.mkdir(parents=True)
-    art_content = """- [x] `p1` - **ID**: `cpt-test-1`
-
-1. [x] - `p1` - Daemon loads effective configuration (defaults + validation) - `inst-load-config`
+    art_content = """- [x] `p1` - **ID**: `cpt-test-flow-login`
 """
     (art_dir / "PRD.md").write_text(art_content, encoding="utf-8")
 
     code_dir = root / "src"
     code_dir.mkdir(parents=True)
-    # No block markers.
-    (code_dir / "module.py").write_text(
-        "# @cpt-flow:cpt-test-1:p1\ndef test():\n    return 1\n",
-        encoding="utf-8",
-    )
+    (code_dir / "module.py").write_text("def test():\n    return 1\n", encoding="utf-8")
 
     _bootstrap_registry_new_format(
         root,
@@ -4219,46 +4234,21 @@ cypilot-template:
 
 
 def _setup_cypilot_project_with_cdsl_to_code_missing_block(root: Path) -> None:
-    # Create template
-    templates_dir = root / "kits" / "sdlc" / "artifacts" / "PRD"
-    templates_dir.mkdir(parents=True)
-    tmpl_content = """---
-cypilot-template:
-  version:
-    major: 1
-    minor: 0
-  kind: PRD
----
-<!-- cpt:id:flow has=\"task\" to_code=\"true\" -->
-- [ ] **ID**: `cpt-test-1`
+    (root / "kits" / "sdlc").mkdir(parents=True)
+    (root / "kits" / "sdlc" / "constraints.json").write_text(
+        json.dumps({"PRD": {"identifiers": {"flow": {"to_code": True}}}}, indent=2) + "\n",
+        encoding="utf-8",
+    )
 
-<!-- cpt:cdsl:flow-steps -->
-1. [ ] - `p1` - Step - `inst-a`
-<!-- cpt:cdsl:flow-steps -->
-<!-- cpt:id:flow -->
-"""
-    (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
-
-    # Create artifact (instruction implemented but no code block markers)
     art_dir = root / "architecture"
     art_dir.mkdir(parents=True)
-    art_content = """<!-- cpt:id:flow has=\"task\" to_code=\"true\" -->
-- [x] **ID**: `cpt-test-1`
-
-<!-- cpt:cdsl:flow-steps -->
-1. [x] - `p1` - Step - `inst-a`
-<!-- cpt:cdsl:flow-steps -->
-<!-- cpt:id:flow -->
+    art_content = """- [x] **ID**: `cpt-test-flow-login`
 """
     (art_dir / "PRD.md").write_text(art_content, encoding="utf-8")
 
     code_dir = root / "src"
     code_dir.mkdir(parents=True)
-    # Only a scope marker exists; no begin/end markers.
-    (code_dir / "module.py").write_text(
-        "# @cpt-flow:cpt-test-1:p1\ndef test():\n    return 1\n",
-        encoding="utf-8",
-    )
+    (code_dir / "module.py").write_text("def test():\n    return 1\n", encoding="utf-8")
 
     _bootstrap_registry_new_format(
         root,

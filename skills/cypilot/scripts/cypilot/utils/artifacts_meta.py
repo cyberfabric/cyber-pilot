@@ -25,23 +25,69 @@ class Kit:
     kit_id: str
     format: str
     path: str  # Path to kit package (e.g., "kits/sdlc")
+    artifacts: Dict[str, Dict[str, str]] = field(default_factory=dict)
 
     @classmethod
     def from_dict(cls, kit_id: str, data: dict) -> "Kit":
+        raw_format = (data or {}).get("format", "")
+        fmt = str(raw_format).strip() if isinstance(raw_format, str) else ""
+
+        raw_path = (data or {}).get("path", "")
+        path = str(raw_path).strip() if isinstance(raw_path, str) else ""
+
+        raw_artifacts = (data or {}).get("artifacts", {})
+        artifacts: Dict[str, Dict[str, str]] = {}
+        if isinstance(raw_artifacts, dict):
+            for kind, spec in raw_artifacts.items():
+                if not isinstance(kind, str) or not kind.strip():
+                    continue
+                if not isinstance(spec, dict):
+                    continue
+                tpl = spec.get("template")
+                ex = spec.get("examples")
+                if isinstance(tpl, str) and tpl.strip() and isinstance(ex, str) and ex.strip():
+                    artifacts[kind.strip().upper()] = {"template": tpl.strip(), "examples": ex.strip()}
         return cls(
             kit_id=kit_id,
-            format=str(data.get("format", "")),
-            path=str(data.get("path", "")),
+            format=fmt,
+            path=path,
+            artifacts=artifacts,
         )
 
     def is_cypilot_format(self) -> bool:
         """Check if this kit uses Cypilot format (full tooling support)."""
         return self.format == "Cypilot"
 
+    @staticmethod
+    def _substitute_registry_tokens(path_template: str) -> str:
+        """Expand registry tokens in a path template.
+
+        Currently supported:
+        - {project_root}: expands to '.' (caller resolves relative to actual project root Path)
+        """
+        out = str(path_template or "")
+        out = out.replace("{project_root}", ".")
+        return out
+
     def get_template_path(self, kind: str) -> str:
         """Get template file path for a given artifact kind."""
-        # Path pattern: {path}/artifacts/{KIND}/template.md
+        k = str(kind or "").strip().upper()
+        if self.artifacts and k in self.artifacts:
+            tpl = (self.artifacts.get(k) or {}).get("template")
+            if isinstance(tpl, str) and tpl.strip():
+                return self._substitute_registry_tokens(tpl.strip())
+        # Backward compatible default: {path}/artifacts/{KIND}/template.md
         return f"{self.path.rstrip('/')}/artifacts/{kind}/template.md"
+
+    def get_examples_path(self, kind: str) -> str:
+        """Get examples directory path for a given artifact kind."""
+        k = str(kind or "").strip().upper()
+        if self.artifacts and k in self.artifacts:
+            ex = (self.artifacts.get(k) or {}).get("examples")
+            if isinstance(ex, str) and ex.strip():
+                return self._substitute_registry_tokens(ex.strip())
+        # Backward compatible default: {path}/artifacts/{KIND}/examples
+        return f"{self.path.rstrip('/')}/artifacts/{kind}/examples"
 
 
 @dataclass
@@ -380,6 +426,10 @@ class ArtifactsMeta:
     def rebuild_indices(self) -> None:
         self._artifacts_by_path = {}
         self._build_indices()
+
+    def get_kit(self, kit_id: str) -> Optional[Kit]:
+        """Get a kit definition by ID."""
+        return (self.kits or {}).get(str(kit_id))
 
     def expand_autodetect(
         self,
@@ -727,21 +777,6 @@ class ArtifactsMeta:
         for system in self.systems:
             yield from _iter_system(system)
 
-    def iter_all_system_names(self) -> Iterator[str]:
-        """Iterate over all system names in the registry (including nested children)."""
-        def _iter_system(node: SystemNode) -> Iterator[str]:
-            if node.name:
-                yield node.name
-            for child in node.children:
-                yield from _iter_system(child)
-
-        for system in self.systems:
-            yield from _iter_system(system)
-
-    def get_all_system_names(self) -> set:
-        """Get a set of all system names (normalized to lowercase)."""
-        return {name.lower() for name in self.iter_all_system_names()}
-
     def iter_all_system_prefixes(self) -> Iterator[str]:
         """Iterate over all system prefixes used in Cypilot IDs.
 
@@ -778,13 +813,6 @@ class ArtifactsMeta:
 
         for system in self.systems:
             yield from _iter_system(system)
-
-    def get_system_by_slug(self, slug: str) -> Optional[SystemNode]:
-        """Find a system node by its slug."""
-        for node in self.iter_all_systems():
-            if node.slug == slug:
-                return node
-        return None
 
     def validate_all_slugs(self) -> List[str]:
         """Validate all slugs in the registry. Returns list of error messages."""

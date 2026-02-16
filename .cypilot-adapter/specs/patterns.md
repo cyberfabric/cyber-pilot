@@ -9,7 +9,7 @@
 **Structure**:
 ```
 kits/sdlc/artifacts/{KIND}/
-├── template.md       # The template with markers
+├── template.md       # The artifact template
 ├── rules.md          # Generation and validation rules
 ├── checklist.md      # Quality checklist
 └── examples/         # Canonical examples
@@ -57,22 +57,34 @@ kits/{kit-id}/
 
 ### 5. Template Marker Pattern
 
-**Pattern**: Templates use HTML comments as markers for structure validation.
-
-**Format**: `<!-- cpt:marker:type -->`
-
 **Implementation**: [template.py](skills/cypilot/scripts/cypilot/utils/template.py)
 
 ### 6. Cypilot ID Pattern
 
-**Pattern**: Unique identifiers for traceability in format `cpt-{system}-{kind}-{slug}`.
+**Pattern**: Unique identifiers for traceability.
+
+**Source of truth**: `kits/sdlc/constraints.json` (each ID kind has a `template` that defines its canonical shape).
+
+**Base format** (most kinds): `cpt-{system}-{kind}-{slug}`
+
+**Nested/feature-level format** (FEATURE kinds): `cpt-{system}-{kind}-{feature-slug}-{slug}`
+
+**Versioned format** (ADR): `cpt-{system}-adr-{slug}-v{n}`
 
 **Examples**:
-- `cpt-cypilot-fr-1` — Functional requirement
-- `cpt-cypilot-component-1` — Component definition
-- `cpt-cypilot-flow-1` — Flow definition
+- `cpt-cypilot-fr-validation` — Functional requirement (`template`: `cpt-{system}-fr-{slug}`)
+- `cpt-cypilot-component-validator` — Component (`template`: `cpt-{system}-component-{slug}`)
+- `cpt-cypilot-flow-template-system-load` — FEATURE flow (`template`: `cpt-{system}-flow-{feature-slug}-{slug}`)
+- `cpt-cypilot-adr-template-centric-architecture-v1` — ADR (`template`: `cpt-{system}-adr-{slug}-v{n}`)
 
-**Implementation**: [parsing.py](skills/cypilot/scripts/cypilot/utils/parsing.py)
+**Code traceability markers** (references from code to artifact IDs):
+- Scope marker: `@cpt-{kind}:{cpt-id}:p{N}`
+- Block markers: `@cpt-begin:{cpt-id}:p{N}:inst-{local}` / `@cpt-end:{cpt-id}:p{N}:inst-{local}`
+
+**Implementation**:
+- ID + constraints validation: `skills/cypilot/scripts/cypilot/utils/constraints.py`
+- Markdown ID scanning (definitions/references): `skills/cypilot/scripts/cypilot/utils/document.py`
+- Code marker parsing/validation: `skills/cypilot/scripts/cypilot/utils/codebase.py`
 
 ---
 

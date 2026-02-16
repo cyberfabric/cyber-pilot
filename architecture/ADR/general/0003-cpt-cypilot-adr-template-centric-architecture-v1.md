@@ -1,30 +1,14 @@
-<!-- cpt:#:adr -->
+---
+status: proposed
+date: 2026-01-31
+---
+
 # ADR-0003: Template-Centric Architecture and Workflow Consolidation
 
-<!-- cpt:id:adr has="priority,task" covered_by="DESIGN" -->
 **ID**: `cpt-cypilot-adr-template-centric-architecture-v1`
 
-<!-- cpt:##:meta -->
-## Meta
+## Context and Problem Statement
 
-<!-- cpt:paragraph:adr-title -->
-**Title**: ADR-0003 Template-Centric Architecture and Workflow Consolidation
-<!-- cpt:paragraph:adr-title -->
-
-<!-- cpt:paragraph:date -->
-**Date**: 2026-01-31
-<!-- cpt:paragraph:date -->
-
-<!-- cpt:paragraph:status -->
-**Status**: Proposed
-<!-- cpt:paragraph:status -->
-<!-- cpt:##:meta -->
-
-<!-- cpt:##:body -->
-## Body
-
-<!-- cpt:context -->
-**Context**:
 The current Cypilot architecture has grown organically with many separate workflow files (`prd.md`, `design.md`, `specs.md`, `spec.md`, `adr.md`, `code.md` plus their `-validate` variants) and content requirements scattered across `requirements/*-content.md` files. This creates several problems:
 
 1. **Maintenance burden**: Changes to common patterns require updates in multiple files
@@ -34,20 +18,17 @@ The current Cypilot architecture has grown organically with many separate workfl
 5. **Naming confusion**: "Cypilot" has evolved beyond "Spec-Driven Design" and needs a name that reflects its broader scope as a documentation and development framework
 
 In this ADR, "Cypilot" is interpreted as **Framework for Documentation and Development** (working title).
-<!-- cpt:context -->
 
-<!-- cpt:decision-drivers -->
-**Decision Drivers**:
+## Decision Drivers
+
 - Enable high customizability of the documentation platform without core modifications
 - Templates should be self-contained units with their own generation and validation logic
 - Reduce workflow proliferation and simplify the entry points
 - Provide Cypilot ID versioning to detect stale references
 - Consolidate type-specific documentation (requirements, checklists, workflows) with templates
 - Support the "start anywhere" adaptive execution model established in ADR-0002
-<!-- cpt:decision-drivers -->
 
-<!-- cpt:options repeat="many" -->
-**Considered Options**:
+## Considered Options
 
 ### Option 1: Keep Current Structure
 
@@ -78,10 +59,8 @@ Single generate workflow with all logic inline, single validate workflow with al
 
 **Pros**: Simple structure
 **Cons**: Monolithic files become unmaintainable, no customization per type
-<!-- cpt:options -->
 
-<!-- cpt:decision-outcome -->
-**Decision Outcome**:
+## Decision Outcome
 Chosen option: **Template-Centric Architecture with Consolidated Workflows**, because it provides the best balance of simplicity at the orchestration level while enabling deep customization at the template level.
 
 ### What Changes
@@ -171,10 +150,9 @@ Cypilot is rebranded to **Framework for Documentation and Development**:
 - Reflects broader scope beyond "specs"
 - Maintains the "Cypilot" acronym for continuity
 - Better describes the platform's purpose
-<!-- cpt:decision-outcome -->
 
-**Consequences**:
-<!-- cpt:list:consequences -->
+### Consequences
+
 - Positive: Better modularity - each template type is self-contained
 - Positive: Easier customization - add/modify template packages without touching core
 - Positive: Cleaner navigation - fewer main workflows, clearer dispatch
@@ -188,17 +166,43 @@ Cypilot is rebranded to **Framework for Documentation and Development**:
 - Follow-up: Update `cypilot` CLI for template package workflow dispatch
 - Follow-up: Implement `rules.md` workflow for rule and template management
 - Follow-up: Create migration guide for existing Cypilot users
-- Follow-up: Document template marker syntax and semantics
-<!-- cpt:list:consequences -->
+- Follow-up: Document artifact scanning and constraints semantics
+
+### Confirmation
+
+Confirmed by validating that templates + examples pass `self-check` and by enforcing deterministic heading/ID constraints via `make validate`.
+
+## Pros and Cons of the Options
+
+### Option 1: Keep Current Structure
+
+* Good, because no migration needed
+* Bad, because continued workflow proliferation and scattered requirements
+
+### Option 2: Template-Centric Architecture with Consolidated Workflows
+
+* Good, because self-contained template packages
+* Bad, because migration effort
+
+### Option 3: Full Monolithic Approach
+
+* Good, because simple file structure
+* Bad, because unmaintainable monolithic workflows and no per-type customization
+
+## Traceability
+
+- **PRD**: [PRD.md](../../PRD.md)
+- **DESIGN**: [DESIGN.md](../../DESIGN.md)
+
+This decision directly addresses the following requirements or design elements:
+
+* `cpt-cypilot-fr-artifact-templates`
+* `cpt-cypilot-fr-rules-packages`
+* `cpt-cypilot-fr-template-qa`
 
 **Links**:
-<!-- cpt:list:links -->
 - Related Actors: `cpt-cypilot-actor-technical-lead`, `cpt-cypilot-actor-ai-assistant`, `cpt-cypilot-actor-architect`
 - Related Capabilities: `cpt-cypilot-fr-workflow-execution`, `cpt-cypilot-fr-validation`, `cpt-cypilot-fr-adapter-config`, `cpt-cypilot-fr-artifact-templates`, `cpt-cypilot-fr-brownfield-support`
 - Related Principles: `cpt-cypilot-principle-adapter-variability-boundary`, `cpt-cypilot-principle-tech-agnostic`, `cpt-cypilot-principle-machine-readable`, `cpt-cypilot-principle-traceability`
 - Related ADRs: ADR-0001 (Initial Cypilot Architecture), ADR-0002 (Adaptive Cypilot)
-<!-- cpt:list:links -->
-<!-- cpt:##:body -->
-<!-- cpt:id:adr -->
 
-<!-- cpt:#:adr -->

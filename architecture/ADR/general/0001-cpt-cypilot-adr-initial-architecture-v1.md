@@ -1,30 +1,14 @@
-<!-- cpt:#:adr -->
+---
+status: accepted
+date: 2025-01-17
+---
+
 # ADR-0001: Initial Cypilot Architecture
 
-<!-- cpt:id:adr has="priority,task" covered_by="DESIGN" -->
 **ID**: `cpt-cypilot-adr-initial-architecture-v1`
 
-<!-- cpt:##:meta -->
-## Meta
+## Context and Problem Statement
 
-<!-- cpt:paragraph:adr-title -->
-**Title**: ADR-0001 Initial Cypilot Architecture
-<!-- cpt:paragraph:adr-title -->
-
-<!-- cpt:paragraph:date -->
-**Date**: 2025-01-17
-<!-- cpt:paragraph:date -->
-
-<!-- cpt:paragraph:status -->
-**Status**: Accepted
-<!-- cpt:paragraph:status -->
-<!-- cpt:##:meta -->
-
-<!-- cpt:##:body -->
-## Body
-
-<!-- cpt:context -->
-**Context**:
 Cypilot (Spec-Driven Design) is a universal methodology framework for building software systems with complete traceability from product requirements to implementation. The methodology must be technology-agnostic to support any tech stack, while providing structured workflows that can be executed by both human teams and AI coding assistants.
 
 The architecture must enable incremental adoption, support design-first development, and maintain design-code coherence through systematic traceability.
@@ -35,10 +19,9 @@ Key requirements driving this decision:
 * Provide deterministic validation to fail fast on structural issues
 * Maintain complete traceability from product requirements through design to implementation
 * Support incremental methodology adoption without disrupting existing projects
-<!-- cpt:context -->
 
-<!-- cpt:decision-drivers -->
-**Decision Drivers**:
+## Decision Drivers
+
 1. **Technology Agnostic Core** (from `cpt-cypilot-principle-tech-agnostic`)
    - Methodology must work equally well for Python, Rust, JavaScript, Java, Go, or any language
    - No forced technology choices in core; all tech decisions in project adapters
@@ -63,10 +46,9 @@ Key requirements driving this decision:
    - Every design element needs unique ID for tracking
    - Code tags must link implementation to specifications
    - Support impact analysis when designs change
-<!-- cpt:decision-drivers -->
 
-<!-- cpt:options repeat="many" -->
-**Considered Options**:
+## Considered Options
+
 * Monolithic framework with built-in tech stack
 * Configuration-heavy framework
 * Layered architecture with plugin-based adapter system (chosen)
@@ -138,10 +120,9 @@ Methodology Core (Requirements files, Workflow specs, Core AGENTS.md)
 * More files to understand than monolithic approach (mitigated by progressive disclosure)
 
 **Selected**: Best fit for all decision drivers
-<!-- cpt:options -->
 
-<!-- cpt:decision-outcome -->
-**Decision Outcome**:
+## Decision Outcome
+
 Chosen option: "Layered architecture with plugin-based adapter system", because it best satisfies technology-agnosticism, incremental adoption, and deterministic validation/traceability while remaining navigable for AI agents.
 
 Cypilot uses **Layered Architecture with Plugin-Based Adapter System** with the following structure:
@@ -173,10 +154,9 @@ Cypilot uses **Layered Architecture with Plugin-Based Adapter System** with the 
 * **Artifacts**: Plain Markdown (universal compatibility, version control friendly)
 * **API Interface**: CLISPEC (command-line interface, JSON output for machine consumption)
 * **Domain Model Format**: Markdown-based artifact structure (not code-level types)
-<!-- cpt:decision-outcome -->
 
-**Consequences**:
-<!-- cpt:list:consequences -->
+### Consequences
+
 - Positive: Cypilot works with any tech stack through adapter system
 - Positive: Projects can adopt incrementally without disruption
 - Positive: AI agents can execute workflows autonomously via AGENTS.md navigation
@@ -187,18 +167,45 @@ Cypilot uses **Layered Architecture with Plugin-Based Adapter System** with the 
 - Negative: Multiple files to understand (addressed by progressive disclosure)
 - Negative: Learning curve for WHEN clause pattern (addressed by concrete examples)
 - Follow-up: None (initial decision)
-<!-- cpt:list:consequences -->
 
-**Links**:
-<!-- cpt:list:links -->
-- Related Actors: `cpt-cypilot-actor-architect`, `cpt-cypilot-actor-technical-lead`, `cpt-cypilot-actor-ai-assistant`, `cpt-cypilot-actor-developer`
-- Related Capabilities: `cpt-cypilot-fr-workflow-execution`, `cpt-cypilot-fr-validation`, `cpt-cypilot-fr-adapter-config`, `cpt-cypilot-fr-design-first`, `cpt-cypilot-fr-traceability`, `cpt-cypilot-fr-brownfield-support`
-- Related Principles: `cpt-cypilot-principle-tech-agnostic`, `cpt-cypilot-principle-design-first`, `cpt-cypilot-principle-machine-readable`, `cpt-cypilot-principle-deterministic-gate`, `cpt-cypilot-principle-traceability`
-- Supersedes: None (initial decision)
-- Superseded by: None (current)
-- Related ADRs: None yet (this is ADR-0001)
-<!-- cpt:list:links -->
-<!-- cpt:##:body -->
-<!-- cpt:id:adr -->
+### Confirmation
 
-<!-- cpt:#:adr -->
+Confirmed by deterministic validation of core artifacts (`make validate`) and by maintaining template compliance across PRD/DESIGN/ADR.
+
+## Pros and Cons of the Options
+
+### Option 1: Monolithic Framework with Built-in Tech Stack
+
+**Description**: Single unified framework with opinionated technology choices (e.g., Python + Django + PostgreSQL)
+
+* Good, because simpler initial implementation
+* Bad, because forces technology choices on projects
+
+### Option 2: Configuration-Heavy Framework
+
+**Description**: Highly configurable framework with all options in central config file (e.g., YAML/JSON)
+
+* Good, because centralized configuration management
+* Bad, because configuration explosion and poor AI agent discoverability
+
+### Option 3: Layered Architecture with Plugin-Based Adapter System
+
+**Description**: Core methodology layer (universal) + Adapter layer (project-specific) + Plugin components (workflows, validation, ID management)
+
+* Good, because best fit for technology-agnosticism + incremental adoption
+* Bad, because requires adapter setup before first use
+
+## Traceability
+
+- **PRD**: [PRD.md](../../PRD.md)
+- **DESIGN**: [DESIGN.md](../../DESIGN.md)
+
+This decision directly addresses the following requirements or design elements:
+
+* `cpt-cypilot-fr-workflow-execution`
+* `cpt-cypilot-fr-validation`
+* `cpt-cypilot-fr-adapter-config`
+* `cpt-cypilot-fr-design-first`
+* `cpt-cypilot-fr-traceability`
+* `cpt-cypilot-fr-brownfield-support`
+

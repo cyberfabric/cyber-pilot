@@ -504,5 +504,5 @@ Workflow:
 - **Rules registry**: `{cypilot_adapter_path}/artifacts.json` → `rules` section
 - **Artifact rules**: `{rules_path}/artifacts/{KIND}/rules.md`
 - **Codebase rules**: `{rules_path}/codebase/rules.md`
-- **Template spec**: `requirements/template.md`
+- **Identifiers spec**: `requirements/identifiers.md`
 - **Execution protocol**: `requirements/execution-protocol.md`

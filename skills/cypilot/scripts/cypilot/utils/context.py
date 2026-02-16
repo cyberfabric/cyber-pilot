@@ -15,15 +15,14 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set
 
 from .artifacts_meta import ArtifactsMeta, Kit, load_artifacts_meta
-from .constraints import KitConstraints, load_constraints_json
-from .template import Template
+from .constraints import KitConstraints, error, load_constraints_json
 
 
 @dataclass
 class LoadedKit:
     """A kit with all its templates loaded."""
     kit: Kit
-    templates: Dict[str, Template]  # kind -> Template
+    templates: Dict[str, object]  # kind -> template-like (unused)
     constraints: Optional[KitConstraints] = None
 
 
@@ -69,7 +68,7 @@ class CypilotContext:
             if not kit.is_cypilot_format():
                 continue
 
-            templates: Dict[str, Template] = {}
+            templates: Dict[str, object] = {}
 
             kit_root = (project_root / str(kit.path or "").strip().strip("/")).resolve()
             kit_constraints: Optional[KitConstraints] = None
@@ -78,7 +77,7 @@ class CypilotContext:
                 kit_constraints, constraints_errs = load_constraints_json(kit_root)
             if constraints_errs:
                 constraints_path = (kit_root / "constraints.json").resolve()
-                errors.append(Template.error(
+                errors.append(error(
                     "constraints",
                     "Invalid constraints.json",
                     path=constraints_path,
@@ -86,45 +85,6 @@ class CypilotContext:
                     errors=list(constraints_errs),
                     kit=kit_id,
                 ))
-
-            kit_path = str(kit.path or "").strip().strip("/")
-            candidates: List[Path] = []
-            if kit_path:
-                # Primary: whatever is in artifacts.json
-                candidates.append(project_root / kit_path / "artifacts")
-
-            # De-dupe while preserving order
-            seen: Set[str] = set()
-            for artifacts_dir in candidates:
-                key = artifacts_dir.resolve().as_posix() if artifacts_dir.exists() else artifacts_dir.as_posix()
-                if key in seen:
-                    continue
-                seen.add(key)
-
-                if not artifacts_dir.is_dir():
-                    continue
-
-                # Scan for template directories (each dir is a KIND)
-                for kind_dir in artifacts_dir.iterdir():
-                    if not kind_dir.is_dir():
-                        continue
-                    template_file = kind_dir / "template.md"
-                    if not template_file.is_file():
-                        continue
-                    tmpl, tmpl_errs = Template.from_path(template_file)
-                    if tmpl:
-                        if kit_constraints and tmpl.kind in kit_constraints.by_kind:
-                            from .template import apply_kind_constraints
-                            ce = apply_kind_constraints(tmpl, kit_constraints.by_kind[tmpl.kind])
-                            if ce:
-                                errors.extend(ce)
-                        templates[tmpl.kind] = tmpl
-                    else:
-                        errors.extend(tmpl_errs)
-
-                # Stop at the first candidate that yields any templates.
-                if templates:
-                    break
 
             kits[kit_id] = LoadedKit(kit=kit, templates=templates, constraints=kit_constraints)
 
@@ -151,7 +111,7 @@ class CypilotContext:
             if autodetect_errs:
                 registry_path = (adapter_dir / "artifacts.json").resolve()
                 for msg in autodetect_errs:
-                    errors.append(Template.error(
+                    errors.append(error(
                         "registry",
                         "Autodetect validation error",
                         path=registry_path,
@@ -160,7 +120,7 @@ class CypilotContext:
                     ))
         except Exception as e:
             registry_path = (adapter_dir / "artifacts.json").resolve()
-            errors.append(Template.error(
+            errors.append(error(
                 "registry",
                 "Autodetect expansion failed",
                 path=registry_path,
@@ -181,33 +141,16 @@ class CypilotContext:
         )
         return ctx
 
-    def get_template(self, kit_id: str, kind: str) -> Optional[Template]:
-        """Get a loaded template by kit and kind."""
-        loaded_kit = self.kits.get(kit_id)
-        if not loaded_kit:
-            return None
-        return loaded_kit.templates.get(kind)
-
-    def get_template_for_kind(self, kind: str) -> Optional[Template]:
-        """Get template for a kind from any kit."""
-        for loaded_kit in self.kits.values():
-            if kind in loaded_kit.templates:
-                return loaded_kit.templates[kind]
-        return None
-
     def get_known_id_kinds(self) -> Set[str]:
-        """Get all known ID kinds from template markers.
-
-        Scans all templates for cpt:id:<kind> markers and returns the set of kinds.
-        This is useful for parsing composite Cypilot IDs.
-        """
         kinds: Set[str] = set()
         for loaded_kit in self.kits.values():
-            for tmpl in loaded_kit.templates.values():
-                for block in tmpl.blocks or []:
-                    if block.type == "id":
-                        # block.name is the kind (e.g., "fr", "actor", "flow", "algo")
-                        kinds.add(block.name.lower())
+            kc = getattr(loaded_kit, "constraints", None)
+            if not kc or not getattr(kc, "by_kind", None):
+                continue
+            for kind_constraints in kc.by_kind.values():
+                for c in (kind_constraints.defined_id or []):
+                    if c and getattr(c, "kind", None):
+                        kinds.add(str(c.kind).strip().lower())
         return kinds
 
 

@@ -1,274 +1,191 @@
-<!-- cpt:#:prd -->
-# PRD
+# PRD — {Module/Feature Name}
 
-<!-- cpt:##:overview -->
 ## 1. Overview
 
-<!-- cpt:paragraph:purpose -->
-**Purpose**: {1-3 sentences describing what the product/system is and why it exists}
-<!-- cpt:paragraph:purpose -->
+### 1.1 Purpose
 
-<!-- cpt:paragraph:context -->
-{1-2 short paragraphs providing high-level context: target audience, market gap, key differentiator}
-<!-- cpt:paragraph:context -->
+{1-2 paragraphs: What is this system/module and what problem does it solve? What are the key features?}
 
-**Target Users**:
-<!-- cpt:list:target-users required="true" -->
-- {Specific user role and what they do}
-- {Another specific user role}
-<!-- cpt:list:target-users -->
+### 1.2 Background / Problem Statement
 
-**Key Problems Solved**:
-<!-- cpt:list:key-problems required="true" -->
-- {Problem + impact on users/business}
-- {Another problem + impact}
-<!-- cpt:list:key-problems -->
+{2-3 paragraphs: Context, current pain points, why this capability is needed now.}
 
-**Success Criteria**:
-<!-- cpt:list:success-criteria required="true" -->
-- {Metric + baseline + target, e.g. "Task creation under 30s (baseline: N/A, target: v1.0)"}
-- {Another measurable criterion}
-<!-- cpt:list:success-criteria -->
+### 1.3 Goals (Business Outcomes)
 
-**Capabilities**:
-<!-- cpt:list:capabilities required="true" -->
-- {Capability + value it provides}
-- {Another capability}
-<!-- cpt:list:capabilities -->
-<!-- cpt:##:overview -->
+- {Goal 1: measurable business outcome}
+- {Goal 2: measurable business outcome}
 
-<!-- cpt:##:actors -->
+### 1.4 Glossary
+
+| Term | Definition |
+|------|------------|
+| {Term} | {Definition} |
+
 ## 2. Actors
 
-<!-- cpt:###:actor-title repeat="many" -->
-### {Actor Name 1}
+> **Note**: Stakeholder needs are managed at project/task level by steering committee. Document **actors** (users, systems) that interact with this module.
 
-<!-- cpt:id:actor -->
+### 2.1 Human Actors
+
+#### {Actor Name}
+
 **ID**: `cpt-{system}-actor-{slug}`
 
-<!-- cpt:paragraph:actor-role -->
-**Role**: {1-3 sentences describing responsibilities and goals}
-<!-- cpt:paragraph:actor-role -->
-<!-- cpt:id:actor -->
-<!-- cpt:###:actor-title repeat="many" -->
+**Role**: {Description of what this actor does and their relationship to the system.}
+**Needs**: {What this actor needs from the system.}
 
-<!-- cpt:###:actor-title repeat="many" -->
-### {Actor Name 2}
+### 2.2 System Actors
 
-<!-- cpt:id:actor -->
+#### {System Actor Name}
+
 **ID**: `cpt-{system}-actor-{slug}`
 
-<!-- cpt:paragraph:actor-role -->
-**Role**: {1-3 sentences describing responsibilities and goals}
-<!-- cpt:paragraph:actor-role -->
-<!-- cpt:id:actor -->
-<!-- cpt:###:actor-title repeat="many" -->
+**Role**: {Description of what this system actor does (external service, scheduler, etc.)}
 
-<!-- cpt:###:actor-title repeat="many" -->
-### {Actor Name 3}
+## 3. Operational Concept & Environment
 
-<!-- cpt:id:actor -->
-**ID**: `cpt-{system}-actor-{slug}`
+> **Note**: Project-wide runtime, OS, architecture, lifecycle policy, and integration patterns defined in root PRD. Document only module-specific deviations here. **Delete this section if no special constraints.**
 
-<!-- cpt:paragraph:actor-role -->
-**Role**: {1-3 sentences describing responsibilities and goals}
-<!-- cpt:paragraph:actor-role -->
-<!-- cpt:id:actor -->
-<!-- cpt:###:actor-title repeat="many" -->
+### 3.1 Module-Specific Environment Constraints
 
-<!-- cpt:##:actors -->
+{Only if this module has constraints beyond project defaults:}
 
-<!-- cpt:##:frs -->
-## 3. Functional Requirements
+- {Constraint 1, e.g., "Requires GPU acceleration for X"}
+- {Constraint 2, e.g., "Incompatible with async runtime due to Y"}
+- {Constraint 3, e.g., "Requires external dependency: Z library v2.0+"}
 
-<!-- cpt:###:fr-title repeat="many" -->
-### FR-001 {Requirement Title}
+## 4. Scope
 
-<!-- cpt:id:fr has="priority,task" covered_by="DESIGN,DECOMPOSITION,SPEC" -->
+### 4.1 In Scope
+
+- {Capability or feature that IS included}
+- {Another capability}
+
+### 4.2 Out of Scope
+
+- {Capability explicitly NOT included in this PRD}
+- {Future consideration not addressed now}
+
+## 5. Functional Requirements
+
+> **Testing strategy**: All requirements verified via automated tests (unit, integration, e2e) targeting 90%+ code coverage unless otherwise specified. Document verification method only for non-test approaches (analysis, inspection, demonstration).
+
+Functional requirements define WHAT the system must do. Group by feature area or priority tier.
+
+### 5.1 {Feature Area / Priority Tier}
+
+#### {Requirement Name}
+
 - [ ] `p1` - **ID**: `cpt-{system}-fr-{slug}`
 
-<!-- cpt:free:fr-summary -->
-{Describe the requirement: what system MUST/SHOULD do. Use paragraphs, bullets, or combination based on complexity.}
-<!-- cpt:free:fr-summary -->
+The system **MUST** {do something specific and verifiable}.
 
-**Actors**:
-<!-- cpt:id-ref:actor -->
-`cpt-{system}-actor-{slug-1}`, `cpt-{system}-actor-{slug-2}`
-<!-- cpt:id-ref:actor -->
-<!-- cpt:id:fr -->
-<!-- cpt:###:fr-title repeat="many" -->
+**Rationale**: {Why this requirement exists — business value or stakeholder need.}
 
-<!-- cpt:###:fr-title repeat="many" -->
-### FR-002 {Requirement Title}
+**Actors**: `cpt-{system}-actor-{slug}`
 
-<!-- cpt:id:fr has="priority,task" covered_by="DESIGN,DECOMPOSITION,SPEC" -->
-- [ ] `p1` - **ID**: `cpt-{system}-fr-{slug}`
+**Verification Method** (optional): {Only if non-standard: analysis | inspection | demonstration | specialized test approach}
 
-<!-- cpt:free:fr-summary -->
-{Describe the requirement}
-<!-- cpt:free:fr-summary -->
+**Acceptance Evidence** (optional): {Only if non-obvious: specific test suite path, analysis report, review checklist}
 
-**Actors**:
-<!-- cpt:id-ref:actor -->
-`cpt-{system}-actor-{slug}`
-<!-- cpt:id-ref:actor -->
-<!-- cpt:id:fr -->
-<!-- cpt:###:fr-title repeat="many" -->
+## 6. Non-Functional Requirements
 
-<!-- cpt:##:frs -->
+### 6.1 NFR Inclusions
 
-<!-- cpt:##:usecases -->
-## 4. Use Cases
+{Only include this section if there are NFRs that deviate from or extend project defaults.}
 
-<!-- cpt:###:uc-title repeat="many" -->
-### UC-001 {Use Case Title}
+#### {NFR Name}
 
-<!-- cpt:id:usecase -->
-**ID**: `cpt-{system}-usecase-{slug}`
-
-**Actors**:
-<!-- cpt:id-ref:actor -->
-`cpt-{system}-actor-{slug}`
-<!-- cpt:id-ref:actor -->
-
-<!-- cpt:paragraph:preconditions -->
-**Preconditions**: {what must already be true before this flow starts}
-<!-- cpt:paragraph:preconditions -->
-
-<!-- cpt:paragraph:flow -->
-**Flow**: {optional flow name}
-<!-- cpt:paragraph:flow -->
-
-<!-- cpt:numbered-list:flow-steps -->
-1. {Actor does action}
-2. {System responds}
-3. {Actor does action}
-4. {System completes}
-<!-- cpt:numbered-list:flow-steps -->
-
-<!-- cpt:paragraph:postconditions -->
-**Postconditions**: {what becomes true after successful completion}
-<!-- cpt:paragraph:postconditions -->
-
-**Alternative Flows**:
-<!-- cpt:list:alternative-flows -->
-- **{condition}**: {what happens, may reference other use cases}
-<!-- cpt:list:alternative-flows -->
-<!-- cpt:id:usecase -->
-<!-- cpt:###:uc-title repeat="many" -->
-
-<!-- cpt:##:usecases -->
-
-<!-- cpt:##:nfrs -->
-## 5. Non-functional requirements
-
-<!-- cpt:###:nfr-title repeat="many" -->
-### {NFR Category 1, e.g. Security}
-
-<!-- cpt:id:nfr has="priority,task" covered_by="DESIGN,DECOMPOSITION,SPEC" -->
 - [ ] `p1` - **ID**: `cpt-{system}-nfr-{slug}`
 
-<!-- cpt:list:nfr-statements -->
-- {Specific constraint with MUST/SHOULD}
-- {Another measurable requirement}
-<!-- cpt:list:nfr-statements -->
-<!-- cpt:id:nfr -->
-<!-- cpt:###:nfr-title repeat="many" -->
+The system **MUST** {measurable NFR with specific thresholds, e.g., "respond within 50ms at p95" (stricter than project default)}.
 
-<!-- cpt:###:nfr-title repeat="many" -->
-### {NFR Category 2, e.g. Performance}
+**Threshold**: {Quantitative target with units and conditions}
 
-<!-- cpt:id:nfr has="priority,task" covered_by="DESIGN,DECOMPOSITION,SPEC" -->
-- [ ] `p2` - **ID**: `cpt-{system}-nfr-{slug}`
+**Rationale**: {Why this module needs different/additional NFR}
 
-<!-- cpt:list:nfr-statements -->
-- {Specific constraint with MUST/SHOULD}
-- {Another measurable requirement}
-<!-- cpt:list:nfr-statements -->
-<!-- cpt:id:nfr -->
-<!-- cpt:###:nfr-title repeat="many" -->
+**Verification Method** (optional): {Only if non-standard approach needed}
 
-<!-- cpt:###:intentional-exclusions -->
-### Intentional Exclusions
+### 6.2 NFR Exclusions
 
-<!-- cpt:list:exclusions -->
-- **{Category 1}** ({Checklist IDs}): Not applicable — {reason why this category doesn't apply}
-- **{Category 2}** ({Checklist IDs}): Not applicable — {reason}
-- **{Category 3}** ({Checklist IDs}): Not applicable — {reason}
-<!-- cpt:list:exclusions -->
-<!-- cpt:###:intentional-exclusions -->
-<!-- cpt:##:nfrs -->
+{Document any project-default NFRs that do NOT apply to this module}
 
-<!-- cpt:##:nongoals -->
-## 6. Non-Goals & Risks
+- {Default NFR name}: {Reason for exclusion}
 
-<!-- cpt:###:nongoals-title -->
-### Non-Goals
+## 7. Public Library Interfaces
 
-<!-- cpt:list:nongoals -->
-- {What product explicitly does NOT do and why}
-- {Another explicit non-goal with rationale}
-<!-- cpt:list:nongoals -->
-<!-- cpt:###:nongoals-title -->
+Define the public API surface, versioning/compatibility guarantees, and integration contracts provided by this library.
 
-<!-- cpt:###:risks-title -->
-### Risks
+### 7.1 Public API Surface
 
-<!-- cpt:list:risks -->
-- **{Risk name}**: {Description + impact + mitigation strategy}
-- **{Risk name}**: {Description + impact + mitigation strategy}
-<!-- cpt:list:risks -->
-<!-- cpt:###:risks-title -->
-<!-- cpt:##:nongoals -->
+#### {Interface Name}
 
-<!-- cpt:##:assumptions -->
-## 7. Assumptions & Open Questions
+- [ ] `p1` - **ID**: `cpt-{system}-interface-{slug}`
 
-<!-- cpt:###:assumptions-title -->
-### Assumptions
+**Type**: {Rust module/trait/struct | REST API | CLI | Protocol | Data format}
 
-<!-- cpt:list:assumptions -->
-- {Assumption + potential impact if wrong}
-- {Another assumption with rationale}
-<!-- cpt:list:assumptions -->
-<!-- cpt:###:assumptions-title -->
+**Stability**: {stable | unstable | experimental}
 
-<!-- cpt:###:open-questions-title -->
-### Open Questions
+**Description**: {What this interface provides}
 
-<!-- cpt:list:open-questions -->
-- {Question requiring resolution} — Owner: {name}, Target: {date}
-- {Another open question} — Owner: {name}, Target: {date}
-<!-- cpt:list:open-questions -->
-<!-- cpt:###:open-questions-title -->
-<!-- cpt:##:assumptions -->
+**Breaking Change Policy**: {e.g., Major version bump required}
 
-<!-- cpt:##:context -->
-## 8. Additional context
+### 7.2 External Integration Contracts
 
-<!-- cpt:###:context-title repeat="many" -->
-### {Context Topic 1, e.g. Stakeholder Notes}
+Contracts this library expects from external systems or provides to downstream clients.
 
-<!-- cpt:free:prd-context-notes -->
-{Context notes, links, or background information}
-<!-- cpt:free:prd-context-notes -->
-<!-- cpt:###:context-title repeat="many" -->
+#### {Contract Name}
 
-<!-- cpt:###:context-title repeat="many" -->
-### {Context Topic 2, e.g. Market Research}
+- [ ] `p2` - **ID**: `cpt-{system}-contract-{slug}`
 
-<!-- cpt:free:prd-context-notes -->
-{More context notes}
-<!-- cpt:free:prd-context-notes -->
-<!-- cpt:###:context-title repeat="many" -->
+**Direction**: {provided by library | required from client}
 
-<!-- cpt:###:context-title repeat="many" -->
-### {Context Topic 3, e.g. Technical Constraints}
+**Protocol/Format**: {e.g., HTTP/REST, gRPC, JSON Schema}
 
-<!-- cpt:free:prd-context-notes -->
-{Additional context}
-<!-- cpt:free:prd-context-notes -->
-<!-- cpt:###:context-title repeat="many" -->
+**Compatibility**: {Backward/forward compatibility guarantees}
 
-<!-- cpt:##:context -->
-<!-- cpt:#:prd -->
+## 8. Use Cases
+
+Optional: Include when interaction flows add clarity beyond requirement statements.
+
+#### {Use Case Name}
+
+- [ ] `p2` - **ID**: `cpt-{system}-usecase-{slug}`
+
+**Actor**: `cpt-{system}-actor-{slug}`
+
+**Preconditions**:
+- {Required state before execution}
+
+**Main Flow**:
+1. {Actor action or system response}
+2. {Next step}
+
+**Postconditions**:
+- {State after successful completion}
+
+**Alternative Flows**:
+- **{Condition}**: {What happens instead}
+
+## 9. Acceptance Criteria
+
+Business-level acceptance criteria for the PRD as a whole.
+
+- [ ] {Testable criterion that validates a key business outcome}
+- [ ] {Another testable criterion}
+
+## 10. Dependencies
+
+| Dependency | Description | Criticality |
+|------------|-------------|-------------|
+| {Service/System} | {What it provides} | {p1/p2/p3} |
+
+## 11. Assumptions
+
+- {Assumption about environment, users, or dependent systems}
+
+## 12. Risks
+
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| {Risk description} | {Potential impact} | {Mitigation strategy} |

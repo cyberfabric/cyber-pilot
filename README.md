@@ -143,10 +143,7 @@ _Thought for 4s_
 
 Next I will:
 
-- Read `requirements/extension.md` because the adapter file declares **Extends**.
 - Run Cypilot's required **Protocol Guard** command `adapter-info` (read-only) so we can print the "Cypilot Mode Enabled / Adapter: …" status block.
-
-_Read `extension.md`_
 
 Command:
 
@@ -178,14 +175,6 @@ Adapter: FOUND at /Volumes/CaseSensitive/coding/cypilot/.cypilot-adapter
 ```
 
 📟 [skills/cypilot/SKILL.md]: Completed "Protocol Guard" — ran `adapter-info` to confirm adapter status and load adapter registry metadata before any workflow action.
-
-📟 [requirements/extension.md]: Entering "## Agent Instructions" — processing `**Extends**:` rules for the adapter instructions file.
-
-📟 [requirements/extension.md]: Completing checklist task — Agent understands extension mechanism concept.
-
-📟 [requirements/extension.md]: Completing checklist task — Agent has identified the base file being extended (`../AGENTS.md`).
-
-📟 [requirements/extension.md]: Completing checklist task — Agent will follow the rules defined here (base loaded, no contradictions, no base-rule removal).
 
 #### Agent acknowledgment (required)
 

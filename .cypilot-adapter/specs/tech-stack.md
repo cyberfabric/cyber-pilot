@@ -2,7 +2,7 @@
 
 ## Languages
 
-- **Python 3.13+** - Primary language for CLI and tooling
+- **Python 3.8+** - Primary language for CLI and tooling
 
 ## Frameworks & Libraries
 

@@ -234,6 +234,30 @@
           "type": "string",
           "minLength": 1,
           "description": "Path to kit package directory (resolved relative to project root). Contains artifacts/{KIND}/ and codebase/ subdirectories."
+        },
+        "artifacts": {
+          "type": "object",
+          "description": "Optional explicit artifact template/example locations. Mapping KIND -> {template, examples}. Supports {project_root} token.",
+          "additionalProperties": {
+            "$ref": "#/$defs/kit_artifact_paths"
+          }
+        }
+      }
+    },
+    "kit_artifact_paths": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["template", "examples"],
+      "properties": {
+        "template": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Path to template.md file. May start with {project_root}/."
+        },
+        "examples": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Path to examples/ directory. May start with {project_root}/."
         }
       }
     },

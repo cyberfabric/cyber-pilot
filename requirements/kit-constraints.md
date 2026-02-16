@@ -2,7 +2,7 @@
 cypilot: true
 type: requirement
 name: Kit Constraints
-version: 1.0
+version: 1.1
 purpose: Define kit-level constraints.json used for strict ID definition validation and cross-artifact reference rules
 ---
 
@@ -14,18 +14,9 @@ Kits MAY include a `constraints.json` file in the kit root (e.g. `kits/sdlc/cons
 
 This file defines additional constraints for artifact kinds in that kit, specifically for:
 
-- ID definition blocks (`<!-- cpt:id:... -->`)
-- ID reference blocks (`<!-- cpt:id-ref:... -->`)
-
-Markers are **optional**.
-
-Validation is markerless-first: IDs and references are recognized from the document text (e.g. ``**ID**: `cpt-...` `` and backticked ID occurrences) even if no `<!-- cpt:... -->` markers exist.
-
-When markers are present in `template.md`, `constraints.json` still has higher priority and is the authoritative source of rules.
-
-`constraints.json` constraints have **higher priority** than marker attributes in `template.md`.
-
-If `constraints.json` contradicts an explicit marker attribute, validation MUST fail.
+- ID definition and reference validation (text-based)
+- Cross-artifact reference rules
+- Document outline validation via `headings`
 
 ## File Location
 
@@ -45,6 +36,7 @@ Each artifact kind constraints object MAY include:
 
 - `name`: string
 - `description`: string
+- `headings`: list[Heading Constraint Entry]
 
 ### JSON Schema
 
@@ -67,22 +59,53 @@ Each element of `identifiers` is an object (map key is the ID kind):
   - The effective kind is the `identifiers` key
 - `name` (optional): string
 - `description` (optional): string
+- `template` (optional): string
+  - A human-readable ID template hint to guide authors (used in validation errors)
+  - Example: `cpt-{system}-flow-{feature slug}-{slug}`
 - `examples` (optional): list
 - `references` (optional): object mapping artifact kinds to reference rules
 - `required` (optional): boolean
 - `task` (optional): string
 - `priority` (optional): string
 - `to_code` (optional): boolean
-- `headings` (optional): list[string]
+
+### Heading Constraint Entry
+
+Each element of `headings` is an object:
+
+- `id` (optional): string
+  - Stable identifier for this heading constraint entry
+  - Used by the validator to reference constraints precisely in errors
+- `pattern` (optional): string (regexp)
+  - Applied to the **heading title text** (excluding the leading `#` markers and excluding optional numbering prefix)
+  - MUST NOT include `#` markers (they are controlled by `level`)
+- `description` (optional): string
+  - Human-readable description of the section intent
+  - Used in validation errors to make scoping and outline errors more actionable
+- `level` (required): integer 1-6
+- `required` (optional): boolean (default `true`)
+- `multiple` (optional): string enum `allow|prohibited|required`
+  - Controls whether the same heading constraint may match multiple headings
+- `numbered` (optional): string enum `allow|prohibited|required`
+  - Controls whether the heading must be numbered
+
+Note: Heading constraint entries do not scope ID kinds directly. Scoping is done via
+`identifiers[<kind>].headings` (for definitions) and `identifiers[<kind>].references[<target>].headings`
+(for references), which refer to *heading constraint ids*.
 
 ### Reference Rule Entry
 
 Each element of `references` is an object:
 
 - `coverage` (required): string enum `required|optional|prohibited`
-- `task` (optional): string enum `required|allowed|prohibited` (legacy booleans accepted)
-- `priority` (optional): string enum `required|allowed|prohibited` (legacy booleans accepted)
+  - Controls whether references to this ID kind must exist in the target artifact kind.
+- `task` (optional): string enum `allowed|required|prohibited` (default: `allowed`)
+- `priority` (optional): string enum `allowed|required|prohibited` (default: `allowed`)
 - `headings` (optional): list[string]
+  - Heading constraint ids that define the **required locations** for references.
+  - Semantics:
+    - If `coverage` is `required` and `headings` is non-empty, then **at least one** reference in the target artifact kind must appear under one of these heading constraint ids.
+    - Otherwise, references are allowed anywhere in the target artifact kind (unless `coverage` is `prohibited`).
 
 ### Example
 
@@ -104,14 +127,12 @@ Each element of `references` is an object:
           "DESIGN": {
             "coverage": "required",
             "task": "allowed",
-            "priority": "allowed",
-            "headings": ["Upstream", "Traceability"]
+            "priority": "allowed"
           },
           "DECOMPOSITION": {"coverage": "optional"},
           "SPEC": {"coverage": "optional"},
           "ADR": {"coverage": "prohibited"}
-        },
-        "headings": ["Functional Requirements"]
+        }
       },
       "nfr": {
         "name": "Non-functional Requirement",
@@ -130,8 +151,7 @@ Each element of `references` is an object:
         "examples": ["cpt-bookcatalog-actor-admin"],
         "required": false,
         "task": "prohibited",
-        "priority": "prohibited",
-        "headings": ["Actors"]
+        "priority": "prohibited"
       },
       "usecase": {
         "name": "Use Case",
@@ -143,7 +163,33 @@ Each element of `references` is an object:
           "DECOMPOSITION": {"coverage": "optional", "task": "required", "priority": "required"}
         }
       }
-    }
+    },
+    "headings": [
+      {
+        "level": 2,
+        "pattern": "Functional Requirements",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow",
+        "identifiers": ["fr"]
+      },
+      {
+        "level": 2,
+        "pattern": "Non-functional Requirements",
+        "required": true,
+        "multiple": "prohibited",
+        "numbered": "allow",
+        "identifiers": ["nfr"]
+      },
+      {
+        "level": 2,
+        "pattern": "Actors",
+        "required": false,
+        "multiple": "prohibited",
+        "numbered": "allow",
+        "identifiers": ["actor"]
+      }
+    ]
   }
 }
 ```
@@ -152,14 +198,14 @@ Each element of `references` is an object:
 
 ### Priority
 
-`constraints.json` overrides marker attributes in `template.md` for ID definition blocks.
+`constraints.json` defines validation rules for ID definitions and references discovered in artifact text.
 
 - **`required`** controls whether an ID kind must be defined at least once in the artifact.
   - If omitted, it defaults to `true`.
   - If `required: true` and there are no ID definitions of that kind, validation FAILS.
   - If `required: false`, the kind is optional.
 
-- **`priority` / `task`** are applied via the `has="..."` marker attribute.
+- **`priority` / `task`** apply to the definition/reference line formats.
   - Supported values: `required`, `allowed`, `prohibited`
   - Legacy booleans are accepted for backward compatibility:
     - `true` => `required`
@@ -173,89 +219,87 @@ Each element of `references` is an object:
   - `coverage: "prohibited"` means reference must not exist from that artifact kind.
   - Only explicitly declared `references` target kinds participate in validation. The validator MUST NOT require coverage from artifact kinds that are not listed under `references`.
 
-- **`to_code`** is applied via the `to_code="true|false"` marker attribute.
-- **`headings`** is stored as a JSON-encoded string attribute `headings="[...]"` for downstream tooling.
+- **`to_code`** indicates that the ID is expected to be traceable to code (see `requirements/traceability.md`).
+  - If the ID definition has a task checkbox, required code coverage is enabled only when the checkbox is checked (`[x]`).
+  - If the ID definition has a task checkbox and it is not checked (`[ ]`), referencing the ID from code is an error.
+  - If the ID definition has no task checkbox, `to_code: true` requires at least one code marker.
 
-### Contradictions
+### Heading Constraints (`headings`)
 
-If a template marker explicitly specifies an attribute and `constraints.json` specifies a different value, validation MUST fail.
+`headings` defines a **document outline contract** for artifacts of a given kind.
 
-Contradictions include:
+The validator walks the artifact’s markdown headings and checks that:
 
-- Marker has `has="priority"` but constraint sets `priority: "prohibited"`
-- Marker has `to_code="false"` but constraint sets `to_code: true`
+- Heading occurrences required by constraints exist
+- Constrained headings are **not mixed**: their relative order MUST match the order of entries in `headings`
+- Constrained heading repetition complies with `multiple`
+- Numbering (if required/prohibited) and numbering progression are correct
+- If `identifiers` is specified on a heading constraint entry, IDs of those kinds MUST be scoped to that heading’s section and those kinds become reserved (see below)
 
-Notes:
+#### Matching rules
 
-- Template-load-time contradiction checking is applied only for `identifiers` constraints against `cpt:id:<kind>` blocks.
-- `references` rules are enforced during cross-artifact validation.
+For each markdown heading line:
 
-### Missing Template Blocks
+- The heading `level` is derived from the number of leading `#` characters.
+- The heading `raw title` is the remainder after the `#` and a single required space.
+- If the heading is numbered, the numbering prefix is parsed as `^<num>(\.<num>)*\s+` (e.g. `1 `, `1.2 `, `2.10.3 `).
+- The heading `title text` used for `pattern` matching is the `raw title` with the numbering prefix removed (if present).
 
-If `constraints.json` references an ID kind that does not exist in the template as a corresponding block, validation MUST fail.
+A heading constraint entry matches a document heading when:
 
-## Validation Integration
+- `level` equals the document heading level
+- If `pattern` is present, it matches the `title text`
 
-The tool loads and applies constraints when loading templates for kits.
+#### Ordering and nesting rules
 
-Constraint errors are surfaced during:
+The outline contract is validated as follows:
 
-- `validate` (artifact validation)
-- `validate-kits` (template validation)
+- The tool iterates `headings` constraint entries in order and attempts to match them against the document outline.
+- When a constrained heading `H_i` is found, the next constrained heading found in the document at `level <= H_i.level` MUST be the next entry in the constraints list.
+- Between `H_i` and the next constrained heading `H_{i+1}`:
+  - Headings of **deeper level** (`level > H_i.level`) are allowed in free form **unless** they are constrained elsewhere in `headings`.
+  - Headings of the same or higher level (`level <= H_i.level`) that are not `H_{i+1}` are considered a mixing error.
 
-## Strict Artifact Semantics
+This means:
 
-When `constraints.json` defines constraints for an artifact kind (e.g. `PRD`), the validator applies **strict semantics** to artifacts of that kind.
+- If you constrain `##` headings only, any `###` headings inside a constrained section are allowed freely.
+- If you also constrain some `###` headings, then inside a constrained `##` section the constrained `###` headings MUST appear in the declared order.
 
-Strict semantics are applied during template-based validation (`Template.validate`) and operate on marker-defined `cpt:id:<kind>` blocks.
+#### Presence and repetition
 
-### Allowed ID Kinds
+- `required` defaults to `true`.
+- `multiple` defaults to `allow`.
+- If `multiple: prohibited`, the constraint entry may match at most one heading.
+- If `multiple: required`, the constraint entry MUST match at least two headings.
 
-For a constrained artifact kind:
+#### Numbering rules
 
-- For **ID definitions** (`identifiers`): the artifact MUST NOT contain any `<!-- cpt:id:<kind> -->` blocks where `<kind>` is not listed in `identifiers`.
-- For **ID references**: reference expectations are defined by `identifiers[<kind>].references`.
+- `numbered` defaults to `allow`.
+- If `numbered: required`, each matching heading MUST have a numbering prefix.
+- If `numbered: prohibited`, each matching heading MUST NOT have a numbering prefix.
 
-If such a block exists and yields a parsed ID definition/reference, validation FAILS with a `constraints` error.
+Numbering progression is validated per heading level and nesting:
 
-### Required Presence
+- For a numbered heading at level `L`, the numbering prefix MUST be unique among headings at the same `L` within the same parent numbering scope.
+- If two consecutive numbered headings at the same level `L` share the same parent prefix, the last segment MUST be `+1`.
+- Nested numbering MUST be consistent with parents:
+  - If a parent numbered heading is `2` (at level 2), then numbered children at level 3 MUST start with `2.<n>`.
+  - If a parent numbered heading is `2.3` (at level 3), then numbered children at level 4 MUST start with `2.3.<n>`.
 
-For a constrained artifact kind:
+#### Heading id scoping (definitions and references)
 
-- Every identifier kind listed in `identifiers` MUST appear **at least once** as an ID definition in the artifact (unless `required: false`).
+If an ID constraint entry specifies `headings`:
 
-The `required` flag controls this behavior:
+- For definitions (`identifiers[<kind>].headings`): each ID definition of that kind MUST appear within a section whose active heading constraint id is in the list.
+- For references (`identifiers[<kind>].references[<target>].headings`): each reference MUST appear within a section whose active heading constraint id is in the list.
 
-- If omitted, it defaults to `true`.
-- If `required: true` and the kind is missing, validation FAILS.
-- If `required: false`, missing definitions of that kind are allowed.
+`headings` values are compared against the heading constraint `id` values from the artifact kind’s `headings` contract.
 
-References are validated via `identifiers[<kind>].references` rules (coverage required|optional|prohibited).
-
-If a constrained kind is missing, validation FAILS.
-
-### Heading Scoping (`headings`)
-
-If a constraint entry specifies `headings`, then the corresponding IDs MUST be scoped under those headings in the artifact.
-
-Rules:
-
-- Every ID definition of that `kind` MUST be located under at least one of the listed headings.
-- It is a validation error if an ID of that kind appears under a different heading (i.e. not within the heading scope).
-- It is a validation error if the artifact contains at least one such ID-kind, but **none** of its occurrences are under the required headings.
-
-Heading matching is performed by comparing heading titles (the text after `#`, `##`, ...). Headings are detected outside fenced code blocks.
-
-Notes:
-
-- Strict template validation normalizes headings (case-insensitive, trims whitespace, ignores `:`).
-- Markerless cross-artifact validation compares headings using simple string equality after `strip()`.
-
-## Cross-Artifact Validation (Markerless-First)
+## Cross-Artifact Validation
 
 Cross-artifact validation:
 
-- Ignores template markers and performs markerless scans of artifacts.
+- Performs scans of artifacts.
 - Builds an index of ID definitions and references across artifacts.
 - Enforces `identifiers[<kind>].references` rules (`coverage: required|optional|prohibited`).
 
@@ -263,8 +307,6 @@ Notes:
 
 - Cross-artifact coverage requirements are derived ONLY from `identifiers[<kind>].references[<target_kind>]` with `coverage: required`.
 - There is no additional implicit rule like "an ID must be referenced from any other artifact kind" when constraints exist for the artifact kind being validated.
-
-Cross-artifact validation is markerless-first and may detect IDs/references even when artifacts do not contain any `<!-- cpt:... -->` markers.
 
 ### System Scoping
 
@@ -300,7 +342,6 @@ The validator derives reference flags from the reference text:
 Notes:
 
 - Reference `task/priority` rules are enforced only when a reference exists.
-- Template marker attributes like `<!-- cpt:id-ref:<kind> has="..." -->` are not used for tri-state enforcement; enforcement is based on the reference line text.
 
 ### Checkbox Synchronization (Done Status)
 
@@ -308,7 +349,123 @@ Cross-artifact validation also enforces:
 
 - If a reference is marked done (`[x]`) and both the reference and the definition explicitly track task status (`has_task == true`), then the definition MUST be marked done.
 
+## Artifact Scanning and Validation
+
+Cypilot extracts **IDs**, **ID references**, and **CDSL instructions** from artifacts using best-effort scanning.
+
+Scanning is the authoritative method for artifact signal extraction.
+
+### Non-Goals
+
+Scanning is explicitly **not** intended to provide deterministic structural compliance.
+
+- Scanning does **not** guarantee structural compliance.
+- Scanning does **not** provide precise block boundaries for validation errors.
+
+### Supported Signal Extraction
+
+#### ID Definitions
+
+Scanning recognizes **ID definitions** via human-facing formats, for example:
+
+```markdown
+- [ ] **ID**: `cpt-my-system-fr-login`
+- [x] `p1` - **ID**: `cpt-my-system-flow-login`
+```
+
+The scanner emits hits with:
+
+- `type: definition`
+- `id: <cpt-id>`
+- `line: <line number>`
+- `checked: true|false` (when a checkbox is present)
+- `priority: pN` (when present)
+
+#### ID References
+
+Scanning recognizes **references** in three ways:
+
+- Standalone backticked IDs on list lines:
+  - ``- `cpt-my-system-fr-login` ``
+  - ``* `cpt-my-system-fr-login` ``
+- Any inline backticked occurrence:
+  - `... Inline `cpt-my-system-fr-login` here ...`
+
+The scanner emits hits with:
+
+- `type: reference`
+- `id: <cpt-id>`
+- `line: <line number>`
+
+#### CDSL Instruction Extraction
+
+Scanning can extract CDSL instructions (see `requirements/CDSL.md`).
+
+The scanner identifies lines matching the CDSL step format, and emits:
+
+- `type: cdsl_instruction`
+- `phase: <int>`
+- `inst: <string>` (without the `inst-` prefix)
+- `line: <line number>`
+
+##### Parent binding rule
+
+Extracted CDSL instructions use a best-effort **parent binding** rule:
+
+- The instruction’s `parent_id` is the **nearest preceding ID definition** found above the instruction.
+- If no preceding ID definition exists, `parent_id` is omitted.
+
+#### Ignoring Code Fences
+
+All scanning MUST ignore content inside fenced code blocks:
+
+```markdown
+```
+...ignored...
+```
+```
+
+This prevents documentation examples from being interpreted as real IDs/instructions.
+
+### Validation Behavior
+
+#### Template Structure Validation
+
+- Template block structure validation is skipped.
+
+#### Cross-Artifact Consistency
+
+Artifacts participate in cross-artifact checks:
+
+- Orphaned references (a reference to an undefined ID) may be reported.
+- Duplicate ID definitions may be reported (implementation-defined).
+
+#### Traceability Interaction
+
+Artifacts can interact with code traceability (see `requirements/traceability.md`) depending on registry settings.
+
+Key rule:
+
+- If an artifact’s registry traceability mode is `FULL`, Cypilot may accept that code markers reference IDs defined in that artifact.
+
+#### Covered-By (Fallback)
+
+When there is no additional metadata for covered-by constraints, coverage expectations are approximated:
+
+- For artifacts, each `**ID**: ...` definition SHOULD be referenced from at least one other artifact kind.
+- If the project scope only contains one kind (no “other kinds” exist), Cypilot SHOULD emit a warning instead of an error.
+
+### Content Scoping (Optional Helper)
+
+Some tools may provide a helper for retrieving an approximate content “scope” for a given ID in a document.
+
+The scope heuristics are best-effort and may use:
+
+- Heading-based scopes (e.g., a heading line containing an ID)
+- Separator-based scopes (implementation-defined)
+
+This is not a validation guarantee; it is intended for navigation and UX.
+
 ## References
 
-- `requirements/template.md` (marker-based template system)
 - `requirements/traceability.md` (to_code and traceability concepts)

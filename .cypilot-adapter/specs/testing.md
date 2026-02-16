@@ -70,13 +70,17 @@ def test_something():
 
 ```python
 import io
+import json
+import os
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from contextlib import redirect_stdout
 from cypilot.cli import main
 
 def test_cli_command():
     with TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
-        _bootstrap_project(root)
+        _bootstrap_project_root(root)
 
         cwd = os.getcwd()
         try:
@@ -95,6 +99,7 @@ def test_cli_command():
 
 ```python
 from unittest.mock import patch, MagicMock
+from cypilot.utils.context import CypilotContext
 
 def test_with_mock():
     mock_ctx = MagicMock(spec=CypilotContext)
@@ -146,9 +151,8 @@ open htmlcov/index.html
 # .coveragerc
 [run]
 omit =
-    */__pycache__/*
-    */tests/*
-    */.venv/*
+    */cypilot/__main__.py
+    */__main__.py
 ```
 
 ---
@@ -183,8 +187,6 @@ cypilot-template:
     minor: 0
 ---
 
-<!-- cpt:id:item -->
-<!-- cpt:id:item -->
 '''
 ```
 
@@ -192,21 +194,22 @@ cypilot-template:
 
 ```python
 VALID_REGISTRY = {
-    "version": "1.0",
+    "version": "1.1",
     "project_root": "..",
     "kits": {
         "cypilot-sdlc": {
             "format": "Cypilot",
-            "path": "kits/cypilot-sdlc"
+            "path": "kits/sdlc"
         }
     },
-    "systems": [{
-        "name": "Test",
-        "kit": "cypilot-sdlc",
-        "artifacts": [],
-        "codebase": [],
-        "children": []
-    }]
+    "systems": [
+        {
+            "name": "Test",
+            "slug": "test",
+            "kit": "cypilot-sdlc",
+            "autodetect": [],
+        }
+    ],
 }
 ```
 

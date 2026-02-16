@@ -16,12 +16,11 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "cypilot" / "scripts"))
 
 from cypilot.utils.document import (
-    file_has_cypilot_markers,
-    get_content_scoped_without_markers,
+    get_content_scoped,
     iter_text_files,
     read_text_safe,
-    scan_cdsl_instructions_without_markers,
-    scan_cpt_ids_without_markers,
+    scan_cdsl_instructions,
+    scan_cpt_ids,
     to_relative_posix,
 )
 
@@ -129,41 +128,47 @@ class TestReadTextSafe(unittest.TestCase):
 
 class TestCliInternalHelpers(unittest.TestCase):
     def test_load_json_file_invalid_json_returns_none(self):
+        from cypilot.commands.agents import _load_json_file
         with TemporaryDirectory() as tmpdir:
             p = Path(tmpdir) / "bad.json"
             p.write_text("{bad}", encoding="utf-8")
-            self.assertIsNone(cypilot_cli._load_json_file(p))
+            self.assertIsNone(_load_json_file(p))
 
     def test_load_json_file_non_dict_returns_none(self):
+        from cypilot.commands.agents import _load_json_file
         with TemporaryDirectory() as tmpdir:
             p = Path(tmpdir) / "list.json"
             p.write_text(json.dumps([1, 2, 3]), encoding="utf-8")
-            self.assertIsNone(cypilot_cli._load_json_file(p))
+            self.assertIsNone(_load_json_file(p))
 
     def test_safe_relpath_from_dir_fallbacks_to_absolute_on_error(self):
+        from cypilot.commands.agents import _safe_relpath_from_dir
         with TemporaryDirectory() as tmpdir:
             base = Path(tmpdir)
             target = base / "x" / "y"
             with patch("os.path.relpath", side_effect=Exception("boom")):
-                rel = cypilot_cli._safe_relpath_from_dir(target, base)
+                rel = _safe_relpath_from_dir(target, base)
             self.assertEqual(rel, target.as_posix())
 
     def test_prompt_path_eof_returns_default(self):
+        from cypilot.commands.init import _prompt_path
         with patch("builtins.input", side_effect=EOFError()):
-            out = cypilot_cli._prompt_path("Q?", "default")
+            out = _prompt_path("Q?", "default")
         self.assertEqual(out, "default")
 
     def test_safe_relpath_outside_base_returns_absolute(self):
+        from cypilot.commands.agents import _safe_relpath
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir) / "root"
             other = Path(tmpdir) / "other" / "x.txt"
-            out = cypilot_cli._safe_relpath(other, root)
+            out = _safe_relpath(other, root)
             self.assertEqual(out, other.as_posix())
 
     def test_write_json_file_writes_trailing_newline(self):
+        from cypilot.commands.agents import _write_json_file
         with TemporaryDirectory() as tmpdir:
             p = Path(tmpdir) / "out.json"
-            cypilot_cli._write_json_file(p, {"a": 1})
+            _write_json_file(p, {"a": 1})
             raw = p.read_text(encoding="utf-8")
             self.assertTrue(raw.endswith("\n"))
             self.assertEqual(json.loads(raw), {"a": 1})
@@ -172,7 +177,7 @@ class TestCliInternalHelpers(unittest.TestCase):
 class TestCliCommandCoverage(unittest.TestCase):
     def test_self_check_project_root_not_found(self):
         with TemporaryDirectory() as td:
-            with patch.object(cypilot_cli, "find_project_root", return_value=None):
+            with patch("cypilot.commands.self_check.find_project_root", return_value=None):
                 buf = io.StringIO()
                 with contextlib.redirect_stdout(buf):
                     code = cypilot_cli._cmd_self_check(["--root", td])
@@ -182,8 +187,8 @@ class TestCliCommandCoverage(unittest.TestCase):
         with TemporaryDirectory() as td:
             root = Path(td)
             (root / ".git").mkdir()
-            with patch.object(cypilot_cli, "find_project_root", return_value=root):
-                with patch.object(cypilot_cli, "find_adapter_directory", return_value=None):
+            with patch("cypilot.commands.self_check.find_project_root", return_value=root):
+                with patch("cypilot.commands.self_check.find_adapter_directory", return_value=None):
                     buf = io.StringIO()
                     with contextlib.redirect_stdout(buf):
                         code = cypilot_cli._cmd_self_check(["--root", td])
@@ -195,9 +200,9 @@ class TestCliCommandCoverage(unittest.TestCase):
             (root / ".git").mkdir()
             adapter = root / ".cypilot-adapter"
             adapter.mkdir()
-            with patch.object(cypilot_cli, "find_project_root", return_value=root):
-                with patch.object(cypilot_cli, "find_adapter_directory", return_value=adapter):
-                    with patch.object(cypilot_cli, "load_artifacts_registry", return_value=({"version": "1.0"}, None)):
+            with patch("cypilot.commands.self_check.find_project_root", return_value=root):
+                with patch("cypilot.commands.self_check.find_adapter_directory", return_value=adapter):
+                    with patch("cypilot.commands.self_check.load_artifacts_registry", return_value=({"version": "1.0"}, None)):
                         buf = io.StringIO()
                         with contextlib.redirect_stdout(buf):
                             code = cypilot_cli._cmd_self_check(["--root", td])
@@ -225,9 +230,9 @@ class TestCliCommandCoverage(unittest.TestCase):
                     "test-rules": {"format": "Cypilot", "path": "kits/test"}
                 },
             }
-            with patch.object(cypilot_cli, "find_project_root", return_value=root):
-                with patch.object(cypilot_cli, "find_adapter_directory", return_value=adapter):
-                    with patch.object(cypilot_cli, "load_artifacts_registry", return_value=(registry, None)):
+            with patch("cypilot.commands.self_check.find_project_root", return_value=root):
+                with patch("cypilot.commands.self_check.find_adapter_directory", return_value=adapter):
+                    with patch("cypilot.commands.self_check.load_artifacts_registry", return_value=(registry, None)):
                         buf = io.StringIO()
                         with contextlib.redirect_stdout(buf):
                             code = cypilot_cli._cmd_self_check(["--root", td])
@@ -267,18 +272,20 @@ class TestNormalizeCptIdFromLine(unittest.TestCase):
 
 
 class TestMarkerlessScanners(unittest.TestCase):
-    def test_file_has_cypilot_markers_false_on_read_error(self):
+    def test_scan_cpt_ids_returns_empty_on_read_error(self):
         with TemporaryDirectory() as td:
             p = Path(td) / "missing.md"
-            self.assertFalse(file_has_cypilot_markers(p))
+            self.assertEqual(scan_cpt_ids(p), [])
 
-    def test_scan_cpt_ids_without_markers_skips_when_markers_present(self):
+    def test_scan_cpt_ids_does_not_skip_when_markers_present(self):
         with TemporaryDirectory() as td:
             p = Path(td) / "a.md"
             p.write_text("<!-- cpt:id:item -->\n- [ ] **ID**: `cpt-test-1`\n<!-- cpt:id:item -->\n", encoding="utf-8")
-            self.assertEqual(scan_cpt_ids_without_markers(p), [])
+            hits = scan_cpt_ids(p)
+            types_by_id = {(h.get("type"), h.get("id")) for h in hits}
+            self.assertIn(("definition", "cpt-test-1"), types_by_id)
 
-    def test_scan_cpt_ids_without_markers_def_ref_inline_and_fences(self):
+    def test_scan_cpt_ids_def_ref_inline_and_fences(self):
         with TemporaryDirectory() as td:
             p = Path(td) / "a.md"
             p.write_text(
@@ -292,7 +299,7 @@ class TestMarkerlessScanners(unittest.TestCase):
                 "```\n",
                 encoding="utf-8",
             )
-            hits = scan_cpt_ids_without_markers(p)
+            hits = scan_cpt_ids(p)
             types_by_id = {(h.get("type"), h.get("id")) for h in hits}
             self.assertIn(("definition", "cpt-test-1"), types_by_id)
             self.assertIn(("reference", "cpt-test-1"), types_by_id)
@@ -301,7 +308,7 @@ class TestMarkerlessScanners(unittest.TestCase):
             self.assertNotIn(("definition", "cpt-in-fence"), types_by_id)
             self.assertNotIn(("reference", "cpt-in-fence"), types_by_id)
 
-    def test_scan_cdsl_instructions_without_markers_basic_and_parent_binding(self):
+    def test_scan_cdsl_instructions_basic_and_parent_binding(self):
         with TemporaryDirectory() as td:
             p = Path(td) / "a.md"
             p.write_text(
@@ -310,17 +317,19 @@ class TestMarkerlessScanners(unittest.TestCase):
                 "1. [x] - `p1` - Step - `inst-a`\n",
                 encoding="utf-8",
             )
-            hits = scan_cdsl_instructions_without_markers(p)
+            hits = scan_cdsl_instructions(p)
             self.assertEqual(len(hits), 1)
             self.assertEqual(hits[0].get("parent_id"), "cpt-test-1")
             self.assertEqual(hits[0].get("phase"), 1)
             self.assertEqual(hits[0].get("inst"), "a")
 
-    def test_scan_cdsl_instructions_without_markers_skips_marked_files_and_fences_and_bad_phase(self):
+    def test_scan_cdsl_instructions_skips_fences_and_bad_phase(self):
         with TemporaryDirectory() as td:
             p_marked = Path(td) / "marked.md"
             p_marked.write_text("<!-- cpt:cdsl:x -->\n1. [x] - `p1` - Step - `inst-a`\n<!-- cpt:cdsl:x -->\n", encoding="utf-8")
-            self.assertEqual(scan_cdsl_instructions_without_markers(p_marked), [])
+            hits_marked = scan_cdsl_instructions(p_marked)
+            self.assertEqual(len(hits_marked), 1)
+            self.assertEqual(hits_marked[0].get("inst"), "a")
 
             p = Path(td) / "a.md"
             p.write_text(
@@ -329,10 +338,10 @@ class TestMarkerlessScanners(unittest.TestCase):
                 "1. [x] - `p1` - Step - `inst-in-fence`\n"
                 "```\n"
                 "1. [x] - `pX` - Step - `inst-bad-phase`\n"
-                "1. [x] - `ph-2` - Step - `inst-ok`\n",
+                "1. [x] - `p2` - Step - `inst-ok`\n",
                 encoding="utf-8",
             )
-            hits = scan_cdsl_instructions_without_markers(p)
+            hits = scan_cdsl_instructions(p)
             self.assertEqual(len(hits), 1)
             self.assertEqual(hits[0].get("phase"), 2)
             self.assertEqual(hits[0].get("inst"), "ok")
@@ -342,7 +351,7 @@ class TestMarkerlessContentScopes(unittest.TestCase):
     def test_get_content_scoped_without_markers_none_on_read_error(self):
         with TemporaryDirectory() as td:
             p = Path(td) / "missing.md"
-            self.assertIsNone(get_content_scoped_without_markers(p, id_value="cpt-x"))
+            self.assertIsNone(get_content_scoped(p, id_value="cpt-x"))
 
     def test_get_content_scoped_without_markers_hash_fence_segments_and_edge_cases(self):
         with TemporaryDirectory() as td:
@@ -353,14 +362,14 @@ class TestMarkerlessContentScopes(unittest.TestCase):
                 "##\ncpt-aa\nline-a\ncpt-bb\nline-b\n##\n",
                 encoding="utf-8",
             )
-            out = get_content_scoped_without_markers(p, id_value="cpt-aa")
+            out = get_content_scoped(p, id_value="cpt-aa")
             self.assertIsNotNone(out)
             text, _start, _end = out or ("", 0, 0)
             self.assertIn("line-a", text)
 
             p2 = Path(td) / "b.md"
             p2.write_text("##\ncpt-aa\ncpt-bb\n##\n", encoding="utf-8")
-            self.assertIsNone(get_content_scoped_without_markers(p2, id_value="cpt-aa"))
+            self.assertIsNone(get_content_scoped(p2, id_value="cpt-aa"))
 
     def test_get_content_scoped_without_markers_heading_scope_and_empty_scope(self):
         with TemporaryDirectory() as td:
@@ -372,17 +381,17 @@ class TestMarkerlessContentScopes(unittest.TestCase):
                 "x\n",
                 encoding="utf-8",
             )
-            out = get_content_scoped_without_markers(p, id_value="cpt-aa")
+            out = get_content_scoped(p, id_value="cpt-aa")
             self.assertIsNotNone(out)
             self.assertIn("content-a", (out or ("", 0, 0))[0])
 
             p2 = Path(td) / "b.md"
             p2.write_text("### cpt-aa\n\n### next\n", encoding="utf-8")
-            self.assertIsNone(get_content_scoped_without_markers(p2, id_value="cpt-aa"))
+            self.assertIsNone(get_content_scoped(p2, id_value="cpt-aa"))
 
             p3 = Path(td) / "c.md"
             p3.write_text("### cpt-aa\n", encoding="utf-8")
-            self.assertIsNone(get_content_scoped_without_markers(p3, id_value="cpt-aa"))
+            self.assertIsNone(get_content_scoped(p3, id_value="cpt-aa"))
 
     def test_get_content_scoped_without_markers_id_definition_heading_nearest_and_fences(self):
         with TemporaryDirectory() as td:
@@ -398,15 +407,15 @@ class TestMarkerlessContentScopes(unittest.TestCase):
                 "line-b\n",
                 encoding="utf-8",
             )
-            out = get_content_scoped_without_markers(p, id_value="cpt-aa")
+            out = get_content_scoped(p, id_value="cpt-aa")
             self.assertIsNotNone(out)
             self.assertIn("line-a", (out or ("", 0, 0))[0])
 
             p2 = Path(td) / "b.md"
             p2.write_text("#### Title\n**ID**: `cpt-aa`\n", encoding="utf-8")
-            self.assertIsNone(get_content_scoped_without_markers(p2, id_value="cpt-aa"))
+            self.assertIsNone(get_content_scoped(p2, id_value="cpt-aa"))
 
-            self.assertIsNone(get_content_scoped_without_markers(p, id_value="cpt-x"))
+            self.assertIsNone(get_content_scoped(p, id_value="cpt-x"))
 
 
 class TestIterTextFilesMoreCoverage(unittest.TestCase):

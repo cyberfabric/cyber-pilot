@@ -1,30 +1,14 @@
-<!-- cpt:#:adr -->
+---
+status: accepted
+date: 2026-01-25
+---
+
 # ADR-0002: Adaptive Cypilot - Framework for Documentation and Development
 
-<!-- cpt:id:adr has="priority,task" covered_by="DESIGN" -->
 **ID**: `cpt-cypilot-adr-adaptive-cypilot-flow-driven-development-v1`
 
-<!-- cpt:##:meta -->
-## Meta
+## Context and Problem Statement
 
-<!-- cpt:paragraph:adr-title -->
-**Title**: ADR-0002 Adaptive Cypilot - Framework for Documentation and Development
-<!-- cpt:paragraph:adr-title -->
-
-<!-- cpt:paragraph:date -->
-**Date**: 2026-01-25
-<!-- cpt:paragraph:date -->
-
-<!-- cpt:paragraph:status -->
-**Status**: Accepted
-<!-- cpt:paragraph:status -->
-<!-- cpt:##:meta -->
-
-<!-- cpt:##:body -->
-## Body
-
-<!-- cpt:context -->
-**Context**:
 Cypilot should behave as a set of loosely coupled workflows and tools where a user can start from any point (design, implementation, or validation) and still make progress. In brownfield projects, required artifacts may be missing, partially present, or exist only as informal context (docs, READMEs, tickets, prompts).
 
 In this ADR, "Spec-Driven Design" terminology is considered deprecated and is not used.
@@ -39,26 +23,23 @@ We need a deterministic, adapter-owned source of truth that:
 - supports hierarchical project scopes (system → sub-system → module),
 - supports per-artifact traceability configuration,
 - and enables adaptive ("ask the user") behavior instead of hard failure when dependencies are missing.
-<!-- cpt:context -->
 
-<!-- cpt:decision-drivers -->
-**Decision Drivers**:
+## Decision Drivers
+
 - Enable "start anywhere" adoption for brownfield projects (incremental onboarding without forcing upfront artifact creation).
 - Keep core technology-agnostic while allowing project-specific layouts via the adapter system.
 - Preserve deterministic validation behavior where possible, but avoid blocking progress when artifacts are absent.
 - Support system decomposition into multiple nested scopes.
 - Keep configuration discoverable for AI agents and tools, and editable by humans.
-<!-- cpt:decision-drivers -->
 
-<!-- cpt:options repeat="many" -->
-**Considered Options**:
+## Considered Options
+
 - **Option 1: Hardcoded artifact locations**
 - **Option 2: Store artifact locations only in `.cypilot-config.json`**
 - **Option 3: Adapter-owned `artifacts.json` registry + Framework for Documentation and Development (SELECTED)**
-<!-- cpt:options -->
 
-<!-- cpt:decision-outcome -->
-**Decision Outcome**:
+## Decision Outcome
+
 Chosen option: **Adapter-owned `artifacts.json` registry + Framework for Documentation and Development**, because it allows the `cypilot` tool and workflows to deterministically discover project structure and artifact locations across complex codebases, while enabling adaptive user-guided fallback when artifacts are missing.
 
 ### What changes
@@ -102,23 +83,43 @@ Examples:
 Scopes MUST support inheritance:
 - child scopes inherit artifact discovery rules from parent scopes,
 - and may override/add locations for specific artifact kinds.
-<!-- cpt:decision-outcome -->
 
-**Consequences**:
-<!-- cpt:list:consequences -->
+### Consequences
+
 - Positive: Cypilot becomes usable in brownfield environments without forcing an upfront "perfect artifact graph"
 - Negative: Discovery becomes more flexible and therefore requires strong diagnostics and clear user interaction patterns to avoid confusion
 - Follow-up: Update tooling to use artifacts.json for artifact discovery
-<!-- cpt:list:consequences -->
 
-**Links**:
-<!-- cpt:list:links -->
-- Related Actors: `cpt-cypilot-actor-ai-assistant`, `cpt-cypilot-actor-cypilot-tool`, `cpt-cypilot-actor-technical-lead`
-- Related Capabilities: `cpt-cypilot-fr-workflow-execution`, `cpt-cypilot-fr-validation`, `cpt-cypilot-fr-brownfield-support`, `cpt-cypilot-fr-adapter-config`
-- Related Principles: `cpt-cypilot-principle-tech-agnostic`, `cpt-cypilot-principle-machine-readable`, `cpt-cypilot-principle-deterministic-gate`
-- Related ADRs: ADR-0001 (Initial Cypilot Architecture)
-<!-- cpt:list:links -->
-<!-- cpt:##:body -->
-<!-- cpt:id:adr -->
+### Confirmation
 
-<!-- cpt:#:adr -->
+Confirmed by validating artifact discovery across multiple example layouts using `cypilot adapter-info` + `cypilot validate`.
+
+## Pros and Cons of the Options
+
+### Option 1: Hardcoded artifact locations
+
+* Good, because simplest to implement
+* Bad, because breaks brownfield adoption and complex layouts
+
+### Option 2: Store artifact locations only in `.cypilot-config.json`
+
+* Good, because centralized configuration
+* Bad, because poor discoverability for agents and hard to evolve across scopes
+
+### Option 3: Adapter-owned `artifacts.json` registry
+
+* Good, because deterministic discovery with hierarchical scopes
+* Bad, because requires stronger diagnostics and tooling
+
+## Traceability
+
+- **PRD**: [PRD.md](../../PRD.md)
+- **DESIGN**: [DESIGN.md](../../DESIGN.md)
+
+This decision directly addresses the following requirements or design elements:
+
+* `cpt-cypilot-fr-workflow-execution`
+* `cpt-cypilot-fr-validation`
+* `cpt-cypilot-fr-brownfield-support`
+* `cpt-cypilot-fr-adapter-config`
+

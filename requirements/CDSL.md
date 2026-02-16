@@ -12,20 +12,47 @@ purpose: Define syntax and grammar for behavior description language
 
 ## Table of Contents
 
-- [Agent Instructions](#agent-instructions)
-- [Overview](#overview)
-- [Core Rules](#core-rules)
-- [Phase + Implementation Status](#phase--implementation-status-mandatory)
-- [Basic Format](#basic-format)
-- [Control Flow Keywords](#control-flow-keywords)
-- [Example: Algorithm](#example-algorithm)
-- [Example: Actor Flow](#example-actor-flow)
-- [Validation Rules](#validation-rules)
-- [State Machines](#state-machines-section-d)
-- [Excluding Examples from Validation](#excluding-examples-from-validation)
-- [Error Handling](#error-handling)
-- [Consolidated Validation Checklist](#consolidated-validation-checklist)
-- [References](#references)
+- [Cypilot DSL (CDSL)](#cypilot-dsl-cdsl)
+  - [Table of Contents](#table-of-contents)
+  - [Agent Instructions](#agent-instructions)
+  - [Overview](#overview)
+  - [Core Rules](#core-rules)
+  - [Phase + Implementation Status (Mandatory)](#phase--implementation-status-mandatory)
+  - [Basic Format](#basic-format)
+  - [Control Flow Keywords](#control-flow-keywords)
+    - [IF/ELSE IF/ELSE](#ifelse-ifelse)
+    - [FOR EACH](#for-each)
+    - [WHILE](#while)
+    - [TRY/CATCH](#trycatch)
+    - [PARALLEL](#parallel)
+    - [MATCH (Pattern Matching)](#match-pattern-matching)
+    - [GO TO / SKIP TO](#go-to--skip-to)
+    - [RETURN (Early Exit)](#return-early-exit)
+  - [Example: Algorithm](#example-algorithm)
+  - [Example: Actor Flow](#example-actor-flow)
+  - [Validation Rules](#validation-rules)
+    - [✅ Required](#-required)
+    - [❌ Prohibited](#-prohibited)
+    - [✅ Allowed](#-allowed)
+  - [State Machines (Section D)](#state-machines-section-d)
+    - [Basic Format](#basic-format-1)
+    - [With Actions](#with-actions)
+    - [Example](#example)
+  - [Excluding Examples from Validation](#excluding-examples-from-validation)
+  - [Error Handling](#error-handling)
+    - [Invalid CDSL Syntax](#invalid-cdsl-syntax)
+    - [Missing Required Tokens](#missing-required-tokens)
+    - [Duplicate Instruction IDs](#duplicate-instruction-ids)
+    - [Unbalanced Cypilot Markers in Code](#unbalanced-cypilot-markers-in-code)
+    - [Empty Cypilot Block in Code](#empty-cypilot-block-in-code)
+  - [Consolidated Validation Checklist](#consolidated-validation-checklist)
+    - [Structure (S)](#structure-s)
+    - [Keyword Usage (K)](#keyword-usage-k)
+    - [Clarity (CL)](#clarity-cl)
+    - [Completeness (CO)](#completeness-co)
+    - [Code Traceability (CT)](#code-traceability-ct)
+    - [Final (F)](#final-f)
+  - [References](#references)
 
 ---
 
@@ -315,17 +342,15 @@ Goal: Create new dashboard
 
 ```markdown
 Real implementation:
-<!-- cpt-begin cpt-myproject-spec-x-flow-y:p1:inst-real -->
 Actual workflow step
-<!-- cpt-end   cpt-myproject-spec-x-flow-y:p1:inst-real -->
 
 Documentation example (excluded from validation):
 <!-- !no-cpt-begin -->
-```rust
+\`\`\`rust
 // cpt-begin cpt-example-spec-z-algo-w:p1:inst-example
 example_code();
 // cpt-end   cpt-example-spec-z-algo-w:p1:inst-example
-```
+\`\`\`
 <!-- !no-cpt-end -->
 ```
 

@@ -1,13 +1,9 @@
-<!-- cpt:#:design -->
-# Technical Design: Cypilot
+# Technical Design — Cypilot
 
-<!-- cpt:##:architecture-overview -->
 ## 1. Architecture Overview
 
-<!-- cpt:###:architectural-vision -->
-### Architectural Vision
+### 1.1 Architectural Vision
 
-<!-- cpt:architectural-vision-body -->
 Cypilot employs a **layered architecture with plugin-based extensibility** to provide a technology-agnostic methodology framework. The core methodology layer defines universal workflows and validation rules, while the adapter layer enables project-specific customization without modifying core specifications. This separation ensures that Cypilot remains compatible with any technology stack while maintaining consistent design and validation patterns across all projects.
 
 In this design, "Cypilot" means **Framework for Documentation and Development** (workflow-centered).
@@ -17,325 +13,195 @@ The architecture follows a **flow-driven approach** where users may start from d
 Once created, design artifacts become the authoritative traceability source. The validation layer uses a **deterministic gate pattern** where automated validators catch structural issues before expensive manual review, ensuring quality while maximizing efficiency.
 
 AI agent integration is achieved through machine-readable specifications (AGENTS.md navigation, workflow files, requirements) and a skills-based tooling system. The WHEN clause pattern in AGENTS.md files creates a discoverable navigation system where AI agents can autonomously determine which specifications to follow based on the current workflow context.
-<!-- cpt:architectural-vision-body -->
-<!-- cpt:###:architectural-vision -->
 
-<!-- cpt:###:architecture-drivers -->
-### Architecture drivers
+### 1.2 Architecture Drivers
 
-<!-- cpt:####:prd-requirements -->
 #### Product requirements
 
-<!-- cpt:fr-title repeat="many" -->
 ##### FR-001 Workflow-Driven Development
 
-<!-- cpt:id-ref:fr has="priority,task" -->
 - [x] `p1` - `cpt-cypilot-fr-workflow-execution`
-<!-- cpt:id-ref:fr -->
 
 **Solution**: Implement operation/validation workflows as Markdown files in `workflows/*.md`, executed under [`requirements/execution-protocol.md`](../requirements/execution-protocol.md); drive deterministic tool entrypoint via `python3 skills/cypilot/scripts/cypilot.py <subcommand>`.
-<!-- cpt:fr-title repeat="many" -->
 
-<!-- cpt:fr-title repeat="many" -->
 ##### FR-002 Artifact Structure Validation
 
-<!-- cpt:id-ref:fr has="priority,task" -->
 - [x] `p1` - `cpt-cypilot-fr-validation`
-<!-- cpt:id-ref:fr -->
 
 **Solution**: Implement validators in `skills/cypilot/scripts/cypilot/validation/**`; expose via `python3 skills/cypilot/scripts/cypilot.py validate` with JSON output.
-<!-- cpt:fr-title repeat="many" -->
 
-<!-- cpt:fr-title repeat="many" -->
 ##### FR-003 Adapter Configuration System
 
-<!-- cpt:id-ref:fr has="priority,task" -->
 - [x] `p1` - `cpt-cypilot-fr-adapter-config`
-<!-- cpt:id-ref:fr -->
 
 **Solution**: Implement adapter discovery via `adapter-info`; apply adapter rules from `{project-root}/.cypilot-adapter/AGENTS.md` + `{project-root}/.cypilot-adapter/specs/*.md`.
-<!-- cpt:fr-title repeat="many" -->
 
-<!-- cpt:fr-title repeat="many" -->
 ##### FR-004 Adaptive Design Bootstrapping
 
-<!-- cpt:id-ref:fr has="priority,task" -->
 - [x] `p1` - `cpt-cypilot-fr-design-first`
-<!-- cpt:id-ref:fr -->
 
 **Solution**: Enforce prerequisites-first in workflow specs + execution protocol.
-<!-- cpt:fr-title repeat="many" -->
 
-<!-- cpt:fr-title repeat="many" -->
 ##### FR-005 Traceability Management
 
-<!-- cpt:id-ref:fr has="priority,task" -->
 - [x] `p1` - `cpt-cypilot-fr-traceability`
-<!-- cpt:id-ref:fr -->
 
 **Solution**: Implement ID scanning via `scan-ids`, `where-defined`, `where-used` subcommands; code traceability via `@cpt-*` tags.
-<!-- cpt:fr-title repeat="many" -->
 
-<!-- cpt:fr-title repeat="many" -->
 ##### FR-006 Quickstart Guides
 
-<!-- cpt:id-ref:fr has="priority,task" -->
 - [x] `p2` - `cpt-cypilot-fr-interactive-docs`
-<!-- cpt:id-ref:fr -->
 
 **Solution**: Provide CLI/agent-facing onboarding via `QUICKSTART.md` + [`workflows/README.md`](../workflows/README.md).
-<!-- cpt:fr-title repeat="many" -->
 
-<!-- cpt:fr-title repeat="many" -->
 ##### FR-007 Artifact Templates
 
-<!-- cpt:id-ref:fr has="priority,task" -->
 - [x] `p1` - `cpt-cypilot-fr-artifact-templates`
-<!-- cpt:id-ref:fr -->
 
 **Solution**: Provide templates in `kits/sdlc/artifacts/{KIND}/template.md`; workflows load kit packages via `kit` attribute in the artifacts registry.
-<!-- cpt:fr-title repeat="many" -->
 
-<!-- cpt:fr-title repeat="many" -->
 ##### FR-008 Artifact Examples
 
-<!-- cpt:id-ref:fr has="priority,task" -->
 - [x] `p2` - `cpt-cypilot-fr-artifact-examples`
-<!-- cpt:id-ref:fr -->
 
 **Solution**: Provide canonical examples in `kits/sdlc/artifacts/{KIND}/examples/example.md`.
-<!-- cpt:fr-title repeat="many" -->
 
-<!-- cpt:fr-title repeat="many" -->
 ##### FR-009 ADR Management
 
-<!-- cpt:id-ref:fr has="priority,task" -->
 - [x] `p2` - `cpt-cypilot-fr-arch-decision-mgmt`
-<!-- cpt:id-ref:fr -->
 
 **Solution**: Store ADRs in adapter-defined location; validate via `kits/sdlc/artifacts/ADR/` kit package.
-<!-- cpt:fr-title repeat="many" -->
 
-<!-- cpt:fr-title repeat="many" -->
 ##### FR-010 PRD Management
 
-<!-- cpt:id-ref:fr has="priority,task" -->
 - [x] `p1` - `cpt-cypilot-fr-prd-mgmt`
-<!-- cpt:id-ref:fr -->
 
 **Solution**: Create/update PRD artifact (path defined by adapter registry) via [`workflows/generate.md`](../workflows/generate.md) using kit guidance from `kits/sdlc/artifacts/PRD/`; enforce stable IDs.
-<!-- cpt:fr-title repeat="many" -->
 
-<!-- cpt:fr-title repeat="many" -->
 ##### FR-011 Overall Design Management
 
-<!-- cpt:id-ref:fr has="priority,task" -->
 - [x] `p1` - `cpt-cypilot-fr-overall-design-mgmt`
-<!-- cpt:id-ref:fr -->
 
 **Solution**: Create/update Overall Design artifact (path defined by adapter registry) via [`workflows/generate.md`](../workflows/generate.md) using rules from `kits/sdlc/artifacts/DESIGN/`.
-<!-- cpt:fr-title repeat="many" -->
 
-<!-- cpt:fr-title repeat="many" -->
 ##### FR-012 Spec Manifest Management
 
-<!-- cpt:id-ref:fr has="priority,task" -->
 - [x] `p2` - `cpt-cypilot-fr-spec-manifest-mgmt`
-<!-- cpt:id-ref:fr -->
 
-**Solution**: Create/update Spec Manifest artifact (path defined by adapter registry) via [`workflows/generate.md`](../workflows/generate.md) using rules from `kits/sdlc/artifacts/DECOMPOSITION/`.
-<!-- cpt:fr-title repeat="many" -->
+**Solution**: Create/update DECOMPOSITION artifact (path defined by adapter registry) via [`workflows/generate.md`](../workflows/generate.md) using rules from `kits/sdlc/artifacts/DECOMPOSITION/`.
 
-<!-- cpt:fr-title repeat="many" -->
 ##### FR-013 Spec Design Management
 
-<!-- cpt:id-ref:fr has="priority,task" -->
 - [x] `p1` - `cpt-cypilot-fr-spec-design-mgmt`
-<!-- cpt:id-ref:fr -->
 
-**Solution**: Create/update Spec Design artifact (path defined by adapter registry) via [`workflows/generate.md`](../workflows/generate.md) using rules from `kits/sdlc/artifacts/SPEC/`.
-<!-- cpt:fr-title repeat="many" -->
+**Solution**: Create/update FEATURE artifact (path defined by adapter registry) via [`workflows/generate.md`](../workflows/generate.md) using rules from `kits/sdlc/artifacts/FEATURE/`.
 
-<!-- cpt:fr-title repeat="many" -->
 ##### FR-014 Spec Lifecycle Management
 
-<!-- cpt:id-ref:fr has="priority,task" -->
 - [x] `p2` - `cpt-cypilot-fr-spec-lifecycle`
-<!-- cpt:id-ref:fr -->
 
 **Solution**: Encode lifecycle via manifest status fields + validation gates.
-<!-- cpt:fr-title repeat="many" -->
 
-<!-- cpt:fr-title repeat="many" -->
 ##### FR-015 Code Generation from Design
 
-<!-- cpt:id-ref:fr has="priority,task" -->
 - [x] `p2` - `cpt-cypilot-fr-code-generation`
-<!-- cpt:id-ref:fr -->
 
 **Solution**: Implement "design-to-code" workflow via [`workflows/generate.md`](../workflows/generate.md) with adapter-defined code generation rules.
-<!-- cpt:fr-title repeat="many" -->
 
-<!-- cpt:fr-title repeat="many" -->
 ##### FR-016 Brownfield Support
 
-<!-- cpt:id-ref:fr has="priority,task" -->
 - [x] `p2` - `cpt-cypilot-fr-brownfield-support`
-<!-- cpt:id-ref:fr -->
 
 **Solution**: Support legacy projects via adapter discovery and auto-detection.
-<!-- cpt:fr-title repeat="many" -->
 
-<!-- cpt:fr-title repeat="many" -->
 ##### FR-017 Cypilot DSL (CDSL)
 
-<!-- cpt:id-ref:fr has="priority,task" -->
 - [x] `p1` - `cpt-cypilot-fr-cdsl`
-<!-- cpt:id-ref:fr -->
 
-**Solution**: Use Cypilot DSL (CDSL) instruction markers in spec design with `ph-N`/`inst-*` tokens.
-<!-- cpt:fr-title repeat="many" -->
+**Solution**: Use Cypilot DSL (CDSL) instruction markers in FEATURE artifacts with `pN`/`inst-*` tokens.
 
-<!-- cpt:fr-title repeat="many" -->
 ##### FR-018 IDE Integration and Tooling
 
-<!-- cpt:id-ref:fr has="priority,task" -->
 - [ ] `p3` - `cpt-cypilot-fr-ide-integration`
-<!-- cpt:id-ref:fr -->
 
 **Solution**: (Planned) VS Code extension with click-to-navigate for Cypilot IDs, inline validation, and autocomplete. Currently not implemented.
-<!-- cpt:fr-title repeat="many" -->
 
-<!-- cpt:fr-title repeat="many" -->
 ##### FR-019 Multi-Agent IDE Integration
 
-<!-- cpt:id-ref:fr has="priority,task" -->
 - [x] `p2` - `cpt-cypilot-fr-multi-agent-integration`
-<!-- cpt:id-ref:fr -->
 
 **Solution**: Generate agent-specific workflow proxies for Claude, Cursor, Windsurf, Copilot.
-<!-- cpt:fr-title repeat="many" -->
 
-<!-- cpt:fr-title repeat="many" -->
 ##### FR-020 Extensible Kit Package System
 
-<!-- cpt:id-ref:fr has="priority,task" -->
 - [x] `p1` - `cpt-cypilot-fr-rules-packages`
-<!-- cpt:id-ref:fr -->
 
 **Solution**: Support kit packages under `kits/` with `template.md`, `checklist.md`, `rules.md`.
-<!-- cpt:fr-title repeat="many" -->
 
-<!-- cpt:fr-title repeat="many" -->
 ##### FR-021 Template Quality Assurance
 
-<!-- cpt:id-ref:fr has="priority,task" -->
 - [x] `p2` - `cpt-cypilot-fr-template-qa`
-<!-- cpt:id-ref:fr -->
 
 **Solution**: Provide `self-check` command for template/example validation.
-<!-- cpt:fr-title repeat="many" -->
 
-<!-- cpt:fr-title repeat="many" -->
 ##### FR-022 Cross-Artifact Validation
 
-<!-- cpt:id-ref:fr has="priority,task" -->
 - [x] `p1` - `cpt-cypilot-fr-cross-artifact-validation`
-<!-- cpt:id-ref:fr -->
 
 **Solution**: Validate `covered_by` references, ID definitions, and checked consistency.
-<!-- cpt:fr-title repeat="many" -->
 
-<!-- cpt:fr-title repeat="many" -->
 ##### FR-023 Hierarchical System Registry
 
-<!-- cpt:id-ref:fr has="priority,task" -->
 - [x] `p2` - `cpt-cypilot-fr-hierarchical-registry`
-<!-- cpt:id-ref:fr -->
 
 **Solution**: Support `system`, `parent`, `artifacts`, `codebase` in registry; expose via `adapter-info`.
-<!-- cpt:fr-title repeat="many" -->
 
-<!-- cpt:nfr-title repeat="many" -->
 ##### NFR-001 Validation Performance
 
-<!-- cpt:id-ref:nfr has="priority,task" -->
 - [x] `p1` - `cpt-cypilot-nfr-validation-performance`
-<!-- cpt:id-ref:nfr -->
 
 **Solution**: Use regex-based parsing, scoped filesystem scanning, registry-driven control.
-<!-- cpt:nfr-title -->
 
-<!-- cpt:nfr-title repeat="many" -->
 ##### NFR-002 Security Integrity
 
-<!-- cpt:id-ref:nfr has="priority,task" -->
 - [x] `p1` - `cpt-cypilot-nfr-security-integrity`
-<!-- cpt:id-ref:nfr -->
 
 **Solution**: Enforce strict parsing and treat unsafe behavior as hard failure.
-<!-- cpt:nfr-title -->
 
-<!-- cpt:nfr-title repeat="many" -->
 ##### NFR-003 Reliability Recoverability
 
-<!-- cpt:id-ref:nfr has="priority,task" -->
 - [x] `p1` - `cpt-cypilot-nfr-reliability-recoverability`
-<!-- cpt:id-ref:nfr -->
 
 **Solution**: Include paths/lines and deterministic remediation guidance.
-<!-- cpt:nfr-title -->
 
-<!-- cpt:nfr-title repeat="many" -->
 ##### NFR-004 Adoption Usability
 
-<!-- cpt:id-ref:nfr has="priority,task" -->
 - [x] `p2` - `cpt-cypilot-nfr-adoption-usability`
-<!-- cpt:id-ref:nfr -->
 
 **Solution**: Templates and validation messages minimize required context.
-<!-- cpt:nfr-title -->
-<!-- cpt:####:prd-requirements -->
 
-<!-- cpt:####:adr-records -->
 #### Architecture Decisions Records
 
-<!-- cpt:adr-title -->
 ##### ADR-001 Initial Architecture
 
-<!-- cpt:id-ref:adr -->
 `cpt-cypilot-adr-initial-architecture-v1`
-<!-- cpt:id-ref:adr -->
 
 Establishes the initial layered architecture and repository structure for Cypilot, including the separation between methodology core, adapter-owned specs, workflows, and deterministic validation.
-<!-- cpt:adr-title -->
 
-<!-- cpt:adr-title -->
 ##### ADR-002 Adaptive Framework for Documentation and Development
 
-<!-- cpt:id-ref:adr has="priority,task" -->
-- [x] `p1` - `cpt-cypilot-adr-adaptive-cypilot-flow-driven-development-v1`
-<!-- cpt:id-ref:adr -->
+- `cpt-cypilot-adr-adaptive-cypilot-flow-driven-development-v1`
 
 Formalizes the "adaptive"/flow-driven execution model where workflows validate prerequisites, bootstrap missing artifacts, and then continue, rather than failing early.
-<!-- cpt:adr-title -->
 
-<!-- cpt:adr-title -->
 ##### ADR-003 Template-Centric Architecture
 
-<!-- cpt:id-ref:adr has="priority,task" -->
-- [x] `p1` - `cpt-cypilot-adr-template-centric-architecture-v1`
-<!-- cpt:id-ref:adr -->
+- `cpt-cypilot-adr-template-centric-architecture-v1`
 
 Introduces template-centric architecture where templates become self-contained packages with workflows, checklists, and requirements.
-<!-- cpt:adr-title -->
-<!-- cpt:####:adr-records -->
-<!-- cpt:###:architecture-drivers -->
 
-<!-- cpt:###:architecture-layers -->
-### Architecture Layers
+### 1.3 Architecture Layers
 
-<!-- cpt:table:architecture-layers -->
 | Layer | Responsibility | Technology |
 |-------|---------------|------------|
 | Methodology Core Layer | Defines universal Cypilot content requirements, workflow specifications, and base AGENTS.md navigation rules. Technology-agnostic and stable across all projects. | Markdown (specifications), Python 3 standard library (tooling) |
@@ -343,182 +209,98 @@ Introduces template-centric architecture where templates become self-contained p
 | Validation Layer | Deterministic validators implemented in `cypilot` skill for structural validation. Includes ID format checking, cross-reference validation, placeholder detection, and code traceability verification. | Python 3 standard library (validators), JSON (reports) |
 | Workflow Layer | Executable procedures for creating and validating artifacts. Operation workflows (interactive) for artifact creation/update, validation workflows (automated) for quality checks. Cypilot DSL (CDSL) provides plain-English algorithm descriptions. | Markdown (workflows), Cypilot DSL (CDSL) (algorithms) |
 | AI Integration Layer | WHEN clause navigation system, skills-based tooling, and deterministic gate pattern for AI agent execution. Enables autonomous workflow execution with minimal human intervention. | Markdown (AGENTS.md), Python 3 (skills), JSON (skill I/O) |
-<!-- cpt:table:architecture-layers -->
-<!-- cpt:###:architecture-layers -->
-<!-- cpt:##:architecture-overview -->
 
 ---
 
-<!-- cpt:##:principles-and-constraints -->
 ## 2. Principles & Constraints
 
-<!-- cpt:###:principles -->
-### 2.1: Design Principles
+### 2.1 Design Principles
 
-<!-- cpt:####:principle-title repeat="many" -->
 #### Technology-agnostic core
 
-<!-- cpt:id:principle has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
 - [x] `p1` - **ID**: `cpt-cypilot-principle-tech-agnostic`
 
-<!-- cpt:paragraph:principle-body -->
 Keep the Cypilot core methodology and tooling independent of any particular programming language or framework. Project-specific technology choices belong in the adapter layer.
-<!-- cpt:paragraph:principle-body -->
-<!-- cpt:id:principle -->
-<!-- cpt:####:principle-title -->
 
-<!-- cpt:####:principle-title repeat="many" -->
 #### Design before code
 
-<!-- cpt:id:principle has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
 - [x] `p1` - **ID**: `cpt-cypilot-principle-design-first`
 
-<!-- cpt:paragraph:principle-body -->
 Treat validated design artifacts as the single source of truth. Workflows must validate prerequisites before proceeding, and bootstrap missing prerequisites when appropriate.
-<!-- cpt:paragraph:principle-body -->
-<!-- cpt:id:principle -->
-<!-- cpt:####:principle-title -->
 
-<!-- cpt:####:principle-title repeat="many" -->
 #### Machine-readable specifications
 
-<!-- cpt:id:principle has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
 - [x] `p1` - **ID**: `cpt-cypilot-principle-machine-readable`
 
-<!-- cpt:paragraph:principle-body -->
 Prefer formats and conventions that can be parsed deterministically (stable IDs, structured headings, tables, payload blocks) so validation and traceability can be automated.
-<!-- cpt:paragraph:principle-body -->
-<!-- cpt:id:principle -->
-<!-- cpt:####:principle-title -->
 
-<!-- cpt:####:principle-title repeat="many" -->
 #### Deterministic gate
 
-<!-- cpt:id:principle has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
 - [x] `p1` - **ID**: `cpt-cypilot-principle-deterministic-gate`
 
-<!-- cpt:paragraph:principle-body -->
 Always run deterministic validation before manual review or implementation steps. Treat validator output as authoritative for structural correctness.
-<!-- cpt:paragraph:principle-body -->
-<!-- cpt:id:principle -->
-<!-- cpt:####:principle-title -->
 
-<!-- cpt:####:principle-title repeat="many" -->
 #### Traceability by design
 
-<!-- cpt:id:principle has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
 - [x] `p1` - **ID**: `cpt-cypilot-principle-traceability`
 
-<!-- cpt:paragraph:principle-body -->
 Use stable IDs and cross-references across artifacts (and optional code tags) to support impact analysis and auditing from PRD to design to implementation.
-<!-- cpt:paragraph:principle-body -->
-<!-- cpt:id:principle -->
-<!-- cpt:####:principle-title -->
 
-<!-- cpt:####:principle-title repeat="many" -->
 #### Prefer stable, machine-readable, text-based artifacts
 
-<!-- cpt:id:principle has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
 - [x] `p1` - **ID**: `cpt-cypilot-principle-machine-readable-artifacts`
 
-<!-- cpt:paragraph:principle-body -->
 Keep normative artifacts as stable, plain-text sources of truth that can be parsed deterministically. Prefer Markdown + structured conventions (IDs, tables, payload blocks) so both humans and tools can reliably consume and validate the content.
-<!-- cpt:paragraph:principle-body -->
-<!-- cpt:id:principle -->
-<!-- cpt:####:principle-title -->
 
-<!-- cpt:####:principle-title repeat="many" -->
 #### Prefer variability isolation via adapters over core changes
 
-<!-- cpt:id:principle has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
 - [x] `p1` - **ID**: `cpt-cypilot-principle-adapter-variability-boundary`
 
-<!-- cpt:paragraph:principle-body -->
 Keep project-specific variability (tech stack, domain model format, API contracts, conventions) in the adapter layer. Avoid modifying core methodology/specs for project needs; instead, use Extends + adapter specs so the core remains generic and reusable.
-<!-- cpt:paragraph:principle-body -->
-<!-- cpt:id:principle -->
-<!-- cpt:####:principle-title -->
 
-<!-- cpt:####:principle-title repeat="many" -->
 #### Prefer composable CLI+JSON interfaces
 
-<!-- cpt:id:principle has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
 - [x] `p1` - **ID**: `cpt-cypilot-principle-cli-json-composability`
 
-<!-- cpt:paragraph:principle-body -->
 Expose deterministic tooling via a CLI with stable JSON output for composition in CI/CD and IDE integrations. Prefer small, single-purpose commands that can be chained and automated.
-<!-- cpt:paragraph:principle-body -->
-<!-- cpt:id:principle -->
-<!-- cpt:####:principle-title -->
-<!-- cpt:###:principles -->
 
-<!-- cpt:###:constraints -->
-### 2.2: Constraints
+### 2.2 Constraints
 
-<!-- cpt:####:constraint-title repeat="many" -->
 #### Constraint 1: Python Standard Library Only
 
-<!-- cpt:id:constraint has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
 - [x] `p1` - **ID**: `cpt-cypilot-constraint-stdlib-only`
 
-<!-- cpt:paragraph:constraint-body -->
 The `cypilot` validation tool MUST use only Python 3.6+ standard library. No external dependencies (pip packages) are permitted in core tooling. This constraint ensures Cypilot can run anywhere Python is available without complex installation or dependency management. Adapters may use any dependencies for project-specific code generation.
-<!-- cpt:paragraph:constraint-body -->
-<!-- cpt:id:constraint -->
-<!-- cpt:####:constraint-title -->
 
-<!-- cpt:####:constraint-title repeat="many" -->
 #### Constraint 2: Markdown-Only Artifacts
 
-<!-- cpt:id:constraint has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
 - [x] `p1` - **ID**: `cpt-cypilot-constraint-markdown`
 
-<!-- cpt:paragraph:constraint-body -->
 All Cypilot artifacts (PRD, Overall Design, ADRs, Spec Manifest, etc.) MUST be plain Markdown. No binary formats, proprietary tools, or custom file formats permitted. This constraint ensures artifacts are version-controllable, diffable, and editable in any text editor. Domain models and API contracts referenced by artifacts may be in any format (specified by adapter).
-<!-- cpt:paragraph:constraint-body -->
-<!-- cpt:id:constraint -->
-<!-- cpt:####:constraint-title -->
 
-<!-- cpt:####:constraint-title repeat="many" -->
 #### Constraint 3: Git-Based Workflow
 
-<!-- cpt:id:constraint has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
 - [x] `p1` - **ID**: `cpt-cypilot-constraint-git`
 
-<!-- cpt:paragraph:constraint-body -->
 Cypilot assumes Git version control for artifact history and collaboration. Change tracking relies on Git commits and diffs. Spec branches and pull requests are the collaboration model. This constraint aligns Cypilot with modern development practices but requires Git knowledge from users.
-<!-- cpt:paragraph:constraint-body -->
-<!-- cpt:id:constraint -->
-<!-- cpt:####:constraint-title -->
 
-<!-- cpt:####:constraint-title repeat="many" -->
 #### Constraint 4: No Forced Tool Dependencies
 
-<!-- cpt:id:constraint has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
 - [x] `p1` - **ID**: `cpt-cypilot-constraint-no-forced-tools`
 
-<!-- cpt:paragraph:constraint-body -->
 Cypilot core MUST NOT require specific IDEs, editors, or development tools. Validation MUST run from command line without GUI tools. IDE integrations are optional enhancements, not requirements. This constraint ensures Cypilot works in any development environment (local, remote, CI/CD, etc.).
-<!-- cpt:paragraph:constraint-body -->
-<!-- cpt:id:constraint -->
-<!-- cpt:####:constraint-title -->
-<!-- cpt:###:constraints -->
-<!-- cpt:##:principles-and-constraints -->
 
 ---
 
-<!-- cpt:##:technical-architecture -->
 ## 3. Technical Architecture
 
-<!-- cpt:###:domain-model -->
-### 3.1: Domain Model
+### 3.1 Domain Model
 
-<!-- cpt:paragraph:domain-model -->
 **Technology**: Markdown-based artifacts (not code-level types) + JSON Schema (machine-readable contracts)
 
 **Specifications**:
 - Kit packages (templates, checklists, rules, examples): [`kits/sdlc/artifacts/{KIND}/`](../kits/sdlc/artifacts/)
-- Template syntax: [`requirements/template.md`](../requirements/template.md)
+- Artifact identifiers: [`requirements/identifiers.md`](../requirements/identifiers.md)
 - Rules format: [`requirements/rules-format.md`](../requirements/rules-format.md)
 - Cypilot DSL (CDSL) (behavior language): [`requirements/CDSL.md`](../requirements/CDSL.md)
 - Artifact registry: [`requirements/artifacts-registry.md`](../requirements/artifacts-registry.md)
@@ -538,8 +320,8 @@ Cypilot core MUST NOT require specific IDEs, editors, or development tools. Vali
 - PRD: Vision, Actors, Capabilities, Use Cases
 - Overall Design: Architecture, Requirements, Technical Details
 - ADRs: MADR-formatted decision records
-- Spec Manifest: Spec list with status tracking
-- Spec Design: Spec specifications with flows, algorithms, states
+- DECOMPOSITION: Feature list with status tracking and dependency ordering
+- FEATURE: Feature details with flows, algorithms, states, and Definition of Done
 
 **IDs** (format: `cpt-{system}-{kind}-{slug}`):
 
@@ -561,14 +343,14 @@ Cypilot core MUST NOT require specific IDEs, editors, or development tools. Vali
 - ADR: `cpt-{system}-adr-{slug}`
 
 *DECOMPOSITION Artifact*:
-- Spec: `cpt-{system}-spec-{slug}`
+- Feature entry: `cpt-{system}-feature-{slug}`
 
-*SPEC Artifact* (nested under spec):
-- Flow: `cpt-{system}-spec-{spec}-flow-{slug}`
-- Algorithm: `cpt-{system}-spec-{spec}-algo-{slug}`
-- State: `cpt-{system}-spec-{spec}-state-{slug}`
-- Spec Requirement: `cpt-{system}-spec-{spec}-req-{slug}`
-- Spec Context: `cpt-{system}-spec-{spec}-speccontext-{slug}`
+*FEATURE Artifact*:
+- Flow: `cpt-{system}-flow-{slug}`
+- Algorithm: `cpt-{system}-algo-{slug}`
+- State: `cpt-{system}-state-{slug}`
+- Definition of Done: `cpt-{system}-dod-{slug}`
+- Feature Context: `cpt-{system}-featurecontext-{slug}`
 
 All IDs MAY be versioned by appending a `-vN` suffix (e.g., `cpt-{system}-adr-{slug}-v2`).
 
@@ -579,20 +361,16 @@ All IDs MAY be versioned by appending a `-vN` suffix (e.g., `cpt-{system}-adr-{s
 **Relationships**:
 - PRD defines Actors, Use Cases, FRs, and NFRs
 - Overall Design references FRs/NFRs/ADRs and defines Principles, Constraints, Components, Sequences
-- Spec Manifest lists Specs and references design elements
-- Spec Design defines Flows, Algorithms, States for a specific Spec
+- DECOMPOSITION lists Features and references design elements
+- FEATURE defines Flows, Algorithms, States, and DoD for a specific Feature
 - ADRs are referenced by DESIGN and document architectural decisions
 
 **CRITICAL**: Domain model is expressed in Markdown artifacts, not programming language types. Validation checks artifacts against requirements files, not type compilation.
-<!-- cpt:paragraph:domain-model -->
-<!-- cpt:###:domain-model -->
 
-<!-- cpt:###:component-model -->
-### 3.2: Component Model
+### 3.2 Component Model
 
 The Cypilot system consists of 6 core components + 1 external (Project) with the following interactions:
 
-<!-- cpt:code:component-model -->
 ```mermaid
 flowchart TB
     %% Entry point
@@ -638,108 +416,71 @@ flowchart TB
 ```
 
 **Legend**: `==>` invokes (runtime call) | `-->` reads (data flow) | `-.->` depends (design-time)
-<!-- cpt:code:component-model -->
 
 **Component Descriptions**:
 
-<!-- cpt:####:component-title repeat="many" -->
 #### 1. Methodology Core
 
-<!-- cpt:id:component has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
 - [x] `p1` - **ID**: `cpt-cypilot-component-methodology-core`
 
-<!-- cpt:list:component-payload -->
 - Contains universal Cypilot specifications (requirements files, workflow files, core AGENTS.md)
 - Provides workflow templates (workflows/*.md)
 - Technology-agnostic and stable across all projects
 - Embedded in Project: copied or linked into project directory
 - Location: configurable via adapter (typically `{project}/requirements/`, `{project}/workflows/`)
-<!-- cpt:list:component-payload -->
-<!-- cpt:id:component -->
-<!-- cpt:####:component-title -->
 
-<!-- cpt:####:component-title repeat="many" -->
 #### 2. Adapter System
 
-<!-- cpt:id:component has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
 - [x] `p1` - **ID**: `cpt-cypilot-component-adapter-system`
 
-<!-- cpt:list:component-payload -->
 - Project-specific customization layer, embedded in Project
 - Adapter AGENTS.md extends core AGENTS.md via **Extends** mechanism
 - Spec files define tech stack, domain model format, API contracts, conventions
 - Adapter-owned `artifacts.json` defines artifact discovery rules and can register project-specific kit packages
 - Auto-detection capability for existing codebases
 - Location: `<project>/.cypilot-adapter/`
-<!-- cpt:list:component-payload -->
-<!-- cpt:id:component -->
-<!-- cpt:####:component-title -->
 
-<!-- cpt:####:component-title repeat="many" -->
 #### 3. Kit Packages
 
-<!-- cpt:id:component has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
 - [x] `p1` - **ID**: `cpt-cypilot-component-rules-packages`
 
-<!-- cpt:list:component-payload -->
 - Template definitions for each artifact kind (`template.md`)
 - Semantic validation checklists (`checklist.md`)
 - Generation guidance (`rules.md`)
 - Canonical examples (`kits/sdlc/artifacts/{KIND}/examples/example.md`)
 - **Extensible**: Projects can register custom kit packages via adapter
 - Location: Cypilot distribution `kits/sdlc/artifacts/{KIND}/` + project-specific paths
-<!-- cpt:list:component-payload -->
-<!-- cpt:id:component -->
-<!-- cpt:####:component-title -->
 
-<!-- cpt:####:component-title repeat="many" -->
 #### 4. Cypilot Skill
 
-<!-- cpt:id:component has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
 - [x] `p1` - **ID**: `cpt-cypilot-component-cypilot-skill`
 
-<!-- cpt:list:component-payload -->
 - CLI tool providing all deterministic operations (`skills/cypilot/scripts/cypilot.py`)
 - **Validation**: Structural checks, ID formats, cross-references, placeholders
 - **Traceability**: ID scanning (`list-ids`, `where-defined`, `where-used`), code tags (`@cpt-*`)
 - **Init**: Initializes adapter (`init`), generates workflow and skill proxies (`agents`)
 - Reads artifacts via Adapter System, parses by Kit Packages
 - Output is JSON for machine consumption
-<!-- cpt:list:component-payload -->
-<!-- cpt:id:component -->
-<!-- cpt:####:component-title -->
 
-<!-- cpt:####:component-title repeat="many" -->
 #### 5. Workflows
 
-<!-- cpt:id:component has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
 - [x] `p1` - **ID**: `cpt-cypilot-component-workflows`
 
-<!-- cpt:list:component-payload -->
 - Operation workflows: Interactive artifact creation/update
 - Validation workflows: Automated quality checks
 - CDSL processing: Plain-English algorithms with instruction markers
 - Question-answer flow with context-based proposals
 - Execution protocol: Prerequisites check → Specification reading → Interactive input → Content generation → Validation
-<!-- cpt:list:component-payload -->
-<!-- cpt:id:component -->
-<!-- cpt:####:component-title -->
 
-<!-- cpt:####:component-title repeat="many" -->
 #### 6. Agent
 
-<!-- cpt:id:component has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
 - [x] `p1` - **ID**: `cpt-cypilot-component-agent`
 
-<!-- cpt:list:component-payload -->
 - LLM + system prompts (AGENTS.md navigation rules)
 - WHEN clause rules determine which specs to follow
 - Skills system: Claude-compatible tools (cypilot skill, future extensions)
 - Deterministic gate pattern: Automated validators run before manual review
 - Machine-readable specifications enable autonomous execution
-<!-- cpt:list:component-payload -->
-<!-- cpt:id:component -->
-<!-- cpt:####:component-title -->
 
 #### 7. Project (External)
 
@@ -789,12 +530,9 @@ Design contract:
   - Deterministic validation of artifacts and cross-references.
   - Repository-wide search and traceability queries (`list-ids`, `where-defined`, `where-used`).
   - Adapter discovery (`adapter-info`).
-<!-- cpt:###:component-model -->
 
-<!-- cpt:###:api-contracts -->
-### 3.3: API Contracts
+### 3.3 API Contracts
 
-<!-- cpt:paragraph:api-contracts -->
 **Technology**: CLISPEC for command-line interface (cypilot tool)
 
 **Location**:
@@ -823,19 +561,21 @@ Design contract:
 - `self-check [--kit <id>]`: Validate examples against templates
 
 **CRITICAL**: API contracts are CLISPEC format (command-line interface specification), not REST/HTTP. All commands output JSON for machine consumption.
-<!-- cpt:paragraph:api-contracts -->
-<!-- cpt:###:api-contracts -->
 
-<!-- cpt:###:interactions -->
-### 3.4: Interactions & Sequences
+### 3.4 Internal Dependencies
 
-<!-- cpt:####:sequence-title repeat="many" -->
+None.
+
+### 3.5 External Dependencies
+
+None.
+
+### 3.6 Interactions & Sequences
+
 #### Resolve user intent to a workflow (operation + deterministic gate)
 
-<!-- cpt:id:seq has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
 - [x] `p1` - **ID**: `cpt-cypilot-seq-intent-to-workflow`
 
-<!-- cpt:code:sequences -->
 ```mermaid
 sequenceDiagram
     participant User
@@ -860,9 +600,7 @@ sequenceDiagram
     Cypilot-->>Agent: JSON report (PASS/FAIL)
     Agent-->>User: Result + issues (if any)
 ```
-<!-- cpt:code:sequences -->
 
-<!-- cpt:paragraph:sequence-body -->
 **Components**: Agent, Workflows, Kit Packages, Cypilot Skill, Project
 
 **Failure modes / error paths**:
@@ -871,17 +609,11 @@ sequenceDiagram
 - If a required workflow or kit file is missing or unreadable, the Agent reports the missing dependency and does not continue the workflow.
 
 **Actors**: `cpt-cypilot-actor-product-manager`, `cpt-cypilot-actor-architect`, `cpt-cypilot-actor-ai-assistant`, `cpt-cypilot-actor-cypilot-tool`
-<!-- cpt:paragraph:sequence-body -->
-<!-- cpt:id:seq -->
-<!-- cpt:####:sequence-title -->
 
-<!-- cpt:####:sequence-title repeat="many" -->
 #### Discover adapter configuration (before applying project-specific conventions)
 
-<!-- cpt:id:seq has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
 - [x] `p1` - **ID**: `cpt-cypilot-seq-adapter-discovery`
 
-<!-- cpt:code:sequences -->
 ```mermaid
 sequenceDiagram
     participant User
@@ -898,9 +630,7 @@ sequenceDiagram
     Cypilot-->>Agent: Adapter info (paths, capabilities)
     Agent-->>User: Proceed using adapter conventions
 ```
-<!-- cpt:code:sequences -->
 
-<!-- cpt:paragraph:sequence-body -->
 **Components**: Agent, Cypilot Skill, Project, Adapter System
 
 **Failure modes / error paths**:
@@ -909,17 +639,11 @@ sequenceDiagram
 - If the selected root is wrong, the Agent asks the user to confirm the intended project root and re-runs discovery.
 
 **Actors**: `cpt-cypilot-actor-technical-lead`, `cpt-cypilot-actor-ai-assistant`
-<!-- cpt:paragraph:sequence-body -->
-<!-- cpt:id:seq -->
-<!-- cpt:####:sequence-title -->
 
-<!-- cpt:####:sequence-title repeat="many" -->
 #### Validate overall design against requirements (deterministic validation workflow)
 
-<!-- cpt:id:seq has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
 - [x] `p1` - **ID**: `cpt-cypilot-seq-validate-overall-design`
 
-<!-- cpt:code:sequences -->
 ```mermaid
 sequenceDiagram
     participant User
@@ -936,9 +660,7 @@ sequenceDiagram
     Cypilot->>Cypilot: Validate cross-artifact references
     Cypilot-->>User: JSON report (status + errors + warnings)
 ```
-<!-- cpt:code:sequences -->
 
-<!-- cpt:paragraph:sequence-body -->
 **Components**: Cypilot Skill, Kit Packages, Project
 
 **Failure modes / error paths**:
@@ -947,17 +669,11 @@ sequenceDiagram
 - If the kit package or template cannot be loaded, validation returns `FAIL` (missing dependency) and does not attempt partial validation.
 
 **Actors**: `cpt-cypilot-actor-architect`, `cpt-cypilot-actor-cypilot-tool`
-<!-- cpt:paragraph:sequence-body -->
-<!-- cpt:id:seq -->
-<!-- cpt:####:sequence-title -->
 
-<!-- cpt:####:sequence-title repeat="many" -->
 #### Trace requirement/use case to implementation (repository-wide queries)
 
-<!-- cpt:id:seq has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
 - [x] `p1` - **ID**: `cpt-cypilot-seq-traceability-query`
 
-<!-- cpt:code:sequences -->
 ```mermaid
 sequenceDiagram
     participant User
@@ -976,9 +692,7 @@ sequenceDiagram
     PROJ-->>Cypilot: Usages list
     Cypilot-->>User: Usage list (JSON)
 ```
-<!-- cpt:code:sequences -->
 
-<!-- cpt:paragraph:sequence-body -->
 **Components**: Cypilot Skill, Adapter System, Project
 
 **Failure modes / error paths**:
@@ -987,71 +701,42 @@ sequenceDiagram
 - If code scanning is disabled or unsupported for the project, `where-used` omits code references and reports only artifact references.
 
 **Actors**: `cpt-cypilot-actor-developer`, `cpt-cypilot-actor-cypilot-tool`
-<!-- cpt:paragraph:sequence-body -->
-<!-- cpt:id:seq -->
-<!-- cpt:####:sequence-title -->
-<!-- cpt:###:interactions -->
 
-<!-- cpt:###:database -->
-### 3.5: Database schemas & tables (optional)
+### 3.7 Database schemas & tables
 
-<!-- cpt:####:db-table-title repeat="many" -->
 #### N/A
 
-<!-- cpt:id:dbtable has="priority,task" covered_by="DECOMPOSITION,SPEC" -->
 - [x] `p3` - **ID**: `cpt-cypilot-dbtable-na`
 
 Not applicable — Cypilot is a methodology framework that does not maintain its own database. Artifact data is stored in plain Markdown files and JSON configuration.
 
-<!-- cpt:table:db-table-schema -->
 | Column | Type | Description |
 |--------|------|-------------|
 | N/A | N/A | No database tables |
-<!-- cpt:table:db-table-schema -->
 
-<!-- cpt:table:db-table-example -->
 | N/A | N/A | N/A |
 |-----|-----|-----|
 | N/A | N/A | N/A |
-<!-- cpt:table:db-table-example -->
-<!-- cpt:id:dbtable -->
-<!-- cpt:####:db-table-title -->
-<!-- cpt:###:database -->
 
-<!-- cpt:###:topology -->
-### 3.6: Topology (optional)
+### 3.8 Topology
 
-<!-- cpt:id:topology has="task" -->
 **ID**: `cpt-cypilot-topology-local`
 
-<!-- cpt:free:topology-body -->
 Not applicable — Cypilot runs locally on developer machines. No cloud infrastructure, containers, or distributed deployment required. The `cypilot` CLI tool executes directly via Python interpreter.
-<!-- cpt:free:topology-body -->
-<!-- cpt:id:topology -->
-<!-- cpt:###:topology -->
 
-<!-- cpt:###:tech-stack -->
-### 3.7: Tech stack (optional)
+### 3.9 Tech stack
 
-<!-- cpt:paragraph:status -->
 **Status**: Accepted
-<!-- cpt:paragraph:status -->
 
-<!-- cpt:paragraph:tech-body -->
 - **Runtime**: Python 3.6+ standard library only
 - **Configuration**: JSON (artifacts.json, .cypilot-config.json)
 - **Documentation**: Markdown (all artifacts, workflows, specs)
 - **Version Control**: Git (assumed for artifact history)
-<!-- cpt:paragraph:tech-body -->
-<!-- cpt:###:tech-stack -->
-<!-- cpt:##:technical-architecture -->
 
 ---
 
-<!-- cpt:##:design-context -->
 ## 4. Additional Context
 
-<!-- cpt:free:design-context-body -->
 Additional notes and rationale for the Cypilot overall design.
 
 ### Technology Selection Rationale
@@ -1113,7 +798,7 @@ The following table summarizes which kit packages provide templates and validati
 | DESIGN | `kits/sdlc/artifacts/DESIGN/` | [`workflows/generate.md`](../workflows/generate.md) | [`workflows/analyze.md`](../workflows/analyze.md) |
 | ADR | `kits/sdlc/artifacts/ADR/` | [`workflows/generate.md`](../workflows/generate.md) | [`workflows/analyze.md`](../workflows/analyze.md) |
 | DECOMPOSITION | `kits/sdlc/artifacts/DECOMPOSITION/` | [`workflows/generate.md`](../workflows/generate.md) | [`workflows/analyze.md`](../workflows/analyze.md) |
-| SPEC | `kits/sdlc/artifacts/SPEC/` | [`workflows/generate.md`](../workflows/generate.md) | [`workflows/analyze.md`](../workflows/analyze.md) |
+| FEATURE | `kits/sdlc/artifacts/FEATURE/` | [`workflows/generate.md`](../workflows/generate.md) | [`workflows/analyze.md`](../workflows/analyze.md) |
 
 All artifact kinds use the same generic workflows (`generate.md` for creation/update, `analyze.md` for validation/analysis). The artifact kind and path are determined by the adapter registry and selected via the `/cypilot` entrypoint.
 
@@ -1125,7 +810,7 @@ Cypilot avoids duplicating requirements across artifacts. The following files ar
  - Generate workflow: [workflows/generate.md](../workflows/generate.md)
  - Validate workflow: [workflows/analyze.md](../workflows/analyze.md)
  - Rules format: [requirements/rules-format.md](../requirements/rules-format.md)
- - Template syntax specification: [requirements/template.md](../requirements/template.md)
+ - Artifact identifiers specification: [requirements/identifiers.md](../requirements/identifiers.md)
  - Kit packages (templates, checklists, rules, examples): [kits/sdlc/artifacts/](../kits/sdlc/artifacts/)
 
 ### Future Technical Improvements
@@ -1151,10 +836,11 @@ Cypilot avoids duplicating requirements across artifacts. The following files ar
  - Adapter composition (extend multiple adapters)
  - Adapter versioning and compatibility checking
  - Community-contributed patterns and templates
-<!-- cpt:free:design-context-body -->
 
-<!-- cpt:paragraph:date -->
+## 5. Traceability
+
+- **PRD**: [PRD.md](./PRD.md)
+- **ADRs**: [ADR/](./ADR/)
+- **Features**: [specs/](./specs/)
+
 **Date**: 2025-01-17
-<!-- cpt:paragraph:date -->
-<!-- cpt:##:design-context -->
-<!-- cpt:#:design -->

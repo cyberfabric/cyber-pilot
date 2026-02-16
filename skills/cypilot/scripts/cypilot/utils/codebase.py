@@ -220,14 +220,6 @@ class CodeFile:
             ids.add(ref.id)
         return sorted(ids)
 
-    def list_refs(self) -> List[str]:
-        """Alias for list_ids (code only has refs, not defs)."""
-        return self.list_ids()
-
-    def list_defined(self) -> List[str]:
-        """Code files don't define IDs - always returns empty list."""
-        return []
-
     def get(self, id_value: str) -> Optional[str]:
         """Get the code content associated with an Cypilot ID.
 
@@ -287,6 +279,7 @@ def cross_validate_code(
     code_files: Sequence[CodeFile],
     artifact_ids: Set[str],
     to_code_ids: Set[str],
+    forbidden_code_ids: Optional[Set[str]] = None,
     traceability: str = "FULL",
 ) -> Dict[str, List[Dict[str, object]]]:
     """Cross-validate code files against artifact IDs.
@@ -323,8 +316,11 @@ def cross_validate_code(
         code_ids.update(cf.list_ids())
 
     # Check for orphaned markers (code refs IDs not in artifacts)
+    first_forbidden: Dict[str, Tuple[Path, int]] = {}
     for cf in code_files:
         for ref in cf.references:
+            if forbidden_code_ids and ref.id in forbidden_code_ids and ref.id not in first_forbidden:
+                first_forbidden[ref.id] = (cf.path, int(ref.line))
             if ref.id not in artifact_ids:
                 errors.append(error(
                     "traceability",
@@ -333,6 +329,17 @@ def cross_validate_code(
                     line=ref.line,
                     id=ref.id,
                 ))
+
+    if forbidden_code_ids:
+        for fid in sorted(first_forbidden.keys()):
+            p, ln = first_forbidden[fid]
+            errors.append(error(
+                "structure",
+                "ID marked to_code=\"true\" is referenced from code but task checkbox is not checked",
+                path=p,
+                line=ln,
+                id=fid,
+            ))
 
     # Check for missing markers (to_code IDs without code markers)
     missing_ids = to_code_ids - code_ids

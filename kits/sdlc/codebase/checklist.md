@@ -21,7 +21,7 @@ Before running the SDLC-specific checks:
 
 - [ ] Determine traceability mode from `artifacts.json` for the relevant system/artifact: `FULL` vs `DOCS-ONLY`
 - [ ] If `FULL`: identify the design source(s) to trace (Spec DESIGN is preferred)
-- [ ] If `DOCS-ONLY`: skip marker-based requirements and validate semantics against provided design sources
+- [ ] If `DOCS-ONLY`: skip traceability requirements and validate semantics against provided design sources
 
 ---
 

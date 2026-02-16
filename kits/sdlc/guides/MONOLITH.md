@@ -119,7 +119,7 @@ System → Subsystem → Component → Module:
                   "kit": "cypilot-sdlc",
                   "artifacts_dir": "subsystems/core/accounts/savings/architecture",
                   "artifacts": [
-                    { "path": "subsystems/core/accounts/savings/architecture/specs/interest-calc.md", "kind": "SPEC", "traceability": "FULL" }
+                    { "path": "subsystems/core/accounts/savings/architecture/features/interest-calc.md", "kind": "FEATURE", "traceability": "FULL" }
                   ],
                   "codebase": [
                     { "name": "Savings", "path": "src/core/accounts/savings", "extensions": [".ts"] }
@@ -140,7 +140,7 @@ System → Subsystem → Component → Module:
 - System level: platform-wide PRD and DESIGN
 - Subsystem level: subsystem DESIGN (references system DESIGN)
 - Component level: component DESIGN + codebase scope
-- Module level: SPEC specs + narrowest codebase scope
+- Module level: FEATURE artifacts + narrowest codebase scope
 
 ---
 
@@ -167,7 +167,7 @@ Each module has its own complete artifact set:
       "artifacts": [
         { "name": "Product Requirements", "path": "architecture/PRD.md", "kind": "PRD", "traceability": "DOCS-ONLY" },
         { "name": "System Design", "path": "architecture/DESIGN.md", "kind": "DESIGN", "traceability": "FULL" },
-        { "name": "Spec Breakdown", "path": "architecture/DECOMPOSITION.md", "kind": "DECOMPOSITION", "traceability": "FULL" },
+        { "name": "Feature Breakdown", "path": "architecture/DECOMPOSITION.md", "kind": "DECOMPOSITION", "traceability": "FULL" },
         { "name": "Modular Architecture", "path": "architecture/ADR/0001-modular-monolith.md", "kind": "ADR", "traceability": "DOCS-ONLY" }
       ],
       "codebase": [
@@ -182,8 +182,8 @@ Each module has its own complete artifact set:
           "artifacts": [
             { "path": "modules/auth/architecture/PRD.md", "kind": "PRD", "traceability": "DOCS-ONLY" },
             { "path": "modules/auth/architecture/DESIGN.md", "kind": "DESIGN", "traceability": "FULL" },
-            { "path": "modules/auth/architecture/specs/login.md", "kind": "SPEC", "traceability": "FULL" },
-            { "path": "modules/auth/architecture/specs/sessions.md", "kind": "SPEC", "traceability": "FULL" }
+            { "path": "modules/auth/architecture/features/login.md", "kind": "FEATURE", "traceability": "FULL" },
+            { "path": "modules/auth/architecture/features/sessions.md", "kind": "FEATURE", "traceability": "FULL" }
           ],
           "codebase": [
             { "name": "Auth Module", "path": "src/modules/auth", "extensions": [".ts"] }
@@ -198,7 +198,7 @@ Each module has its own complete artifact set:
           "artifacts": [
             { "path": "modules/billing/architecture/PRD.md", "kind": "PRD", "traceability": "DOCS-ONLY" },
             { "path": "modules/billing/architecture/DESIGN.md", "kind": "DESIGN", "traceability": "FULL" },
-            { "path": "modules/billing/architecture/specs/invoices.md", "kind": "SPEC", "traceability": "FULL" }
+            { "path": "modules/billing/architecture/features/invoices.md", "kind": "FEATURE", "traceability": "FULL" }
           ],
           "codebase": [
             { "name": "Billing Module", "path": "src/modules/billing", "extensions": [".ts"] }
@@ -211,9 +211,9 @@ Each module has its own complete artifact set:
 }
 ```
 
-### Example 2: Spec-Only Modules
+### Example 2: Feature-Only Modules
 
-Modules have only SPEC specs, sharing project-level DESIGN:
+Modules have only FEATURE artifacts, sharing project-level DESIGN:
 
 ```json
 {
@@ -234,7 +234,7 @@ Modules have only SPEC specs, sharing project-level DESIGN:
       "artifacts": [
         { "name": "Product Requirements", "path": "architecture/PRD.md", "kind": "PRD", "traceability": "DOCS-ONLY" },
         { "name": "System Design", "path": "architecture/DESIGN.md", "kind": "DESIGN", "traceability": "FULL" },
-        { "name": "Spec Breakdown", "path": "architecture/DECOMPOSITION.md", "kind": "DECOMPOSITION", "traceability": "FULL" }
+        { "name": "Feature Breakdown", "path": "architecture/DECOMPOSITION.md", "kind": "DECOMPOSITION", "traceability": "FULL" }
       ],
       "codebase": [
         { "name": "Source Code", "path": "src", "extensions": [".ts", ".tsx"] }
@@ -246,8 +246,8 @@ Modules have only SPEC specs, sharing project-level DESIGN:
           "kit": "cypilot-sdlc",
           "artifacts_dir": "modules/auth/architecture",
           "artifacts": [
-            { "path": "modules/auth/architecture/specs/login.md", "kind": "SPEC", "traceability": "FULL" },
-            { "path": "modules/auth/architecture/specs/sessions.md", "kind": "SPEC", "traceability": "FULL" }
+            { "path": "modules/auth/architecture/features/login.md", "kind": "FEATURE", "traceability": "FULL" },
+            { "path": "modules/auth/architecture/features/sessions.md", "kind": "FEATURE", "traceability": "FULL" }
           ],
           "codebase": [
             { "name": "Auth Module", "path": "src/modules/auth", "extensions": [".ts"] }
@@ -260,7 +260,7 @@ Modules have only SPEC specs, sharing project-level DESIGN:
           "kit": "cypilot-sdlc",
           "artifacts_dir": "modules/billing/architecture",
           "artifacts": [
-            { "path": "modules/billing/architecture/specs/invoices.md", "kind": "SPEC", "traceability": "FULL" }
+            { "path": "modules/billing/architecture/features/invoices.md", "kind": "FEATURE", "traceability": "FULL" }
           ],
           "codebase": [
             { "name": "Billing Module", "path": "src/modules/billing", "extensions": [".ts"] }
@@ -296,7 +296,7 @@ Modules declared for codebase scoping only, no module-level artifacts:
       "artifacts": [
         { "name": "Product Requirements", "path": "architecture/PRD.md", "kind": "PRD", "traceability": "DOCS-ONLY" },
         { "name": "System Design", "path": "architecture/DESIGN.md", "kind": "DESIGN", "traceability": "FULL" },
-        { "name": "Spec Breakdown", "path": "architecture/DECOMPOSITION.md", "kind": "DECOMPOSITION", "traceability": "FULL" }
+        { "name": "Feature Breakdown", "path": "architecture/DECOMPOSITION.md", "kind": "DECOMPOSITION", "traceability": "FULL" }
       ],
       "codebase": [
         { "name": "Source Code", "path": "src", "extensions": [".ts", ".tsx"] }
@@ -345,14 +345,14 @@ project-root/
 │   │   └── architecture/
 │   │       ├── PRD.md
 │   │       ├── DESIGN.md
-│   │       └── specs/
+│   │       └── features/
 │   │           ├── login.md
 │   │           └── sessions.md
 │   └── billing/
 │       └── architecture/
 │           ├── PRD.md
 │           ├── DESIGN.md
-│           └── specs/
+│           └── features/
 │               └── invoices.md
 └── src/
     └── ...
@@ -424,7 +424,7 @@ The tool validates IDs against the known hierarchy, so IDs must match registered
 | Subsystem DESIGN | `cpt-{system}-{subsystem}-component-{slug}` | `cpt-banking-core-component-account-service` |
 | Component PRD | `cpt-{system}-{subsystem}-{component}-fr-{slug}` | `cpt-banking-core-accounts-fr-balance-query` |
 | Component DESIGN | `cpt-{system}-{subsystem}-{component}-component-{slug}` | `cpt-banking-core-accounts-component-ledger` |
-| Module SPEC | `cpt-{system}-{subsystem}-{component}-{module}-flow-{slug}` | `cpt-banking-core-accounts-savings-flow-interest-calc` |
+| Module FEATURE | `cpt-{system}-{subsystem}-{component}-{module}-flow-{slug}` | `cpt-banking-core-accounts-savings-flow-interest-calc` |
 
 **Slug rules:**
 - Lowercase letters, numbers, and hyphens only
@@ -447,7 +447,7 @@ Child artifacts reference parent artifacts using full hierarchical IDs:
 - Follows: `cpt-banking-adr-component-boundaries` (component boundary rules)
 ```
 
-**In module SPEC (banking-core-accounts-savings):**
+**In module FEATURE (banking-core-accounts-savings):**
 ```markdown
 ## Traceability
 
@@ -464,7 +464,7 @@ Child artifacts reference parent artifacts using full hierarchical IDs:
 
 | Prompt | What happens |
 |--------|--------------|
-| `cypilot trace cpt-saas-fr-user-management` | Shows: PRD → DESIGN → component DESIGN → SPEC → CODE |
+| `cypilot trace cpt-saas-fr-user-management` | Shows: PRD → DESIGN → component DESIGN → FEATURE → CODE |
 | `cypilot trace cpt-saas-component-auth-service` | Shows system component and all child implementations |
 | `cypilot trace cpt-saas-auth-login-flow-token-validation` | Shows full path from system PRD to component code |
 | `cypilot find refs to cpt-saas-component-auth-service` | Lists all child artifacts referencing this component |
@@ -604,18 +604,18 @@ Context:
 
 | Prompt | What happens |
 |--------|--------------|
-| `cypilot add spec {slug}` | Adds project spec |
-| `cypilot update spec {slug} status` | Updates status |
+| `cypilot add feature {slug}` | Adds project feature |
+| `cypilot update feature {slug} status` | Updates status |
 
-**Provide context:** system-level specs (NOT components).
+**Provide context:** system-level features (NOT components).
 
 **Example:**
 ```
 cypilot decompose
 Context:
 - Scope: system
-- System specs: pricing-plans, invoice-lifecycle, tenant-management
-- Note: components are NOT specs
+- System features: pricing-plans, invoice-lifecycle, tenant-management
+- Note: components are NOT features
 ```
 
 ### 6. Validate DECOMPOSITION (Project)
@@ -706,8 +706,8 @@ Context:
 
 | Prompt | What happens |
 |--------|--------------|
-| `cypilot add spec {slug} to component auth` | Adds component spec |
-| `cypilot update spec {slug} in component auth` | Updates spec |
+| `cypilot add feature {slug} to component auth` | Adds component feature |
+| `cypilot update feature {slug} in component auth` | Updates feature |
 
 **Example:**
 ```
@@ -715,46 +715,46 @@ cypilot decompose component auth
 Context:
 - Scope: component
 - Component: auth
-- Component specs: login, sessions, mfa
+- Component features: login, sessions, mfa
 ```
 
-### 10. SPEC (Component)
+### 10. FEATURE (Component)
 
 **Create**
 
 | Prompt | What happens |
 |--------|--------------|
-| `cypilot make SPEC sessions for component auth` | Creates component spec |
-| `cypilot reverse SPEC sessions for component auth` | From existing code |
+| `cypilot make FEATURE sessions for component auth` | Creates component feature |
+| `cypilot reverse FEATURE sessions for component auth` | From existing code |
 
 **Update**
 
 | Prompt | What happens |
 |--------|--------------|
-| `cypilot update SPEC sessions for component auth` | Updates spec |
-| `cypilot extend SPEC sessions with token refresh` | Adds scenario |
-| `cypilot sync SPEC sessions from code` | Syncs with code |
+| `cypilot update FEATURE sessions for component auth` | Updates feature |
+| `cypilot extend FEATURE sessions with token refresh` | Adds scenario |
+| `cypilot sync FEATURE sessions from code` | Syncs with code |
 
-**Provide context:** component, spec slug, scenarios, data ownership.
+**Provide context:** component, feature slug, scenarios, data ownership.
 
 **Example:**
 ```
-cypilot make SPEC sessions for component auth
+cypilot make FEATURE sessions for component auth
 Context:
 - Scope: component
 - Component: auth
-- Spec: sessions
+- Feature: sessions
 - Include scenarios: login, logout, token refresh, session expiry
 - Data ownership: sessions table
 ```
 
-### 11. Validate SPEC (Component)
+### 11. Validate FEATURE (Component)
 
 | Prompt | What happens |
 |--------|--------------|
-| `cypilot validate SPEC sessions for component auth` | Full validation |
-| `cypilot validate SPEC sessions for component auth semantic` | Semantic only |
-| `cypilot validate SPEC sessions for component auth refs` | Cross-references |
+| `cypilot validate FEATURE sessions for component auth` | Full validation |
+| `cypilot validate FEATURE sessions for component auth semantic` | Semantic only |
+| `cypilot validate FEATURE sessions for component auth refs` | Cross-references |
 
 ### 12. CODE (Component)
 
@@ -780,7 +780,7 @@ Context:
 |--------|--------------|
 | `cypilot continue implementing sessions for component auth` | Continue partial |
 | `cypilot implement sessions for component auth remaining` | Unimplemented only |
-| `cypilot sync code with SPEC sessions for component auth` | Sync with spec |
+| `cypilot sync code with FEATURE sessions for component auth` | Sync with feature |
 
 **Add markers**
 
@@ -804,7 +804,7 @@ Context:
 | Prompt | What happens |
 |--------|--------------|
 | `cypilot validate code for component auth` | All component code |
-| `cypilot validate code for sessions in component auth` | Specific spec |
+| `cypilot validate code for sessions in component auth` | Specific feature |
 | `cypilot validate code in src/core/auth/` | Specific path |
 
 **Coverage**
@@ -812,7 +812,7 @@ Context:
 | Prompt | What happens |
 |--------|--------------|
 | `cypilot validate code coverage for component auth` | Component coverage |
-| `cypilot validate code coverage for sessions in component auth` | Spec coverage |
+| `cypilot validate code coverage for sessions in component auth` | Feature coverage |
 | `cypilot show uncovered for component auth` | Lists unimplemented |
 
 **Traceability**
@@ -827,8 +827,8 @@ Context:
 
 | Prompt | What happens |
 |--------|--------------|
-| `cypilot compare code to SPEC sessions for component auth` | Shows drift |
-| `cypilot validate code consistency for component auth` | Checks code matches specs |
+| `cypilot compare code to FEATURE sessions for component auth` | Shows drift |
+| `cypilot validate code consistency for component auth` | Checks code matches features |
 
 ---
 
@@ -850,7 +850,7 @@ Context:
 | 1 | `cypilot make PRD for component {name}` | `cypilot validate PRD for component {name}` |
 | 2 | `cypilot make DESIGN for component {name}` | `cypilot validate DESIGN for component {name}` |
 | 3 | `cypilot decompose component {name}` | `cypilot validate DECOMPOSITION for component {name}` |
-| 4 | `cypilot make SPEC {slug} for component {name}` | `cypilot validate SPEC {slug} for component {name}` |
+| 4 | `cypilot make FEATURE {slug} for component {name}` | `cypilot validate FEATURE {slug} for component {name}` |
 | 5 | `cypilot implement {slug} for component {name}` | `cypilot validate code for {slug} in component {name}` |
 
 > For 4-level hierarchies, use `module` instead of `component` to target the deepest level.
@@ -878,7 +878,7 @@ WHEN working in this repo:
   - `subsystems/{subsystem}/{component}/architecture/DESIGN.md`
   - `subsystems/{subsystem}/{component}/architecture/ADR/**`
   - `subsystems/{subsystem}/{component}/architecture/DECOMPOSITION.md`
-  - `subsystems/{subsystem}/{component}/architecture/specs/{slug}.md`
+  - `subsystems/{subsystem}/{component}/architecture/features/{slug}.md`
 - Component boundaries are enforced by code structure and dependency rules.
 
 WHEN asked to generate/validate artifacts:
@@ -893,5 +893,5 @@ WHEN asked to generate/validate artifacts:
 - System-level artifacts describe the full system and cross-component rules
 - Component-level artifacts describe one component in isolation
 - Component artifacts must stay compatible with system architecture
-- If component code changes, update component SPEC first, then validate
+- If component code changes, update component FEATURE first, then validate
 - Cross-component changes may require updating system DESIGN

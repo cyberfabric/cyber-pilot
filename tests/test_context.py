@@ -23,6 +23,7 @@ from cypilot.utils.context import (
     _global_context,
 )
 from cypilot.utils.artifacts_meta import ArtifactsMeta, Kit
+from cypilot.utils.constraints import ArtifactKindConstraints, IdConstraint, KitConstraints
 
 
 def _make_mock_template(kind: str, blocks: list = None) -> MagicMock:
@@ -67,10 +68,26 @@ class TestCypilotContextMethods:
         loaded_kit1 = LoadedKit(
             kit=kit1,
             templates={"PRD": prd_tmpl, "DESIGN": design_tmpl},
+            constraints=KitConstraints(by_kind={
+                "PRD": ArtifactKindConstraints(name=None, description=None, defined_id=[
+                    IdConstraint(kind="fr"),
+                    IdConstraint(kind="actor"),
+                ]),
+                "DESIGN": ArtifactKindConstraints(name=None, description=None, defined_id=[
+                    IdConstraint(kind="component"),
+                    IdConstraint(kind="seq"),
+                ]),
+            }),
         )
         loaded_kit2 = LoadedKit(
             kit=kit2,
             templates={"SPEC": spec_tmpl},
+            constraints=KitConstraints(by_kind={
+                "SPEC": ArtifactKindConstraints(name=None, description=None, defined_id=[
+                    IdConstraint(kind="flow"),
+                    IdConstraint(kind="algo"),
+                ]),
+            }),
         )
 
         # Create mock meta
@@ -85,39 +102,6 @@ class TestCypilotContextMethods:
             registered_systems={"myapp", "test-system"},
             _errors=[{"type": "context", "message": "error1"}, {"type": "context", "message": "error2"}],
         )
-
-    def test_get_template_found(self):
-        """get_template returns template when kit and kind exist."""
-        ctx = self._make_context()
-        tmpl = ctx.get_template("cypilot-sdlc", "PRD")
-        assert tmpl is not None
-        assert tmpl.kind == "PRD"
-
-    def test_get_template_kit_not_found(self):
-        """get_template returns None when kit doesn't exist."""
-        ctx = self._make_context()
-        result = ctx.get_template("nonexistent-kit", "PRD")
-        assert result is None
-
-    def test_get_template_kind_not_found(self):
-        """get_template returns None when kind doesn't exist in kit."""
-        ctx = self._make_context()
-        result = ctx.get_template("cypilot-sdlc", "NONEXISTENT")
-        assert result is None
-
-    def test_get_template_for_kind_found(self):
-        """get_template_for_kind finds template from any kit."""
-        ctx = self._make_context()
-        # SPEC is in 'custom' kit
-        tmpl = ctx.get_template_for_kind("SPEC")
-        assert tmpl is not None
-        assert tmpl.kind == "SPEC"
-
-    def test_get_template_for_kind_not_found(self):
-        """get_template_for_kind returns None when kind not in any kit."""
-        ctx = self._make_context()
-        result = ctx.get_template_for_kind("NONEXISTENT")
-        assert result is None
 
     def test_get_known_id_kinds(self):
         """get_known_id_kinds extracts id kinds from template markers."""
@@ -202,8 +186,6 @@ class TestCypilotContextLoad:
         result = CypilotContext.load()
         assert result is None
 
-    @patch("cypilot.utils.template.apply_kind_constraints")
-    @patch("cypilot.utils.context.Template.from_path")
     @patch("cypilot.utils.context.load_constraints_json")
     @patch("cypilot.utils.context.load_artifacts_meta")
     @patch("cypilot.utils.files.find_adapter_directory")
@@ -212,8 +194,6 @@ class TestCypilotContextLoad:
         mock_find,
         mock_load_meta,
         mock_load_constraints,
-        mock_from_path,
-        mock_apply_constraints,
     ):
         with TemporaryDirectory() as tmpdir:
             tmp = Path(tmpdir)
@@ -262,14 +242,6 @@ class TestCypilotContextLoad:
             mock_load_constraints.return_value = (kit_constraints, ["bad constraints"])
 
             # Template.from_path returns a template for PRD
-            tmpl = MagicMock()
-            tmpl.kind = "PRD"
-            tmpl.blocks = []
-            mock_from_path.return_value = (tmpl, [])
-
-            # apply_kind_constraints returns one error to extend
-            mock_apply_constraints.return_value = [{"type": "constraints", "message": "ce"}]
-
             mock_find.return_value = adapter_dir
             mock_load_meta.return_value = (meta, None)
 
@@ -278,11 +250,9 @@ class TestCypilotContextLoad:
 
             # We should have:
             # - constraints.json parse error surfaced
-            # - apply_kind_constraints error surfaced
             # - autodetect kind-not-registered error surfaced
             msgs = [str(e.get("message", "")) for e in (ctx._errors or [])]
             assert any("Invalid constraints.json" in m for m in msgs)
-            assert any("ce" in m for m in msgs)
             assert any("Autodetect validation error" in m for m in msgs)
 
     @patch("cypilot.utils.context.load_artifacts_meta")

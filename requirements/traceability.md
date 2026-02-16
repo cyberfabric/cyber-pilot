@@ -2,7 +2,7 @@
 cypilot: true
 type: requirement
 name: Code Traceability Specification
-version: 1.2
+version: 1.3
 purpose: Define Cypilot code traceability markers and validation rules (kit-agnostic)
 ---
 
@@ -47,7 +47,7 @@ python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py validate-code
 
 Cypilot code traceability links IDs defined in artifacts to implementation code through markers. This enables:
 - Automated verification that code references real, registered design IDs
-- Coverage checks for IDs explicitly marked as requiring implementation (`to_code="true"`)
+- Coverage checks for IDs explicitly marked as requiring implementation (`to_code="true"`), optionally gated by task checkbox state
 - Bidirectional navigation between artifacts and code (via ID search)
 
 This specification is **kit-agnostic**:
@@ -142,7 +142,10 @@ At minimum, Cypilot distinguishes:
 - `FULL`: markers are allowed and validated.
   - Structural checks apply (pairing, no empty blocks, etc.).
   - Cross-validation applies: code markers must reference IDs that exist in artifacts.
-  - Coverage applies: any ID marked `to_code="true"` in artifacts must be referenced by at least one code marker.
+  - Coverage applies for IDs marked `to_code="true"` in kit constraints:
+    - If the ID definition has a task checkbox (`[ ]` / `[x]`), coverage is required only when the checkbox is checked (`[x]`).
+    - If the ID definition has a task checkbox and it is not checked (`[ ]`), the ID MUST NOT be referenced from code.
+    - If the ID definition has no task checkbox, coverage is required.
 - `DOCS-ONLY`: code markers are prohibited for the affected scope.
 
 Registry lookup (conceptual):
@@ -259,7 +262,7 @@ def validate_credentials(user, password):
 Validation performs:
 - Deterministic checks (syntax, pairing, empty blocks, nesting)
 - Cross-validation against artifacts (orphaned markers)
-- Coverage checks driven by `to_code="true"` IDs (kit-owned)
+- Coverage checks driven by `to_code="true"` IDs (kit-owned, may be gated by task checkbox state)
 
 ---
 
@@ -267,5 +270,5 @@ Validation performs:
 
 - Registry: `artifacts.json`
 - Kit taxonomy: `kits/<kit>/guides/TAXONOMY.md`
-- Template markers: `requirements/template.md`
+- Artifact ID formats: `requirements/identifiers.md`
 - Validation command: `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py validate-code`

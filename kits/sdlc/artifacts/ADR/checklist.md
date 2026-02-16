@@ -222,7 +222,7 @@ For architectural decisions with broad impact, check ALL applicable domains.
 
 - [ ] Links to related requirements, risks, or constraints are provided
 - [ ] Links to impacted architecture and design documents are provided (when applicable)
-- [ ] Links to impacted spec specifications are provided (when applicable)
+- [ ] Links to impacted feature specifications are provided (when applicable)
 - [ ] Each link has a short explanation of relevance
 - [ ] Scope of impact is explicitly stated (what changes, what does not)
 
@@ -561,9 +561,9 @@ For architectural decisions with broad impact, check ALL applicable domains.
 **Severity**: HIGH
 
 **What to check**:
-- [ ] No spec user flows
-- [ ] No spec algorithms
-- [ ] No spec state machines
+- [ ] No feature user flows
+- [ ] No feature algorithms
+- [ ] No feature state machines
 - [ ] No step-by-step implementation guides
 - [ ] No low-level implementation pseudo-code
 
@@ -882,3 +882,15 @@ Full output format:
 - [ ] I did not hide or omit known problems
 - [ ] I verified explicit handling for all major checklist categories
 - [ ] I am ready to iterate on the proposals and re-review after changes
+
+---
+
+## PR Review Focus (ADR)
+
+When reviewing PRs that add or change Architecture Decision Records, additionally focus on:
+
+- [ ] Ensure the problem is module/system scoped, not generic and repeatable
+- [ ] Compliance with `docs/spec-templates/ADR.md` template structure
+- [ ] Ensure the problem is not already solved by other existing ADRs in `docs/adrs/`
+- [ ] Alternatives are genuinely different approaches (not straw men)
+- [ ] Decision rationale is concrete and traceable to project constraints
