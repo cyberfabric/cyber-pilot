@@ -42,7 +42,7 @@ def run_self_check_from_meta(
         warns: List[Dict[str, object]] = []
 
         if kit_constraints is None:
-            warns.append({
+            errs.append({
                 "type": "constraints",
                 "message": "constraints.json not found (template consistency checks skipped)",
                 "path": str(kit_base / "constraints.json"),
@@ -133,7 +133,7 @@ def run_self_check_from_meta(
             if not id_kind:
                 continue
             if not tpl:
-                warns.append(constraints_error(
+                errs.append(constraints_error(
                     "template",
                     "ID kind has no template in constraints.json",
                     path=template_path,
@@ -370,7 +370,7 @@ def run_self_check_from_meta(
 
             if template_path is None or not Path(template_path).is_file():
                 pth = str(template_path) if template_path is not None else str((kind_dir / "template.md"))
-                warns.append({"type": "file", "message": "Template not found (skipped)", "path": pth})
+                errs.append({"type": "file", "message": "Template not found", "path": pth})
             else:
                 trep = _check_template_constraints_consistency(
                     template_path=Path(template_path),
@@ -384,7 +384,7 @@ def run_self_check_from_meta(
                 warns.extend(list(trep.get("warnings", []) or []))
 
             if not example_path:
-                warns.append({"type": "file", "message": "Example not found (skipped)", "path": str(examples_dir)})
+                errs.append({"type": "file", "message": "Example not found", "path": str(examples_dir)})
             else:
                 constraints_for_kind = None
                 if kit_constraints is not None and getattr(kit_constraints, "by_kind", None) and str(kind).upper() in kit_constraints.by_kind:

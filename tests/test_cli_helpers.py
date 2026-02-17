@@ -223,7 +223,7 @@ class TestCliCommandCoverage(unittest.TestCase):
                 "---\n\n# PRD\n",
                 encoding="utf-8",
             )
-            # No example - should warn but pass (no examples = no failures)
+            # No example - should fail (missing example is an error)
             registry = {
                 "version": "1.0",
                 "kits": {
@@ -236,8 +236,8 @@ class TestCliCommandCoverage(unittest.TestCase):
                         buf = io.StringIO()
                         with contextlib.redirect_stdout(buf):
                             code = cypilot_cli._cmd_self_check(["--root", td])
-        # PASS when no examples exist (warnings only)
-        self.assertEqual(code, 0)
+        # FAIL when no examples exist (missing example is an error)
+        self.assertEqual(code, 2)
 
     def test_init_yes_dry_run(self):
         with TemporaryDirectory() as td:

@@ -1645,7 +1645,7 @@ cypilot-template:
   kind: PRD
 ---
 <!-- cpt:id:item -->
-- [ ] `p1` - **ID**: `cpt-test-1`
+- [ ] `p1` - **ID**: `cpt-test-item-1`
 <!-- cpt:id:item -->
 """
             (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
@@ -1654,7 +1654,7 @@ cypilot-template:
             art_dir = root / "architecture"
             art_dir.mkdir(parents=True)
             art_content = """<!-- cpt:id:item -->
-- [x] `p1` - **ID**: `cpt-test-1`
+- [x] `p1` - **ID**: `cpt-test-item-1`
 <!-- cpt:id:item -->
 """
             (art_dir / "PRD.md").write_text(art_content, encoding="utf-8")
@@ -1868,7 +1868,7 @@ class TestCLIGetContentCommand(unittest.TestCase):
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["get-content", "--artifact", str(art_path), "--id", "cpt-test-1"])
+                exit_code = main(["get-content", "--artifact", str(art_path), "--id", "cpt-test-item-1"])
             self.assertNotEqual(exit_code, 0)
             out = json.loads(stdout.getvalue())
             self.assertEqual(out.get("status"), "ERROR")
@@ -1889,7 +1889,7 @@ cypilot-template:
   kind: PRD
 ---
 <!-- cpt:id:item -->
-- [ ] `p1` - **ID**: `cpt-test-1`
+- [ ] `p1` - **ID**: `cpt-test-item-1`
 <!-- cpt:id:item -->
 """
             (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
@@ -1898,7 +1898,7 @@ cypilot-template:
             art_dir = root / "architecture"
             art_dir.mkdir(parents=True)
             art_content = """<!-- cpt:id:item -->
-- [x] `p1` - **ID**: `cpt-test-1`
+- [x] `p1` - **ID**: `cpt-test-item-1`
 <!-- cpt:id:item -->
 """
             art_path = art_dir / "PRD.md"
@@ -1916,7 +1916,7 @@ cypilot-template:
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["get-content", "--artifact", str(art_path), "--id", "cpt-test-1"])
+                exit_code = main(["get-content", "--artifact", str(art_path), "--id", "cpt-test-item-1"])
 
             self.assertEqual(exit_code, 0)
             out = json.loads(stdout.getvalue())
@@ -1946,7 +1946,7 @@ text
             art_dir.mkdir(parents=True)
             art_content = """# PRD
 
-### cpt-test-1
+### cpt-test-item-1
 alpha
 beta
 
@@ -1968,7 +1968,7 @@ gamma
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["get-content", "--artifact", str(art_path), "--id", "cpt-test-1"])
+                exit_code = main(["get-content", "--artifact", str(art_path), "--id", "cpt-test-item-1"])
 
             self.assertEqual(exit_code, 0)
             out = json.loads(stdout.getvalue())
@@ -1999,7 +1999,7 @@ text
             art_dir.mkdir(parents=True)
             art_content = """intro
 ##
-cpt-test-1
+cpt-test-item-1
 line-a
 line-b
 ##
@@ -2020,7 +2020,7 @@ outro
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["get-content", "--artifact", str(art_path), "--id", "cpt-test-1"])
+                exit_code = main(["get-content", "--artifact", str(art_path), "--id", "cpt-test-item-1"])
 
             self.assertEqual(exit_code, 0)
             out = json.loads(stdout.getvalue())
@@ -2384,12 +2384,14 @@ text
                 }],
             )
 
+            _sc_pass = (0, {"status": "PASS", "kits_checked": 1, "templates_checked": 1, "results": []})
             cwd = os.getcwd()
             try:
                 os.chdir(str(root))
                 stdout = io.StringIO()
-                with redirect_stdout(stdout):
-                    exit_code = main(["validate", "--artifact", str(prd_path), "--skip-code", "--verbose"])
+                with unittest.mock.patch("cypilot.commands.self_check.run_self_check_from_meta", return_value=_sc_pass):
+                    with redirect_stdout(stdout):
+                        exit_code = main(["validate", "--artifact", str(prd_path), "--skip-code", "--verbose"])
             finally:
                 os.chdir(cwd)
 
@@ -2419,7 +2421,6 @@ text
 """,
                 encoding="utf-8",
             )
-
             arch = root / "architecture"
             arch.mkdir(parents=True)
             prd_path = arch / "PRD.md"
@@ -2435,12 +2436,14 @@ text
                 }],
             )
 
+            _sc_pass = (0, {"status": "PASS", "kits_checked": 1, "templates_checked": 1, "results": []})
             cwd = os.getcwd()
             try:
                 os.chdir(str(root))
                 stdout = io.StringIO()
-                with redirect_stdout(stdout):
-                    exit_code = main(["validate", "--artifact", str(prd_path), "--skip-code", "--verbose"])
+                with unittest.mock.patch("cypilot.commands.self_check.run_self_check_from_meta", return_value=_sc_pass):
+                    with redirect_stdout(stdout):
+                        exit_code = main(["validate", "--artifact", str(prd_path), "--skip-code", "--verbose"])
             finally:
                 os.chdir(cwd)
 
@@ -2491,12 +2494,14 @@ text
                 }],
             )
 
+            _sc_pass = (0, {"status": "PASS", "kits_checked": 1, "templates_checked": 1, "results": []})
             cwd = os.getcwd()
             try:
                 os.chdir(str(root))
                 stdout = io.StringIO()
-                with redirect_stdout(stdout):
-                    exit_code = main(["validate", "--artifact", str(prd_path), "--skip-code", "--verbose"])
+                with unittest.mock.patch("cypilot.commands.self_check.run_self_check_from_meta", return_value=_sc_pass):
+                    with redirect_stdout(stdout):
+                        exit_code = main(["validate", "--artifact", str(prd_path), "--skip-code", "--verbose"])
             finally:
                 os.chdir(cwd)
 
@@ -2553,12 +2558,14 @@ text
                 }],
             )
 
+            _sc_pass = (0, {"status": "PASS", "kits_checked": 1, "templates_checked": 1, "results": []})
             cwd = os.getcwd()
             try:
                 os.chdir(str(root))
                 stdout = io.StringIO()
-                with redirect_stdout(stdout):
-                    exit_code = main(["validate", "--artifact", str(prd_path), "--verbose"])
+                with unittest.mock.patch("cypilot.commands.self_check.run_self_check_from_meta", return_value=_sc_pass):
+                    with redirect_stdout(stdout):
+                        exit_code = main(["validate", "--artifact", str(prd_path), "--verbose"])
             finally:
                 os.chdir(cwd)
 
@@ -2581,7 +2588,7 @@ class TestCLIWhereDefinedCommand(unittest.TestCase):
                 os.chdir(str(root))
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["where-defined", "--id", "cpt-test-1"])
+                    exit_code = main(["where-defined", "--id", "cpt-test-item-1"])
                 self.assertNotEqual(exit_code, 0)
                 out = json.loads(stdout.getvalue())
                 self.assertEqual(out.get("status"), "ERROR")
@@ -2603,7 +2610,7 @@ class TestCLIWhereUsedCommand(unittest.TestCase):
                 os.chdir(str(root))
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["where-used", "--id", "cpt-test-1"])
+                    exit_code = main(["where-used", "--id", "cpt-test-item-1"])
                 self.assertNotEqual(exit_code, 0)
                 out = json.loads(stdout.getvalue())
                 self.assertEqual(out.get("status"), "ERROR")
@@ -2626,16 +2633,26 @@ cypilot-template:
   kind: PRD
 ---
 <!-- cpt:id:item -->
-- [ ] `p1` - **ID**: `cpt-test-1`
+- [ ] `p1` - **ID**: `cpt-{system}-item-{slug}`
 <!-- cpt:id:item -->
 """
     (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
+    ex_dir = templates_dir / "examples"
+    ex_dir.mkdir(parents=True, exist_ok=True)
+    (ex_dir / "example.md").write_text(
+        "<!-- cpt:id:item -->\n- [x] `p1` - **ID**: `cpt-ex-item-1`\n<!-- cpt:id:item -->\n",
+        encoding="utf-8",
+    )
+    (root / "kits" / "sdlc" / "constraints.json").write_text(
+        json.dumps({"PRD": {"identifiers": {"item": {"template": "cpt-{system}-item-{slug}"}}}}, indent=2) + "\n",
+        encoding="utf-8",
+    )
 
     # Create artifact
     art_dir = root / "architecture"
     art_dir.mkdir(parents=True)
     art_content = """<!-- cpt:id:item -->
-- [x] `p1` - **ID**: `cpt-test-1`
+- [x] `p1` - **ID**: `cpt-test-item-1`
 <!-- cpt:id:item -->
 """
     (art_dir / "PRD.md").write_text(art_content, encoding="utf-8")
@@ -2665,7 +2682,7 @@ class TestCLIWhereDefinedWithArtifacts(unittest.TestCase):
                 os.chdir(str(root))
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["where-defined", "--id", "cpt-test-1"])
+                    exit_code = main(["where-defined", "--id", "cpt-test-item-1"])
                 self.assertEqual(exit_code, 0)
                 out = json.loads(stdout.getvalue())
                 self.assertEqual(out.get("status"), "FOUND")
@@ -2703,7 +2720,7 @@ class TestCLIWhereDefinedWithArtifacts(unittest.TestCase):
                 stdout = io.StringIO()
                 art_path = root / "architecture" / "PRD.md"
                 with redirect_stdout(stdout):
-                    exit_code = main(["where-defined", "--id", "cpt-test-1", "--artifact", str(art_path)])
+                    exit_code = main(["where-defined", "--id", "cpt-test-item-1", "--artifact", str(art_path)])
                 self.assertEqual(exit_code, 0)
                 out = json.loads(stdout.getvalue())
                 self.assertEqual(out.get("status"), "FOUND")
@@ -2725,7 +2742,7 @@ class TestCLIWhereUsedWithArtifacts(unittest.TestCase):
                 os.chdir(str(root))
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["where-used", "--id", "cpt-test-1"])
+                    exit_code = main(["where-used", "--id", "cpt-test-item-1"])
                 # Will succeed or return NOT_FOUND (no refs in simple setup)
                 self.assertIn(exit_code, [0, 2])
             finally:
@@ -2923,7 +2940,7 @@ class TestCLIGetContentErrorBranches(unittest.TestCase):
             stdout = io.StringIO()
             nonexistent = root / "nonexistent.md"
             with redirect_stdout(stdout):
-                exit_code = main(["get-content", "--artifact", str(nonexistent), "--id", "cpt-test-1"])
+                exit_code = main(["get-content", "--artifact", str(nonexistent), "--id", "cpt-test-item-1"])
             self.assertNotEqual(exit_code, 0)
             out = json.loads(stdout.getvalue())
             self.assertEqual(out.get("status"), "ERROR")
@@ -2940,7 +2957,7 @@ class TestCLIGetContentErrorBranches(unittest.TestCase):
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["get-content", "--artifact", str(unregistered), "--id", "cpt-test-1"])
+                exit_code = main(["get-content", "--artifact", str(unregistered), "--id", "cpt-test-item-1"])
             self.assertNotEqual(exit_code, 0)
 
     def test_get_content_id_not_found(self):
@@ -2994,7 +3011,7 @@ class TestCLIWhereDefinedErrorBranches(unittest.TestCase):
                 stdout = io.StringIO()
                 nonexistent = root / "nonexistent.md"
                 with redirect_stdout(stdout):
-                    exit_code = main(["where-defined", "--id", "cpt-test-1", "--artifact", str(nonexistent)])
+                    exit_code = main(["where-defined", "--id", "cpt-test-item-1", "--artifact", str(nonexistent)])
                 self.assertNotEqual(exit_code, 0)
             finally:
                 os.chdir(cwd)
@@ -3030,7 +3047,7 @@ class TestCLIWhereUsedErrorBranches(unittest.TestCase):
                 os.chdir(str(root))
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["where-used", "--id", "cpt-test-1", "--include-definitions"])
+                    exit_code = main(["where-used", "--id", "cpt-test-item-1", "--include-definitions"])
                 # May return FOUND or NOT_FOUND depending on refs
                 self.assertIn(exit_code, [0, 2])
             finally:
@@ -3048,7 +3065,7 @@ class TestCLIWhereUsedErrorBranches(unittest.TestCase):
                 stdout = io.StringIO()
                 nonexistent = root / "nonexistent.md"
                 with redirect_stdout(stdout):
-                    exit_code = main(["where-used", "--id", "cpt-test-1", "--artifact", str(nonexistent)])
+                    exit_code = main(["where-used", "--id", "cpt-test-item-1", "--artifact", str(nonexistent)])
                 self.assertNotEqual(exit_code, 0)
             finally:
                 os.chdir(cwd)
@@ -3068,7 +3085,7 @@ class TestCLIWhereUsedErrorBranches(unittest.TestCase):
                 os.chdir(str(root))
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["where-used", "--id", "cpt-test-1", "--artifact", str(unregistered)])
+                    exit_code = main(["where-used", "--id", "cpt-test-item-1", "--artifact", str(unregistered)])
                 self.assertNotEqual(exit_code, 0)
             finally:
                 os.chdir(cwd)
@@ -3085,7 +3102,7 @@ class TestCLIWhereUsedErrorBranches(unittest.TestCase):
                 stdout = io.StringIO()
                 art_path = root / "architecture" / "PRD.md"
                 with redirect_stdout(stdout):
-                    exit_code = main(["where-used", "--id", "cpt-test-1", "--artifact", str(art_path)])
+                    exit_code = main(["where-used", "--id", "cpt-test-item-1", "--artifact", str(art_path)])
                 # Will succeed or return NOT_FOUND
                 self.assertIn(exit_code, [0, 2])
             finally:
@@ -3942,7 +3959,7 @@ class TestCLIWhereUsedWithIncludeDefinitions(unittest.TestCase):
                 os.chdir(str(root))
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["where-used", "--id", "cpt-test-1", "--include-definitions"])
+                    exit_code = main(["where-used", "--id", "cpt-test-item-1", "--include-definitions"])
                 self.assertEqual(exit_code, 0)
                 out = json.loads(stdout.getvalue())
                 # Should have references that may include definitions
@@ -4042,7 +4059,7 @@ cypilot-template:
   kind: PRD
 ---
 <!-- cpt:id:item -->
-- [ ] `p1` - **ID**: `cpt-test-1`
+- [ ] `p1` - **ID**: `cpt-test-item-1`
 <!-- cpt:id:item -->
 """
             (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
@@ -4051,11 +4068,11 @@ cypilot-template:
             art_dir = root / "architecture"
             art_dir.mkdir(parents=True)
             art_content = """<!-- cpt:id:item -->
-- [x] `p1` - **ID**: `cpt-test-1`
+- [x] `p1` - **ID**: `cpt-test-item-1`
 <!-- cpt:id:item -->
 
 <!-- cpt:id-ref:item -->
-- [x] `p2` - `cpt-test-1`: referenced here
+- [x] `p2` - `cpt-test-item-1`: referenced here
 <!-- cpt:id-ref:item -->
 """
             (art_dir / "PRD.md").write_text(art_content, encoding="utf-8")
@@ -4169,16 +4186,26 @@ cypilot-template:
   kind: PRD
 ---
 <!-- cpt:id:item -->
-- [ ] `p1` - **ID**: `cpt-test-1`
+- [ ] `p1` - **ID**: `cpt-{system}-item-{slug}`
 <!-- cpt:id:item -->
 """
     (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
+    ex_dir = templates_dir / "examples"
+    ex_dir.mkdir(parents=True, exist_ok=True)
+    (ex_dir / "example.md").write_text(
+        "<!-- cpt:id:item -->\n- [x] `p1` - **ID**: `cpt-ex-item-1`\n<!-- cpt:id:item -->\n",
+        encoding="utf-8",
+    )
+    (root / "kits" / "sdlc" / "constraints.json").write_text(
+        json.dumps({"PRD": {"identifiers": {"item": {"template": "cpt-{system}-item-{slug}"}}}}, indent=2) + "\n",
+        encoding="utf-8",
+    )
 
     # Create artifact
     art_dir = root / "architecture"
     art_dir.mkdir(parents=True)
     art_content = """<!-- cpt:id:item -->
-- [x] `p1` - **ID**: `cpt-test-1`
+- [x] `p1` - **ID**: `cpt-test-item-1`
 <!-- cpt:id:item -->
 """
     (art_dir / "PRD.md").write_text(art_content, encoding="utf-8")
@@ -4187,7 +4214,7 @@ cypilot-template:
     code_dir = root / "src"
     code_dir.mkdir(parents=True)
     (code_dir / "module.py").write_text(
-        "# @cpt-flow:cpt-test-1:p1\ndef test(): pass\n",
+        "# @cpt-flow:cpt-test-item-1:p1\ndef test(): pass\n",
         encoding="utf-8"
     )
 
@@ -4462,21 +4489,21 @@ cypilot-template:
   kind: PRD
 ---
 <!-- cpt:id:item -->
-- [ ] `p1` - **ID**: `cpt-test-1`
+- [ ] `p1` - **ID**: `cpt-test-item-1`
 <!-- cpt:id:item -->
 """, encoding="utf-8")
 
             # Create artifact
             (root / "architecture").mkdir(parents=True)
             (root / "architecture" / "PRD.md").write_text("""<!-- cpt:id:item -->
-- [x] `p1` - **ID**: `cpt-test-1`
+- [x] `p1` - **ID**: `cpt-test-item-1`
 <!-- cpt:id:item -->
 """, encoding="utf-8")
 
             # Create code with markers
             (root / "src").mkdir(parents=True)
             (root / "src" / "module.py").write_text(
-                "# @cpt-flow:cpt-test-1:p1\ndef test(): pass\n",
+                "# @cpt-flow:cpt-test-item-1:p1\ndef test(): pass\n",
                 encoding="utf-8"
             )
 
@@ -4521,13 +4548,13 @@ cypilot-template:
   kind: PRD
 ---
 <!-- cpt:id:item -->
-- [ ] `p1` - **ID**: `cpt-test-1`
+- [ ] `p1` - **ID**: `cpt-test-item-1`
 <!-- cpt:id:item -->
 """, encoding="utf-8")
 
             (root / "architecture").mkdir(parents=True)
             (root / "architecture" / "PRD.md").write_text("""<!-- cpt:id:item -->
-- [x] `p1` - **ID**: `cpt-test-1`
+- [x] `p1` - **ID**: `cpt-test-item-1`
 <!-- cpt:id:item -->
 """, encoding="utf-8")
 
@@ -4666,7 +4693,7 @@ cypilot-template:
   kind: PRD
 ---
 <!-- cpt:id:item -->
-- [ ] `p1` - **ID**: `cpt-test-1`
+- [ ] `p1` - **ID**: `cpt-test-item-1`
 <!-- cpt:id:item -->
 """
             (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
@@ -4674,7 +4701,7 @@ cypilot-template:
             art_dir = root / "architecture"
             art_dir.mkdir(parents=True)
             art_content = """<!-- cpt:id:item -->
-- [x] `p1` - **ID**: `cpt-test-1`
+- [x] `p1` - **ID**: `cpt-test-item-1`
 <!-- cpt:id:item -->
 """
             (art_dir / "PRD.md").write_text(art_content, encoding="utf-8")

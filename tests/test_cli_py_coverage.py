@@ -45,12 +45,17 @@ def _bootstrap_self_check_kits(root: Path, adapter: Path, *, with_example: bool 
     kit_root = root / "kits" / "cypilot-sdlc"
     kit_root.mkdir(parents=True, exist_ok=True)
     (kit_root / "artifacts" / "REQ").mkdir(parents=True, exist_ok=True)
+    (kit_root / "artifacts" / "REQ" / "template.md").write_text(
+        "---\ncypilot-template:\n  version:\n    major: 1\n    minor: 0\n  kind: REQ\n---\n\n"
+        "<!-- cpt:id:req -->\n- [x] `p1` - **ID**: `cpt-{system}-req-{slug}`\n<!-- cpt:id:req -->\n",
+        encoding="utf-8",
+    )
     (kit_root / "constraints.json").write_text(
         json.dumps(
             {
                 "REQ": {
                     "identifiers": {
-                        "req": {"required": True},
+                        "req": {"required": True, "template": "cpt-{system}-req-{slug}"},
                     }
                 }
             },
@@ -150,15 +155,15 @@ class TestCLIPyCoverageSelfCheckMoreBranches(unittest.TestCase):
         }
         return ArtifactsMeta.from_dict(reg)
 
-    def test_run_self_check_warns_when_constraints_missing(self):
+    def test_run_self_check_fails_when_constraints_missing(self):
         from cypilot.commands.self_check import run_self_check_from_meta
 
         with TemporaryDirectory() as td:
             root = Path(td)
             meta = self._bootstrap_kit(root, with_constraints=False)
             rc, out = run_self_check_from_meta(project_root=root, adapter_dir=(root / "adapter"), artifacts_meta=meta)
-            self.assertEqual(rc, 0)
-            self.assertEqual(out.get("status"), "PASS")
+            self.assertEqual(rc, 2)
+            self.assertEqual(out.get("status"), "FAIL")
             self.assertGreaterEqual(int(out.get("kits_checked", 0)), 1)
 
     def test_run_self_check_fails_on_invalid_constraints_json(self):
@@ -209,12 +214,12 @@ class TestCLIPyCoverageSelfCheckMoreBranches(unittest.TestCase):
             self.assertEqual(rc, 2)
             self.assertEqual(out.get("status"), "FAIL")
 
-    def test_template_checks_warns_on_identifier_without_template(self):
+    def test_template_checks_fails_on_identifier_without_template(self):
         from cypilot.commands.self_check import run_self_check_from_meta
 
         with TemporaryDirectory() as td:
             root = Path(td)
-            # identifiers.req has no template -> warning branch
+            # identifiers.req has no template -> error branch
             meta = self._bootstrap_kit(
                 root,
                 with_constraints=True,
@@ -227,9 +232,9 @@ class TestCLIPyCoverageSelfCheckMoreBranches(unittest.TestCase):
                 },
             )
             rc, out = run_self_check_from_meta(project_root=root, adapter_dir=(root / "adapter"), artifacts_meta=meta, verbose=True)
-            self.assertEqual(rc, 0)
-            self.assertEqual(out.get("status"), "PASS")
-            self.assertIn("warnings", out["results"][0])
+            self.assertEqual(rc, 2)
+            self.assertEqual(out.get("status"), "FAIL")
+            self.assertIn("errors", out["results"][0])
 
     def test_template_checks_fail_when_required_id_placeholder_missing(self):
         from cypilot.commands.self_check import run_self_check_from_meta
@@ -413,7 +418,7 @@ class TestCLIPyCoverageSelfCheckMoreBranches(unittest.TestCase):
 
         with TemporaryDirectory() as td:
             root = Path(td)
-            meta = self._bootstrap_kit(root, with_constraints=False)
+            meta = self._bootstrap_kit(root, with_constraints=True)
             kit = meta.kits["k"]
 
             def _boom(_kind: str) -> str:
@@ -422,13 +427,8 @@ class TestCLIPyCoverageSelfCheckMoreBranches(unittest.TestCase):
             kit.get_template_path = _boom
             kit.get_examples_path = _boom
 
-            # Create legacy fallback layout too.
-            kind_dir = root / "kits" / "k" / "artifacts" / "REQ"
-            kind_dir.mkdir(parents=True, exist_ok=True)
-            (kind_dir / "template.md").write_text("# T\n", encoding="utf-8")
-            (kind_dir / "examples").mkdir(parents=True, exist_ok=True)
-            (kind_dir / "examples" / "example.md").write_text("# E\n", encoding="utf-8")
-
+            # Legacy fallback layout already exists from _bootstrap_kit.
+            # Verify fallback picks up the files even when get_*_path raises.
             rc, out = run_self_check_from_meta(project_root=root, adapter_dir=(root / "adapter"), artifacts_meta=meta, verbose=True)
             self.assertEqual(rc, 0)
             self.assertEqual(out.get("status"), "PASS")
@@ -1201,7 +1201,7 @@ class TestCLIPyCoverageSelfCheckSkipBranches(unittest.TestCase):
             finally:
                 os.chdir(cwd)
 
-    def test_self_check_verbose_includes_warnings(self):
+    def test_self_check_verbose_includes_errors_when_example_missing(self):
         from cypilot.cli import main
 
         with TemporaryDirectory() as tmpdir:
@@ -1215,12 +1215,12 @@ class TestCLIPyCoverageSelfCheckSkipBranches(unittest.TestCase):
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
                     exit_code = main(["self-check", "--verbose"])
-                self.assertEqual(exit_code, 0)
+                self.assertEqual(exit_code, 2)
                 out = json.loads(stdout.getvalue())
-                self.assertEqual(out.get("status"), "PASS")
-                self.assertEqual(out["results"][0]["status"], "PASS")
-                self.assertIn("warnings", out["results"][0])
-                self.assertGreater(out["results"][0].get("warning_count", 0), 0)
+                self.assertEqual(out.get("status"), "FAIL")
+                self.assertEqual(out["results"][0]["status"], "FAIL")
+                self.assertIn("errors", out["results"][0])
+                self.assertGreater(out["results"][0].get("error_count", 0), 0)
             finally:
                 os.chdir(cwd)
 
@@ -1268,6 +1268,16 @@ class TestCLIPyCoverageValidateCode(unittest.TestCase):
                 "\n"
                 "<!-- cpt:id:item to_code=\"true\" -->\n"
                 "<!-- cpt:id:item -->\n",
+                encoding="utf-8",
+            )
+            ex_dir = kits_base / "examples"
+            ex_dir.mkdir(parents=True, exist_ok=True)
+            (ex_dir / "example.md").write_text(
+                "<!-- cpt:id:item -->\n- [x] `p1` - **ID**: `cpt-ex-item-1`\n<!-- cpt:id:item -->\n",
+                encoding="utf-8",
+            )
+            (root / "kits" / "cypilot-sdlc" / "constraints.json").write_text(
+                json.dumps({"req": {"identifiers": {"item": {"required": False, "to_code": True, "template": "cpt-{system}-item-{slug}"}}}}, indent=2) + "\n",
                 encoding="utf-8",
             )
 
