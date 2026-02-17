@@ -646,8 +646,9 @@ def _cmd_agents(argv: List[str]) -> int:
                 if desired_path.as_posix() in skill_output_paths:
                     continue
 
-                # Paths inside generated proxy files must be relative to the proxy file location.
-                target_rel = _safe_relpath_from_dir(target_workflow_path, desired_path.parent)
+                # Paths inside generated proxy files must be relative to the project root
+                # so that AI agents can resolve them unambiguously.
+                target_rel = _safe_relpath(target_workflow_path, project_root)
 
                 # Parse frontmatter from source workflow
                 fm = _parse_frontmatter(target_workflow_path)
@@ -751,7 +752,12 @@ def _cmd_agents(argv: List[str]) -> int:
                 if "workflows/" not in target_rel and "/workflows/" not in target_rel:
                     continue
                 if not target_rel.startswith("/"):
-                    expected = (pth.parent / target_rel).resolve()
+                    # Resolve project-root-relative paths (new format) or
+                    # fall back to file-relative resolution (legacy format with ../)
+                    if target_rel.startswith(".."):
+                        expected = (pth.parent / target_rel).resolve()
+                    else:
+                        expected = (project_root / target_rel).resolve()
                 else:
                     expected = Path(target_rel)
                 try:
@@ -778,9 +784,8 @@ def _cmd_agents(argv: List[str]) -> int:
             if not isinstance(outputs, list) or not all(isinstance(x, dict) for x in outputs):
                 skills_result["errors"].append("outputs must be an array of objects")
             else:
-                # Cypilot skill source is always located relative to this script.
-                # `.../skills/cypilot/scripts/cypilot/cli.py` -> `.../skills/cypilot/SKILL.md`
-                target_skill_abs = (Path(__file__).resolve().parents[2] / "SKILL.md").resolve()
+                # Cypilot skill source is located relative to cypilot_root.
+                target_skill_abs = (cypilot_root / "skills" / skill_name / "SKILL.md").resolve()
                 if not target_skill_abs.is_file():
                     skills_result["errors"].append(
                         "Cypilot skill source not found (expected: " + target_skill_abs.as_posix() + ")"
@@ -811,13 +816,14 @@ def _cmd_agents(argv: List[str]) -> int:
                     custom_target = out_cfg.get("target")
                     if custom_target:
                         target_abs = (cypilot_root / custom_target).resolve()
-                        target_rel = _safe_relpath_from_dir(target_abs, out_dir)
+                        # Use project-root-relative paths so AI agents resolve them unambiguously
+                        target_rel = _safe_relpath(target_abs, project_root)
                         # Parse frontmatter from custom target
                         target_fm = _parse_frontmatter(target_abs)
                         out_name = target_fm.get("name", skill_source_name)
                         out_description = target_fm.get("description", skill_source_description)
                     else:
-                        target_rel = _safe_relpath_from_dir(target_skill_abs, out_dir)
+                        target_rel = _safe_relpath(target_skill_abs, project_root)
                         out_name = skill_source_name
                         out_description = skill_source_description
 
