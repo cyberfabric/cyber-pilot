@@ -78,8 +78,12 @@ def _ensure_cypilot_local(
     if (local_dot / ".git").exists():
         return local_dot, {"action": "none", "reason": "existing_submodule"}
 
-    # 3. Existing installation (has AGENTS.md + workflows/)
-    if (local_dot / "AGENTS.md").is_file() and (local_dot / "workflows").is_dir():
+    # 3. Existing installation (has AGENTS.md + workflows/ + skill entry)
+    if (
+        (local_dot / "AGENTS.md").is_file()
+        and (local_dot / "workflows").is_dir()
+        and (local_dot / "skills" / "cypilot" / "SKILL.md").is_file()
+    ):
         return local_dot, {"action": "none", "reason": "existing_installation"}
 
     # 4. Copy (dry-run keeps original root so template rendering still works)
