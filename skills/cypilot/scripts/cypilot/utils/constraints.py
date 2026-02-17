@@ -1143,25 +1143,6 @@ def cross_validate_artifacts(
                                         id_kind_template=id_kind_template,
                                     ))
 
-                            if def_has_task:
-                                refs_with_task = [rr for rr in refs_in_kind if bool(rr.get("has_task", False))]
-                                if not refs_with_task:
-                                    first = refs_in_kind[0]
-                                    errors.append(error(
-                                        "constraints",
-                                        f"Reference to `{did}` in `{tk}` artifact is missing task checkbox `- [ ]` — definition is task-tracked in {ak}",
-                                        code=EC.REF_MISSING_TASK_FOR_TRACKED,
-                                        path=first.get("artifact_path"),
-                                        line=int(first.get("line", 1) or 1),
-                                        id=did,
-                                        artifact_kind=ak,
-                                        target_kind=tk,
-                                        id_kind=id_kind,
-                                        id_kind_name=id_kind_name,
-                                        id_kind_description=id_kind_description,
-                                        id_kind_template=id_kind_template,
-                                    ))
-
                         if effective_cov == "prohibited" and refs_in_kind:
                             first = refs_in_kind[0]
                             errors.append(error(
