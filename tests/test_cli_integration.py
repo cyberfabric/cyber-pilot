@@ -1413,8 +1413,9 @@ class TestCLIAgentsAtPathFormat(unittest.TestCase):
             self.assertEqual(exit_code, 0)
 
             out = json.loads(stdout.getvalue())
-            # Copy should be skipped — cypilot_copy should be None (action was "none")
-            self.assertIsNone(out.get("cypilot_copy"), "Copy should be skipped for existing installation")
+            # Copy should be skipped — action "none" with reason
+            self.assertEqual(out["cypilot_copy"]["action"], "none")
+            self.assertEqual(out["cypilot_copy"]["reason"], "existing_installation")
 
             # Original file must be unchanged
             self.assertEqual(
@@ -1472,8 +1473,9 @@ class TestCLIAgentsAtPathFormat(unittest.TestCase):
             self.assertEqual(exit_code, 0)
 
             out = json.loads(stdout.getvalue())
-            # Copy should be skipped — cypilot_copy should be None (action was "none")
-            self.assertIsNone(out.get("cypilot_copy"), "Copy should be skipped for submodule")
+            # Copy should be skipped — action "none" with reason
+            self.assertEqual(out["cypilot_copy"]["action"], "none")
+            self.assertEqual(out["cypilot_copy"]["reason"], "existing_submodule")
 
     def test_cypilot_inside_project_no_copy(self):
         """When cypilot_root is anywhere inside project_root, no copy must happen."""
@@ -1504,9 +1506,9 @@ class TestCLIAgentsAtPathFormat(unittest.TestCase):
                     self.assertEqual(exit_code, 0, f"Failed for {rel}: {stdout.getvalue()}")
 
                     out = json.loads(stdout.getvalue())
-                    # cypilot_copy must be None — no copy needed for internal path
-                    self.assertIsNone(
-                        out.get("cypilot_copy"),
+                    # cypilot_copy action must be "none" — no copy needed for internal path
+                    self.assertEqual(
+                        out["cypilot_copy"]["action"], "none",
                         f"No copy should happen when cypilot is at {rel} inside project",
                     )
                     # Proxies must use @/{rel}/... paths, not absolute

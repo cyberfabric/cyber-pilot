@@ -743,7 +743,8 @@ def cmd_agents(argv: List[str]) -> int:
                 target_skill_abs = (cypilot_root / "skills" / "cypilot" / "SKILL.md").resolve()
                 if not target_skill_abs.is_file():
                     skills_result["errors"].append(
-                        "Cypilot skill source not found (expected: " + target_skill_abs.as_posix() + ")"
+                        "Cypilot skill source not found (expected: " + target_skill_abs.as_posix() + "). "
+                        "Run /cypilot to reinitialize."
                     )
 
                 skill_fm = _parse_frontmatter(target_skill_abs)
@@ -819,7 +820,7 @@ def cmd_agents(argv: List[str]) -> int:
         "cypilot_root": cypilot_root.as_posix(),
         "config_path": cfg_path.as_posix(),
         "dry_run": bool(args.dry_run),
-        "cypilot_copy": copy_report if copy_report["action"] != "none" else None,
+        "cypilot_copy": copy_report,
         "workflows": {
             "created": workflows_result["created"],
             "updated": workflows_result["updated"],
