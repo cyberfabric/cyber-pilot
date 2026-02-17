@@ -1228,6 +1228,153 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
             self.assertEqual(code, 0)
 
 
+class TestCLIAgentsAtPathFormat(unittest.TestCase):
+    """Verify that generated agent files use @/ project-root-relative paths."""
+
+    def _write_minimal_cypilot_skill(self, root: Path) -> None:
+        (root / "skills" / "cypilot").mkdir(parents=True, exist_ok=True)
+        (root / "skills" / "cypilot" / "SKILL.md").write_text(
+            "---\nname: cypilot\ndescription: Cypilot skill\n---\n# Cypilot\n",
+            encoding="utf-8",
+        )
+
+    def _write_workflows_with_frontmatter(self, root: Path) -> None:
+        (root / "workflows").mkdir(parents=True, exist_ok=True)
+        (root / "workflows" / "generate.md").write_text(
+            "---\ncypilot: true\ntype: workflow\nname: cypilot-generate\ndescription: Generate\n---\n# Generate\n",
+            encoding="utf-8",
+        )
+
+    def _run_agents(self, agent: str, root: Path, cypilot_root: Path) -> None:
+        stdout = io.StringIO()
+        with redirect_stdout(stdout):
+            exit_code = main(["agents", "--agent", agent, "--root", str(root), "--cypilot-root", str(cypilot_root)])
+        self.assertEqual(exit_code, 0, f"agents --agent {agent} failed: {stdout.getvalue()}")
+
+    def test_workflow_proxy_uses_at_path(self):
+        """Workflow proxies must reference the target via @/ not relative traversal."""
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / ".git").mkdir()
+            self._write_minimal_cypilot_skill(root)
+            self._write_workflows_with_frontmatter(root)
+
+            self._run_agents("windsurf", root, root)
+
+            proxy = root / ".windsurf" / "workflows" / "cypilot-generate.md"
+            self.assertTrue(proxy.exists())
+            content = proxy.read_text(encoding="utf-8")
+            self.assertIn("@/", content, "Workflow proxy must use @/ path prefix")
+            self.assertNotIn("../", content, "Workflow proxy must not use relative traversal paths")
+
+    def test_skill_output_uses_at_path(self):
+        """Skill outputs must reference the target via @/ not relative traversal."""
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / ".git").mkdir()
+            self._write_minimal_cypilot_skill(root)
+            self._write_workflows_with_frontmatter(root)
+
+            self._run_agents("windsurf", root, root)
+
+            skill = root / ".windsurf" / "skills" / "cypilot" / "SKILL.md"
+            self.assertTrue(skill.exists())
+            content = skill.read_text(encoding="utf-8")
+            self.assertIn("@/", content, "Skill output must use @/ path prefix")
+            self.assertNotIn("../", content, "Skill output must not use relative traversal paths")
+
+    def test_all_agents_use_at_path(self):
+        """All supported agents must generate files with @/ paths, not relative traversal."""
+        agents_and_files = {
+            "windsurf": [
+                ".windsurf/workflows/cypilot-generate.md",
+                ".windsurf/skills/cypilot/SKILL.md",
+                ".windsurf/workflows/cypilot.md",
+            ],
+            "claude": [
+                ".claude/commands/cypilot-generate.md",
+                ".claude/commands/cypilot.md",
+                ".claude/skills/cypilot/SKILL.md",
+                ".claude/skills/cypilot-adapter/SKILL.md",
+            ],
+            "copilot": [
+                ".github/copilot-instructions.md",
+                ".github/prompts/cypilot.prompt.md",
+                ".github/prompts/cypilot-generate.prompt.md",
+            ],
+            "cursor": [
+                ".cursor/commands/cypilot-generate.md",
+                ".cursor/rules/cypilot.mdc",
+                ".cursor/commands/cypilot.md",
+            ],
+            "openai": [
+                ".agents/skills/cypilot/SKILL.md",
+            ],
+        }
+
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / ".git").mkdir()
+            self._write_minimal_cypilot_skill(root)
+            self._write_workflows_with_frontmatter(root)
+
+            for agent in agents_and_files:
+                self._run_agents(agent, root, root)
+
+            for agent, files in agents_and_files.items():
+                for rel_path in files:
+                    fpath = root / rel_path
+                    self.assertTrue(fpath.exists(), f"{agent}: {rel_path} not created")
+                    content = fpath.read_text(encoding="utf-8")
+                    # Every generated file that has an ALWAYS open instruction must use @/
+                    if "ALWAYS open and follow" in content:
+                        self.assertIn(
+                            "@/",
+                            content,
+                            f"{agent}: {rel_path} must use @/ prefix — got:\n{content}",
+                        )
+                        self.assertNotIn(
+                            "../",
+                            content,
+                            f"{agent}: {rel_path} must not escape via ../ — got:\n{content}",
+                        )
+
+    def test_cypilot_outside_project_root_no_escape(self):
+        """When cypilot root is outside the project, the fallback must not generate an escaping path."""
+        with TemporaryDirectory() as project_tmpdir, TemporaryDirectory() as cypilot_tmpdir:
+            root = Path(project_tmpdir)
+            cypilot_root = Path(cypilot_tmpdir)
+            (root / ".git").mkdir()
+
+            # Set up minimal cypilot structure in the external directory
+            (cypilot_root / "skills" / "cypilot").mkdir(parents=True, exist_ok=True)
+            (cypilot_root / "skills" / "cypilot" / "SKILL.md").write_text(
+                "---\nname: cypilot\ndescription: External cypilot\n---\n# Cypilot\n",
+                encoding="utf-8",
+            )
+            (cypilot_root / "workflows").mkdir(parents=True, exist_ok=True)
+            (cypilot_root / "workflows" / "generate.md").write_text(
+                "---\ncypilot: true\ntype: workflow\nname: cypilot-generate\ndescription: Generate\n---\n# Generate\n",
+                encoding="utf-8",
+            )
+
+            stdout = io.StringIO()
+            with redirect_stdout(stdout):
+                exit_code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(cypilot_root)])
+            self.assertEqual(exit_code, 0)
+
+            proxy = root / ".windsurf" / "workflows" / "cypilot-generate.md"
+            self.assertTrue(proxy.exists())
+            content = proxy.read_text(encoding="utf-8")
+            # When outside project, fallback is absolute path — must not traverse deep into filesystem
+            # The key invariant: no "../.." style escape from the project root
+            self.assertNotRegex(
+                content,
+                r"\.\./\.\.",
+                "Workflow proxy must not use ../../ style path escape",
+            )
+
+
 class TestCLISearchCommands(unittest.TestCase):
     """Test search command variations."""
 

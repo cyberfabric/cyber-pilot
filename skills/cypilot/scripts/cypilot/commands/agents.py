@@ -24,6 +24,20 @@ def _safe_relpath_from_dir(target: Path, from_dir: Path) -> str:
     return rel.replace(os.sep, "/")
 
 
+def _target_path_from_root(target: Path, project_root: Path) -> str:
+    """Return agent-instruction path as @/<project-root-relative> when possible.
+
+    Using a project-root-relative alias avoids long ``../../..`` traversals that
+    escape the repository when the cypilot submodule lives at a path that is
+    outside or at a different depth than the project root.
+    """
+    try:
+        rel = target.relative_to(project_root).as_posix()
+        return f"@/{rel}"
+    except ValueError:
+        return target.as_posix()
+
+
 def _load_json_file(path: Path) -> Optional[dict]:
     if not path.is_file():
         return None
@@ -512,7 +526,7 @@ def cmd_agents(argv: List[str]) -> int:
                 if desired_path.as_posix() in skill_output_paths:
                     continue
 
-                target_rel = _safe_relpath_from_dir(target_workflow_path, desired_path.parent)
+                target_rel = _target_path_from_root(target_workflow_path, project_root)
 
                 fm = _parse_frontmatter(target_workflow_path)
                 source_name = fm.get("name", command)
@@ -610,7 +624,9 @@ def cmd_agents(argv: List[str]) -> int:
                 target_rel = m.group(1)
                 if "workflows/" not in target_rel and "/workflows/" not in target_rel:
                     continue
-                if not target_rel.startswith("/"):
+                if target_rel.startswith("@/"):
+                    expected = (project_root / target_rel[2:]).resolve()
+                elif not target_rel.startswith("/"):
                     expected = (pth.parent / target_rel).resolve()
                 else:
                     expected = Path(target_rel)
@@ -637,7 +653,7 @@ def cmd_agents(argv: List[str]) -> int:
             if not isinstance(outputs, list) or not all(isinstance(x, dict) for x in outputs):
                 skills_result["errors"].append("outputs must be an array of objects")
             else:
-                target_skill_abs = (Path(__file__).resolve().parents[3] / "SKILL.md").resolve()
+                target_skill_abs = (cypilot_root / "skills" / "cypilot" / "SKILL.md").resolve()
                 if not target_skill_abs.is_file():
                     skills_result["errors"].append(
                         "Cypilot skill source not found (expected: " + target_skill_abs.as_posix() + ")"
@@ -665,12 +681,12 @@ def cmd_agents(argv: List[str]) -> int:
                     custom_target = out_cfg.get("target")
                     if custom_target:
                         target_abs = (cypilot_root / custom_target).resolve()
-                        target_rel = _safe_relpath_from_dir(target_abs, out_dir)
+                        target_rel = _target_path_from_root(target_abs, project_root)
                         target_fm = _parse_frontmatter(target_abs)
                         out_name = target_fm.get("name", skill_source_name)
                         out_description = target_fm.get("description", skill_source_description)
                     else:
-                        target_rel = _safe_relpath_from_dir(target_skill_abs, out_dir)
+                        target_rel = _target_path_from_root(target_skill_abs, project_root)
                         out_name = skill_source_name
                         out_description = skill_source_description
 
