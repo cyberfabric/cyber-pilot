@@ -155,5 +155,255 @@ class TestFilesUtilsCoverage(unittest.TestCase):
             self.assertIsNotNone(err)
 
 
+class TestFindArtifactInSystem(unittest.TestCase):
+    """Tests for _find_artifact_in_system helper."""
+
+    def test_finds_existing_artifact(self):
+        from cypilot.commands.validate import _find_artifact_in_system
+        from cypilot.utils.artifacts_meta import SystemNode, Artifact
+
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            design = root / "architecture" / "DESIGN.md"
+            design.parent.mkdir(parents=True, exist_ok=True)
+            design.write_text("# Design\n", encoding="utf-8")
+
+            node = SystemNode(
+                name="test", slug="test", kit="sdlc",
+                artifacts=[Artifact(path="architecture/DESIGN.md", kind="DESIGN", traceability="FULL")],
+            )
+            result = _find_artifact_in_system(node, "DESIGN", root)
+            self.assertIsNotNone(result)
+            self.assertIn("DESIGN.md", result)
+
+    def test_returns_none_for_missing_artifact(self):
+        from cypilot.commands.validate import _find_artifact_in_system
+        from cypilot.utils.artifacts_meta import SystemNode, Artifact
+
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            node = SystemNode(
+                name="test", slug="test", kit="sdlc",
+                artifacts=[Artifact(path="architecture/DESIGN.md", kind="DESIGN", traceability="FULL")],
+            )
+            result = _find_artifact_in_system(node, "DESIGN", root)
+            self.assertIsNone(result)
+
+    def test_returns_none_for_wrong_kind(self):
+        from cypilot.commands.validate import _find_artifact_in_system
+        from cypilot.utils.artifacts_meta import SystemNode, Artifact
+
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            prd = root / "architecture" / "PRD.md"
+            prd.parent.mkdir(parents=True, exist_ok=True)
+            prd.write_text("# PRD\n", encoding="utf-8")
+
+            node = SystemNode(
+                name="test", slug="test", kit="sdlc",
+                artifacts=[Artifact(path="architecture/PRD.md", kind="PRD", traceability="FULL")],
+            )
+            result = _find_artifact_in_system(node, "DESIGN", root)
+            self.assertIsNone(result)
+
+    def test_searches_children(self):
+        from cypilot.commands.validate import _find_artifact_in_system
+        from cypilot.utils.artifacts_meta import SystemNode, Artifact
+
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            design = root / "sub" / "DESIGN.md"
+            design.parent.mkdir(parents=True, exist_ok=True)
+            design.write_text("# Design\n", encoding="utf-8")
+
+            child = SystemNode(
+                name="sub", slug="sub", kit="sdlc",
+                artifacts=[Artifact(path="sub/DESIGN.md", kind="DESIGN", traceability="FULL")],
+            )
+            parent = SystemNode(name="test", slug="test", kit="sdlc", children=[child])
+            result = _find_artifact_in_system(parent, "DESIGN", root)
+            self.assertIsNotNone(result)
+
+    def test_returns_none_for_non_system_node(self):
+        from cypilot.commands.validate import _find_artifact_in_system
+
+        with TemporaryDirectory() as td:
+            result = _find_artifact_in_system("not-a-node", "DESIGN", Path(td))
+            self.assertIsNone(result)
+
+
+class TestSuggestPathFromAutodetect(unittest.TestCase):
+    """Tests for _suggest_path_from_autodetect helper."""
+
+    def test_suggests_path_simple_pattern(self):
+        from cypilot.commands.validate import _suggest_path_from_autodetect
+        from cypilot.utils.artifacts_meta import SystemNode, AutodetectRule, AutodetectArtifactPattern
+
+        rule = AutodetectRule(
+            system_root="{project_root}",
+            artifacts_root="{system_root}/architecture",
+            artifacts={"DESIGN": AutodetectArtifactPattern(pattern="DESIGN.md", traceability="FULL")},
+        )
+        node = SystemNode(name="test", slug="test", kit="sdlc", autodetect=[rule])
+        result = _suggest_path_from_autodetect(node, "DESIGN")
+        self.assertEqual(result, "architecture/DESIGN.md")
+
+    def test_suggests_path_glob_pattern(self):
+        from cypilot.commands.validate import _suggest_path_from_autodetect
+        from cypilot.utils.artifacts_meta import SystemNode, AutodetectRule, AutodetectArtifactPattern
+
+        rule = AutodetectRule(
+            system_root="{project_root}",
+            artifacts_root="{system_root}/architecture",
+            artifacts={"ADR": AutodetectArtifactPattern(pattern="ADR/*.md", traceability="FULL")},
+        )
+        node = SystemNode(name="test", slug="test", kit="sdlc", autodetect=[rule])
+        result = _suggest_path_from_autodetect(node, "ADR")
+        self.assertEqual(result, "architecture/ADR.md")
+
+    def test_returns_none_for_unknown_kind(self):
+        from cypilot.commands.validate import _suggest_path_from_autodetect
+        from cypilot.utils.artifacts_meta import SystemNode, AutodetectRule, AutodetectArtifactPattern
+
+        rule = AutodetectRule(
+            artifacts={"PRD": AutodetectArtifactPattern(pattern="PRD.md", traceability="FULL")},
+        )
+        node = SystemNode(name="test", slug="test", kit="sdlc", autodetect=[rule])
+        result = _suggest_path_from_autodetect(node, "DESIGN")
+        self.assertIsNone(result)
+
+    def test_returns_none_for_non_system_node(self):
+        from cypilot.commands.validate import _suggest_path_from_autodetect
+        result = _suggest_path_from_autodetect("not-a-node", "DESIGN")
+        self.assertIsNone(result)
+
+    def test_returns_none_for_empty_autodetect(self):
+        from cypilot.commands.validate import _suggest_path_from_autodetect
+        from cypilot.utils.artifacts_meta import SystemNode
+
+        node = SystemNode(name="test", slug="test", kit="sdlc", autodetect=[])
+        result = _suggest_path_from_autodetect(node, "DESIGN")
+        self.assertIsNone(result)
+
+    def test_substitutes_system_slug(self):
+        from cypilot.commands.validate import _suggest_path_from_autodetect
+        from cypilot.utils.artifacts_meta import SystemNode, AutodetectRule, AutodetectArtifactPattern
+
+        rule = AutodetectRule(
+            system_root="{project_root}/{system}",
+            artifacts_root="{system_root}/docs",
+            artifacts={"DESIGN": AutodetectArtifactPattern(pattern="DESIGN.md", traceability="FULL")},
+        )
+        node = SystemNode(name="My App", slug="myapp", kit="sdlc", autodetect=[rule])
+        result = _suggest_path_from_autodetect(node, "DESIGN")
+        self.assertEqual(result, "myapp/docs/DESIGN.md")
+
+    def test_returns_none_for_empty_pattern(self):
+        from cypilot.commands.validate import _suggest_path_from_autodetect
+        from cypilot.utils.artifacts_meta import SystemNode, AutodetectRule, AutodetectArtifactPattern
+
+        rule = AutodetectRule(
+            artifacts={"DESIGN": AutodetectArtifactPattern(pattern="", traceability="FULL")},
+        )
+        node = SystemNode(name="test", slug="test", kit="sdlc", autodetect=[rule])
+        result = _suggest_path_from_autodetect(node, "DESIGN")
+        self.assertIsNone(result)
+
+
+class TestEnrichTargetArtifactPaths(unittest.TestCase):
+    """Tests for _enrich_target_artifact_paths helper."""
+
+    def test_skips_non_artifacts_meta(self):
+        from cypilot.commands.validate import _enrich_target_artifact_paths
+
+        issues = [{"code": "ref-missing-from-kind", "target_kind": "DESIGN", "path": "/tmp/PRD.md"}]
+        _enrich_target_artifact_paths(issues, meta=None, project_root=Path("/tmp"))
+        self.assertNotIn("target_artifact_path", issues[0])
+
+    def test_skips_non_matching_code(self):
+        from cypilot.commands.validate import _enrich_target_artifact_paths
+        from cypilot.utils.artifacts_meta import ArtifactsMeta
+
+        meta = ArtifactsMeta.__new__(ArtifactsMeta)
+        meta._systems = []
+        meta._kits = {}
+        meta._artifact_index = {}
+
+        issues = [{"code": "some-other-code", "message": "unrelated"}]
+        _enrich_target_artifact_paths(issues, meta=meta, project_root=Path("/tmp"))
+        self.assertNotIn("target_artifact_path", issues[0])
+
+    def test_enriches_with_existing_artifact(self):
+        from cypilot.commands.validate import _enrich_target_artifact_paths
+        from cypilot.utils.artifacts_meta import ArtifactsMeta, SystemNode, Artifact
+
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            prd = root / "architecture" / "PRD.md"
+            design = root / "architecture" / "DESIGN.md"
+            prd.parent.mkdir(parents=True, exist_ok=True)
+            prd.write_text("# PRD\n", encoding="utf-8")
+            design.write_text("# Design\n", encoding="utf-8")
+
+            node = SystemNode(
+                name="test", slug="test", kit="sdlc",
+                artifacts=[
+                    Artifact(path="architecture/PRD.md", kind="PRD", traceability="FULL"),
+                    Artifact(path="architecture/DESIGN.md", kind="DESIGN", traceability="FULL"),
+                ],
+            )
+            meta = ArtifactsMeta.__new__(ArtifactsMeta)
+            meta._systems = [node]
+            meta._kits = {}
+            meta._ignore_patterns = []
+            meta._artifacts_by_path = {"architecture/PRD.md": (node.artifacts[0], node)}
+
+            issues = [{
+                "code": "ref-missing-from-kind",
+                "target_kind": "DESIGN",
+                "path": str(prd),
+            }]
+            _enrich_target_artifact_paths(issues, meta=meta, project_root=root)
+            self.assertIn("target_artifact_path", issues[0])
+
+    def test_enriches_with_suggested_path(self):
+        from cypilot.commands.validate import _enrich_target_artifact_paths
+        from cypilot.utils.artifacts_meta import (
+            ArtifactsMeta, SystemNode, Artifact,
+            AutodetectRule, AutodetectArtifactPattern,
+        )
+
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            prd = root / "architecture" / "PRD.md"
+            prd.parent.mkdir(parents=True, exist_ok=True)
+            prd.write_text("# PRD\n", encoding="utf-8")
+
+            rule = AutodetectRule(
+                system_root="{project_root}",
+                artifacts_root="{system_root}/architecture",
+                artifacts={"DESIGN": AutodetectArtifactPattern(pattern="DESIGN.md", traceability="FULL")},
+            )
+            node = SystemNode(
+                name="test", slug="test", kit="sdlc",
+                artifacts=[Artifact(path="architecture/PRD.md", kind="PRD", traceability="FULL")],
+                autodetect=[rule],
+            )
+            meta = ArtifactsMeta.__new__(ArtifactsMeta)
+            meta._systems = [node]
+            meta._kits = {}
+            meta._ignore_patterns = []
+            meta._artifacts_by_path = {"architecture/PRD.md": (node.artifacts[0], node)}
+
+            issues = [{
+                "code": "ref-missing-from-kind",
+                "target_kind": "DESIGN",
+                "path": str(prd),
+            }]
+            _enrich_target_artifact_paths(issues, meta=meta, project_root=root)
+            self.assertIn("target_artifact_suggested_path", issues[0])
+            self.assertEqual(issues[0]["target_artifact_suggested_path"], "architecture/DESIGN.md")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -13,6 +13,8 @@ IDs in code that don't exist in artifacts = validation FAIL.
 from __future__ import annotations
 
 import re
+
+from . import error_codes as EC
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Set, Tuple
@@ -36,9 +38,13 @@ _BLOCK_END_RE = re.compile(
 # Generic SID reference (backticked or in markers)
 _SID_RE = re.compile(r"cpt-[a-z0-9][a-z0-9-]+")
 
-def error(kind: str, message: str, *, path: Path, line: int = 1, **extra) -> Dict[str, object]:
+def error(kind: str, message: str, *, path: Path, line: int = 1, code: Optional[str] = None, **extra) -> Dict[str, object]:
     """Uniform error factory for code validation."""
-    out: Dict[str, object] = {"type": kind, "message": message, "line": int(line), "path": str(path)}
+    path_s = str(path)
+    out: Dict[str, object] = {"type": kind, "message": message, "line": int(line), "path": path_s}
+    if code:
+        out["code"] = code
+    out["location"] = f"{path_s}:{int(line)}" if (path_s and not path_s.startswith("<")) else path_s
     extra = {k: v for k, v in extra.items() if v is not None}
     out.update(extra)
     return out
@@ -107,7 +113,7 @@ class CodeFile:
         try:
             text = self.path.read_text(encoding="utf-8")
         except Exception as e:
-            err = error("file", f"Failed to read code file: {e}", path=self.path, line=1)
+            err = error("file", f"Failed to read `{self.path}`: {e}", code=EC.FILE_READ_ERROR, path=self.path, line=1)
             self._errors.append(err)
             return [err]
 
@@ -149,7 +155,8 @@ class CodeFile:
                 if key in open_blocks:
                     self._errors.append(error(
                         "marker",
-                        f"Duplicate @cpt-begin without matching @cpt-end",
+                        f"Duplicate @cpt-begin for `{m.group('id')}` inst `{m.group('inst')}` at line {line_no} in `{self.path.name}` — previous @cpt-begin not closed",
+                        code=EC.MARKER_DUP_BEGIN,
                         path=self.path,
                         line=line_no,
                         id=m.group("id"),
@@ -164,7 +171,8 @@ class CodeFile:
                 if key not in open_blocks:
                     self._errors.append(error(
                         "marker",
-                        f"@cpt-end without matching @cpt-begin",
+                        f"@cpt-end for `{m.group('id')}` inst `{m.group('inst')}` at line {line_no} in `{self.path.name}` has no matching @cpt-begin",
+                        code=EC.MARKER_END_NO_BEGIN,
                         path=self.path,
                         line=line_no,
                         id=m.group("id"),
@@ -177,7 +185,8 @@ class CodeFile:
                     if not content or all(not ln.strip() for ln in content):
                         self._errors.append(error(
                             "marker",
-                            "Empty block (no code between @cpt-begin and @cpt-end)",
+                            f"Empty block for `{cpt}` inst `{inst}` (lines {start_line}–{line_no}) in `{self.path.name}` — no code between markers",
+                            code=EC.MARKER_EMPTY_BLOCK,
                             path=self.path,
                             line=start_line,
                             id=cpt,
@@ -206,7 +215,8 @@ class CodeFile:
         for key, (start_line, cpt, phase, inst) in open_blocks.items():
             self._errors.append(error(
                 "marker",
-                "@cpt-begin without matching @cpt-end",
+                f"@cpt-begin for `{cpt}` inst `{inst}` at line {start_line} in `{self.path.name}` was never closed with @cpt-end",
+                code=EC.MARKER_BEGIN_NO_END,
                 path=self.path,
                 line=start_line,
                 id=cpt,
@@ -263,7 +273,8 @@ class CodeFile:
             if key in seen_scopes:
                 errors.append(error(
                     "marker",
-                    "Duplicate scope marker",
+                    f"Duplicate scope marker `{scope.kind}:{scope.id}:p{scope.phase}` in `{self.path.name}` at line {scope.line} — first seen at line {seen_scopes[key]}",
+                    code=EC.MARKER_DUP_SCOPE,
                     path=self.path,
                     line=scope.line,
                     id=scope.id,
@@ -281,6 +292,7 @@ def cross_validate_code(
     to_code_ids: Set[str],
     forbidden_code_ids: Optional[Set[str]] = None,
     traceability: str = "FULL",
+    artifact_instances: Optional[Dict[str, Set[str]]] = None,
 ) -> Dict[str, List[Dict[str, object]]]:
     """Cross-validate code files against artifact IDs.
 
@@ -289,6 +301,7 @@ def cross_validate_code(
         artifact_ids: All IDs defined in artifacts
         to_code_ids: IDs with to_code="true" that MUST have code markers
         traceability: "FULL" or "DOCS-ONLY"
+        artifact_instances: Mapping of ID -> set of instruction slugs from CDSL steps
 
     Returns:
         Dict with "errors" and "warnings" lists
@@ -302,7 +315,8 @@ def cross_validate_code(
             if cf.scope_markers or cf.block_markers:
                 errors.append(error(
                     "traceability",
-                    "Cypilot markers found in code but traceability is DOCS-ONLY",
+                    f"@cpt markers found in `{cf.path.name}` but traceability mode is DOCS-ONLY — remove all markers or switch to FULL",
+                    code=EC.CODE_DOCS_ONLY,
                     path=cf.path,
                     line=1,
                 ))
@@ -324,7 +338,8 @@ def cross_validate_code(
             if ref.id not in artifact_ids:
                 errors.append(error(
                     "traceability",
-                    "Code marker references ID not defined in any artifact",
+                    f"Code marker references `{ref.id}` in `{cf.path.name}` at line {ref.line} but this ID is not defined in any artifact",
+                    code=EC.CODE_ORPHAN_REF,
                     path=cf.path,
                     line=ref.line,
                     id=ref.id,
@@ -335,7 +350,8 @@ def cross_validate_code(
             p, ln = first_forbidden[fid]
             errors.append(error(
                 "structure",
-                "ID marked to_code=\"true\" is referenced from code but task checkbox is not checked",
+                f"`{fid}` is marked to_code=\"true\" and referenced in code at line {ln} but its task checkbox is not checked in the artifact",
+                code=EC.CODE_TASK_UNCHECKED,
                 path=p,
                 line=ln,
                 id=fid,
@@ -346,11 +362,48 @@ def cross_validate_code(
     for missing_id in sorted(missing_ids):
         errors.append(error(
             "coverage",
-            "ID marked to_code=\"true\" has no code marker",
+            f"`{missing_id}` is marked to_code=\"true\" but no @cpt marker referencing it exists in the codebase",
+            code=EC.CODE_NO_MARKER,
             path=Path("."),
             line=1,
             id=missing_id,
         ))
+
+    # Instruction-level cross-validation
+    if artifact_instances:
+        # Collect code instructions per ID from block markers
+        code_inst_by_id: Dict[str, Dict[str, Tuple[Path, int]]] = {}
+        for cf in code_files:
+            for bm in cf.block_markers:
+                code_inst_by_id.setdefault(bm.id, {})[bm.inst] = (cf.path, bm.start_line)
+
+        for cid, art_insts in sorted(artifact_instances.items()):
+            code_insts = set(code_inst_by_id.get(cid, {}).keys())
+
+            # Artifact instruction not in code → missing implementation
+            for inst in sorted(art_insts - code_insts):
+                errors.append(error(
+                    "coverage",
+                    f"CDSL instruction `{inst}` of `{cid}` is defined in artifact but has no @cpt-begin/@cpt-end block in code",
+                    code=EC.CODE_INST_MISSING,
+                    path=Path("."),
+                    line=1,
+                    id=cid,
+                    inst=inst,
+                ))
+
+            # Code instruction not in artifact → orphaned marker
+            for inst in sorted(code_insts - art_insts):
+                loc_path, loc_line = code_inst_by_id[cid][inst]
+                errors.append(error(
+                    "traceability",
+                    f"Code block `inst-{inst}` of `{cid}` in `{loc_path.name}` at line {loc_line} has no matching CDSL step in the artifact",
+                    code=EC.CODE_INST_ORPHAN,
+                    path=loc_path,
+                    line=loc_line,
+                    id=cid,
+                    inst=inst,
+                ))
 
     return {"errors": errors, "warnings": warnings}
 
@@ -364,7 +417,7 @@ def validate_code_file(code_path: Path) -> Dict[str, List[Dict[str, object]]]:
     """Validate a single code file's marker structure."""
     cf, errs = CodeFile.from_path(code_path)
     if errs or cf is None:
-        return {"errors": errs or [error("file", "Failed to load code file", path=code_path, line=1)], "warnings": []}
+        return {"errors": errs or [error("file", f"Failed to load code file `{code_path}`", code=EC.FILE_LOAD_ERROR, path=code_path, line=1)], "warnings": []}
     return cf.validate()
 
 

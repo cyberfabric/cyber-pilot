@@ -6,6 +6,8 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
+from . import error_codes as EC
+
 
 @dataclass(frozen=True)
 class ReferenceRule:
@@ -70,9 +72,13 @@ class KitConstraints:
     by_kind: Dict[str, ArtifactKindConstraints]
 
 
-def error(kind: str, message: str, *, path: Path | str, line: int = 1, **extra) -> Dict[str, object]:
+def error(kind: str, message: str, *, path: Path | str, line: int = 1, code: Optional[str] = None, **extra) -> Dict[str, object]:
     out: Dict[str, object] = {"type": kind, "message": message, "line": int(line)}
-    out["path"] = str(path)
+    if code:
+        out["code"] = code
+    path_s = str(path)
+    out["path"] = path_s
+    out["location"] = f"{path_s}:{int(line)}" if (path_s and not path_s.startswith("<")) else path_s
     extra = {k: v for k, v in extra.items() if v is not None}
     out.update(extra)
     return out
@@ -353,13 +359,15 @@ def validate_artifact_file(
             continue
         if not bool(parent_def.get("checked", False)):
             continue
+        inst_s = str(ch.get("inst") or "").strip()
         errors.append(error(
             "structure",
-            "CDSL step is unchecked but parent ID is checked",
+            f"CDSL step `{pid}`{(' inst ' + inst_s) if inst_s else ''} is unchecked but parent ID is already checked in {kind} artifact",
+            code=EC.CDSL_STEP_UNCHECKED,
             path=artifact_path,
             line=int(ch.get("line", 1) or 1),
             id=pid,
-            inst=str(ch.get("inst") or "") or None,
+            inst=inst_s or None,
         ))
 
     headings_scanned = _scan_headings(artifact_path)
@@ -437,7 +445,8 @@ def validate_artifact_file(
         if all_children_checked and all_ref_children_checked and (not parent_checked):
             errors.append(error(
                 "structure",
-                "Parent ID is unchecked but all nested task-tracked items are checked",
+                f"Parent `{parent_id}` is unchecked but all {len(children) + len(ref_children)} nested task-tracked items are checked in {kind} artifact",
+                code=EC.PARENT_UNCHECKED_ALL_DONE,
                 path=artifact_path,
                 line=parent_line,
                 id=parent_id,
@@ -447,12 +456,14 @@ def validate_artifact_file(
             first_unchecked = next((c for c in children if not bool(c.get("checked", False))), None)
             first_ref_unchecked = next((r for r in ref_children if not bool(r.get("checked", False))), None)
             first = first_unchecked or first_ref_unchecked or parent
+            first_id = str(first.get("id") or "") or parent_id
             errors.append(error(
                 "structure",
-                "Parent ID is checked but some nested task-tracked items are unchecked",
+                f"Parent `{parent_id}` is checked but nested item `{first_id}` (and possibly others) is still unchecked in {kind} artifact",
+                code=EC.PARENT_CHECKED_NESTED_UNCHECKED,
                 path=artifact_path,
                 line=int(first.get("line", 1) or 1),
-                id=str(first.get("id") or "") or parent_id,
+                id=first_id,
                 parent_id=parent_id,
             ))
 
@@ -554,7 +565,8 @@ def validate_artifact_file(
             hint = _id_kind_hint(constraint_by_kind.get(id_kind))
             errors.append(error(
                 "constraints",
-                f"ID kind not allowed by constraints{hint}",
+                f"`{hid}` uses kind `{id_kind}` not allowed in {kind} artifact (allowed: {sorted(allowed_defs)}){hint}",
+                code=EC.ID_KIND_NOT_ALLOWED,
                 path=artifact_path,
                 line=line,
                 artifact_kind=kind,
@@ -579,7 +591,8 @@ def validate_artifact_file(
         if tk == "required" and not has_task:
             errors.append(error(
                 "constraints",
-                f"ID definition missing required task checkbox{_id_kind_hint(c)}",
+                f"`{hid}` (kind `{id_kind}`) in {kind} artifact is missing required task checkbox `- [ ]`{_id_kind_hint(c)}",
+                code=EC.DEF_MISSING_TASK,
                 path=artifact_path,
                 line=line,
                 artifact_kind=kind,
@@ -593,7 +606,8 @@ def validate_artifact_file(
         if tk == "prohibited" and has_task:
             errors.append(error(
                 "constraints",
-                f"ID definition has prohibited task checkbox{_id_kind_hint(c)}",
+                f"`{hid}` (kind `{id_kind}`) in {kind} artifact has task checkbox but kind `{id_kind}` prohibits task tracking{_id_kind_hint(c)}",
+                code=EC.DEF_PROHIBITED_TASK,
                 path=artifact_path,
                 line=line,
                 artifact_kind=kind,
@@ -608,7 +622,8 @@ def validate_artifact_file(
         if pr == "required" and not has_priority:
             errors.append(error(
                 "constraints",
-                f"ID definition missing required priority{_id_kind_hint(c)}",
+                f"`{hid}` (kind `{id_kind}`) in {kind} artifact is missing required priority marker{_id_kind_hint(c)}",
+                code=EC.DEF_MISSING_PRIORITY,
                 path=artifact_path,
                 line=line,
                 artifact_kind=kind,
@@ -622,7 +637,8 @@ def validate_artifact_file(
         if pr == "prohibited" and has_priority:
             errors.append(error(
                 "constraints",
-                f"ID definition has prohibited priority{_id_kind_hint(c)}",
+                f"`{hid}` (kind `{id_kind}`) in {kind} artifact has priority marker but kind `{id_kind}` prohibits priority{_id_kind_hint(c)}",
+                code=EC.DEF_PROHIBITED_PRIORITY,
                 path=artifact_path,
                 line=line,
                 artifact_kind=kind,
@@ -649,7 +665,8 @@ def validate_artifact_file(
                 ]
                 errors.append(error(
                     "constraints",
-                    f"ID definition not under required headings{_id_kind_hint(c)}",
+                    f"`{hid}` (kind `{id_kind}`) in {kind} artifact is under {active_raw} but must be under one of {sorted(allowed_norm)}{_id_kind_hint(c)}",
+                    code=EC.DEF_WRONG_HEADINGS,
                     path=artifact_path,
                     line=line,
                     artifact_kind=kind,
@@ -673,9 +690,15 @@ def validate_artifact_file(
             continue
         if k in defs_by_kind and defs_by_kind[k]:
             continue
+        id_headings = [h for h in (getattr(c, "headings", None) or []) if isinstance(h, str) and h.strip()]
+        id_headings_info = [
+            {"id": hid, "description": heading_desc_by_id.get(hid)}
+            for hid in id_headings
+        ] if id_headings else None
         errors.append(error(
             "constraints",
-            f"Required ID kind missing in artifact{_id_kind_hint(c)}",
+            f"{kind} artifact has no `{k}` IDs but at least one is required{_id_kind_hint(c)}",
+            code=EC.REQUIRED_ID_KIND_MISSING,
             path=artifact_path,
             line=1,
             artifact_kind=kind,
@@ -683,6 +706,8 @@ def validate_artifact_file(
             id_kind_name=str(getattr(c, "name", "") or "").strip() or None,
             id_kind_description=str(getattr(c, "description", "") or "").strip() or None,
             id_kind_template=str(getattr(c, "template", "") or "").strip() or None,
+            target_headings=id_headings if id_headings else None,
+            target_headings_info=id_headings_info,
         ))
 
     return {"errors": errors, "warnings": warnings}
@@ -738,7 +763,8 @@ def cross_validate_artifacts(
     if missing_constraints_kinds:
         errors.append(error(
             "constraints",
-            "Missing constraints for artifact kinds",
+            f"No constraints defined for artifact kinds: {sorted(missing_constraints_kinds)} — add them to constraints.json",
+            code=EC.MISSING_CONSTRAINTS,
             path=Path("<constraints.json>"),
             line=1,
             kinds=sorted(missing_constraints_kinds),
@@ -870,7 +896,8 @@ def cross_validate_artifacts(
         for r in rows:
             errors.append(error(
                 "structure",
-                "Reference has no definition",
+                f"Reference to `{rid}` has no matching definition in any artifact",
+                code=EC.REF_NO_DEFINITION,
                 path=r.get("artifact_path"),
                 line=int(r.get("line", 1) or 1),
                 id=rid,
@@ -891,11 +918,39 @@ def cross_validate_artifacts(
                     continue
                 errors.append(error(
                     "structure",
-                    "Reference marked done but definition not done",
+                    f"Reference to `{rid}` is checked [x] but its definition is still unchecked",
+                    code=EC.REF_DONE_DEF_NOT_DONE,
                     path=r.get("artifact_path"),
                     line=int(r.get("line", 1) or 1),
                     id=rid,
                 ))
+
+    # Reverse: definition checked but reference unchecked
+    for rid, rrows in refs_by_id.items():
+        defs = defs_by_id.get(rid, [])
+        if not defs:
+            continue
+        # Check if ALL definitions with tasks are checked
+        defs_with_task = [d for d in defs if bool(d.get("has_task", False))]
+        if not defs_with_task:
+            continue
+        if not all(bool(d.get("checked", False)) for d in defs_with_task):
+            continue
+        # Definition is done — flag any task-tracked reference that is NOT done
+        for r in rrows:
+            if not bool(r.get("has_task", False)):
+                continue
+            if bool(r.get("checked", False)):
+                continue
+            errors.append(error(
+                "structure",
+                f"Definition of `{rid}` is checked [x] but reference in {r.get('artifact_kind', '?')} artifact is still unchecked",
+                code=EC.DEF_DONE_REF_NOT_DONE,
+                path=r.get("artifact_path"),
+                line=int(r.get("line", 1) or 1),
+                id=rid,
+                def_artifact_kind=defs_with_task[0].get("artifact_kind"),
+            ))
 
     for rid, rrows in refs_by_id.items():
         defs = defs_by_id.get(rid, [])
@@ -908,7 +963,8 @@ def cross_validate_artifacts(
                 continue
             errors.append(error(
                 "structure",
-                "Reference has task checkbox but definition has no task checkbox",
+                f"Reference to `{rid}` has task checkbox but its definition has no task tracking",
+                code=EC.REF_TASK_DEF_NO_TASK,
                 path=r.get("artifact_path"),
                 line=int(r.get("line", 1) or 1),
                 id=rid,
@@ -934,7 +990,8 @@ def cross_validate_artifacts(
             if allowed_kinds and k not in allowed_kinds:
                 errors.append(error(
                     "constraints",
-                    "ID kind not allowed by constraints",
+                    f"`{d.get('id')}` uses kind `{k}` not allowed in {ak} artifact",
+                    code=EC.ID_KIND_NOT_ALLOWED,
                     path=art.path,
                     line=int(d.get("line", 1) or 1),
                     artifact_kind=ak,
@@ -947,9 +1004,12 @@ def cross_validate_artifacts(
             is_required = bool(getattr(ic, "required", True))
             defs_of_kind = [d for d in defs_in_file if str(d.get("id_kind") or "").lower() == k]
             if is_required and k and not defs_of_kind:
+                id_headings = [h for h in (getattr(ic, "headings", None) or []) if isinstance(h, str) and h.strip()]
+                id_headings_info = headings_info_for_kind(ak, id_headings) if id_headings else None
                 errors.append(error(
                     "constraints",
-                    "Required ID kind missing in artifact",
+                    f"{ak} artifact has no `{k}` IDs but at least one is required",
+                    code=EC.REQUIRED_ID_KIND_MISSING,
                     path=art.path,
                     line=1,
                     artifact_kind=ak,
@@ -957,6 +1017,8 @@ def cross_validate_artifacts(
                     id_kind_name=str(getattr(ic, "name", "") or "").strip() or None,
                     id_kind_description=str(getattr(ic, "description", "") or "").strip() or None,
                     id_kind_template=str(getattr(ic, "template", "") or "").strip() or None,
+                    target_headings=id_headings if id_headings else None,
+                    target_headings_info=id_headings_info,
                 ))
                 continue
 
@@ -970,7 +1032,8 @@ def cross_validate_artifacts(
                         continue
                     errors.append(error(
                         "constraints",
-                        "ID definition not under required headings",
+                        f"`{d.get('id')}` (kind `{k}`) in {ak} artifact is under {d.get('headings') or []} but must be under one of {allowed_sorted}",
+                        code=EC.DEF_WRONG_HEADINGS,
                         path=art.path,
                         line=int(d.get("line", 1) or 1),
                         artifact_kind=ak,
@@ -1028,7 +1091,8 @@ def cross_validate_artifacts(
                             if tk not in system_present_kinds:
                                 warnings.append(error(
                                     "constraints",
-                                    "Required reference target kind not in scope",
+                                    f"`{did}` (defined in {ak}) requires reference in `{tk}` artifact but no `{tk}` artifact exists in scope",
+                                    code=EC.REF_TARGET_NOT_IN_SCOPE,
                                     path=drow.get("artifact_path"),
                                     line=int(drow.get("line", 1) or 1),
                                     id=did,
@@ -1039,7 +1103,8 @@ def cross_validate_artifacts(
                             if not refs_in_kind:
                                 errors.append(error(
                                     "constraints",
-                                    "ID not referenced from required artifact kind",
+                                    f"`{did}` (defined in {ak}, kind `{id_kind}`) is not referenced from any `{tk}` artifact",
+                                    code=EC.REF_MISSING_FROM_KIND,
                                     path=drow.get("artifact_path"),
                                     line=int(drow.get("line", 1) or 1),
                                     id=did,
@@ -1049,6 +1114,8 @@ def cross_validate_artifacts(
                                     id_kind_name=id_kind_name,
                                     id_kind_description=id_kind_description,
                                     id_kind_template=id_kind_template,
+                                    target_headings=allowed_headings_sorted if allowed_headings else None,
+                                    target_headings_info=allowed_headings_info if allowed_headings else None,
                                 ))
                                 continue
 
@@ -1060,7 +1127,8 @@ def cross_validate_artifacts(
                                     first = refs_in_kind[0]
                                     errors.append(error(
                                         "constraints",
-                                        "ID reference not under required headings",
+                                        f"Reference to `{did}` in `{tk}` artifact is under {first.get('headings') or []} but must be under one of {allowed_headings_sorted}",
+                                        code=EC.REF_WRONG_HEADINGS,
                                         path=first.get("artifact_path"),
                                         line=int(first.get("line", 1) or 1),
                                         id=did,
@@ -1081,7 +1149,8 @@ def cross_validate_artifacts(
                                     first = refs_in_kind[0]
                                     errors.append(error(
                                         "constraints",
-                                        "ID reference missing required task checkbox for task-tracked definition",
+                                        f"Reference to `{did}` in `{tk}` artifact is missing task checkbox `- [ ]` — definition is task-tracked in {ak}",
+                                        code=EC.REF_MISSING_TASK_FOR_TRACKED,
                                         path=first.get("artifact_path"),
                                         line=int(first.get("line", 1) or 1),
                                         id=did,
@@ -1097,7 +1166,8 @@ def cross_validate_artifacts(
                             first = refs_in_kind[0]
                             errors.append(error(
                                 "constraints",
-                                "ID referenced from prohibited artifact kind",
+                                f"`{did}` is referenced in `{tk}` artifact but references from `{tk}` are prohibited for {ak} IDs",
+                                code=EC.REF_FROM_PROHIBITED_KIND,
                                 path=first.get("artifact_path"),
                                 line=int(first.get("line", 1) or 1),
                                 id=did,
@@ -1117,7 +1187,8 @@ def cross_validate_artifacts(
                                         continue
                                     errors.append(error(
                                         "constraints",
-                                        "ID reference missing required task checkbox",
+                                        f"Reference to `{did}` in `{tk}` artifact is missing required task checkbox `- [ ]`",
+                                        code=EC.REF_MISSING_TASK,
                                         path=rr.get("artifact_path"),
                                         line=int(rr.get("line", 1) or 1),
                                         id=did,
@@ -1135,7 +1206,8 @@ def cross_validate_artifacts(
                                         continue
                                     errors.append(error(
                                         "constraints",
-                                        "ID reference has prohibited task checkbox",
+                                        f"Reference to `{did}` in `{tk}` artifact has task checkbox but task tracking is prohibited",
+                                        code=EC.REF_PROHIBITED_TASK,
                                         path=rr.get("artifact_path"),
                                         line=int(rr.get("line", 1) or 1),
                                         id=did,
@@ -1154,7 +1226,8 @@ def cross_validate_artifacts(
                                         continue
                                     errors.append(error(
                                         "constraints",
-                                        "ID reference missing required priority",
+                                        f"Reference to `{did}` in `{tk}` artifact is missing required priority marker",
+                                        code=EC.REF_MISSING_PRIORITY,
                                         path=rr.get("artifact_path"),
                                         line=int(rr.get("line", 1) or 1),
                                         id=did,
@@ -1172,7 +1245,8 @@ def cross_validate_artifacts(
                                         continue
                                     errors.append(error(
                                         "constraints",
-                                        "ID reference has prohibited priority",
+                                        f"Reference to `{did}` in `{tk}` artifact has priority marker but priority is prohibited",
+                                        code=EC.REF_PROHIBITED_PRIORITY,
                                         path=rr.get("artifact_path"),
                                         line=int(rr.get("line", 1) or 1),
                                         id=did,
@@ -1729,7 +1803,8 @@ def validate_headings_contract(
                     expected_prefix = ".".join([*(str(x) for x in parent), str(expected)]) if parent else str(expected)
                     errors.append(error(
                         "structure",
-                        "Heading numbering is not consecutive",
+                        f"Heading `{prefix}` in {str(artifact_kind).strip().upper()} artifact is not consecutive — expected `{expected_prefix}` after `{last_prefix_by_key.get(key)}`",
+                        code=EC.HEADING_NUMBER_NOT_CONSECUTIVE,
                         path=path,
                         line=int(h.get("line", 1) or 1),
                         artifact_kind=str(artifact_kind).strip().upper(),
@@ -1814,7 +1889,8 @@ def validate_headings_contract(
                 desc_s = (f" ({hc_desc})" if hc_desc else "")
                 errors.append(error(
                     "constraints",
-                    f"Required heading missing in artifact{between_s}{desc_s}",
+                    f"Required level-{int(hc.level)} heading (pattern: `{hc.pattern}`) missing in {str(artifact_kind).strip().upper()} artifact{between_s}{desc_s}",
+                    code=EC.HEADING_MISSING,
                     path=path,
                     line=1,
                     artifact_kind=str(artifact_kind).strip().upper(),
@@ -1855,7 +1931,8 @@ def validate_headings_contract(
             desc_s = (f" ({hc_desc})" if hc_desc else "")
             errors.append(error(
                 "constraints",
-                f"Heading constraint prohibits multiple occurrences{desc_s}",
+                f"Heading `{hc.pattern}` (level {int(hc.level)}) appears {len(matches)} times in {str(artifact_kind).strip().upper()} artifact but only 1 is allowed{desc_s}",
+                code=EC.HEADING_PROHIBITS_MULTIPLE,
                 path=path,
                 line=int(matches[1].get("line", 1) or 1),
                 artifact_kind=str(artifact_kind).strip().upper(),
@@ -1868,7 +1945,8 @@ def validate_headings_contract(
             desc_s = (f" ({hc_desc})" if hc_desc else "")
             errors.append(error(
                 "constraints",
-                f"Heading constraint requires multiple occurrences{desc_s}",
+                f"Heading `{hc.pattern}` (level {int(hc.level)}) appears only {len(matches)} time(s) in {str(artifact_kind).strip().upper()} artifact but at least 2 required{desc_s}",
+                code=EC.HEADING_REQUIRES_MULTIPLE,
                 path=path,
                 line=int(matches[0].get("line", 1) or 1),
                 artifact_kind=str(artifact_kind).strip().upper(),
@@ -1888,7 +1966,8 @@ def validate_headings_contract(
                 desc_s = (f" ({hc_desc})" if hc_desc else "")
                 errors.append(error(
                     "constraints",
-                    f"Heading numbering does not match constraint{desc_s}",
+                    f"Heading `{hc.pattern}` (level {int(hc.level)}) in {str(artifact_kind).strip().upper()} artifact: numbering {'is required but missing' if hc.numbered == 'required' else 'is prohibited but present'}{desc_s}",
+                    code=EC.HEADING_NUMBERING_MISMATCH,
                     path=path,
                     line=int(mh.get("line", 1) or 1),
                     artifact_kind=str(artifact_kind).strip().upper(),

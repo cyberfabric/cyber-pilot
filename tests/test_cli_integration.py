@@ -1529,7 +1529,7 @@ class TestCLIAdapterInfo(unittest.TestCase):
                 errors = out.get("errors", [])
                 self.assertTrue(any(
                     (e.get("type") == "coverage")
-                    and ("ID marked to_code=\"true\" has no code marker" in str(e.get("message", "")))
+                    and (e.get("code") == "code-no-marker")
                     and (e.get("id") == "cpt-test-flow-login")
                     for e in errors
                 ))
@@ -1553,7 +1553,7 @@ class TestCLIAdapterInfo(unittest.TestCase):
                 errors = out.get("errors", [])
                 self.assertTrue(any(
                     (e.get("type") == "coverage")
-                    and ("ID marked to_code=\"true\" has no code marker" in str(e.get("message", "")))
+                    and (e.get("code") == "code-no-marker")
                     for e in errors
                 ))
             finally:

@@ -3,6 +3,7 @@ import pytest
 from pathlib import Path
 from textwrap import dedent
 
+from cypilot.utils import error_codes as EC
 from cypilot.utils.codebase import (
     CodeFile,
     ScopeMarker,
@@ -128,7 +129,7 @@ class TestBlockMarkerParsing:
 
         cf, errs = CodeFile.from_path(code_file)
         assert len(errs) == 1
-        assert "without matching @cpt-end" in errs[0]["message"]
+        assert errs[0]["code"] == EC.MARKER_BEGIN_NO_END
 
     def test_orphan_end_error(self, tmp_path: Path):
         code = dedent("""
@@ -141,7 +142,7 @@ class TestBlockMarkerParsing:
 
         cf, errs = CodeFile.from_path(code_file)
         assert len(errs) == 1
-        assert "without matching @cpt-begin" in errs[0]["message"]
+        assert errs[0]["code"] == EC.MARKER_END_NO_BEGIN
 
     def test_empty_block_error(self, tmp_path: Path):
         code = dedent("""
@@ -326,7 +327,7 @@ class TestValidateCodeFile:
 
         result = validate_code_file(code_file)
         assert len(result["errors"]) == 1
-        assert "without matching @cpt-end" in result["errors"][0]["message"]
+        assert result["errors"][0]["code"] == EC.MARKER_BEGIN_NO_END
 
     def test_validate_nonexistent_file(self, tmp_path: Path):
         result = validate_code_file(tmp_path / "nonexistent.py")

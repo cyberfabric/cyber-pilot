@@ -3,9 +3,11 @@ import json
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
+from ..utils import error_codes as EC
 from ..utils.codebase import CodeFile, cross_validate_code
 from ..utils.constraints import ArtifactRecord, cross_validate_artifacts, error as constraints_error, validate_artifact_file
-from ..utils.document import scan_cpt_ids
+from ..utils.document import scan_cdsl_instructions, scan_cpt_ids
+from ..utils.fixing import enrich_issues
 
 
 def cmd_validate(argv: List[str]) -> int:
@@ -224,13 +226,14 @@ def cmd_validate(argv: List[str]) -> int:
     # Stop early: cross-artifact reference checks and code traceability checks are run only
     # after per-artifact structure/content checks pass.
     if all_errors:
+        enrich_issues(all_errors, project_root=project_root)
+        enrich_issues(all_warnings, project_root=project_root)
         out = {
             "status": "FAIL",
             "project_root": project_root.as_posix(),
             "artifact_count": len(artifacts_to_validate),
             "error_count": len(all_errors),
             "warning_count": len(all_warnings),
-            "artifacts": artifact_reports,
         }
         out["errors"] = all_errors
         if all_warnings:
@@ -412,12 +415,29 @@ def cmd_validate(argv: List[str]) -> int:
             scan_system_codebase(system_node)
 
         if strict_code_validation and parsed_code_files_full:
+            # Collect CDSL instructions per ID from FULL-traceability artifacts
+            artifact_instances: Dict[str, Set[str]] = {}
+            for art in all_artifacts_for_cross:
+                art_traceability = traceability_by_path.get(str(art.path), "FULL")
+                if art_traceability != "FULL":
+                    continue
+                try:
+                    for step in scan_cdsl_instructions(art.path):
+                        pid = str(step.get("parent_id") or "")
+                        inst = str(step.get("inst") or "")
+                        checked = bool(step.get("checked", False))
+                        if pid and inst and checked:
+                            artifact_instances.setdefault(pid, set()).add(inst)
+                except Exception:
+                    continue
+
             cv = cross_validate_code(
                 parsed_code_files_full,
                 artifact_ids,
                 to_code_ids,
                 forbidden_code_ids=to_code_ids_task_unchecked,
                 traceability="FULL",
+                artifact_instances=artifact_instances,
             )
             all_errors.extend(cv.get("errors", []))
             all_warnings.extend(cv.get("warnings", []))
@@ -471,7 +491,8 @@ def cmd_validate(argv: List[str]) -> int:
                 if not other_kinds:
                     warn = constraints_error(
                         "structure",
-                        "ID not referenced (no other artifact kinds in scope)",
+                        f"`{did}` is not referenced — no other artifact kinds exist in scope for cross-referencing",
+                        code=EC.ID_NOT_REFERENCED_NO_SCOPE,
                         path=art.path,
                         line=line,
                         id=did,
@@ -490,7 +511,8 @@ def cmd_validate(argv: List[str]) -> int:
 
                 err = constraints_error(
                     "structure",
-                    "ID not referenced from other artifact kinds",
+                    f"`{did}` (defined in {kind}) is not referenced from any of {other_kinds}",
+                    code=EC.ID_NOT_REFERENCED,
                     path=art.path,
                     line=line,
                     id=did,
@@ -498,6 +520,13 @@ def cmd_validate(argv: List[str]) -> int:
                 )
                 all_errors.append(err)
                 _attach_issue_to_artifact_report(err, is_error=True)
+
+    # Resolve target artifact paths for cross-ref errors (before enrich_issues strips 'path')
+    _enrich_target_artifact_paths(all_errors, meta=meta, project_root=project_root)
+
+    # Enrich errors/warnings with fixing prompts for LLM agents
+    enrich_issues(all_errors, project_root=project_root)
+    enrich_issues(all_warnings, project_root=project_root)
 
     # Build final report
     overall_status = "PASS" if not all_errors else "FAIL"
@@ -522,12 +551,10 @@ def cmd_validate(argv: List[str]) -> int:
         report["next_step"] = "Deterministic validation passed. Now perform semantic validation: review content quality against checklist.md criteria."
 
     if args.verbose:
-        report["artifacts"] = artifact_reports
         report["errors"] = all_errors
         report["warnings"] = all_warnings
     elif overall_status != "PASS":
         # On failure, always print a detailed, pretty report.
-        report["artifacts"] = artifact_reports
         report["errors"] = all_errors
         if all_warnings:
             report["warnings"] = all_warnings
@@ -551,3 +578,122 @@ def cmd_validate(argv: List[str]) -> int:
         print(out)
 
     return 0 if overall_status == "PASS" else 2
+
+
+def _enrich_target_artifact_paths(
+    issues: List[Dict[str, object]],
+    *,
+    meta: object,
+    project_root: Path,
+) -> None:
+    """Add ``target_artifact_path`` to 'ID not referenced from required artifact kind' errors.
+
+    Three outcomes per error:
+    - ``target_artifact_path`` set  → artifact exists, prompt says "in `path`"
+    - ``target_artifact_suggested_path`` set → artifact missing, autodetect knows where → "create `path`"
+    - neither set → no autodetect rule → prompt asks LLM to request path from user
+    """
+    from ..utils.artifacts_meta import ArtifactsMeta, SystemNode, AutodetectRule
+
+    if not isinstance(meta, ArtifactsMeta):
+        return
+
+    for issue in issues:
+        if str(issue.get("code") or "") != EC.REF_MISSING_FROM_KIND:
+            continue
+
+        target_kind = str(issue.get("target_kind") or "").upper()
+        if not target_kind:
+            continue
+
+        # Find the system node that owns the source artifact
+        src_path = str(issue.get("path") or "")
+        try:
+            rel_src = Path(src_path).relative_to(project_root).as_posix()
+        except (ValueError, TypeError):
+            continue
+
+        result = meta.get_artifact_by_path(rel_src)
+        if not result:
+            continue
+        _, system_node = result
+
+        # Search system's artifacts for an existing artifact of target_kind
+        target_path = _find_artifact_in_system(system_node, target_kind, project_root)
+        if target_path:
+            issue["target_artifact_path"] = target_path
+            continue
+
+        # No existing artifact — check autodetect rules for suggested path
+        suggested = _suggest_path_from_autodetect(system_node, target_kind)
+        if suggested:
+            issue["target_artifact_suggested_path"] = suggested
+        # else: neither set → fixing.py will ask user
+
+
+def _find_artifact_in_system(node: object, target_kind: str, project_root: Path) -> Optional[str]:
+    """Search system node and its children for an existing artifact of target_kind.
+
+    Returns relative path string if found, else None.
+    """
+    from ..utils.artifacts_meta import SystemNode
+
+    if not isinstance(node, SystemNode):
+        return None
+    for art in (node.artifacts or []):
+        if str(art.kind).upper() == target_kind:
+            full = (project_root / art.path).resolve()
+            if full.exists():
+                return str(full)
+    for child in (node.children or []):
+        found = _find_artifact_in_system(child, target_kind, project_root)
+        if found:
+            return found
+    return None
+
+
+def _suggest_path_from_autodetect(node: object, target_kind: str) -> Optional[str]:
+    """Derive a suggested file path from autodetect rules for a missing artifact.
+
+    Returns a project-root-relative path like ``architecture/DESIGN.md``, or None.
+    """
+    from ..utils.artifacts_meta import SystemNode
+
+    if not isinstance(node, SystemNode):
+        return None
+
+    for rule in (node.autodetect or []):
+        arts = rule.artifacts or {}
+        kind_upper = {str(k).upper(): k for k in arts}
+        orig_key = kind_upper.get(target_kind)
+        if not orig_key:
+            continue
+        ap = arts[orig_key]
+        pattern = str(ap.pattern or "")
+        if not pattern:
+            continue
+
+        # Compute artifacts_root with simple substitution
+        system_root = str(rule.system_root or "{project_root}")
+        system_root = system_root.replace("{project_root}", ".")
+        system_root = system_root.replace("{system}", node.slug or "")
+
+        arts_root = str(rule.artifacts_root or "{system_root}")
+        arts_root = arts_root.replace("{system_root}", system_root)
+        arts_root = arts_root.replace("{project_root}", ".")
+        arts_root = arts_root.replace("{system}", node.slug or "")
+
+        # If pattern is a simple filename (no glob chars), use it directly
+        if "*" not in pattern and "?" not in pattern:
+            suggested = f"{arts_root}/{pattern}"
+        else:
+            # Glob pattern — suggest conventional {KIND}.md
+            suggested = f"{arts_root}/{target_kind}.md"
+
+        # Normalize: strip leading "./"
+        suggested = suggested.lstrip("./")
+        if suggested.startswith("/"):
+            suggested = suggested.lstrip("/")
+        return suggested
+
+    return None

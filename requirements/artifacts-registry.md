@@ -533,6 +533,77 @@ Recursive rule:
 - `autodetect` is applied at the current system node scope.
 - If any autodetect rule has `children`, the concatenated `children` rules become the inherited autodetect rules for the next nesting level.
 
+### System Slug Detection from IDs (Autodetect)
+
+When a child system is discovered via autodetect (directory matching `$system` in `system_root`), the initial slug is derived from the **folder name**. However, the folder name may differ from the slug actually used in Cypilot identifiers (e.g. folder `super-chat/` but IDs use `cpt-cf-chat-fr-...`).
+
+To resolve the authoritative slug, the validator applies the following algorithm after discovering all artifacts for the child system.
+
+#### Inputs
+
+- **Definition IDs**: all `cpt-*` definition IDs scanned from the child system's artifacts.
+- **Parent prefix**: the hierarchy prefix of the parent system node (e.g. `cf`). Empty string if parent has no slug.
+- **Kind tokens**: the set of all ID kind tokens registered in the kit's constraints (e.g. `{fr, state, dod, flow, algo, ...}`).
+
+#### ID structure
+
+Every definition ID follows the template:
+
+```
+cpt-{parent_prefix}-{system_slug}-{kind}-{rest}
+```
+
+If parent prefix is empty:
+
+```
+cpt-{system_slug}-{kind}-{rest}
+```
+
+#### Algorithm
+
+For each definition ID:
+
+1. Strip the `cpt-` prefix.
+2. Strip the parent hierarchy prefix (if non-empty) + trailing hyphen.
+3. The remainder has the form `{system_slug}-{kind}-{rest}`.
+4. For **every** known kind token, search for **all** occurrences of `-{kind}-` in the remainder.
+5. Each match at position `idx > 0` yields a slug candidate: `remainder[:idx]`.
+6. Collect all unique candidates for this ID.
+
+Classify each ID:
+
+- **Unambiguous**: exactly 1 candidate → the slug is determined.
+- **Ambiguous**: multiple candidates (a kind token collides with part of the system slug) → skip this ID.
+
+#### Decision
+
+| Unambiguous slugs | Result |
+|---|---|
+| Exactly 1 unique slug | Use it as the system slug (override folder-based slug) |
+| Multiple different slugs | **Error**: `Inconsistent system slugs in IDs` |
+| None (all IDs ambiguous) | **Error**: `Cannot determine system slug from IDs` |
+
+If no definition IDs exist in the system's artifacts, the folder-based slug is kept unchanged.
+
+#### Why ambiguous IDs are skipped
+
+A kind token may appear as a hyphen-delimited segment inside the system slug itself. For example, system `my-db-service` with kind token `db`:
+
+```
+cpt-my-db-service-fr-auth
+         ^              ^
+         |-db-|         |-fr-|
+         ambiguous      unambiguous
+```
+
+The ID `cpt-my-db-service-fr-auth` produces two candidates: `my` (from `-db-`) and `my-db-service` (from `-fr-`). Since there are multiple candidates, this ID is ambiguous and skipped.
+
+Other IDs in the same system that use a kind token NOT present in the slug (e.g. `-fr-`, `-state-`, `-dod-`) will be unambiguous and correctly yield `my-db-service`.
+
+#### Scope
+
+This algorithm applies **only to autodetected child systems**. Systems with an explicitly configured `slug` in `artifacts.json` (non-autodetect) use the configured value as-is.
+
 ### Artifact Mapping Rules
 
 - Each `pattern` MUST be a single string (file path or glob) that resolves to zero or more files.

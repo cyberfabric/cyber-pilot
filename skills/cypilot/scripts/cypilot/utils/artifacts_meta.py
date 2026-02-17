@@ -437,8 +437,13 @@ class ArtifactsMeta:
         adapter_dir: Path,
         project_root: Path,
         is_kind_registered: Optional[Callable[[str, str], bool]] = None,
+        get_id_kind_tokens: Optional[Callable[[str], Set[str]]] = None,
     ) -> List[str]:
         """Expand autodetect rules into concrete artifact/codebase entries.
+
+        Args:
+            get_id_kind_tokens: Callback returning all ID kind tokens for a kit_id.
+                Used to detect system slugs from artifact IDs during autodetect.
 
         Returns a list of validation error messages (best-effort).
         """
@@ -691,6 +696,49 @@ class ArtifactsMeta:
                             existing_child_codebase_by_path[np] = dc
                             child_node.codebase.append(dc)
 
+                        # Detect system slug from artifact IDs (autodetect only).
+                        # Strategy: for each definition ID, extract all possible slug
+                        # candidates (one per matching kind token).  IDs where exactly
+                        # one candidate is found are "unambiguous" — they determine the
+                        # slug.  IDs with multiple candidates (kind token collides with
+                        # system slug) are skipped.
+                        if get_id_kind_tokens is not None:
+                            _kit_id = rule.kit or node.kit
+                            _kind_tokens = get_id_kind_tokens(str(_kit_id))
+                            if _kind_tokens:
+                                _parent_prefix = node.get_hierarchy_prefix()
+                                _unambiguous_slugs: Set[str] = set()
+                                _has_ids = False
+                                for _art in child_node.artifacts:
+                                    _art_abs = _resolve_path(_art.path)
+                                    try:
+                                        from .document import scan_cpt_ids
+                                        for _h in scan_cpt_ids(_art_abs):
+                                            if _h.get("type") != "definition" or not _h.get("id"):
+                                                continue
+                                            _has_ids = True
+                                            _candidates = extract_system_slug_candidates(
+                                                str(_h["id"]), _parent_prefix, _kind_tokens,
+                                            )
+                                            if len(_candidates) == 1:
+                                                _unambiguous_slugs.add(_candidates[0])
+                                    except Exception:
+                                        continue
+                                if len(_unambiguous_slugs) == 1:
+                                    new_slug = _unambiguous_slugs.pop()
+                                    if new_slug != child_node.slug:
+                                        child_node.slug = new_slug
+                                elif len(_unambiguous_slugs) > 1:
+                                    errors.append(
+                                        f"Inconsistent system slugs in IDs: system={child_node.name} "
+                                        f"folder_slug={child_node.slug} detected_slugs={sorted(_unambiguous_slugs)}"
+                                    )
+                                elif _has_ids:
+                                    errors.append(
+                                        f"Cannot determine system slug from IDs: system={child_node.name} "
+                                        f"folder_slug={child_node.slug} — all IDs have ambiguous kind-token splits"
+                                    )
+
                         # Expand grandchildren immediately with correct parent_root.
                         inherited_for_grandchildren = [(cr, system_root_str) for cr in (child_rules or [])]
                         _expand_node(child_node, inherited_for_grandchildren)
@@ -882,6 +930,47 @@ def _join_path(base: str, tail: str) -> str:
     if b in {"", "."}:
         return t
     return f"{b.rstrip('/')}/{t.lstrip('/')}"
+
+
+def extract_system_slug_candidates(cpt_id: str, parent_prefix: str, kind_tokens: Set[str]) -> List[str]:
+    """Extract all possible system slug candidates from a cpt ID.
+
+    Tries every known kind token as a split point and returns all non-empty
+    slug candidates.  When the kind token appears more than once in the ID
+    (e.g. system slug contains the same word as a kind token), multiple
+    candidates are returned — the caller must disambiguate.
+
+    ID format: cpt-{parent_prefix}-{system_slug}-{kind}-{rest}
+    or if no parent prefix: cpt-{system_slug}-{kind}-{rest}
+
+    Returns:
+        List of unique slug candidates (may be empty).
+    """
+    if not cpt_id.startswith("cpt-"):
+        return []
+    remainder = cpt_id[4:]  # Remove "cpt-"
+    if parent_prefix:
+        expected = parent_prefix + "-"
+        if not remainder.startswith(expected):
+            return []
+        remainder = remainder[len(expected):]
+    # remainder: {system_slug}-{kind}-{rest}
+    candidates: List[str] = []
+    seen: Set[str] = set()
+    for kind in kind_tokens:
+        marker = f"-{kind}-"
+        start = 0
+        while True:
+            idx = remainder.find(marker, start)
+            if idx < 0:
+                break
+            if idx > 0:
+                slug = remainder[:idx]
+                if slug not in seen:
+                    seen.add(slug)
+                    candidates.append(slug)
+            start = idx + 1
+    return candidates
 
 
 def generate_slug(name: str) -> str:

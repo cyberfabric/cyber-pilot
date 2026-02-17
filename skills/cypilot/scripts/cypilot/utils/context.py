@@ -102,11 +102,27 @@ class CypilotContext:
                 return True
             return False
 
+        def _get_id_kind_tokens(kit_id: str) -> Set[str]:
+            lk = (kits or {}).get(str(kit_id))
+            if not lk:
+                return set()
+            kc = getattr(lk, "constraints", None)
+            if not kc or not getattr(kc, "by_kind", None):
+                return set()
+            tokens: Set[str] = set()
+            for _kind, akc in kc.by_kind.items():
+                for ic in (akc.defined_id or []):
+                    k = str(getattr(ic, "kind", "") or "").strip()
+                    if k:
+                        tokens.add(k)
+            return tokens
+
         try:
             autodetect_errs = meta.expand_autodetect(
                 adapter_dir=adapter_dir,
                 project_root=project_root,
                 is_kind_registered=_is_kind_registered,
+                get_id_kind_tokens=_get_id_kind_tokens,
             )
             if autodetect_errs:
                 registry_path = (adapter_dir / "artifacts.json").resolve()

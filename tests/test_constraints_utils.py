@@ -1,6 +1,7 @@
 from pathlib import Path
 import json
 
+from skills.cypilot.scripts.cypilot.utils import error_codes as EC
 from skills.cypilot.scripts.cypilot.utils.constraints import (
     ArtifactRecord,
     ArtifactKindConstraints,
@@ -425,12 +426,12 @@ def test_validate_artifact_file_enforces_constraints_and_required_kinds(tmp_path
         constraints=prd_constraints,
         registered_systems={"myapp"},
     )
-    msgs = [str(e.get("message")) for e in (rep.get("errors") or [])]
-    assert any("ID definition missing required task checkbox" in m for m in msgs)
-    assert any("ID definition missing required priority" in m for m in msgs)
-    assert any("ID definition not under required headings" in m for m in msgs)
-    assert any("ID kind not allowed by constraints" in m for m in msgs)
-    assert any("Required ID kind missing in artifact" in m for m in msgs)
+    codes = [str(e.get("code")) for e in (rep.get("errors") or [])]
+    assert EC.DEF_MISSING_TASK in codes
+    assert EC.DEF_MISSING_PRIORITY in codes
+    assert EC.DEF_WRONG_HEADINGS in codes
+    assert EC.ID_KIND_NOT_ALLOWED in codes
+    assert EC.REQUIRED_ID_KIND_MISSING in codes
 
 
 def test_validate_artifact_file_prohibited_task_and_priority(tmp_path: Path):
@@ -452,9 +453,9 @@ def test_validate_artifact_file_prohibited_task_and_priority(tmp_path: Path):
         constraints=prd_constraints,
         registered_systems={"myapp"},
     )
-    msgs = [str(e.get("message")) for e in (rep.get("errors") or [])]
-    assert any("ID definition has prohibited task checkbox" in m for m in msgs)
-    assert any("ID definition has prohibited priority" in m for m in msgs)
+    codes = [str(e.get("code")) for e in (rep.get("errors") or [])]
+    assert EC.DEF_PROHIBITED_TASK in codes
+    assert EC.DEF_PROHIBITED_PRIORITY in codes
 
 
 def test_cross_validate_artifacts_structure_and_reference_rules(tmp_path: Path):
@@ -527,21 +528,23 @@ def test_cross_validate_artifacts_structure_and_reference_rules(tmp_path: Path):
     warns = rep.get("warnings") or []
     messages = [str(e.get("message")) for e in errs]
 
-    assert any(e.get("message") == "Missing constraints for artifact kinds" for e in errs)
-    assert any(e.get("message") == "Reference has no definition" for e in errs)
-    assert any(e.get("message") == "Reference has task checkbox but definition has no task checkbox" for e in errs)
-    assert any(e.get("message") == "ID definition not under required headings" for e in errs)
-    assert any(e.get("message") == "Required ID kind missing in artifact" for e in errs)
-    assert any(e.get("message") == "ID kind not allowed by constraints" for e in errs)
-    assert any(e.get("message") == "ID referenced from prohibited artifact kind" for e in errs)
-    assert any(e.get("message") == "ID not referenced from required artifact kind" for e in errs)
-    assert any("ID reference missing required task checkbox" in m for m in messages)
-    assert any("ID reference missing required priority" in m for m in messages)
-    assert any("ID reference not under required headings" in m for m in messages)
-    assert any("ID reference has prohibited task checkbox" in m for m in messages)
-    assert any("ID reference has prohibited priority" in m for m in messages)
+    codes = [str(e.get("code")) for e in errs]
+    assert EC.MISSING_CONSTRAINTS in codes
+    assert EC.REF_NO_DEFINITION in codes
+    assert EC.REF_TASK_DEF_NO_TASK in codes
+    assert EC.DEF_WRONG_HEADINGS in codes
+    assert EC.REQUIRED_ID_KIND_MISSING in codes
+    assert EC.ID_KIND_NOT_ALLOWED in codes
+    assert EC.REF_FROM_PROHIBITED_KIND in codes
+    assert EC.REF_MISSING_FROM_KIND in codes
+    assert EC.REF_MISSING_TASK in codes
+    assert EC.REF_MISSING_PRIORITY in codes
+    assert EC.REF_WRONG_HEADINGS in codes
+    assert EC.REF_PROHIBITED_TASK in codes
+    assert EC.REF_PROHIBITED_PRIORITY in codes
 
-    assert any(w.get("message") == "Required reference target kind not in scope" for w in warns)
+    warn_codes = [str(w.get("code")) for w in warns]
+    assert EC.REF_TARGET_NOT_IN_SCOPE in warn_codes
 
 
 def test_cross_validate_reference_done_but_definition_not_done(tmp_path: Path):
@@ -564,4 +567,4 @@ def test_cross_validate_reference_done_but_definition_not_done(tmp_path: Path):
 
     rep = cross_validate_artifacts(arts, registered_systems={"sys"}, known_kinds={"flow"})
     errs = rep.get("errors") or []
-    assert any(e.get("message") == "Reference marked done but definition not done" for e in errs)
+    assert any(e.get("code") == EC.REF_DONE_DEF_NOT_DONE for e in errs)
