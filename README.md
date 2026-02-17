@@ -1,4 +1,5 @@
-# <img src="cypilot.png" alt="Cypilot" width="256" /> 
+# <p align="center"><img src="images/cypilot-kit.png" alt="Cypilot Banner" width="100%" /></p>
+
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-2.0-green.svg)]()
 [![Status](https://img.shields.io/badge/status-active-brightgreen.svg)]()
@@ -8,24 +9,34 @@
 
 **Audience**: Prompt engineers, AI developers, software architects, engineering teams
 
-<p align="center">
-  <img src="images/cypilot-kit.png" alt="Cypilot Banner" width="100%" />
-</p>
+## Cyber Pilot — Agentic Kit with AI-Native SDLC Automation
 
-**Cyber Pilot** (Cypilot) helps you build agentic systems that don’t drift.
+Cyber Pilot keeps **requirements, design, code, and tests continuously aligned** in repositories that use AI-assisted development.
 
-It turns intent into a deterministic, reviewable pipeline of artifacts — prompts, templates, rules, checklists, specs, and code — so teams can ship agent-driven changes with confidence.
+AI can generate artifacts fast. Cyber Pilot makes sure they stay **consistent and traceable over time**.
 
-**What you get**
-- **Less drift** — keep prompts, docs, and code aligned as the project evolves
-- **More determinism** — validation gates reduce “LLM randomness” in outputs
-- **End-to-end traceability** — link PRD → design → tasks → code for easier reviews
-- **Reusable building blocks** — standardize workflows via curated domain packs
+## Problem
 
-**How it works**
-Cypilot is extensible: you register thread packages called **Kits**. A Kit bundles templates, rules, checklists, and examples for a specific domain or use case.
+In most projects:
 
-Cypilot ships with a built-in **SDLC Kit** that runs a full PRD → code pipeline, with traceability and validation at every step.
+- Requirements, design and code evolve separately  
+- Documentation becomes outdated  
+- AI-generated changes introduce silent scope drift  
+- There is no automated ownership of end-to-end consistency  
+
+The result is slower onboarding, risky refactoring, misleading documentation and unclear decision history.
+
+## What Cyber Pilot adds
+
+A lightweight automation layer for repository-native governance:
+
+- Structured spec templates (BRD, PRD, ADR, DESIGN, etc.)
+- Human-readable traceability IDs linking specs ↔ code ↔ tests
+- CLI checks for cross-document and code consistency
+- AI workflows for generation, review and validation
+- CI-friendly validation with a single script
+
+Works with any language, stack, or repository.
 
 ---
 
@@ -475,7 +486,13 @@ Use checklists by referencing them in `/cypilot-analyze` or manually during revi
 
 ---
 
-## Kit: **Cypilot SDLC**
+## Extensibility
+
+Cypilot is extensible: there can be multiple agent packages called **Kits**. A Kit bundles templates, rules, checklists, and examples for a specific domain or use case.
+
+Cypilot ships with a built-in **SDLC Kit** that runs a full PRD → code pipeline, with traceability and validation at every step.
+
+### Kit: **Cypilot SDLC**
 
 **Cypilot SDLC** is a production-ready software development life cycle (SDLC) SDD built on **Cypilot**. It fully leverages Cypilot’s capabilities — identifier-based **traceability**, reliable **workflows** that follow a strict protocol, and Kit-defined rules and tasks, structured templates and quality checklists. Each Kit can both generate (transform/derive) content and evaluate it: scoring semantic quality, validating artifact-to-artifact alignment (e.g., requirements → design → implementation), and enforcing structure against the templates defined in the kit.
 
