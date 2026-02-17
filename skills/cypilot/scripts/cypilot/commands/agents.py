@@ -657,6 +657,13 @@ def cmd_agents(argv: List[str]) -> int:
                 if not m:
                     continue
                 target_rel = m.group(1)
+                # Normalize legacy relative/absolute paths to @/... canonical form
+                if not target_rel.startswith("@/"):
+                    if target_rel.startswith("/"):
+                        resolved = Path(target_rel)
+                    else:
+                        resolved = (pth.parent / target_rel).resolve()
+                    target_rel = _target_path_from_root(resolved, project_root)
                 dst = desired_by_target.get(target_rel)
                 if not dst or pth.as_posix() == dst:
                     continue
