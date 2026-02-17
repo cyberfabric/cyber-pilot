@@ -2,9 +2,10 @@ import argparse
 import json
 import os
 import re
+import shutil
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from ..utils.files import find_project_root
 
@@ -30,12 +31,81 @@ def _target_path_from_root(target: Path, project_root: Path) -> str:
     Using a project-root-relative alias avoids long ``../../..`` traversals that
     escape the repository when the cypilot submodule lives at a path that is
     outside or at a different depth than the project root.
+
+    After ``_ensure_cypilot_local`` runs, every referenced path should be inside
+    ``project_root``, so the ``except`` branch is a defensive safety-net only.
     """
     try:
         rel = target.relative_to(project_root).as_posix()
         return f"@/{rel}"
     except ValueError:
+        print(
+            f"WARNING: path {target} is outside project root {project_root}, "
+            "agent proxy will contain an absolute path",
+            file=sys.stderr,
+        )
         return target.as_posix()
+
+
+# Directories and files to copy when cypilot is external to the project.
+_COPY_DIRS = ["workflows", "requirements", "schemas", "templates", "prompts", "kits", "skills"]
+_COPY_FILES = ["AGENTS.md"]
+_COPY_IGNORE = shutil.ignore_patterns(
+    "__pycache__", "*.pyc", ".git", ".venv", "tests", ".pytest_cache", ".coverage", "coverage.json",
+)
+
+
+def _ensure_cypilot_local(
+    cypilot_root: Path, project_root: Path, dry_run: bool,
+) -> Tuple[Path, dict]:
+    """Ensure cypilot files are available inside *project_root*.
+
+    If *cypilot_root* is already inside *project_root*, nothing happens.
+    Otherwise the relevant subset is copied into ``project_root/.cypilot/``.
+
+    Returns ``(effective_cypilot_root, copy_report)``.
+    """
+    # 1. Already inside project
+    try:
+        cypilot_root.resolve().relative_to(project_root.resolve())
+        return cypilot_root, {"action": "none"}
+    except ValueError:
+        pass
+
+    local_dot = project_root / ".cypilot"
+
+    # 2. Existing submodule
+    if (local_dot / ".git").exists():
+        return local_dot, {"action": "none", "reason": "existing_submodule"}
+
+    # 3. Existing installation (has AGENTS.md + workflows/)
+    if (local_dot / "AGENTS.md").is_file() and (local_dot / "workflows").is_dir():
+        return local_dot, {"action": "none", "reason": "existing_installation"}
+
+    # 4. Copy (dry-run keeps original root so template rendering still works)
+    if dry_run:
+        return cypilot_root, {"action": "would_copy"}
+
+    try:
+        file_count = 0
+        local_dot.mkdir(parents=True, exist_ok=True)
+
+        for dirname in _COPY_DIRS:
+            src = cypilot_root / dirname
+            if src.is_dir():
+                dst = local_dot / dirname
+                shutil.copytree(src, dst, ignore=_COPY_IGNORE, dirs_exist_ok=True)
+                file_count += sum(1 for _ in dst.rglob("*") if _.is_file())
+
+        for fname in _COPY_FILES:
+            src = cypilot_root / fname
+            if src.is_file():
+                shutil.copy2(src, local_dot / fname)
+                file_count += 1
+
+        return local_dot, {"action": "copied", "file_count": file_count}
+    except Exception as exc:
+        return cypilot_root, {"action": "error", "message": str(exc)}
 
 
 def _load_json_file(path: Path) -> Optional[dict]:
@@ -453,6 +523,16 @@ def cmd_agents(argv: List[str]) -> int:
         if not ((cypilot_root / "AGENTS.md").exists() and (cypilot_root / "workflows").is_dir()):
             cypilot_root = Path(__file__).resolve().parents[7]
 
+    cypilot_root, copy_report = _ensure_cypilot_local(cypilot_root, project_root, args.dry_run)
+    if copy_report.get("action") == "error":
+        print(json.dumps({
+            "status": "COPY_ERROR",
+            "message": f"Failed to copy cypilot into project: {copy_report.get('message', 'unknown')}",
+            "cypilot_root": cypilot_root.as_posix(),
+            "project_root": project_root.as_posix(),
+        }, indent=2, ensure_ascii=False))
+        return 1
+
     cfg_path = Path(args.config).resolve() if args.config else (project_root / "cypilot-agents.json")
     cfg = _load_json_file(cfg_path)
 
@@ -732,6 +812,7 @@ def cmd_agents(argv: List[str]) -> int:
         "cypilot_root": cypilot_root.as_posix(),
         "config_path": cfg_path.as_posix(),
         "dry_run": bool(args.dry_run),
+        "cypilot_copy": copy_report if copy_report["action"] != "none" else None,
         "workflows": {
             "created": workflows_result["created"],
             "updated": workflows_result["updated"],
