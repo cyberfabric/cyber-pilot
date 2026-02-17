@@ -280,7 +280,7 @@ class TestMarkerlessScanners(unittest.TestCase):
     def test_scan_cpt_ids_does_not_skip_when_markers_present(self):
         with TemporaryDirectory() as td:
             p = Path(td) / "a.md"
-            p.write_text("<!-- cpt:id:item -->\n- [ ] **ID**: `cpt-test-1`\n<!-- cpt:id:item -->\n", encoding="utf-8")
+            p.write_text("- [ ] **ID**: `cpt-test-1`\n", encoding="utf-8")
             hits = scan_cpt_ids(p)
             types_by_id = {(h.get("type"), h.get("id")) for h in hits}
             self.assertIn(("definition", "cpt-test-1"), types_by_id)

@@ -1,5 +1,6 @@
 import argparse
 import json
+import re
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -10,6 +11,7 @@ from ..utils.constraints import (
     validate_artifact_file,
     validate_headings_contract,
 )
+from ..utils import error_codes as EC
 from ..utils.document import read_text_safe
 from ..utils.files import find_adapter_directory, find_project_root, load_artifacts_registry
 
@@ -159,7 +161,16 @@ def run_self_check_from_meta(
                 ))
                 continue
             if not required and not occ:
-                # Optional/deprecated kinds are allowed to be omitted from templates.
+                warns.append(constraints_error(
+                    "template",
+                    "Template missing optional ID placeholder for defined kind",
+                    path=template_path,
+                    line=1,
+                    kit_id=str(kit_id),
+                    artifact_kind=kind_u,
+                    id_kind=id_kind,
+                    id_kind_template=tpl,
+                ))
                 continue
 
             allowed_headings = [str(h).strip() for h in (getattr(ic, "headings", None) or []) if str(h).strip()]
@@ -179,6 +190,76 @@ def run_self_check_from_meta(
                             id_kind_template=tpl,
                             headings=sorted(allowed_norm),
                             found_headings=active,
+                        ))
+
+        # 2b) Reverse check: every definition/reference pattern in the template must
+        #     have its kind registered in constraints.  We extract the kind token from
+        #     the template pattern (the first non-placeholder segment after `cpt-{system}-`).
+        _TPL_PAT = re.compile(r"`(cpt-[^`]*\{[^`]*)`")
+
+        def _kind_from_pattern(pat: str) -> Optional[str]:
+            """Extract ID kind from a template pattern like cpt-{system}-KIND-{slug}."""
+            s = pat
+            if not s.startswith("cpt-"):
+                return None
+            s = s[4:]
+            # Skip leading placeholder segments like {system}
+            while s.startswith("{"):
+                end = s.find("}")
+                if end < 0:
+                    return None
+                s = s[end + 1:]
+                if s.startswith("-"):
+                    s = s[1:]
+            # First segment is the kind
+            idx = s.find("-")
+            token = (s[:idx] if idx >= 0 else s).strip().lower()
+            return token if token else None
+
+        known_def_kinds: set[str] = {
+            str(getattr(ic, "kind", "") or "").strip().lower()
+            for ic in (getattr(constraints_for_kind, "defined_id", None) or [])
+            if str(getattr(ic, "kind", "") or "").strip()
+        }
+        # Collect ALL ID kinds across all artifact kinds (for reference check).
+        known_all_kinds: set[str] = set()
+        if kit_constraints is not None and getattr(kit_constraints, "by_kind", None):
+            for _kk, _kc in kit_constraints.by_kind.items():
+                for ic in (getattr(_kc, "defined_id", None) or []):
+                    k = str(getattr(ic, "kind", "") or "").strip().lower()
+                    if k:
+                        known_all_kinds.add(k)
+
+        for idx0, raw in enumerate(lines):
+            for m in _TPL_PAT.finditer(raw):
+                found = m.group(1)
+                found_kind = _kind_from_pattern(found)
+                if not found_kind:
+                    continue
+                is_def_line = "**ID**" in raw
+                if is_def_line:
+                    if found_kind not in known_def_kinds:
+                        errs.append(constraints_error(
+                            "template",
+                            f"Template has definition `{found}` whose kind `{found_kind}` is not in constraints",
+                            code=EC.TEMPLATE_DEF_KIND_NOT_IN_CONSTRAINTS,
+                            path=template_path,
+                            line=idx0 + 1,
+                            kit_id=str(kit_id),
+                            artifact_kind=kind_u,
+                            id_kind_template=found,
+                        ))
+                else:
+                    if found_kind not in known_all_kinds:
+                        errs.append(constraints_error(
+                            "template",
+                            f"Template has reference `{found}` whose kind `{found_kind}` is not in constraints",
+                            code=EC.TEMPLATE_REF_KIND_NOT_IN_CONSTRAINTS,
+                            path=template_path,
+                            line=idx0 + 1,
+                            kit_id=str(kit_id),
+                            artifact_kind=kind_u,
+                            id_kind_template=found,
                         ))
 
         # 3) Cross-artifact reference placeholders required by constraints must exist in target templates.
@@ -226,6 +307,18 @@ def run_self_check_from_meta(
                 errs.append(constraints_error(
                     "template",
                     "Template missing required reference placeholder",
+                    path=template_path,
+                    line=1,
+                    kit_id=str(kit_id),
+                    artifact_kind=kind_u,
+                    id_kind=id_kind,
+                    id_kind_template=tpl,
+                ))
+                continue
+            if not bool(ex.get("required")) and not occ:
+                warns.append(constraints_error(
+                    "template",
+                    "Template missing optional reference placeholder",
                     path=template_path,
                     line=1,
                     kit_id=str(kit_id),

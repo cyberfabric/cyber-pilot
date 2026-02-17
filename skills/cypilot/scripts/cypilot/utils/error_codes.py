@@ -36,6 +36,8 @@ ID_NOT_REFERENCED_NO_SCOPE = "id-not-referenced-no-scope"
 MISSING_CONSTRAINTS = "missing-constraints"
 ID_KIND_NOT_ALLOWED = "id-kind-not-allowed"
 REQUIRED_ID_KIND_MISSING = "required-id-kind-missing"
+TEMPLATE_DEF_KIND_NOT_IN_CONSTRAINTS = "template-def-kind-not-in-constraints"
+TEMPLATE_REF_KIND_NOT_IN_CONSTRAINTS = "template-ref-kind-not-in-constraints"
 
 # ---------------------------------------------------------------------------
 # Constraints — task / priority on definitions

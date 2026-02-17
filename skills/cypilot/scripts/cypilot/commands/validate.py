@@ -59,7 +59,7 @@ def cmd_validate(argv: List[str]) -> int:
                     "message": "self-check failed (templates/examples are inconsistent)",
                     "self_check": report,
                 }
-                print(json.dumps(out, indent=2 if args.verbose else None, ensure_ascii=False))
+                print(json.dumps(out, indent=2, ensure_ascii=False))
                 return 2 if rc == 2 else 1
         except Exception as e:
             out = {
@@ -67,7 +67,7 @@ def cmd_validate(argv: List[str]) -> int:
                 "message": "self-check failed to run",
                 "error": str(e),
             }
-            print(json.dumps(out, indent=2 if args.verbose else None, ensure_ascii=False))
+            print(json.dumps(out, indent=2, ensure_ascii=False))
             return 1
     
     for loaded_kit in (ctx.kits or {}).values():

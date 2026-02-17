@@ -47,7 +47,7 @@ def _bootstrap_self_check_kits(root: Path, adapter: Path, *, with_example: bool 
     (kit_root / "artifacts" / "REQ").mkdir(parents=True, exist_ok=True)
     (kit_root / "artifacts" / "REQ" / "template.md").write_text(
         "---\ncypilot-template:\n  version:\n    major: 1\n    minor: 0\n  kind: REQ\n---\n\n"
-        "<!-- cpt:id:req -->\n- [x] `p1` - **ID**: `cpt-{system}-req-{slug}`\n<!-- cpt:id:req -->\n",
+        "- [x] `p1` - **ID**: `cpt-{system}-req-{slug}`\n",
         encoding="utf-8",
     )
     (kit_root / "constraints.json").write_text(
@@ -432,6 +432,111 @@ class TestCLIPyCoverageSelfCheckMoreBranches(unittest.TestCase):
             rc, out = run_self_check_from_meta(project_root=root, adapter_dir=(root / "adapter"), artifacts_meta=meta, verbose=True)
             self.assertEqual(rc, 0)
             self.assertEqual(out.get("status"), "PASS")
+
+
+class TestCLIPyCoverageSelfCheckReverseAndOptional(unittest.TestCase):
+    """Tests for self-check reverse checks and optional missing warnings."""
+
+    def _bootstrap_kit(self, root, *, kind="REQ", constraints_payload=None, template_content=None):
+        from cypilot.utils.artifacts_meta import ArtifactsMeta
+
+        kit_root = root / "kits" / "k"
+        (kit_root / "artifacts" / kind / "examples").mkdir(parents=True, exist_ok=True)
+        tmpl = template_content or "# T\n"
+        (kit_root / "artifacts" / kind / "template.md").write_text(tmpl, encoding="utf-8")
+        (kit_root / "artifacts" / kind / "examples" / "example.md").write_text(
+            "- [x] `p1` - **ID**: `cpt-myapp-req-login`\n", encoding="utf-8",
+        )
+        if constraints_payload is not None:
+            (kit_root / "constraints.json").write_text(
+                json.dumps(constraints_payload, indent=2) + "\n", encoding="utf-8",
+            )
+        reg = {
+            "version": "1.1", "project_root": "..", "systems": [],
+            "kits": {"k": {"format": "Cypilot", "path": "kits/k", "artifacts": {
+                kind: {
+                    "template": "{project_root}/kits/k/artifacts/%s/template.md" % kind,
+                    "examples": "{project_root}/kits/k/artifacts/%s/examples" % kind,
+                },
+            }}},
+        }
+        return ArtifactsMeta.from_dict(reg)
+
+    def test_template_def_kind_not_in_constraints(self):
+        """Template has definition pattern not in constraints → error."""
+        from cypilot.commands.self_check import run_self_check_from_meta
+
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            tmpl = (
+                "---\ncypilot-template:\n  version:\n    major: 1\n    minor: 0\n  kind: REQ\n---\n"
+                "- [ ] `p1` - **ID**: `cpt-{system}-unknown-{slug}`\n"
+            )
+            meta = self._bootstrap_kit(root, constraints_payload={
+                "REQ": {"identifiers": {"req": {"required": False, "template": "cpt-{system}-req-{slug}"}}}
+            }, template_content=tmpl)
+            rc, out = run_self_check_from_meta(project_root=root, adapter_dir=(root / "adapter"), artifacts_meta=meta, verbose=True)
+            self.assertEqual(rc, 2)
+            errs = out["results"][0].get("errors", [])
+            codes = [e.get("code") for e in errs]
+            self.assertIn("template-def-kind-not-in-constraints", codes)
+
+    def test_template_ref_kind_not_in_constraints(self):
+        """Template has reference pattern not in constraints → error."""
+        from cypilot.commands.self_check import run_self_check_from_meta
+
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            tmpl = (
+                "---\ncypilot-template:\n  version:\n    major: 1\n    minor: 0\n  kind: REQ\n---\n"
+                "- [ ] `p1` - **ID**: `cpt-{system}-req-{slug}`\n"
+                "**Refs**: `cpt-{system}-bogus-{slug}`\n"
+            )
+            meta = self._bootstrap_kit(root, constraints_payload={
+                "REQ": {"identifiers": {"req": {"required": False, "template": "cpt-{system}-req-{slug}"}}}
+            }, template_content=tmpl)
+            rc, out = run_self_check_from_meta(project_root=root, adapter_dir=(root / "adapter"), artifacts_meta=meta, verbose=True)
+            self.assertEqual(rc, 2)
+            errs = out["results"][0].get("errors", [])
+            codes = [e.get("code") for e in errs]
+            self.assertIn("template-ref-kind-not-in-constraints", codes)
+
+    def test_optional_def_missing_from_template_warns(self):
+        """Optional definition kind in constraints but missing from template → warning."""
+        from cypilot.commands.self_check import run_self_check_from_meta
+
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            # Template has no ID definitions at all — optional kind 'req' missing
+            tmpl = "---\ncypilot-template:\n  version:\n    major: 1\n    minor: 0\n  kind: REQ\n---\n# T\n"
+            meta = self._bootstrap_kit(root, constraints_payload={
+                "REQ": {"identifiers": {"req": {"required": False, "template": "cpt-{system}-req-{slug}"}}}
+            }, template_content=tmpl)
+            rc, out = run_self_check_from_meta(project_root=root, adapter_dir=(root / "adapter"), artifacts_meta=meta, verbose=True)
+            # Should pass (optional), but with a warning
+            warns = out["results"][0].get("warnings", [])
+            msgs = [w.get("message", "") for w in warns]
+            self.assertTrue(any("optional ID placeholder" in m for m in msgs), f"Expected optional warning, got: {msgs}")
+
+    def test_optional_ref_missing_from_template_warns(self):
+        """Optional reference in constraints but missing from template → warning."""
+        from cypilot.commands.self_check import run_self_check_from_meta
+
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            # PRD defines 'fr', DESIGN references 'fr' as optional — but DESIGN template doesn't have the reference placeholder
+            tmpl = "---\ncypilot-template:\n  version:\n    major: 1\n    minor: 0\n  kind: DESIGN\n---\n# T\n"
+            constraints = {
+                "PRD": {"identifiers": {"fr": {"required": False, "template": "cpt-{system}-fr-{slug}", "references": {
+                    "DESIGN": {"coverage": "optional"}
+                }}}},
+                "DESIGN": {"identifiers": {"design": {"required": False, "template": "cpt-{system}-design-{slug}"}}},
+            }
+            meta = self._bootstrap_kit(root, kind="DESIGN", constraints_payload=constraints, template_content=tmpl)
+            rc, out = run_self_check_from_meta(project_root=root, adapter_dir=(root / "adapter"), artifacts_meta=meta, verbose=True)
+            warns = out["results"][0].get("warnings", [])
+            msgs = [w.get("message", "") for w in warns]
+            self.assertTrue(any("optional reference placeholder" in m for m in msgs), f"Expected optional ref warning, got: {warns}")
 
 
 class TestCLIPyCoverageValidateBranches(unittest.TestCase):
@@ -1144,6 +1249,78 @@ class TestCLIPyCoverageListIdKindsBranches(unittest.TestCase):
             rc = cmd_list_id_kinds(["--artifact", "/path/does/not/exist.md"])
         self.assertEqual(rc, 1)
 
+    def test_list_id_kinds_artifact_not_in_registry(self):
+        """Cover lines 51-52: artifact exists but not registered."""
+        from cypilot.cli import main
+
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / ".git").mkdir()
+            (root / ".cypilot-config.json").write_text('{"cypilotAdapterPath": "adapter"}\n', encoding="utf-8")
+            adapter = root / "adapter"
+            adapter.mkdir()
+            (adapter / "AGENTS.md").write_text("# Test\n", encoding="utf-8")
+            (adapter / "artifacts.json").write_text(json.dumps({
+                "version": "1.0", "project_root": "..", "systems": [], "kits": {},
+            }) + "\n", encoding="utf-8")
+
+            art = root / "docs" / "PRD.md"
+            art.parent.mkdir(parents=True)
+            art.write_text("- [x] `p1` - **ID**: `cpt-test-fr-1`\n", encoding="utf-8")
+
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                rc = main(["list-id-kinds", "--artifact", str(art)])
+            self.assertEqual(rc, 1)
+            self.assertIn("not found in registry", buf.getvalue())
+
+    def test_list_id_kinds_infer_kinds_branches(self):
+        """Cover lines 85, 103, 106, 112, 119, 122, 125: kind inference branches."""
+        from cypilot.cli import main
+
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / ".git").mkdir()
+            (root / ".cypilot-config.json").write_text('{"cypilotAdapterPath": "adapter"}\n', encoding="utf-8")
+            adapter = root / "adapter"
+            adapter.mkdir()
+            (adapter / "AGENTS.md").write_text("# Test\n", encoding="utf-8")
+
+            kit_root = root / "kits" / "sdlc"
+            kit_root.mkdir(parents=True)
+
+            art = root / "docs" / "PRD.md"
+            art.parent.mkdir(parents=True)
+            # Mix of IDs: one with known kind, one with unknown kind, one with no system match, empty-ish
+            art.write_text(
+                "- [x] `p1` - **ID**: `cpt-test-fr-login`\n"
+                "- [x] `p1` - **ID**: `cpt-test-boguskind-x`\n"
+                "- [x] `p1` - **ID**: `cpt-nomatch-thing`\n"
+                "- [x] `p1` - **ID**: `cpt-test`\n"
+                "some ref `cpt-test-fr-other`\n",
+                encoding="utf-8",
+            )
+
+            (adapter / "artifacts.json").write_text(json.dumps({
+                "version": "1.1", "project_root": "..",
+                "kits": {"sdlc": {"format": "Cypilot", "path": "kits/sdlc"}},
+                "systems": [{
+                    "name": "Test", "slug": "test", "kits": "sdlc",
+                    "artifacts": [{"path": "docs/PRD.md", "kind": "PRD"}],
+                }],
+            }) + "\n", encoding="utf-8")
+
+            # No constraints.json → covers line 85 (kit_constraints falsy)
+            buf = io.StringIO()
+            cwd = os.getcwd()
+            try:
+                os.chdir(str(root))
+                with redirect_stdout(buf):
+                    rc = main(["list-id-kinds", "--artifact", str(art)])
+            finally:
+                os.chdir(cwd)
+            self.assertEqual(rc, 0)
+
 
 class TestCLIPyCoverageSelfCheckSkipBranches(unittest.TestCase):
     def test_self_check_skips_invalid_kit_defs(self):
@@ -1266,14 +1443,13 @@ class TestCLIPyCoverageValidateCode(unittest.TestCase):
                 "    minor: 0\n"
                 "---\n"
                 "\n"
-                "<!-- cpt:id:item to_code=\"true\" -->\n"
-                "<!-- cpt:id:item -->\n",
+                "",
                 encoding="utf-8",
             )
             ex_dir = kits_base / "examples"
             ex_dir.mkdir(parents=True, exist_ok=True)
             (ex_dir / "example.md").write_text(
-                "<!-- cpt:id:item -->\n- [x] `p1` - **ID**: `cpt-ex-item-1`\n<!-- cpt:id:item -->\n",
+                "- [x] `p1` - **ID**: `cpt-ex-item-1`\n",
                 encoding="utf-8",
             )
             (root / "kits" / "cypilot-sdlc" / "constraints.json").write_text(
@@ -1285,9 +1461,9 @@ class TestCLIPyCoverageValidateCode(unittest.TestCase):
             art_dir = root / "artifacts"
             art_dir.mkdir(parents=True, exist_ok=True)
             (art_dir / "reqs.md").write_text(
-                "<!-- cpt:id:item -->\n"
+                ""
                 "- [x] `p1` - **ID**: `cpt-req-1`\n"
-                "<!-- cpt:id:item -->\n",
+                "",
                 encoding="utf-8",
             )
 
@@ -1602,8 +1778,7 @@ class TestCLIPyCoverageSlugValidation(unittest.TestCase):
             kits_base = root / "kits" / "cypilot-sdlc" / "artifacts" / "req"
             kits_base.mkdir(parents=True, exist_ok=True)
             (kits_base / "template.md").write_text(
-                "---\ncypilot-template:\n  kind: req\n  version:\n    major: 1\n    minor: 0\n---\n"
-                "<!-- cpt:id:item -->\n<!-- cpt:id:item -->\n",
+                "---\ncypilot-template:\n  kind: req\n  version:\n    major: 1\n    minor: 0\n---\n",
                 encoding="utf-8",
             )
 
@@ -1688,8 +1863,7 @@ class TestCLIPyCoverageListIdsWithCode(unittest.TestCase):
             kits_base.mkdir(parents=True, exist_ok=True)
             (kits_base / "template.md").write_text(
                 "---\ncypilot-template:\n  kind: req\n  version:\n    major: 1\n    minor: 0\n---\n"
-                "<!-- cpt:id:item -->\n<!-- cpt:id:item -->\n"
-                "<!-- cpt:id-ref:other -->\n<!-- cpt:id-ref:other -->\n",
+                "",
                 encoding="utf-8",
             )
 
@@ -1697,12 +1871,12 @@ class TestCLIPyCoverageListIdsWithCode(unittest.TestCase):
             art_dir = root / "artifacts"
             art_dir.mkdir(parents=True, exist_ok=True)
             (art_dir / "reqs.md").write_text(
-                "<!-- cpt:id:item -->\n"
+                ""
                 "- [x] `p1` - **ID**: `cpt-test-item-1`\n"
-                "<!-- cpt:id:item -->\n"
-                "<!-- cpt:id-ref:other -->\n"
+                ""
+                ""
                 "- [ ] `p2` - `cpt-external-ref-abc`\n"
-                "<!-- cpt:id-ref:other -->\n",
+                "",
                 encoding="utf-8",
             )
 

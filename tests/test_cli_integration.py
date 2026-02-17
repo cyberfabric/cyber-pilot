@@ -217,7 +217,7 @@ class TestCLICommandsRulesOnlyKit(unittest.TestCase):
             # Create an artifact that includes an ID line; include markers to emulate real artifacts.
             (root / "modules" / "a" / "docs").mkdir(parents=True)
             (root / "modules" / "a" / "docs" / "PRD.md").write_text(
-                "<!-- cpt:#:prd -->\n# PRD\n\n<!-- cpt:id:fr -->\n**ID**: `cpt-root-a-fr-test`\n<!-- cpt:id:fr -->\n",
+                "# PRD\n\n**ID**: `cpt-root-a-fr-test`\n",
                 encoding="utf-8",
             )
 
@@ -1644,18 +1644,14 @@ cypilot-template:
     minor: 0
   kind: PRD
 ---
-<!-- cpt:id:item -->
 - [ ] `p1` - **ID**: `cpt-test-item-1`
-<!-- cpt:id:item -->
 """
             (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
 
             # Create artifact
             art_dir = root / "architecture"
             art_dir.mkdir(parents=True)
-            art_content = """<!-- cpt:id:item -->
-- [x] `p1` - **ID**: `cpt-test-item-1`
-<!-- cpt:id:item -->
+            art_content = """- [x] `p1` - **ID**: `cpt-test-item-1`
 """
             (art_dir / "PRD.md").write_text(art_content, encoding="utf-8")
 
@@ -1888,18 +1884,15 @@ cypilot-template:
     minor: 0
   kind: PRD
 ---
-<!-- cpt:id:item -->
 - [ ] `p1` - **ID**: `cpt-test-item-1`
-<!-- cpt:id:item -->
 """
             (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
 
             # Create artifact
             art_dir = root / "architecture"
             art_dir.mkdir(parents=True)
-            art_content = """<!-- cpt:id:item -->
-- [x] `p1` - **ID**: `cpt-test-item-1`
-<!-- cpt:id:item -->
+            art_content = """- [x] `p1` - **ID**: `cpt-test-item-1`
+Login feature requirement
 """
             art_path = art_dir / "PRD.md"
             art_path.write_text(art_content, encoding="utf-8")
@@ -1936,9 +1929,7 @@ cypilot-template:
     minor: 0
   kind: PRD
 ---
-<!-- cpt:free:body -->
 text
-<!-- cpt:free:body -->
 """
             (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
 
@@ -1989,9 +1980,7 @@ cypilot-template:
     minor: 0
   kind: PRD
 ---
-<!-- cpt:free:body -->
 text
-<!-- cpt:free:body -->
 """
             (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
 
@@ -2041,9 +2030,7 @@ cypilot-template:
     minor: 0
   kind: PRD
 ---
-<!-- cpt:free:body -->
 text
-<!-- cpt:free:body -->
 """
             (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
 
@@ -2094,9 +2081,7 @@ cypilot-template:
     minor: 0
   kind: PRD
 ---
-<!-- cpt:free:body -->
 text
-<!-- cpt:free:body -->
 """
             (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
 
@@ -2148,9 +2133,7 @@ cypilot-template:
     minor: 0
   kind: PRD
 ---
-<!-- cpt:free:body -->
 text
-<!-- cpt:free:body -->
 """
             (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
 
@@ -2207,9 +2190,7 @@ cypilot-template:
     minor: 0
   kind: PRD
 ---
-<!-- cpt:free:body -->
 text
-<!-- cpt:free:body -->
 """
             (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
 
@@ -2262,9 +2243,7 @@ cypilot-template:
     minor: 0
   kind: PRD
 ---
-<!-- cpt:free:body -->
 text
-<!-- cpt:free:body -->
 """,
                 encoding="utf-8",
             )
@@ -2306,9 +2285,7 @@ cypilot-template:
     minor: 0
   kind: PRD
 ---
-<!-- cpt:free:body -->
 text
-<!-- cpt:free:body -->
 """,
                 encoding="utf-8",
             )
@@ -2356,9 +2333,7 @@ cypilot-template:
     minor: 0
   kind: {KIND}
 ---
-<!-- cpt:free:body -->
 text
-<!-- cpt:free:body -->
 """
             (prd_dir / "template.md").write_text(tmpl.format(KIND="PRD"), encoding="utf-8")
             (dsn_dir / "template.md").write_text(tmpl.format(KIND="DESIGN"), encoding="utf-8")
@@ -2415,9 +2390,7 @@ cypilot-template:
     minor: 0
   kind: PRD
 ---
-<!-- cpt:free:body -->
 text
-<!-- cpt:free:body -->
 """,
                 encoding="utf-8",
             )
@@ -2467,9 +2440,7 @@ cypilot-template:
     minor: 0
   kind: {KIND}
 ---
-<!-- cpt:free:body -->
 text
-<!-- cpt:free:body -->
 """
             (prd_dir / "template.md").write_text(tmpl.format(KIND="PRD"), encoding="utf-8")
             (dsn_dir / "template.md").write_text(tmpl.format(KIND="DESIGN"), encoding="utf-8")
@@ -2526,9 +2497,7 @@ cypilot-template:
     minor: 0
   kind: {KIND}
 ---
-<!-- cpt:free:body -->
 text
-<!-- cpt:free:body -->
 """
             (prd_dir / "template.md").write_text(tmpl.format(KIND="PRD"), encoding="utf-8")
             (dsn_dir / "template.md").write_text(tmpl.format(KIND="DESIGN"), encoding="utf-8")
@@ -2632,15 +2601,13 @@ cypilot-template:
     minor: 0
   kind: PRD
 ---
-<!-- cpt:id:item -->
 - [ ] `p1` - **ID**: `cpt-{system}-item-{slug}`
-<!-- cpt:id:item -->
 """
     (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
     ex_dir = templates_dir / "examples"
     ex_dir.mkdir(parents=True, exist_ok=True)
     (ex_dir / "example.md").write_text(
-        "<!-- cpt:id:item -->\n- [x] `p1` - **ID**: `cpt-ex-item-1`\n<!-- cpt:id:item -->\n",
+        "- [x] `p1` - **ID**: `cpt-ex-item-1`\n",
         encoding="utf-8",
     )
     (root / "kits" / "sdlc" / "constraints.json").write_text(
@@ -2651,9 +2618,7 @@ cypilot-template:
     # Create artifact
     art_dir = root / "architecture"
     art_dir.mkdir(parents=True)
-    art_content = """<!-- cpt:id:item -->
-- [x] `p1` - **ID**: `cpt-test-item-1`
-<!-- cpt:id:item -->
+    art_content = """- [x] `p1` - **ID**: `cpt-test-item-1`
 """
     (art_dir / "PRD.md").write_text(art_content, encoding="utf-8")
 
@@ -3282,7 +3247,7 @@ class TestCLIGetContentErrorBranches(unittest.TestCase):
             # Create artifact outside project root
             outside = Path(tmpdir) / "outside" / "test.md"
             outside.parent.mkdir(parents=True)
-            outside.write_text("<!-- cpt:id:item -->\n- [x] `p1` - **ID**: `test`\n<!-- cpt:id:item -->", encoding="utf-8")
+            outside.write_text("- [x] `p1` - **ID**: `test`", encoding="utf-8")
 
             cwd = os.getcwd()
             try:
@@ -3304,7 +3269,7 @@ class TestCLIGetContentErrorBranches(unittest.TestCase):
 
             # Create artifact file under project root but not registered
             unregistered = root / "unregistered.md"
-            unregistered.write_text("<!-- cpt:id:item -->\n- [x] `p1` - **ID**: `test`\n<!-- cpt:id:item -->", encoding="utf-8")
+            unregistered.write_text("- [x] `p1` - **ID**: `test`", encoding="utf-8")
 
             cwd = os.getcwd()
             try:
@@ -3451,7 +3416,7 @@ class TestCLIValidateTemplatesVerbose(unittest.TestCase):
 
             # Create invalid template (missing cypilot-template frontmatter)
             (templates_dir / "PRD.template.md").write_text(
-                "<!-- cpt:id:item -->\nNo frontmatter here\n<!-- cpt:id:item -->",
+                "No frontmatter here",
                 encoding="utf-8"
             )
 
@@ -4058,22 +4023,16 @@ cypilot-template:
     minor: 0
   kind: PRD
 ---
-<!-- cpt:id:item -->
 - [ ] `p1` - **ID**: `cpt-test-item-1`
-<!-- cpt:id:item -->
 """
             (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
 
             # Create artifact with priority marker
             art_dir = root / "architecture"
             art_dir.mkdir(parents=True)
-            art_content = """<!-- cpt:id:item -->
-- [x] `p1` - **ID**: `cpt-test-item-1`
-<!-- cpt:id:item -->
+            art_content = """- [x] `p1` - **ID**: `cpt-test-item-1`
 
-<!-- cpt:id-ref:item -->
 - [x] `p2` - `cpt-test-item-1`: referenced here
-<!-- cpt:id-ref:item -->
 """
             (art_dir / "PRD.md").write_text(art_content, encoding="utf-8")
 
@@ -4185,15 +4144,13 @@ cypilot-template:
     minor: 0
   kind: PRD
 ---
-<!-- cpt:id:item -->
 - [ ] `p1` - **ID**: `cpt-{system}-item-{slug}`
-<!-- cpt:id:item -->
 """
     (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
     ex_dir = templates_dir / "examples"
     ex_dir.mkdir(parents=True, exist_ok=True)
     (ex_dir / "example.md").write_text(
-        "<!-- cpt:id:item -->\n- [x] `p1` - **ID**: `cpt-ex-item-1`\n<!-- cpt:id:item -->\n",
+        "- [x] `p1` - **ID**: `cpt-ex-item-1`\n",
         encoding="utf-8",
     )
     (root / "kits" / "sdlc" / "constraints.json").write_text(
@@ -4204,9 +4161,7 @@ cypilot-template:
     # Create artifact
     art_dir = root / "architecture"
     art_dir.mkdir(parents=True)
-    art_content = """<!-- cpt:id:item -->
-- [x] `p1` - **ID**: `cpt-test-item-1`
-<!-- cpt:id:item -->
+    art_content = """- [x] `p1` - **ID**: `cpt-test-item-1`
 """
     (art_dir / "PRD.md").write_text(art_content, encoding="utf-8")
 
@@ -4488,16 +4443,12 @@ cypilot-template:
   version: {major: 1, minor: 0}
   kind: PRD
 ---
-<!-- cpt:id:item -->
 - [ ] `p1` - **ID**: `cpt-test-item-1`
-<!-- cpt:id:item -->
 """, encoding="utf-8")
 
             # Create artifact
             (root / "architecture").mkdir(parents=True)
-            (root / "architecture" / "PRD.md").write_text("""<!-- cpt:id:item -->
-- [x] `p1` - **ID**: `cpt-test-item-1`
-<!-- cpt:id:item -->
+            (root / "architecture" / "PRD.md").write_text("""- [x] `p1` - **ID**: `cpt-test-item-1`
 """, encoding="utf-8")
 
             # Create code with markers
@@ -4547,15 +4498,11 @@ cypilot-template:
   version: {major: 1, minor: 0}
   kind: PRD
 ---
-<!-- cpt:id:item -->
 - [ ] `p1` - **ID**: `cpt-test-item-1`
-<!-- cpt:id:item -->
 """, encoding="utf-8")
 
             (root / "architecture").mkdir(parents=True)
-            (root / "architecture" / "PRD.md").write_text("""<!-- cpt:id:item -->
-- [x] `p1` - **ID**: `cpt-test-item-1`
-<!-- cpt:id:item -->
+            (root / "architecture" / "PRD.md").write_text("""- [x] `p1` - **ID**: `cpt-test-item-1`
 """, encoding="utf-8")
 
             # Bootstrap with codebase pointing to nonexistent directory
@@ -4692,17 +4639,13 @@ cypilot-template:
     minor: 0
   kind: PRD
 ---
-<!-- cpt:id:item -->
 - [ ] `p1` - **ID**: `cpt-test-item-1`
-<!-- cpt:id:item -->
 """
             (templates_dir / "template.md").write_text(tmpl_content, encoding="utf-8")
 
             art_dir = root / "architecture"
             art_dir.mkdir(parents=True)
-            art_content = """<!-- cpt:id:item -->
-- [x] `p1` - **ID**: `cpt-test-item-1`
-<!-- cpt:id:item -->
+            art_content = """- [x] `p1` - **ID**: `cpt-test-item-1`
 """
             (art_dir / "PRD.md").write_text(art_content, encoding="utf-8")
 
