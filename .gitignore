@@ -39,10 +39,6 @@ coverage/
 deck.pptx
 .coverage
 coverage.json
-.windsurf
-.claude
-.cursor
-.agents/
 cypilot-agents.json
 .tmp/
 cypilot-flow-layers-2a.drawio.svg

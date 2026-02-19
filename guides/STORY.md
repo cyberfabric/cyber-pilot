@@ -450,7 +450,7 @@ _Read `artifacts-registry.md` (lines 90–179)_
 
 A kit is a template + checklist package that tells Cypilot:
 
-- what each artifact kind (PRD/DESIGN/ADR/DECOMPOSITION/SPEC) should look like (template),
+- what each artifact kind (PRD/DESIGN/ADR/DECOMPOSITION/FEATURE) should look like (template),
 - how to validate it (checklist + deterministic rules),
 - and (optionally) how to validate traceability to code.
 

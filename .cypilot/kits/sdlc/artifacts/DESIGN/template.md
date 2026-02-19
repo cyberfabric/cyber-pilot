@@ -1,0 +1,213 @@
+
+# Technical Design — {Module Name}
+
+## 1. Architecture Overview
+
+### 1.1 Architectural Vision
+
+{2-3 paragraphs: Technical approach, key decisions, design philosophy. How does this architecture satisfy the requirements?}
+
+### 1.2 Architecture Drivers
+
+Requirements that significantly influence architecture decisions.
+
+**ADRs**: `cpt-{system}-adr-{slug}`
+
+#### Functional Drivers
+
+| Requirement | Design Response |
+|-------------|-----------------|
+| `cpt-{system}-fr-{slug}` | {How architecture addresses this requirement} |
+
+#### NFR Allocation
+
+This table maps non-functional requirements from PRD to specific design/architecture responses, demonstrating how quality attributes are realized.
+
+| NFR ID | NFR Summary | Allocated To | Design Response | Verification Approach |
+|--------|-------------|--------------|-----------------|----------------------|
+| `cpt-{system}-nfr-{slug}` | {Brief NFR description} | {Component/layer/mechanism} | {How this design element realizes the NFR} | {How compliance is verified} |
+
+### 1.3 Architecture Layers
+
+{Add architecture diagram here: Mermaid or ASCII}
+
+- [ ] `p3` - **ID**: `cpt-{system}-tech-{slug}`
+
+| Layer | Responsibility | Technology |
+|-------|---------------|------------|
+| Presentation | {description} | {tech} |
+| Application | {description} | {tech} |
+| Domain | {description} | {tech} |
+| Infrastructure | {description} | {tech} |
+
+## 2. Principles & Constraints
+
+### 2.1 Design Principles
+
+#### {Principle Name}
+
+- [ ] `p2` - **ID**: `cpt-{system}-principle-{slug}`
+
+{Description of the principle and why it matters for this system.}
+
+**ADRs**: `cpt-{system}-adr-{slug}`
+
+### 2.2 Constraints
+
+#### {Constraint Name}
+
+- [ ] `p2` - **ID**: `cpt-{system}-constraint-{slug}`
+
+{Description of the constraint (technical, regulatory, organizational) and its impact on design.}
+
+**ADRs**: `cpt-{system}-adr-{slug}`
+
+## 3. Technical Architecture
+
+### 3.1 Domain Model
+
+**Technology**: {GTS, Rust structs},
+
+**Location**: [{domain-model-file}]({path/to/domain-model})
+
+**Core Entities**:
+
+| Entity | Description | Schema |
+|--------|-------------|--------|
+| {EntityName} | {Purpose} | [{file}]({path}) |
+
+**Relationships**:
+- {Entity1} → {Entity2}: {Relationship description}
+
+### 3.2 Component Model
+
+{Describe all components covered by this design. For single-component designs, document that component. For multi-component designs, list all components with their responsibilities and interfaces. Include a component diagram (Mermaid or ASCII) showing structure and relationships.}
+
+#### {Component Name}
+
+- [ ] `p2` - **ID**: `cpt-{system}-component-{slug}`
+
+##### Why this component exists
+
+{What problem it solves / why it is needed in the architecture.}
+
+##### Responsibility scope
+
+{What this component owns: core responsibilities, invariants, main operations.}
+
+##### Responsibility boundaries
+
+{What it explicitly does NOT do; what is delegated to other components; constraints on responsibilities.}
+
+##### Related components (by ID)
+
+{List component-to-component relationships using component IDs.}
+
+- `cpt-{system}-component-{slug}` — {relationship type: depends on | calls | publishes to | subscribes to | shares model with | owns data for | etc.}
+
+### 3.3 API Contracts
+
+{For module-level design: Document all public API contracts exposed by this module. For multi-component design: Document the primary API contracts exposed by each component. Add references to module designs}
+
+- [ ] `p2` - **ID**: `cpt-{system}-interface-{slug}`
+
+- **Contracts**: `cpt-{system}-contract-{slug}`
+- **Technology**: {REST/OpenAPI | GraphQL | gRPC | etc.}
+- **Location**: [{api-spec-file}]({path/to/api-spec})
+
+**Endpoints Overview**:
+
+| Method | Path | Description | Stability |
+|--------|------|-------------|-----------|
+| `{METHOD}` | `{/path}` | {Description} | {stable/unstable} |
+
+### 3.4 Internal Dependencies
+
+{Internal system/module dependencies within the platform. All inter-module communication goes through versioned contracts, SDK clients, or plugin interfaces — never through internal types.}
+
+| Dependency Module | Interface Used | Purpose |
+|-------------------|----------------|---------|
+| {module_name} | {contract / SDK client / plugin} | {Why this module is needed} |
+
+**Dependency Rules** (per project conventions):
+- No circular dependencies
+- Always use SDK modules for inter-module communication
+- No cross-category sideways deps except through contracts
+- Only integration/adapter modules talk to external systems
+- `SecurityContext` must be propagated across all in-process calls
+
+### 3.5 External Dependencies
+
+External systems, databases, and third-party services this module interacts with. Define protocols, data formats, and integration points.
+
+#### {External System / Database / Service Name}
+
+| Dependency Module | Interface Used | Purpose |
+|-------------------|---------------|---------|
+| {module_name} | {contract / SDK client / plugin} | {Why this module is needed} |
+
+**Dependency Rules** (per project conventions):
+- No circular dependencies
+- Always use SDK modules for inter-module communication
+- No cross-category sideways deps except through contracts
+- Only integration/adapter modules talk to external systems
+- `SecurityContext` must be propagated across all in-process calls
+
+### 3.6 Interactions & Sequences
+
+{Document key interaction sequences and message flows between components.}
+
+#### {Sequence Name}
+
+**ID**: `cpt-{system}-seq-{slug}`
+
+**Use cases**: `cpt-{system}-usecase-{slug}` (ID from PRD)
+
+**Actors**: `cpt-{system}-actor-{slug}` (ID from PRD)
+
+```mermaid
+sequenceDiagram
+    User ->> System: Request
+    System ->> Module B: Call
+    System ->> Database: Query
+    Database -->> System: Result
+    System -->> User: Response
+```
+
+**Description**: {Brief description of what this sequence accomplishes}
+
+### 3.7 Database schemas & tables
+
+{ For module-level design: Document database tables, schemas, and data models. For multi-component design: refer to component-level design documents. }
+
+#### Table: {table_name}
+
+**ID**: `cpt-{system}-dbtable-{slug}`
+
+**Schema**:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| {col} | {type} | {description} |
+
+**PK**: {primary key column(s)}
+
+**Constraints**: {NOT NULL, UNIQUE, etc.}
+
+**Additional info**: {Indexes, relationships, triggers, etc.}
+
+**Example**:
+
+| {col1} | {col2} | {col3} |
+|--------|--------|--------|
+| {val1} | {val2} | {val3} |
+
+## 4. Additional context
+
+{whatever useful additional context}
+
+## 5. Traceability
+
+- **PRD**: [PRD.md](./PRD.md)
+- **ADRs**: [ADR/](./ADR/)
+- **Features**: [features/](./features/)
