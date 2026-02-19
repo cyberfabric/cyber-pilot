@@ -1,51 +1,59 @@
-# PRD — Cypilot
+# PRD — Cyber Pilot (Cypilot)
 
 ## 1. Overview
 
 ### 1.1 Purpose
 
-Cypilot is a methodology and productized system for guiding software development through stable artifacts, deterministic validation, and repeatable workflows.
+Cypilot is a deterministic agent tool that embeds into AI coding assistants and CI pipelines to provide structured workflows, artifact validation, and design-to-code traceability. Cypilot maximizes determinism: everything that can be validated, checked, or enforced without an LLM is handled by deterministic scripts; the LLM is reserved only for tasks that require reasoning, creativity, or natural language understanding.
 
-In this project, "Cypilot" means **Framework for Documentation and Development**: the project is developed by running workflows (flows), using skills/tools for deterministic checks, and iterating interactively with AI agents.
+The system consists of two layers:
+
+- **Core** — deterministic skill engine, generic workflows (generate/analyze), multi-agent integrations, global CLI, config directory management, extensible kit system, ID/traceability infrastructure, and Cypilot DSL (CDSL) for behavioral specifications
+- **SDLC Kit** — artifact-first development pipeline (PRD → DESIGN → ADR → DECOMPOSITION → FEATURE → CODE) with templates, checklists, examples, deterministic validation, cross-artifact consistency checks, and GitHub PR review/status workflows with configurable prompts, severity assessment, and resolved-comment audit
 
 ### 1.2 Background / Problem Statement
 
 **Target Users**:
-- Development Teams - Building software with clear design documentation
-- Technical Leads & Architects - Defining system architecture and technical decisions
-- Product Managers - Capturing product requirements and use cases
-- AI Coding Assistants - Executing workflows and validating artifacts
-- QA Engineers - Verifying implementation matches design
-- Documentation Writers - Creating comprehensive technical documentation
+- Developers using AI coding assistants (Windsurf, Cursor, Claude, Copilot) for daily work
+- Technical Leads setting up development methodology and project conventions
+- Teams adopting structured design-to-code workflows with AI assistance
+- DevOps engineers integrating Cypilot validation into CI/CD pipelines for artifact and code quality gates
 
 **Key Problems Solved**:
-- **Design-Code Disconnect**: Code diverges from design without single source of truth, leading to outdated documentation
-- **Lack of Traceability**: Cannot track product requirements through design to implementation, making impact analysis difficult
-- **Unstructured Development**: No repeatable process for design and implementation, causing inconsistent quality
-- **AI Integration Challenges**: AI agents cannot follow methodology without structured guidance and machine-readable specifications
-- **Validation Complexity**: Manual design reviews are time-consuming and miss structural issues
+- **AI Agent Non-Determinism**: AI agents produce inconsistent results without structured guardrails; deterministic validation catches structural and traceability issues that LLMs miss or hallucinate
+- **Design-Code Disconnect**: Code diverges from design when there is no single source of truth and no automated traceability enforcement
+- **Fragmented Tool Setup**: Each AI agent (Windsurf, Cursor, Claude, Copilot) requires different file formats for skills, workflows, and rules; maintaining these manually is error-prone
+- **Inconsistent PR Reviews**: Code reviews vary in depth and focus without structured checklists and prompts; reviewers miss patterns that deterministic analysis catches
+- **Manual Configuration Overhead**: Project-specific conventions, artifact locations, and validation rules require manual setup and synchronization across tools
 
 ### 1.3 Goals (Business Outcomes)
 
 **Success Criteria**:
-- A new user can complete adapter initialization and reach a first passing PRD validation (`cypilot validate --artifact {project-root}/architecture/PRD.md`) in ≤ 60 minutes. (Baseline: not measured; Target: v1.0)
-- Deterministic validation of the PRD completes in ≤ 3 seconds on a typical developer laptop. (Baseline: ~1s current; Target: v1.0)
-- 100% of `cpt-cypilot-actor-*` IDs defined in the PRD are resolvable via deterministic search (`cypilot where-defined`) without ambiguity. (Baseline: 100% current; Target: v1.0)
-- CI validation feedback for PRD changes is produced in ≤ 2 minutes from push to default branch. (Baseline: not measured; Target: v1.0)
-- Users can apply a small PRD update (single section change) via `/cypilot-prd` in ≤ 10 minutes end-to-end, including re-validation. (Baseline: not measured; Target: v1.0)
+- A new user can install Cypilot globally and initialize a project (`pipx install cypilot && cypilot init`) in ≤ 5 minutes. (Baseline: not measured; Target: v2.0)
+- Deterministic validation of any single artifact completes in ≤ 3 seconds on a typical developer laptop. (Baseline: ~1s current; Target: v2.0)
+- 100% of `cpt-*` IDs defined in artifacts are resolvable via deterministic search (`cypilot where-defined`) without ambiguity. (Baseline: 100% current; Target: v2.0)
+- Agent workflow entry points for all supported agents are generated in ≤ 10 seconds via `cypilot agents`. (Baseline: ~5s current; Target: v2.0)
+- PR review workflow produces a structured review report within 2 minutes of invocation. (Baseline: not measured; Target: v2.0)
 
 **Capabilities**:
-- Execute workflows to create/update/validate artifacts
-- Provide deterministic validation and traceability scanning
-- Support adapter-driven configuration for different projects and tech stacks
+- Install once globally, initialize per project with interactive setup
+- Execute deterministic validation and traceability scanning without LLM
+- Provide structured workflows for artifact creation, analysis, and code generation
+- Generate and maintain agent-specific entry points for all supported AI assistants
+- Review and assess GitHub PRs with configurable prompts and checklists
+- Manage project configuration through a structured config directory edited only by the tool
 
 ### 1.4 Glossary
 
 | Term | Definition |
 |------|------------|
-| Cypilot | Artifact-first SDLC methodology + deterministic validator + workflows |
-| Adapter | Project-specific customization layer (`.cypilot-adapter/`) |
-| Kit package | Templates/rules/checklists/examples for an artifact kind |
+| Cypilot | Deterministic agent tool: global CLI + project-installed skill + kits + workflows |
+| Skill | The core Python package installed in a project's `.cypilot/` directory, containing all commands, validation logic, and utilities |
+| Kit | Extensible package of templates, checklists, rules, examples, and constraints for a domain (e.g., SDLC) |
+| Config | `config/` directory inside the install directory containing `core.json` and per-kit configs in `kits/<slug>/`, managed exclusively by the tool. Includes project-specific adapter specs (tech-stack, conventions, domain model) that tune Cypilot behavior |
+| CDSL | Cypilot DSL — plain English behavioral specification language for actor flows and algorithms |
+| Traceability | Linking design elements to code via `cpt-*` IDs and `@cpt-*` code tags |
+| Agent Entry Point | Agent-specific file (workflow proxy, skill shim, or rule file) generated in the agent's native format |
 
 ---
 
@@ -53,115 +61,31 @@ In this project, "Cypilot" means **Framework for Documentation and Development**
 
 ### 2.1 Human Actors
 
-#### Product Manager
+#### User
 
-**ID**: `cpt-cypilot-actor-product-manager`
+**ID**: `cpt-cypilot-actor-user`
 
-**Role**: Defines product requirements, captures use cases, and documents PRD content using Cypilot workflows
-
-#### Architect
-
-**ID**: `cpt-cypilot-actor-architect`
-
-**Role**: Designs system architecture, creates overall design documentation, and defines technical patterns
-
-#### Developer
-
-**ID**: `cpt-cypilot-actor-developer`
-
-**Role**: Implements specs according to validated designs, adds traceability tags to code
-
-#### QA Engineer
-
-**ID**: `cpt-cypilot-actor-qa-engineer`
-
-**Role**: Validates implementation against design specifications and ensures test coverage
-
-#### Technical Lead
-
-**ID**: `cpt-cypilot-actor-technical-lead`
-
-**Role**: Sets up project adapters, configures Cypilot for project-specific conventions
-
-#### Project Manager
-
-**ID**: `cpt-cypilot-actor-project-manager`
-
-**Role**: Monitors development progress, ensures workflows are followed, tracks spec completion
-
-#### Documentation Writer
-
-**ID**: `cpt-cypilot-actor-documentation-writer`
-
-**Role**: Creates and maintains project documentation using Cypilot artifacts as source
-
-#### DevOps Engineer
-
-**ID**: `cpt-cypilot-actor-devops-engineer`
-
-**Role**: Configures CI/CD pipelines, uses adapter specs for build and deployment automation
-
-#### Security Engineer
-
-**ID**: `cpt-cypilot-actor-security-engineer`
-
-**Role**: Conducts security review of design and code, validates security requirements implementation
-
-#### Business Analyst
-
-**ID**: `cpt-cypilot-actor-prd-analyst`
-
-**Role**: Analyzes product requirements and translates them into Cypilot format for Product Manager
-
-#### UX Designer
-
-**ID**: `cpt-cypilot-actor-ux-designer`
-
-**Role**: Designs user interfaces based on actor flows from feature specification
-
-#### Performance Engineer
-
-**ID**: `cpt-cypilot-actor-performance-engineer`
-
-**Role**: Defines performance targets, reviews designs for performance risks, and validates performance requirements implementation
-
-#### Database Architect
-
-**ID**: `cpt-cypilot-actor-database-architect`
-
-**Role**: Designs data models and storage strategies, reviews domain model impacts, and validates database-related constraints
-
-#### Release Manager
-
-**ID**: `cpt-cypilot-actor-release-manager`
-
-**Role**: Manages releases and tracks feature readiness using Cypilot artifacts (for example via a DECOMPOSITION when used)
-
-#### AI Coding Assistant
-
-**ID**: `cpt-cypilot-actor-ai-assistant`
-
-**Role**: Executes Cypilot workflows interactively, generates artifacts, and validates against requirements
+**Role**: Primary user of Cypilot. Uses the tool through AI agent chats and CLI to: create and validate artifacts, implement features with traceability, configure the project (`cypilot init`, kits, autodetect rules), review PRs against configurable checklists, and manage project conventions.
 
 ### 2.2 System Actors
 
-#### Cypilot Validation Tool
+#### AI Agent
 
-**ID**: `cpt-cypilot-actor-cypilot-tool`
+**ID**: `cpt-cypilot-actor-ai-agent`
 
-**Role**: Automated validation engine that checks artifact structure, ID formats, and traceability
+**Role**: Executes Cypilot workflows (generate, analyze, PR review) by following SKILL.md instructions, loading rules and templates, and producing structured output. Supported agents: Windsurf, Cursor, Claude, Copilot, OpenAI.
 
 #### CI/CD Pipeline
 
 **ID**: `cpt-cypilot-actor-ci-pipeline`
 
-**Role**: Automatically validates Cypilot artifacts on every commit through GitHub Actions or GitLab CI
+**Role**: Runs deterministic validation and PR review automatically on commits and pull requests. Reports results as status checks and blocks merges on failure.
 
-#### Documentation Generator
+#### Cypilot CLI
 
-**ID**: `cpt-cypilot-actor-doc-generator`
+**ID**: `cpt-cypilot-actor-cypilot-cli`
 
-**Role**: Automatically generates external documentation from Cypilot artifacts (API docs, architecture diagrams)
+**Role**: Global command-line tool installed via `pipx`. Provides `init` for bootstrapping and delegates all other commands to the project-installed skill. Detects version mismatches and proposes updates.
 
 ---
 
@@ -169,232 +93,337 @@ In this project, "Cypilot" means **Framework for Documentation and Development**
 
 ### 3.1 Module-Specific Environment Constraints
 
-None.
+- Python 3.10+ required for the CLI tool and skill engine
+- Git required for project detection, version control, and skill installation
+- `gh` CLI required for PR review/status workflows (GitHub integration)
+- `pipx` recommended for global CLI installation (isolation from project dependencies)
+
+---
 
 ## 4. Scope
 
 ### 4.1 In Scope
 
-- Execute workflows to create/update/validate artifacts
-- Deterministic validation and traceability scanning
-- Adapter-driven configuration for project-specific conventions
+- Global CLI tool with `pipx` installation and project-specific command delegation
+- Interactive project initialization with directory, agent, and kit selection
+- Config directory (`config/`) with core and per-kit configs, managed exclusively by the tool
+- Deterministic skill engine with JSON output for all commands
+- Generic workflows (generate/analyze) with execution protocol
+- Multi-agent integration (Windsurf, Cursor, Claude, Copilot, OpenAI)
+- Extensible kit system with registration, extension, and custom kit creation
+- ID and traceability system with code tags, search, and validation
+- CDSL behavioral specification language
+- SDLC artifact pipeline with templates, checklists, cross-artifact validation, and PR review/status workflows
+- Version detection, update proposals, and config directory migration
+- Rich CLI for configuration management (autodetect, artifacts, ignore lists, kits, constraints)
+- Environment diagnostics (`cypilot doctor`)
+- Pre-commit hook integration (`cypilot hook install`)
 
 ### 4.2 Out of Scope
 
 - Replacing project management tools (Jira, Linear, etc.)
 - Automatically generating production-quality code without human review
+- GUI or web interface for Cypilot management
+- Non-GitHub VCS platform support for PR review (GitLab, Bitbucket) in initial release
+- Real-time collaboration or multi-user synchronization
 
 ---
 
 ## 5. Functional Requirements
 
-### FR-001 Workflow-Driven Development
+### 5.1 Core
 
-- [x] `p1` - **ID**: `cpt-cypilot-fr-workflow-execution`
+#### Global CLI Installer
 
-The system MUST provide a clear, documented workflow catalog that users and AI agents can execute. Artifact locations MUST be adapter-defined; workflows MUST NOT hardcode repository paths. The core workflow set MUST cover at least: Adapter bootstrap and configuration, PRD creation/update, Overall design creation/update, ADR creation/update, Spec design creation/update, Spec implementation (`implement` as the primary implementation workflow), and Deterministic validation workflows for the above artifacts and for code traceability (when enabled). The system MUST provide a unified agent entrypoint workflow (`/cypilot`) that selects and executes the appropriate workflow (create/update/validate) based on context, or runs `cypilot` tool commands when requested. This includes interactive question-answer flow with AI agents, automated validation after artifact creation, step-by-step guidance for complex operations, and independent workflows (no forced sequence).
+- [ ] `p1` - **ID**: `cpt-cypilot-fr-core-installer`
 
-**Actors**:
-`cpt-cypilot-actor-product-manager`, `cpt-cypilot-actor-architect`, `cpt-cypilot-actor-technical-lead`, `cpt-cypilot-actor-project-manager`, `cpt-cypilot-actor-release-manager`, `cpt-cypilot-actor-developer`, `cpt-cypilot-actor-qa-engineer`, `cpt-cypilot-actor-security-engineer`, `cpt-cypilot-actor-performance-engineer`, `cpt-cypilot-actor-database-architect`, `cpt-cypilot-actor-devops-engineer`, `cpt-cypilot-actor-documentation-writer`, `cpt-cypilot-actor-prd-analyst`, `cpt-cypilot-actor-ux-designer`, `cpt-cypilot-actor-ai-assistant`, `cpt-cypilot-actor-cypilot-tool`, `cpt-cypilot-actor-ci-pipeline`
+The system MUST provide a global CLI tool installable via `pipx install git+https://github.com/cyberfabric/cyber-pilot.git`. The tool MUST be available as both `cypilot` and the short alias `cpt`. The global tool MUST have zero built-in commands — it is a pure proxy shell. On every invocation the tool MUST:
 
-### FR-002 Artifact Structure Validation
+1. **Ensure cache** — maintain a local skill bundle cache (`~/.cypilot/cache/`). If no cache exists, download the latest skill bundle from the GitHub repository before proceeding. The tool MUST NOT require git as a runtime dependency.
+2. **Resolve command target** — if the current directory is inside a project with an installed skill (`.cypilot/` directory), proxy the command to the project-installed skill. Otherwise, proxy the command to the cached skill.
+3. **Version check (non-blocking)** — on every invocation, check for newer versions in the background. The check MUST NOT block or delay the main command execution. Concurrent checks MUST be prevented. A newly available version becomes visible on the next invocation.
+4. **Version highlight** — if the cached version is newer than the project-installed version, display a notice: "Cypilot {cached_version} available (project has {project_version}). Run `cypilot update` to upgrade."
 
-- [x] `p1` - **ID**: `cpt-cypilot-fr-validation`
-
-Deterministic validators for structural checks (sections, IDs, format). Deterministic content validation for semantic quality and boundaries: Content MUST be internally consistent (no contradictions), Content MUST NOT include information that belongs in other artifacts, Content MUST include required information expected for the artifact kind, Content MUST be semantically consistent with upstream/downstream artifacts (no cross-artifact contradictions), Content MUST not omit critical details that are explicitly defined in other artifacts. Deterministic validation for key artifacts defined by the adapter (no hardcoded repository paths). 100-point scoring system with category breakdown. Pass/fail thresholds (typically ≥90 or 100/100). Cross-reference validation (actor/capability IDs). Placeholder detection (incomplete markers). Detailed issue reporting with recommendations.
-
-**Actors**:
-`cpt-cypilot-actor-architect`, `cpt-cypilot-actor-technical-lead`, `cpt-cypilot-actor-developer`, `cpt-cypilot-actor-qa-engineer`, `cpt-cypilot-actor-security-engineer`, `cpt-cypilot-actor-performance-engineer`, `cpt-cypilot-actor-database-architect`, `cpt-cypilot-actor-ai-assistant`, `cpt-cypilot-actor-cypilot-tool`, `cpt-cypilot-actor-ci-pipeline`
-
-### FR-003 Adapter Configuration System
-
-- [x] `p1` - **ID**: `cpt-cypilot-fr-adapter-config`
-
-Technology-agnostic core methodology. Project-specific adapter specifications. Adapter MUST define an explicit registry of artifacts and their properties (for example: locations, scope, normative vs context-only). Adapter MUST support per-artifact configuration, including enabling/disabling code traceability checks. Tech stack definition (languages, frameworks, tools). Domain model format specification. API contract format specification. Adapter MUST be able to define deterministic tools/commands used to validate domain model sources and API contract sources. Testing strategy and build tool configuration. Auto-detection from existing codebase.
+The tool MUST NOT contain any skill logic, workflow logic, or command implementations. All functionality comes from the cached or project-installed skill bundle.
 
 **Actors**:
-`cpt-cypilot-actor-technical-lead`, `cpt-cypilot-actor-architect`, `cpt-cypilot-actor-database-architect`, `cpt-cypilot-actor-performance-engineer`, `cpt-cypilot-actor-devops-engineer`, `cpt-cypilot-actor-developer`, `cpt-cypilot-actor-ai-assistant`
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
 
-### FR-004 Adaptive Design Bootstrapping
+#### Project Initialization
 
-- [x] `p1` - **ID**: `cpt-cypilot-fr-design-first`
+- [ ] `p1` - **ID**: `cpt-cypilot-fr-core-init`
 
-Users MAY start implementation without having pre-existing design artifacts. When a workflow needs a traceability source and design artifacts are missing, the workflow MUST bootstrap the minimum viable design interactively and then continue. Once created, design artifacts become the single source of truth (code follows design). Design iteration MUST be workflow-driven and MUST be followed by deterministic validation. Clear separation between PRD, overall design, ADRs, and spec designs. Behavioral specifications MUST use Cypilot DSL (CDSL) (plain-English algorithms).
-
-**Actors**:
-`cpt-cypilot-actor-product-manager`, `cpt-cypilot-actor-architect`, `cpt-cypilot-actor-developer`, `cpt-cypilot-actor-prd-analyst`, `cpt-cypilot-actor-ux-designer`, `cpt-cypilot-actor-security-engineer`, `cpt-cypilot-actor-performance-engineer`, `cpt-cypilot-actor-database-architect`
-
-### FR-005 Traceability Management
-
-- [x] `p1` - **ID**: `cpt-cypilot-fr-traceability`
-
-Unique ID system for all design elements using structured format. Code tags (@cpt-*) linking implementation to design. Traceability validation MUST be configurable per artifact (enabled/disabled via adapter). Cypilot-ID MAY be versioned by appending a `-vN` suffix (example: `<base-id>-v2`). When an identifier is replaced (REPLACE), the new identifier version MUST be incremented: If the prior identifier has no version suffix, the new identifier MUST end with `-v1`; If the prior identifier ends with `-vN`, the new identifier MUST increment the version by 1 (example: `-v1` → `-v2`). Once an identifier becomes versioned, the version suffix MUST NOT be removed in future references. When an identifier is replaced (REPLACE), all references MUST be updated (all artifacts and all code traceability tags, including qualified `:ph-N:inst-*` references). Qualified IDs for phases and instructions (:ph-N:inst-*). Repository-wide ID scanning and search. where-defined and where-used commands. Design-to-code validation (implemented items must have code tags).
+The system MUST provide an interactive `cypilot init` command that bootstraps Cypilot in a project. Before proceeding, the command MUST check whether Cypilot is already installed in the project. If an existing installation is detected, the command MUST NOT overwrite it — instead it MUST inform the user and propose `cypilot update` if a newer version is available. The dialog MUST ask: (1) installation directory (default: `.cypilot`), (2) which agents to support (default: all available — windsurf, cursor, claude, copilot, openai). All available kits MUST be enabled by default. The command MUST create the full directory structure including skills (copied from the cache), kits, workflows, prompts, schemas, and agent-specific entry points. The command MUST create the `config/` directory with `core.json` (containing project root, system definitions derived from the project directory slug) and kit config directories. Installed kits MUST populate their own config files with baseline autodetect rules that search `docs/` for standard artifact files (PRD.md, DESIGN.md, etc.). After completion, the command MUST display a prompt suggestion: `cypilot on` or `cypilot help`.
 
 **Actors**:
-`cpt-cypilot-actor-developer`, `cpt-cypilot-actor-qa-engineer`, `cpt-cypilot-actor-cypilot-tool`
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
 
-### FR-006 Quickstart Guides
+#### Config Directory
 
-- [x] `p2` - **ID**: `cpt-cypilot-fr-interactive-docs`
+- [ ] `p1` - **ID**: `cpt-cypilot-fr-core-config`
 
-QUICKSTART guides with copy-paste prompts. Progressive disclosure (human-facing overview docs, AI navigation rules for agents).
+The system MUST maintain a `config/` directory inside the Cypilot install directory. All config files MUST be edited exclusively by the tool — never by humans directly. All config files MUST be JSON format with deterministic serialization (sorted keys, consistent formatting). The directory structure MUST be:
 
-**Actors**:
-`cpt-cypilot-actor-documentation-writer`, `cpt-cypilot-actor-product-manager`, `cpt-cypilot-actor-release-manager`, `cpt-cypilot-actor-ai-assistant`, `cpt-cypilot-actor-doc-generator`
+- **`config/core.json`** — core Cypilot config containing: project root, kit registrations (slug → path mapping), system definitions (name, slug, kit assignment), ignore lists. The core config MUST be versioned with a schema version field. The system MUST support migration of `core.json` between versions automatically when the skill is updated.
+- **`config/kits/<slug>/*.json`** — per-kit config files, managed exclusively by each kit's plugin. Cypilot core MUST NOT interpret the semantics of kit config files — it only knows that a kit is registered and where its config lives. Kit config files contain autodetect rules, artifact definitions, constraints, and any kit-specific settings. Autodetect rules MUST support complex nested structures: per-system root paths, per-system artifact roots with glob patterns and traceability levels, per-system codebase definitions with paths and file extensions. Autodetect MUST support hierarchical monorepos where systems can be nested (e.g., `{project_root}/examples/$system`). The kit plugin MUST provide CLI commands for reading and modifying these structures.
 
-### FR-007 Artifact Templates
-
-- [x] `p1` - **ID**: `cpt-cypilot-fr-artifact-templates`
-
-The system MUST provide an artifact template catalog for core Cypilot artifacts (PRD, Overall Design, ADRs, DECOMPOSITION, FEATURE). Agents MUST be able to use these templates during workflow execution.
-
+Cypilot core's domain is: artifact awareness (knows artifacts exist, how to locate them via kit-provided autodetect rules), ID and traceability (format, scanning, cross-references), and kit routing (which kit owns which artifact kind).
 
 **Actors**:
-`cpt-cypilot-actor-documentation-writer`, `cpt-cypilot-actor-ai-assistant`, `cpt-cypilot-actor-doc-generator`, `cpt-cypilot-actor-technical-lead`
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
 
-### FR-008 Artifact Examples
+#### Deterministic Skill Engine
 
-- [x] `p2` - **ID**: `cpt-cypilot-fr-artifact-examples`
+- [ ] `p1` - **ID**: `cpt-cypilot-fr-core-skill-engine`
 
-The system MUST provide an artifact example catalog for core Cypilot artifacts (PRD, Overall Design, ADRs, DECOMPOSITION, FEATURE). Agents MUST be able to use these examples during workflow execution.
-
-**Actors**:
-`cpt-cypilot-actor-documentation-writer`, `cpt-cypilot-actor-ai-assistant`, `cpt-cypilot-actor-doc-generator`, `cpt-cypilot-actor-technical-lead`
-
-### FR-009 ADR Management
-
-- [x] `p2` - **ID**: `cpt-cypilot-fr-arch-decision-mgmt`
-
-Create and track architecture decisions with structured format. Link ADRs to affected design sections and feature IDs. Decision status tracking (PROPOSED, ACCEPTED, DEPRECATED, SUPERSEDED). Impact analysis when ADR changes affect multiple features. Search ADRs by status, date, or affected components. Version history for decision evolution.
+The system MUST provide a Python-based deterministic skill engine as the core command executor. All commands MUST output JSON. All validation, scanning, and transformation logic MUST be deterministic (same input → same output). Exit codes MUST follow the convention: 0=PASS, 1=filesystem error, 2=FAIL. The skill MUST be self-contained and importable from the project's install directory. The skill MUST provide SKILL.md as the agent entry point with execution protocol, workflow routing, and command reference.
 
 **Actors**:
-`cpt-cypilot-actor-architect`, `cpt-cypilot-actor-technical-lead`, `cpt-cypilot-actor-security-engineer`, `cpt-cypilot-actor-performance-engineer`, `cpt-cypilot-actor-database-architect`
+`cpt-cypilot-actor-ai-agent`, `cpt-cypilot-actor-ci-pipeline`, `cpt-cypilot-actor-cypilot-cli`
 
-### FR-010 PRD Management
+#### Generic Workflows
 
-- [x] `p1` - **ID**: `cpt-cypilot-fr-prd-mgmt`
+- [ ] `p1` - **ID**: `cpt-cypilot-fr-core-workflows`
 
-Create and update PRD content through workflows. Enforce stable IDs for actors and capabilities. PRD deterministic validation integration.
-
-**Actors**:
-`cpt-cypilot-actor-product-manager`, `cpt-cypilot-actor-prd-analyst`, `cpt-cypilot-actor-ai-assistant`, `cpt-cypilot-actor-cypilot-tool`
-
-### FR-011 Overall Design Management
-
-- [x] `p1` - **ID**: `cpt-cypilot-fr-overall-design-mgmt`
-
-Create and update Overall Design through workflows. Link requirements to PRD actors and capabilities. Deterministic validation integration for Overall Design.
+The system MUST provide exactly two universal workflows: generate (write: create, edit, fix, update, implement) and analyze (read: validate, review, check, inspect, audit). Both workflows MUST execute a common execution protocol before their specific logic. Workflows MUST be Markdown files with frontmatter metadata, structured phases, and validation criteria. Workflows MUST support execution logging with context and message format for agent transparency. Workflows MUST NOT hardcode repository paths — all paths MUST be resolved from the config and adapter.
 
 **Actors**:
-`cpt-cypilot-actor-architect`, `cpt-cypilot-actor-technical-lead`, `cpt-cypilot-actor-ai-assistant`, `cpt-cypilot-actor-cypilot-tool`
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`
 
-### FR-012 Spec Manifest Management
+#### Multi-Agent Integration
 
-- [x] `p2` - **ID**: `cpt-cypilot-fr-spec-manifest-mgmt`
+- [ ] `p1` - **ID**: `cpt-cypilot-fr-core-agents`
 
-Create and update DECOMPOSITION through workflows. Maintain stable IDs for features and tracking fields. Deterministic validation integration for DECOMPOSITION.
-
-**Actors**:
-`cpt-cypilot-actor-project-manager`, `cpt-cypilot-actor-release-manager`, `cpt-cypilot-actor-ai-assistant`, `cpt-cypilot-actor-cypilot-tool`
-
-### FR-013 Spec Design Management
-
-- [x] `p1` - **ID**: `cpt-cypilot-fr-spec-design-mgmt`
-
-Create and update FEATURE through workflows. Maintain stable IDs for flows, algorithms, states, and DoD. Deterministic validation integration for FEATURE.
+The system MUST provide a unified `agents` command that generates agent-specific entry points for all supported AI coding assistants. Supported agents MUST include Windsurf, Cursor, Claude, Copilot, and OpenAI. The command MUST generate workflow entry points in each agent's native format (`.windsurf/workflows/`, `.cursor/rules/`, `.claude/commands/`, `.github/prompts/`) and skill entry points that reference the core SKILL.md. Agent selection MUST NOT be persisted in the config. The command MUST accept an optional `--agent` argument to regenerate entry points for a specific agent; without `--agent`, the command MUST regenerate entry points for all supported agents. The command always fully overwrites agent entry points on each invocation.
 
 **Actors**:
-`cpt-cypilot-actor-architect`, `cpt-cypilot-actor-ai-assistant`, `cpt-cypilot-actor-cypilot-tool`
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`, `cpt-cypilot-actor-cypilot-cli`
 
-### FR-014 Spec Lifecycle Management
+#### Extensible Kit System
 
-- [x] `p2` - **ID**: `cpt-cypilot-fr-spec-lifecycle`
+- [ ] `p1` - **ID**: `cpt-cypilot-fr-core-kits`
 
-Track feature status from NOT_STARTED through IN_DESIGN, DESIGNED, READY, IN_PROGRESS to DONE. Track progress using the project's selected feature tracking approach (for example a decomposition when used). Feature dependency management and blocking detection. Milestone tracking and release planning integration. Historical feature completion metrics and velocity tracking. Status transition validation (cannot skip states).
+The system MUST support extensible kit packages as installable plugins that integrate into the Cypilot tool. Each kit is a self-contained package with the following structure:
 
-**Actors**:
-`cpt-cypilot-actor-project-manager`, `cpt-cypilot-actor-release-manager`, `cpt-cypilot-actor-developer`, `cpt-cypilot-actor-ai-assistant`
+1. **Python plugin** — each kit MUST provide a Python script (entry point) that integrates into the Cypilot tool as a plugin. The plugin MUST be able to hook into Cypilot processes (validation, generation, analysis, CLI commands) and extend or override tool behavior for kit-specific logic. The plugin becomes part of the tool at runtime. The plugin MUST register its own CLI subcommands during installation.
+2. **Config files** — during installation, the kit MUST create its config files in `config/kits/<slug>/`. The kit's config files are owned and managed exclusively by the kit's plugin — Cypilot core does not interpret their semantics. Config files contain well-known concepts that the kit exposes to Cypilot (artifact kinds, autodetect rules, constraints) alongside kit-specific settings and concepts managed only by the plugin. The kit controls the schema and validation of its own config files.
+3. **Versioning** — each kit MUST have its own version (independent of the core Cypilot version). The version MUST be stored in the kit's config.
+4. **Migration** — each kit MUST provide its own migration script that handles upgrading the kit's config files and migrating kit resources between versions. The migration MUST be triggered automatically during `cypilot update` when a kit version changes.
+5. **Kit-specific skills** — a kit MAY include its own SKILL.md and skill scripts that extend the core skill with kit-specific commands and workflows.
+6. **Kit-specific system prompts** — a kit MAY include system prompts that are automatically loaded when the kit's artifacts or workflows are used.
+7. **Resources** — artifacts, rules, templates, examples, checklists — all content resources are deterministically generated and managed by the kit's plugin. The plugin MUST provide commands to regenerate default resources (templates, examples, checklists) from its distribution.
 
-### FR-015 Code Generation from Design
+**User extensibility**: users MUST be able to extend kit resources — override templates, add custom rules, extend prompts, and modify any kit-owned content. The level of extensibility (which resources can be overridden, how overrides are merged with defaults) is controlled by each kit's plugin. User overrides MUST be preserved across kit updates. The kit's migration script MUST handle merging user overrides with updated defaults.
 
-- [x] `p2` - **ID**: `cpt-cypilot-fr-code-generation`
-
-Provide an implementation process that is adapter-aware and works with any programming language. Apply general best practices that are applicable across languages. Prefer TDD where feasible and follow SOLID principles. Use adapter-defined domain model and API contract sources when present. Add traceability tags when traceability is enabled for the relevant artifacts.
-
-**Actors**:
-`cpt-cypilot-actor-developer`, `cpt-cypilot-actor-ai-assistant`
-
-### FR-016 Brownfield Support
-
-- [x] `p2` - **ID**: `cpt-cypilot-fr-brownfield-support`
-
-Add Cypilot to existing projects without disruption. Auto-detect existing architecture from code and configs. Reverse-engineer the PRD from requirements documentation. Extract Overall Design patterns from implementation. Incremental Cypilot adoption (start with adapter, add artifacts gradually). Legacy system integration with minimal refactoring.
+Kit installation MUST register the plugin in `config/core.json`, create the kit's config directory, and make all kit resources available to Cypilot workflows. The system MUST provide CLI commands to: install kits, update kits, create new custom kits, and invoke kit-specific plugin commands. The `validate-kits` command MUST validate that kit packages are structurally correct and that the plugin entry point is present and valid.
 
 **Actors**:
-`cpt-cypilot-actor-technical-lead`, `cpt-cypilot-actor-architect`, `cpt-cypilot-actor-ai-assistant`
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
 
-### FR-017 Cypilot DSL (CDSL)
+#### ID and Traceability System
 
-- [x] `p1` - **ID**: `cpt-cypilot-fr-cdsl`
+- [ ] `p1` - **ID**: `cpt-cypilot-fr-core-traceability`
 
-Plain English algorithm description language for actor flows (Cypilot DSL, abbreviated CDSL). Structured numbered lists with bold keywords (**IF**, **ELSE**, **WHILE**, **FOR EACH**). Instruction markers with checkboxes (- [ ] Inst-label: description). Phase-based organization (p1, p2, etc.) for implementation tracking. Readable by non-programmers for validation and review. Translates directly to code with traceability tags. Keywords: **AND**, **OR**, **NOT**, **MUST**, **REQUIRED**, **OPTIONAL**. Actor-centric (steps start with **Actor** or **System**).
-
-**Actors**:
-`cpt-cypilot-actor-architect`, `cpt-cypilot-actor-developer`, `cpt-cypilot-actor-prd-analyst`, `cpt-cypilot-actor-ux-designer`, `cpt-cypilot-actor-product-manager`
-
-### FR-018 IDE Integration and Tooling
-
-- [ ] `p3` - **ID**: `cpt-cypilot-fr-ide-integration`
-
-VS Code extension for Cypilot artifact editing. Click-to-navigate for Cypilot IDs (jump to definition). where-used and where-defined commands in IDE. Inline validation errors and warnings. Autocomplete for Cypilot IDs and section references. Syntax highlighting for Cypilot DSL (CDSL). Integration with `cypilot` skill commands. Code lens showing traceability status.
+The system MUST provide a unique ID system for all design elements using structured format `cpt-{system-slug}-{kind}-{slug}`. This is the core domain of Cypilot: the core knows that artifacts exist, knows how to locate them (via autodetect rules provided by kits), knows which kit owns which artifact kind, and owns the ID format, scanning, and cross-reference resolution. The system MUST support code tags (`@cpt-*`) linking implementation to design. Traceability validation MUST be configurable per artifact (FULL or DOCS-ONLY). The system MUST provide commands: `list-ids`, `list-id-kinds`, `get-content`, `where-defined`, `where-used`. IDs MAY be versioned by appending `-vN` suffix. When an ID is replaced, references MUST be updated across all artifacts and code. Cross-artifact validation MUST check: covered_by references resolve, checked references imply checked definitions, and all ID references resolve to definitions. Artifact-specific validation logic (template compliance, structural rules) is delegated to the owning kit's plugin.
 
 **Actors**:
-`cpt-cypilot-actor-developer`, `cpt-cypilot-actor-architect`, `cpt-cypilot-actor-devops-engineer`
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`, `cpt-cypilot-actor-ci-pipeline`
 
-### FR-019 Multi-Agent IDE Integration
+#### Cypilot DSL (CDSL)
 
-- [x] `p2` - **ID**: `cpt-cypilot-fr-multi-agent-integration`
+- [ ] `p1` - **ID**: `cpt-cypilot-fr-core-cdsl`
 
-The system MUST provide a unified `agents` command to generate and maintain agent-specific workflow proxy files and skill entry points for multiple AI coding assistants. Supported agents MUST include Claude, Cursor, Windsurf, and Copilot. The `agents` command MUST generate workflow entry points in each agent's native format (e.g., `.claude/commands/`, `.cursor/commands/`, `.windsurf/workflows/`, `.github/prompts/`) and skill/rule entry points that point to the core Cypilot skill. Configuration MUST be externalized to a unified JSON file (`cypilot-agents.json`) with sensible defaults for recognized agents.
-
-**Actors**:
-`cpt-cypilot-actor-technical-lead`, `cpt-cypilot-actor-devops-engineer`, `cpt-cypilot-actor-ai-assistant`
-
-### FR-020 Extensible Kit Package System
-
-- [x] `p1` - **ID**: `cpt-cypilot-fr-rules-packages`
-
-The system MUST support extensible kit packages that define templates, checklists, and validation rules for artifact types. Each kit package MUST be identified in the adapter registry and MUST contain a `template.md` file with Cypilot markers for each artifact kind. Kit packages MAY contain `checklist.md` for semantic validation criteria and `rules.md` for generation guidance. The `validate-kits` command MUST validate that kit packages are structurally correct and that templates follow the cypilot-template frontmatter specification.
+The system MUST define a plain English behavioral specification language (CDSL) for actor flows, algorithms, and state descriptions. CDSL MUST use structured numbered lists with bold keywords (**IF**, **ELSE**, **WHILE**, **FOR EACH**, **AND**, **OR**, **NOT**, **MUST**, **REQUIRED**, **OPTIONAL**). CDSL MUST support instruction markers with checkboxes (`- [ ] Inst-label: description`) and phase-based organization (`p1`, `p2`, etc.) for implementation tracking. CDSL MUST be readable by non-programmers for validation and review. CDSL MUST translate directly to code with traceability tags. CDSL MUST be actor-centric (steps start with **Actor** or **System**).
 
 **Actors**:
-`cpt-cypilot-actor-technical-lead`, `cpt-cypilot-actor-cypilot-tool`, `cpt-cypilot-actor-ai-assistant`
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`
 
-### FR-021 Template Quality Assurance
+#### Version Detection and Updates
 
-- [x] `p2` - **ID**: `cpt-cypilot-fr-template-qa`
+- [ ] `p2` - **ID**: `cpt-cypilot-fr-core-version`
 
-The system MUST provide a `self-check` command that validates example artifacts against their templates. The adapter registry MAY define `templates` entries with `template_path`, `example_path`, and `validation_level` properties. When `validation_level` is `STRICT`, the self-check command MUST validate that the example artifact passes all template validation rules. This ensures that templates and examples remain synchronized and that templates are valid.
-
-**Actors**:
-`cpt-cypilot-actor-technical-lead`, `cpt-cypilot-actor-cypilot-tool`, `cpt-cypilot-actor-documentation-writer`
-
-### FR-022 Cross-Artifact Validation
-
-- [x] `p1` - **ID**: `cpt-cypilot-fr-cross-artifact-validation`
-
-The system MUST validate cross-artifact relationships when multiple artifacts are validated together. ID blocks with `covered_by` attributes MUST have at least one reference in artifacts whose template kind matches the covered_by list. All ID references MUST resolve to a definition in some artifact. When a reference is marked as checked (`[x]`), the corresponding definition MUST also be marked as checked. Cross-artifact validation MUST be deterministic and report all consistency violations with line numbers and artifact paths.
+The `cypilot update` command MUST update the project-installed skill to the version currently in the cache (`~/.cypilot/cache/`). The update MUST automatically migrate `config/core.json` between versions, preserving all user settings. Each kit's migration script MUST be invoked to migrate its own config files. The update MUST regenerate agent entry points for compatibility. If the cache is outdated, the update MUST first download the latest release archive from GitHub before applying. Version information MUST be accessible via `cypilot --version` (shows both cache and project versions). The system MUST support `cypilot update --check` to show available updates without applying them.
 
 **Actors**:
-`cpt-cypilot-actor-cypilot-tool`, `cpt-cypilot-actor-ci-pipeline`, `cpt-cypilot-actor-architect`
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
 
-### FR-023 Hierarchical System Registry
+#### CLI Configuration Interface
 
-- [x] `p2` - **ID**: `cpt-cypilot-fr-hierarchical-registry`
+- [ ] `p2` - **ID**: `cpt-cypilot-fr-core-cli-config`
 
-The system MUST support hierarchical organization of systems in the artifacts registry. Each system MUST have a `name`, `rules` reference, and lists of `artifacts` and optional `codebase` entries. Systems MAY have `children` arrays for nested subsystems. Each artifact entry MUST specify `name`, `path`, `kind`, and `traceability` level (`FULL` or `DOCS-ONLY`). Each codebase entry MUST specify `name`, `path`, and `extensions` for code scanning. The `adapter-info` command MUST display the resolved hierarchical structure.
+The system MUST provide rich CLI commands for project configuration without manual file editing. Core CLI commands MUST support: managing system definitions in `config/core.json` (add/remove/rename systems, assign kits), managing the ignore list (add/remove patterns with reasons), and registering/installing kits. Kit-specific config changes MUST be delegated to the kit's plugin CLI commands. For example, the SDLC kit plugin provides commands for managing autodetect rules per system (artifact patterns, traceability levels, codebase paths, file extensions) — the core CLI does not interpret these structures. All config changes MUST go through the tool to maintain config integrity and versioning. The CLI MUST provide dry-run mode for config changes. The CLI MUST support reading current config values (e.g., `cypilot config show`, `cypilot sdlc autodetect show --system cypilot`).
 
 **Actors**:
-`cpt-cypilot-actor-technical-lead`, `cpt-cypilot-actor-cypilot-tool`, `cpt-cypilot-actor-architect`
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
+
+#### Template Quality Assurance
+
+- [ ] `p2` - **ID**: `cpt-cypilot-fr-core-template-qa`
+
+The system MUST provide a `self-check` command that validates example artifacts against their templates. When validation level is STRICT, the self-check command MUST validate that the example artifact passes all template validation rules. This ensures that templates and examples remain synchronized and that templates are valid.
+
+**Actors**:
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
+
+#### Environment Diagnostics
+
+- [ ] `p2` - **ID**: `cpt-cypilot-fr-core-doctor`
+
+The system MUST provide a `cypilot doctor` command that checks environment health: Python version compatibility, git availability, `gh` CLI authentication status, agent detection (which supported agents are present), config directory integrity validation, skill version status, and kit structural correctness. The command MUST output a clear pass/fail report with actionable remediation steps for each failed check.
+
+**Actors**:
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
+
+#### Pre-Commit Hook Integration
+
+- [ ] `p3` - **ID**: `cpt-cypilot-fr-core-hooks`
+
+The system MUST provide a `cypilot hook install` command that installs a git pre-commit hook running lightweight validation (`cypilot lint`) on changed artifacts before commit. The hook MUST be fast (≤ 5 seconds for typical changes). The hook MUST be removable via `cypilot hook uninstall`.
+
+**Actors**:
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
+
+#### Shell Completions
+
+- [ ] `p3` - **ID**: `cpt-cypilot-fr-core-completions`
+
+The system MUST provide shell completion scripts for bash, zsh, and fish. Completions MUST cover all commands, subcommands, and common options. Completions MUST be installable via `cypilot completions install`.
+
+**Actors**:
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
+
+#### VS Code Plugin
+
+- [ ] `p2` - **ID**: `cpt-cypilot-fr-core-vscode-plugin`
+
+The system MUST provide a VS Code extension (compatible with VS Code, Cursor, Windsurf) for IDE-native Cypilot support. The plugin MUST provide:
+
+1. **ID Syntax Highlighting** — `cpt-*` identifiers MUST be visually distinguished in Markdown files (definitions, references, and code tags `@cpt-*`) with configurable color scheme.
+2. **Go to Definition / Find References** — clicking a `cpt-*` reference MUST navigate to its definition; clicking a definition MUST show all references across the workspace (equivalent to `where-defined` / `where-used`).
+3. **Real-Time Validation** — artifact documents MUST be validated on save (or on keystroke with debounce) against their template structure; validation issues MUST appear as VS Code diagnostics (errors, warnings) with inline squiggles and Problems panel entries.
+4. **ID Autocompletion** — typing `cpt-` MUST trigger autocompletion with all known IDs from the project registry, grouped by kind (actor, fr, nfr, usecase, etc.).
+5. **Hover Information** — hovering over a `cpt-*` ID MUST show a tooltip with: definition location, artifact kind, priority, checked/unchecked status, and first line of content.
+6. **Cross-Artifact Link Lens** — CodeLens annotations above ID definitions MUST show reference count and covered_by status (e.g., "3 references · covered by DESIGN, DECOMPOSITION").
+7. **Traceability Tree View** — a sidebar panel MUST display the traceability tree: PRD → DESIGN → DECOMPOSITION → FEATURE → CODE, with checked/unchecked status per ID and click-to-navigate.
+8. **Validation Status Bar** — the status bar MUST show current artifact validation status (PASS/FAIL with error count) and click to run full validation.
+9. **Quick Fix Actions** — common validation issues (missing priority marker, placeholder detected, duplicate ID) MUST offer quick fix suggestions via VS Code Quick Fix API.
+10. **Config-Aware** — the plugin MUST read the Cypilot config from the project's install directory to resolve systems, kits, autodetect rules, and ignore lists. The plugin MUST NOT require separate configuration.
+
+The plugin MUST delegate all validation logic to the installed Cypilot skill (`cypilot validate`) to ensure consistency between CLI and IDE results. The plugin MUST support workspace with multiple systems.
+
+**Actors**:
+`cpt-cypilot-actor-user`
+
+### 5.2 SDLC Kit
+
+#### Artifact Pipeline
+
+- [ ] `p1` - **ID**: `cpt-cypilot-fr-sdlc-pipeline`
+
+The SDLC kit MUST provide an artifact-first development pipeline: PRD → DESIGN → ADR → DECOMPOSITION → FEATURE → CODE. Each artifact kind MUST have a template, checklist, rules, and at least one example. Each artifact kind MUST be usable independently (no forced sequence). The kit MUST support both greenfield (design-first) and brownfield (code-first) projects.
+
+**Actors**:
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`
+
+#### SDLC Kit Plugin
+
+- [ ] `p1` - **ID**: `cpt-cypilot-fr-sdlc-plugin`
+
+The SDLC kit MUST provide a Python plugin that integrates into the Cypilot skill via the kit plugin system. The plugin is a **generator and registrator**: it deterministically generates all kit resources (templates, examples, rules, checklists, system prompts) from the kit's configuration and registers them into Cypilot's core workflows (generate and analyze). The plugin MUST:
+
+1. **Resource generation** — generate templates, examples, rules, and checklists for each artifact kind defined in the kit config. Generated resources MUST be deterministic (same config → same output). The plugin MUST provide a `regenerate` command to rebuild all default resources from the distribution.
+2. **Artifact type control** — the plugin owns and controls all its artifact types (PRD, DESIGN, ADR, DECOMPOSITION, FEATURE). It defines their structure, validation rules, and relationships. New artifact types MAY be added via config.
+3. **Workflow integration** — the plugin MUST register its artifact types, validation hooks, and generation hooks into Cypilot's core analyze and generate workflows. This allows the core skill to delegate artifact-specific logic to the plugin at runtime.
+4. **Prompt embedding** — the plugin MUST allow embedding custom prompts into rules files. Users MUST be able to add, modify, or remove prompts that guide AI agent behavior during artifact generation and analysis.
+5. **Checklist customization** — users MUST be able to add custom checklist items, remove default items, and reorder items. Custom items MUST be tagged to distinguish them from default items.
+6. **Template customization** — users MUST be able to add sections to templates, remove optional sections, and modify existing section descriptions. Template modifications MUST be tracked as user overrides.
+7. **Rules customization** — users MUST be able to extend or override validation rules, add custom structural constraints, and modify severity levels.
+8. **Update compatibility** — all user customizations (prompts, checklists, templates, rules) MUST be preserved across kit version updates. The plugin's migration script MUST merge user overrides with updated defaults, flagging conflicts for manual resolution when defaults and overrides affect the same element. The plugin MUST clearly separate default resources from user overrides (e.g., separate files or marked sections).
+9. **Config extensibility** — the kit's config in `config/kits/sdlc/` MUST be extensible with custom artifact kinds, custom validation rules, and custom workflow hooks. All extensions are managed through the plugin's CLI commands.
+
+**Actors**:
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
+
+#### Artifact Validation
+
+- [ ] `p1` - **ID**: `cpt-cypilot-fr-sdlc-validation`
+
+The SDLC kit MUST provide deterministic structural and semantic validation for all artifact kinds. Validation MUST include: template structure compliance, ID format validation, priority marker presence, placeholder detection (TODO, TBD, FIXME), and cross-reference validation. Validation MUST produce a score breakdown with actionable issues including file paths and line numbers. Pass/fail thresholds MUST be configurable per artifact kind.
+
+**Actors**:
+`cpt-cypilot-actor-ai-agent`, `cpt-cypilot-actor-ci-pipeline`
+
+#### Cross-Artifact Validation
+
+- [ ] `p1` - **ID**: `cpt-cypilot-fr-sdlc-cross-artifact`
+
+The SDLC kit MUST validate cross-artifact relationships when multiple artifacts are validated together. ID blocks with `covered_by` attributes MUST have at least one reference in artifacts whose kind matches the covered_by list. All ID references MUST resolve to a definition in some artifact. When a reference is marked as checked (`[x]`), the corresponding definition MUST also be marked as checked. Cross-artifact validation MUST be deterministic and report all consistency violations with line numbers and artifact paths.
+
+**Actors**:
+`cpt-cypilot-actor-ai-agent`, `cpt-cypilot-actor-ci-pipeline`
+
+#### Code Generation from Design
+
+- [ ] `p2` - **ID**: `cpt-cypilot-fr-sdlc-code-gen`
+
+The SDLC kit MUST provide an implementation workflow that is adapter-aware and works with any programming language. The workflow MUST use adapter-defined domain model and API contract sources when present. The workflow MUST add traceability tags when traceability is enabled for the relevant artifacts. The workflow MUST prefer TDD where feasible and follow SOLID principles.
+
+**Actors**:
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`
+
+#### Brownfield Support
+
+- [ ] `p2` - **ID**: `cpt-cypilot-fr-sdlc-brownfield`
+
+The SDLC kit MUST support adding Cypilot to existing projects without disruption. The system MUST auto-detect existing architecture from code and configs. The system MUST support reverse-engineering artifacts from existing documentation and code. The system MUST support incremental adoption (start with config, add artifacts gradually).
+
+**Actors**:
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`
+
+#### Feature Lifecycle Management
+
+- [ ] `p2` - **ID**: `cpt-cypilot-fr-sdlc-lifecycle`
+
+The SDLC kit MUST track feature status from NOT_STARTED through IN_DESIGN, DESIGNED, READY, IN_PROGRESS to DONE. Feature dependency management MUST detect blocking relationships. Status transition validation MUST prevent skipping states.
+
+**Actors**:
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`
+
+#### Quickstart Guides
+
+- [ ] `p2` - **ID**: `cpt-cypilot-fr-sdlc-guides`
+
+The SDLC kit MUST provide quickstart guides with copy-paste prompts for common workflows. Documentation MUST use progressive disclosure: human-facing overview docs and AI navigation rules for agents.
+
+**Actors**:
+`cpt-cypilot-actor-user`
+
+#### PR Review Workflow
+
+- [ ] `p1` - **ID**: `cpt-cypilot-fr-sdlc-pr-review`
+
+The SDLC kit MUST provide a PR review workflow that fetches PR diffs and metadata from GitHub, analyzes changes against configurable prompts and checklists, and produces structured review reports. The workflow MUST always re-fetch data from scratch on each invocation (no caching). Reviews MUST be read-only (no local working tree modifications). The workflow MUST support reviewing a single PR or all open PRs. Reviews MUST include a reviewer comment analysis section assessing existing feedback.
+
+**Actors**:
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`
+
+#### PR Status Workflow
+
+- [ ] `p1` - **ID**: `cpt-cypilot-fr-sdlc-pr-status`
+
+The SDLC kit MUST provide a PR status workflow that generates reports with: severity assessment of unreplied comments (CRITICAL/HIGH/MEDIUM/LOW), resolved-comment audit with suspicious resolution detection, CI and merge conflict status. The workflow MUST auto-fetch latest data before generating each report. The workflow MUST support single PR and ALL modes. Unreplied comments MUST be reordered by severity.
+
+**Actors**:
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`
+
+#### PR Review Configuration
+
+- [ ] `p2` - **ID**: `cpt-cypilot-fr-sdlc-pr-config`
+
+The SDLC kit MUST support per-project PR review configuration with: prompt selection (code review, design review, ADR review, etc.), checklist mapping per review type, domain-specific review criteria, and template variables for project-specific paths. The kit MUST support an exclude list for PRs that should be skipped. Configuration MUST be stored in the kit's config directory (`config/kits/sdlc/`).
+
+**Actors**:
+`cpt-cypilot-actor-user`
 
 ---
 
@@ -402,45 +431,50 @@ The system MUST support hierarchical organization of systems in the artifacts re
 
 ### 6.1 Module-Specific NFRs
 
-#### Validation performance
+#### Validation Performance
 
 - [x] `p2` - **ID**: `cpt-cypilot-nfr-validation-performance`
 
-- Deterministic validation SHOULD complete in ≤ 10 seconds for typical repositories (≤ 50k LOC).
-- Validation output MUST be clear and actionable.
+- Deterministic validation of a single artifact MUST complete in ≤ 3 seconds.
+- Full project validation (all artifacts + codebase) SHOULD complete in ≤ 10 seconds for typical repositories (≤ 50k LOC).
+- Validation output MUST be clear and actionable with file paths and line numbers.
 
-#### Security and integrity
+#### Security and Integrity
 
 - [x] `p1` - **ID**: `cpt-cypilot-nfr-security-integrity`
 
 - Validation MUST NOT execute untrusted code from artifacts.
 - Validation MUST produce deterministic results given the same repository state.
+- The config directory MUST NOT contain secrets or credentials.
 
-#### Reliability and recoverability
+#### Reliability and Recoverability
 
 - [x] `p2` - **ID**: `cpt-cypilot-nfr-reliability-recoverability`
 
 - Validation failures MUST include enough context to remediate without reverse-engineering the validator.
-- The system SHOULD provide actionable guidance for common failure modes (missing sections, invalid IDs, missing cross-references).
+- The system MUST provide actionable guidance for common failure modes.
+- Config migration MUST NOT lose user settings.
 
-#### Adoption and usability
+#### Adoption and Usability
 
 - [x] `p2` - **ID**: `cpt-cypilot-nfr-adoption-usability`
 
-- Workflow instructions SHOULD be executable by a new user without prior Cypilot context, with ≤ 3 clarifying questions per workflow on average.
-- Documentation SHOULD prioritize discoverability of next steps and prerequisites.
+- `cypilot init` MUST complete interactive setup with ≤ 5 user decisions.
+- Workflow instructions MUST be executable by a new user without prior Cypilot context, with ≤ 3 clarifying questions per workflow on average.
+- All CLI commands MUST provide `--help` with usage examples.
 
 ### 6.2 NFR Exclusions
 
-- **Authentication/Authorization** (SEC-PRD-001/002): Not applicable — Cypilot is a local CLI tool and methodology, not a multi-user system requiring access control.
+- **Authentication/Authorization** (SEC-PRD-001/002): Not applicable — Cypilot is a local CLI tool, not a multi-user system requiring access control.
 - **Availability/Recovery** (REL-PRD-001/002): Not applicable — Cypilot runs locally as a CLI, not as a service requiring uptime guarantees.
-- **Scalability** (ARCH-PRD-003): Not applicable — Cypilot processes single repositories locally; traditional user/data volume scaling does not apply.
+- **Scalability** (ARCH-PRD-003): Not applicable — Cypilot processes single repositories locally; traditional scaling does not apply.
 - **Throughput/Capacity** (PERF-PRD-002/003): Not applicable — Cypilot is a local development tool, not a high-throughput system.
-- **Accessibility/Internationalization** (UX-PRD-002/003): Not applicable — CLI tool for developers; English-only is acceptable for developer tooling.
-- **Regulatory/Legal** (COMPL-PRD-001/002/003): Not applicable — Cypilot is a methodology with no user data or regulated industry context.
+- **Accessibility/Internationalization** (UX-PRD-002/003): Not applicable — CLI tool for developers; English-only is acceptable.
+- **Regulatory/Legal** (COMPL-PRD-001/002/003): Not applicable — Cypilot is a methodology tool with no user data or regulated industry context.
 - **Data Ownership/Lifecycle** (DATA-PRD-001/003): Not applicable — Cypilot does not persist user data; artifacts are owned by the project.
-- **Support Requirements** (MAINT-PRD-002): Not applicable — Cypilot is an open methodology; support is community-driven.
-- **Deployment/Monitoring** (OPS-PRD-001/002): Not applicable — Cypilot is installed locally via pip; no server deployment or monitoring required.
+- **Support Requirements** (MAINT-PRD-002): Not applicable — open-source tool; support is community-driven.
+- **Deployment/Monitoring** (OPS-PRD-001/002): Not applicable — installed locally via pipx; no server deployment or monitoring required.
+- **Safety** (SAFE-PRD-001/002): Not applicable — pure information/development tool with no physical interaction or harm potential.
 
 ---
 
@@ -448,604 +482,375 @@ The system MUST support hierarchical organization of systems in the artifacts re
 
 ### 7.1 Public API Surface
 
-None.
+#### Cypilot CLI
+
+- [ ] `p1` - **ID**: `cpt-cypilot-interface-cli`
+
+**Type**: CLI (command-line interface)
+
+**Stability**: stable
+
+**Description**: Global `cypilot` command with subcommands delegated to the project-installed skill. All commands output JSON. The CLI is the primary interface for both humans and CI pipelines.
+
+**Breaking Change Policy**: Major version bump required for CLI argument changes; JSON output schema changes require migration period.
 
 ### 7.2 External Integration Contracts
 
-None.
+#### GitHub API (via `gh` CLI)
+
+- [ ] `p2` - **ID**: `cpt-cypilot-contract-github`
+
+**Direction**: required from client
+
+**Protocol/Format**: GitHub REST/GraphQL API accessed through `gh` CLI
+
+**Compatibility**: Requires `gh` CLI v2.0+; adapts to GitHub API changes through `gh` abstraction layer.
 
 ---
 
 ## 8. Use Cases
 
-### UC-001 Bootstrap New Project with Cypilot
+### UC-001 Install Cypilot Globally
 
-**ID**: `cpt-cypilot-usecase-bootstrap-project`
+**ID**: `cpt-cypilot-usecase-install`
 
 **Actors**:
-`cpt-cypilot-actor-technical-lead`, `cpt-cypilot-actor-ai-assistant`
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
 
-**Preconditions**: Project repository exists with Git initialized
+**Preconditions**: Python 3.10+ and pipx installed
 
 **Flow**:
 
-1. Technical Lead initiates Cypilot setup by requesting AI Assistant to add the Cypilot framework
-2. AI Assistant establishes minimal adapter configuration (uses capability `cpt-cypilot-fr-adapter-config`)
-3. If adapter is missing, the system offers to bootstrap it; the user MAY decline and continue with reduced automation
-4. The system confirms that adapter discovery is possible when the adapter exists
+1. User runs `pipx install git+https://github.com/cyberfabric/cyber-pilot.git`
+2. Cypilot CLI proxy is installed globally and available as `cypilot` and `cpt` commands
+3. User runs `cypilot --version` — tool downloads the latest release archive from GitHub into `~/.cypilot/cache/` on first run, then displays version
 
-**Postconditions**: Project has working Cypilot adapter, ready for PRD and design workflows
+**Alternative Flows**:
+- **Download fails**: Tool displays error with HTTP status and retries up to 3 times. If all retries fail, displays: "Failed to download skill bundle. Check network connection and try again."
+- **Python version incompatible**: Tool displays: "Python 3.10+ required (found {version})." and exits.
+
+**Postconditions**: `cypilot`/`cpt` commands are available globally; skill bundle cached; all commands are proxied to the cached or project-installed skill
 
 ---
 
-### UC-002 Create PRD
+### UC-002 Initialize Project
 
-**ID**: `cpt-cypilot-usecase-create-prd`
+**ID**: `cpt-cypilot-usecase-init`
 
 **Actors**:
-`cpt-cypilot-actor-product-manager`, `cpt-cypilot-actor-ai-assistant`
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
 
-**Preconditions**: Project context exists; adapter may or may not exist
+**Preconditions**: Git repository exists; `cypilot` is installed globally
 
 **Flow**:
 
-1. Product Manager runs `/cypilot-prd` and asks AI Assistant to create or refine PRD
-2. AI Assistant asks questions about vision, target users, and problems solved
-3. Product Manager answers; AI Assistant proposes PRD content based on available context
-4. AI Assistant defines actors and capabilities with stable IDs (uses capability `cpt-cypilot-fr-traceability`)
-5. AI Assistant updates the PRD according to answers
-6. Product Manager validates PRD by running `/cypilot-prd-validate` (see `cpt-cypilot-usecase-validate-prd`)
+1. User runs `cypilot init` in the project root
+2. Tool checks whether Cypilot is already installed in the project
+3. Tool asks: "Install directory?" (default: `.cypilot`) — User confirms or changes
+4. Tool asks: "Which agents to support?" (default: all) — User selects from windsurf, cursor, claude, copilot, openai
+5. Tool copies the skill from the cache (`~/.cypilot/cache/`) into the install directory, installs all available kits (uses capability `cpt-cypilot-fr-core-init`)
+6. Tool creates directory structure: skills/, kits/, workflows/, prompts/, schemas/, config/
+7. Tool creates `config/core.json` with project root and system definitions; each kit populates `config/kits/<slug>/` with baseline autodetect rules (uses capability `cpt-cypilot-fr-core-config`, `cpt-cypilot-fr-core-kits`)
+8. Tool generates agent entry points for selected agents (uses capability `cpt-cypilot-fr-core-agents`)
+9. Tool displays: "Cypilot initialized. Start with: `cypilot on` or `cypilot help`"
 
-**Postconditions**: Valid PRD exists, project ready for overall design workflow
+**Alternative Flows**:
+- **Existing installation detected**: Tool displays "Cypilot is already installed at {path} (version {version})." and proposes `cypilot update` if a newer version is available. Does NOT overwrite or modify the existing installation.
+
+**Postconditions**: Project has `.cypilot/` with full structure, config, and agent entry points; ready for artifact workflows
 
 ---
 
-### UC-003 Design Spec with AI Assistance
+### UC-003 Enable Cypilot in Agent Session
 
-**ID**: `cpt-cypilot-usecase-design-spec`
+**ID**: `cpt-cypilot-usecase-enable`
 
 **Actors**:
-`cpt-cypilot-actor-architect`, `cpt-cypilot-actor-ai-assistant`, `cpt-cypilot-actor-database-architect`, `cpt-cypilot-actor-performance-engineer`
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`
 
-**Preconditions**: PRD and Overall Design validated, feature scope identified (from backlog, ticket, or code context)
+**Preconditions**: Project has Cypilot initialized (`.cypilot/` exists)
 
 **Flow**:
 
-1. Architect runs `/cypilot` and specifies the feature scope and desired outcomes
-2. AI Assistant helps define actor flows in Cypilot DSL (CDSL) (uses capability `cpt-cypilot-fr-design-first`)
-3. Architect defines requirements, constraints, and interfaces at feature scope
-4. Architect runs `/cypilot`; the system validates the FEATURE deterministically (uses capability `cpt-cypilot-fr-validation`)
-5. Validation reports 100/100 score (required for feature specification)
+1. User types `cypilot on` in agent chat
+2. AI Agent loads SKILL.md, sets `{cypilot_mode}` = `on` (uses capability `cpt-cypilot-fr-core-skill-engine`)
+3. AI Agent runs Protocol Guard: checks submodule status, runs `info`
+4. AI Agent loads AGENTS.md and applicable project config
+5. AI Agent announces: "Cypilot Mode Enabled. Config: FOUND at {path}"
 
-**Postconditions**: FEATURE validated at 100/100, ready for implementation
+**Alternative Flows**:
+- **`.cypilot/` not found**: AI Agent announces: "Cypilot not initialized. Run `cypilot init` first." and exits Cypilot mode.
+- **SKILL.md or config missing/corrupt**: AI Agent announces: "Cypilot installation incomplete. Run `cypilot doctor` for diagnostics."
+
+**Postconditions**: AI Agent follows Cypilot workflows for subsequent requests; execution logging is active
 
 ---
 
-### UC-004 Validate Design Against Requirements - Overall Design
+### UC-004 Create Artifact
 
-**ID**: `cpt-cypilot-usecase-validate-design`
+**ID**: `cpt-cypilot-usecase-create-artifact`
 
 **Actors**:
-`cpt-cypilot-actor-architect`, `cpt-cypilot-actor-cypilot-tool`
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`
 
-**Preconditions**: Overall Design exists with requirements, actors, and capabilities defined
+**Preconditions**: Cypilot mode enabled; kit with target artifact kind is registered
 
 **Flow**:
 
-1. Architect runs `/cypilot-design-validate` to request deterministic validation of overall design
-2. The system validates structure, required content, and cross-artifact consistency (uses capability `cpt-cypilot-fr-validation`)
-3. The system validates ID formats and cross-references (uses capability `cpt-cypilot-fr-traceability`)
-4. The system reports a score breakdown with actionable issues
+1. User requests artifact creation (e.g., "create PRD", "generate DESIGN")
+2. AI Agent executes generate workflow: loads execution protocol, resolves kit, loads rules/template/checklist/example (uses capability `cpt-cypilot-fr-core-workflows`)
+3. AI Agent collects information via batch questions with proposals
+4. User approves or modifies proposals
+5. AI Agent generates artifact content following template structure and checklist criteria
+6. AI Agent presents summary and asks for confirmation
+7. User confirms; AI Agent writes file and updates config (uses capability `cpt-cypilot-fr-core-config`)
+8. AI Agent runs deterministic validation automatically (uses capability `cpt-cypilot-fr-sdlc-validation`)
 
-**Postconditions**: Validation report shows PASS (≥90/100) or FAIL with actionable issues, Architect fixes issues or proceeds to next workflow
+**Alternative Flows**:
+- **Kit not registered for requested kind**: AI Agent displays available artifact kinds from registered kits and asks user to choose.
+- **Validation fails after generation**: AI Agent presents issues and offers to fix them automatically.
+
+**Postconditions**: Artifact file created, registered in config, and validated
 
 ---
 
-### UC-005 Trace Requirement to Implementation
+### UC-005 Validate Artifacts
 
-**ID**: `cpt-cypilot-usecase-trace-requirement`
+**ID**: `cpt-cypilot-usecase-validate`
 
 **Actors**:
-`cpt-cypilot-actor-developer`, `cpt-cypilot-actor-cypilot-tool`
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`, `cpt-cypilot-actor-ci-pipeline`
 
-**Preconditions**: FEATURE exists; implementation exists (partial or complete); traceability tags are present when traceability is enabled
+**Preconditions**: Artifacts exist in the project
 
 **Flow**:
 
-1. Developer selects a requirement ID to verify
-2. The system locates the normative definition and where it is used (uses capability `cpt-cypilot-fr-traceability`)
-3. The system reports traceability coverage and gaps
+1. User or CI runs validation (via agent chat or `cypilot validate`)
+2. System runs deterministic structural validation: template compliance, ID formats, placeholders (uses capability `cpt-cypilot-fr-sdlc-validation`)
+3. System runs cross-artifact validation: covered_by references, checked consistency (uses capability `cpt-cypilot-fr-sdlc-cross-artifact`)
+4. System reports PASS/FAIL with score breakdown and actionable issues
 
-**Postconditions**: Developer confirms requirement is fully implemented with proper traceability, or identifies missing implementation
+**Postconditions**: Validation report with file paths, line numbers, and remediation guidance
+
+**Alternative Flows**:
+- **Validation fails**: User reviews issues, edits artifacts, re-runs validation
 
 ---
 
-### UC-006 Update Existing Spec Design
+### UC-006 Implement Feature from Design
 
-**ID**: `cpt-cypilot-usecase-update-spec-design`
+**ID**: `cpt-cypilot-usecase-implement`
 
 **Actors**:
-`cpt-cypilot-actor-architect`, `cpt-cypilot-actor-ai-assistant`
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`
 
-**Preconditions**: FEATURE exists and previously validated at 100/100 (triggers `cpt-cypilot-usecase-design-spec`)
+**Preconditions**: FEATURE artifact exists with CDSL behavioral specification
 
 **Flow**:
 
-1. Architect identifies need to add new algorithm to existing spec
-2. AI Assistant runs `/cypilot` in update mode, loads existing FEATURE, and presents current content
-3. AI Assistant asks: "What to update?" with options (Add actor flow, Edit algorithm, Add requirement, etc.)
-4. Architect selects "Add new algorithm" option
-5. Architect specifies new algorithm details in Cypilot DSL (CDSL) (uses capability `cpt-cypilot-fr-design-first`)
-6. AI Assistant updates FEATURE while preserving unchanged sections
-7. AI Assistant generates new algorithm ID following format `cpt-<project>-algo-<name>` (uses capability `cpt-cypilot-fr-traceability`)
-8. Cypilot Validation Tool re-validates the updated FEATURE by running `/cypilot` (uses capability `cpt-cypilot-fr-validation`)
-9. Validation confirms 100/100 score maintained
+1. User requests implementation of a feature
+2. AI Agent loads FEATURE artifact and extracts implementation scope (uses capability `cpt-cypilot-fr-core-cdsl`)
+3. AI Agent reads project config for language-specific patterns and conventions (uses capability `cpt-cypilot-fr-sdlc-code-gen`)
+4. AI Agent generates code with traceability tags where enabled (uses capability `cpt-cypilot-fr-core-traceability`)
+5. User reviews and iterates on generated code
+6. AI Agent validates traceability coverage
 
-**Postconditions**: FEATURE updated with new algorithm, fully validated, ready for implementation
+**Alternative Flows**:
+- **FEATURE artifact has invalid or missing CDSL**: AI Agent reports structural issues and suggests running validation or editing the FEATURE artifact first.
+- **Traceability validation fails**: AI Agent lists untraced IDs and offers to add missing `@cpt-*` tags.
+
+**Postconditions**: Feature implemented with traceability tags; validation confirms coverage
 
 ---
 
-### UC-007 Implement Spec
+### UC-007 Review PR
 
-**ID**: `cpt-cypilot-usecase-plan-implementation`
+**ID**: `cpt-cypilot-usecase-pr-review`
 
 **Actors**:
-`cpt-cypilot-actor-developer`, `cpt-cypilot-actor-ai-assistant`
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`
 
-**Preconditions**: FEATURE exists with a sufficiently clear traceability source (validated when possible)
+**Preconditions**: `gh` CLI authenticated; PR exists on GitHub
 
 **Flow**:
 
-1. Developer requests to code the spec
-2. AI Assistant executes `/cypilot-code` workflow (uses capability `cpt-cypilot-fr-workflow-execution`)
-3. The system uses FEATURE to extract the minimal implementation scope
-4. AI Assistant and Developer code iteratively, keeping design and code aligned
-5. Developer adds code traceability tags where used (uses capability `cpt-cypilot-fr-traceability`)
-6. Cypilot Validation Tool validates implementation and traceability by running `/cypilot-code-validate` (uses capability `cpt-cypilot-fr-validation`)
+1. User requests PR review (e.g., "review PR 123")
+2. AI Agent fetches latest PR data: diff, metadata, comments (uses capability `cpt-cypilot-fr-sdlc-pr-review`)
+3. AI Agent selects review prompt and checklist based on PR content (uses capability `cpt-cypilot-fr-sdlc-pr-config`)
+4. AI Agent analyzes changes against checklist criteria
+5. AI Agent analyzes existing reviewer comments for validity and resolution status
+6. AI Agent writes structured review report to `.prs/{ID}/review.md`
+7. AI Agent presents summary with findings and verdict
 
-**Postconditions**: Spec implemented with traceability where used, and validation indicates completeness
+**Alternative Flows**:
+- **`gh` CLI not authenticated**: AI Agent displays: "GitHub CLI not authenticated. Run `gh auth login` first." and stops.
+- **PR not found**: AI Agent displays: "PR #{number} not found in {owner}/{repo}." and stops.
+
+**Postconditions**: Structured review report saved; user has actionable findings
 
 ---
 
-### UC-009 Validate Spec Implementation
+### UC-008 Check PR Status
 
-**ID**: `cpt-cypilot-usecase-validate-implementation`
+**ID**: `cpt-cypilot-usecase-pr-status`
 
 **Actors**:
-`cpt-cypilot-actor-qa-engineer`, `cpt-cypilot-actor-cypilot-tool`
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`
 
-**Preconditions**: Spec implementation exists (partial or complete)
+**Preconditions**: `gh` CLI authenticated; PR exists on GitHub
 
 **Flow**:
 
-1. QA Engineer runs `/cypilot-code-validate` to request validation of spec implementation
-2. Cypilot Validation Tool validates codebase traceability when enabled (uses capability `cpt-cypilot-fr-validation`)
-3. Tool validates prerequisite design artifacts first
-4. For each `[x]` marked scope in design, tool expects matching tags in code when traceability is enabled (uses capability `cpt-cypilot-fr-traceability`)
-5. For each `[x]` marked Cypilot DSL (CDSL) instruction, tool expects instruction-level tag in code when traceability is enabled
-6. Tool reports missing tags, extra tags, and format issues
-7. Tool checks build passes and tests run successfully
+1. User requests PR status (e.g., "PR status 123")
+2. AI Agent fetches latest PR data and generates status report (uses capability `cpt-cypilot-fr-sdlc-pr-status`)
+3. AI Agent assesses severity of unreplied comments (CRITICAL/HIGH/MEDIUM/LOW)
+4. AI Agent audits resolved comments: checks code for actual fixes, detects suspicious resolutions
+5. AI Agent reorders report by severity and presents summary
 
-**Postconditions**: Validation report shows full traceability or lists missing/incorrect tags, QA Engineer confirms implementation complete or requests fixes
+**Alternative Flows**:
+- **`gh` CLI not authenticated or PR not found**: Same as UC-007 alternative flows.
+
+**Postconditions**: Status report with severity distribution, suspicious resolutions flagged, actionable next steps
 
 ---
 
-### UC-010 Auto-Generate Adapter from Codebase
+### UC-009 Configure Project via CLI
 
-**ID**: `cpt-cypilot-usecase-auto-generate-adapter`
+**ID**: `cpt-cypilot-usecase-configure`
 
 **Actors**:
-`cpt-cypilot-actor-technical-lead`, `cpt-cypilot-actor-ai-assistant`
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
 
-**Preconditions**: Project has existing codebase with code, configs, and documentation
+**Preconditions**: Cypilot initialized in project
 
 **Flow**:
 
-1. Technical Lead wants to add Cypilot to existing project
-2. AI Assistant runs `/cypilot-adapter-auto` to analyze existing codebase (uses capability `cpt-cypilot-fr-workflow-execution`)
-3. AI Assistant scans project for documentation (README, ARCHITECTURE, CONTRIBUTING) (uses capability `cpt-cypilot-fr-adapter-config`)
-4. AI Assistant analyzes config files (package.json, requirements.txt, Cargo.toml, etc.)
-5. AI Assistant detects tech stack (languages, frameworks, versions)
-6. AI Assistant analyzes code structure and naming conventions
-7. AI Assistant discovers domain model format from code (TypeScript types, JSON Schema, etc.)
-8. AI Assistant discovers API format from definitions (OpenAPI, GraphQL schema, etc.)
-9. AI Assistant proposes adapter specifications (tech stack, domain model format, conventions, etc.)
-10. Technical Lead reviews and approves proposed specs
-11. AI Assistant updates adapter specs in the adapter specifications area
-12. AI Assistant updates the adapter's AI navigation rules with WHEN rules for each spec
+1. User uses CLI to modify configuration. Core commands manage `core.json` (e.g., `cypilot config system add --name "Backend" --slug backend --kit sdlc`). Kit plugin commands manage kit config (e.g., `cypilot sdlc autodetect add-artifact --system backend --kind API --pattern "api/**/*.yaml" --traceability DOCS-ONLY`, or `cypilot sdlc autodetect add-codebase --system backend --name "API Server" --path src/api --ext .py .go`)
+2. Tool validates the change against the appropriate config schema — core schema for `core.json`, kit plugin schema for kit config (uses capability `cpt-cypilot-fr-core-cli-config`)
+3. Tool applies the change to the appropriate config file in `config/` (uses capability `cpt-cypilot-fr-core-config`)
+4. Tool confirms the change with a summary of what was modified
 
-**Postconditions**: Adapter with auto-generated specs from existing codebase, validated and ready for Cypilot workflows
+**Alternative Flows**:
+- **Schema validation fails**: Tool displays the specific validation error, shows the attempted change, and does NOT apply it. Suggests corrected syntax.
+- **Dry-run mode**: User adds `--dry-run` flag; tool displays what would change without applying.
+
+**Postconditions**: Config updated; change is reflected in subsequent validations and workflows
 
 ---
 
-### UC-011 Configure CI/CD Pipeline for Cypilot Validation
+### UC-010 Register or Extend a Kit
 
-**ID**: `cpt-cypilot-usecase-configure-cicd`
+**ID**: `cpt-cypilot-usecase-kit-manage`
 
 **Actors**:
-`cpt-cypilot-actor-devops-engineer`, `cpt-cypilot-actor-ci-pipeline`
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
 
-**Preconditions**: Project has Cypilot adapter configured (triggers `cpt-cypilot-usecase-bootstrap-project`)
+**Preconditions**: Cypilot initialized in project
 
 **Flow**:
 
-1. DevOps Engineer wants to automate Cypilot artifact validation in CI/CD
-2. DevOps Engineer reads the adapter build/deploy specification for test and build commands (uses capability `cpt-cypilot-fr-adapter-config`)
-3. DevOps Engineer creates GitHub Actions workflow or GitLab CI config
-4. Workflow configured to run `/cypilot analyze` on changed artifacts in pull requests
-5. CI/CD Pipeline executes validation automatically on every commit (uses capability `cpt-cypilot-fr-validation`)
-6. Pipeline reports validation results as PR status checks
-7. Pipeline blocks merge if any artifact validation fails (uses capability `cpt-cypilot-fr-validation`)
-8. DevOps Engineer configures notifications for validation failures
+1. User installs a new kit or extends an existing one (e.g., `cypilot kit install sdlc` or `cypilot kit extend sdlc --artifact SPEC`)
+2. Kit's plugin creates necessary directory structure, resources, and config files in `config/kits/<slug>/` (uses capability `cpt-cypilot-fr-core-kits`)
+3. Tool registers the kit in `config/core.json`
+4. Tool validates kit structural correctness
 
-**Postconditions**: CI/CD Pipeline automatically validates all Cypilot artifacts, prevents invalid designs from being merged
+**Alternative Flows**:
+- **Kit plugin invalid**: Tool displays structural validation errors and does NOT register the kit. Suggests `cypilot doctor` for diagnostics.
+- **Kit already installed**: Tool displays current version and offers to update or skip.
+
+**Postconditions**: Kit registered/extended and available for workflows
 
 ---
 
-### UC-012 Security Review of Spec Design
+### UC-011 Update Cypilot Version
 
-**ID**: `cpt-cypilot-usecase-security-review`
+**ID**: `cpt-cypilot-usecase-update`
 
 **Actors**:
-`cpt-cypilot-actor-security-engineer`, `cpt-cypilot-actor-architect`
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
 
-**Preconditions**: Spec Design exists and validated (triggers `cpt-cypilot-usecase-design-spec`)
+**Preconditions**: Cypilot installed globally and in project
 
 **Flow**:
 
-1. Security Engineer receives notification that new spec design ready for review
-2. Security Engineer reviews spec design content to identify data flows, trust boundaries, and sensitive data handling (uses capability `cpt-cypilot-fr-design-first`)
-3. Security Engineer reviews authentication and authorization expectations
-4. Security Engineer identifies missing security controls or vulnerabilities (uses capability `cpt-cypilot-fr-validation`)
-5. Security Engineer adds security requirements with stable IDs `cpt-<project>-spec-<spec>-req-security-*`
-6. Architect updates the spec design based on security feedback (triggers `cpt-cypilot-usecase-update-spec-design`)
-7. Security Engineer approves design after security requirements are added
+1. On any command invocation, the proxy displays: "Cypilot {cached_version} available (project has {project_version}). Run `cypilot update` to upgrade." (uses capability `cpt-cypilot-fr-core-installer`)
+2. User runs `cypilot update`
+3. Tool refreshes cache from the latest GitHub release if needed, then copies the cached skill into the project (uses capability `cpt-cypilot-fr-core-version`)
+4. Tool migrates `config/core.json` preserving all user settings; invokes each kit's migration script for `config/kits/<slug>/` (uses capability `cpt-cypilot-fr-core-config`, `cpt-cypilot-fr-core-kits`)
+5. Tool regenerates agent entry points for compatibility (uses capability `cpt-cypilot-fr-core-agents`)
 
-**Postconditions**: Spec design includes comprehensive security requirements, ready for secure implementation
+**Alternative Flows**:
+- **Cache download fails**: Tool displays network error and suggests retrying or using `cypilot update --check` to verify availability.
+- **Config migration conflict**: Tool preserves a backup of the previous config, applies migration, and reports any settings that could not be automatically migrated.
 
----
-
-### UC-013 Product Requirements Analysis
-
-**ID**: `cpt-cypilot-usecase-prd-analysis`
-
-**Actors**:
-`cpt-cypilot-actor-prd-analyst`, `cpt-cypilot-actor-product-manager`
-
-**Preconditions**: Stakeholder requirements gathered but not yet documented in Cypilot format
-
-**Flow**:
-
-1. Business Analyst collects raw requirements from stakeholders (interviews, documents, meetings)
-2. Business Analyst analyzes requirements and identifies actors (human and system)
-3. Business Analyst groups related requirements into capabilities (uses capability `cpt-cypilot-fr-design-first`)
-4. Business Analyst creates draft structure for the PRD with actors and capabilities
-5. Business Analyst works with Product Manager to refine vision and success criteria
-6. Product Manager runs `/cypilot-prd` with Business Analyst's draft (uses capability `cpt-cypilot-fr-workflow-execution`)
-7. AI Assistant updates the PRD based on analyzed requirements
-8. Business Analyst reviews generated PRD for completeness and accuracy (uses capability `cpt-cypilot-fr-validation`)
-9. Business Analyst confirms all stakeholder requirements covered by capabilities
-
-**Postconditions**: Well-structured PRD capturing all stakeholder requirements in Cypilot format (triggers `cpt-cypilot-usecase-create-prd`)
+**Postconditions**: Project skill updated to cached version; config migrated; agent entry points refreshed
 
 ---
 
-### UC-014 Design User Interface from Flows
+### UC-012 Migrate Existing Project
 
-**ID**: `cpt-cypilot-usecase-design-ui`
-
-**Actors**:
-`cpt-cypilot-actor-ux-designer`, `cpt-cypilot-actor-architect`
-
-**Preconditions**: Spec design exists with documented actor flows (triggers `cpt-cypilot-usecase-design-spec`)
-
-**Flow**:
-
-1. UX Designer reviews the spec design actor flows to understand user journeys (uses capability `cpt-cypilot-fr-design-first`)
-2. UX Designer identifies UI screens needed for each flow step
-3. UX Designer creates wireframes mapping each Cypilot DSL (CDSL) instruction to UI element
-4. For each flow phase (p1, p2, etc.), UX Designer designs corresponding screen state
-5. UX Designer validates that UI covers all actor interactions from flows (uses capability `cpt-cypilot-fr-traceability`)
-6. UX Designer creates UI mockups with annotations linking to flow IDs (e.g., "Implements `cpt-<project>-spec-<spec>-flow-<name>:p1`")
-7. Architect reviews UI mockups against the spec design to ensure completeness
-8. UX Designer updates UI based on feedback if flows were unclear
-9. Architect may update the spec design actor flows if UI reveals missing flow steps (triggers `cpt-cypilot-usecase-update-spec-design`)
-
-**Postconditions**: UI mockups fully aligned with spec flows, developers can code UI following both mockups and spec design
-
----
-
-### UC-015 Plan Release with Spec Tracking
-
-**ID**: `cpt-cypilot-usecase-plan-release`
+**ID**: `cpt-cypilot-usecase-migrate`
 
 **Actors**:
-`cpt-cypilot-actor-release-manager`, `cpt-cypilot-actor-project-manager`
-
-**Preconditions**: Overall Design exists and needs to be decomposed into spec-level scope
-
-**Flow**:
-
-1. Architect and Project Manager review Overall Design to identify spec boundaries
-2. Team defines spec list and assigns initial statuses (NOT_STARTED, IN_DESIGN)
-3. Architect designs specs iteratively (IN_DESIGN → DESIGNED → READY)
-4. Developers code specs (IN_PROGRESS → DONE)
-5. Validation is run after each meaningful update (uses capability `cpt-cypilot-fr-validation`)
-
-**Postconditions**: Clear visibility into spec progress, automated status tracking, dependency validation, historical metrics for planning
-
----
-
-### UC-016 Record Architecture Decision
-
-**ID**: `cpt-cypilot-usecase-record-adr`
-
-**Actors**:
-`cpt-cypilot-actor-architect`, `cpt-cypilot-actor-technical-lead`
-
-**Preconditions**: Architecture decision needs to be documented
-
-**Flow**:
-
-1. Architect identifies significant technical decision requiring documentation
-2. Architect runs `/cypilot-adr` to create new ADR (uses capability `cpt-cypilot-fr-workflow-execution`)
-3. AI Assistant assigns sequential ADR ID (e.g., ADR-0001, ADR-0002)
-4. Architect documents decision context, considered options, and chosen solution (uses capability `cpt-cypilot-fr-arch-decision-mgmt`)
-5. ADR is created with status ACCEPTED
-6. AI Assistant updates affected design sections to reference ADR (uses capability `cpt-cypilot-fr-traceability`)
-
-**Postconditions**: Architecture decision documented with full context, linked to affected design elements, searchable by status and component
-
----
-
-### UC-017 Generate Code from Spec Design
-
-**ID**: `cpt-cypilot-usecase-generate-code`
-
-**Actors**:
-`cpt-cypilot-actor-developer`, `cpt-cypilot-actor-ai-assistant`
-
-**Preconditions**: Spec scope is known (spec design may or may not exist)
-
-**Flow**:
-
-1. Developer wants to generate initial code scaffolding
-2. If spec design is missing, AI Assistant bootstraps the minimal spec design (uses capability `cpt-cypilot-fr-design-first`)
-3. AI Assistant reads adapter specs for language-specific patterns and project conventions (uses capability `cpt-cypilot-fr-adapter-config`)
-4. AI Assistant uses adapter-defined domain model and API contract sources when present (uses capability `cpt-cypilot-fr-code-generation`)
-5. AI Assistant generates code scaffolding and test scaffolding following best practices (uses capability `cpt-cypilot-fr-code-generation`)
-6. AI Assistant adds traceability tags when enabled (uses capability `cpt-cypilot-fr-traceability`)
-7. Developer runs `/cypilot-code` to continue implementation from the validated spec design
-8. Developer reviews generated code and adjusts as needed
-
-**Postconditions**: Code scaffolding generated with proper structure and traceability tags when enabled, developer can focus on business logic implementation
-
----
-
-### UC-018 Navigate Traceability in IDE
-
-**ID**: `cpt-cypilot-usecase-ide-navigation`
-
-**Actors**:
-`cpt-cypilot-actor-developer`
-
-**Preconditions**: VS Code Cypilot extension installed, project has Cypilot artifacts
-
-**Flow**:
-
-1. Developer opens Spec Design in VS Code
-2. Developer sees Cypilot ID cpt-cypilot-seq-intent-to-workflow highlighted with syntax coloring (uses capability `cpt-cypilot-fr-ide-integration`)
-3. Developer Cmd+Click (or Ctrl+Click) on flow ID to jump to definition in same file
-4. Developer right-clicks on flow ID and selects "Find where-used" from context menu
-5. IDE shows list of references in design docs and code files (uses capability `cpt-cypilot-fr-traceability`)
-6. Developer clicks on code reference to navigate to implementation file
-7. Developer sees inline validation errors if ID format is incorrect
-8. Developer uses autocomplete to insert valid Cypilot IDs when editing
-9. Code lens above function shows traceability status (✅ tagged or ⚠️ missing tags)
-
-**Postconditions**: Developer can navigate between design and code instantly, maintain traceability without manual searching
-
----
-
-### UC-019 Migrate Existing Project to Cypilot
-
-**ID**: `cpt-cypilot-usecase-migrate-project`
-
-**Actors**:
-`cpt-cypilot-actor-technical-lead`, `cpt-cypilot-actor-ai-assistant`, `cpt-cypilot-actor-documentation-writer`, `cpt-cypilot-actor-doc-generator`
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`
 
 **Preconditions**: Existing project with code but no Cypilot artifacts
 
 **Flow**:
 
-1. Technical Lead wants to adopt Cypilot for legacy project
-2. AI Assistant runs `/cypilot-adapter-auto` to analyze existing codebase (uses capability `cpt-cypilot-fr-brownfield-support`)
-3. AI Assistant scans existing project documentation for PRD content
-4. AI Assistant proposes PRD content based on discovered information
-5. Technical Lead reviews and refines proposed PRD content
-6. AI Assistant analyzes code structure to extract architectural patterns
-7. AI Assistant proposes Overall Design content from implementation patterns
-8. Technical Lead identifies which specs to document first (incremental adoption)
-9. AI Assistant creates or updates Spec Design for priority specs using the adapter-defined locations
-10. Developer adds traceability tags to existing code incrementally (uses capability `cpt-cypilot-fr-traceability`)
-
-**Postconditions**: Legacy project has Cypilot artifacts documenting current state, team can use Cypilot workflows for new specs while preserving existing code
-
----
-
-### UC-020 Track Spec Progress Through Lifecycle
-
-**ID**: `cpt-cypilot-usecase-track-spec-lifecycle`
-
-**Actors**:
-`cpt-cypilot-actor-project-manager`, `cpt-cypilot-actor-developer`
-
-**Preconditions**: A Spec Manifest exists (when used) with multiple specs at various stages
-
-**Flow**:
-
-1. Project Manager opens a spec manifest to review current status (uses capability `cpt-cypilot-fr-spec-lifecycle`)
-2. Project Manager sees spec statuses: ⏳ NOT_STARTED, 🔄 IN_PROGRESS, ✅ DONE
-3. Developer marks spec as 🔄 IN_PROGRESS when starting implementation work
-4. System validates spec has Spec Design at 100/100 before allowing IN_PROGRESS status
-5. As developer completes implementation work, system suggests status update
-6. Developer runs final validation before marking spec ✅ DONE (uses capability `cpt-cypilot-fr-validation`)
-7. Project Manager tracks velocity by counting completed specs per sprint
-8. Project Manager identifies blocking dependencies (Spec B depends on Spec A)
-9. System alerts if Spec B IN_PROGRESS but Spec A still NOT_STARTED
-10. Project Manager generates progress report showing spec completion timeline
-
-**Postconditions**: Clear visibility into spec progress, automated status tracking, dependency validation, historical metrics for planning
-
----
-
-### UC-022 Write Actor Flow in Cypilot DSL (CDSL)
-
-**ID**: `cpt-cypilot-usecase-write-cdsl-flow`
-
-**Actors**:
-`cpt-cypilot-actor-architect`, `cpt-cypilot-actor-prd-analyst`
-
-**Preconditions**: Spec Design exists, architect needs to document actor flow
-
-**Flow**:
-
-1. Architect opens the spec design and navigates to the actor flows
-2. Architect creates new flow: "Login Flow" with ID cpt-cypilot-seq-intent-to-workflow (uses capability `cpt-cypilot-fr-design-first`)
-3. Architect writes flow in Cypilot DSL (CDSL) using plain English with bold keywords (uses capability `cpt-cypilot-fr-cdsl`)
-4. Business Analyst reviews the Cypilot DSL (CDSL) flow and confirms it matches product requirements
-5. Business Analyst identifies missing case: "What if user forgot password?"
-6. Architect adds step with **OPTIONAL** path to password reset
-7. UX Designer reads flow and creates UI mockups matching each step and instruction
-8. Architect marks instructions with phases for implementation: p1 (validation), p2 (authentication), p3 (session)
-9. Developer reads the Cypilot DSL (CDSL) flow and understands exact implementation requirements without ambiguity
-
-**Postconditions**: Actor flow documented in plain English readable by all stakeholders, directly translatable to code with instruction-level traceability
-
----
-
-### UC-024 Validate PRD
-
-**ID**: `cpt-cypilot-usecase-validate-prd`
-
-**Actors**:
-`cpt-cypilot-actor-product-manager`, `cpt-cypilot-actor-cypilot-tool`
-
-**Preconditions**: PRD exists
-
-**Flow**:
-
-1. Product Manager runs `/cypilot-prd-validate` to request PRD validation
-2. Cypilot Validation Tool validates structure, cross-references, and semantic boundaries (uses capability `cpt-cypilot-fr-validation`)
-3. Tool reports PASS/FAIL with actionable issues
-
-**Postconditions**: PRD validation status is known; issues are ready for remediation
+1. User runs `cypilot init` in existing project (uses capability `cpt-cypilot-fr-core-init`)
+2. Tool detects existing code (brownfield) and offers reverse-engineering scan (uses capability `cpt-cypilot-fr-sdlc-brownfield`)
+3. AI Agent analyzes code structure, configs, and documentation
+4. AI Agent proposes project config (tech stack, conventions, domain model)
+5. User reviews and approves proposed specs
+6. AI Agent creates initial artifacts from discovered patterns
+7. User adds traceability tags incrementally (uses capability `cpt-cypilot-fr-core-traceability`)
 
 **Alternative Flows**:
-- **Validation fails**: If step 3 reports FAIL, Product Manager reviews issues, edits PRD to fix them, and re-runs validation (loop to step 1)
+- **No code detected (greenfield)**: Tool skips reverse-engineering scan and proceeds with standard init flow (UC-002).
+- **User rejects proposed specs**: AI Agent saves partial specs as drafts and allows the user to edit manually before committing.
+
+**Postconditions**: Existing project has Cypilot config and initial artifacts; team can use workflows for new development
 
 ---
-
-### UC-025 Create Overall Design
-
-**ID**: `cpt-cypilot-usecase-create-overall-design`
-
-**Actors**:
-`cpt-cypilot-actor-architect`, `cpt-cypilot-actor-technical-lead`, `cpt-cypilot-actor-ai-assistant`
-
-**Preconditions**: PRD exists and is deterministically validated
-
-**Flow**:
-
-1. Architect runs `/cypilot-design` and defines system-level scope, constraints, and key requirements
-2. Technical Lead provides project-specific technical context via adapter (uses capability `cpt-cypilot-fr-adapter-config`)
-3. AI Assistant drafts Overall Design with stable IDs and cross-references to PRD actors and capabilities
-4. Cypilot Validation Tool runs deterministic validation for Overall Design by running `/cypilot-design-validate` (uses capability `cpt-cypilot-fr-validation`)
-
-**Postconditions**: Overall Design exists and is deterministically validated
-
----
-
-### UC-026 Update Overall Design
-
-**ID**: `cpt-cypilot-usecase-update-overall-design`
-
-**Actors**:
-`cpt-cypilot-actor-architect`, `cpt-cypilot-actor-technical-lead`, `cpt-cypilot-actor-ai-assistant`
-
-**Preconditions**: Overall Design exists
-
-**Flow**:
-
-1. Architect runs `/cypilot-design` in update mode and identifies what system-level decision, requirement, or constraint must change
-2. AI Assistant proposes updates while preserving stable IDs where appropriate
-3. Technical Lead checks alignment with project conventions and adapter configuration
-4. Cypilot Validation Tool re-validates Overall Design by running `/cypilot-design-validate` (uses capability `cpt-cypilot-fr-validation`)
-
-**Postconditions**: Overall Design updated and deterministically validated
-
----
-
-### UC-027 Validate ADRs
-
-**ID**: `cpt-cypilot-usecase-validate-adrs`
-
-**Actors**:
-`cpt-cypilot-actor-architect`, `cpt-cypilot-actor-technical-lead`, `cpt-cypilot-actor-cypilot-tool`
-
-**Preconditions**: One or more ADRs exist
-
-**Flow**:
-
-1. Team runs `/cypilot-adr-validate` to request deterministic validation of ADRs
-2. Cypilot Validation Tool checks required ADR fields, IDs, and cross-references (uses capability `cpt-cypilot-fr-validation`)
-3. Tool reports PASS/FAIL with issues
-
-**Postconditions**: ADR validation status is known; issues are ready for remediation
-
----
-
-### UC-028 Create Spec Manifest
-
-**ID**: `cpt-cypilot-usecase-create-spec-manifest`
-
-**Actors**:
-`cpt-cypilot-actor-project-manager`, `cpt-cypilot-actor-release-manager`, `cpt-cypilot-actor-ai-assistant`
-
-**Preconditions**: PRD and Overall Design exist
-
-**Flow**:
-
-1. Project Manager runs `/cypilot-specs` and defines the initial spec list and statuses
-2. Release Manager defines readiness expectations for releases
-3. AI Assistant creates the Spec Manifest with stable IDs and deterministic status values (uses capability `cpt-cypilot-fr-spec-lifecycle`)
-4. Cypilot Validation Tool validates the Spec Manifest structure and references by running `/cypilot-specs-validate` (uses capability `cpt-cypilot-fr-validation`)
-
-**Postconditions**: Spec Manifest exists and is deterministically validated
-
 
 ## 9. Acceptance Criteria
 
-- Deterministic validation output is actionable (clear file/line/pointer for every issue)
-- A new user can complete adapter initialization and reach a first passing PRD validation within a reasonable onboarding session
+- [ ] `cypilot init` completes interactive setup and creates a working `.cypilot/` directory in ≤ 5 minutes
+- [ ] Deterministic validation output is actionable (clear file/line/pointer for every issue)
+- [ ] All supported agents receive correct entry points after `cypilot agents`
+- [ ] `cypilot doctor` reports environment health with pass/fail per check
+- [ ] Config is never manually edited — all changes go through the CLI tool
+- [ ] PR review workflow produces a structured report matching the template format
 
 ## 10. Dependencies
 
 | Dependency | Description | Criticality |
 |------------|-------------|-------------|
-| None | N/A | N/A |
+| Python 3.10+ | Runtime for CLI tool and skill engine | p1 |
+| Git | Project detection, skill installation, version control | p1 |
+| pipx | Global CLI installation (recommended) | p2 |
+| gh CLI | GitHub API access for PR review/status workflows | p2 |
 
 ## 11. Assumptions
 
-- AI coding assistants (Claude Code, Cursor, etc.) can follow structured markdown workflows with embedded instructions.
-- Developers have access to Python 3.6+ for running the `cypilot` CLI tool.
-- Projects use Git for version control (adapter discovery relies on `.git` directory).
+- AI coding assistants (Windsurf, Cursor, Claude, Copilot) can follow structured markdown workflows with embedded instructions.
+- Developers have access to Python 3.10+ for running the Cypilot CLI tool.
+- Projects use Git for version control (project detection relies on `.git` directory).
 - Teams are willing to maintain design artifacts as part of their development workflow.
+- The `pipx` package manager is available or installable for global CLI installation.
+- GitHub is the primary VCS platform for PR review workflows (other platforms may be supported later).
+
+### Open Questions
+
+No open questions remain at this time — all architectural questions (config directory structure, kit plugin system, PR review placement in SDLC kit) were resolved during PRD development.
 
 ## 12. Risks
 
 | Risk | Impact | Mitigation |
 |------|--------|------------|
-| AI agent variability | Inconsistent artifact quality | Deterministic validation catches structural issues |
-| Adoption resistance | Low adoption / bypassing the workflow | Incremental adoption + immediate validation value |
-| Template rigidity | Template does not fit some project types | Adapters allow customization of artifact locations and optional sections |
+| AI agent variability | Inconsistent artifact quality across different agents | Deterministic validation catches structural issues; checklists enforce quality baseline |
+| Adoption resistance | Teams bypass the workflow or skip validation | Incremental adoption via brownfield support; immediate value from validation and PR review |
+| Kit rigidity | Templates don't fit all project types | Kit extension system allows custom overrides; custom kits can be created from scratch |
+| Version fragmentation | Different team members have different skill versions | Version detection on every invocation; config migration ensures backward compatibility |
+| Git dependency for skill updates | Network required for skill installation and updates | Skill is installed once and works offline; updates are optional and explicit |
