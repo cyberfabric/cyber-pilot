@@ -4,27 +4,27 @@
   "kits": {
     "cypilot-sdlc": {
       "format": "Cypilot",
-      "path": "kits/sdlc",
+      "path": ".cypilot/kits/sdlc",
       "artifacts": {
         "ADR": {
-          "template": "{project_root}/kits/sdlc/artifacts/ADR/template.md",
-          "examples": "{project_root}/kits/sdlc/artifacts/ADR/examples"
+          "template": "{project_root}/.cypilot/kits/sdlc/artifacts/ADR/template.md",
+          "examples": "{project_root}/.cypilot/kits/sdlc/artifacts/ADR/examples"
         },
         "DECOMPOSITION": {
-          "template": "{project_root}/kits/sdlc/artifacts/DECOMPOSITION/template.md",
-          "examples": "{project_root}/kits/sdlc/artifacts/DECOMPOSITION/examples"
+          "template": "{project_root}/.cypilot/kits/sdlc/artifacts/DECOMPOSITION/template.md",
+          "examples": "{project_root}/.cypilot/kits/sdlc/artifacts/DECOMPOSITION/examples"
         },
         "DESIGN": {
-          "template": "{project_root}/kits/sdlc/artifacts/DESIGN/template.md",
-          "examples": "{project_root}/kits/sdlc/artifacts/DESIGN/examples"
+          "template": "{project_root}/.cypilot/kits/sdlc/artifacts/DESIGN/template.md",
+          "examples": "{project_root}/.cypilot/kits/sdlc/artifacts/DESIGN/examples"
         },
         "FEATURE": {
-          "template": "{project_root}/kits/sdlc/artifacts/FEATURE/template.md",
-          "examples": "{project_root}/kits/sdlc/artifacts/FEATURE/examples"
+          "template": "{project_root}/.cypilot/kits/sdlc/artifacts/FEATURE/template.md",
+          "examples": "{project_root}/.cypilot/kits/sdlc/artifacts/FEATURE/examples"
         },
         "PRD": {
-          "template": "{project_root}/kits/sdlc/artifacts/PRD/template.md",
-          "examples": "{project_root}/kits/sdlc/artifacts/PRD/examples"
+          "template": "{project_root}/.cypilot/kits/sdlc/artifacts/PRD/template.md",
+          "examples": "{project_root}/.cypilot/kits/sdlc/artifacts/PRD/examples"
         }
       }
     }
