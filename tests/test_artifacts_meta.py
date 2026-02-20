@@ -11,6 +11,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "cypilot" / "sc
 from cypilot.utils.artifacts_meta import (
     Artifact,
     ArtifactsMeta,
+    AutodetectRule,
     CodebaseEntry,
     IgnoreBlock,
     Kit,
@@ -695,6 +696,56 @@ class TestArtifactsMetaIterators(unittest.TestCase):
         errors = meta.validate_all_slugs()
         self.assertEqual(len(errors), 1)
         self.assertIn("Invalid slug", errors[0])
+
+
+class TestAutodetectRuleFromDict(unittest.TestCase):
+    """Tests for AutodetectRule.from_dict edge cases."""
+
+    def test_non_dict_aliases_and_validation_defaults(self):
+        rule = AutodetectRule.from_dict({"aliases": "bad", "validation": 123})
+        assert rule.aliases == {}
+        assert rule.validation == {}
+
+    def test_children_parsed(self):
+        rule = AutodetectRule.from_dict({"children": [{"system_root": "sub"}]})
+        assert len(rule.children) == 1
+        assert rule.children[0].system_root == "sub"
+
+
+class TestExtractSystemSlugCandidates(unittest.TestCase):
+    """Tests for extract_system_slug_candidates."""
+
+    def setUp(self):
+        from cypilot.utils.artifacts_meta import extract_system_slug_candidates
+        self.extract = extract_system_slug_candidates
+
+    def test_non_cpt_id_returns_empty(self):
+        assert self.extract("xyz-myapp-fr-login", "", {"fr"}) == []
+
+    def test_parent_prefix_mismatch_returns_empty(self):
+        assert self.extract("cpt-other-myapp-fr-login", "ex", {"fr"}) == []
+
+    def test_no_kind_token_returns_empty(self):
+        assert self.extract("cpt-myapp-something-else", "", {"fr"}) == []
+
+    def test_multiple_distinct_kind_tokens_returns_empty(self):
+        # ID contains both -fr- and -nfr- → ambiguous
+        assert self.extract("cpt-myapp-fr-nfr-slug", "", {"fr", "nfr"}) == []
+
+    def test_kind_at_position_zero_returns_empty(self):
+        # remainder starts with kind token → empty system slug
+        assert self.extract("cpt-fr-slug", "", {"fr"}) == []
+
+    def test_normal_extraction(self):
+        assert self.extract("cpt-myapp-fr-login", "", {"fr"}) == ["myapp"]
+
+    def test_with_parent_prefix(self):
+        assert self.extract("cpt-ex-myapp-fr-login", "ex", {"fr"}) == ["myapp"]
+
+    def test_single_kind_multiple_occurrences(self):
+        # Same kind token appears twice but only one distinct kind → first match
+        result = self.extract("cpt-myapp-fr-some-fr-other", "", {"fr"})
+        assert result == ["myapp"]
 
 
 if __name__ == "__main__":

@@ -547,6 +547,89 @@ def test_cross_validate_artifacts_structure_and_reference_rules(tmp_path: Path):
     assert EC.REF_TARGET_NOT_IN_SCOPE in warn_codes
 
 
+def test_validate_artifact_file_no_registered_systems_uses_kind_tokens(tmp_path: Path):
+    """When registered_systems=None, match_system uses rightmost kind-token split."""
+    kc, errs = parse_kit_constraints({
+        "FEATURE": {
+            "identifiers": {
+                "featstatus": {"required": False},
+                "flow": {"required": False},
+                "dod": {"required": False},
+            }
+        }
+    })
+    assert errs == []
+    feat_constraints = kc.by_kind["FEATURE"]
+
+    p = tmp_path / "FEATURE.md"
+    # System name "task-flow" contains kind token "flow"
+    p.write_text(
+        "# Feature\n\n"
+        "**ID**: `cpt-ex-task-flow-featstatus-crud`\n\n"
+        "**ID**: `cpt-ex-task-flow-dod-create`\n",
+        encoding="utf-8",
+    )
+    rep = validate_artifact_file(
+        artifact_path=p,
+        artifact_kind="FEATURE",
+        constraints=feat_constraints,
+        registered_systems=None,
+    )
+    errs = rep.get("errors") or []
+    # Should NOT produce id-kind-not-allowed errors — system must be detected as
+    # "ex-task-flow", not truncated to "ex-task" (which would make kind="flow").
+    kind_errors = [e for e in errs if e.get("code") == EC.ID_KIND_NOT_ALLOWED]
+    assert kind_errors == [], f"Unexpected kind errors: {kind_errors}"
+
+
+def test_validate_artifact_file_id_system_unrecognized(tmp_path: Path):
+    """IDs with unrecognized system prefix produce id-system-unrecognized error."""
+    kc, errs = parse_kit_constraints({
+        "PRD": {"identifiers": {"fr": {"required": False}}}
+    })
+    assert errs == []
+
+    p = tmp_path / "PRD.md"
+    p.write_text("**ID**: `cpt-unknown-fr-login`\n", encoding="utf-8")
+    rep = validate_artifact_file(
+        artifact_path=p,
+        artifact_kind="PRD",
+        constraints=kc.by_kind["PRD"],
+        registered_systems={"myapp"},
+    )
+    codes = [str(e.get("code")) for e in (rep.get("errors") or [])]
+    assert EC.ID_SYSTEM_UNRECOGNIZED in codes
+
+
+def test_cross_validate_no_registered_systems_compound_system(tmp_path: Path):
+    """cross_validate with registered_systems=None handles compound system names."""
+    kc, errs = parse_kit_constraints({
+        "PRD": {
+            "identifiers": {
+                "fr": {"required": False, "references": {"DESIGN": {"coverage": "required"}}},
+            }
+        },
+        "DESIGN": {"identifiers": {"component": {"required": False}}},
+    })
+    assert errs == []
+
+    prd = tmp_path / "PRD.md"
+    prd.write_text("**ID**: `cpt-my-design-fr-login`\n", encoding="utf-8")
+
+    design = tmp_path / "DESIGN.md"
+    design.write_text("`cpt-my-design-fr-login`\n", encoding="utf-8")
+
+    arts = [
+        ArtifactRecord(path=prd, artifact_kind="PRD", constraints=kc.by_kind["PRD"]),
+        ArtifactRecord(path=design, artifact_kind="DESIGN", constraints=kc.by_kind["DESIGN"]),
+    ]
+    rep = cross_validate_artifacts(arts, registered_systems=None, known_kinds={"fr", "component"})
+    errs = rep.get("errors") or []
+    # Should NOT have ref-no-definition (system must be "my-design", not "my")
+    ref_no_def = [e for e in errs if e.get("code") == EC.REF_NO_DEFINITION]
+    assert ref_no_def == [], f"Unexpected ref-no-definition: {ref_no_def}"
+
+
 def test_cross_validate_reference_done_but_definition_not_done(tmp_path: Path):
     kc, errs = parse_kit_constraints({
         "PRD": {"identifiers": {"flow": {"required": False}}},
