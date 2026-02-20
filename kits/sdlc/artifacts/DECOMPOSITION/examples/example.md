@@ -19,13 +19,13 @@ TaskFlow design is decomposed into features organized around core task managemen
 
 **Overall implementation status:**
 
-- [ ] `p1` - **ID**: `cpt-taskflow-status-overall`
+- [ ] `p1` - **ID**: `cpt-ex-task-flow-status-overall`
 
 
 ### 2.1 [Task CRUD](feature-task-crud/) ⏳ HIGH
 
 
-- [ ] `p1` - **ID**: `cpt-taskflow-feature-task-crud`
+- [ ] `p1` - **ID**: `cpt-ex-task-flow-feature-task-crud`
 
 
 - **Purpose**: Enable users to create, view, edit, and delete tasks with full lifecycle management.
@@ -51,19 +51,19 @@ TaskFlow design is decomposed into features organized around core task managemen
 
 - **Requirements Covered**:
 
-  - [ ] `p1` - `cpt-taskflow-fr-task-crud`
-  - [ ] `p2` - `cpt-taskflow-nfr-performance-reliability`
+  - [ ] `p1` - `cpt-ex-task-flow-fr-task-crud`
+  - [ ] `p2` - `cpt-ex-task-flow-nfr-performance-reliability`
 
 
 - **Design Principles Covered**:
 
-  - [ ] `p1` - `cpt-taskflow-principle-realtime-first`
-  - [ ] `p2` - `cpt-taskflow-principle-simplicity-over-features`
+  - [ ] `p1` - `cpt-ex-task-flow-principle-realtime-first`
+  - [ ] `p2` - `cpt-ex-task-flow-principle-simplicity-over-features`
 
 
 - **Design Constraints Covered**:
 
-  - [ ] `p1` - `cpt-taskflow-constraint-supported-platforms`
+  - [ ] `p1` - `cpt-ex-task-flow-constraint-supported-platforms`
 
 
 
@@ -74,10 +74,10 @@ TaskFlow design is decomposed into features organized around core task managemen
 
 - **Design Components**:
 
-  - [ ] `p1` - `cpt-taskflow-component-react-spa`
-  - [ ] `p1` - `cpt-taskflow-component-api-server`
-  - [ ] `p1` - `cpt-taskflow-component-postgresql`
-  - [ ] `p2` - `cpt-taskflow-component-redis-pubsub`
+  - [ ] `p1` - `cpt-ex-task-flow-component-react-spa`
+  - [ ] `p1` - `cpt-ex-task-flow-component-api-server`
+  - [ ] `p1` - `cpt-ex-task-flow-component-postgresql`
+  - [ ] `p2` - `cpt-ex-task-flow-component-redis-pubsub`
 
 
 
@@ -90,12 +90,12 @@ TaskFlow design is decomposed into features organized around core task managemen
 
 - **Sequences**:
 
-  - [ ] `p1` - `cpt-taskflow-seq-task-creation`
+  - [ ] `p1` - `cpt-ex-task-flow-seq-task-creation`
 
 
 - **Data**:
 
-  - [ ] `p1` - `cpt-taskflow-dbtable-tasks`
+  - [ ] `p1` - `cpt-ex-task-flow-dbtable-tasks`
 
 
 
@@ -105,14 +105,14 @@ TaskFlow design is decomposed into features organized around core task managemen
 ### 2.2 [Notifications](feature-notifications/) ⏳ MEDIUM
 
 
-- [ ] `p2` - **ID**: `cpt-taskflow-feature-notifications`
+- [ ] `p2` - **ID**: `cpt-ex-task-flow-feature-notifications`
 
 
 - **Purpose**: Notify users about task assignments, due dates, and status changes.
 
 
 
-- **Depends On**: `cpt-taskflow-feature-task-crud`
+- **Depends On**: `cpt-ex-task-flow-feature-task-crud`
 
 
 
@@ -130,18 +130,18 @@ TaskFlow design is decomposed into features organized around core task managemen
 
 - **Requirements Covered**:
 
-  - [ ] `p2` - `cpt-taskflow-fr-notifications`
+  - [ ] `p2` - `cpt-ex-task-flow-fr-notifications`
 
 
 - **Design Principles Covered**:
 
-  - [ ] `p1` - `cpt-taskflow-principle-realtime-first`
-  - [ ] `p2` - `cpt-taskflow-principle-mobile-first`
+  - [ ] `p1` - `cpt-ex-task-flow-principle-realtime-first`
+  - [ ] `p2` - `cpt-ex-task-flow-principle-mobile-first`
 
 
 - **Design Constraints Covered**:
 
-  - [ ] `p1` - `cpt-taskflow-constraint-supported-platforms`
+  - [ ] `p1` - `cpt-ex-task-flow-constraint-supported-platforms`
 
 
 
@@ -153,9 +153,9 @@ TaskFlow design is decomposed into features organized around core task managemen
 
 - **Design Components**:
 
-  - [ ] `p1` - `cpt-taskflow-component-react-spa`
-  - [ ] `p1` - `cpt-taskflow-component-api-server`
-  - [ ] `p2` - `cpt-taskflow-component-redis-pubsub`
+  - [ ] `p1` - `cpt-ex-task-flow-component-react-spa`
+  - [ ] `p1` - `cpt-ex-task-flow-component-api-server`
+  - [ ] `p2` - `cpt-ex-task-flow-component-redis-pubsub`
 
 
 
@@ -167,12 +167,12 @@ TaskFlow design is decomposed into features organized around core task managemen
 
 - **Sequences**:
 
-  - [ ] `p2` - `cpt-taskflow-seq-notification-delivery`
+  - [ ] `p2` - `cpt-ex-task-flow-seq-notification-delivery`
 
 
 - **Data**:
 
-  - [ ] `p2` - `cpt-taskflow-dbtable-notifications`
+  - [ ] `p2` - `cpt-ex-task-flow-dbtable-notifications`
 
 
 ## 3. Feature Dependencies

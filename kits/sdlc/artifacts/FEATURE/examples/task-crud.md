@@ -2,10 +2,10 @@
 # Feature: Task CRUD
 
 
-- [ ] `p1` - **ID**: `cpt-taskflow-featstatus-task-crud`
+- [ ] `p1` - **ID**: `cpt-ex-task-flow-featstatus-task-crud`
 
 
-- [ ] `p2` - `cpt-taskflow-feature-task-crud`
+- [ ] `p2` - `cpt-ex-task-flow-feature-task-crud`
 
 
 
@@ -29,14 +29,14 @@ Success criteria: Users can create, view, update, and delete tasks within 500ms 
 
 ### 3. Actors
 
-- `cpt-taskflow-actor-member`
-- `cpt-taskflow-actor-lead`
+- `cpt-ex-task-flow-actor-member`
+- `cpt-ex-task-flow-actor-lead`
 
 
 ### 4. References
 
 - Overall Design: [DESIGN.md](../../DESIGN.md)
-- ADRs: `cpt-taskflow-adr-postgres-storage`
+- ADRs: `cpt-ex-task-flow-adr-postgres-storage`
 - Related feature: [Notifications](../notifications.md)
 
 
@@ -48,18 +48,18 @@ Success criteria: Users can create, view, update, and delete tasks within 500ms 
 ### Create Task
 
 
-- [ ] `p1` - **ID**: `cpt-taskflow-flow-create-task`
+- [ ] `p1` - **ID**: `cpt-ex-task-flow-flow-create-task`
 
 **Actors**:
 
-- `cpt-taskflow-actor-member`
-- `cpt-taskflow-actor-lead`
+- `cpt-ex-task-flow-actor-member`
+- `cpt-ex-task-flow-actor-lead`
 
 
 
 1. [x] - `p1` - User fills task form (title, description, priority) - `inst-fill-form`
 2. [x] - `p1` - API: POST /api/tasks (body: title, description, priority, due_date) - `inst-api-create`
-3. [x] - `p1` - Algorithm: validate task input using `cpt-taskflow-algo-validate-task` - `inst-run-validate`
+3. [x] - `p1` - Algorithm: validate task input using `cpt-ex-task-flow-algo-validate-task` - `inst-run-validate`
 4. [x] - `p1` - DB: INSERT tasks(title, description, priority, due_date, status=BACKLOG) - `inst-db-insert`
 5. [ ] - `p2` - User optionally assigns task to team member - `inst-assign`
 6. [ ] - `p2` - API: POST /api/tasks/{task_id}/assignees (body: assignee_id) - `inst-api-assign`
@@ -77,7 +77,7 @@ Success criteria: Users can create, view, update, and delete tasks within 500ms 
 ### Validate Task
 
 
-- [ ] `p1` - **ID**: `cpt-taskflow-algo-validate-task`
+- [ ] `p1` - **ID**: `cpt-ex-task-flow-algo-validate-task`
 
 
 1. [x] - `p1` - **IF** title is empty **RETURN** error "Title required" - `inst-check-title`
@@ -98,7 +98,7 @@ Success criteria: Users can create, view, update, and delete tasks within 500ms 
 ### Task Status
 
 
-- [ ] `p1` - **ID**: `cpt-taskflow-state-task-status`
+- [ ] `p1` - **ID**: `cpt-ex-task-flow-state-task-status`
 
 
 1. [x] - `p1` - **FROM** BACKLOG **TO** IN_PROGRESS **WHEN** user starts work - `inst-start`
@@ -116,7 +116,7 @@ Success criteria: Users can create, view, update, and delete tasks within 500ms 
 ### Task Creation
 
 
-- [ ] `p1` - **ID**: `cpt-taskflow-dod-task-create`
+- [ ] `p1` - **ID**: `cpt-ex-task-flow-dod-task-create`
 
 
 Users can create tasks with title, description, priority, and due date. The system validates input and stores the task with BACKLOG status.
@@ -131,42 +131,42 @@ Users can create tasks with title, description, priority, and due date. The syst
 
 **Implements**:
 
-- `cpt-taskflow-flow-create-task`
+- `cpt-ex-task-flow-flow-create-task`
 
 
 
-- `cpt-taskflow-algo-validate-task`
+- `cpt-ex-task-flow-algo-validate-task`
 
 
 **Covers (PRD)**:
 
-- `cpt-taskflow-fr-task-management`
+- `cpt-ex-task-flow-fr-task-management`
 
 
 
-- `cpt-taskflow-nfr-performance`
+- `cpt-ex-task-flow-nfr-performance`
 
 
 **Covers (DESIGN)**:
 
-- `cpt-taskflow-principle-realtime-first`
+- `cpt-ex-task-flow-principle-realtime-first`
 
 
 
-- `cpt-taskflow-constraint-supported-platforms`
+- `cpt-ex-task-flow-constraint-supported-platforms`
 
 
 
-- `cpt-taskflow-component-api-server`
-- `cpt-taskflow-component-postgresql`
+- `cpt-ex-task-flow-component-api-server`
+- `cpt-ex-task-flow-component-postgresql`
 
 
 
-- `cpt-taskflow-seq-task-creation`
+- `cpt-ex-task-flow-seq-task-creation`
 
 
 
-- `cpt-taskflow-dbtable-tasks`
+- `cpt-ex-task-flow-dbtable-tasks`
 
 
 

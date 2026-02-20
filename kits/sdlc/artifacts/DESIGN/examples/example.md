@@ -24,7 +24,7 @@ The architecture prioritizes simplicity and developer productivity while support
 ##### Task Management
 
 
-- [ ] `p1` - `cpt-taskflow-fr-task-management`
+- [ ] `p1` - `cpt-ex-task-flow-fr-task-management`
 
 
 **Solution**: REST API with idempotent endpoints and PostgreSQL persistence for task CRUD.
@@ -34,7 +34,7 @@ The architecture prioritizes simplicity and developer productivity while support
 ##### Notifications
 
 
-- [ ] `p1` - `cpt-taskflow-fr-notifications`
+- [ ] `p1` - `cpt-ex-task-flow-fr-notifications`
 
 
 **Solution**: WebSocket push with Redis PubSub for real-time notification delivery.
@@ -44,7 +44,7 @@ The architecture prioritizes simplicity and developer productivity while support
 ##### Security
 
 
-- [ ] `p1` - `cpt-taskflow-nfr-security`
+- [ ] `p1` - `cpt-ex-task-flow-nfr-security`
 
 
 **Solution**: JWT authentication with role-based authorization middleware.
@@ -54,7 +54,7 @@ The architecture prioritizes simplicity and developer productivity while support
 ##### Performance
 
 
-- [ ] `p2` - `cpt-taskflow-nfr-performance`
+- [ ] `p2` - `cpt-ex-task-flow-nfr-performance`
 
 
 **Solution**: Connection pooling and query optimization for sub-500ms responses.
@@ -68,7 +68,7 @@ The architecture prioritizes simplicity and developer productivity while support
 ##### PostgreSQL for Storage
 
 
-- [ ] `p1` - `cpt-taskflow-adr-postgres-storage`
+- [ ] `p1` - `cpt-ex-task-flow-adr-postgres-storage`
 
 
 Use PostgreSQL for durable task storage. Chosen for strong ACID guarantees, relational query support, and team expertise. Trade-off: requires separate DB server vs embedded SQLite.
@@ -100,7 +100,7 @@ Use PostgreSQL for durable task storage. Chosen for strong ACID guarantees, rela
 #### Real-time First
 
 
-- [ ] `p1` - **ID**: `cpt-taskflow-principle-realtime-first`
+- [ ] `p1` - **ID**: `cpt-ex-task-flow-principle-realtime-first`
 
 
 Prefer architectures that keep task state and notifications consistent and observable for all users. Changes should propagate to all connected clients within 2 seconds.
@@ -112,7 +112,7 @@ Prefer architectures that keep task state and notifications consistent and obser
 #### Simplicity over Specs
 
 
-- [ ] `p2` - **ID**: `cpt-taskflow-principle-simplicity`
+- [ ] `p2` - **ID**: `cpt-ex-task-flow-principle-simplicity`
 
 
 Choose simpler solutions over spec-rich ones. Avoid premature optimization and unnecessary abstractions. Code should be readable by junior developers.
@@ -128,7 +128,7 @@ Choose simpler solutions over spec-rich ones. Avoid premature optimization and u
 #### Supported Platforms
 
 
-- [ ] `p1` - **ID**: `cpt-taskflow-constraint-platforms`
+- [ ] `p1` - **ID**: `cpt-ex-task-flow-constraint-platforms`
 
 
 Must run on Node.js 18+. PostgreSQL 14+ required for JSONB support. Browser support: last 2 versions of Chrome, Firefox, Safari, Edge.
@@ -166,7 +166,7 @@ graph LR
 #### API Server
 
 
-- [ ] `p1` - **ID**: `cpt-taskflow-component-api-server`
+- [ ] `p1` - **ID**: `cpt-ex-task-flow-component-api-server`
 
 
 - Responsibilities: Handle HTTP requests, enforce authorization, coordinate business logic
@@ -203,7 +203,7 @@ None.
 #### Create Task Flow
 
 
-- [ ] `p1` - **ID**: `cpt-taskflow-seq-create-task`
+- [ ] `p1` - **ID**: `cpt-ex-task-flow-seq-create-task`
 
 
 ```mermaid
@@ -230,7 +230,7 @@ Lead or member creates task via REST API. Server validates input, inserts into d
 #### Table tasks
 
 
-- [ ] `p1` - **ID**: `cpt-taskflow-dbtable-tasks`
+- [ ] `p1` - **ID**: `cpt-ex-task-flow-dbtable-tasks`
 
 Schema
 
@@ -261,7 +261,7 @@ Example
 ### 3.6: Topology (optional)
 
 
-- [ ] **ID**: `cpt-taskflow-topology-local`
+- [ ] **ID**: `cpt-ex-task-flow-topology-local`
 
 
 Local development: React SPA (port 3000) + API server (port 4000) + PostgreSQL (port 5432) + Redis (port 6379) on single machine. Production: Kubernetes deployment with horizontal scaling of API pods.

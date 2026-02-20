@@ -469,6 +469,8 @@ def validate_artifact_file(
 
     allowed_defs = {c.kind.strip().lower() for c in (constraints.defined_id or [])}
     constraint_by_kind = {c.kind.strip().lower(): c for c in (constraints.defined_id or []) if isinstance(getattr(c, "kind", None), str)}
+    # All known kind tokens for system boundary detection.
+    _all_kind_tokens: set[str] = set(allowed_defs)
 
     def _id_kind_hint(c: Optional[IdConstraint]) -> str:
         if c is None:
@@ -518,6 +520,19 @@ def validate_artifact_file(
         if matched is not None:
             return matched
         if not systems_set:
+            # No registered systems (kit examples) — use kind tokens to
+            # find the system boundary.  Prefer the RIGHTMOST kind-token
+            # split (longest system) so that system names containing kind
+            # tokens (e.g. "task-flow" with kind "flow") are not truncated.
+            remainder = cpt[4:]  # strip "cpt-"
+            best_pos: Optional[int] = None
+            for kt in _all_kind_tokens:
+                marker = f"-{kt}-"
+                idx = remainder.find(marker)
+                if idx > 0 and (best_pos is None or idx > best_pos):
+                    best_pos = idx
+            if best_pos is not None:
+                return remainder[:best_pos].lower()
             parts = cpt.split("-")
             return parts[1].lower() if len(parts) >= 3 else None
         return None
@@ -788,10 +803,34 @@ def cross_validate_artifacts(
     if registered_systems is not None:
         systems_set = {str(s).lower() for s in registered_systems}
 
+    # Collect ALL known kind tokens across all artifact constraints for
+    # system boundary detection when no registered systems are available.
+    _cross_all_kind_tokens: set[str] = set()
+    for _c in constraints_by_artifact_kind.values():
+        for _ic in (getattr(_c, "defined_id", None) or []):
+            _k = str(getattr(_ic, "kind", "") or "").strip().lower()
+            if _k:
+                _cross_all_kind_tokens.add(_k)
+        for _ic in (getattr(_c, "referenced_id", None) or []):
+            _k = str(getattr(_ic, "kind", "") or "").strip().lower()
+            if _k:
+                _cross_all_kind_tokens.add(_k)
+
     def match_system_from_id(cpt: str) -> Optional[str]:
         if not cpt.lower().startswith("cpt-"):
             return None
         if not systems_set:
+            # No registered systems — use rightmost kind-token split
+            # (longest system) to handle system names containing kind tokens.
+            remainder = cpt[4:]  # strip "cpt-"
+            best_pos: Optional[int] = None
+            for kt in _cross_all_kind_tokens:
+                marker = f"-{kt}-"
+                idx = remainder.find(marker)
+                if idx > 0 and (best_pos is None or idx > best_pos):
+                    best_pos = idx
+            if best_pos is not None:
+                return remainder[:best_pos].lower()
             parts = cpt.split("-")
             return parts[1].lower() if len(parts) >= 3 else None
         matched: Optional[str] = None

@@ -70,7 +70,7 @@ The system focuses on simplicity and speed, allowing teams to manage their daily
 #### Team Member
 
 
-**ID**: `cpt-taskflow-actor-member`
+**ID**: `cpt-ex-task-flow-actor-member`
 
 
 **Role**: Creates tasks, updates progress, and collaborates on assignments.
@@ -82,7 +82,7 @@ The system focuses on simplicity and speed, allowing teams to manage their daily
 #### Team Lead
 
 
-**ID**: `cpt-taskflow-actor-lead`
+**ID**: `cpt-ex-task-flow-actor-lead`
 
 
 **Role**: Assigns tasks, sets priorities, and monitors team workload.
@@ -97,7 +97,7 @@ The system focuses on simplicity and speed, allowing teams to manage their daily
 #### Notification Service
 
 
-**ID**: `cpt-taskflow-actor-notifier`
+**ID**: `cpt-ex-task-flow-actor-notifier`
 
 
 **Role**: Sends alerts for due dates, assignments, and status changes.
@@ -130,7 +130,7 @@ None.
 ### FR-001 Task Management
 
 
-- [ ] `p1` - **ID**: `cpt-taskflow-fr-task-management`
+- [ ] `p1` - **ID**: `cpt-ex-task-flow-fr-task-management`
 
 
 The system MUST allow creating, editing, and deleting tasks. The system MUST allow assigning tasks to team members. The system MUST allow setting due dates and priorities. Tasks should support rich text descriptions and file attachments.
@@ -138,7 +138,7 @@ The system MUST allow creating, editing, and deleting tasks. The system MUST all
 
 **Actors**:
 
-`cpt-taskflow-actor-member`, `cpt-taskflow-actor-lead`
+`cpt-ex-task-flow-actor-member`, `cpt-ex-task-flow-actor-lead`
 
 
 
@@ -147,7 +147,7 @@ The system MUST allow creating, editing, and deleting tasks. The system MUST all
 ### FR-002 Notifications
 
 
-- [ ] `p1` - **ID**: `cpt-taskflow-fr-notifications`
+- [ ] `p1` - **ID**: `cpt-ex-task-flow-fr-notifications`
 
 
 The system MUST send push notifications for task assignments. The system MUST send alerts for overdue tasks. Notifications should be configurable per user to allow opting out of certain notification types.
@@ -155,7 +155,7 @@ The system MUST send push notifications for task assignments. The system MUST se
 
 **Actors**:
 
-`cpt-taskflow-actor-notifier`, `cpt-taskflow-actor-member`
+`cpt-ex-task-flow-actor-notifier`, `cpt-ex-task-flow-actor-member`
 
 
 
@@ -170,7 +170,7 @@ The system MUST send push notifications for task assignments. The system MUST se
 #### Security
 
 
-- [ ] `p1` - **ID**: `cpt-taskflow-nfr-security`
+- [ ] `p1` - **ID**: `cpt-ex-task-flow-nfr-security`
 
 
 - Authentication MUST be required for all user actions
@@ -184,7 +184,7 @@ The system MUST send push notifications for task assignments. The system MUST se
 #### Performance
 
 
-- [ ] `p2` - **ID**: `cpt-taskflow-nfr-performance`
+- [ ] `p2` - **ID**: `cpt-ex-task-flow-nfr-performance`
 
 
 - Task list SHOULD load within 500ms for teams under 100 tasks
@@ -220,11 +220,11 @@ None.
 
 ### UC-001 Create and Assign Task
 
-**ID**: `cpt-taskflow-usecase-create-task`
+**ID**: `cpt-ex-task-flow-usecase-create-task`
 
 **Actors**:
 
-`cpt-taskflow-actor-lead`
+`cpt-ex-task-flow-actor-lead`
 
 **Preconditions**: User is authenticated and has team lead permissions.
 

@@ -5,7 +5,7 @@ date: 2026-02-16
 
 # ADR-0001: Use PostgreSQL for Task Storage
 
-**ID**: `cpt-taskflow-adr-postgres-storage`
+**ID**: `cpt-ex-task-flow-adr-postgres-storage`
 
 ## Context and Problem Statement
 
@@ -74,8 +74,8 @@ Confirmed when:
 
 ## More Information
 
-- [`cpt-taskflow-fr-task-management`](../PRD.md) — Primary requirement for task storage
-- [`cpt-taskflow-feature-task-crud`](../specs/task-crud/DESIGN.md) — Spec implementing task persistence
+- [`cpt-ex-task-flow-fr-task-management`](../PRD.md) — Primary requirement for task storage
+- [`cpt-ex-task-flow-feature-task-crud`](../specs/task-crud/DESIGN.md) — Spec implementing task persistence
 
 
 
