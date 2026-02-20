@@ -237,8 +237,8 @@
         "template": "cpt-{system}-actor-{slug}",
         "examples": [
           "cpt-cypilot-actor-ai-assistant",
-          "cpt-overwork-alert-actor-user",
-          "cpt-overwork-alert-actor-macos"
+          "cpt-ex-ovwa-actor-user",
+          "cpt-ex-ovwa-actor-macos"
         ],
         "required": false,
         "task": "prohibited",
@@ -254,8 +254,8 @@
         "template": "cpt-{system}-fr-{slug}",
         "examples": [
           "cpt-cypilot-fr-validation",
-          "cpt-overwork-alert-fr-track-active-time",
-          "cpt-overwork-alert-fr-cli-controls"
+          "cpt-ex-ovwa-fr-track-active-time",
+          "cpt-ex-ovwa-fr-cli-controls"
         ],
         "required": true,
         "task": "allowed",
@@ -290,8 +290,8 @@
         "template": "cpt-{system}-nfr-{slug}",
         "examples": [
           "cpt-cypilot-nfr-validation-performance",
-          "cpt-overwork-alert-nfr-privacy-local-only",
-          "cpt-overwork-alert-nfr-low-overhead"
+          "cpt-ex-ovwa-nfr-privacy-local-only",
+          "cpt-ex-ovwa-nfr-low-overhead"
         ],
         "required": true,
         "task": "allowed",
@@ -325,9 +325,9 @@
         "description": "An end-to-end interaction scenario (actor + goal + flow) that clarifies behavior beyond individual requirements.",
         "template": "cpt-{system}-usecase-{slug}",
         "examples": [
-          "cpt-overwork-alert-usecase-run-and-alert",
-          "cpt-overwork-alert-usecase-configure-limit",
-          "cpt-overwork-alert-usecase-control-session"
+          "cpt-ex-ovwa-usecase-run-and-alert",
+          "cpt-ex-ovwa-usecase-configure-limit",
+          "cpt-ex-ovwa-usecase-control-session"
         ],
         "required": true,
         "task": "allowed",
@@ -356,8 +356,8 @@
         "template": "cpt-{system}-interface-{slug}",
         "examples": [
           "cpt-cypilot-interface-cli-json",
-          "cpt-overwork-alert-interface-cli",
-          "cpt-overwork-alert-interface-ipc-protocol"
+          "cpt-ex-ovwa-interface-cli",
+          "cpt-ex-ovwa-interface-ipc-protocol"
         ],
         "required": false,
         "task": "allowed",
@@ -379,8 +379,8 @@
         "description": "An external integration contract (data format/protocol/compatibility expectations) with another system.",
         "template": "cpt-{system}-contract-{slug}",
         "examples": [
-          "cpt-overwork-alert-contract-macos-notification-center",
-          "cpt-overwork-alert-contract-launchd",
+          "cpt-ex-ovwa-contract-macos-notification-center",
+          "cpt-ex-ovwa-contract-launchd",
           "cpt-cypilot-contract-openai-api"
         ],
         "required": false,
@@ -511,7 +511,7 @@
         "template": "cpt-{system}-adr-{slug}",
         "examples": [
           "cpt-cypilot-adr-template-centric-architecture",
-          "cpt-overwork-alert-adr-cli-daemon-launchagent",
+          "cpt-ex-ovwa-adr-cli-daemon-launchagent",
           "cpt-cypilot-adr-markdown-contract"
         ],
         "required": true,
@@ -709,7 +709,7 @@
         "examples": [
           "cpt-cypilot-design-core-architecture",
           "cpt-cypilot-design-validation-pipeline",
-          "cpt-overwork-alert-design-cli-daemon"
+          "cpt-ex-ovwa-design-cli-daemon"
         ],
         "required": false,
         "task": "allowed",
@@ -796,7 +796,7 @@
         "examples": [
           "cpt-cypilot-component-cypilot-skill",
           "cpt-cypilot-component-validator",
-          "cpt-overwork-alert-component-daemon"
+          "cpt-ex-ovwa-component-daemon"
         ],
         "required": true,
         "task": "allowed",
@@ -822,8 +822,8 @@
         "template": "cpt-{system}-interface-{slug}",
         "examples": [
           "cpt-cypilot-interface-cli-json",
-          "cpt-overwork-alert-interface-cli",
-          "cpt-overwork-alert-interface-ipc-protocol"
+          "cpt-ex-ovwa-interface-cli",
+          "cpt-ex-ovwa-interface-ipc-protocol"
         ],
         "required": false,
         "task": "allowed",
@@ -844,7 +844,7 @@
         "examples": [
           "cpt-cypilot-seq-validate-overall-design",
           "cpt-cypilot-seq-traceability-query",
-          "cpt-overwork-alert-seq-cli-to-daemon"
+          "cpt-ex-ovwa-seq-cli-to-daemon"
         ],
         "required": true,
         "task": "allowed",
@@ -865,7 +865,7 @@
         "examples": [
           "cpt-cypilot-db-sqlite",
           "cpt-cypilot-db-postgres",
-          "cpt-overwork-alert-db-local"
+          "cpt-ex-ovwa-db-local"
         ],
         "required": false,
         "task": "allowed",
@@ -893,7 +893,7 @@
           "cpt-cypilot-dbtable-na",
           "cpt-cypilot-dbtable-artifacts",
           "cpt-cypilot-dbtable-systems",
-          "cpt-overwork-alert-dbtable-config"
+          "cpt-ex-ovwa-dbtable-config"
         ],
         "required": false,
         "task": "allowed",
@@ -920,7 +920,7 @@
         "examples": [
           "cpt-cypilot-topology-single-process",
           "cpt-cypilot-topology-cli-daemon",
-          "cpt-overwork-alert-topology-launchagent"
+          "cpt-ex-ovwa-topology-launchagent"
         ],
         "required": false,
         "task": "allowed",
@@ -1014,7 +1014,7 @@
         "template": "cpt-{system}-status-overall",
         "examples": [
           "cpt-cypilot-status-overall",
-          "cpt-overwork-alert-status-overall",
+          "cpt-ex-ovwa-status-overall",
           "cpt-cypilot-status-overall"
         ],
         "required": false,
@@ -1032,7 +1032,7 @@
         "examples": [
           "cpt-cypilot-feature-template-system",
           "cpt-cypilot-feature-adapter-system",
-          "cpt-overwork-alert-feature-tracker-core"
+          "cpt-ex-ovwa-feature-tracker-core"
         ],
         "required": true,
         "task": "allowed",
@@ -1198,7 +1198,7 @@
         "template": "cpt-{system}-featstatus-{feature-slug}",
         "examples": [
           "cpt-cypilot-featstatus-template-system",
-          "cpt-overwork-alert-featstatus-tracker-core",
+          "cpt-ex-ovwa-featstatus-tracker-core",
           "cpt-todo-app-featstatus-task-storage-foundation"
         ],
         "required": true,
@@ -1223,7 +1223,7 @@
         "examples": [
           "cpt-cypilot-flow-template-system-load",
           "cpt-cypilot-flow-template-system-validate",
-          "cpt-overwork-alert-flow-run-tracker"
+          "cpt-ex-ovwa-flow-run-tracker"
         ],
         "required": false,
         "task": "allowed",
@@ -1244,7 +1244,7 @@
         "examples": [
           "cpt-cypilot-algo-template-system-extract-ids",
           "cpt-cypilot-algo-methodology-core-apply-constraints",
-          "cpt-overwork-alert-algo-track-active-time"
+          "cpt-ex-ovwa-algo-track-active-time"
         ],
         "required": false,
         "task": "allowed",
@@ -1265,7 +1265,7 @@
         "examples": [
           "cpt-cypilot-state-template-system-lifecycle",
           "cpt-cypilot-state-methodology-core-validation-outcome",
-          "cpt-overwork-alert-state-daemon-lifecycle"
+          "cpt-ex-ovwa-state-daemon-lifecycle"
         ],
         "required": false,
         "task": "allowed",
@@ -1286,7 +1286,7 @@
         "examples": [
           "cpt-cypilot-dod-template-system-validation",
           "cpt-cypilot-dod-methodology-core",
-          "cpt-overwork-alert-dod-launchagent-autostart"
+          "cpt-ex-ovwa-dod-launchagent-autostart"
         ],
         "required": true,
         "task": "required",

@@ -491,7 +491,7 @@ def run_self_check_from_meta(
                     artifact_path=example_path,
                     artifact_kind=str(kind),
                     constraints=constraints_for_kind,
-                    registered_systems=artifacts_meta.get_all_system_prefixes(),
+                    registered_systems=None,
                     constraints_path=constraints_path,
                     kit_id=str(kit_id),
                 )

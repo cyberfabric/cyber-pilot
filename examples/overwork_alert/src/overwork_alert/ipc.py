@@ -37,7 +37,7 @@ def _read_all(rfile) -> bytes:
 class _ControlHandler(socketserver.StreamRequestHandler):
     """Socket handler for a single request/response."""
 
-    # @cpt-state:cpt-overwork-alert-state-cli-control-request-lifecycle:p1
+    # @cpt-state:cpt-ex-ovwa-state-cli-control-request-lifecycle:p1
     def handle(self) -> None:
         raw = _read_all(self.rfile)
         try:
@@ -55,16 +55,16 @@ class _ControlHandler(socketserver.StreamRequestHandler):
             self.wfile.write(json.dumps({"ok": False, "error": "invalid_command"}).encode("utf-8"))
             return
 
-        # @cpt-begin:cpt-overwork-alert-state-cli-control-request-lifecycle:p1:inst-transition-validated
+        # @cpt-begin:cpt-ex-ovwa-state-cli-control-request-lifecycle:p1:inst-transition-validated
         req = ControlRequest(cmd=cmd)
-        # @cpt-end:cpt-overwork-alert-state-cli-control-request-lifecycle:p1:inst-transition-validated
+        # @cpt-end:cpt-ex-ovwa-state-cli-control-request-lifecycle:p1:inst-transition-validated
 
         handler: Callable[[ControlRequest], dict[str, Any]] = self.server.request_handler  # type: ignore[attr-defined]
         resp = handler(req)
 
-        # @cpt-begin:cpt-overwork-alert-state-cli-control-request-lifecycle:p1:inst-transition-responded
+        # @cpt-begin:cpt-ex-ovwa-state-cli-control-request-lifecycle:p1:inst-transition-responded
         self.wfile.write(json.dumps(resp).encode("utf-8"))
-        # @cpt-end:cpt-overwork-alert-state-cli-control-request-lifecycle:p1:inst-transition-responded
+        # @cpt-end:cpt-ex-ovwa-state-cli-control-request-lifecycle:p1:inst-transition-responded
 
 
 class _ThreadingUnixStreamServer(socketserver.ThreadingMixIn, socketserver.UnixStreamServer):

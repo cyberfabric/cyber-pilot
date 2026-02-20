@@ -697,18 +697,19 @@ class ArtifactsMeta:
                             child_node.codebase.append(dc)
 
                         # Detect system slug from artifact IDs (autodetect only).
-                        # Strategy: for each definition ID, extract all possible slug
-                        # candidates (one per matching kind token).  IDs where exactly
-                        # one candidate is found are "unambiguous" — they determine the
-                        # slug.  IDs with multiple candidates (kind token collides with
-                        # system slug) are skipped.
+                        # Strategy: extract the full system prefix from each ID
+                        # (everything between `cpt-` and the first kind-token marker).
+                        # All IDs must agree on the same system prefix — if they
+                        # don't, report the distinct systems found.
                         if get_id_kind_tokens is not None:
                             _kit_id = rule.kit or node.kit
                             _kind_tokens = get_id_kind_tokens(str(_kit_id))
                             if _kind_tokens:
                                 _parent_prefix = node.get_hierarchy_prefix()
-                                _unambiguous_slugs: Set[str] = set()
+                                _full_systems: Set[str] = set()
                                 _has_ids = False
+                                # Collect all definition IDs for this child system.
+                                _all_def_ids: List[str] = []
                                 for _art in child_node.artifacts:
                                     _art_abs = _resolve_path(_art.path)
                                     try:
@@ -717,27 +718,82 @@ class ArtifactsMeta:
                                             if _h.get("type") != "definition" or not _h.get("id"):
                                                 continue
                                             _has_ids = True
-                                            _candidates = extract_system_slug_candidates(
-                                                str(_h["id"]), _parent_prefix, _kind_tokens,
-                                            )
-                                            if len(_candidates) == 1:
-                                                _unambiguous_slugs.add(_candidates[0])
+                                            _all_def_ids.append(str(_h["id"]))
                                     except Exception:
                                         continue
-                                if len(_unambiguous_slugs) == 1:
-                                    new_slug = _unambiguous_slugs.pop()
-                                    if new_slug != child_node.slug:
-                                        child_node.slug = new_slug
-                                elif len(_unambiguous_slugs) > 1:
-                                    errors.append(
-                                        f"Inconsistent system slugs in IDs: system={child_node.name} "
-                                        f"folder_slug={child_node.slug} detected_slugs={sorted(_unambiguous_slugs)}"
+                                # Pass 1: extract child slug using parent_prefix context.
+                                # This correctly handles system names that collide with
+                                # kind tokens (e.g. system="fr" with kind token "fr").
+                                _child_slugs: Set[str] = set()
+                                for _cid in _all_def_ids:
+                                    _candidates = extract_system_slug_candidates(
+                                        _cid, _parent_prefix, _kind_tokens,
                                     )
+                                    if len(_candidates) == 1:
+                                        _child_slugs.add(_candidates[0])
+                                _prefix_info = f" parent_prefix={_parent_prefix}" if _parent_prefix else ""
+                                if _child_slugs:
+                                    # Pass 1 found candidates. Now verify ALL IDs
+                                    # agree on the same full system (catches mixed
+                                    # prefix/no-prefix IDs).
+                                    for _cid in _all_def_ids:
+                                        _candidates = extract_system_slug_candidates(
+                                            _cid, "", _kind_tokens,
+                                        )
+                                        if len(_candidates) == 1:
+                                            _full_systems.add(_candidates[0])
+                                    if len(_full_systems) > 1:
+                                        errors.append(
+                                            f"Inconsistent systems in IDs: system={child_node.name} "
+                                            f"folder_slug={child_node.slug}{_prefix_info} — "
+                                            f"IDs use different system prefixes: {sorted(_full_systems)}"
+                                        )
+                                    elif len(_child_slugs) == 1:
+                                        new_slug = next(iter(_child_slugs))
+                                        if new_slug != child_node.slug:
+                                            child_node.slug = new_slug
+                                    else:
+                                        errors.append(
+                                            f"Inconsistent systems in IDs: system={child_node.name} "
+                                            f"folder_slug={child_node.slug}{_prefix_info} — "
+                                            f"IDs use different system slugs: {sorted(_child_slugs)}"
+                                        )
                                 elif _has_ids:
-                                    errors.append(
-                                        f"Cannot determine system slug from IDs: system={child_node.name} "
-                                        f"folder_slug={child_node.slug} — all IDs have ambiguous kind-token splits"
-                                    )
+                                    # Pass 2 (diagnostics): no ID matched parent_prefix.
+                                    # Extract full system (without parent_prefix) to
+                                    # produce a clear error message.
+                                    for _cid in _all_def_ids:
+                                        _candidates = extract_system_slug_candidates(
+                                            _cid, "", _kind_tokens,
+                                        )
+                                        if len(_candidates) == 1:
+                                            _full_systems.add(_candidates[0])
+                                    if len(_full_systems) > 1:
+                                        errors.append(
+                                            f"Inconsistent systems in IDs: system={child_node.name} "
+                                            f"folder_slug={child_node.slug}{_prefix_info} — "
+                                            f"IDs use different system prefixes: {sorted(_full_systems)}"
+                                        )
+                                    elif len(_full_systems) == 1:
+                                        _full_sys = next(iter(_full_systems))
+                                        if _parent_prefix:
+                                            errors.append(
+                                                f"IDs missing parent prefix: system={child_node.name} "
+                                                f"folder_slug={child_node.slug}{_prefix_info} — "
+                                                f"all IDs use system `{_full_sys}` which does not start with `{_parent_prefix}-`"
+                                            )
+                                        else:
+                                            # No parent prefix and pass 1 failed — shouldn't
+                                            # happen, but treat as success.
+                                            new_slug = _full_sys
+                                            if new_slug != child_node.slug:
+                                                child_node.slug = new_slug
+                                    else:
+                                        errors.append(
+                                            f"Cannot determine system from IDs: system={child_node.name} "
+                                            f"folder_slug={child_node.slug}{_prefix_info} — "
+                                            f"no ID has an unambiguous kind-token marker"
+                                        )
 
                         # Expand grandchildren immediately with correct parent_root.
                         inherited_for_grandchildren = [(cr, system_root_str) for cr in (child_rules or [])]
@@ -933,18 +989,18 @@ def _join_path(base: str, tail: str) -> str:
 
 
 def extract_system_slug_candidates(cpt_id: str, parent_prefix: str, kind_tokens: Set[str]) -> List[str]:
-    """Extract all possible system slug candidates from a cpt ID.
+    """Extract system slug candidates from a cpt ID.
 
-    Tries every known kind token as a split point and returns all non-empty
-    slug candidates.  When the kind token appears more than once in the ID
-    (e.g. system slug contains the same word as a kind token), multiple
-    candidates are returned — the caller must disambiguate.
+    Scans left-to-right for the first ``-{kind}-`` marker among *kind_tokens*.
+    IDs that contain more than one distinct kind token are considered ambiguous
+    and discarded (returns ``[]``).
 
     ID format: cpt-{parent_prefix}-{system_slug}-{kind}-{rest}
     or if no parent prefix: cpt-{system_slug}-{kind}-{rest}
 
     Returns:
-        List of unique slug candidates (may be empty).
+        A single-element list ``[slug]`` when exactly one kind token is found,
+        or ``[]`` when the ID is ambiguous or contains no kind token.
     """
     if not cpt_id.startswith("cpt-"):
         return []
@@ -955,22 +1011,22 @@ def extract_system_slug_candidates(cpt_id: str, parent_prefix: str, kind_tokens:
             return []
         remainder = remainder[len(expected):]
     # remainder: {system_slug}-{kind}-{rest}
-    candidates: List[str] = []
-    seen: Set[str] = set()
+    # 1. Find ALL kind tokens that appear as `-{kind}-` anywhere in remainder.
+    matched_kinds: Set[str] = set()
+    first_pos: Optional[int] = None
     for kind in kind_tokens:
         marker = f"-{kind}-"
-        start = 0
-        while True:
-            idx = remainder.find(marker, start)
-            if idx < 0:
-                break
-            if idx > 0:
-                slug = remainder[:idx]
-                if slug not in seen:
-                    seen.add(slug)
-                    candidates.append(slug)
-            start = idx + 1
-    return candidates
+        idx = remainder.find(marker)
+        if idx < 0:
+            continue
+        matched_kinds.add(kind)
+        if first_pos is None or idx < first_pos:
+            first_pos = idx
+    # 2. Discard if zero or more than one distinct kind token matched.
+    if len(matched_kinds) != 1 or first_pos is None or first_pos == 0:
+        return []
+    slug = remainder[:first_pos]
+    return [slug]
 
 
 def generate_slug(name: str) -> str:

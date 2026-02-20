@@ -24,7 +24,7 @@ def _load_socket_path(config_path: Path) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     """Run the CLI. Returns a process exit code."""
-    # @cpt-dod:cpt-overwork-alert-dod-cli-control-reset-and-controls:p1
+    # @cpt-dod:cpt-ex-ovwa-dod-cli-control-reset-and-controls:p1
     parser = argparse.ArgumentParser(prog="overwork-alert")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
@@ -51,16 +51,16 @@ def main(argv: list[str] | None = None) -> int:
         src_dir = Path(__file__).resolve().parents[1]
         try:
             if args.cmd == "install-autostart":
-                # @cpt-flow:cpt-overwork-alert-flow-launchagent-autostart-install:p1
-                # @cpt-begin:cpt-overwork-alert-flow-launchagent-autostart-install:p1:inst-run-install
+                # @cpt-flow:cpt-ex-ovwa-flow-launchagent-autostart-install:p1
+                # @cpt-begin:cpt-ex-ovwa-flow-launchagent-autostart-install:p1:inst-run-install
                 install_autostart(src_dir=src_dir)
-                # @cpt-end:cpt-overwork-alert-flow-launchagent-autostart-install:p1:inst-run-install
+                # @cpt-end:cpt-ex-ovwa-flow-launchagent-autostart-install:p1:inst-run-install
                 print("Autostart installed")
             else:
-                # @cpt-flow:cpt-overwork-alert-flow-launchagent-autostart-uninstall:p1
-                # @cpt-begin:cpt-overwork-alert-flow-launchagent-autostart-uninstall:p1:inst-run-uninstall
+                # @cpt-flow:cpt-ex-ovwa-flow-launchagent-autostart-uninstall:p1
+                # @cpt-begin:cpt-ex-ovwa-flow-launchagent-autostart-uninstall:p1:inst-run-uninstall
                 uninstall_autostart()
-                # @cpt-end:cpt-overwork-alert-flow-launchagent-autostart-uninstall:p1:inst-run-uninstall
+                # @cpt-end:cpt-ex-ovwa-flow-launchagent-autostart-uninstall:p1:inst-run-uninstall
                 print("Autostart uninstalled")
             return 0
         except Exception as e:
@@ -71,115 +71,115 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         if args.cmd == "status":
-            # @cpt-flow:cpt-overwork-alert-flow-cli-control-status:p1
-            # @cpt-begin:cpt-overwork-alert-flow-cli-control-status:p1:inst-run-status
+            # @cpt-flow:cpt-ex-ovwa-flow-cli-control-status:p1
+            # @cpt-begin:cpt-ex-ovwa-flow-cli-control-status:p1:inst-run-status
             payload = {"cmd": "status"}
-            # @cpt-end:cpt-overwork-alert-flow-cli-control-status:p1:inst-run-status
+            # @cpt-end:cpt-ex-ovwa-flow-cli-control-status:p1:inst-run-status
         elif args.cmd == "pause":
-            # @cpt-flow:cpt-overwork-alert-flow-cli-control-pause:p1
-            # @cpt-begin:cpt-overwork-alert-flow-cli-control-pause:p1:inst-run-pause
+            # @cpt-flow:cpt-ex-ovwa-flow-cli-control-pause:p1
+            # @cpt-begin:cpt-ex-ovwa-flow-cli-control-pause:p1:inst-run-pause
             payload = {"cmd": "pause"}
-            # @cpt-end:cpt-overwork-alert-flow-cli-control-pause:p1:inst-run-pause
+            # @cpt-end:cpt-ex-ovwa-flow-cli-control-pause:p1:inst-run-pause
         elif args.cmd == "resume":
-            # @cpt-flow:cpt-overwork-alert-flow-cli-control-resume:p1
-            # @cpt-begin:cpt-overwork-alert-flow-cli-control-resume:p1:inst-run-resume
+            # @cpt-flow:cpt-ex-ovwa-flow-cli-control-resume:p1
+            # @cpt-begin:cpt-ex-ovwa-flow-cli-control-resume:p1:inst-run-resume
             payload = {"cmd": "resume"}
-            # @cpt-end:cpt-overwork-alert-flow-cli-control-resume:p1:inst-run-resume
+            # @cpt-end:cpt-ex-ovwa-flow-cli-control-resume:p1:inst-run-resume
         elif args.cmd == "reset":
-            # @cpt-flow:cpt-overwork-alert-flow-cli-control-reset:p1
-            # @cpt-begin:cpt-overwork-alert-flow-cli-control-reset:p1:inst-run-reset
+            # @cpt-flow:cpt-ex-ovwa-flow-cli-control-reset:p1
+            # @cpt-begin:cpt-ex-ovwa-flow-cli-control-reset:p1:inst-run-reset
             payload = {"cmd": "reset"}
-            # @cpt-end:cpt-overwork-alert-flow-cli-control-reset:p1:inst-run-reset
+            # @cpt-end:cpt-ex-ovwa-flow-cli-control-reset:p1:inst-run-reset
         elif args.cmd == "stop":
-            # @cpt-flow:cpt-overwork-alert-flow-cli-control-stop:p1
-            # @cpt-begin:cpt-overwork-alert-flow-cli-control-stop:p1:inst-run-stop
+            # @cpt-flow:cpt-ex-ovwa-flow-cli-control-stop:p1
+            # @cpt-begin:cpt-ex-ovwa-flow-cli-control-stop:p1:inst-run-stop
             payload = {"cmd": "stop"}
-            # @cpt-end:cpt-overwork-alert-flow-cli-control-stop:p1:inst-run-stop
+            # @cpt-end:cpt-ex-ovwa-flow-cli-control-stop:p1:inst-run-stop
         else:
             payload = {"cmd": args.cmd}
 
         if args.cmd == "status":
-            # @cpt-begin:cpt-overwork-alert-flow-cli-control-status:p1:inst-send-status-request
+            # @cpt-begin:cpt-ex-ovwa-flow-cli-control-status:p1:inst-send-status-request
             resp = send_request(socket_path=socket_path, payload=payload, timeout_seconds=2.0)
-            # @cpt-end:cpt-overwork-alert-flow-cli-control-status:p1:inst-send-status-request
+            # @cpt-end:cpt-ex-ovwa-flow-cli-control-status:p1:inst-send-status-request
         elif args.cmd == "pause":
-            # @cpt-begin:cpt-overwork-alert-flow-cli-control-pause:p1:inst-send-pause-request
+            # @cpt-begin:cpt-ex-ovwa-flow-cli-control-pause:p1:inst-send-pause-request
             resp = send_request(socket_path=socket_path, payload=payload, timeout_seconds=2.0)
-            # @cpt-end:cpt-overwork-alert-flow-cli-control-pause:p1:inst-send-pause-request
+            # @cpt-end:cpt-ex-ovwa-flow-cli-control-pause:p1:inst-send-pause-request
         elif args.cmd == "resume":
-            # @cpt-begin:cpt-overwork-alert-flow-cli-control-resume:p1:inst-send-resume-request
+            # @cpt-begin:cpt-ex-ovwa-flow-cli-control-resume:p1:inst-send-resume-request
             resp = send_request(socket_path=socket_path, payload=payload, timeout_seconds=2.0)
-            # @cpt-end:cpt-overwork-alert-flow-cli-control-resume:p1:inst-send-resume-request
+            # @cpt-end:cpt-ex-ovwa-flow-cli-control-resume:p1:inst-send-resume-request
         elif args.cmd == "reset":
-            # @cpt-begin:cpt-overwork-alert-flow-cli-control-reset:p1:inst-send-reset-request
+            # @cpt-begin:cpt-ex-ovwa-flow-cli-control-reset:p1:inst-send-reset-request
             resp = send_request(socket_path=socket_path, payload=payload, timeout_seconds=2.0)
-            # @cpt-end:cpt-overwork-alert-flow-cli-control-reset:p1:inst-send-reset-request
+            # @cpt-end:cpt-ex-ovwa-flow-cli-control-reset:p1:inst-send-reset-request
         elif args.cmd == "stop":
-            # @cpt-begin:cpt-overwork-alert-flow-cli-control-stop:p1:inst-send-stop-request
+            # @cpt-begin:cpt-ex-ovwa-flow-cli-control-stop:p1:inst-send-stop-request
             resp = send_request(socket_path=socket_path, payload=payload, timeout_seconds=2.0)
-            # @cpt-end:cpt-overwork-alert-flow-cli-control-stop:p1:inst-send-stop-request
+            # @cpt-end:cpt-ex-ovwa-flow-cli-control-stop:p1:inst-send-stop-request
         else:
             resp = send_request(socket_path=socket_path, payload=payload, timeout_seconds=2.0)
     except ControlChannelError as e:
         if args.cmd == "status":
-            # @cpt-begin:cpt-overwork-alert-flow-cli-control-status:p1:inst-status-daemon-unreachable
+            # @cpt-begin:cpt-ex-ovwa-flow-cli-control-status:p1:inst-status-daemon-unreachable
             print(str(e), file=sys.stderr)
-            # @cpt-end:cpt-overwork-alert-flow-cli-control-status:p1:inst-status-daemon-unreachable
+            # @cpt-end:cpt-ex-ovwa-flow-cli-control-status:p1:inst-status-daemon-unreachable
             return 2
         if args.cmd == "reset":
-            # @cpt-begin:cpt-overwork-alert-flow-cli-control-reset:p1:inst-reset-daemon-unreachable
+            # @cpt-begin:cpt-ex-ovwa-flow-cli-control-reset:p1:inst-reset-daemon-unreachable
             print(str(e), file=sys.stderr)
-            # @cpt-end:cpt-overwork-alert-flow-cli-control-reset:p1:inst-reset-daemon-unreachable
+            # @cpt-end:cpt-ex-ovwa-flow-cli-control-reset:p1:inst-reset-daemon-unreachable
             return 2
         if args.cmd == "pause":
-            # @cpt-begin:cpt-overwork-alert-flow-cli-control-pause:p1:inst-pause-daemon-unreachable
+            # @cpt-begin:cpt-ex-ovwa-flow-cli-control-pause:p1:inst-pause-daemon-unreachable
             print(str(e), file=sys.stderr)
-            # @cpt-end:cpt-overwork-alert-flow-cli-control-pause:p1:inst-pause-daemon-unreachable
+            # @cpt-end:cpt-ex-ovwa-flow-cli-control-pause:p1:inst-pause-daemon-unreachable
             return 2
         if args.cmd == "resume":
-            # @cpt-begin:cpt-overwork-alert-flow-cli-control-resume:p1:inst-resume-daemon-unreachable
+            # @cpt-begin:cpt-ex-ovwa-flow-cli-control-resume:p1:inst-resume-daemon-unreachable
             print(str(e), file=sys.stderr)
-            # @cpt-end:cpt-overwork-alert-flow-cli-control-resume:p1:inst-resume-daemon-unreachable
+            # @cpt-end:cpt-ex-ovwa-flow-cli-control-resume:p1:inst-resume-daemon-unreachable
             return 2
         if args.cmd == "stop":
-            # @cpt-begin:cpt-overwork-alert-flow-cli-control-stop:p1:inst-stop-daemon-unreachable
+            # @cpt-begin:cpt-ex-ovwa-flow-cli-control-stop:p1:inst-stop-daemon-unreachable
             print(str(e), file=sys.stderr)
-            # @cpt-end:cpt-overwork-alert-flow-cli-control-stop:p1:inst-stop-daemon-unreachable
+            # @cpt-end:cpt-ex-ovwa-flow-cli-control-stop:p1:inst-stop-daemon-unreachable
             return 2
         print(str(e), file=sys.stderr)
         return 2
 
     if not resp.get("ok"):
         if args.cmd == "status":
-            # @cpt-begin:cpt-overwork-alert-flow-cli-control-status:p1:inst-status-invalid-response
+            # @cpt-begin:cpt-ex-ovwa-flow-cli-control-status:p1:inst-status-invalid-response
             print(resp.get("error", "error"), file=sys.stderr)
-            # @cpt-end:cpt-overwork-alert-flow-cli-control-status:p1:inst-status-invalid-response
+            # @cpt-end:cpt-ex-ovwa-flow-cli-control-status:p1:inst-status-invalid-response
             return 2
         print(resp.get("error", "error"), file=sys.stderr)
         return 2
 
     if args.cmd == "status":
-        # @cpt-begin:cpt-overwork-alert-flow-cli-control-status:p1:inst-print-status
+        # @cpt-begin:cpt-ex-ovwa-flow-cli-control-status:p1:inst-print-status
         state = resp.get("state")
         print(json.dumps(state, indent=2, sort_keys=True))
-        # @cpt-end:cpt-overwork-alert-flow-cli-control-status:p1:inst-print-status
+        # @cpt-end:cpt-ex-ovwa-flow-cli-control-status:p1:inst-print-status
     else:
         if args.cmd == "reset":
-            # @cpt-begin:cpt-overwork-alert-flow-cli-control-reset:p1:inst-print-confirm
+            # @cpt-begin:cpt-ex-ovwa-flow-cli-control-reset:p1:inst-print-confirm
             print("ok")
-            # @cpt-end:cpt-overwork-alert-flow-cli-control-reset:p1:inst-print-confirm
+            # @cpt-end:cpt-ex-ovwa-flow-cli-control-reset:p1:inst-print-confirm
         elif args.cmd == "pause":
-            # @cpt-begin:cpt-overwork-alert-flow-cli-control-pause:p1:inst-print-pause-confirm
+            # @cpt-begin:cpt-ex-ovwa-flow-cli-control-pause:p1:inst-print-pause-confirm
             print("ok")
-            # @cpt-end:cpt-overwork-alert-flow-cli-control-pause:p1:inst-print-pause-confirm
+            # @cpt-end:cpt-ex-ovwa-flow-cli-control-pause:p1:inst-print-pause-confirm
         elif args.cmd == "resume":
-            # @cpt-begin:cpt-overwork-alert-flow-cli-control-resume:p1:inst-print-resume-confirm
+            # @cpt-begin:cpt-ex-ovwa-flow-cli-control-resume:p1:inst-print-resume-confirm
             print("ok")
-            # @cpt-end:cpt-overwork-alert-flow-cli-control-resume:p1:inst-print-resume-confirm
+            # @cpt-end:cpt-ex-ovwa-flow-cli-control-resume:p1:inst-print-resume-confirm
         elif args.cmd == "stop":
-            # @cpt-begin:cpt-overwork-alert-flow-cli-control-stop:p1:inst-print-stop-confirm
+            # @cpt-begin:cpt-ex-ovwa-flow-cli-control-stop:p1:inst-print-stop-confirm
             print("ok")
-            # @cpt-end:cpt-overwork-alert-flow-cli-control-stop:p1:inst-print-stop-confirm
+            # @cpt-end:cpt-ex-ovwa-flow-cli-control-stop:p1:inst-print-stop-confirm
         else:
             print("ok")
 

@@ -153,6 +153,24 @@ def cmd_validate(argv: List[str]) -> int:
     if ctx_errors:
         all_errors.extend(ctx_errors)
 
+    # Registry-level errors make further checks unreliable — stop early.
+    has_registry_errors = any(str(e.get("type", "")) == "registry" for e in all_errors)
+    if has_registry_errors:
+        enrich_issues(all_errors, project_root=project_root)
+        out = {
+            "status": "FAIL",
+            "project_root": project_root.as_posix(),
+            "artifact_count": len(artifacts_to_validate),
+            "error_count": len(all_errors),
+            "warning_count": 0,
+            "errors": all_errors,
+        }
+        if args.output:
+            Path(args.output).write_text(json.dumps(out, indent=2, ensure_ascii=False), encoding="utf-8")
+        else:
+            print(json.dumps(out, indent=2, ensure_ascii=False))
+        return 2
+
     for artifact_path, _template_path, artifact_type, traceability, kit_id in artifacts_to_validate:
         constraints_for_kind = None
         loaded_kit = (ctx.kits or {}).get(str(kit_id))

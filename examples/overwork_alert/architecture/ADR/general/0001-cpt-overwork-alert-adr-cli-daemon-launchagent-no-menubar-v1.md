@@ -1,6 +1,6 @@
 # ADR-0001: Use CLI daemon + LaunchAgent (no menubar UI)
 
-**ID**: `cpt-overwork-alert-adr-cli-daemon-launchagent-no-menubar`
+**ID**: `cpt-ex-ovwa-adr-cli-daemon-launchagent-no-menubar`
 
 ## Context and Problem Statement
 
@@ -83,6 +83,6 @@ Description: Use a LaunchAgent to run a short-lived command on a schedule that c
 
 This decision directly addresses the following requirements:
 
-* `cpt-overwork-alert-fr-autostart` — Autostart requirement influenced the use of LaunchAgent.
-* `cpt-overwork-alert-fr-cli-controls` — CLI control requirements influenced the CLI/daemon approach.
+* `cpt-ex-ovwa-fr-autostart` — Autostart requirement influenced the use of LaunchAgent.
+* `cpt-ex-ovwa-fr-cli-controls` — CLI control requirements influenced the CLI/daemon approach.
 

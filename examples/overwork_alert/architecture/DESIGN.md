@@ -14,55 +14,55 @@ The system boundary is the user’s macOS session: the tool does not depend on r
 
 ##### Track active work time (idle-aware)
 
-- [x] `p1` - `cpt-overwork-alert-fr-track-active-time`
+- [x] `p1` - `cpt-ex-ovwa-fr-track-active-time`
 
 **Solution**: A daemon runs a periodic loop. Each tick reads current idle time from macOS (idle detector) and increments `active_time` only when idle is below the configured threshold and tracking is not paused.
 
 ##### Configure limit and idle threshold
 
-- [x] `p1` - `cpt-overwork-alert-fr-configurable-limit`
+- [x] `p1` - `cpt-ex-ovwa-fr-configurable-limit`
 
 **Solution**: Configuration is read from a local config file with safe defaults. The daemon loads configuration on startup and can be restarted (or later extended to support reload) to apply changes.
 
 ##### Notify when limit is exceeded and repeat reminders
 
-- [x] `p1` - `cpt-overwork-alert-fr-notify-on-limit`
+- [x] `p1` - `cpt-ex-ovwa-fr-notify-on-limit`
 
 **Solution**: The daemon transitions into an “over limit” state when `active_time > limit`. A notifier component sends a macOS notification immediately, then repeats at the configured interval while the user remains active and the session is still over limit.
 
 ##### Manual reset (no automatic reset)
 
-- [x] `p2` - `cpt-overwork-alert-fr-manual-reset`
+- [x] `p2` - `cpt-ex-ovwa-fr-manual-reset`
 
 **Solution**: The daemon exposes a control channel. The CLI sends a `reset` command, which causes the daemon to zero the in-memory accumulated `active_time` and clear over-limit reminder state.
 
 ##### Run continuously in background and support autostart
 
-- [x] `p2` - `cpt-overwork-alert-fr-autostart`
+- [x] `p2` - `cpt-ex-ovwa-fr-autostart`
 
 **Solution**: Provide LaunchAgent installation/uninstallation that starts the daemon at login. The daemon is designed as a long-running process with safe defaults and defensive error handling.
 
 ##### Provide CLI controls (status/pause/resume/reset)
 
-- [x] `p2` - `cpt-overwork-alert-fr-cli-controls`
+- [x] `p2` - `cpt-ex-ovwa-fr-cli-controls`
 
 **Solution**: A CLI provides user-facing commands and communicates with the daemon via a local-only control interface to query status and issue commands.
 
 ##### Privacy & Data Handling
 
-- [x] `p1` - `cpt-overwork-alert-nfr-privacy-local-only`
+- [x] `p1` - `cpt-ex-ovwa-nfr-privacy-local-only`
 
 **Solution**: No network I/O is performed. Only minimal local configuration and runtime control artifacts (e.g., a local socket path) are used.
 
 ##### Reliability
 
-- [x] `p2` - `cpt-overwork-alert-nfr-reliability`
+- [x] `p2` - `cpt-ex-ovwa-nfr-reliability`
 
 **Solution**: Notification failures are treated as non-fatal; tracking continues and status remains queryable via CLI. The daemon loop isolates OS integration errors so a single failed tick cannot crash the process.
 
 ##### Performance & Resource Usage
 
-- [x] `p2` - `cpt-overwork-alert-nfr-low-overhead`
+- [x] `p2` - `cpt-ex-ovwa-nfr-low-overhead`
 
 **Solution**: Use low-frequency polling (seconds-level) for idle detection and accumulation. Avoid heavyweight dependencies and avoid high-frequency sampling.
 
@@ -71,7 +71,7 @@ The system boundary is the user’s macOS session: the tool does not depend on r
 
 ##### Use CLI daemon + LaunchAgent (no menubar UI)
 
-- `cpt-overwork-alert-adr-cli-daemon-launchagent-no-menubar`
+- `cpt-ex-ovwa-adr-cli-daemon-launchagent-no-menubar`
 
 The implementation is split into a long-running daemon and a short-lived CLI. This keeps v1 small and repository-friendly, enables autostart via LaunchAgent, and avoids UI lifecycle complexity.
 
@@ -90,19 +90,19 @@ The implementation is split into a long-running daemon and a short-lived CLI. Th
 
 #### Local-only and minimal state
 
-- [x] `p1` - **ID**: `cpt-overwork-alert-principle-local-only-minimal-state`
+- [x] `p1` - **ID**: `cpt-ex-ovwa-principle-local-only-minimal-state`
 
 The tool must not require network services and should store only what is necessary to operate. Accumulated active time is kept in-memory only and resets on daemon restart.
 
 #### Predictable, explicit user control
 
-- [x] `p1` - **ID**: `cpt-overwork-alert-principle-explicit-control`
+- [x] `p1` - **ID**: `cpt-ex-ovwa-principle-explicit-control`
 
 The system should not make time-based policy decisions like automatic midnight resets. Resetting and pausing are explicit user actions via the CLI.
 
 #### Low overhead background behavior
 
-- [x] `p2` - **ID**: `cpt-overwork-alert-principle-low-overhead`
+- [x] `p2` - **ID**: `cpt-ex-ovwa-principle-low-overhead`
 
 The daemon must be suitable for always-on use: avoid tight loops, prefer coarse polling intervals, and keep OS interactions lightweight.
 
@@ -111,13 +111,13 @@ The daemon must be suitable for always-on use: avoid tight loops, prefer coarse 
 
 #### macOS-only, no custom UI surface
 
-- [x] `p1` - **ID**: `cpt-overwork-alert-constraint-macos-cli-only`
+- [x] `p1` - **ID**: `cpt-ex-ovwa-constraint-macos-cli-only`
 
 The v1 tool targets macOS only and is delivered as CLI + daemon; there is no menubar application or custom GUI.
 
 #### No automatic reset and no persistence of accumulated time
 
-- [x] `p1` - **ID**: `cpt-overwork-alert-constraint-no-auto-reset-no-persist`
+- [x] `p1` - **ID**: `cpt-ex-ovwa-constraint-no-auto-reset-no-persist`
 
 Accumulated active work time is session-scoped: it resets when the daemon restarts and only resets during runtime when the user explicitly invokes manual reset.
 
@@ -155,7 +155,7 @@ graph LR
 
 #### CLI
 
-- [x] `p1` - **ID**: `cpt-overwork-alert-component-cli`
+- [x] `p1` - **ID**: `cpt-ex-ovwa-component-cli`
 
 - **Responsibilities**: Parse user commands; display status; send control commands to daemon; manage LaunchAgent installation.
 - **Boundaries**: No tracking logic; no accumulation; no background loop.
@@ -164,7 +164,7 @@ graph LR
 
 #### Daemon / Tracker Loop
 
-- [x] `p1` - **ID**: `cpt-overwork-alert-component-daemon`
+- [x] `p1` - **ID**: `cpt-ex-ovwa-component-daemon`
 
 - **Responsibilities**: Maintain in-memory `TrackerState`; run periodic tick loop; decide when to notify; respond to control commands.
 - **Boundaries**: Does not persist accumulated time; does not render UI; avoids network I/O.
@@ -173,7 +173,7 @@ graph LR
 
 #### Local Control Channel
 
-- [x] `p2` - **ID**: `cpt-overwork-alert-component-control-channel`
+- [x] `p2` - **ID**: `cpt-ex-ovwa-component-control-channel`
 
 - **Responsibilities**: Provide local-only communication between CLI and daemon.
 - **Boundaries**: Not remotely accessible; does not require privileged ports.
@@ -182,7 +182,7 @@ graph LR
 
 #### Idle Detector
 
-- [x] `p2` - **ID**: `cpt-overwork-alert-component-idle-detector`
+- [x] `p2` - **ID**: `cpt-ex-ovwa-component-idle-detector`
 
 - **Responsibilities**: Query macOS for current idle duration and return an `IdleSample`.
 - **Boundaries**: Best-effort; failures return an error that the daemon treats as “unknown idle” and skips accumulation for that tick.
@@ -191,7 +191,7 @@ graph LR
 
 #### Notification Sender
 
-- [x] `p2` - **ID**: `cpt-overwork-alert-component-notifier`
+- [x] `p2` - **ID**: `cpt-ex-ovwa-component-notifier`
 
 - **Responsibilities**: Deliver a macOS user notification for over-limit alerts.
 - **Boundaries**: Best-effort; failures do not stop tracking.
@@ -200,7 +200,7 @@ graph LR
 
 #### Config Loader
 
-- [x] `p2` - **ID**: `cpt-overwork-alert-component-config-loader`
+- [x] `p2` - **ID**: `cpt-ex-ovwa-component-config-loader`
 
 - **Responsibilities**: Load configuration from a local file and apply defaults.
 - **Boundaries**: No remote configuration; invalid values result in safe fallback behavior.
@@ -209,7 +209,7 @@ graph LR
 
 #### LaunchAgent Manager
 
-- [x] `p2` - **ID**: `cpt-overwork-alert-component-launchagent-manager`
+- [x] `p2` - **ID**: `cpt-ex-ovwa-component-launchagent-manager`
 
 - **Responsibilities**: Install/uninstall a user LaunchAgent plist for autostart; start/stop the LaunchAgent.
 - **Boundaries**: User-level LaunchAgent only (no system-wide daemon).
@@ -260,7 +260,7 @@ External dependencies are OS-provided capabilities accessed via stable CLI tools
 
 #### Run tracker and receive an overwork alert
 
-- [x] `p1` - **ID**: `cpt-overwork-alert-seq-run-and-alert`
+- [x] `p1` - **ID**: `cpt-ex-ovwa-seq-run-and-alert`
 
 ```mermaid
 sequenceDiagram
@@ -286,7 +286,7 @@ The user starts the tracker. The daemon periodically samples idle time and incre
 
 #### Reset a session via CLI
 
-- [x] `p2` - **ID**: `cpt-overwork-alert-seq-cli-reset`
+- [x] `p2` - **ID**: `cpt-ex-ovwa-seq-cli-reset`
 
 ```mermaid
 sequenceDiagram
@@ -313,7 +313,7 @@ No persistent database is used in v1. The following “tables” describe the co
 
 #### Table tracker_state (conceptual; in-memory only)
 
-- [x] `p2` - **ID**: `cpt-overwork-alert-dbtable-tracker-state`
+- [x] `p2` - **ID**: `cpt-ex-ovwa-dbtable-tracker-state`
 
 **Schema**
 | Column | Type | Description |
@@ -337,7 +337,7 @@ No persistent database is used in v1. The following “tables” describe the co
 
 #### Table config (conceptual; file-backed)
 
-- [x] `p2` - **ID**: `cpt-overwork-alert-dbtable-config`
+- [x] `p2` - **ID**: `cpt-ex-ovwa-dbtable-config`
 
 **Schema**
 | Column | Type | Description |
@@ -361,7 +361,7 @@ No persistent database is used in v1. The following “tables” describe the co
 
 ### 3.8 Topology
 
-**ID**: `cpt-overwork-alert-topology-single-daemon`
+**ID**: `cpt-ex-ovwa-topology-single-daemon`
 
 A single user-level daemon process runs per logged-in user session. The CLI runs as short-lived processes that communicate with the daemon over a local-only control channel. Autostart is provided by a user LaunchAgent.
 
@@ -374,7 +374,7 @@ Python 3.13+ using the standard library for the daemon loop, CLI, IPC, and confi
 ## 4. Additional Context
 
 - PRD: `examples/overwork_alert/architecture/PRD.md`
-- ADR-0001: `examples/overwork_alert/architecture/ADR/general/0001-cpt-overwork-alert-adr-cli-daemon-launchagent-no-menubar-v1.md`
+- ADR-0001: `examples/overwork_alert/architecture/ADR/general/0001-cpt-ex-ovwa-adr-cli-daemon-launchagent-no-menubar-v1.md`
 
 ## 5. Traceability
 

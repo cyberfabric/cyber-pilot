@@ -34,6 +34,7 @@ ID_NOT_REFERENCED_NO_SCOPE = "id-not-referenced-no-scope"
 # Constraints — ID kind presence
 # ---------------------------------------------------------------------------
 MISSING_CONSTRAINTS = "missing-constraints"
+ID_SYSTEM_UNRECOGNIZED = "id-system-unrecognized"
 ID_KIND_NOT_ALLOWED = "id-kind-not-allowed"
 REQUIRED_ID_KIND_MISSING = "required-id-kind-missing"
 TEMPLATE_DEF_KIND_NOT_IN_CONSTRAINTS = "template-def-kind-not-in-constraints"

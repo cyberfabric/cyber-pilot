@@ -73,7 +73,7 @@
     },
     {
       "name": "Examples",
-      "slug": "",
+      "slug": "ex",
       "kit": "cypilot-sdlc",
       "artifacts_dir": "examples",
       "autodetect": [

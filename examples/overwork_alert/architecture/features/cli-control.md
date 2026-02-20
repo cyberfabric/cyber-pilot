@@ -1,8 +1,8 @@
 # Feature: CLI Control
 
-- [x] `p1` - **ID**: `cpt-overwork-alert-featstatus-cli-control`
+- [x] `p1` - **ID**: `cpt-ex-ovwa-featstatus-cli-control`
 
-- [x] - `cpt-overwork-alert-feature-cli-control`
+- [x] - `cpt-ex-ovwa-feature-cli-control`
 
 ## 1. Feature Context
 
@@ -31,7 +31,7 @@ Acceptance criteria (timing):
 Allow the user to inspect and control the tracker in a predictable, explicit manner using CLI commands.
 
 ### 3. Actors
-- `cpt-overwork-alert-actor-user`
+- `cpt-ex-ovwa-actor-user`
 
 ### 4. References
 - Overall Design: [DESIGN.md](../DESIGN.md)
@@ -41,10 +41,10 @@ Allow the user to inspect and control the tracker in a predictable, explicit man
 
 ### View status
 
-- [x] **ID**: `cpt-overwork-alert-flow-cli-control-status`
+- [x] **ID**: `cpt-ex-ovwa-flow-cli-control-status`
 
 **Actors**:
-- `cpt-overwork-alert-actor-user`
+- `cpt-ex-ovwa-actor-user`
 
 1. [x] - `p1` - User runs `overwork-alert status` - `inst-run-status`
 2. [x] - `p1` - CLI sends local control request {cmd:"status"} - `inst-send-status-request`
@@ -55,10 +55,10 @@ Allow the user to inspect and control the tracker in a predictable, explicit man
 
 ### Reset session
 
-- [x] **ID**: `cpt-overwork-alert-flow-cli-control-reset`
+- [x] **ID**: `cpt-ex-ovwa-flow-cli-control-reset`
 
 **Actors**:
-- `cpt-overwork-alert-actor-user`
+- `cpt-ex-ovwa-actor-user`
 
 1. [x] - `p1` - User runs `overwork-alert reset` - `inst-run-reset`
 2. [x] - `p1` - CLI sends local control request {cmd:"reset"} - `inst-send-reset-request`
@@ -68,10 +68,10 @@ Allow the user to inspect and control the tracker in a predictable, explicit man
 
 ### Pause tracking
 
-- [x] **ID**: `cpt-overwork-alert-flow-cli-control-pause`
+- [x] **ID**: `cpt-ex-ovwa-flow-cli-control-pause`
 
 **Actors**:
-- `cpt-overwork-alert-actor-user`
+- `cpt-ex-ovwa-actor-user`
 
 1. [x] - `p1` - User runs `overwork-alert pause` - `inst-run-pause`
 2. [x] - `p1` - CLI sends local control request {cmd:"pause"} - `inst-send-pause-request`
@@ -81,10 +81,10 @@ Allow the user to inspect and control the tracker in a predictable, explicit man
 
 ### Resume tracking
 
-- [x] **ID**: `cpt-overwork-alert-flow-cli-control-resume`
+- [x] **ID**: `cpt-ex-ovwa-flow-cli-control-resume`
 
 **Actors**:
-- `cpt-overwork-alert-actor-user`
+- `cpt-ex-ovwa-actor-user`
 
 1. [x] - `p1` - User runs `overwork-alert resume` - `inst-run-resume`
 2. [x] - `p1` - CLI sends local control request {cmd:"resume"} - `inst-send-resume-request`
@@ -94,10 +94,10 @@ Allow the user to inspect and control the tracker in a predictable, explicit man
 
 ### Stop daemon
 
-- [x] **ID**: `cpt-overwork-alert-flow-cli-control-stop`
+- [x] **ID**: `cpt-ex-ovwa-flow-cli-control-stop`
 
 **Actors**:
-- `cpt-overwork-alert-actor-user`
+- `cpt-ex-ovwa-actor-user`
 
 1. [x] - `p1` - User runs `overwork-alert stop` - `inst-run-stop`
 2. [x] - `p1` - CLI sends local control request {cmd:"stop"} - `inst-send-stop-request`
@@ -110,7 +110,7 @@ Allow the user to inspect and control the tracker in a predictable, explicit man
 
 ### Handle control command
 
-- [x] **ID**: `cpt-overwork-alert-algo-cli-control-handle-command`
+- [x] **ID**: `cpt-ex-ovwa-algo-cli-control-handle-command`
 
 1. [x] - `p1` - Parse command from request payload - `inst-parse-cmd`
 2. [x] - `p1` - **IF** cmd is missing or not recognized **RETURN** error - `inst-handle-invalid-cmd`
@@ -125,7 +125,7 @@ Allow the user to inspect and control the tracker in a predictable, explicit man
 
 ### Control channel request lifecycle
 
-- [x] **ID**: `cpt-overwork-alert-state-cli-control-request-lifecycle`
+- [x] **ID**: `cpt-ex-ovwa-state-cli-control-request-lifecycle`
 
 1. [x] - `p1` - **FROM** RECEIVED **TO** VALIDATED **WHEN** request payload is parsed - `inst-transition-validated`
 2. [x] - `p1` - **FROM** VALIDATED **TO** RESPONDED **WHEN** daemon sends response - `inst-transition-responded`
@@ -135,42 +135,42 @@ Allow the user to inspect and control the tracker in a predictable, explicit man
 
 ### Manual reset and CLI control semantics
 
-- [x] `p1` - **ID**: `cpt-overwork-alert-dod-cli-control-reset-and-controls`
+- [x] `p1` - **ID**: `cpt-ex-ovwa-dod-cli-control-reset-and-controls`
 
 The CLI must provide status, pause, resume, reset, and stop commands. Reset clears the in-memory accumulated active time and over-limit reminder state, and there is no automatic reset.
 
 **Implementation details**:
-- Component: `cpt-overwork-alert-component-cli`
-- Component: `cpt-overwork-alert-component-control-channel`
-- Data: `cpt-overwork-alert-dbtable-tracker-state`
+- Component: `cpt-ex-ovwa-component-cli`
+- Component: `cpt-ex-ovwa-component-control-channel`
+- Data: `cpt-ex-ovwa-dbtable-tracker-state`
 
 **Implements**:
-- `p1` - `cpt-overwork-alert-flow-cli-control-status`
-- `p1` - `cpt-overwork-alert-flow-cli-control-reset`
-- `p1` - `cpt-overwork-alert-flow-cli-control-pause`
-- `p1` - `cpt-overwork-alert-flow-cli-control-resume`
-- `p1` - `cpt-overwork-alert-flow-cli-control-stop`
+- `p1` - `cpt-ex-ovwa-flow-cli-control-status`
+- `p1` - `cpt-ex-ovwa-flow-cli-control-reset`
+- `p1` - `cpt-ex-ovwa-flow-cli-control-pause`
+- `p1` - `cpt-ex-ovwa-flow-cli-control-resume`
+- `p1` - `cpt-ex-ovwa-flow-cli-control-stop`
 
-- `p1` - `cpt-overwork-alert-algo-cli-control-handle-command`
+- `p1` - `cpt-ex-ovwa-algo-cli-control-handle-command`
 
 **Covers (PRD)**:
-- `cpt-overwork-alert-fr-cli-controls`
-- `cpt-overwork-alert-fr-manual-reset`
+- `cpt-ex-ovwa-fr-cli-controls`
+- `cpt-ex-ovwa-fr-manual-reset`
 
-- `cpt-overwork-alert-nfr-privacy-local-only`
+- `cpt-ex-ovwa-nfr-privacy-local-only`
 
 **Covers (DESIGN)**:
-- `cpt-overwork-alert-principle-explicit-control`
+- `cpt-ex-ovwa-principle-explicit-control`
 
-- `cpt-overwork-alert-constraint-macos-cli-only`
+- `cpt-ex-ovwa-constraint-macos-cli-only`
 
-- `cpt-overwork-alert-component-cli`
-- `cpt-overwork-alert-component-control-channel`
-- `cpt-overwork-alert-component-daemon`
+- `cpt-ex-ovwa-component-cli`
+- `cpt-ex-ovwa-component-control-channel`
+- `cpt-ex-ovwa-component-daemon`
 
-- `cpt-overwork-alert-seq-cli-reset`
+- `cpt-ex-ovwa-seq-cli-reset`
 
-- `cpt-overwork-alert-dbtable-tracker-state`
+- `cpt-ex-ovwa-dbtable-tracker-state`
 
 
 

@@ -51,7 +51,7 @@ It measures “work time” as **active time**: when you are idle longer than a 
 
 ### User
 
-**ID**: `cpt-overwork-alert-actor-user`
+**ID**: `cpt-ex-ovwa-actor-user`
 
 **Role**: Wants to be notified when they have worked too long, adjust configuration, and control the tracker (status/pause/resume/reset).
 
@@ -59,13 +59,13 @@ It measures “work time” as **active time**: when you are idle longer than a 
 
 ### macOS System
 
-**ID**: `cpt-overwork-alert-actor-macos`
+**ID**: `cpt-ex-ovwa-actor-macos`
 
 **Role**: Provides the runtime environment, surfaces user notifications, and exposes signals needed to estimate user idleness.
 
 ### Login Background Runner
 
-**ID**: `cpt-overwork-alert-actor-login-runner`
+**ID**: `cpt-ex-ovwa-actor-login-runner`
 
 **Role**: Starts the tool automatically on login and keeps it running in the background for continuous tracking.
 
@@ -96,19 +96,19 @@ It measures “work time” as **active time**: when you are idle longer than a 
 
 ### FR-001 Track active work time (idle-aware)
 
-- [x] `p1` - **ID**: `cpt-overwork-alert-fr-track-active-time`
+- [x] `p1` - **ID**: `cpt-ex-ovwa-fr-track-active-time`
 
 The system MUST track “active work time” for the user.
 
 Active work time MUST pause when the user has been idle longer than the configured idle threshold, and MUST resume when activity returns.
 
 **Actors**:
-`cpt-overwork-alert-actor-user`
-`cpt-overwork-alert-actor-macos`
+`cpt-ex-ovwa-actor-user`
+`cpt-ex-ovwa-actor-macos`
 
 ### FR-002 Configure limit and idle threshold
 
-- [x] `p1` - **ID**: `cpt-overwork-alert-fr-configurable-limit`
+- [x] `p1` - **ID**: `cpt-ex-ovwa-fr-configurable-limit`
 
 The system MUST allow the user to configure:
 
@@ -119,46 +119,46 @@ The system MUST allow the user to configure:
 Configuration MUST have safe defaults if no configuration is present.
 
 **Actors**:
-`cpt-overwork-alert-actor-user`
+`cpt-ex-ovwa-actor-user`
 
 ### FR-003 Notify when limit is exceeded and repeat reminders
 
-- [x] `p1` - **ID**: `cpt-overwork-alert-fr-notify-on-limit`
+- [x] `p1` - **ID**: `cpt-ex-ovwa-fr-notify-on-limit`
 
 When the tracked active work time exceeds the configured limit, the system MUST notify the user.
 
 If the user continues working while over the limit, the system MUST repeat notifications at the configured repeat interval until the user stops working (becomes idle) or manually pauses/resets tracking.
 
 **Actors**:
-`cpt-overwork-alert-actor-user`
-`cpt-overwork-alert-actor-macos`
+`cpt-ex-ovwa-actor-user`
+`cpt-ex-ovwa-actor-macos`
 
 ### FR-004 Manual reset (no automatic reset)
 
-- [x] `p2` - **ID**: `cpt-overwork-alert-fr-manual-reset`
+- [x] `p2` - **ID**: `cpt-ex-ovwa-fr-manual-reset`
 
 The system MUST provide a manual reset capability so the user can restart tracking on demand.
 
 The system MUST NOT automatically reset accumulated work time based on time-of-day in v1.
 
 **Actors**:
-`cpt-overwork-alert-actor-user`
+`cpt-ex-ovwa-actor-user`
 
 ### FR-005 Run continuously in background and support autostart
 
-- [x] `p2` - **ID**: `cpt-overwork-alert-fr-autostart`
+- [x] `p2` - **ID**: `cpt-ex-ovwa-fr-autostart`
 
 The system MUST be able to run continuously in the background.
 
 The system SHOULD support starting automatically at user login.
 
 **Actors**:
-`cpt-overwork-alert-actor-user`
-`cpt-overwork-alert-actor-login-runner`
+`cpt-ex-ovwa-actor-user`
+`cpt-ex-ovwa-actor-login-runner`
 
 ### FR-006 Provide CLI controls (status/pause/resume/reset)
 
-- [x] `p2` - **ID**: `cpt-overwork-alert-fr-cli-controls`
+- [x] `p2` - **ID**: `cpt-ex-ovwa-fr-cli-controls`
 
 The system MUST provide a CLI interface that allows the user to:
 
@@ -168,7 +168,7 @@ The system MUST provide a CLI interface that allows the user to:
 - Reset the current day/session accumulation.
 
 **Actors**:
-`cpt-overwork-alert-actor-user`
+`cpt-ex-ovwa-actor-user`
 
 
 ## 6. Non-Functional Requirements
@@ -177,20 +177,20 @@ The system MUST provide a CLI interface that allows the user to:
 
 ### Privacy & Data Handling
 
-- [x] `p1` - **ID**: `cpt-overwork-alert-nfr-privacy-local-only`
+- [x] `p1` - **ID**: `cpt-ex-ovwa-nfr-privacy-local-only`
 
 - The system MUST be local-first and MUST NOT send tracking data over the network by default.
 - The system MUST store only minimal local state required to implement tracking and alerting.
 
 ### Reliability
 
-- [x] `p2` - **ID**: `cpt-overwork-alert-nfr-reliability`
+- [x] `p2` - **ID**: `cpt-ex-ovwa-nfr-reliability`
 
 - The system SHOULD degrade gracefully if notifications cannot be delivered (tracking continues, CLI status remains available).
 
 ### Performance & Resource Usage
 
-- [x] `p2` - **ID**: `cpt-overwork-alert-nfr-low-overhead`
+- [x] `p2` - **ID**: `cpt-ex-ovwa-nfr-low-overhead`
 
 - The system SHOULD be low-overhead and suitable for always-on background usage.
 - The system SHOULD avoid high-frequency polling that would noticeably impact CPU or battery.
@@ -213,11 +213,11 @@ The system MUST provide a CLI interface that allows the user to:
 
 ### UC-001 Run tracker and receive an overwork alert
 
-**ID**: `cpt-overwork-alert-usecase-run-and-alert`
+**ID**: `cpt-ex-ovwa-usecase-run-and-alert`
 
 **Actors**:
-`cpt-overwork-alert-actor-user`
-`cpt-overwork-alert-actor-macos`
+`cpt-ex-ovwa-actor-user`
+`cpt-ex-ovwa-actor-macos`
 
 **Preconditions**: The user has a running tracker session (started manually or via autostart).
 
@@ -237,10 +237,10 @@ The system MUST provide a CLI interface that allows the user to:
 
 ### UC-002 Configure the limit
 
-**ID**: `cpt-overwork-alert-usecase-configure-limit`
+**ID**: `cpt-ex-ovwa-usecase-configure-limit`
 
 **Actors**:
-`cpt-overwork-alert-actor-user`
+`cpt-ex-ovwa-actor-user`
 
 **Preconditions**: The user has access to the tool’s configuration mechanism.
 
@@ -257,10 +257,10 @@ The system MUST provide a CLI interface that allows the user to:
 
 ### UC-003 Pause, resume, and reset a session
 
-**ID**: `cpt-overwork-alert-usecase-control-session`
+**ID**: `cpt-ex-ovwa-usecase-control-session`
 
 **Actors**:
-`cpt-overwork-alert-actor-user`
+`cpt-ex-ovwa-actor-user`
 
 **Preconditions**: The tracker is running.
 

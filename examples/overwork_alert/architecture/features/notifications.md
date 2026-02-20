@@ -1,8 +1,8 @@
 # Feature: Notifications
 
-- [x] `p1` - **ID**: `cpt-overwork-alert-featstatus-notifications`
+- [x] `p1` - **ID**: `cpt-ex-ovwa-featstatus-notifications`
 
-- [x] - `cpt-overwork-alert-feature-notifications`
+- [x] - `cpt-ex-ovwa-feature-notifications`
 
 ## 1. Feature Context
 
@@ -26,8 +26,8 @@ Acceptance criteria (timing):
 Ensure the user receives timely, repeatable overwork alerts once the active-time limit is exceeded.
 
 ### 3. Actors
-- `cpt-overwork-alert-actor-user`
-- `cpt-overwork-alert-actor-macos`
+- `cpt-ex-ovwa-actor-user`
+- `cpt-ex-ovwa-actor-macos`
 
 ### 4. References
 - Overall Design: [DESIGN.md](../DESIGN.md)
@@ -37,10 +37,10 @@ Ensure the user receives timely, repeatable overwork alerts once the active-time
 
 ### Send first over-limit alert
 
-- [x] **ID**: `cpt-overwork-alert-flow-notifications-first-alert`
+- [x] **ID**: `cpt-ex-ovwa-flow-notifications-first-alert`
 
 **Actors**:
-- `cpt-overwork-alert-actor-user`
+- `cpt-ex-ovwa-actor-user`
 
 1. [x] - `p1` - Daemon observes active_time_seconds > limit_seconds - `inst-detect-over-limit`
 2. [x] - `p1` - **IF** tracker status is not RUNNING **RETURN** do_not_notify - `inst-skip-on-not-running`
@@ -51,10 +51,10 @@ Ensure the user receives timely, repeatable overwork alerts once the active-time
 
 ### Send repeat reminder while still over limit
 
-- [x] **ID**: `cpt-overwork-alert-flow-notifications-repeat-reminder`
+- [x] **ID**: `cpt-ex-ovwa-flow-notifications-repeat-reminder`
 
 **Actors**:
-- `cpt-overwork-alert-actor-user`
+- `cpt-ex-ovwa-actor-user`
 
 1. [x] - `p1` - Daemon is over limit and user remains active - `inst-still-over-limit`
 2. [x] - `p1` - **IF** tracker status is not RUNNING **RETURN** do_not_notify - `inst-skip-repeat-on-not-running`
@@ -68,7 +68,7 @@ Ensure the user receives timely, repeatable overwork alerts once the active-time
 
 ### Determine whether to send a notification
 
-- [x] **ID**: `cpt-overwork-alert-algo-notifications-should-notify`
+- [x] **ID**: `cpt-ex-ovwa-algo-notifications-should-notify`
 
 1. [x] - `p1` - **IF** tracker status is not RUNNING **RETURN** do_not_notify - `inst-not-running`
 2. [x] - `p1` - **IF** current idle_seconds >= idle_threshold_seconds **RETURN** do_not_notify - `inst-currently-idle`
@@ -82,7 +82,7 @@ Ensure the user receives timely, repeatable overwork alerts once the active-time
 
 ### Over-limit notification state
 
-- [x] **ID**: `cpt-overwork-alert-state-notifications-over-limit`
+- [x] **ID**: `cpt-ex-ovwa-state-notifications-over-limit`
 
 1. [x] - `p1` - **FROM** UNDER_LIMIT **TO** OVER_LIMIT_FIRST_SENT **WHEN** first alert is delivered - `inst-transition-first`
 2. [x] - `p1` - **FROM** OVER_LIMIT_FIRST_SENT **TO** OVER_LIMIT_REMINDING **WHEN** reminder is delivered - `inst-transition-remind`
@@ -93,36 +93,36 @@ Ensure the user receives timely, repeatable overwork alerts once the active-time
 
 ### Over-limit notifications and repeat reminders
 
-- [x] `p1` - **ID**: `cpt-overwork-alert-dod-notifications-alert-and-repeat`
+- [x] `p1` - **ID**: `cpt-ex-ovwa-dod-notifications-alert-and-repeat`
 
 When active time exceeds the configured limit while tracking is RUNNING and the user is active (idle below threshold), the system sends a macOS notification within 5 seconds. While the user remains active and over limit, the system repeats notifications at the configured repeat interval.
 
 **Implementation details**:
-- Component: `cpt-overwork-alert-component-notifier`
-- Data: `cpt-overwork-alert-dbtable-tracker-state`
+- Component: `cpt-ex-ovwa-component-notifier`
+- Data: `cpt-ex-ovwa-dbtable-tracker-state`
 
 **Implements**:
-- `p1` - `cpt-overwork-alert-flow-notifications-first-alert`
-- `p1` - `cpt-overwork-alert-flow-notifications-repeat-reminder`
+- `p1` - `cpt-ex-ovwa-flow-notifications-first-alert`
+- `p1` - `cpt-ex-ovwa-flow-notifications-repeat-reminder`
 
-- `p1` - `cpt-overwork-alert-algo-notifications-should-notify`
+- `p1` - `cpt-ex-ovwa-algo-notifications-should-notify`
 
 **Covers (PRD)**:
-- `cpt-overwork-alert-fr-notify-on-limit`
+- `cpt-ex-ovwa-fr-notify-on-limit`
 
-- `cpt-overwork-alert-nfr-reliability`
+- `cpt-ex-ovwa-nfr-reliability`
 
 **Covers (DESIGN)**:
-- `cpt-overwork-alert-principle-explicit-control`
+- `cpt-ex-ovwa-principle-explicit-control`
 
-- `cpt-overwork-alert-constraint-no-auto-reset-no-persist`
+- `cpt-ex-ovwa-constraint-no-auto-reset-no-persist`
 
-- `cpt-overwork-alert-component-notifier`
-- `cpt-overwork-alert-component-daemon`
+- `cpt-ex-ovwa-component-notifier`
+- `cpt-ex-ovwa-component-daemon`
 
-- `cpt-overwork-alert-seq-run-and-alert`
+- `cpt-ex-ovwa-seq-run-and-alert`
 
-- `cpt-overwork-alert-dbtable-tracker-state`
+- `cpt-ex-ovwa-dbtable-tracker-state`
 
 
 

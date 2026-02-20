@@ -1,8 +1,8 @@
 # Feature: Tracker Core
 
-- [x] `p1` - **ID**: `cpt-overwork-alert-featstatus-tracker-core`
+- [x] `p1` - **ID**: `cpt-ex-ovwa-featstatus-tracker-core`
 
-- [x] - `cpt-overwork-alert-feature-tracker-core`
+- [x] - `cpt-ex-ovwa-feature-tracker-core`
 
 ## 1. Feature Context
 
@@ -34,22 +34,22 @@ Validation behavior:
 Provide deterministic, low-overhead, idle-aware active-time accumulation that downstream features (notifications and control) can rely on.
 
 ### 3. Actors
-- `cpt-overwork-alert-actor-user`
-- `cpt-overwork-alert-actor-macos`
+- `cpt-ex-ovwa-actor-user`
+- `cpt-ex-ovwa-actor-macos`
 
 ### 4. References
 - Overall Design: [DESIGN.md](../DESIGN.md)
-- ADRs: `cpt-overwork-alert-adr-cli-daemon-launchagent-no-menubar`
+- ADRs: `cpt-ex-ovwa-adr-cli-daemon-launchagent-no-menubar`
 - Related feature: notifications.md
 
 ## 2. Actor Flows
 
 ### Run tracking tick loop
 
-- [x] **ID**: `cpt-overwork-alert-flow-tracker-core-tick-loop`
+- [x] **ID**: `cpt-ex-ovwa-flow-tracker-core-tick-loop`
 
 **Actors**:
-- `cpt-overwork-alert-actor-macos`
+- `cpt-ex-ovwa-actor-macos`
 
 1. [x] - `p1` - Daemon loads effective configuration (defaults + validation) - `inst-load-config`
 2. [x] - `p1` - **IF** last_tick_at is not set: set last_tick_at=now and **RETURN** (no accumulation) - `inst-init-first-tick`
@@ -57,7 +57,7 @@ Provide deterministic, low-overhead, idle-aware active-time accumulation that do
 4. [x] - `p1` - **IF** idle time is unavailable: set last_tick_at=now and **RETURN** (no accumulation) - `inst-handle-idle-unavailable`
 5. [x] - `p1` - **IF** idle_seconds >= idle_threshold_seconds: set last_tick_at=now and **RETURN** (paused by idle) - `inst-skip-on-idle`
 6. [x] - `p1` - **IF** tracker status is paused: set last_tick_at=now and **RETURN** (no accumulation) - `inst-skip-on-paused`
-7. [x] - `p1` - Algorithm: update active_time_seconds using `cpt-overwork-alert-algo-tracker-core-accumulate-active-time` - `inst-accumulate`
+7. [x] - `p1` - Algorithm: update active_time_seconds using `cpt-ex-ovwa-algo-tracker-core-accumulate-active-time` - `inst-accumulate`
 8. [x] - `p1` - **RETURN** updated TrackerState - `inst-return-state`
 
 
@@ -65,7 +65,7 @@ Provide deterministic, low-overhead, idle-aware active-time accumulation that do
 
 ### Accumulate active time
 
-- [x] **ID**: `cpt-overwork-alert-algo-tracker-core-accumulate-active-time`
+- [x] **ID**: `cpt-ex-ovwa-algo-tracker-core-accumulate-active-time`
 
 1. [x] - `p1` - Compute raw delta_seconds = now - last_tick_at - `inst-compute-delta`
 2. [x] - `p1` - **IF** delta_seconds < 0 set delta_seconds = 0 - `inst-handle-negative-delta`
@@ -80,7 +80,7 @@ Provide deterministic, low-overhead, idle-aware active-time accumulation that do
 
 ### Tracker runtime status
 
-- [x] **ID**: `cpt-overwork-alert-state-tracker-core-tracker-status`
+- [x] **ID**: `cpt-ex-ovwa-state-tracker-core-tracker-status`
 
 1. [x] - `p1` - **FROM** RUNNING **TO** PAUSED **WHEN** user sends pause command - `inst-transition-pause`
 2. [x] - `p1` - **FROM** PAUSED **TO** RUNNING **WHEN** user sends resume command - `inst-transition-resume`
@@ -90,73 +90,73 @@ Provide deterministic, low-overhead, idle-aware active-time accumulation that do
 
 ### Idle-aware active-time accumulation
 
-- [x] `p1` - **ID**: `cpt-overwork-alert-dod-tracker-core-idle-aware-accumulation`
+- [x] `p1` - **ID**: `cpt-ex-ovwa-dod-tracker-core-idle-aware-accumulation`
 
 When the daemon is running, active time increases only while the user is not idle beyond the configured threshold. When the user is idle beyond the threshold, accumulation does not increase.
 
 **Implementation details**:
-- Component: `cpt-overwork-alert-component-daemon`
-- Component: `cpt-overwork-alert-component-idle-detector`
-- Data: `cpt-overwork-alert-dbtable-tracker-state`
+- Component: `cpt-ex-ovwa-component-daemon`
+- Component: `cpt-ex-ovwa-component-idle-detector`
+- Data: `cpt-ex-ovwa-dbtable-tracker-state`
 
 **Implements**:
-- `p1` - `cpt-overwork-alert-flow-tracker-core-tick-loop`
+- `p1` - `cpt-ex-ovwa-flow-tracker-core-tick-loop`
 
-- `p1` - `cpt-overwork-alert-algo-tracker-core-accumulate-active-time`
+- `p1` - `cpt-ex-ovwa-algo-tracker-core-accumulate-active-time`
 
 **Covers (PRD)**:
-- `cpt-overwork-alert-fr-track-active-time`
-- `cpt-overwork-alert-fr-configurable-limit`
+- `cpt-ex-ovwa-fr-track-active-time`
+- `cpt-ex-ovwa-fr-configurable-limit`
 
-- `cpt-overwork-alert-nfr-low-overhead`
-- `cpt-overwork-alert-nfr-privacy-local-only`
+- `cpt-ex-ovwa-nfr-low-overhead`
+- `cpt-ex-ovwa-nfr-privacy-local-only`
 
 **Covers (DESIGN)**:
-- `cpt-overwork-alert-principle-local-only-minimal-state`
-- `cpt-overwork-alert-principle-low-overhead`
+- `cpt-ex-ovwa-principle-local-only-minimal-state`
+- `cpt-ex-ovwa-principle-low-overhead`
 
-- `cpt-overwork-alert-constraint-no-auto-reset-no-persist`
+- `cpt-ex-ovwa-constraint-no-auto-reset-no-persist`
 
-- `cpt-overwork-alert-component-daemon`
-- `cpt-overwork-alert-component-idle-detector`
-- `cpt-overwork-alert-component-config-loader`
+- `cpt-ex-ovwa-component-daemon`
+- `cpt-ex-ovwa-component-idle-detector`
+- `cpt-ex-ovwa-component-config-loader`
 
-- `cpt-overwork-alert-seq-run-and-alert`
+- `cpt-ex-ovwa-seq-run-and-alert`
 
-- `cpt-overwork-alert-dbtable-tracker-state`
-- `cpt-overwork-alert-dbtable-config`
+- `cpt-ex-ovwa-dbtable-tracker-state`
+- `cpt-ex-ovwa-dbtable-config`
 
 
 ### Configuration defaults and validation
 
-- [x] `p1` - **ID**: `cpt-overwork-alert-dod-tracker-core-config-defaults`
+- [x] `p1` - **ID**: `cpt-ex-ovwa-dod-tracker-core-config-defaults`
 
 If no configuration is present or some configuration values are invalid, the daemon continues operating using safe defaults.
 
 **Implementation details**:
-- Component: `cpt-overwork-alert-component-config-loader`
-- Data: `cpt-overwork-alert-dbtable-config`
+- Component: `cpt-ex-ovwa-component-config-loader`
+- Data: `cpt-ex-ovwa-dbtable-config`
 
 **Implements**:
-- `p1` - `cpt-overwork-alert-flow-tracker-core-tick-loop`
+- `p1` - `cpt-ex-ovwa-flow-tracker-core-tick-loop`
 
-- `p1` - `cpt-overwork-alert-algo-tracker-core-accumulate-active-time`
+- `p1` - `cpt-ex-ovwa-algo-tracker-core-accumulate-active-time`
 
 **Covers (PRD)**:
-- `cpt-overwork-alert-fr-configurable-limit`
+- `cpt-ex-ovwa-fr-configurable-limit`
 
-- `cpt-overwork-alert-nfr-privacy-local-only`
+- `cpt-ex-ovwa-nfr-privacy-local-only`
 
 **Covers (DESIGN)**:
-- `cpt-overwork-alert-principle-local-only-minimal-state`
+- `cpt-ex-ovwa-principle-local-only-minimal-state`
 
-- `cpt-overwork-alert-constraint-no-auto-reset-no-persist`
+- `cpt-ex-ovwa-constraint-no-auto-reset-no-persist`
 
-- `cpt-overwork-alert-component-config-loader`
+- `cpt-ex-ovwa-component-config-loader`
 
-- `cpt-overwork-alert-seq-run-and-alert`
+- `cpt-ex-ovwa-seq-run-and-alert`
 
-- `cpt-overwork-alert-dbtable-config`
+- `cpt-ex-ovwa-dbtable-config`
 
 
 

@@ -942,9 +942,9 @@ Proposal:
 
 This yields IDs like:
 
-- `cpt-overwork-alert-actor-user`
-- `cpt-overwork-alert-fr-configurable-limit`
-- `cpt-overwork-alert-feature-overwork-alert`
+- `cpt-ex-ovwa-actor-user`
+- `cpt-ex-ovwa-fr-configurable-limit`
+- `cpt-ex-ovwa-feature-overwork-alert`
 
 Reply: confirm slug (`overwork-alert` OK?) and confirm we should register the system in `{ } artifacts.json` (needed for the cleanest deterministic “end-to-end” flow).
 
@@ -1012,13 +1012,13 @@ Reply: confirm slug (`overwork-alert` OK?) and confirm we should register the sy
 Proposal (actors):
 
 - User
-  - ID: `cpt-overwork-alert-actor-user`
+  - ID: `cpt-ex-ovwa-actor-user`
   - Role: wants to be notified when they’ve worked too long; adjusts configuration; acknowledges alerts
 - macOS System
-  - ID: `cpt-overwork-alert-actor-macos`
+  - ID: `cpt-ex-ovwa-actor-macos`
   - Role: provides idle-time signal + runs LaunchAgent + displays notifications
 - LaunchAgent (Background Runner)
-  - ID: `cpt-overwork-alert-actor-launchagent`
+  - ID: `cpt-ex-ovwa-actor-launchagent`
   - Role: starts the tool automatically on login and keeps it running
 
 #### 3) PRD — 3. Functional Requirements (FRs)
@@ -1026,27 +1026,27 @@ Proposal (actors):
 Proposal (FR list):
 
 - FR-001 Track active work time (idle-aware)
-  - ID: `cpt-overwork-alert-fr-track-active-time`
-  - Actors: `cpt-overwork-alert-actor-user`, `cpt-overwork-alert-actor-macos`
+  - ID: `cpt-ex-ovwa-fr-track-active-time`
+  - Actors: `cpt-ex-ovwa-actor-user`, `cpt-ex-ovwa-actor-macos`
   - Notes: timer pauses when idle > threshold; resumes on activity
 - FR-002 Configurable limit + idle threshold
-  - ID: `cpt-overwork-alert-fr-configurable-limit`
-  - Actors: `cpt-overwork-alert-actor-user`
+  - ID: `cpt-ex-ovwa-fr-configurable-limit`
+  - Actors: `cpt-ex-ovwa-actor-user`
   - Notes: config file-based; supports minutes/hours; safe defaults
 - FR-003 Notify when limit exceeded + repeat reminders
-  - ID: `cpt-overwork-alert-fr-notify-on-limit`
-  - Actors: `cpt-overwork-alert-actor-user`, `cpt-overwork-alert-actor-macos`
+  - ID: `cpt-ex-ovwa-fr-notify-on-limit`
+  - Actors: `cpt-ex-ovwa-actor-user`, `cpt-ex-ovwa-actor-macos`
   - Notes: first alert at limit; repeat every 30 minutes while still “working”
 - FR-004 Session/day reset behavior
-  - ID: `cpt-overwork-alert-fr-auto-reset`
-  - Actors: `cpt-overwork-alert-actor-user`
+  - ID: `cpt-ex-ovwa-fr-auto-reset`
+  - Actors: `cpt-ex-ovwa-actor-user`
   - Notes: resets at local midnight (daily mode); also supports manual `reset`
 - FR-005 Run in background + optional autostart
-  - ID: `cpt-overwork-alert-fr-autostart`
-  - Actors: `cpt-overwork-alert-actor-launchagent`, `cpt-overwork-alert-actor-macos`
+  - ID: `cpt-ex-ovwa-fr-autostart`
+  - Actors: `cpt-ex-ovwa-actor-launchagent`, `cpt-ex-ovwa-actor-macos`
 - FR-006 Provide CLI controls
-  - ID: `cpt-overwork-alert-fr-cli-controls`
-  - Actors: `cpt-overwork-alert-actor-user`
+  - ID: `cpt-ex-ovwa-fr-cli-controls`
+  - Actors: `cpt-ex-ovwa-actor-user`
   - Commands: `run`, `status`, `pause`, `resume`, `reset`
 
 (We’ll assign priorities p1/p2 during generation; proposal is p1 for FR-001..FR-003, p2 for FR-004..FR-006.)
@@ -1067,29 +1067,29 @@ Proposal (FR list):
 Proposal:
 
 - UC-001 Start work timer and receive alert
-  - ID: `cpt-overwork-alert-usecase-run-and-alert`
-  - Actor: `cpt-overwork-alert-actor-user`
+  - ID: `cpt-ex-ovwa-usecase-run-and-alert`
+  - Actor: `cpt-ex-ovwa-actor-user`
   - Includes alt flow: idle pauses timer; config missing → fall back to defaults + warn
 - UC-002 Change limit configuration
-  - ID: `cpt-overwork-alert-usecase-configure-limit`
-  - Actor: `cpt-overwork-alert-actor-user`
+  - ID: `cpt-ex-ovwa-usecase-configure-limit`
+  - Actor: `cpt-ex-ovwa-actor-user`
 - UC-003 Pause/resume/reset
-  - ID: `cpt-overwork-alert-usecase-control-session`
-  - Actor: `cpt-overwork-alert-actor-user`
+  - ID: `cpt-ex-ovwa-usecase-control-session`
+  - Actor: `cpt-ex-ovwa-actor-user`
 
 #### 5) PRD — 5. Non-functional requirements (NFRs)
 
 Proposal:
 
 - NFR: Privacy / Local-only
-  - ID: `cpt-overwork-alert-nfr-privacy-local-only`
+  - ID: `cpt-ex-ovwa-nfr-privacy-local-only`
   - The tool MUST NOT send data over the network by default
   - The tool MUST store only minimal local state (timestamps + counters)
 - NFR: Reliability
-  - ID: `cpt-overwork-alert-nfr-reliability`
+  - ID: `cpt-ex-ovwa-nfr-reliability`
   - The tool SHOULD survive restarts without losing the day/session progress (state persisted)
 - NFR: Performance / Battery
-  - ID: `cpt-overwork-alert-nfr-low-overhead`
+  - ID: `cpt-ex-ovwa-nfr-low-overhead`
   - The tool SHOULD use low CPU (polling interval sensible, e.g. 5–10s)
 
 Intentional Exclusions (proposal):
@@ -1525,8 +1525,8 @@ Reply B1 or B2.
 
 #### 3) Proposed ADR (minimal, as recommended)
 
-- File (proposed): `examples/overwork_alert/architecture/ADR/general/0001-cpt-overwork-alert-adr-cli-launchagent-no-menubar-v1.md`
-- ID (proposed): `cpt-overwork-alert-adr-cli-launchagent-no-menubar` (p1)
+- File (proposed): `examples/overwork_alert/architecture/ADR/general/0001-cpt-ex-ovwa-adr-cli-launchagent-no-menubar-v1.md`
+- ID (proposed): `cpt-ex-ovwa-adr-cli-launchagent-no-menubar` (p1)
 - Status (proposed): Accepted (since you explicitly chose the recommendation)
 - Decision: Use CLI-driven background daemon + LaunchAgent autostart; no menubar UI for v1.
 
@@ -1570,19 +1570,19 @@ I’ll include this as part of:
 
 Components (planned IDs)
 
-- `cpt-overwork-alert-component-cli`
-- `cpt-overwork-alert-component-daemon`
-- `cpt-overwork-alert-component-idle-probe`
-- `cpt-overwork-alert-component-work-time-tracker`
-- `cpt-overwork-alert-component-alert-policy`
-- `cpt-overwork-alert-component-notifier`
-- `cpt-overwork-alert-component-control-channel`
+- `cpt-ex-ovwa-component-cli`
+- `cpt-ex-ovwa-component-daemon`
+- `cpt-ex-ovwa-component-idle-probe`
+- `cpt-ex-ovwa-component-work-time-tracker`
+- `cpt-ex-ovwa-component-alert-policy`
+- `cpt-ex-ovwa-component-notifier`
+- `cpt-ex-ovwa-component-control-channel`
 
 Sequences (planned IDs)
 
-- `cpt-overwork-alert-seq-daemon-tick-accumulate-active-time`
-- `cpt-overwork-alert-seq-over-limit-notify-and-repeat`
-- `cpt-overwork-alert-seq-cli-control-command`
+- `cpt-ex-ovwa-seq-daemon-tick-accumulate-active-time`
+- `cpt-ex-ovwa-seq-over-limit-notify-and-repeat`
+- `cpt-ex-ovwa-seq-cli-control-command`
 
 #### 5) What I need from you to proceed to writing files
 
@@ -1698,7 +1698,7 @@ _Thought for 18s_
 
 Diff preview (as visible in screenshot; truncated):
 
-`0001-cpt-overwork-alert-adr-cli-daemon-launchagent-no-menubar-v1.md` (new, +108)
+`0001-cpt-ex-ovwa-adr-cli-daemon-launchagent-no-menubar-v1.md` (new, +108)
 
 ```md
 
@@ -1726,7 +1726,7 @@ Command:
 
 Command:
 
-`python3 skills/cypilot/scripts/cypilot.py validate --skip-code --artifact examples/overwork_alert/architecture/ADR/general/0001-cpt-overwork-alert-adr-cli-daemon-launchagent-no-menubar-v1.md`
+`python3 skills/cypilot/scripts/cypilot.py validate --skip-code --artifact examples/overwork_alert/architecture/ADR/general/0001-cpt-ex-ovwa-adr-cli-daemon-launchagent-no-menubar-v1.md`
 
 ```json
 {
@@ -1739,7 +1739,7 @@ Command:
     { "type": "structure", "message": "Expected bullet list", "line": 98 }
   ],
   "failed_artifacts": [
-    { "artifact": ".../0001-cpt-overwork-alert-adr-cli-daemon-launchagent-no-menubar-v1.md", "error_count": 2 }
+    { "artifact": ".../0001-cpt-ex-ovwa-adr-cli-daemon-launchagent-no-menubar-v1.md", "error_count": 2 }
   ]
 }
 ```
@@ -1750,7 +1750,7 @@ LOG [ADR deterministic validation]: The ADR failed structural validation because
 
 Links:
 
-- ADR: [0001-cpt-overwork-alert-adr-cli-daemon-launchagent-no-menubar-v1.md](../examples/overwork_alert/architecture/ADR/general/0001-cpt-overwork-alert-adr-cli-daemon-launchagent-no-menubar-v1.md)
+- ADR: [0001-cpt-ex-ovwa-adr-cli-daemon-launchagent-no-menubar-v1.md](../examples/overwork_alert/architecture/ADR/general/0001-cpt-ex-ovwa-adr-cli-daemon-launchagent-no-menubar-v1.md)
 - Registry: [artifacts.json](../.cypilot-adapter/artifacts.json)
 
 #### 1302 — ADR structural fix + validation pass
@@ -1766,7 +1766,7 @@ LOG [ADR fix]: I’m going to remove the non-bullet lines (**Consequences:** and
 
 Diff preview (as visible in screenshot; truncated):
 
-`0001-cpt-overwork-alert-adr-cli-daemon-launchagent-no-menubar-v1.md` (-2)
+`0001-cpt-ex-ovwa-adr-cli-daemon-launchagent-no-menubar-v1.md` (-2)
 
 ```md
 **Links:**
@@ -1782,7 +1782,7 @@ _2 / 4 tasks done_
 
 Command:
 
-`python3 skills/cypilot/scripts/cypilot.py validate --skip-code --artifact examples/overwork_alert/architecture/ADR/general/0001-cpt-overwork-alert-adr-cli-daemon-launchagent-no-menubar-v1.md`
+`python3 skills/cypilot/scripts/cypilot.py validate --skip-code --artifact examples/overwork_alert/architecture/ADR/general/0001-cpt-ex-ovwa-adr-cli-daemon-launchagent-no-menubar-v1.md`
 
 ```json
 { "status": "PASS", "artifacts_validated": 1, "error_count": 0, "warning_count": 1, "next_step": "Deterministic validation passed. Now perform semantic validation: review content quality against checklist.md criteria." }
@@ -1810,7 +1810,7 @@ Asked 1 question:
 Links:
 
 - PRD: [PRD.md](../examples/overwork_alert/architecture/PRD.md)
-- ADR: [0001-cpt-overwork-alert-adr-cli-daemon-launchagent-no-menubar-v1.md](../examples/overwork_alert/architecture/ADR/general/0001-cpt-overwork-alert-adr-cli-daemon-launchagent-no-menubar-v1.md)
+- ADR: [0001-cpt-ex-ovwa-adr-cli-daemon-launchagent-no-menubar-v1.md](../examples/overwork_alert/architecture/ADR/general/0001-cpt-ex-ovwa-adr-cli-daemon-launchagent-no-menubar-v1.md)
 
 ### DESIGN creation + template compliance (1303–1304)
 
@@ -2029,7 +2029,7 @@ _Searched `tracker-core.md` and performed 3 other queries_
 
 _Thought for 49s_
 
-_Searched `cpt-overwork-alert-fr-(autostart|cli-controls)` in `examples/overwork_alert/architecture/PRD.md` (2)_
+_Searched `cpt-ex-ovwa-fr-(autostart|cli-controls)` in `examples/overwork_alert/architecture/PRD.md` (2)_
 
 _Thought for 88s_
 
@@ -2130,7 +2130,7 @@ Command output (as visible in screenshot; truncated):
       "message": "Spec filename does not match ID slug",
       "line": 36,
       "path": ".../examples/overwork_alert/architecture/features/tracker-core.md",
-      "id": "cpt-overwork-alert-feature-notifications",
+      "id": "cpt-ex-ovwa-feature-notifications",
       "expected_filename": "notifications.md",
       "actual_filename": "tracker-core.md"
     },
@@ -2139,7 +2139,7 @@ Command output (as visible in screenshot; truncated):
       "message": "Spec filename does not match ID slug",
       "line": 38,
       "path": ".../examples/overwork_alert/architecture/features/tracker-core.md",
-      "id": "cpt-overwork-alert-feature-cli-control",
+      "id": "cpt-ex-ovwa-feature-cli-control",
       "expected_filename": "cli-control.md",
       "actual_filename": "tracker-core.md"
     }
@@ -2164,7 +2164,7 @@ Command output (as visible in screenshot; truncated):
       "message": "Spec filename does not match ID slug",
       "line": 34,
       "path": ".../examples/overwork_alert/architecture/features/notifications.md",
-      "id": "cpt-overwork-alert-feature-tracker-core",
+      "id": "cpt-ex-ovwa-feature-tracker-core",
       "expected_filename": "tracker-core.md",
       "actual_filename": "notifications.md"
     }
@@ -2189,7 +2189,7 @@ Command output (as visible in screenshot; truncated):
       "message": "Spec filename does not match ID slug",
       "line": 30,
       "path": ".../examples/overwork_alert/architecture/features/cli-control.md",
-      "id": "cpt-overwork-alert-feature-tracker-core",
+      "id": "cpt-ex-ovwa-feature-tracker-core",
       "expected_filename": "tracker-core.md",
       "actual_filename": "cli-control.md"
     }
@@ -2298,7 +2298,7 @@ Links:
 - Fixed DECOMPOSITION navigation links
   - Updated spec links to point at `specs/*.md` files.
 - Fixed SPEC filename validation
-  - Removed backticked references to other `cpt-overwork-alert-feature-*` IDs inside SPEC text where they were being interpreted as “main spec ID must match filename”.
+  - Removed backticked references to other `cpt-ex-ovwa-feature-*` IDs inside SPEC text where they were being interpreted as “main spec ID must match filename”.
 
 #### Next step
 
@@ -2821,13 +2821,13 @@ _Thought for 27s_
 
 I’ll now finish Option A by patching the remaining 2 SPECs (`cli-control.md`, `launchagent-autostart.md`) to add the missing IPC security + error handling + idempotency + acceptance criteria. I’ll also fix any broken ADR ID references (I noticed the specs reference an ADR ID without `-v1`, which could fail validation). Then I’ll run `cypilot validate` on the updated artifacts.
 
-_Searched `cpt-overwork-alert-adr-cli-daemon-launchagent-no-menubar(` and performed 1 other query_
+_Searched `cpt-ex-ovwa-adr-cli-daemon-launchagent-no-menubar(` and performed 1 other query_
 
 _Thought for 38s_
 
 I’ll redo that search without regex lookaheads (the grep tool doesn’t support lookaround). Then I’ll patch `cli-control.md` and `launchagent-autostart.md` for IPC security/error handling/idempotency, and finally run `cypilot validate` on the 4 SPEC files.
 
-_Searched `cpt-overwork-alert-adr-cli-daemon-launchagent-no-menubar-v1` and performed 1 other query_
+_Searched `cpt-ex-ovwa-adr-cli-daemon-launchagent-no-menubar-v1` and performed 1 other query_
 
 _Thought for 45s_
 
@@ -2893,7 +2893,7 @@ Diff preview (as visible in screenshot):
 `launchagent-autostart.md` (+4)
 
 ```md
-- `cpt-overwork-alert-nfr-privacy-local-only`
+- `cpt-ex-ovwa-nfr-privacy-local-only`
 ```
 
 Command output (as visible in screenshot; truncated):
@@ -2944,7 +2944,7 @@ Diff preview (as visible in screenshot):
 `launchagent-autostart.md` (+4)
 
 ```md
-- `cpt-overwork-alert-nfr-privacy-local-only`
+- `cpt-ex-ovwa-nfr-privacy-local-only`
 ```
 
 Command output (as visible in screenshot; truncated):
@@ -3445,7 +3445,7 @@ Diff previews (as visible in screenshot; truncated):
 
 ```py
 if cmd == "stop":
-    # @cpt-flow:cpt-overwork-alert-flow-cli-control-stop:p1
+    # @cpt-flow:cpt-ex-ovwa-flow-cli-control-stop:p1
     self._stop_event.set()
 ```
 
@@ -3453,7 +3453,7 @@ if cmd == "stop":
 
 ```py
 """Update notification scheduling state after a notification is delivered."""
-# @cpt-state:cpt-overwork-alert-state-notifications-over-limit:p1
+# @cpt-state:cpt-ex-ovwa-state-notifications-over-limit:p1
 ```
 
 `ipc.py` (+14)
@@ -3468,14 +3468,14 @@ def send_request(*, socket_path: str, payload: dict[str, Any], timeout_seconds: 
 ```py
 def uninstall(*, label: str = DEFAULT_LABEL) -> None:
     """Unload and remove the user LaunchAgent plist (idempotent)."""
-    # @cpt-state:cpt-overwork-alert-state-launchagent-autostart-installation:p1
+    # @cpt-state:cpt-ex-ovwa-state-launchagent-autostart-installation:p1
 ```
 
 `cli.py` (+22, -10)
 
 ```py
 elif args.cmd == "stop":
-    # @cpt-flow:cpt-overwork-alert-flow-cli-control-stop:p1
+    # @cpt-flow:cpt-ex-ovwa-flow-cli-control-stop:p1
     pass
 ```
 
@@ -3624,7 +3624,7 @@ Command output (as visible in screenshot; truncated):
 ```json
 {
   "path": "/Volumes/CaseSensitive/coding/cypilot/examples/overwork_alert/src/overwork_alert/daemon.py",
-  "id": "cpt-overwork-alert-state-tracker-core-tracker-status",
+  "id": "cpt-ex-ovwa-state-tracker-core-tracker-status",
   "first_occurrence": 170
 }
 ```
@@ -3659,16 +3659,16 @@ Diff previews (as visible in screenshot; truncated):
 `daemon.py` (+1, -2)
 
 ```py
-# @cpt-flow:cpt-overwork-alert-flow-cli-control-pause:p1
+# @cpt-flow:cpt-ex-ovwa-flow-cli-control-pause:p1
 ...
-# @cpt-flow:cpt-overwork-alert-flow-cli-control-resume:p1
+# @cpt-flow:cpt-ex-ovwa-flow-cli-control-resume:p1
 ```
 
 `launchagent.py` (-1)
 
 ```py
 """Unload and remove the user LaunchAgent plist (idempotent)."""
-# @cpt-state:cpt-overwork-alert-state-launchagent-autostart-installation:p1
+# @cpt-state:cpt-ex-ovwa-state-launchagent-autostart-installation:p1
 ```
 
 Command:

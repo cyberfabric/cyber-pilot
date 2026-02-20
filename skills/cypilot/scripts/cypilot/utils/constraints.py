@@ -517,8 +517,10 @@ def validate_artifact_file(
                     matched = sys
         if matched is not None:
             return matched
-        parts = cpt.split("-")
-        return parts[1].lower() if len(parts) >= 3 else None
+        if not systems_set:
+            parts = cpt.split("-")
+            return parts[1].lower() if len(parts) >= 3 else None
+        return None
 
     composite_nested_by_base: Dict[str, set[str]] = {}
     base_kind = kind.strip().lower()
@@ -556,6 +558,18 @@ def validate_artifact_file(
             continue
         line = int(h.get("line", 1) or 1)
         system = match_system(hid)
+        if system is None and systems_set and hid.lower().startswith("cpt-"):
+            errors.append(error(
+                "constraints",
+                f"`{hid}` has unrecognized system prefix (registered: {sorted(systems_set)})",
+                code=EC.ID_SYSTEM_UNRECOGNIZED,
+                path=artifact_path,
+                line=line,
+                artifact_kind=kind,
+                id=hid,
+                registered_systems=sorted(systems_set),
+            ))
+            continue
         id_kind = extract_kind_from_id(hid, system)
         if not id_kind:
             continue

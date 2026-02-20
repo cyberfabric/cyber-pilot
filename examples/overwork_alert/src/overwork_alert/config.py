@@ -28,7 +28,7 @@ def _parse_positive_int(value: Any) -> int | None:
     return n
 
 
-# @cpt-dod:cpt-overwork-alert-dod-tracker-core-config-defaults:p1
+# @cpt-dod:cpt-ex-ovwa-dod-tracker-core-config-defaults:p1
 def load_config(config_path: Path | None = None) -> Config:
     """Load effective config (defaults + validation) from a JSON file."""
     path = config_path or DEFAULT_CONFIG_PATH
