@@ -38,6 +38,24 @@ A lightweight automation layer for repository-native governance:
 
 Works with any language, stack, or repository.
 
+## Document Types
+
+Cyber Pilot uses structured specification documents commonly used in modern SDLC:
+
+- **BRD — Business Requirements Document**  
+  Defines business goals, stakeholders, scope, and success metrics. Answers: *Why are we building this?*
+
+- **PRD — Product Requirements Document**  
+  Defines functional requirements, user stories, and acceptance criteria. Answers: *What should be built?*
+
+- **ADR — Architecture Decision Record**  
+  Captures architectural decisions, alternatives, rationale, and consequences. Answers: *Why was this technical decision made?*
+
+- **DESIGN — Technical Design Document**  
+  Describes system architecture, components, APIs, and implementation approach. Answers: *How will it be built?*
+
+These documents create a traceable chain from business intent → product definition → architectural decisions → technical implementation.
+
 ---
 
 ## Table of Contents
