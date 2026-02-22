@@ -314,7 +314,7 @@ _Read `ADAPTER.md`_
 
   `ADAPTER → PRD → OVERALL DESIGN → FEATURE → CODE`
 
-- [No coding in DESIGN.md]: Actor flows / algorithms should be in Cypilot DSL (CDSL) where required, not embedded code.
+- [No coding in DESIGN.md]: Actor flows / algorithms should be in Cypilot Domain-Specific Language (CDSL) where required, not embedded code.
 - [Validation-first mindset]: We'll aim for the required scores (Overall ≥90/100, Feature 100/100) before "locking in" implementation direction.
 
 #### How to ask (examples you can copy/paste)

@@ -14,13 +14,13 @@ Cypilot features are organized around **architectural components** with explicit
 
 - [x] `p1` - **ID**: `cpt-cypilot-feature-methodology-core`
 
-- **Purpose**: Provide universal Cypilot specifications including requirements, CDSL language, and base template syntax that all projects share.
+- **Purpose**: Provide universal Cypilot specifications including requirements, Cypilot Domain-Specific Language (CDSL), and base template syntax that all projects share.
 
 - **Depends On**: None
 
 - **Scope**:
   - Requirements specifications (`requirements/*.md`)
-  - CDSL (Cypilot Description Language) specification
+  - CDSL (Cypilot Domain-Specific Language) specification
   - ID formats and naming specification
   - Execution protocol definition
 
