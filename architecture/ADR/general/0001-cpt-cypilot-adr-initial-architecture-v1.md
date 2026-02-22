@@ -1,6 +1,6 @@
 ---
 status: accepted
-date: 2025-01-17
+date: 2026-01-17
 ---
 
 # ADR-0001: Initial Cypilot Architecture
