@@ -843,4 +843,4 @@ Cypilot avoids duplicating requirements across artifacts. The following files ar
 - **ADRs**: [ADR/](./ADR/)
 - **Features**: [specs/](./specs/)
 
-**Date**: 2025-01-17
+**Date**: 2026-01-17

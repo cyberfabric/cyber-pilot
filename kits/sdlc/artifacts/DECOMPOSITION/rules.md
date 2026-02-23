@@ -3,7 +3,7 @@
 **Artifact**: DECOMPOSITION (Design Decomposition)
 **Purpose**: Rules for DECOMPOSITION artifact generation and validation
 **Version**: 2.0
-**Last Updated**: 2025-02-03
+**Last Updated**: 2026-02-03
 
 **Dependencies**:
 - `template.md` — required structure
