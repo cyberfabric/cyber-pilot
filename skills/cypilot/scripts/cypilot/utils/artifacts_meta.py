@@ -945,14 +945,18 @@ def load_artifacts_meta(adapter_dir: Path) -> Tuple[Optional[ArtifactsMeta], Opt
     Returns:
         Tuple of (ArtifactsMeta or None, error message or None)
     """
-    path = adapter_dir / ARTIFACTS_REGISTRY_FILENAME
-    # Fallback: try legacy artifacts.json if artifacts.toml not found
+    config_dir = adapter_dir / "config"
+    # Try config/ subdir first, then legacy flat layout
+    path = config_dir / ARTIFACTS_REGISTRY_FILENAME
+    if not path.is_file():
+        path = adapter_dir / ARTIFACTS_REGISTRY_FILENAME
+    # Fallback: try legacy artifacts.json
     if not path.is_file():
         legacy = adapter_dir / "artifacts.json"
         if legacy.is_file():
             path = legacy
         else:
-            return None, f"Missing artifacts registry: {path}"
+            return None, f"Missing artifacts registry: {config_dir / ARTIFACTS_REGISTRY_FILENAME}"
     try:
         if path.suffix == ".toml":
             import tomllib
@@ -963,7 +967,9 @@ def load_artifacts_meta(adapter_dir: Path) -> Tuple[Optional[ArtifactsMeta], Opt
 
         # Merge kits from core.toml if not already in registry (new layout)
         if "kits" not in data or not data["kits"]:
-            core_path = adapter_dir / "core.toml"
+            core_path = config_dir / "core.toml"
+            if not core_path.is_file():
+                core_path = adapter_dir / "core.toml"
             if core_path.is_file():
                 import tomllib as _tl
                 with open(core_path, "rb") as f:

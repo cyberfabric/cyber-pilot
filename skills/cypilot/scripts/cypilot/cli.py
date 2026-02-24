@@ -11,6 +11,7 @@ IMPORTANT: This module MUST NOT contain business logic.
 
 import sys
 import json
+from pathlib import Path
 from typing import List, Optional
 
 
@@ -150,9 +151,24 @@ def main(argv: Optional[List[str]] = None) -> int:
         rest = argv_list[1:]
     # @cpt-end:cpt-cypilot-algo-core-infra-route-command:p1:inst-parse-command
 
+    # @cpt-dod:cpt-cypilot-dod-core-infra-agents-integrity:p1
+    # @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-verify-agents
+    # Verify root AGENTS.md integrity on every invocation (silent re-inject if stale)
+    if ctx is not None and cmd != "init":
+        try:
+            from .commands.init import _inject_root_agents
+            from .utils.files import find_project_root, _read_cypilot_var
+            project_root = find_project_root(Path.cwd())
+            if project_root is not None:
+                install_rel = _read_cypilot_var(project_root)
+                if install_rel:
+                    _inject_root_agents(project_root, install_rel)
+        except Exception:
+            pass  # Non-fatal: don't block command execution
+    # @cpt-end:cpt-cypilot-algo-core-infra-route-command:p1:inst-verify-agents
+
     # @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-lookup-handler
     # @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-parse-args
-    # @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-verify-agents
     # @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-execute-handler
     # @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-serialize-json
     # @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-return-code
@@ -196,7 +212,6 @@ def main(argv: Optional[List[str]] = None) -> int:
     # @cpt-end:cpt-cypilot-algo-core-infra-route-command:p1:inst-return-code
     # @cpt-end:cpt-cypilot-algo-core-infra-route-command:p1:inst-serialize-json
     # @cpt-end:cpt-cypilot-algo-core-infra-route-command:p1:inst-execute-handler
-    # @cpt-end:cpt-cypilot-algo-core-infra-route-command:p1:inst-verify-agents
     # @cpt-end:cpt-cypilot-algo-core-infra-route-command:p1:inst-parse-args
     # @cpt-end:cpt-cypilot-algo-core-infra-route-command:p1:inst-lookup-handler
 

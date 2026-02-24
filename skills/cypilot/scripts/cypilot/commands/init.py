@@ -208,6 +208,7 @@ def _inject_root_agents(project_root: Path, install_dir: str, dry_run: bool = Fa
 
 
 def cmd_init(argv: List[str]) -> int:
+    # @cpt-dod:cpt-cypilot-dod-core-infra-init-config:p1
     # @cpt-begin:cpt-cypilot-flow-core-infra-project-init:p1:inst-user-init
     p = argparse.ArgumentParser(prog="init", description="Initialize Cypilot in a project")
     p.add_argument("--project-root", default=None, help="Project root directory")
@@ -324,8 +325,12 @@ def cmd_init(argv: List[str]) -> int:
     # @cpt-end:cpt-cypilot-algo-core-infra-create-config:p1:inst-mkdir-config
     # @cpt-end:cpt-cypilot-flow-core-infra-project-init:p1:inst-create-config
 
-    # Write core.toml
-    core_toml_path = (cypilot_dir / "core.toml").resolve()
+    # Write config files into config/ subdirectory
+    config_dir = cypilot_dir / "config"
+    if not args.dry_run:
+        config_dir.mkdir(parents=True, exist_ok=True)
+
+    core_toml_path = (config_dir / "core.toml").resolve()
     core_toml_existed = core_toml_path.is_file()
     if core_toml_existed and not args.force:
         actions["core_toml"] = "unchanged"
@@ -336,7 +341,7 @@ def cmd_init(argv: List[str]) -> int:
 
     # @cpt-begin:cpt-cypilot-flow-core-infra-project-init:p1:inst-create-config-agents
     # @cpt-begin:cpt-cypilot-algo-core-infra-create-config-agents:p1:inst-write-config-agents
-    agents_path = (cypilot_dir / "AGENTS.md").resolve()
+    agents_path = (config_dir / "AGENTS.md").resolve()
     agents_existed_before = agents_path.exists()
     if agents_existed_before and not agents_path.is_file():
         errors.append({"path": agents_path.as_posix(), "error": "CYPILOT_AGENTS_NOT_A_FILE"})
@@ -361,7 +366,7 @@ def cmd_init(argv: List[str]) -> int:
     # @cpt-end:cpt-cypilot-algo-core-infra-create-config:p1:inst-return-config-paths
 
     # @cpt-begin:cpt-cypilot-algo-core-infra-create-config:p1:inst-write-artifacts-toml
-    registry_path = (cypilot_dir / "artifacts.toml").resolve()
+    registry_path = (config_dir / "artifacts.toml").resolve()
     registry_existed_before = registry_path.is_file()
     if registry_existed_before and not args.force:
         actions["artifacts_registry"] = "unchanged"
@@ -399,6 +404,7 @@ def cmd_init(argv: List[str]) -> int:
         return 1
 
     # @cpt-begin:cpt-cypilot-flow-core-infra-project-init:p1:inst-return-init-ok
+    # @cpt-begin:cpt-cypilot-state-core-infra-project-install:p1:inst-init-complete
     result: Dict[str, object] = {
         "status": "PASS",
         "project_root": project_root.as_posix(),
@@ -412,4 +418,5 @@ def cmd_init(argv: List[str]) -> int:
         result["backups"] = backups
     print(json.dumps(result, indent=2, ensure_ascii=False))
     return 0
+    # @cpt-end:cpt-cypilot-state-core-infra-project-install:p1:inst-init-complete
     # @cpt-end:cpt-cypilot-flow-core-infra-project-init:p1:inst-return-init-ok

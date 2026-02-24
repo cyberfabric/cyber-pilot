@@ -70,11 +70,14 @@ def _read_cypilot_var(project_root: Path) -> Optional[str]:
 
 
 def load_project_config(project_root: Path) -> Optional[dict]:
-    """Load project config from core.toml in adapter dir (discovered via AGENTS.md)."""
-    adapter_rel = _read_cypilot_var(project_root)
-    if adapter_rel is None:
+    """Load project config from config/core.toml in cypilot dir (discovered via AGENTS.md)."""
+    cypilot_rel = _read_cypilot_var(project_root)
+    if cypilot_rel is None:
         return None
-    core_toml = (project_root / adapter_rel / "core.toml").resolve()
+    core_toml = (project_root / cypilot_rel / "config" / "core.toml").resolve()
+    # Fallback: legacy layout without config/ subdir
+    if not core_toml.is_file():
+        core_toml = (project_root / cypilot_rel / "core.toml").resolve()
     if not core_toml.is_file():
         return None
     try:
