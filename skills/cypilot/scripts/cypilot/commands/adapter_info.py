@@ -23,8 +23,8 @@ def _load_json_file(path: Path) -> Optional[dict]:
 
 
 def cmd_adapter_info(argv: list[str]) -> int:
-    """Discover and display Cypilot adapter information."""
-    p = argparse.ArgumentParser(prog="adapter-info", description="Discover Cypilot adapter configuration")
+    """Discover and display Cypilot project information."""
+    p = argparse.ArgumentParser(prog="info", description="Discover Cypilot project configuration")
     p.add_argument("--root", default=".", help="Project root to search from (default: current directory)")
     p.add_argument("--cypilot-root", default=None, help="Cypilot core location (if agent knows it)")
     args = p.parse_args(argv)
@@ -51,7 +51,7 @@ def cmd_adapter_info(argv: list[str]) -> int:
         print(json.dumps(
             {
                 "status": "NOT_FOUND",
-                "message": "No adapter found in project",
+                "message": "Cypilot not initialized in project",
                 "project_root": project_root.as_posix(),
                 "hint": "Run 'cypilot init' to initialize Cypilot for this project",
             },

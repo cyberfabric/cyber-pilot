@@ -369,7 +369,7 @@ def run_self_check_from_meta(
             "status": "ERROR",
             "message": "No kits defined in artifacts.toml",
             "project_root": project_root.as_posix(),
-            "adapter_dir": adapter_dir.as_posix(),
+            "cypilot_dir": adapter_dir.as_posix(),
         }
         return 1, out
 
@@ -513,7 +513,7 @@ def run_self_check_from_meta(
     out = {
         "status": overall_status,
         "project_root": project_root.as_posix(),
-        "adapter_dir": adapter_dir.as_posix(),
+        "cypilot_dir": adapter_dir.as_posix(),
         "kits_checked": kits_checked,
         "templates_checked": len(results),
         "results": results,
@@ -536,7 +536,7 @@ def cmd_self_check(argv: List[str]) -> int:
 
     adapter_dir = find_cypilot_directory(project_root)
     if adapter_dir is None:
-        print(json.dumps({"status": "ERROR", "message": "Adapter directory not found"}, indent=2, ensure_ascii=False))
+        print(json.dumps({"status": "ERROR", "message": "Cypilot not initialized. Run 'cypilot init' first."}, indent=2, ensure_ascii=False))
         return 1
 
     reg, reg_err = load_artifacts_registry(adapter_dir)

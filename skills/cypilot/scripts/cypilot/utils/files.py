@@ -128,7 +128,7 @@ def find_cypilot_directory(start: Path, cypilot_root: Optional[Path] = None) -> 
     adapter_rel = _read_cypilot_var(project_root)
     if adapter_rel is not None:
         adapter_dir = (project_root / adapter_rel).resolve()
-        if (adapter_dir / "AGENTS.md").exists():
+        if adapter_dir.is_dir() and (adapter_dir / "config").is_dir():
             return adapter_dir
         return None
 
@@ -225,11 +225,11 @@ def find_cypilot_directory(start: Path, cypilot_root: Optional[Path] = None) -> 
 
 def load_cypilot_config(adapter_dir: Path) -> Dict[str, object]:
     """
-    Load adapter configuration from AGENTS.md and specs/
-    Returns dict with adapter metadata and available specs
+    Load Cypilot configuration from AGENTS.md and specs/
+    Returns dict with Cypilot metadata and available specs
     """
     config: Dict[str, object] = {
-        "adapter_dir": adapter_dir.as_posix(),
+        "cypilot_dir": adapter_dir.as_posix(),
         "specs": [],
     }
     

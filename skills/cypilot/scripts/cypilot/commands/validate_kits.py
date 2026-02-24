@@ -23,7 +23,7 @@ def cmd_validate_kits(argv: List[str]) -> int:
 
     ctx = get_context()
     if not ctx:
-        print(json.dumps({"status": "ERROR", "message": "No adapter found. Run 'init' first."}, indent=None, ensure_ascii=False))
+        print(json.dumps({"status": "ERROR", "message": "Cypilot not initialized. Run 'cypilot init' first."}, indent=None, ensure_ascii=False))
         return 1
 
     project_root = ctx.project_root
