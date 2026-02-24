@@ -68,10 +68,14 @@ def main(argv: Optional[List[str]] = None) -> int:
                 print(f"skill (project): {pv}")
         return 0
 
-    # Extract --version VERSION only for init and update commands
+    # Extract --version VERSION and --force only for init and update commands
     target_version = None
+    force_update = False
     if args and args[0] in ("init", "update"):
         target_version = _extract_version_param(args)
+        if "--force" in args:
+            force_update = True
+            args.remove("--force")
 
     # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-update-cache
     if args and args[0] == "update":
@@ -80,7 +84,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-explicit-cache-update
         # 'cpt update v3' — version can also be positional arg
         explicit = target_version or (args[1] if len(args) > 1 else None)
-        success, message = download_and_cache(version=explicit)
+        success, message = download_and_cache(version=explicit, force=force_update)
         # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-explicit-cache-update
         # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-return-cache-update
         sys.stderr.write(f"{message}\n")
@@ -93,7 +97,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         from cypilot_proxy.cache import download_and_cache
 
         sys.stderr.write(f"Updating cache to version {target_version}...\n")
-        success, message = download_and_cache(version=target_version)
+        success, message = download_and_cache(version=target_version, force=force_update)
         sys.stderr.write(f"{message}\n")
         if not success:
             return 1
