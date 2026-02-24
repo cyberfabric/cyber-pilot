@@ -179,22 +179,22 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 
 ### Inject Root AGENTS.md
 
-- [ ] `p1` - **ID**: `cpt-cypilot-algo-core-infra-inject-root-agents`
+- [x] `p1` - **ID**: `cpt-cypilot-algo-core-infra-inject-root-agents`
 
 **Input**: Project root path, install directory path
 
 **Output**: Updated or created `{project_root}/AGENTS.md`
 
 **Steps**:
-1. [ ] - `p1` - Compute managed block content: Variables table with `{cypilot} = @/{install_dir}`, navigation rule `ALWAYS open and follow {cypilot}/config/AGENTS.md FIRST` - `inst-compute-block`
-2. [ ] - `p1` - **IF** `{project_root}/AGENTS.md` does not exist - `inst-if-no-agents`
-   1. [ ] - `p1` - Create file with managed block wrapped in `<!-- @cpt:root-agents -->` markers - `inst-create-agents-file`
-3. [ ] - `p1` - **ELSE** read existing file content - `inst-read-existing`
-   1. [ ] - `p1` - **IF** managed block markers found - `inst-if-markers-exist`
-      1. [ ] - `p1` - Replace content between markers with computed block - `inst-replace-block`
-   2. [ ] - `p1` - **ELSE** insert managed block at beginning of file - `inst-insert-block`
-4. [ ] - `p1` - Write file - `inst-write-agents`
-5. [ ] - `p1` - **RETURN** path to AGENTS.md - `inst-return-agents-path`
+1. [x] - `p1` - Compute managed block content: Variables table with `{cypilot} = @/{install_dir}`, navigation rule `ALWAYS open and follow {cypilot}/AGENTS.md FIRST` - `inst-compute-block`
+2. [x] - `p1` - **IF** `{project_root}/AGENTS.md` does not exist - `inst-if-no-agents`
+   1. [x] - `p1` - Create file with managed block wrapped in `<!-- @cpt:root-agents -->` markers - `inst-create-agents-file`
+3. [x] - `p1` - **ELSE** read existing file content - `inst-read-existing`
+   1. [x] - `p1` - **IF** managed block markers found - `inst-if-markers-exist`
+      1. [x] - `p1` - Replace content between markers with computed block - `inst-replace-block`
+   2. [x] - `p1` - **ELSE** insert managed block at beginning of file - `inst-insert-block`
+4. [x] - `p1` - Write file - `inst-write-agents`
+5. [x] - `p1` - **RETURN** path to AGENTS.md - `inst-return-agents-path`
 
 ### Cache Skill from GitHub
 

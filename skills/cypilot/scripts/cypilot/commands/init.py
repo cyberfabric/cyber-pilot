@@ -82,6 +82,79 @@ def _resolve_user_path(raw: str, base: Path) -> Path:
     return p.resolve()
 
 
+MARKER_START = "<!-- @cpt:root-agents -->"
+MARKER_END = "<!-- /@cpt:root-agents -->"
+
+
+def _compute_managed_block(install_dir: str) -> str:
+    # @cpt-begin:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-compute-block
+    return (
+        f"{MARKER_START}\n"
+        f"# Cypilot AI Agent Navigation\n"
+        f"\n"
+        f"**Version**: 1.2\n"
+        f"\n"
+        f"---\n"
+        f"\n"
+        f"## Variables\n"
+        f"\n"
+        f"| Variable | Value | Description |\n"
+        f"|----------|-------|-------------|\n"
+        f"| `{{cypilot}}` | `@/{install_dir}` | Cypilot install directory |\n"
+        f"\n"
+        f"## Navigation Rules\n"
+        f"\n"
+        f"ALWAYS open and follow `{{cypilot}}/AGENTS.md` FIRST\n"
+        f"\n"
+        f"{MARKER_END}"
+    )
+    # @cpt-end:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-compute-block
+
+
+def _inject_root_agents(project_root: Path, install_dir: str, dry_run: bool = False) -> str:
+    """Inject or update root AGENTS.md managed block. Returns action taken."""
+    agents_file = project_root / "AGENTS.md"
+    expected_block = _compute_managed_block(install_dir)
+
+    # @cpt-begin:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-if-no-agents
+    if not agents_file.is_file():
+        # @cpt-begin:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-create-agents-file
+        if not dry_run:
+            agents_file.write_text(expected_block + "\n", encoding="utf-8")
+        return "created"
+        # @cpt-end:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-create-agents-file
+    # @cpt-end:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-if-no-agents
+
+    # @cpt-begin:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-read-existing
+    content = agents_file.read_text(encoding="utf-8")
+    # @cpt-end:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-read-existing
+
+    # @cpt-begin:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-if-markers-exist
+    if MARKER_START in content and MARKER_END in content:
+        start_idx = content.index(MARKER_START)
+        end_idx = content.index(MARKER_END) + len(MARKER_END)
+        current_block = content[start_idx:end_idx]
+        if current_block == expected_block.strip():
+            return "unchanged"
+        # @cpt-begin:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-replace-block
+        new_content = content[:start_idx] + expected_block + content[end_idx:]
+        # @cpt-end:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-replace-block
+    # @cpt-end:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-if-markers-exist
+    else:
+        # @cpt-begin:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-insert-block
+        new_content = expected_block + "\n\n" + content
+        # @cpt-end:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-insert-block
+
+    # @cpt-begin:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-write-agents
+    if not dry_run:
+        agents_file.write_text(new_content, encoding="utf-8")
+    # @cpt-end:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-write-agents
+
+    # @cpt-begin:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-return-agents-path
+    return "updated"
+    # @cpt-end:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-return-agents-path
+
+
 def cmd_init(argv: List[str]) -> int:
     p = argparse.ArgumentParser(prog="init", description="Initialize Cypilot config and minimal adapter")
     p.add_argument("--project-root", default=None, help="Project root directory to create .cypilot-config.json in")
@@ -255,6 +328,10 @@ def cmd_init(argv: List[str]) -> int:
             adapter_dir.mkdir(parents=True, exist_ok=True)
             _write_json_file(registry_path, desired_registry)
         actions["artifacts_registry"] = "updated" if registry_existed_before else "created"
+
+    # Inject root AGENTS.md with {cypilot} variable
+    root_agents_action = _inject_root_agents(project_root, adapter_rel, dry_run=args.dry_run)
+    actions["root_agents"] = root_agents_action
 
     if errors:
         err_result: Dict[str, object] = {
