@@ -109,7 +109,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     from .utils.context import CypilotContext, set_context
     ctx = CypilotContext.load()
     set_context(ctx)
-    # Context may be None if no adapter found - that's OK for some commands like init
+    # Context may be None if Cypilot not initialized - that's OK for some commands like init
 
     # Define all available commands
     analysis_commands = ["validate", "validate-kits"]

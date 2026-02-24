@@ -57,7 +57,7 @@ def cmd_get_content(argv: List[str]) -> int:
 
     ctx = CypilotContext.load(artifact_path.parent)
     if not ctx:
-        print(json.dumps({"status": "ERROR", "message": "No adapter found"}, indent=None, ensure_ascii=False))
+        print(json.dumps({"status": "ERROR", "message": "Cypilot not initialized"}, indent=None, ensure_ascii=False))
         return 1
 
     meta = ctx.meta

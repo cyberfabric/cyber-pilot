@@ -32,7 +32,7 @@ def cmd_where_defined(argv: List[str]) -> int:
 
         ctx = CypilotContext.load(artifact_path.parent)
         if not ctx:
-            print(json.dumps({"status": "ERROR", "message": "No adapter found. Run 'init' first."}, indent=None, ensure_ascii=False))
+            print(json.dumps({"status": "ERROR", "message": "Cypilot not initialized. Run 'cypilot init' first."}, indent=None, ensure_ascii=False))
             return 1
 
         meta = ctx.meta
@@ -56,7 +56,7 @@ def cmd_where_defined(argv: List[str]) -> int:
 
         ctx = get_context()
         if not ctx:
-            print(json.dumps({"status": "ERROR", "message": "No adapter found. Run 'init' first."}, indent=None, ensure_ascii=False))
+            print(json.dumps({"status": "ERROR", "message": "Cypilot not initialized. Run 'cypilot init' first."}, indent=None, ensure_ascii=False))
             return 1
 
         meta = ctx.meta

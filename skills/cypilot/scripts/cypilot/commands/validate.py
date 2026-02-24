@@ -31,7 +31,7 @@ def cmd_validate(argv: List[str]) -> int:
     # Use pre-loaded context (templates already loaded on startup)
     ctx = get_context()
     if not ctx:
-        print(json.dumps({"status": "ERROR", "message": "No adapter found. Run 'init' first."}, indent=None, ensure_ascii=False))
+        print(json.dumps({"status": "ERROR", "message": "Cypilot not initialized. Run 'cypilot init' first."}, indent=None, ensure_ascii=False))
         return 1
 
     # Surface context-level load errors (e.g., invalid constraints.json) as validation errors.
@@ -93,7 +93,7 @@ def cmd_validate(argv: List[str]) -> int:
 
         ctx = CypilotContext.load(artifact_path.parent)
         if not ctx:
-            print(json.dumps({"status": "ERROR", "message": "No adapter found"}, indent=None, ensure_ascii=False))
+            print(json.dumps({"status": "ERROR", "message": "Cypilot not initialized"}, indent=None, ensure_ascii=False))
             return 1
 
         # Refresh context-level errors for this context.
