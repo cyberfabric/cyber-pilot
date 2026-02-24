@@ -75,6 +75,20 @@ def _cmd_validate_kits(argv: List[str]) -> int:
 
 
 # =============================================================================
+# KIT MANAGEMENT COMMANDS
+# =============================================================================
+
+def _cmd_kit(argv: List[str]) -> int:
+    from .commands.kit import cmd_kit
+    return cmd_kit(argv)
+
+
+def _cmd_generate_resources(argv: List[str]) -> int:
+    from .commands.kit import cmd_generate_resources
+    return cmd_generate_resources(argv)
+
+
+# =============================================================================
 # ADAPTER COMMAND
 # =============================================================================
 
@@ -100,6 +114,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     # Define all available commands
     analysis_commands = ["validate", "validate-kits"]
     legacy_aliases = ["validate-code", "validate-rules"]
+    kit_commands = ["kit", "generate-resources"]
     search_commands = [
         "init",
         "list-ids", "list-id-kinds",
@@ -109,7 +124,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         "self-check",
         "agents",
     ]
-    all_commands = analysis_commands + search_commands + legacy_aliases
+    all_commands = analysis_commands + kit_commands + search_commands + legacy_aliases
 
     # Handle --help / -h at top level
     if argv_list and argv_list[0] in ("-h", "--help"):
@@ -119,6 +134,10 @@ def main(argv: Optional[List[str]] = None) -> int:
         print()
         print("Validation commands:")
         for c in analysis_commands:
+            print(f"  {c}")
+        print()
+        print("Kit management commands:")
+        for c in kit_commands:
             print(f"  {c}")
         print()
         print("Search and utility commands:")
@@ -198,6 +217,10 @@ def main(argv: Optional[List[str]] = None) -> int:
         return _cmd_self_check(rest)
     elif cmd == "agents":
         return _cmd_agents(rest)
+    elif cmd == "kit":
+        return _cmd_kit(rest)
+    elif cmd == "generate-resources":
+        return _cmd_generate_resources(rest)
     else:
         # @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-if-no-handler
         # @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-return-unknown
