@@ -102,7 +102,7 @@ def download_and_cache(
 
     # @cpt-begin:cpt-cypilot-algo-core-infra-cache-skill:p1:inst-download-archive
     req = Request(asset_url, headers={
-        "Accept": "application/octet-stream",
+        "Accept": "application/vnd.github+json",
         "User-Agent": USER_AGENT,
     })
     try:
