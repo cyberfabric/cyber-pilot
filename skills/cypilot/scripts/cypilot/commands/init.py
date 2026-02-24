@@ -1,11 +1,12 @@
 import argparse
 import json
 import os
+import re
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
-from ..utils.artifacts_meta import create_backup, generate_default_registry
+from ..utils.artifacts_meta import create_backup, generate_default_registry, generate_slug
 from ..utils.files import find_project_root
 
 
@@ -82,6 +83,34 @@ def _resolve_user_path(raw: str, base: Path) -> Path:
     return p.resolve()
 
 
+def _slug_to_pascal_case(slug: str) -> str:
+    """Convert a slug like 'my-app' to PascalCase like 'MyApp'."""
+    return "".join(word.capitalize() for word in slug.split("-")) if slug else "Unnamed"
+
+
+def _define_root_system(project_root: Path) -> Dict[str, str]:
+    """
+    Define root system from project directory.
+
+    Returns dict with 'name' (PascalCase) and 'slug' (lowercase-hyphenated).
+    """
+    # @cpt-begin:cpt-cypilot-algo-core-infra-define-root-system:p1:inst-extract-basename
+    basename = project_root.name
+    # @cpt-end:cpt-cypilot-algo-core-infra-define-root-system:p1:inst-extract-basename
+
+    # @cpt-begin:cpt-cypilot-algo-core-infra-define-root-system:p1:inst-derive-slug
+    slug = generate_slug(basename)
+    # @cpt-end:cpt-cypilot-algo-core-infra-define-root-system:p1:inst-derive-slug
+
+    # @cpt-begin:cpt-cypilot-algo-core-infra-define-root-system:p1:inst-derive-name
+    name = _slug_to_pascal_case(slug)
+    # @cpt-end:cpt-cypilot-algo-core-infra-define-root-system:p1:inst-derive-name
+
+    # @cpt-begin:cpt-cypilot-algo-core-infra-define-root-system:p1:inst-return-system-def
+    return {"name": name, "slug": slug}
+    # @cpt-end:cpt-cypilot-algo-core-infra-define-root-system:p1:inst-return-system-def
+
+
 MARKER_START = "<!-- @cpt:root-agents -->"
 MARKER_END = "<!-- /@cpt:root-agents -->"
 
@@ -156,6 +185,7 @@ def _inject_root_agents(project_root: Path, install_dir: str, dry_run: bool = Fa
 
 
 def cmd_init(argv: List[str]) -> int:
+    # @cpt-begin:cpt-cypilot-flow-core-infra-project-init:p1:inst-user-init
     p = argparse.ArgumentParser(prog="init", description="Initialize Cypilot config and minimal adapter")
     p.add_argument("--project-root", default=None, help="Project root directory to create .cypilot-config.json in")
     p.add_argument("--cypilot-root", default=None, help="Explicit Cypilot core root (optional override)")
@@ -165,6 +195,7 @@ def cmd_init(argv: List[str]) -> int:
     p.add_argument("--dry-run", action="store_true", help="Compute changes without writing files")
     p.add_argument("--force", action="store_true", help="Overwrite existing files")
     args = p.parse_args(argv)
+    # @cpt-end:cpt-cypilot-flow-core-infra-project-init:p1:inst-user-init
 
     cwd = Path.cwd().resolve()
     cypilot_root = Path(args.cypilot_root).resolve() if args.cypilot_root else None
@@ -182,10 +213,28 @@ def cmd_init(argv: List[str]) -> int:
         raw_root = args.project_root or default_project_root.as_posix()
         project_root = _resolve_user_path(raw_root, cwd)
 
-    # If a config already exists, prefer its adapter path as the default.
+    # @cpt-begin:cpt-cypilot-flow-core-infra-project-init:p1:inst-check-existing
     config_path = (project_root / ".cypilot-config.json").resolve()
     existing_cfg = _load_json_file(config_path) if config_path.is_file() else None
+    # @cpt-end:cpt-cypilot-flow-core-infra-project-init:p1:inst-check-existing
 
+    # @cpt-begin:cpt-cypilot-flow-core-infra-project-init:p1:inst-if-exists
+    # @cpt-begin:cpt-cypilot-flow-core-infra-project-init:p1:inst-return-exists
+    if existing_cfg is not None and not args.force:
+        adapter_check = existing_cfg.get("cypilotAdapterPath", "")
+        if isinstance(adapter_check, str) and (project_root / adapter_check).is_dir():
+            print(json.dumps({
+                "status": "FAIL",
+                "message": "Cypilot already initialized. Use 'cypilot update' to upgrade or --force to reinitialize.",
+                "project_root": project_root.as_posix(),
+                "config_path": config_path.as_posix(),
+            }, indent=2, ensure_ascii=False))
+            return 2
+    # @cpt-end:cpt-cypilot-flow-core-infra-project-init:p1:inst-return-exists
+    # @cpt-end:cpt-cypilot-flow-core-infra-project-init:p1:inst-if-exists
+
+    # @cpt-begin:cpt-cypilot-flow-core-infra-project-init:p1:inst-if-interactive
+    # @cpt-begin:cpt-cypilot-flow-core-infra-project-init:p1:inst-prompt-dir
     default_adapter_path = ".cypilot-adapter"
     if args.adapter_path is None and isinstance(existing_cfg, dict):
         existing_adapter_path = existing_cfg.get("cypilotAdapterPath")
@@ -196,15 +245,29 @@ def cmd_init(argv: List[str]) -> int:
     else:
         adapter_rel = args.adapter_path or default_adapter_path
     adapter_rel = adapter_rel.strip() or default_adapter_path
+    # @cpt-end:cpt-cypilot-flow-core-infra-project-init:p1:inst-prompt-dir
+    # @cpt-end:cpt-cypilot-flow-core-infra-project-init:p1:inst-if-interactive
 
     adapter_dir = (project_root / adapter_rel).resolve()
     core_rel = _safe_relpath_from_dir(cypilot_root, project_root)
     extends_target = (cypilot_root / "AGENTS.md").resolve()
     extends_rel = _safe_relpath_from_dir(extends_target, adapter_dir)
 
-    project_name = str(args.project_name).strip() if args.project_name else project_root.name
+    # @cpt-begin:cpt-cypilot-flow-core-infra-project-init:p1:inst-define-root
+    root_system = _define_root_system(project_root)
+    project_name = str(args.project_name).strip() if args.project_name else root_system["name"]
+    # @cpt-end:cpt-cypilot-flow-core-infra-project-init:p1:inst-define-root
 
-    # Use kit-based WHEN clause format (not workflow-based)
+    # @cpt-begin:cpt-cypilot-flow-core-infra-project-init:p1:inst-prompt-agents
+    # Stub: agent selection not yet needed (single kit); will prompt when multi-kit support lands
+    # @cpt-end:cpt-cypilot-flow-core-infra-project-init:p1:inst-prompt-agents
+
+    # @cpt-begin:cpt-cypilot-flow-core-infra-project-init:p1:inst-copy-skill
+    # Stub: cache-only model — proxy forwards to ~/.cypilot/cache/, no project-local copy needed yet
+    # @cpt-end:cpt-cypilot-flow-core-infra-project-init:p1:inst-copy-skill
+
+    # @cpt-begin:cpt-cypilot-flow-core-infra-project-init:p1:inst-create-config
+    # @cpt-begin:cpt-cypilot-algo-core-infra-create-config-agents:p1:inst-gen-when-rules
     kit_id = "cypilot-sdlc"
     artifacts_when = f"ALWAYS open and follow `artifacts.json` WHEN Cypilot uses kit `{kit_id}` for artifact kinds: PRD, DESIGN, DECOMPOSITION, ADR, FEATURE OR codebase"
     desired_agents = "\n".join([
@@ -235,10 +298,12 @@ def cmd_init(argv: List[str]) -> int:
         artifacts_when,
         "",
     ])
+    # @cpt-end:cpt-cypilot-algo-core-infra-create-config-agents:p1:inst-gen-when-rules
 
     desired_registry = generate_default_registry(project_name, core_rel)
 
     desired_cfg = _default_project_config(core_rel, adapter_rel)
+    # @cpt-end:cpt-cypilot-flow-core-infra-project-init:p1:inst-create-config
 
     actions: Dict[str, str] = {}
     errors: List[Dict[str, str]] = []
@@ -294,6 +359,8 @@ def cmd_init(argv: List[str]) -> int:
             _write_json_file(config_path, desired_cfg)
         actions["config"] = "updated" if config_existed_before else "created"
 
+    # @cpt-begin:cpt-cypilot-flow-core-infra-project-init:p1:inst-create-config-agents
+    # @cpt-begin:cpt-cypilot-algo-core-infra-create-config-agents:p1:inst-write-config-agents
     agents_path = (adapter_dir / "AGENTS.md").resolve()
     agents_existed_before = agents_path.exists()
     if agents_existed_before and not agents_path.is_file():
@@ -312,6 +379,11 @@ def cmd_init(argv: List[str]) -> int:
             adapter_dir.mkdir(parents=True, exist_ok=True)
             agents_path.write_text(desired_agents, encoding="utf-8")
         actions["adapter_agents"] = "updated" if agents_existed_before else "created"
+    # @cpt-end:cpt-cypilot-algo-core-infra-create-config-agents:p1:inst-write-config-agents
+    # @cpt-begin:cpt-cypilot-algo-core-infra-create-config-agents:p1:inst-return-config-agents-path
+    actions["adapter_agents_path"] = agents_path.as_posix()
+    # @cpt-end:cpt-cypilot-algo-core-infra-create-config-agents:p1:inst-return-config-agents-path
+    # @cpt-end:cpt-cypilot-flow-core-infra-project-init:p1:inst-create-config-agents
 
     registry_path = (adapter_dir / "artifacts.json").resolve()
     registry_existed_before = registry_path.exists()
@@ -329,9 +401,18 @@ def cmd_init(argv: List[str]) -> int:
             _write_json_file(registry_path, desired_registry)
         actions["artifacts_registry"] = "updated" if registry_existed_before else "created"
 
-    # Inject root AGENTS.md with {cypilot} variable
+    # @cpt-begin:cpt-cypilot-flow-core-infra-project-init:p1:inst-delegate-kits
+    # Stub: Kit Manager (Feature 2 boundary) — default kit registered in artifacts.json
+    # @cpt-end:cpt-cypilot-flow-core-infra-project-init:p1:inst-delegate-kits
+
+    # @cpt-begin:cpt-cypilot-flow-core-infra-project-init:p1:inst-delegate-agents
+    # Stub: Agent Generator (Feature 5 boundary) — agent entry points generated separately
+    # @cpt-end:cpt-cypilot-flow-core-infra-project-init:p1:inst-delegate-agents
+
+    # @cpt-begin:cpt-cypilot-flow-core-infra-project-init:p1:inst-inject-agents
     root_agents_action = _inject_root_agents(project_root, adapter_rel, dry_run=args.dry_run)
     actions["root_agents"] = root_agents_action
+    # @cpt-end:cpt-cypilot-flow-core-infra-project-init:p1:inst-inject-agents
 
     if errors:
         err_result: Dict[str, object] = {
@@ -349,6 +430,7 @@ def cmd_init(argv: List[str]) -> int:
         print(json.dumps(err_result, indent=2, ensure_ascii=False))
         return 1
 
+    # @cpt-begin:cpt-cypilot-flow-core-infra-project-init:p1:inst-return-init-ok
     result: Dict[str, object] = {
         "status": "PASS",
         "project_root": project_root.as_posix(),
@@ -357,8 +439,10 @@ def cmd_init(argv: List[str]) -> int:
         "adapter_dir": adapter_dir.as_posix(),
         "dry_run": bool(args.dry_run),
         "actions": actions,
+        "root_system": root_system,
     }
     if backups:
         result["backups"] = backups
     print(json.dumps(result, indent=2, ensure_ascii=False))
     return 0
+    # @cpt-end:cpt-cypilot-flow-core-infra-project-init:p1:inst-return-init-ok

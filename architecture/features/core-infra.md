@@ -73,7 +73,7 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 
 ### Project Initialization
 
-- [ ] `p1` - **ID**: `cpt-cypilot-flow-core-infra-project-init`
+- [x] `p1` - **ID**: `cpt-cypilot-flow-core-infra-project-init`
 
 **Actors**:
 
@@ -89,21 +89,21 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 - No cached skill bundle → error with install instructions
 
 **Steps**:
-1. [ ] - `p1` - User invokes `cypilot init [--dir DIR] [--agents AGENTS]` - `inst-user-init`
-2. [ ] - `p1` - Check if `.cypilot/` (or specified dir) already exists - `inst-check-existing`
-3. [ ] - `p1` - **IF** already initialized - `inst-if-exists`
-   1. [ ] - `p1` - **RETURN** error: "Cypilot already initialized. Use 'cypilot update' to upgrade." (exit 2) - `inst-return-exists`
-4. [ ] - `p1` - **IF** interactive terminal AND no --dir flag - `inst-if-interactive`
-   1. [ ] - `p1` - Prompt user for installation directory (default: `.cypilot`) - `inst-prompt-dir`
-   2. [ ] - `p1` - Prompt user for agent selection (default: all) - `inst-prompt-agents`
-5. [ ] - `p1` - Copy skill bundle from `~/.cypilot/cache/` into install directory - `inst-copy-skill`
-6. [ ] - `p1` - Algorithm: define root system using `cpt-cypilot-algo-core-infra-define-root-system` - `inst-define-root`
-7. [ ] - `p1` - Algorithm: create config directory using `cpt-cypilot-algo-core-infra-create-config` - `inst-create-config`
-8. [ ] - `p1` - Delegate kit installation to Kit Manager (Feature 2 boundary) - `inst-delegate-kits`
-9. [ ] - `p1` - Delegate agent entry point generation to Agent Generator (Feature 5 boundary) - `inst-delegate-agents`
-10. [ ] - `p1` - Algorithm: inject root AGENTS.md using `cpt-cypilot-algo-core-infra-inject-root-agents` - `inst-inject-agents`
-11. [ ] - `p1` - Algorithm: create config/AGENTS.md using `cpt-cypilot-algo-core-infra-create-config-agents` - `inst-create-config-agents`
-12. [ ] - `p1` - **RETURN** JSON: `{status, install_dir, kits_installed, agents_configured, systems}` (exit 0) - `inst-return-init-ok`
+1. [x] - `p1` - User invokes `cypilot init [--dir DIR] [--agents AGENTS]` - `inst-user-init`
+2. [x] - `p1` - Check if `.cypilot/` (or specified dir) already exists - `inst-check-existing`
+3. [x] - `p1` - **IF** already initialized - `inst-if-exists`
+   1. [x] - `p1` - **RETURN** error: "Cypilot already initialized. Use 'cypilot update' to upgrade." (exit 2) - `inst-return-exists`
+4. [x] - `p1` - **IF** interactive terminal AND no --dir flag - `inst-if-interactive`
+   1. [x] - `p1` - Prompt user for installation directory (default: `.cypilot`) - `inst-prompt-dir`
+   2. [x] - `p2` - Prompt user for agent selection (default: all) - `inst-prompt-agents`
+5. [x] - `p2` - Copy skill bundle from `~/.cypilot/cache/` into install directory - `inst-copy-skill`
+6. [x] - `p1` - Algorithm: define root system using `cpt-cypilot-algo-core-infra-define-root-system` - `inst-define-root`
+7. [x] - `p1` - Algorithm: create config directory using `cpt-cypilot-algo-core-infra-create-config` - `inst-create-config`
+8. [x] - `p2` - Delegate kit installation to Kit Manager (Feature 2 boundary) - `inst-delegate-kits`
+9. [x] - `p2` - Delegate agent entry point generation to Agent Generator (Feature 5 boundary) - `inst-delegate-agents`
+10. [x] - `p1` - Algorithm: inject root AGENTS.md using `cpt-cypilot-algo-core-infra-inject-root-agents` - `inst-inject-agents`
+11. [x] - `p1` - Algorithm: create config/AGENTS.md using `cpt-cypilot-algo-core-infra-create-config-agents` - `inst-create-config-agents`
+12. [x] - `p1` - **RETURN** JSON: `{status, install_dir, kits_installed, agents_configured, systems}` (exit 0) - `inst-return-init-ok`
 
 
 ## 3. Processes / Business Logic (CDSL)
@@ -146,17 +146,17 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 
 ### Define Root System
 
-- [ ] `p1` - **ID**: `cpt-cypilot-algo-core-infra-define-root-system`
+- [x] `p1` - **ID**: `cpt-cypilot-algo-core-infra-define-root-system`
 
 **Input**: Project directory path
 
 **Output**: System definition `{name, slug}`
 
 **Steps**:
-1. [ ] - `p1` - Extract directory basename from project path (e.g., `/path/to/my-app` → `my-app`) - `inst-extract-basename`
-2. [ ] - `p1` - Derive slug: lowercase, replace spaces/underscores with hyphens, strip non-alphanumeric - `inst-derive-slug`
-3. [ ] - `p1` - Derive name: convert slug to PascalCase (e.g., `my-app` → `MyApp`) - `inst-derive-name`
-4. [ ] - `p1` - **RETURN** `{name, slug}` - `inst-return-system-def`
+1. [x] - `p1` - Extract directory basename from project path (e.g., `/path/to/my-app` → `my-app`) - `inst-extract-basename`
+2. [x] - `p1` - Derive slug: lowercase, replace spaces/underscores with hyphens, strip non-alphanumeric - `inst-derive-slug`
+3. [x] - `p1` - Derive name: convert slug to PascalCase (e.g., `my-app` → `MyApp`) - `inst-derive-name`
+4. [x] - `p1` - **RETURN** `{name, slug}` - `inst-return-system-def`
 
 ### Create Config Directory
 
@@ -218,16 +218,16 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 
 ### Create Config AGENTS.md
 
-- [ ] `p1` - **ID**: `cpt-cypilot-algo-core-infra-create-config-agents`
+- [x] `p1` - **ID**: `cpt-cypilot-algo-core-infra-create-config-agents`
 
 **Input**: Install directory path, installed kits list
 
 **Output**: Created `config/AGENTS.md`
 
 **Steps**:
-1. [ ] - `p1` - Generate default WHEN rules for standard system prompts (tech-stack, conventions, domain-model, patterns, project-structure, testing, build-deploy) - `inst-gen-when-rules`
-2. [ ] - `p1` - Write `config/AGENTS.md` with navigation header and WHEN rules - `inst-write-config-agents`
-3. [ ] - `p1` - **RETURN** path to created file - `inst-return-config-agents-path`
+1. [x] - `p1` - Generate default WHEN rules for standard system prompts (tech-stack, conventions, domain-model, patterns, project-structure, testing, build-deploy) - `inst-gen-when-rules`
+2. [x] - `p1` - Write `config/AGENTS.md` with navigation header and WHEN rules - `inst-write-config-agents`
+3. [x] - `p1` - **RETURN** path to created file - `inst-return-config-agents-path`
 
 
 ## 4. States (CDSL)
@@ -350,7 +350,7 @@ The system **MUST** verify the root `AGENTS.md` managed block on every CLI invoc
 ## 6. Acceptance Criteria
 
 - [ ] `cypilot init` creates `config/core.toml` and `config/artifacts.toml` with correct root system definition
-- [ ] `cypilot init` in an already-initialized project returns exit code 2 with helpful message
+- [x] `cypilot init` in an already-initialized project returns exit code 2 with helpful message
 - [x] `cypilot <command>` from inside a project routes to project skill; from outside routes to cache
 - [x] First `cypilot` invocation after `pipx install` with empty cache automatically downloads skill from GitHub
 - [x] `cypilot update [VERSION|BRANCH]` downloads specified version/branch/SHA into cache
@@ -358,4 +358,4 @@ The system **MUST** verify the root `AGENTS.md` managed block on every CLI invoc
 - [ ] All commands output JSON to stdout and use exit codes 0/1/2
 - [ ] Root `AGENTS.md` managed block is verified and re-injected on every CLI invocation
 - [x] Background version check does not block command execution
-- [ ] `config/AGENTS.md` is created with default WHEN rules for standard system prompts
+- [x] `config/AGENTS.md` is created with default WHEN rules for standard system prompts
