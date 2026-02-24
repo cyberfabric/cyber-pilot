@@ -123,6 +123,10 @@ def download_and_cache(
     # @cpt-end:cpt-cypilot-algo-core-infra-cache-skill:p1:inst-download-archive
 
     # @cpt-begin:cpt-cypilot-algo-core-infra-cache-skill:p1:inst-mkdir-cache
+    # Remove old cache to prevent version mixing
+    if cache_dir.exists():
+        import shutil
+        shutil.rmtree(cache_dir)
     cache_dir.mkdir(parents=True, exist_ok=True)
     # @cpt-end:cpt-cypilot-algo-core-infra-cache-skill:p1:inst-mkdir-cache
 
