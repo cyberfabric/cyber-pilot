@@ -191,7 +191,6 @@ Phase tokens:
 
 ## References
 
-- Traceability marker spec: [requirements/traceability.md](../../../requirements/traceability.md)
-- Artifact identifiers spec: [requirements/identifiers.md](../../../requirements/identifiers.md)
-- Rules format spec: [requirements/rules-format.md](../../../requirements/rules-format.md)
-- SDLC behavior language (CDSL): [requirements/CDSL.md](../../../requirements/CDSL.md)
+- Traceability & Identifiers spec: [architecture/specs/traceability.md](../../../architecture/specs/traceability.md)
+- Rules spec: [architecture/specs/kit/rules.md](../../../architecture/specs/kit/rules.md)
+- SDLC behavior language (CDSL): [architecture/specs/CDSL.md](../../../architecture/specs/CDSL.md)

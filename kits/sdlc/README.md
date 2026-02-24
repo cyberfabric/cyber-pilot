@@ -74,11 +74,10 @@ This document provides:
 
 ## References
 
-- [Rules Format Specification](../../requirements/rules-format.md) — how to structure rules.md files
-- [Identifiers Specification](../../requirements/identifiers.md) — ID formats and naming
+- [Rules Specification](../../architecture/specs/kit/rules.md) — how to structure rules.md files
+- [Identifiers & Traceability](../../architecture/specs/traceability.md) — ID formats, naming, and code traceability
 - [Semantic Checklists](codebase/checklist.md) — Code quality review criteria
-- [Traceability Specification](../../requirements/traceability.md) — Code-to-design linking
-- [**Cypilot DSL** Specification](../../requirements/CDSL.md) — Behavior description language
+- [CDSL Specification](../../architecture/specs/CDSL.md) — Behavior description language
 - [Prompt Engineering](../../requirements/prompt-engineering.md) — 9-layer methodology
 
 ## Documentation
