@@ -1,0 +1,179 @@
+"""
+Cypilot Global CLI Proxy — Main Entry Point
+
+Thin proxy that resolves skill target (project or cache) and forwards commands.
+All actual logic lives in the skill engine — this proxy only routes.
+
+@cpt-flow:cpt-cypilot-flow-core-infra-cli-invocation:p1
+@cpt-algo:cpt-cypilot-algo-core-infra-route-command:p1
+@cpt-dod:cpt-cypilot-dod-core-infra-cli-routes:p1
+@cpt-dod:cpt-cypilot-dod-core-infra-global-package:p1
+"""
+
+import json
+import subprocess
+import sys
+from pathlib import Path
+from typing import List, NoReturn, Optional
+
+from cypilot_proxy.resolve import (
+    find_cached_skill,
+    find_project_skill,
+    get_cached_version,
+    get_project_version,
+    resolve_skill,
+)
+
+
+def main(argv: Optional[List[str]] = None) -> int:
+    """
+    Main entry point for the cypilot/cpt commands.
+    """
+    # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-user-invokes
+    args = argv if argv is not None else sys.argv[1:]
+    # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-user-invokes
+
+    # Handle proxy-level flags before resolving skill
+    if args and args[0] == "--version":
+        from cypilot_proxy import __version__
+        print(f"cypilot-proxy {__version__}")
+        cached = get_cached_version()
+        if cached:
+            print(f"skill (cached): {cached}")
+        project_skill = find_project_skill()
+        if project_skill:
+            pv = get_project_version(project_skill)
+            if pv:
+                print(f"skill (project): {pv}")
+        return 0
+
+    # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-check-project-skill
+    # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-project-skill
+    # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-else-no-project
+    # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-check-cache
+    # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-cache
+    skill_path, source = resolve_skill()
+    # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-cache
+    # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-check-cache
+    # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-else-no-project
+    # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-project-skill
+    # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-check-project-skill
+
+    # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-else-no-cache
+    if skill_path is None:
+        # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-auto-download
+        from cypilot_proxy.cache import download_and_cache
+
+        sys.stderr.write("Cypilot: No skill found. Downloading from GitHub...\n")
+        success, message = download_and_cache()
+        # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-auto-download
+        # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-download-failed
+        if not success:
+            # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-return-download-error
+            sys.stderr.write(f"Error: {message}\n")
+            sys.stderr.write("Retry: cypilot --update-cache\n")
+            return 1
+            # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-return-download-error
+        # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-download-failed
+
+        sys.stderr.write(f"{message}\n")
+        # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-forward-fresh-cache
+        skill_path = find_cached_skill()
+        if skill_path is None:
+            sys.stderr.write("Error: Cache populated but skill entry point not found.\n")
+            return 1
+        source = "cache"
+        # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-forward-fresh-cache
+    # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-else-no-cache
+
+    # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-update-cache
+    if args and args[0] == "--update-cache":
+        from cypilot_proxy.cache import download_and_cache
+
+        # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-explicit-cache-update
+        target = args[1] if len(args) > 1 else None
+        success, message = download_and_cache(version=target)
+        # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-explicit-cache-update
+        # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-return-cache-update
+        print(json.dumps({
+            "status": "ok" if success else "error",
+            "message": message,
+            **({"version": target} if target else {}),
+        }))
+        return 0 if success else 1
+        # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-return-cache-update
+    # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-update-cache
+
+    from cypilot_proxy.agents_check import verify_and_inject
+    verify_and_inject()  # Silent — never fails the command
+
+    # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-engine-execute
+    result = _forward_to_skill(skill_path, args)
+    # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-engine-execute
+
+    # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-bg-version-check
+    if source == "project":
+        _background_version_check(skill_path)
+    # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-bg-version-check
+
+    # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-return-exit
+    return result
+    # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-return-exit
+
+
+def _forward_to_skill(skill_path: Path, args: List[str]) -> int:
+    """
+    Forward command to the resolved skill engine via subprocess.
+
+    Uses the same Python interpreter that's running this proxy.
+    """
+    # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-forward-project
+    # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-forward-cache
+    cmd = [sys.executable, str(skill_path)] + args
+
+    try:
+        proc = subprocess.run(
+            cmd,
+            stdin=sys.stdin,
+            stdout=sys.stdout,
+            stderr=sys.stderr,
+        )
+        return proc.returncode
+    except FileNotFoundError:
+        sys.stderr.write(f"Error: Skill entry point not found: {skill_path}\n")
+        return 1
+    except OSError as e:
+        sys.stderr.write(f"Error: Failed to execute skill: {e}\n")
+        return 1
+    # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-forward-cache
+    # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-forward-project
+
+
+def _background_version_check(project_skill_path: Path) -> None:
+    """
+    Non-blocking background version check.
+
+    Compares cached version with project version and prints
+    update notice to stderr if cached is newer.
+
+    """
+    try:
+        cached_version = get_cached_version()
+        if cached_version is None:
+            return
+
+        project_version = get_project_version(project_skill_path)
+        if project_version is None:
+            return
+
+        # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-version-mismatch
+        if cached_version != project_version:
+            # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-show-update-notice
+            sys.stderr.write(
+                f"cypilot: update available ({project_version} → {cached_version}). "
+                f"Run: cypilot update\n"
+            )
+            # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-show-update-notice
+        # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-version-mismatch
+    except Exception:
+        pass  # Never fail the actual command for a version check

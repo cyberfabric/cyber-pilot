@@ -140,6 +140,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         }, indent=None, ensure_ascii=False))
         return 1
 
+    # @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-parse-command
     # Backward compatibility: if first arg starts with --, assume validate command
     if argv_list[0].startswith("-"):
         cmd = "validate"
@@ -147,7 +148,14 @@ def main(argv: Optional[List[str]] = None) -> int:
     else:
         cmd = argv_list[0]
         rest = argv_list[1:]
+    # @cpt-end:cpt-cypilot-algo-core-infra-route-command:p1:inst-parse-command
 
+    # @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-lookup-handler
+    # @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-parse-args
+    # @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-verify-agents
+    # @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-execute-handler
+    # @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-serialize-json
+    # @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-return-code
     # Dispatch to appropriate command handler
     if cmd == "validate":
         return _cmd_validate(rest)
@@ -175,12 +183,22 @@ def main(argv: Optional[List[str]] = None) -> int:
     elif cmd == "agents":
         return _cmd_agents(rest)
     else:
+        # @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-if-no-handler
+        # @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-return-unknown
         print(json.dumps({
             "status": "ERROR",
             "message": f"Unknown command: {cmd}",
             "available": all_commands,
         }, indent=None, ensure_ascii=False))
         return 1
+        # @cpt-end:cpt-cypilot-algo-core-infra-route-command:p1:inst-return-unknown
+        # @cpt-end:cpt-cypilot-algo-core-infra-route-command:p1:inst-if-no-handler
+    # @cpt-end:cpt-cypilot-algo-core-infra-route-command:p1:inst-return-code
+    # @cpt-end:cpt-cypilot-algo-core-infra-route-command:p1:inst-serialize-json
+    # @cpt-end:cpt-cypilot-algo-core-infra-route-command:p1:inst-execute-handler
+    # @cpt-end:cpt-cypilot-algo-core-infra-route-command:p1:inst-verify-agents
+    # @cpt-end:cpt-cypilot-algo-core-infra-route-command:p1:inst-parse-args
+    # @cpt-end:cpt-cypilot-algo-core-infra-route-command:p1:inst-lookup-handler
 
 
 if __name__ == "__main__":

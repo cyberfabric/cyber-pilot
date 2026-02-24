@@ -54,9 +54,14 @@
             "DESIGN": {"pattern": "DESIGN.md", "traceability": "FULL", "required": false},
             "DECOMPOSITION": {"pattern": "DECOMPOSITION.md", "traceability": "FULL", "required": false},
             "ADR": {"pattern": "ADR/**/*.md", "traceability": "FULL", "required": false},
-            "FEATURE": {"pattern": "features/*.md", "traceability": "DOCS-ONLY", "required": false}
+            "FEATURE": {"pattern": "features/*.md", "traceability": "FULL", "required": false}
           },
           "codebase": [
+            {
+              "name": "Cypilot Proxy",
+              "path": "src/cypilot_proxy",
+              "extensions": [".py"]
+            },
             {
               "name": "Cypilot CLI",
               "path": "skills/cypilot/scripts/cypilot",

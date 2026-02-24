@@ -32,7 +32,7 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 
 ### Global CLI Invocation
 
-- [ ] `p1` - **ID**: `cpt-cypilot-flow-core-infra-cli-invocation`
+- [x] `p1` - **ID**: `cpt-cypilot-flow-core-infra-cli-invocation`
 
 **Actors**:
 
@@ -49,24 +49,27 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 - Python version < 3.10 → error with version requirement
 
 **Steps**:
-1. [ ] - `p1` - User invokes `cypilot <command> [args]` from terminal - `inst-user-invokes`
-2. [ ] - `p1` - CLI proxy checks for project-installed skill at `.cypilot/` in current or parent directories - `inst-check-project-skill`
-3. [ ] - `p1` - **IF** project skill found - `inst-if-project-skill`
-   1. [ ] - `p1` - Forward command and args to project skill engine - `inst-forward-project`
-4. [ ] - `p1` - **ELSE** - `inst-else-no-project`
-   1. [ ] - `p1` - Check cached skill at `~/.cypilot/cache/` - `inst-check-cache`
-   2. [ ] - `p1` - **IF** cached skill exists - `inst-if-cache`
-      1. [ ] - `p1` - Forward command and args to cached skill engine - `inst-forward-cache`
-   3. [ ] - `p1` - **ELSE** no cached skill — first run after install - `inst-else-no-cache`
-      1. [ ] - `p1` - Algorithm: download and cache skill using `cpt-cypilot-algo-core-infra-cache-skill` - `inst-auto-download`
-      2. [ ] - `p1` - **IF** download failed - `inst-if-download-failed`
-         1. [ ] - `p1` - **RETURN** error: "Failed to download Cypilot skill. Check network and retry." (exit 1) - `inst-return-download-error`
-      3. [ ] - `p1` - Forward command and args to freshly cached skill engine - `inst-forward-fresh-cache`
-5. [ ] - `p1` - Skill engine executes command, produces JSON to stdout - `inst-engine-execute`
-6. [ ] - `p1` - CLI proxy performs non-blocking background version check - `inst-bg-version-check`
-7. [ ] - `p1` - **IF** cached version newer than project version - `inst-if-version-mismatch`
-   1. [ ] - `p1` - Display update notice to stderr - `inst-show-update-notice`
-8. [ ] - `p1` - **RETURN** exit code from skill engine (0=PASS, 1=error, 2=FAIL) - `inst-return-exit`
+1. [x] - `p1` - User invokes `cypilot <command> [args]` from terminal - `inst-user-invokes`
+2. [x] - `p1` - CLI proxy checks for project-installed skill at `.cypilot/` in current or parent directories - `inst-check-project-skill`
+3. [x] - `p1` - **IF** project skill found - `inst-if-project-skill`
+   1. [x] - `p1` - Forward command and args to project skill engine - `inst-forward-project`
+4. [x] - `p1` - **ELSE** - `inst-else-no-project`
+   1. [x] - `p1` - Check cached skill at `~/.cypilot/cache/` - `inst-check-cache`
+   2. [x] - `p1` - **IF** cached skill exists - `inst-if-cache`
+      1. [x] - `p1` - Forward command and args to cached skill engine - `inst-forward-cache`
+   3. [x] - `p1` - **ELSE** no cached skill — first run after install - `inst-else-no-cache`
+      1. [x] - `p1` - Algorithm: download and cache skill using `cpt-cypilot-algo-core-infra-cache-skill` - `inst-auto-download`
+      2. [x] - `p1` - **IF** download failed - `inst-if-download-failed`
+         1. [x] - `p1` - **RETURN** error: "Failed to download Cypilot skill. Check network and retry." (exit 1) - `inst-return-download-error`
+      3. [x] - `p1` - Forward command and args to freshly cached skill engine - `inst-forward-fresh-cache`
+5. [x] - `p1` - Skill engine executes command, produces JSON to stdout - `inst-engine-execute`
+6. [x] - `p1` - CLI proxy performs non-blocking background version check - `inst-bg-version-check`
+7. [x] - `p1` - **IF** cached version newer than project version - `inst-if-version-mismatch`
+   1. [x] - `p1` - Display update notice to stderr - `inst-show-update-notice`
+8. [x] - `p1` - **IF** first arg is `--update-cache` - `inst-if-update-cache`
+   1. [x] - `p1` - Algorithm: download and cache skill using `cpt-cypilot-algo-core-infra-cache-skill` with optional version/branch/SHA argument - `inst-explicit-cache-update`
+   2. [x] - `p1` - **RETURN** JSON: `{status, message, version}` (exit 0 on success, 1 on failure) - `inst-return-cache-update`
+9. [x] - `p1` - **RETURN** exit code from skill engine (0=PASS, 1=error, 2=FAIL) - `inst-return-exit`
 
 ### Project Initialization
 
@@ -107,39 +110,39 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 
 ### Resolve Skill Target
 
-- [ ] `p1` - **ID**: `cpt-cypilot-algo-core-infra-resolve-skill`
+- [x] `p1` - **ID**: `cpt-cypilot-algo-core-infra-resolve-skill`
 
 **Input**: Current working directory, command arguments
 
 **Output**: Path to skill engine entry point, or error
 
 **Steps**:
-1. [ ] - `p1` - Walk from current directory upward looking for `.cypilot/skills/cypilot/` marker - `inst-walk-parents`
-2. [ ] - `p1` - **IF** marker found - `inst-if-marker`
-   1. [ ] - `p1` - **RETURN** path to project skill engine - `inst-return-project-path`
-3. [ ] - `p1` - **ELSE** check `~/.cypilot/cache/` for cached skill bundle - `inst-check-global-cache`
-4. [ ] - `p1` - **IF** cache exists - `inst-if-cache-exists`
-   1. [ ] - `p1` - **RETURN** path to cached skill engine - `inst-return-cache-path`
-5. [ ] - `p1` - **ELSE** **RETURN** error: no skill found - `inst-return-not-found`
+1. [x] - `p1` - Walk from current directory upward looking for `AGENTS.md` with `<!-- @cpt:root-agents -->` marker, read `{cypilot}` variable to get install dir - `inst-walk-parents`
+2. [x] - `p1` - **IF** install dir found and skill entry point exists at `{cypilot}/skills/cypilot/scripts/cypilot.py` - `inst-if-marker`
+   1. [x] - `p1` - **RETURN** path to project skill engine - `inst-return-project-path`
+3. [x] - `p1` - **ELSE** check `~/.cypilot/cache/` for cached skill bundle - `inst-check-global-cache`
+4. [x] - `p1` - **IF** cache exists - `inst-if-cache-exists`
+   1. [x] - `p1` - **RETURN** path to cached skill engine - `inst-return-cache-path`
+5. [x] - `p1` - **ELSE** **RETURN** error: no skill found - `inst-return-not-found`
 
 ### Route Command
 
-- [ ] `p1` - **ID**: `cpt-cypilot-algo-core-infra-route-command`
+- [x] `p1` - **ID**: `cpt-cypilot-algo-core-infra-route-command`
 
 **Input**: Command name, arguments, resolved skill path
 
 **Output**: JSON to stdout, exit code
 
 **Steps**:
-1. [ ] - `p1` - Parse command name from first positional argument - `inst-parse-command`
-2. [ ] - `p1` - Look up command handler in registry - `inst-lookup-handler`
-3. [ ] - `p1` - **IF** handler not found - `inst-if-no-handler`
-   1. [ ] - `p1` - **RETURN** error JSON: `{error: "Unknown command"}` (exit 1) - `inst-return-unknown`
-4. [ ] - `p1` - Parse remaining arguments per handler's argument spec - `inst-parse-args`
-5. [ ] - `p1` - Verify root AGENTS.md integrity (re-inject if missing/stale) - `inst-verify-agents`
-6. [ ] - `p1` - Execute handler with parsed arguments - `inst-execute-handler`
-7. [ ] - `p1` - Serialize handler result to JSON on stdout - `inst-serialize-json`
-8. [ ] - `p1` - **RETURN** exit code from handler (0=PASS, 1=error, 2=FAIL) - `inst-return-code`
+1. [x] - `p1` - Parse command name from first positional argument - `inst-parse-command`
+2. [x] - `p1` - Look up command handler in registry - `inst-lookup-handler`
+3. [x] - `p1` - **IF** handler not found - `inst-if-no-handler`
+   1. [x] - `p1` - **RETURN** error JSON: `{error: "Unknown command"}` (exit 1) - `inst-return-unknown`
+4. [x] - `p1` - Parse remaining arguments per handler's argument spec - `inst-parse-args`
+5. [x] - `p1` - Verify root AGENTS.md integrity (re-inject if missing/stale) - `inst-verify-agents`
+6. [x] - `p1` - Execute handler with parsed arguments - `inst-execute-handler`
+7. [x] - `p1` - Serialize handler result to JSON on stdout - `inst-serialize-json`
+8. [x] - `p1` - **RETURN** exit code from handler (0=PASS, 1=error, 2=FAIL) - `inst-return-code`
 
 ### Define Root System
 
@@ -176,43 +179,42 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 
 ### Inject Root AGENTS.md
 
-- [ ] `p1` - **ID**: `cpt-cypilot-algo-core-infra-inject-root-agents`
+- [x] `p1` - **ID**: `cpt-cypilot-algo-core-infra-inject-root-agents`
 
 **Input**: Project root path, install directory path
 
 **Output**: Updated or created `{project_root}/AGENTS.md`
 
 **Steps**:
-1. [ ] - `p1` - Compute managed block content: `ALWAYS open @/{install_dir}/config/AGENTS.md FIRST` - `inst-compute-block`
-2. [ ] - `p1` - **IF** `{project_root}/AGENTS.md` does not exist - `inst-if-no-agents`
-   1. [ ] - `p1` - Create file with managed block wrapped in `<!-- @cpt:root-agents -->` markers - `inst-create-agents-file`
-3. [ ] - `p1` - **ELSE** read existing file content - `inst-read-existing`
-   1. [ ] - `p1` - **IF** managed block markers found - `inst-if-markers-exist`
-      1. [ ] - `p1` - Replace content between markers with computed block - `inst-replace-block`
-   2. [ ] - `p1` - **ELSE** insert managed block at beginning of file - `inst-insert-block`
-4. [ ] - `p1` - Write file - `inst-write-agents`
-5. [ ] - `p1` - **RETURN** path to AGENTS.md - `inst-return-agents-path`
+1. [x] - `p1` - Compute managed block content: Variables table with `{cypilot} = @/{install_dir}`, navigation rule `ALWAYS open and follow {cypilot}/config/AGENTS.md FIRST` - `inst-compute-block`
+2. [x] - `p1` - **IF** `{project_root}/AGENTS.md` does not exist - `inst-if-no-agents`
+   1. [x] - `p1` - Create file with managed block wrapped in `<!-- @cpt:root-agents -->` markers - `inst-create-agents-file`
+3. [x] - `p1` - **ELSE** read existing file content - `inst-read-existing`
+   1. [x] - `p1` - **IF** managed block markers found - `inst-if-markers-exist`
+      1. [x] - `p1` - Replace content between markers with computed block - `inst-replace-block`
+   2. [x] - `p1` - **ELSE** insert managed block at beginning of file - `inst-insert-block`
+4. [x] - `p1` - Write file - `inst-write-agents`
+5. [x] - `p1` - **RETURN** path to AGENTS.md - `inst-return-agents-path`
 
 ### Cache Skill from GitHub
 
-- [ ] `p1` - **ID**: `cpt-cypilot-algo-core-infra-cache-skill`
+- [x] `p1` - **ID**: `cpt-cypilot-algo-core-infra-cache-skill`
 
-**Input**: Target version (optional, defaults to "latest")
+**Input**: Target ref (optional, defaults to "latest") — accepts version tag (v3.0.0), branch name (main), or commit SHA
 
 **Output**: Path to cached skill bundle at `~/.cypilot/cache/`, or error
 
 **Steps**:
-1. [ ] - `p1` - Create `~/.cypilot/cache/` directory if absent - `inst-mkdir-cache`
-2. [ ] - `p1` - Resolve target version: if "latest", query GitHub API for latest release tag - `inst-resolve-version`
-3. [ ] - `p1` - **IF** cached version matches target version - `inst-if-cache-fresh`
-   1. [ ] - `p1` - **RETURN** existing cache path (no download needed) - `inst-return-cache-hit`
-4. [ ] - `p1` - Download skill bundle archive from GitHub release asset - `inst-download-archive`
-5. [ ] - `p1` - **IF** download fails (network error, 404, rate limit) - `inst-if-download-error`
-   1. [ ] - `p1` - **RETURN** error with HTTP status and retry suggestion - `inst-return-download-fail`
-6. [ ] - `p1` - Verify archive integrity (checksum if provided in release) - `inst-verify-checksum`
-7. [ ] - `p1` - Extract archive into `~/.cypilot/cache/` (overwrite previous) - `inst-extract-archive`
-8. [ ] - `p1` - Write version marker file `~/.cypilot/cache/.version` with downloaded version - `inst-write-version`
-9. [ ] - `p1` - **RETURN** path to cached skill bundle - `inst-return-cache-path-new`
+1. [x] - `p1` - Create `~/.cypilot/cache/` directory if absent - `inst-mkdir-cache`
+2. [x] - `p1` - Resolve target version: if "latest", query GitHub API for latest release tag - `inst-resolve-version`
+3. [x] - `p1` - **IF** cached version matches target version - `inst-if-cache-fresh`
+   1. [x] - `p1` - **RETURN** existing cache path (no download needed) - `inst-return-cache-hit`
+4. [x] - `p1` - Download skill bundle archive from GitHub release asset - `inst-download-archive`
+5. [x] - `p1` - **IF** download fails (network error, 404, rate limit) - `inst-if-download-error`
+   1. [x] - `p1` - **RETURN** error with HTTP status and retry suggestion - `inst-return-download-fail`
+6. [x] - `p1` - Extract archive into `~/.cypilot/cache/` (overwrite previous) - `inst-extract-archive`
+7. [x] - `p1` - Write version marker file `~/.cypilot/cache/.version` with downloaded version - `inst-write-version`
+8. [x] - `p1` - **RETURN** path to cached skill bundle - `inst-return-cache-path-new`
 
 ### Create Config AGENTS.md
 
@@ -247,7 +249,7 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 
 ### CLI Proxy Routes Commands
 
-- [ ] `p1` - **ID**: `cpt-cypilot-dod-core-infra-cli-routes`
+- [x] `p1` - **ID**: `cpt-cypilot-dod-core-infra-cli-routes`
 
 The system **MUST** provide a global `cypilot` (and `cpt` alias) CLI entry point that resolves the skill target (project-installed or cached) and forwards all commands with their arguments, returning JSON output and appropriate exit codes.
 
@@ -271,7 +273,7 @@ The system **MUST** provide a global `cypilot` (and `cpt` alias) CLI entry point
 
 ### Global CLI Package
 
-- [ ] `p1` - **ID**: `cpt-cypilot-dod-core-infra-global-package`
+- [x] `p1` - **ID**: `cpt-cypilot-dod-core-infra-global-package`
 
 The project **MUST** provide a Python package `cypilot` that acts as the global CLI proxy. The package **MUST** be installable via `pipx install git+https://github.com/{org}/cypilot.git` (or from PyPI when published). The package **MUST** contain only the thin proxy logic — skill resolution, cache management, command forwarding — with zero third-party dependencies (Python stdlib only). The package **MUST** register `cypilot` and `cpt` as console entry points. The package **MUST** work natively on Linux, Windows, and macOS.
 
@@ -290,7 +292,7 @@ The project **MUST** provide a Python package `cypilot` that acts as the global 
 
 ### Skill Cache Downloads from GitHub
 
-- [ ] `p1` - **ID**: `cpt-cypilot-dod-core-infra-skill-cache`
+- [x] `p1` - **ID**: `cpt-cypilot-dod-core-infra-skill-cache`
 
 The system **MUST** provide a cache mechanism in the CLI proxy that downloads the skill bundle from a GitHub release into `~/.cypilot/cache/` on first invocation (or when cache is empty/stale). The download **MUST** be automatic and transparent — no separate manual step beyond `pipx install cypilot`. The proxy **MUST** report actionable errors on download failure.
 
@@ -331,7 +333,7 @@ The system **MUST** provide a `cypilot init` command that defines the root syste
 
 ### Root AGENTS.md Integrity
 
-- [ ] `p1` - **ID**: `cpt-cypilot-dod-core-infra-agents-integrity`
+- [x] `p1` - **ID**: `cpt-cypilot-dod-core-infra-agents-integrity`
 
 The system **MUST** verify the root `AGENTS.md` managed block on every CLI invocation (not just init). If the `<!-- @cpt:root-agents -->` block is missing, stale, or the file does not exist, the system silently re-injects it with the correct path to `config/AGENTS.md`.
 
@@ -349,10 +351,11 @@ The system **MUST** verify the root `AGENTS.md` managed block on every CLI invoc
 
 - [ ] `cypilot init` creates `config/core.toml` and `config/artifacts.toml` with correct root system definition
 - [ ] `cypilot init` in an already-initialized project returns exit code 2 with helpful message
-- [ ] `cypilot <command>` from inside a project routes to project skill; from outside routes to cache
-- [ ] First `cypilot` invocation after `pipx install` with empty cache automatically downloads skill from GitHub
-- [ ] Download failure produces actionable error message with HTTP status
+- [x] `cypilot <command>` from inside a project routes to project skill; from outside routes to cache
+- [x] First `cypilot` invocation after `pipx install` with empty cache automatically downloads skill from GitHub
+- [x] `cypilot --update-cache [VERSION|BRANCH]` downloads specified version/branch/SHA into cache
+- [x] Download failure produces actionable error message with HTTP status
 - [ ] All commands output JSON to stdout and use exit codes 0/1/2
-- [ ] Root `AGENTS.md` managed block is verified and re-injected on every CLI invocation
-- [ ] Background version check does not block command execution
+- [x] Root `AGENTS.md` managed block is verified and re-injected on every CLI invocation
+- [x] Background version check does not block command execution
 - [ ] `config/AGENTS.md` is created with default WHEN rules for standard system prompts
