@@ -1,0 +1,83 @@
+# Full constraints.toml example for an SDLC kit (showing PRD constraints)
+# Auto-generated from all kit blueprints — do not edit manually
+
+kit = "sdlc"
+
+# ── PRD Heading outline ──────────────────────────────────────
+
+[[artifacts.PRD.headings]]
+id = "prd-h1-title"
+level = 1
+required = true
+multiple = false
+pattern = "PRD\\s*[—–-]\\s*.+"
+
+[[artifacts.PRD.headings]]
+id = "prd-overview"
+level = 2
+required = true
+numbered = true
+pattern = "Overview"
+
+[[artifacts.PRD.headings]]
+id = "prd-overview-purpose"
+level = 3
+required = true
+numbered = true
+pattern = "Purpose"
+
+[[artifacts.PRD.headings]]
+id = "prd-fr"
+level = 2
+required = true
+numbered = true
+pattern = "Functional Requirements"
+
+[[artifacts.PRD.headings]]
+id = "prd-nfr"
+level = 2
+required = true
+numbered = true
+pattern = "Non-functional Requirements"
+
+[[artifacts.PRD.headings]]
+id = "prd-actors"
+level = 2
+numbered = true
+pattern = "Actors"
+
+# ── PRD ID kinds ─────────────────────────────────────────────
+
+[artifacts.PRD.identifiers.fr]
+name = "Functional Requirement"
+required = true
+task = true
+priority = true
+to_code = true
+headings = ["prd-fr"]
+
+[artifacts.PRD.identifiers.fr.ref.DESIGN]
+coverage = true
+
+[artifacts.PRD.identifiers.fr.ref.DECOMPOSITION]
+# coverage omitted = optional
+
+[artifacts.PRD.identifiers.nfr]
+name = "Non-functional Requirement"
+required = true
+task = true
+priority = true
+headings = ["prd-nfr"]
+
+[artifacts.PRD.identifiers.nfr.ref.DESIGN]
+coverage = true
+
+[artifacts.PRD.identifiers.actor]
+name = "Actor"
+task = false
+priority = false
+headings = ["prd-actors"]
+
+[artifacts.PRD.identifiers.usecase]
+name = "Use Case"
+required = false

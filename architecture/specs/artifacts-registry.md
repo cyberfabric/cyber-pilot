@@ -2,8 +2,8 @@
 cypilot: true
 type: requirement
 name: Artifacts Registry
-version: 1.0
-purpose: Define structure and usage of artifacts.json for agent operations
+version: 2.0
+purpose: Define structure and usage of artifacts.toml for agent operations
 ---
 
 # Cypilot Artifacts Registry Specification
@@ -16,11 +16,10 @@ purpose: Define structure and usage of artifacts.json for agent operations
 - [Overview](#overview)
 - [Schema Version](#schema-version)
 - [Root Structure](#root-structure)
-- [Kits](#kits)
 - [Systems](#systems)
 - [Artifacts](#artifacts)
 - [Codebase](#codebase)
-- [Autodetect (Proposed)](#autodetect-proposed)
+- [Autodetect](#autodetect)
 - [Path Resolution](#path-resolution)
 - [CLI Commands](#cli-commands)
 - [Agent Operations](#agent-operations)
@@ -36,7 +35,7 @@ purpose: Define structure and usage of artifacts.json for agent operations
 
 **Add to adapter AGENTS.md** (path relative to adapter directory):
 ```
-ALWAYS open and follow `{cypilot_path}/requirements/artifacts-registry.md` WHEN working with artifacts.json
+ALWAYS open and follow `{cypilot_path}/requirements/artifacts-registry.md` WHEN working with artifacts.toml
 ```
 Where `{cypilot_path}` is resolved from the adapter's `**Extends**:` declaration.
 
@@ -46,141 +45,78 @@ Where `{cypilot_path}` is resolved from the adapter's `**Extends**:` declaration
 
 **Prerequisite**: Agent confirms understanding before proceeding:
 - [ ] Agent has read and understood this requirement
-- [ ] Agent knows where artifacts.json is located (via adapter-info)
+- [ ] Agent knows where artifacts.toml is located (via adapter-info)
 - [ ] Agent will use CLI commands, not direct file manipulation
 
 ---
 
 ## Overview
 
-**What**: `artifacts.json` is the Cypilot artifact registry - a JSON file that declares all Cypilot artifacts, their templates, and codebase locations.
+**What**: `artifacts.toml` is the Cypilot artifact registry — a TOML file that declares all systems, their artifacts, and codebase locations.
 
-**Location**: `{adapter-directory}/artifacts.json`
+**Location**: `.cypilot/config/artifacts.toml`
 
 **Purpose**:
-- Maps artifacts to their templates for validation and parsing
-- Defines system hierarchy (systems → subsystems → components)
+- Declares system hierarchy (systems → subsystems → components)
+- Registers artifact files and their kinds for validation and parsing
 - Specifies codebase directories for traceability
+- Defines global ignore rules for scanning
 - Enables CLI tools to discover and process artifacts automatically
+
+**Not in this file**: kit definitions (format, path, template locations) live in `config/core.toml`. Systems reference kits by ID; the tool resolves kit details from `core.toml`.
 
 ---
 
 ## Schema Version
 
-Current version: `1.0`
+Current version: `2.0`
 
-Proposed version: `1.1` (adds `autodetect`)
-
-Schema file: `../schemas/artifacts.schema.json`
+Schema file: `../schemas/artifacts-registry.schema.json`
 
 Notes:
 
-- Registry files with `version: "1.0"` MUST continue to work.
-- If `autodetect` is used, the registry version SHOULD be set to `"1.1"` and the JSON Schema MUST be updated accordingly.
+- Version `2.0` uses TOML format. Legacy `1.x` JSON registries are supported via `cypilot migrate-config`.
 
 ---
 
 ## Root Structure
 
-```json
-{
-  "version": "1.0",
-  "project_root": "..",
-  "kits": { ... },
-  "ignore": [ ... ],
-  "systems": [ ... ]
-}
+```toml
+version = "2.0"
+project_root = ".."
+
+[[ignore]]
+reason = "Third-party code"
+patterns = ["vendor/*", "node_modules/*"]
+
+# Systems defined below as [[systems]] array
 ```
 
 ### Field Reference
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `version` | string | YES | Schema version (currently "1.0") |
-| `project_root` | string | NO | Relative path from artifacts.json to project root. Default: `".."` |
-| `kits` | object | YES | Kit package registry |
-| `ignore` | array | NO | Global ignore rules (visibility filter) applied to all CLI operations and autodetect scanning. |
-| `systems` | array | YES | Root-level system nodes |
+| Key | Type | Required | Description |
+|-----|------|----------|-------------|
+| `version` | string | YES | Schema version (`"2.0"`) |
+| `project_root` | string | NO | Relative path from `artifacts.toml` to project root. Default: `".."` |
+| `ignore` | array of tables | NO | Global ignore rules (visibility filter) |
+| `systems` | array of tables | YES | Root-level system nodes |
 
 ### Root Ignore (Visibility Filter)
 
-If `ignore` is present at the registry root, it defines paths that are **globally invisible** to:
+If `[[ignore]]` entries are present, they define paths that are **globally invisible** to:
 
 - Autodetect directory scanning
 - Codebase traceability scanning
 - CLI commands that traverse artifacts/codebase (`validate`, `list-ids`, `where-defined`, `where-used`)
 
-Ignore items are blocks with:
+Each `[[ignore]]` entry has:
 
-- `reason` (string)
-- `patterns` (array of glob strings, resolved relative to `project_root`)
+| Key | Type | Description |
+|-----|------|-------------|
+| `reason` | string | Why these paths are ignored |
+| `patterns` | array of strings | Glob patterns resolved relative to `project_root` |
 
 This is a hard filter: the tool behaves as if ignored paths do not exist.
-
----
-
-## Kits
-
-**Purpose**: Define kit packages that can be referenced by systems.
-
-**Structure**:
-```json
-{
-  "kits": {
-    "kit-id": {
-      "format": "Cypilot",
-      "path": "kits/sdlc",
-      "artifacts": {
-        "PRD": {
-          "template": "{project_root}/kits/sdlc/artifacts/PRD/template.md",
-          "examples": "{project_root}/kits/sdlc/artifacts/PRD/examples"
-        }
-      }
-    }
-  }
-}
-```
-
-### Kit Fields
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `format` | string | YES | Template format. `"Cypilot"` = full tooling support. Other values = custom (LLM-only) |
-| `path` | string | YES | Path to kit package directory (relative to project_root). Contains `artifacts/` and `codebase/` subdirectories. |
-| `artifacts` | object | NO | Optional explicit artifact template/example locations. Mapping `KIND -> {template, examples}`. Supports `{project_root}` token. |
-
-### Template Resolution
-
-Template file path resolution (precedence order):
-
-1. If `kits[kit-id].artifacts[KIND].template` is present, use it.
-2. Otherwise, resolve as: `{kit.path}/artifacts/{KIND}/template.md`
-
-Examples directory resolution (precedence order):
-
-1. If `kits[kit-id].artifacts[KIND].examples` is present, use it.
-2. Otherwise, resolve as: `{kit.path}/artifacts/{KIND}/examples`
-
-`{project_root}` token:
-
-- In `kits[*].artifacts[*].template/examples`, `{project_root}` expands to the project root directory.
-- These paths are still resolved relative to the actual project root (it is effectively a convenience prefix).
-
-**Example**: For artifact with `kind: "PRD"` and kit with `path: "kits/sdlc"`:
-- Template path: `{project-root}/kits/sdlc/artifacts/PRD/template.md`
-- Checklist path: `{project-root}/kits/sdlc/artifacts/PRD/checklist.md`
-- Example path: `{project-root}/kits/sdlc/artifacts/PRD/examples/example.md`
-
-### Format Values
-
-| Format | Meaning |
-|--------|---------|
-| `"Cypilot"` | Full Cypilot tooling support: validation, parsing, ID extraction |
-| Other | Custom format: LLM-only semantic processing, no CLI validation |
-
-**Agent behavior**:
-- `format: "Cypilot"` → Use `cypilot validate`, `list-ids`, `where-defined`, etc.
-- Other format → Skip CLI validation, process semantically
 
 ---
 
@@ -189,34 +125,28 @@ Examples directory resolution (precedence order):
 **Purpose**: Define hierarchical structure of the project.
 
 **Structure**:
-```json
-{
-  "systems": [
-    {
-      "name": "SystemName",
-      "slug": "system-name",
-      "kit": "kit-id",
-      "artifacts_dir": "architecture",
-      "artifacts": [ ... ],
-      "codebase": [ ... ],
-      "children": [ ... ]
-    }
-  ]
-}
+```toml
+[[systems]]
+name = "SystemName"
+slug = "system-name"
+kit = "kit-id"
+artifacts_dir = "architecture"
+
+# artifacts, codebase, children defined as nested arrays of tables
 ```
 
 ### System Node Fields
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
+| Key | Type | Required | Description |
+|-----|------|----------|-------------|
 | `name` | string | YES | Human-readable system/subsystem/component name |
 | `slug` | string | YES | Machine-readable identifier (lowercase, no spaces, hyphen-separated). Used for hierarchical ID generation. Pattern: `^[a-z0-9]+(-[a-z0-9]+)*$` |
-| `kit` | string | YES | Reference to kit ID from `kits` section |
+| `kit` | string | YES | Reference to kit ID registered in `config/core.toml` |
 | `artifacts_dir` | string | NO | Default base directory for NEW artifacts (default: `architecture`). Subdirectories defined by kit. |
-| `artifacts` | array | NO | Artifacts belonging to this node. Paths are FULL paths relative to `project_root`. |
-| `codebase` | array | NO | Source code directories for this node |
-| `autodetect` | array | NO | Autodetect configs for this system node. Proposed for `version >= 1.1`. |
-| `children` | array | NO | Nested child systems (subsystems, components) |
+| `artifacts` | array of tables | NO | Artifacts belonging to this node. Paths are FULL paths relative to `project_root`. |
+| `codebase` | array of tables | NO | Source code directories for this node |
+| `autodetect` | array of tables | NO | Autodetect configs for this system node. |
+| `children` | array of tables | NO | Nested child systems (subsystems, components) |
 
 ### Slug Convention
 
@@ -263,35 +193,28 @@ System (root)
 **Purpose**: Declare documentation artifacts (PRD, DESIGN, ADR, DECOMPOSITION, FEATURE).
 
 **Structure** (paths are FULL paths relative to `project_root`):
-```json
-{
-  "artifacts": [
-    {
-      "name": "Product Requirements",
-      "path": "architecture/PRD.md",
-      "kind": "PRD",
-      "traceability": "FULL"
-    },
-    {
-      "path": "architecture/features/auth.md",
-      "kind": "FEATURE",
-      "traceability": "FULL"
-    },
-    {
-      "path": "docs/custom-location/DESIGN.md",
-      "kind": "DESIGN",
-      "traceability": "FULL"
-    }
-  ]
-}
+```toml
+[[systems.artifacts]]
+name = "Product Requirements"
+path = "architecture/PRD.md"
+kind = "PRD"
+traceability = "FULL"
+
+[[systems.artifacts]]
+path = "architecture/features/auth.md"
+kind = "FEATURE"
+
+[[systems.artifacts]]
+path = "docs/custom-location/DESIGN.md"
+kind = "DESIGN"
 ```
 
 **Note**: Users can place artifacts anywhere — `artifacts_dir` only affects where NEW artifacts are created by default.
 
 ### Artifact Fields
 
-| Field | Type | Required | Default | Description |
-|-------|------|----------|---------|-------------|
+| Key | Type | Required | Default | Description |
+|-----|------|----------|---------|-------------|
 | `name` | string | NO | - | Human-readable name (for display) |
 | `path` | string | YES | - | FULL path to artifact file (relative to `project_root`) |
 | `kind` | string | YES | - | Artifact kind (PRD, DESIGN, ADR, DECOMPOSITION, FEATURE) |
@@ -360,29 +283,27 @@ specs    # no extension = likely directory
 **Purpose**: Declare source code directories for traceability scanning.
 
 **Structure**:
-```json
-{
-  "codebase": [
-    {
-      "name": "Source Code",
-      "path": "src",
-      "extensions": [".ts", ".tsx"],
-      "singleLineComments": ["//"],
-      "multiLineComments": [{"start": "/*", "end": "*/"}]
-    }
-  ]
-}
+```toml
+[[systems.codebase]]
+name = "Source Code"
+path = "src"
+extensions = [".ts", ".tsx"]
+single_line_comments = ["//"]
+
+[[systems.codebase.multi_line_comments]]
+start = "/*"
+end = "*/"
 ```
 
 ### Codebase Entry Fields
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
+| Key | Type | Required | Description |
+|-----|------|----------|-------------|
 | `name` | string | NO | Human-readable name (for display) |
 | `path` | string | YES | Path to source directory (relative to project_root) |
-| `extensions` | array | YES | File extensions to include (e.g., `[".py", ".ts"]`) |
-| `singleLineComments` | array | NO | Single-line comment prefixes (e.g., `["#", "//"]`). Defaults based on file extension. |
-| `multiLineComments` | array | NO | Multi-line comment delimiters. Each item has `start` and `end` properties. Defaults based on file extension. |
+| `extensions` | array of strings | YES | File extensions to include (e.g., `[".py", ".ts"]`) |
+| `single_line_comments` | array of strings | NO | Single-line comment prefixes (e.g., `["#", "//"]`). Defaults based on file extension. |
+| `multi_line_comments` | array of tables | NO | Multi-line comment delimiters. Each entry has `start` and `end` keys. Defaults based on file extension. |
 
 ---
 
@@ -399,22 +320,21 @@ Extensions MUST start with a dot and contain only alphanumeric characters.
 Comment syntax can be explicitly configured per codebase entry, or left to default based on file extension.
 
 **Multi-line comment structure**:
-```json
-{
-  "start": "/*",
-  "end": "*/"
-}
+```toml
+[[systems.codebase.multi_line_comments]]
+start = "/*"
+end = "*/"
 ```
 
 **Common configurations**:
 
 | Language | Single-line | Multi-line |
 |----------|-------------|------------|
-| Python | `["#"]` | `[{"start": "\"\"\"", "end": "\"\"\""}]` |
-| JavaScript/TypeScript | `["//"]` | `[{"start": "/*", "end": "*/"}]` |
-| Rust | `["//"]` | `[{"start": "/*", "end": "*/"}]` |
-| HTML | — | `[{"start": "<!--", "end": "-->"}]` |
-| CSS | — | `[{"start": "/*", "end": "*/"}]` |
+| Python | `["#"]` | `start = '"""'`, `end = '"""'` |
+| JavaScript/TypeScript | `["//"]` | `start = "/*"`, `end = "*/"` |
+| Rust | `["//"]` | `start = "/*"`, `end = "*/"` |
+| HTML | — | `start = "<!--"`, `end = "-->"` |
+| CSS | — | `start = "/*"`, `end = "*/"` |
 
 **When to configure explicitly**:
 - Non-standard file extensions
@@ -424,9 +344,9 @@ Comment syntax can be explicitly configured per codebase entry, or left to defau
 
 ---
 
-## Autodetect (Proposed)
+## Autodetect
 
-This section defines a proposed extension for `artifacts.json` that allows **pattern-based auto-discovery** of:
+Autodetect allows **pattern-based auto-discovery** of:
 
 - Artifacts (docs)
 - Codebase entries
@@ -442,16 +362,16 @@ The goal is to reduce manual registry maintenance in repos where documentation a
 
 ### Location
 
-`autodetect` MAY exist only inside `systems[]` nodes (and their `children[]` nodes).
+`autodetect` MAY exist only inside `[[systems]]` nodes (and their `[[systems.children]]` nodes).
 
 Discovery/merge order:
 
 1. Scan directories and build a detected set (artifacts/codebase/children).
-2. Apply static config (`artifacts`, `codebase`, `children`) from `artifacts.json` and override detected entries by `path`.
+2. Apply static config (`artifacts`, `codebase`, `children`) from `artifacts.toml` and override detected entries by `path`.
 
 Multiple autodetect rules:
 
-- `system_node.autodetect` is a list of autodetect rules applied in-order.
+- `systems.autodetect` is an array of tables applied in-order.
 - A node's effective autodetect rules are the concatenation of inherited parent rules and the node's own rules.
 
 ### Placeholders
@@ -473,48 +393,69 @@ Notes:
 
 ### Autodetect Object
 
-```json
-{
-  "kit": "cypilot-sdlc",
-  "system_root": "{project_root}/subsystems/{system}",
-  "artifacts_root": "{system_root}/docs",
-  "aliases": {
-    "core": {"slug": "platform", "name": "Platform", "description": "Core platform module"}
-  },
-  "artifacts": {
-    "PRD": {"pattern": "PRD.md", "traceability": "FULL", "required": true},
-    "DESIGN": {"pattern": "DESIGN.md", "traceability": "FULL"},
-    "ADR": {"pattern": "ADR/*.md", "traceability": "DOCS-ONLY", "required": false},
-    "FEATURE": {"pattern": "features/*.md", "traceability": "DOCS-ONLY", "required": false},
-    "DECOMPOSITION": {"pattern": "DECOMPOSITION.md", "traceability": "FULL"}
-  },
-  "codebase": [
-    {"path": "tests/{system}", "extensions": [".rs", ".py"]},
-    {"path": "{system_root}/src", "extensions": [".rs", ".py"]}
-  ],
-  "validation": {
-    "require_kind_registered_in_kit": true,
-    "require_md_extension": true,
-    "fail_on_unmatched_markdown": true
-  },
-  "children": [
-    {
-      "kit": "cypilot-sdlc",
-      "system_root": "{parent_root}/modules/{system}",
-      "artifacts_root": "{system_root}/specs",
-      "aliases": {
-        "core": {"slug": "platform", "name": "Platform", "description": "Core platform module"}
-      },
-      "artifacts": {
-        "PRD": {"pattern": "PRD.md", "traceability": "FULL"},
-        "DESIGN": {"pattern": "DESIGN.md", "traceability": "FULL"}
-      },
-      "codebase": [
-        {"path": "{system_root}/src", "extensions": [".rs", ".py"]}
-      ]
-    }
-  ]
-}
+```toml
+[[systems.autodetect]]
+kit = "cypilot-sdlc"
+system_root = "{project_root}/subsystems/{system}"
+artifacts_root = "{system_root}/docs"
+
+[systems.autodetect.aliases.core]
+slug = "platform"
+name = "Platform"
+description = "Core platform module"
+
+[systems.autodetect.artifacts.PRD]
+pattern = "PRD.md"
+traceability = "FULL"
+required = true
+
+[systems.autodetect.artifacts.DESIGN]
+pattern = "DESIGN.md"
+traceability = "FULL"
+
+[systems.autodetect.artifacts.ADR]
+pattern = "ADR/*.md"
+traceability = "DOCS-ONLY"
+required = false
+
+[systems.autodetect.artifacts.FEATURE]
+pattern = "features/*.md"
+traceability = "DOCS-ONLY"
+required = false
+
+[systems.autodetect.artifacts.DECOMPOSITION]
+pattern = "DECOMPOSITION.md"
+traceability = "FULL"
+
+[[systems.autodetect.codebase]]
+path = "tests/{system}"
+extensions = [".rs", ".py"]
+
+[[systems.autodetect.codebase]]
+path = "{system_root}/src"
+extensions = [".rs", ".py"]
+
+[systems.autodetect.validation]
+require_kind_registered_in_kit = true
+require_md_extension = true
+fail_on_unmatched_markdown = true
+
+[[systems.autodetect.children]]
+kit = "cypilot-sdlc"
+system_root = "{parent_root}/modules/{system}"
+artifacts_root = "{system_root}/specs"
+
+[systems.autodetect.children.artifacts.PRD]
+pattern = "PRD.md"
+traceability = "FULL"
+
+[systems.autodetect.children.artifacts.DESIGN]
+pattern = "DESIGN.md"
+traceability = "FULL"
+
+[[systems.autodetect.children.codebase]]
+path = "{system_root}/src"
+extensions = [".rs", ".py"]
 ```
 
 Field semantics:
@@ -522,11 +463,11 @@ Field semantics:
 - `kit` (string): kit ID to use for autodetected artifacts. If omitted, defaults to `system_node.kit`.
 - `system_root` (string): base directory for system-scoped resolution. It MAY use placeholders (e.g. `{project_root}`, `{parent_root}`, `{system}`).
 - `artifacts_root` (string): base directory where artifact include patterns are resolved. If omitted, include patterns are treated as project-root-relative.
-- `aliases` (object): mapping from discovered directory token (`{system}` value) to system metadata overrides.
-- `artifacts` (object): map `KIND -> { pattern: string, traceability, required }`.
-- `codebase` (array): list of codebase entries (same shape as system `codebase` entries).
-- `validation` (object): strictness rules.
-- `children` (array): nested autodetect rules applied recursively. Each item has the exact same structure as an autodetect rule.
+- `aliases` (table of tables): mapping from discovered directory token (`{system}` value) to system metadata overrides.
+- `artifacts` (table of tables): map `KIND -> { pattern, traceability, required }`.
+- `codebase` (array of tables): list of codebase entries (same shape as system `codebase` entries).
+- `validation` (table): strictness rules.
+- `children` (array of tables): nested autodetect rules applied recursively. Each item has the exact same structure as an autodetect rule.
 
 Recursive rule:
 
@@ -602,7 +543,7 @@ Other IDs in the same system that use a kind token NOT present in the slug (e.g.
 
 #### Scope
 
-This algorithm applies **only to autodetected child systems**. Systems with an explicitly configured `slug` in `artifacts.json` (non-autodetect) use the configured value as-is.
+This algorithm applies **only to autodetected child systems**. Systems with an explicitly configured `slug` in `artifacts.toml` (non-autodetect) use the configured value as-is.
 
 ### Artifact Mapping Rules
 
@@ -741,9 +682,9 @@ cypilot.py validate-kits
 
 ### Finding the Registry
 
-1. Run `adapter-info` to discover adapter location
-2. Registry is at `{cypilot_adapter_path}/artifacts.json`
-3. Parse JSON to get registry data
+1. Run `adapter-info` to discover project location
+2. Registry is at `.cypilot/config/artifacts.toml`
+3. Parse TOML to get registry data
 
 ### Iterating Artifacts
 
@@ -760,15 +701,17 @@ for system in registry.systems:
 
 ```python
 # For artifact with kind="PRD" in system with kit="cypilot-sdlc"
-kit = registry.kits["cypilot-sdlc"]
-template_path = f"{kit.path}/artifacts/{artifact.kind}/template.md"
-# → "kits/sdlc/artifacts/PRD/template.md"
+# Kit details resolved from config/core.toml
+kit = core_config.kits["cypilot-sdlc"]
+template_path = f"config/kits/{kit.slug}/artifacts/{artifact.kind}/template.md"
+# → "config/kits/sdlc/artifacts/PRD/template.md"
 ```
 
 ### Checking Format
 
 ```python
-kit = registry.kits[system.kit]
+# Kit format resolved from config/core.toml
+kit = core_config.kits[system.kit]
 if kit.format == "Cypilot":
     # Use CLI validation
     run("cypilot validate --artifact {path}")
@@ -781,32 +724,32 @@ else:
 
 ## Error Handling
 
-### artifacts.json Not Found
+### artifacts.toml Not Found
 
-**If artifacts.json doesn't exist at adapter location**:
+**If artifacts.toml doesn't exist**:
 ```
-⚠️ Registry not found: {cypilot_adapter_path}/artifacts.json
-→ Adapter exists but registry not initialized
-→ Fix: Run /cypilot-adapter to create registry
+⚠️ Registry not found: .cypilot/config/artifacts.toml
+→ Registry not initialized
+→ Fix: Run `cypilot init` to create registry
 ```
 **Action**: STOP — cannot process artifacts without registry.
 
-### JSON Parse Error
+### TOML Parse Error
 
-**If artifacts.json contains invalid JSON**:
+**If artifacts.toml contains invalid TOML**:
 ```
-⚠️ Invalid JSON in artifacts.json: {parse error}
-→ Check for trailing commas, missing quotes, or syntax errors
-→ Fix: Validate JSON with online validator or IDE
+⚠️ Invalid TOML in artifacts.toml: {parse error}
+→ Check for syntax errors
+→ Fix: Validate TOML syntax in IDE
 ```
 **Action**: STOP — cannot process malformed registry.
 
 ### Missing Kit Reference
 
-**If system references non-existent kit**:
+**If system references kit not registered in core.toml**:
 ```
-⚠️ Invalid kit reference: system "MyApp" references kit "custom-kit" not in kits section
-→ Fix: Add kit to kits section OR change system.kit to an existing kit ID
+⚠️ Invalid kit reference: system "MyApp" references kit "custom-kit" not in core.toml
+→ Fix: Register kit in config/core.toml OR change system.kit to an existing kit ID
 ```
 **Action**: FAIL validation for that system, continue with others.
 
@@ -815,7 +758,7 @@ else:
 **If registered artifact file doesn't exist**:
 ```
 ⚠️ Artifact not found: architecture/PRD.md
-→ Registered in artifacts.json but file missing
+→ Registered in artifacts.toml but file missing
 → Fix: Create file OR remove from registry
 ```
 **Action**: WARN and skip artifact, continue with others.
@@ -824,119 +767,166 @@ else:
 
 **If template for artifact kind doesn't exist**:
 ```
-⚠️ Template not found: kits/sdlc/artifacts/PRD/template.md
+⚠️ Template not found: config/kits/sdlc/artifacts/PRD/template.md
 → Kind "PRD" registered but template missing
 → Fix: Create template OR use different kit package
 ```
 **Action**:
 
 - Use a synthetic template and continue validation using artifact scanning.
-- If `constraints.json` defines constraints for this kind, attach them to the synthetic template.
+- If `constraints.toml` defines constraints for this kind, attach them to the synthetic template.
 - WARN and continue validation.
 
 ---
 
 ## Example Registry
 
-```json
-{
-  "version": "1.1",
-  "project_root": "..",
-  "kits": {
-    "cypilot-sdlc": {
-      "format": "Cypilot",
-      "path": "kits/sdlc"
-    }
-  },
-  "ignore": [
-    {"reason": "Text", "patterns": ["modules/my_module/*"]}
-  ],
-  "systems": [
-    {
-      "name": "MyApp",
-      "slug": "myapp",
-      "kit": "cypilot-sdlc",
-      "artifacts_dir": "architecture",
-      "autodetect": [
-        {
-          "kit": "cypilot-sdlc",
-          "system_root": "{project_root}/subsystems/{system}",
-          "artifacts_root": "{system_root}/docs",
-          "aliases": {
-            "core": {"slug": "platform", "name": "Platform", "description": "Core platform module"}
-          },
-          "artifacts": {
-            "PRD": {"pattern": "PRD.md", "traceability": "FULL"},
-            "DESIGN": {"pattern": "DESIGN.md", "traceability": "FULL"},
-            "ADR": {"pattern": "ADR/*.md", "traceability": "DOCS-ONLY", "required": false},
-            "FEATURE": {"pattern": "features/*.md", "traceability": "DOCS-ONLY", "required": false},
-            "DECOMPOSITION": {"pattern": "DECOMPOSITION.md", "traceability": "FULL"}
-          },
-          "codebase": [
-            {"path": "tests/{system}", "extensions": [".rs", ".py"]},
-            {"path": "{system_root}/src", "extensions": [".rs", ".py"]}
-          ],
-          "validation": {
-            "require_kind_registered_in_kit": true,
-            "require_md_extension": true,
-            "fail_on_unmatched_markdown": true
-          },
-          "children": [
-            {
-              "kit": "cypilot-sdlc",
-              "system_root": "{parent_root}/modules/{system}",
-              "artifacts_root": "{system_root}/specs",
-              "artifacts": {
-                "PRD": {"pattern": "PRD.md", "traceability": "FULL"},
-                "DESIGN": {"pattern": "DESIGN.md", "traceability": "FULL"}
-              },
-              "codebase": [
-                {"path": "{system_root}/src", "extensions": [".rs", ".py"]}
-              ]
-            }
-          ]
-        }
-      ],
-      "artifacts": [
-        { "name": "Product Requirements", "path": "architecture/PRD.md", "kind": "PRD", "traceability": "DOCS-ONLY" },
-        { "name": "Overall Design", "path": "architecture/DESIGN.md", "kind": "DESIGN", "traceability": "FULL" },
-        { "name": "Initial Architecture", "path": "architecture/ADR/0001-initial-architecture.md", "kind": "ADR", "traceability": "DOCS-ONLY" },
-        { "name": "Design Decomposition", "path": "architecture/DECOMPOSITION.md", "kind": "DECOMPOSITION", "traceability": "DOCS-ONLY" },
-        { "name": "Custom Location Example", "path": "docs/features/custom-feature.md", "kind": "FEATURE", "traceability": "FULL" }
-      ],
-      "codebase": [
-        {
-          "name": "Source Code",
-          "path": "src",
-          "extensions": [".ts", ".tsx"],
-          "singleLineComments": ["//"],
-          "multiLineComments": [{"start": "/*", "end": "*/"}]
-        }
-      ],
-      "children": [
-        {
-          "name": "Auth",
-          "slug": "auth",
-          "kit": "cypilot-sdlc",
-          "artifacts_dir": "modules/auth/architecture",
-          "artifacts": [
-            { "path": "modules/auth/architecture/PRD.md", "kind": "PRD", "traceability": "DOCS-ONLY" },
-            { "path": "modules/auth/architecture/features/sso.md", "kind": "FEATURE", "traceability": "FULL" }
-          ],
-          "codebase": [
-            { "name": "Auth Module", "path": "src/modules/auth", "extensions": [".ts"] }
-          ],
-          "children": []
-        }
-      ]
-    }
-  ]
-}
+```toml
+version = "2.0"
+project_root = ".."
+
+[[ignore]]
+reason = "Third-party module"
+patterns = ["modules/my_module/*"]
+
+# ── Root system ──────────────────────────────────────────────
+
+[[systems]]
+name = "MyApp"
+slug = "myapp"
+kit = "cypilot-sdlc"
+artifacts_dir = "architecture"
+
+# Autodetect rules for child system discovery
+[[systems.autodetect]]
+kit = "cypilot-sdlc"
+system_root = "{project_root}/subsystems/{system}"
+artifacts_root = "{system_root}/docs"
+
+[systems.autodetect.aliases.core]
+slug = "platform"
+name = "Platform"
+description = "Core platform module"
+
+[systems.autodetect.artifacts.PRD]
+pattern = "PRD.md"
+traceability = "FULL"
+
+[systems.autodetect.artifacts.DESIGN]
+pattern = "DESIGN.md"
+traceability = "FULL"
+
+[systems.autodetect.artifacts.ADR]
+pattern = "ADR/*.md"
+traceability = "DOCS-ONLY"
+required = false
+
+[systems.autodetect.artifacts.FEATURE]
+pattern = "features/*.md"
+traceability = "DOCS-ONLY"
+required = false
+
+[systems.autodetect.artifacts.DECOMPOSITION]
+pattern = "DECOMPOSITION.md"
+traceability = "FULL"
+
+[[systems.autodetect.codebase]]
+path = "tests/{system}"
+extensions = [".rs", ".py"]
+
+[[systems.autodetect.codebase]]
+path = "{system_root}/src"
+extensions = [".rs", ".py"]
+
+[systems.autodetect.validation]
+require_kind_registered_in_kit = true
+require_md_extension = true
+fail_on_unmatched_markdown = true
+
+[[systems.autodetect.children]]
+kit = "cypilot-sdlc"
+system_root = "{parent_root}/modules/{system}"
+artifacts_root = "{system_root}/specs"
+
+[systems.autodetect.children.artifacts.PRD]
+pattern = "PRD.md"
+traceability = "FULL"
+
+[systems.autodetect.children.artifacts.DESIGN]
+pattern = "DESIGN.md"
+traceability = "FULL"
+
+[[systems.autodetect.children.codebase]]
+path = "{system_root}/src"
+extensions = [".rs", ".py"]
+
+# Explicit artifacts (FULL paths relative to project_root)
+[[systems.artifacts]]
+name = "Product Requirements"
+path = "architecture/PRD.md"
+kind = "PRD"
+traceability = "DOCS-ONLY"
+
+[[systems.artifacts]]
+name = "Overall Design"
+path = "architecture/DESIGN.md"
+kind = "DESIGN"
+traceability = "FULL"
+
+[[systems.artifacts]]
+name = "Initial Architecture"
+path = "architecture/ADR/0001-initial-architecture.md"
+kind = "ADR"
+traceability = "DOCS-ONLY"
+
+[[systems.artifacts]]
+name = "Design Decomposition"
+path = "architecture/DECOMPOSITION.md"
+kind = "DECOMPOSITION"
+traceability = "DOCS-ONLY"
+
+[[systems.artifacts]]
+name = "Custom Location Example"
+path = "docs/features/custom-feature.md"
+kind = "FEATURE"
+traceability = "FULL"
+
+# Codebase
+[[systems.codebase]]
+name = "Source Code"
+path = "src"
+extensions = [".ts", ".tsx"]
+single_line_comments = ["//"]
+
+[[systems.codebase.multi_line_comments]]
+start = "/*"
+end = "*/"
+
+# ── Child system ─────────────────────────────────────────────
+
+[[systems.children]]
+name = "Auth"
+slug = "auth"
+kit = "cypilot-sdlc"
+artifacts_dir = "modules/auth/architecture"
+
+[[systems.children.artifacts]]
+path = "modules/auth/architecture/PRD.md"
+kind = "PRD"
+traceability = "DOCS-ONLY"
+
+[[systems.children.artifacts]]
+path = "modules/auth/architecture/features/sso.md"
+kind = "FEATURE"
+traceability = "FULL"
+
+[[systems.children.codebase]]
+name = "Auth Module"
+path = "src/modules/auth"
+extensions = [".ts"]
 ```
 
-**Note**: Artifact paths are FULL paths relative to `project_root`. The `artifacts_dir` defines the default base directory for NEW artifacts — subdirectories for specific kinds (`specs/`, `ADR/`) are defined by the kit.
-
-**Note**: Artifact paths are FULL paths relative to `project_root`. The `artifacts_dir` defines the default base directory for NEW artifacts — subdirectories for specific kinds (`features/`, `ADR/`) are defined by the kit.
+**Note**: Artifact paths are FULL paths relative to `project_root`. The `artifacts_dir` defines the default base directory for NEW artifacts — subdirectories for specific kinds (`features/`, `ADR/`) are defined by the kit. Kit definitions (format, path, templates) are resolved from `config/core.toml`.
 
 ---
 
@@ -946,44 +936,41 @@ else:
 |-------|-------|-----|
 | "Artifact not in Cypilot registry" | Path not registered | Add artifact to system's `artifacts` array |
 | "Could not find template" | Missing template file | Create template at `{kit.path}/artifacts/{KIND}/template.md` |
-| "Invalid kit reference" | System references non-existent kit | Add kit to `kits` section or fix `kit` field |
+| "Invalid kit reference" | System references kit not in `core.toml` | Register kit in `config/core.toml` or fix `kit` field |
 | "Path is a directory" | Artifact path ends with `/` or has no extension | Change to specific file path |
 
 ---
 
 ## References
 
-**Schema**: `../schemas/artifacts.schema.json`
+**Schema**: `../schemas/artifacts-registry.schema.json`
 
 **CLI**: `skills/cypilot/cypilot.clispec`
 
 **Related**:
-- `adapter-structure.md` - Adapter AGENTS.md requirements
+- `sysprompts.md` - Project system prompts (.cypilot/config/sysprompts + config/AGENTS.md)
 - `execution-protocol.md` - Workflow execution protocol
 
 ---
 
 ## Consolidated Validation Checklist
 
-**Use this single checklist for all artifacts.json validation.**
+**Use this single checklist for all artifacts.toml validation.**
 
 ### Registry Structure (R)
 
 | # | Check | Required | How to Verify |
 |---|-------|----------|---------------|
-| R.1 | artifacts.json exists at adapter location | YES | File exists at `{cypilot_adapter_path}/artifacts.json` |
-| R.2 | JSON parses without errors | YES | `json.loads()` succeeds |
+| R.1 | `artifacts.toml` exists at `.cypilot/config/` | YES | File exists at `.cypilot/config/artifacts.toml` |
+| R.2 | TOML parses without errors | YES | `tomllib.loads()` succeeds |
 | R.3 | `version` field present and non-empty | YES | Field exists and is string |
-| R.4 | `kits` object present with ≥1 kit | YES | Object with at least one key |
-| R.5 | `systems` array present | YES | Array (may be empty) |
-| R.6 | Each kit has `format` and `path` fields | YES | Both fields exist per kit |
-| R.7 | Each system has `name`, `slug`, and `kit` fields | YES | All three fields exist per system |
-| R.8 | System `kit` references exist in `kits` section | YES | Lookup succeeds |
-| R.9 | `artifacts_dir` is valid path (if specified) | CONDITIONAL | Non-empty string |
-| R.10 | `slug` matches pattern `^[a-z0-9]+(-[a-z0-9]+)*$` | YES | Lowercase, no spaces, hyphen-separated |
-| R.11 | `slug` is unique among siblings | YES | No duplicate slugs at same level |
-| R.12 | `autodetect` (if present) is only used when `version >= 1.1` | CONDITIONAL | `version` is "1.1"+ when any system node has non-null `autodetect` |
-| R.13 | `autodetect` (if present) has valid basic shape | CONDITIONAL | `kit` is string (optional); `artifacts_root` string; `artifacts` map; `ignore` list; `validation` object |
+| R.4 | `systems` array present | YES | Array (may be empty) |
+| R.5 | Each system has `name`, `slug`, and `kit` fields | YES | All three fields exist per system |
+| R.6 | System `kit` references exist in `config/core.toml` | YES | Lookup succeeds |
+| R.7 | `artifacts_dir` is valid path (if specified) | CONDITIONAL | Non-empty string |
+| R.8 | `slug` matches pattern `^[a-z0-9]+(-[a-z0-9]+)*$` | YES | Lowercase, no spaces, hyphen-separated |
+| R.9 | `slug` is unique among siblings | YES | No duplicate slugs at same level |
+| R.10 | `autodetect` (if present) has valid structure | CONDITIONAL | `kit` is string (optional); `artifacts_root` string; `artifacts` table; `validation` table |
 
 ### Artifact Entries (A)
 
@@ -1001,12 +988,12 @@ else:
 | C.1 | Each codebase entry has `path` and `extensions` | YES | Both fields exist |
 | C.2 | Extensions array is non-empty | YES | Array length > 0 |
 | C.3 | Each extension starts with `.` | YES | Regex: `^\.[a-zA-Z0-9]+$` |
-| C.4 | Comment syntax format valid (if specified) | CONDITIONAL | Arrays of strings, multi-line has start/end |
+| C.4 | Comment syntax format valid (if specified) | CONDITIONAL | Arrays of strings, multi-line has `start`/`end` |
 
 ### Final (F)
 
 | # | Check | Required | How to Verify |
 |---|-------|----------|---------------|
-| F.1 | All Registry Structure checks pass | YES | R.1-R.11 verified |
+| F.1 | All Registry Structure checks pass | YES | R.1-R.9 verified |
 | F.2 | All Artifact Entries checks pass | YES | A.1-A.4 verified |
 | F.3 | All Codebase Entries checks pass | YES | C.1-C.4 verified |
