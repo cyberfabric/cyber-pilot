@@ -63,16 +63,6 @@ _FENCE_CLOSE_RE = re.compile(r"^```\s*$")
 # Blueprint Parser
 # ---------------------------------------------------------------------------
 
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-read-file
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-scan-open
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-foreach-marker
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-find-close
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-if-unclosed
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-extract-content
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-parse-metadata
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-validate-flat
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-return-parsed
-
 def parse_blueprint(path: Path) -> ParsedBlueprint:
     """Parse a blueprint .md file, extracting all `@cpt:` markers.
 
@@ -84,27 +74,33 @@ def parse_blueprint(path: Path) -> ParsedBlueprint:
     """
     result = ParsedBlueprint(path=path)
 
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-read-file
     try:
         text = path.read_text(encoding="utf-8")
     except OSError as e:
         result.errors.append(f"Cannot read {path}: {e}")
         return result
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-read-file
 
     lines = text.splitlines()
     markers: List[Marker] = []
     i = 0
 
     while i < len(lines):
+        # @cpt-begin:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-scan-open
         line = lines[i].strip()
         m_open = _OPEN_RE.match(line)
         if not m_open:
             i += 1
             continue
+        # @cpt-end:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-scan-open
 
+        # @cpt-begin:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-foreach-marker
         marker_type = m_open.group(1)
         open_line = i + 1  # 1-indexed
+        # @cpt-end:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-foreach-marker
 
-        # Find matching close tag
+        # @cpt-begin:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-find-close
         j = i + 1
         found_close = False
         while j < len(lines):
@@ -114,7 +110,9 @@ def parse_blueprint(path: Path) -> ParsedBlueprint:
                 found_close = True
                 break
             j += 1
+        # @cpt-end:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-find-close
 
+        # @cpt-begin:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-if-unclosed
         if not found_close:
             result.errors.append(
                 f"{path}:{open_line}: unclosed marker `@cpt:{marker_type}` — "
@@ -122,17 +120,22 @@ def parse_blueprint(path: Path) -> ParsedBlueprint:
             )
             i += 1
             continue
+        # @cpt-end:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-if-unclosed
 
+        # @cpt-begin:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-extract-content
         close_line = j + 1  # 1-indexed
         content_lines = lines[i + 1: j]
         raw_content = "\n".join(content_lines)
+        # @cpt-end:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-extract-content
 
-        # Extract fenced code blocks from content
+        # @cpt-begin:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-parse-metadata
         toml_data: Dict[str, Any] = {}
         markdown_content = ""
         _extract_fenced_blocks(content_lines, toml_data, marker_type, result, open_line)
         markdown_content = _extract_markdown_block(content_lines)
+        # @cpt-end:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-parse-metadata
 
+        # @cpt-begin:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-validate-flat
         marker = Marker(
             marker_type=marker_type,
             raw_content=raw_content,
@@ -143,10 +146,11 @@ def parse_blueprint(path: Path) -> ParsedBlueprint:
         )
         markers.append(marker)
         i = j + 1
+        # @cpt-end:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-validate-flat
 
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-return-parsed
     result.markers = markers
 
-    # Extract blueprint metadata from @cpt:blueprint marker
     for mk in markers:
         if mk.marker_type == "blueprint":
             result.artifact_kind = mk.toml_data.get("artifact", "")
@@ -154,11 +158,11 @@ def parse_blueprint(path: Path) -> ParsedBlueprint:
             result.version = mk.toml_data.get("version", "")
             break
 
-    # Fallback: derive artifact kind from filename
     if not result.artifact_kind:
         result.artifact_kind = path.stem
 
     return result
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-return-parsed
 
 
 def _extract_fenced_blocks(
@@ -223,30 +227,11 @@ def _extract_markdown_block(content_lines: List[str]) -> str:
         i += 1
     return ""
 
-# @cpt-end:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-return-parsed
-# @cpt-end:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-validate-flat
-# @cpt-end:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-parse-metadata
-# @cpt-end:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-extract-content
-# @cpt-end:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-if-unclosed
-# @cpt-end:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-find-close
-# @cpt-end:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-foreach-marker
-# @cpt-end:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-scan-open
-# @cpt-end:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-read-file
 
 
 # ---------------------------------------------------------------------------
 # Per-Artifact Output Generators
 # ---------------------------------------------------------------------------
-
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-mkdir-output
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-gen-rules
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-gen-checklist
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-gen-template
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-gen-example
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-if-codebase
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-gen-codebase
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-write-outputs
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-return-outputs
 
 def generate_artifact_outputs(
     bp: ParsedBlueprint,
@@ -267,11 +252,15 @@ def generate_artifact_outputs(
     written: List[str] = []
     errors: List[str] = []
 
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-if-codebase
     is_codebase = not bp.artifact_kind or not any(
         m.marker_type == "blueprint" and m.toml_data.get("artifact")
         for m in bp.markers
     )
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-if-codebase
 
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-gen-codebase
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-mkdir-output
     if is_codebase:
         target_dir = output_dir / "codebase"
     else:
@@ -279,33 +268,39 @@ def generate_artifact_outputs(
 
     if not dry_run:
         target_dir.mkdir(parents=True, exist_ok=True)
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-mkdir-output
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-gen-codebase
 
-    # --- rules.md ---
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-gen-rules
     rules_content = _collect_rules(bp)
     if rules_content:
         p = target_dir / "rules.md"
         if not dry_run:
             p.write_text(rules_content, encoding="utf-8")
         written.append(p.as_posix())
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-gen-rules
 
-    # --- checklist.md ---
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-gen-checklist
     checklist_content = _collect_checklist(bp)
     if checklist_content:
         p = target_dir / "checklist.md"
         if not dry_run:
             p.write_text(checklist_content, encoding="utf-8")
         written.append(p.as_posix())
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-gen-checklist
 
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-write-outputs
     if not is_codebase:
-        # --- template.md ---
+        # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-gen-template
         template_content = _collect_template(bp)
         if template_content:
             p = target_dir / "template.md"
             if not dry_run:
                 p.write_text(template_content, encoding="utf-8")
             written.append(p.as_posix())
+        # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-gen-template
 
-        # --- example.md ---
+        # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-gen-example
         example_content = _collect_example(bp)
         if example_content:
             examples_dir = target_dir / "examples"
@@ -315,8 +310,12 @@ def generate_artifact_outputs(
             if not dry_run:
                 p.write_text(example_content, encoding="utf-8")
             written.append(p.as_posix())
+        # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-gen-example
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-write-outputs
 
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-return-outputs
     return written, errors
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-return-outputs
 
 
 def _collect_rules(bp: ParsedBlueprint) -> str:
@@ -423,31 +422,11 @@ def _collect_example(bp: ParsedBlueprint) -> str:
         return ""
     return "\n".join(parts) + "\n"
 
-# @cpt-end:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-return-outputs
-# @cpt-end:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-write-outputs
-# @cpt-end:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-gen-codebase
-# @cpt-end:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-if-codebase
-# @cpt-end:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-gen-example
-# @cpt-end:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-gen-template
-# @cpt-end:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-gen-checklist
-# @cpt-end:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-gen-rules
-# @cpt-end:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-mkdir-output
 
 
 # ---------------------------------------------------------------------------
 # Kit-Wide Constraints Generator
 # ---------------------------------------------------------------------------
-
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-init-constraints
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-foreach-bp-constraints
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-extract-kind-constraint
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-foreach-heading
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-add-heading-pattern
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-foreach-id
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-extract-id-kind
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-add-id-kind
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-write-constraints
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-return-constraints
 
 def generate_constraints(
     blueprints: List[ParsedBlueprint],
@@ -467,28 +446,38 @@ def generate_constraints(
     """
     errors: List[str] = []
 
-    # Build constraints structure
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-init-constraints
     id_kinds: Dict[str, Dict[str, Any]] = {}
-    headings: Dict[str, List[Dict[str, Any]]] = {}  # artifact_kind -> heading patterns
+    headings: Dict[str, List[Dict[str, Any]]] = {}
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-init-constraints
 
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-foreach-bp-constraints
     for bp in blueprints:
+        # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-extract-kind-constraint
         kind = bp.artifact_kind.upper() if bp.artifact_kind else ""
+        # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-extract-kind-constraint
 
         for mk in bp.markers:
+            # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-foreach-heading
             if mk.marker_type == "heading":
                 td = mk.toml_data
                 pattern = td.get("pattern", "")
+                # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-add-heading-pattern
                 if pattern and kind:
                     headings.setdefault(kind, []).append({
                         "title": td.get("title", ""),
                         "pattern": pattern,
                         "required": td.get("required", False),
                     })
+                # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-add-heading-pattern
+            # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-foreach-heading
 
+            # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-foreach-id
             elif mk.marker_type == "id":
                 td = mk.toml_data
                 id_name = td.get("name", td.get("kind", ""))
                 if id_name:
+                    # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-extract-id-kind
                     id_entry: Dict[str, Any] = {
                         "to_code": td.get("to_code", False),
                     }
@@ -498,7 +487,9 @@ def generate_constraints(
                         id_entry["defined_in"] = defined_in
                     if referenced_in:
                         id_entry["referenced_in"] = referenced_in
-                    # Merge: if same id kind from multiple blueprints
+                    # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-extract-id-kind
+
+                    # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-add-id-kind
                     if id_name in id_kinds:
                         existing = id_kinds[id_name]
                         for key in ("defined_in", "referenced_in"):
@@ -509,8 +500,11 @@ def generate_constraints(
                                 existing[key] = merged
                     else:
                         id_kinds[id_name] = id_entry
+                    # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-add-id-kind
+            # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-foreach-id
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-foreach-bp-constraints
 
-    # Serialize to TOML
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-write-constraints
     lines: List[str] = [
         "# Kit constraints (generated from blueprints)",
         "# Do not edit manually — regenerate with: cypilot generate-resources",
@@ -528,7 +522,7 @@ def generate_constraints(
             for list_key in ("defined_in", "referenced_in"):
                 if list_key in entry:
                     vals = entry[list_key]
-                    vals_str = ", ".join(f'"{v}"' for v in vals)
+                    vals_str = ", ".join(f'"{ v}"' for v in vals)
                     lines.append(f"{list_key} = [{vals_str}]")
             lines.append("")
 
@@ -548,32 +542,16 @@ def generate_constraints(
     if not dry_run:
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(content, encoding="utf-8")
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-write-constraints
 
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-return-constraints
     return output_path.as_posix(), errors
-
-# @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-return-constraints
-# @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-write-constraints
-# @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-add-id-kind
-# @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-extract-id-kind
-# @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-foreach-id
-# @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-add-heading-pattern
-# @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-foreach-heading
-# @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-extract-kind-constraint
-# @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-foreach-bp-constraints
-# @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-init-constraints
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-return-constraints
 
 
 # ---------------------------------------------------------------------------
 # Process Kit (orchestrator)
 # ---------------------------------------------------------------------------
-
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-list-blueprints
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-foreach-bp
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-parse-bp
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-extract-kind
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-gen-artifact
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-gen-constraints
-# @cpt-begin:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-return-generated
 
 def process_kit(
     kit_slug: str,
@@ -598,26 +576,32 @@ def process_kit(
     all_blueprints: List[ParsedBlueprint] = []
     artifact_kinds: List[str] = []
 
-    # List all .md files in blueprints directory
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-list-blueprints
     bp_files = sorted(blueprints_dir.glob("*.md"))
     if not bp_files:
         errors.append(f"No .md files found in {blueprints_dir}")
         return {"files_written": 0, "artifact_kinds": []}, errors
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-list-blueprints
 
     kit_output_dir = config_kits_dir / kit_slug
 
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-foreach-bp
     for bp_file in bp_files:
+        # @cpt-begin:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-parse-bp
         bp = parse_blueprint(bp_file)
         all_blueprints.append(bp)
+        # @cpt-end:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-parse-bp
 
         if bp.errors:
             errors.extend(bp.errors)
             continue
 
+        # @cpt-begin:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-extract-kind
         kind = bp.artifact_kind
         artifact_kinds.append(kind)
+        # @cpt-end:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-extract-kind
 
-        # Generate per-artifact outputs
+        # @cpt-begin:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-gen-artifact
         if kind:
             artifact_out = kit_output_dir / "artifacts" / kind.upper()
         else:
@@ -628,8 +612,10 @@ def process_kit(
         )
         all_written.extend(written)
         errors.extend(gen_errors)
+        # @cpt-end:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-gen-artifact
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-foreach-bp
 
-    # Generate kit-wide constraints
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-gen-constraints
     constraints_path = kit_output_dir / "constraints.toml"
     c_path, c_errors = generate_constraints(
         all_blueprints, constraints_path, dry_run=dry_run,
@@ -637,18 +623,13 @@ def process_kit(
     if c_path:
         all_written.append(c_path)
     errors.extend(c_errors)
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-gen-constraints
 
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-return-generated
     summary: Dict[str, Any] = {
         "files_written": len(all_written),
         "artifact_kinds": artifact_kinds,
         "files": all_written,
     }
     return summary, errors
-
-# @cpt-end:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-return-generated
-# @cpt-end:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-gen-constraints
-# @cpt-end:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-gen-artifact
-# @cpt-end:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-extract-kind
-# @cpt-end:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-parse-bp
-# @cpt-end:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-foreach-bp
-# @cpt-end:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-list-blueprints
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-return-generated
