@@ -6,11 +6,92 @@ Walks directory tree to find project-installed skill, falls back to cache.
 @cpt-algo:cpt-cypilot-algo-core-infra-resolve-skill:p1
 """
 
+import re
 import sys
 from pathlib import Path
 from typing import Optional, Tuple
 
-from cypilot_proxy.agents_check import find_project_root, read_cypilot_path
+MARKER_START = "<!-- @cpt:root-agents -->"
+
+# Regex to extract {cypilot} variable value from the managed block table
+_CYPILOT_VAR_RE = re.compile(
+    r"\|\s*`\{cypilot\}`\s*\|\s*`([^`]+)`\s*\|"
+)
+
+# Regex to extract install dir from old-format navigation rule
+_OLD_NAV_RE = re.compile(
+    r"ALWAYS open and follow `@/([^`/]+)/config/AGENTS\.md`"
+)
+
+
+def find_project_root(start_dir: Optional[Path] = None) -> Optional[Path]:
+    """Find the project root by walking up looking for AGENTS.md with @cpt:root-agents marker."""
+    current = (start_dir or Path.cwd()).resolve()
+    for parent in [current, *current.parents]:
+        agents_file = parent / "AGENTS.md"
+        if agents_file.is_file():
+            try:
+                head = agents_file.read_text(encoding="utf-8")[:512]
+            except OSError:
+                continue
+            if MARKER_START in head:
+                return parent
+    return None
+
+
+def read_cypilot_path(project_root: Path) -> Optional[str]:
+    """
+    Read the {cypilot} variable from root AGENTS.md managed block.
+
+    Returns the install directory path (relative to project root, e.g. '.cypilot')
+    or None if AGENTS.md doesn't exist or doesn't contain the variable.
+    """
+    agents_file = project_root / "AGENTS.md"
+    if not agents_file.is_file():
+        return None
+    try:
+        content = agents_file.read_text(encoding="utf-8")
+    except OSError:
+        return None
+    if MARKER_START not in content:
+        return None
+    m = _CYPILOT_VAR_RE.search(content)
+    if m is None:
+        return None
+    value = m.group(1).strip()
+    if value.startswith("@/"):
+        value = value[2:]
+    return value
+
+
+def find_install_dir(project_root: Path) -> Optional[str]:
+    """
+    Determine the Cypilot install directory relative to project root.
+
+    Resolution order:
+    1. Read {cypilot} variable from AGENTS.md managed block (new format)
+    2. Parse old-format navigation rule from AGENTS.md
+    3. Scan for common install directory names
+    """
+    from_var = read_cypilot_path(project_root)
+    if from_var is not None:
+        return from_var
+
+    agents_file = project_root / "AGENTS.md"
+    if agents_file.is_file():
+        try:
+            content = agents_file.read_text(encoding="utf-8")
+        except OSError:
+            content = ""
+        m = _OLD_NAV_RE.search(content)
+        if m is not None:
+            return m.group(1)
+
+    for candidate in (".cypilot", "cypilot", ".cpt"):
+        if (project_root / candidate / "skills").is_dir():
+            return candidate
+
+    return None
 
 
 def get_cache_dir() -> Path:

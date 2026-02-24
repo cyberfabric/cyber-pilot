@@ -25,6 +25,27 @@ from cypilot_proxy.resolve import (
 )
 
 
+def _extract_version_param(args: List[str]) -> Optional[str]:
+    """
+    Extract and remove --version VERSION from args list.
+
+    Supports: --version VALUE, --version=VALUE
+    Mutates args in place, returns the version string or None.
+    """
+    i = 0
+    while i < len(args):
+        if args[i] == "--version" and i + 1 < len(args):
+            version = args[i + 1]
+            del args[i:i + 2]
+            return version
+        if args[i].startswith("--version="):
+            version = args[i].split("=", 1)[1]
+            del args[i]
+            return version
+        i += 1
+    return None
+
+
 def main(argv: Optional[List[str]] = None) -> int:
     """
     Main entry point for the cypilot/cpt commands.
@@ -33,8 +54,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     args = argv if argv is not None else sys.argv[1:]
     # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-user-invokes
 
-    # Handle proxy-level flags before resolving skill
-    if args and args[0] == "--version":
+    # Handle --version with no value: show version info
+    if args and args[0] == "--version" and len(args) == 1:
         from cypilot_proxy import __version__
         print(f"cypilot-proxy {__version__}")
         cached = get_cached_version()
@@ -46,6 +67,36 @@ def main(argv: Optional[List[str]] = None) -> int:
             if pv:
                 print(f"skill (project): {pv}")
         return 0
+
+    # Extract --version VERSION only for init and update commands
+    target_version = None
+    if args and args[0] in ("init", "update"):
+        target_version = _extract_version_param(args)
+
+    # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-update-cache
+    if args and args[0] == "update":
+        from cypilot_proxy.cache import download_and_cache
+
+        # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-explicit-cache-update
+        # 'cpt update v3' — version can also be positional arg
+        explicit = target_version or (args[1] if len(args) > 1 else None)
+        success, message = download_and_cache(version=explicit)
+        # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-explicit-cache-update
+        # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-return-cache-update
+        sys.stderr.write(f"{message}\n")
+        return 0 if success else 1
+        # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-return-cache-update
+    # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-update-cache
+
+    # For init with --version: update cache first, then forward init to skill
+    if target_version is not None:
+        from cypilot_proxy.cache import download_and_cache
+
+        sys.stderr.write(f"Updating cache to version {target_version}...\n")
+        success, message = download_and_cache(version=target_version)
+        sys.stderr.write(f"{message}\n")
+        if not success:
+            return 1
 
     # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-check-project-skill
     # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-project-skill
@@ -71,7 +122,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         if not success:
             # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-return-download-error
             sys.stderr.write(f"Error: {message}\n")
-            sys.stderr.write("Retry: cypilot --update-cache\n")
+            sys.stderr.write("Retry: cypilot update\n")
             return 1
             # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-return-download-error
         # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-download-failed
@@ -85,27 +136,6 @@ def main(argv: Optional[List[str]] = None) -> int:
         source = "cache"
         # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-forward-fresh-cache
     # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-else-no-cache
-
-    # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-update-cache
-    if args and args[0] == "--update-cache":
-        from cypilot_proxy.cache import download_and_cache
-
-        # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-explicit-cache-update
-        target = args[1] if len(args) > 1 else None
-        success, message = download_and_cache(version=target)
-        # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-explicit-cache-update
-        # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-return-cache-update
-        print(json.dumps({
-            "status": "ok" if success else "error",
-            "message": message,
-            **({"version": target} if target else {}),
-        }))
-        return 0 if success else 1
-        # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-return-cache-update
-    # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-update-cache
-
-    from cypilot_proxy.agents_check import verify_and_inject
-    verify_and_inject()  # Silent — never fails the command
 
     # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-engine-execute
     result = _forward_to_skill(skill_path, args)

@@ -66,7 +66,7 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 6. [x] - `p1` - CLI proxy performs non-blocking background version check - `inst-bg-version-check`
 7. [x] - `p1` - **IF** cached version newer than project version - `inst-if-version-mismatch`
    1. [x] - `p1` - Display update notice to stderr - `inst-show-update-notice`
-8. [x] - `p1` - **IF** first arg is `--update-cache` - `inst-if-update-cache`
+8. [x] - `p1` - **IF** first arg is `update` - `inst-if-update-cache`
    1. [x] - `p1` - Algorithm: download and cache skill using `cpt-cypilot-algo-core-infra-cache-skill` with optional version/branch/SHA argument - `inst-explicit-cache-update`
    2. [x] - `p1` - **RETURN** JSON: `{status, message, version}` (exit 0 on success, 1 on failure) - `inst-return-cache-update`
 9. [x] - `p1` - **RETURN** exit code from skill engine (0=PASS, 1=error, 2=FAIL) - `inst-return-exit`
@@ -179,22 +179,22 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 
 ### Inject Root AGENTS.md
 
-- [x] `p1` - **ID**: `cpt-cypilot-algo-core-infra-inject-root-agents`
+- [ ] `p1` - **ID**: `cpt-cypilot-algo-core-infra-inject-root-agents`
 
 **Input**: Project root path, install directory path
 
 **Output**: Updated or created `{project_root}/AGENTS.md`
 
 **Steps**:
-1. [x] - `p1` - Compute managed block content: Variables table with `{cypilot} = @/{install_dir}`, navigation rule `ALWAYS open and follow {cypilot}/config/AGENTS.md FIRST` - `inst-compute-block`
-2. [x] - `p1` - **IF** `{project_root}/AGENTS.md` does not exist - `inst-if-no-agents`
-   1. [x] - `p1` - Create file with managed block wrapped in `<!-- @cpt:root-agents -->` markers - `inst-create-agents-file`
-3. [x] - `p1` - **ELSE** read existing file content - `inst-read-existing`
-   1. [x] - `p1` - **IF** managed block markers found - `inst-if-markers-exist`
-      1. [x] - `p1` - Replace content between markers with computed block - `inst-replace-block`
-   2. [x] - `p1` - **ELSE** insert managed block at beginning of file - `inst-insert-block`
-4. [x] - `p1` - Write file - `inst-write-agents`
-5. [x] - `p1` - **RETURN** path to AGENTS.md - `inst-return-agents-path`
+1. [ ] - `p1` - Compute managed block content: Variables table with `{cypilot} = @/{install_dir}`, navigation rule `ALWAYS open and follow {cypilot}/config/AGENTS.md FIRST` - `inst-compute-block`
+2. [ ] - `p1` - **IF** `{project_root}/AGENTS.md` does not exist - `inst-if-no-agents`
+   1. [ ] - `p1` - Create file with managed block wrapped in `<!-- @cpt:root-agents -->` markers - `inst-create-agents-file`
+3. [ ] - `p1` - **ELSE** read existing file content - `inst-read-existing`
+   1. [ ] - `p1` - **IF** managed block markers found - `inst-if-markers-exist`
+      1. [ ] - `p1` - Replace content between markers with computed block - `inst-replace-block`
+   2. [ ] - `p1` - **ELSE** insert managed block at beginning of file - `inst-insert-block`
+4. [ ] - `p1` - Write file - `inst-write-agents`
+5. [ ] - `p1` - **RETURN** path to AGENTS.md - `inst-return-agents-path`
 
 ### Cache Skill from GitHub
 
@@ -333,7 +333,7 @@ The system **MUST** provide a `cypilot init` command that defines the root syste
 
 ### Root AGENTS.md Integrity
 
-- [x] `p1` - **ID**: `cpt-cypilot-dod-core-infra-agents-integrity`
+- [ ] `p1` - **ID**: `cpt-cypilot-dod-core-infra-agents-integrity`
 
 The system **MUST** verify the root `AGENTS.md` managed block on every CLI invocation (not just init). If the `<!-- @cpt:root-agents -->` block is missing, stale, or the file does not exist, the system silently re-injects it with the correct path to `config/AGENTS.md`.
 
@@ -353,9 +353,9 @@ The system **MUST** verify the root `AGENTS.md` managed block on every CLI invoc
 - [ ] `cypilot init` in an already-initialized project returns exit code 2 with helpful message
 - [x] `cypilot <command>` from inside a project routes to project skill; from outside routes to cache
 - [x] First `cypilot` invocation after `pipx install` with empty cache automatically downloads skill from GitHub
-- [x] `cypilot --update-cache [VERSION|BRANCH]` downloads specified version/branch/SHA into cache
+- [x] `cypilot update [VERSION|BRANCH]` downloads specified version/branch/SHA into cache
 - [x] Download failure produces actionable error message with HTTP status
 - [ ] All commands output JSON to stdout and use exit codes 0/1/2
-- [x] Root `AGENTS.md` managed block is verified and re-injected on every CLI invocation
+- [ ] Root `AGENTS.md` managed block is verified and re-injected on every CLI invocation
 - [x] Background version check does not block command execution
 - [ ] `config/AGENTS.md` is created with default WHEN rules for standard system prompts
