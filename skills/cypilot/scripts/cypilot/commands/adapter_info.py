@@ -5,10 +5,9 @@ from pathlib import Path
 from typing import Optional
 
 from ..utils.files import (
-    find_adapter_directory,
+    find_cypilot_directory,
     find_project_root,
-    load_adapter_config,
-    load_project_config,
+    load_cypilot_config,
 )
 
 
@@ -38,54 +37,48 @@ def cmd_adapter_info(argv: list[str]) -> int:
         print(json.dumps(
             {
                 "status": "NOT_FOUND",
-                "message": "No project root found (no .git or .cypilot-config.json)",
+                "message": "No project root found (no AGENTS.md with @cpt:root-agents or .git)",
                 "searched_from": start_path.as_posix(),
-                "hint": "Create .cypilot-config.json in project root to configure Cypilot",
+                "hint": "Run 'cypilot init' in your project root",
             },
             indent=2,
             ensure_ascii=False,
         ))
         return 1
 
-    adapter_dir = find_adapter_directory(start_path, cypilot_root=cypilot_root_path)
+    adapter_dir = find_cypilot_directory(start_path, cypilot_root=cypilot_root_path)
     if adapter_dir is None:
-        cfg = load_project_config(project_root)
-        if cfg is not None:
-            adapter_rel = cfg.get("cypilotAdapterPath")
-            if adapter_rel is not None and isinstance(adapter_rel, str):
-                print(json.dumps(
-                    {
-                        "status": "CONFIG_ERROR",
-                        "message": "Config specifies adapter path but directory not found or invalid",
-                        "project_root": project_root.as_posix(),
-                        "config_path": adapter_rel,
-                        "expected_location": (project_root / adapter_rel).as_posix(),
-                        "hint": "Check .cypilot-config.json cypilotAdapterPath points to valid directory with AGENTS.md",
-                    },
-                    indent=2,
-                    ensure_ascii=False,
-                ))
-                return 1
-
         print(json.dumps(
             {
                 "status": "NOT_FOUND",
-                "message": "No .cypilot-adapter found in project (searched recursively up to 5 levels deep)",
+                "message": "No adapter found in project",
                 "project_root": project_root.as_posix(),
-                "hint": "Create .cypilot-config.json with cypilotAdapterPath or run adapter-bootstrap workflow",
+                "hint": "Run 'cypilot init' to initialize Cypilot for this project",
             },
             indent=2,
             ensure_ascii=False,
         ))
         return 1
 
-    config = load_adapter_config(adapter_dir)
+    config = load_cypilot_config(adapter_dir)
     config["status"] = "FOUND"
     config["project_root"] = project_root.as_posix()
 
-    registry_path = (adapter_dir / "artifacts.json").resolve()
+    registry_path = (adapter_dir / "artifacts.toml").resolve()
+    # Fallback to legacy artifacts.json
+    if not registry_path.is_file():
+        legacy = adapter_dir / "artifacts.json"
+        if legacy.is_file():
+            registry_path = legacy.resolve()
     config["artifacts_registry_path"] = registry_path.as_posix()
-    registry = _load_json_file(registry_path)
+    registry = _load_json_file(registry_path) if registry_path.suffix == ".json" else None
+    if registry is None and registry_path.suffix == ".toml" and registry_path.is_file():
+        try:
+            import tomllib
+            with open(registry_path, "rb") as f:
+                registry = tomllib.load(f)
+        except Exception:
+            registry = None
     if registry is None:
         config["artifacts_registry"] = None
         config["artifacts_registry_error"] = "MISSING_OR_INVALID_JSON" if registry_path.exists() else "MISSING"
@@ -194,10 +187,8 @@ def cmd_adapter_info(argv: list[str]) -> int:
         relative_path = adapter_dir.as_posix()
     config["relative_path"] = relative_path
 
-    config_file = project_root / ".cypilot-config.json"
-    config["has_config"] = config_file.exists()
-    if not config_file.exists():
-        config["config_hint"] = f"Create .cypilot-config.json with: {{\"cypilotAdapterPath\": \"{relative_path}\"}}"
+    core_toml = adapter_dir / "core.toml"
+    config["has_config"] = core_toml.exists()
 
     print(json.dumps(config, indent=2, ensure_ascii=False))
     return 0

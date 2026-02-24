@@ -8,17 +8,20 @@ Walks directory tree to find project-installed skill, falls back to cache.
 
 import re
 import sys
+import tomllib
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 MARKER_START = "<!-- @cpt:root-agents -->"
 
-# Regex to extract {cypilot} variable value from the managed block table
+_TOML_FENCE_RE = re.compile(r"```toml\s*\n(.*?)```", re.DOTALL)
+
+# Legacy: extract {cypilot} from markdown table (pre-TOML format)
 _CYPILOT_VAR_RE = re.compile(
     r"\|\s*`\{cypilot\}`\s*\|\s*`([^`]+)`\s*\|"
 )
 
-# Regex to extract install dir from old-format navigation rule
+# Legacy: extract install dir from old-format navigation rule
 _OLD_NAV_RE = re.compile(
     r"ALWAYS open and follow `@/([^`/]+)/config/AGENTS\.md`"
 )
@@ -39,12 +42,26 @@ def find_project_root(start_dir: Optional[Path] = None) -> Optional[Path]:
     return None
 
 
+def _parse_toml_from_markdown(text: str) -> Dict[str, Any]:
+    """Extract and merge all ``toml`` fenced code blocks from markdown."""
+    merged: Dict[str, Any] = {}
+    for m in _TOML_FENCE_RE.finditer(text):
+        try:
+            data = tomllib.loads(m.group(1))
+            merged.update(data)
+        except Exception:
+            continue
+    return merged
+
+
 def read_cypilot_path(project_root: Path) -> Optional[str]:
     """
-    Read the {cypilot} variable from root AGENTS.md managed block.
+    Read the ``cypilot`` variable from root AGENTS.md.
 
-    Returns the install directory path (relative to project root, e.g. '.cypilot')
-    or None if AGENTS.md doesn't exist or doesn't contain the variable.
+    Tries TOML fenced block first (new format), then falls back to legacy
+    markdown table extraction.
+
+    Returns the install directory path (relative to project root) or None.
     """
     agents_file = project_root / "AGENTS.md"
     if not agents_file.is_file():
@@ -55,13 +72,22 @@ def read_cypilot_path(project_root: Path) -> Optional[str]:
         return None
     if MARKER_START not in content:
         return None
+
+    # New format: ```toml block with cypilot = "..."
+    toml_data = _parse_toml_from_markdown(content)
+    value = toml_data.get("cypilot")
+    if isinstance(value, str) and value.strip():
+        return value.strip()
+
+    # Legacy: markdown table | `{cypilot}` | `@/...` |
     m = _CYPILOT_VAR_RE.search(content)
-    if m is None:
-        return None
-    value = m.group(1).strip()
-    if value.startswith("@/"):
-        value = value[2:]
-    return value
+    if m is not None:
+        legacy_value = m.group(1).strip()
+        if legacy_value.startswith("@/"):
+            legacy_value = legacy_value[2:]
+        return legacy_value
+
+    return None
 
 
 def find_install_dir(project_root: Path) -> Optional[str]:

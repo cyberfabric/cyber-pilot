@@ -77,7 +77,7 @@ def _cmd_validate_kits(argv: List[str]) -> int:
 # ADAPTER COMMAND
 # =============================================================================
 
-def _cmd_adapter_info(argv: List[str]) -> int:
+def _cmd_cypilot_info(argv: List[str]) -> int:
     from .commands.adapter_info import cmd_adapter_info
     return cmd_adapter_info(argv)
 
@@ -104,7 +104,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         "list-ids", "list-id-kinds",
         "get-content",
         "where-defined", "where-used",
-        "adapter-info",
+        "info", "adapter-info",
         "self-check",
         "agents",
     ]
@@ -176,8 +176,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         return _cmd_where_defined(rest)
     elif cmd == "where-used":
         return _cmd_where_used(rest)
-    elif cmd == "adapter-info":
-        return _cmd_adapter_info(rest)
+    elif cmd in ("info", "adapter-info"):
+        return _cmd_cypilot_info(rest)
     elif cmd == "self-check":
         return _cmd_self_check(rest)
     elif cmd == "agents":

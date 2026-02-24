@@ -1,0 +1,30 @@
+# Cypilot project configuration
+
+[system]
+name = "Cypilot"
+slug = "cypilot"
+kit = "cypilot-sdlc"
+
+[kits.cypilot-sdlc]
+format = "Cypilot"
+path = ".cypilot/kits/sdlc"
+
+[kits.cypilot-sdlc.artifacts.ADR]
+template = "{project_root}/.cypilot/kits/sdlc/artifacts/ADR/template.md"
+examples = "{project_root}/.cypilot/kits/sdlc/artifacts/ADR/examples"
+
+[kits.cypilot-sdlc.artifacts.DECOMPOSITION]
+template = "{project_root}/.cypilot/kits/sdlc/artifacts/DECOMPOSITION/template.md"
+examples = "{project_root}/.cypilot/kits/sdlc/artifacts/DECOMPOSITION/examples"
+
+[kits.cypilot-sdlc.artifacts.DESIGN]
+template = "{project_root}/.cypilot/kits/sdlc/artifacts/DESIGN/template.md"
+examples = "{project_root}/.cypilot/kits/sdlc/artifacts/DESIGN/examples"
+
+[kits.cypilot-sdlc.artifacts.FEATURE]
+template = "{project_root}/.cypilot/kits/sdlc/artifacts/FEATURE/template.md"
+examples = "{project_root}/.cypilot/kits/sdlc/artifacts/FEATURE/examples"
+
+[kits.cypilot-sdlc.artifacts.PRD]
+template = "{project_root}/.cypilot/kits/sdlc/artifacts/PRD/template.md"
+examples = "{project_root}/.cypilot/kits/sdlc/artifacts/PRD/examples"

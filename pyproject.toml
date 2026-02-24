@@ -8,7 +8,7 @@ version = "3.0.0a1"
 description = "Cypilot global CLI proxy — deterministic agent tool for structured workflows"
 readme = "README.md"
 license = {text = "Apache-2.0"}
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 # @cpt-dod:cpt-cypilot-dod-core-infra-global-package:p1 — zero third-party dependencies
 dependencies = []
 
