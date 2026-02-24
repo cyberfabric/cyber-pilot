@@ -64,8 +64,10 @@ def cmd_adapter_info(argv: list[str]) -> int:
     config["status"] = "FOUND"
     config["project_root"] = project_root.as_posix()
 
-    registry_path = (adapter_dir / "artifacts.toml").resolve()
-    # Fallback to legacy artifacts.json
+    registry_path = (adapter_dir / "config" / "artifacts.toml").resolve()
+    # Fallback: legacy flat layout
+    if not registry_path.is_file():
+        registry_path = (adapter_dir / "artifacts.toml").resolve()
     if not registry_path.is_file():
         legacy = adapter_dir / "artifacts.json"
         if legacy.is_file():

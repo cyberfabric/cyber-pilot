@@ -125,7 +125,8 @@ class CypilotContext:
                 get_id_kind_tokens=_get_id_kind_tokens,
             )
             if autodetect_errs:
-                registry_path = (adapter_dir / "artifacts.toml").resolve()
+                cfg_dir = adapter_dir / "config"
+                registry_path = (cfg_dir / "artifacts.toml").resolve() if (cfg_dir / "artifacts.toml").is_file() else (adapter_dir / "artifacts.toml").resolve()
                 for msg in autodetect_errs:
                     errors.append(error(
                         "registry",
@@ -135,7 +136,8 @@ class CypilotContext:
                         details=str(msg),
                     ))
         except Exception as e:
-            registry_path = (adapter_dir / "artifacts.toml").resolve()
+            cfg_dir = adapter_dir / "config"
+            registry_path = (cfg_dir / "artifacts.toml").resolve() if (cfg_dir / "artifacts.toml").is_file() else (adapter_dir / "artifacts.toml").resolve()
             errors.append(error(
                 "registry",
                 "Autodetect expansion failed",

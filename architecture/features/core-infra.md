@@ -46,7 +46,7 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 
 **Error Scenarios**:
 - GitHub download fails (network, rate limit) → error with retry instructions
-- Python version < 3.10 → error with version requirement
+- Python version < 3.11 → error with version requirement
 
 **Steps**:
 1. [x] - `p1` - User invokes `cypilot <command> [args]` from terminal - `inst-user-invokes`
@@ -162,14 +162,14 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 
 - [x] `p1` - **ID**: `cpt-cypilot-algo-core-infra-create-config`
 
-**Input**: Adapter directory path, root system definition, cypilot core relative path
+**Input**: Cypilot directory path, root system definition
 
-**Output**: Created `core.toml` in adapter directory (artifacts.json created separately as JSON)
+**Output**: Created `core.toml` and `artifacts.toml` in cypilot directory
 
 **Steps**:
-1. [x] - `p1` - Create adapter directory if absent - `inst-mkdir-config`
-2. [x] - `p1` - Write `core.toml` with: root system definition (name, slug, kit="sdlc"), paths.core relative to adapter - `inst-write-core-toml`
-3. [x] - `p1` - Write `artifacts.json` with default registry (systems, autodetect rules, codebase, ignore patterns) - `inst-write-artifacts-toml`
+1. [x] - `p1` - Create cypilot directory if absent - `inst-mkdir-config`
+2. [x] - `p1` - Write `core.toml` with: root system definition (name, slug, kit), kits registration - `inst-write-core-toml`
+3. [x] - `p1` - Write `artifacts.toml` with default registry (systems, autodetect rules, codebase, ignore patterns) - `inst-write-artifacts-toml`
 4. [x] - `p2` - Validate files against schemas before final write - `inst-validate-schemas`
 5. [x] - `p1` - **RETURN** paths to created files - `inst-return-config-paths`
 
@@ -182,7 +182,7 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 **Output**: Updated or created `{project_root}/AGENTS.md`
 
 **Steps**:
-1. [x] - `p1` - Compute managed block content: Variables table with `{cypilot} = @/{install_dir}`, navigation rule `ALWAYS open and follow {cypilot}/AGENTS.md FIRST` - `inst-compute-block`
+1. [x] - `p1` - Compute managed block content: TOML fenced block with `cypilot = "{install_dir}"`, navigation rule `ALWAYS open and follow {cypilot}/AGENTS.md FIRST` - `inst-compute-block`
 2. [x] - `p1` - **IF** `{project_root}/AGENTS.md` does not exist - `inst-if-no-agents`
    1. [x] - `p1` - Create file with managed block wrapped in `<!-- @cpt:root-agents -->` markers - `inst-create-agents-file`
 3. [x] - `p1` - **ELSE** read existing file content - `inst-read-existing`
@@ -216,13 +216,13 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 
 - [x] `p1` - **ID**: `cpt-cypilot-algo-core-infra-create-config-agents`
 
-**Input**: Install directory path, installed kits list
+**Input**: Cypilot directory path, installed kits list
 
-**Output**: Created `config/AGENTS.md`
+**Output**: Created `.cypilot/AGENTS.md`
 
 **Steps**:
-1. [x] - `p1` - Generate default WHEN rules for standard system prompts (tech-stack, conventions, domain-model, patterns, project-structure, testing, build-deploy) - `inst-gen-when-rules`
-2. [x] - `p1` - Write `config/AGENTS.md` with navigation header and WHEN rules - `inst-write-config-agents`
+1. [x] - `p1` - Generate default WHEN rules for artifacts.toml, schemas, requirements - `inst-gen-when-rules`
+2. [x] - `p1` - Write `.cypilot/AGENTS.md` with navigation header and WHEN rules - `inst-write-config-agents`
 3. [x] - `p1` - **RETURN** path to created file - `inst-return-config-agents-path`
 
 
@@ -230,16 +230,16 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 
 ### Project Installation State
 
-- [ ] `p1` - **ID**: `cpt-cypilot-state-core-infra-project-install`
+- [x] `p1` - **ID**: `cpt-cypilot-state-core-infra-project-install`
 
 **States**: UNINITIALIZED, INITIALIZED, STALE
 
 **Initial State**: UNINITIALIZED
 
 **Transitions**:
-1. [ ] - `p1` - **FROM** UNINITIALIZED **TO** INITIALIZED **WHEN** `cypilot init` completes successfully - `inst-init-complete`
-2. [ ] - `p1` - **FROM** INITIALIZED **TO** STALE **WHEN** cached skill version is newer than project skill version - `inst-version-mismatch`
-3. [ ] - `p1` - **FROM** STALE **TO** INITIALIZED **WHEN** `cypilot update` completes successfully - `inst-update-complete`
+1. [x] - `p1` - **FROM** UNINITIALIZED **TO** INITIALIZED **WHEN** `cypilot init` completes successfully - `inst-init-complete`
+2. [x] - `p1` - **FROM** INITIALIZED **TO** STALE **WHEN** cached skill version is newer than project skill version - `inst-version-mismatch`
+3. [x] - `p1` - **FROM** STALE **TO** INITIALIZED **WHEN** `cypilot update` completes successfully - `inst-update-complete`
 
 ## 5. Definitions of Done
 
@@ -304,9 +304,9 @@ The system **MUST** provide a cache mechanism in the CLI proxy that downloads th
 
 ### Init Creates Full Config
 
-- [ ] `p1` - **ID**: `cpt-cypilot-dod-core-infra-init-config`
+- [x] `p1` - **ID**: `cpt-cypilot-dod-core-infra-init-config`
 
-The system **MUST** provide a `cypilot init` command that defines the root system from the project directory name, creates `config/core.toml` with system and kit registrations, creates `config/artifacts.toml` with default SDLC autodetect rules, injects the root `AGENTS.md` managed block, and creates `config/AGENTS.md` with default WHEN rules.
+The system **MUST** provide a `cypilot init` command that copies skill bundle from cache, defines the root system from the project directory name, creates `.cypilot/core.toml` with system and kit registrations, creates `.cypilot/artifacts.toml` with default SDLC autodetect rules, injects the root `AGENTS.md` managed block, and creates `.cypilot/AGENTS.md` with default WHEN rules.
 
 **Implements**:
 - `cpt-cypilot-flow-core-infra-project-init`
@@ -329,9 +329,9 @@ The system **MUST** provide a `cypilot init` command that defines the root syste
 
 ### Root AGENTS.md Integrity
 
-- [ ] `p1` - **ID**: `cpt-cypilot-dod-core-infra-agents-integrity`
+- [x] `p1` - **ID**: `cpt-cypilot-dod-core-infra-agents-integrity`
 
-The system **MUST** verify the root `AGENTS.md` managed block on every CLI invocation (not just init). If the `<!-- @cpt:root-agents -->` block is missing, stale, or the file does not exist, the system silently re-injects it with the correct path to `config/AGENTS.md`.
+The system **MUST** verify the root `AGENTS.md` managed block on every CLI invocation (not just init). If the `<!-- @cpt:root-agents -->` block is missing, stale, or the file does not exist, the system silently re-injects it with the correct TOML block pointing to the `.cypilot/` directory.
 
 **Implements**:
 - `cpt-cypilot-algo-core-infra-inject-root-agents`
@@ -345,13 +345,13 @@ The system **MUST** verify the root `AGENTS.md` managed block on every CLI invoc
 
 ## 6. Acceptance Criteria
 
-- [ ] `cypilot init` creates `config/core.toml` and `config/artifacts.toml` with correct root system definition
+- [x] `cypilot init` creates `.cypilot/core.toml` and `.cypilot/artifacts.toml` with correct root system definition
 - [x] `cypilot init` in an already-initialized project returns exit code 2 with helpful message
 - [x] `cypilot <command>` from inside a project routes to project skill; from outside routes to cache
 - [x] First `cypilot` invocation after `pipx install` with empty cache automatically downloads skill from GitHub
 - [x] `cypilot update [VERSION|BRANCH]` downloads specified version/branch/SHA into cache
 - [x] Download failure produces actionable error message with HTTP status
-- [ ] All commands output JSON to stdout and use exit codes 0/1/2
-- [ ] Root `AGENTS.md` managed block is verified and re-injected on every CLI invocation
+- [x] All commands output JSON to stdout and use exit codes 0/1/2
+- [x] Root `AGENTS.md` managed block is verified and re-injected on every CLI invocation
 - [x] Background version check does not block command execution
-- [x] `config/AGENTS.md` is created with default WHEN rules for standard system prompts
+- [x] `.cypilot/AGENTS.md` is created with default WHEN rules for artifacts registry

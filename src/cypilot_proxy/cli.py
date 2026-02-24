@@ -8,6 +8,7 @@ All actual logic lives in the skill engine — this proxy only routes.
 @cpt-algo:cpt-cypilot-algo-core-infra-route-command:p1
 @cpt-dod:cpt-cypilot-dod-core-infra-cli-routes:p1
 @cpt-dod:cpt-cypilot-dod-core-infra-global-package:p1
+@cpt-state:cpt-cypilot-state-core-infra-project-install:p1
 """
 
 import json
@@ -88,7 +89,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-explicit-cache-update
         # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-return-cache-update
         sys.stderr.write(f"{message}\n")
+        # @cpt-begin:cpt-cypilot-state-core-infra-project-install:p1:inst-update-complete
         return 0 if success else 1
+        # @cpt-end:cpt-cypilot-state-core-infra-project-install:p1:inst-update-complete
         # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-return-cache-update
     # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-update-cache
 
@@ -201,6 +204,7 @@ def _background_version_check(project_skill_path: Path) -> None:
             return
 
         # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-version-mismatch
+        # @cpt-begin:cpt-cypilot-state-core-infra-project-install:p1:inst-version-mismatch
         if cached_version != project_version:
             # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-show-update-notice
             sys.stderr.write(
@@ -208,6 +212,7 @@ def _background_version_check(project_skill_path: Path) -> None:
                 f"Run: cypilot update\n"
             )
             # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-show-update-notice
+        # @cpt-end:cpt-cypilot-state-core-infra-project-install:p1:inst-version-mismatch
         # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-version-mismatch
     except Exception:
         pass  # Never fail the actual command for a version check
