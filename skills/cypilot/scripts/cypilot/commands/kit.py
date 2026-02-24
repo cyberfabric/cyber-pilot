@@ -24,28 +24,18 @@ from typing import Any, Dict, List, Optional
 # Kit Install
 # ---------------------------------------------------------------------------
 
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-user-install
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-validate-source
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-if-invalid-source
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-extract-metadata
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-if-already-registered
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-save-reference
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-copy-blueprints
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-process-blueprints
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-register-kit
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-return-install-ok
-# @cpt-begin:cpt-cypilot-state-blueprint-system-kit-install:p1:inst-install-complete
-
 def cmd_kit_install(argv: List[str]) -> int:
     """Install a kit from a local path.
 
     Usage: cypilot kit install <path> [--force]
     """
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-user-install
     p = argparse.ArgumentParser(prog="kit install", description="Install a kit package")
     p.add_argument("path", help="Path to kit source directory (must contain blueprints/)")
     p.add_argument("--force", action="store_true", help="Overwrite existing kit")
     p.add_argument("--dry-run", action="store_true", help="Show what would be done")
     args = p.parse_args(argv)
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-user-install
 
     from ..utils.blueprint import parse_blueprint
     from ..utils.files import find_project_root, _read_cypilot_var
@@ -53,7 +43,8 @@ def cmd_kit_install(argv: List[str]) -> int:
     kit_source = Path(args.path).resolve()
     blueprints_dir = kit_source / "blueprints"
 
-    # Validate kit source
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-validate-source
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-if-invalid-source
     if not blueprints_dir.is_dir():
         print(json.dumps({
             "status": "FAIL",
@@ -70,8 +61,10 @@ def cmd_kit_install(argv: List[str]) -> int:
             "hint": "blueprints/ must contain at least one blueprint .md file",
         }, indent=2, ensure_ascii=False))
         return 2
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-if-invalid-source
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-validate-source
 
-    # Extract kit metadata from first blueprint with @cpt:blueprint marker
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-extract-metadata
     kit_slug = ""
     kit_version = ""
     for bp_file in bp_files:
@@ -82,10 +75,9 @@ def cmd_kit_install(argv: List[str]) -> int:
             break
 
     if not kit_slug:
-        # Fallback: use directory name
         kit_slug = kit_source.name
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-extract-metadata
 
-    # Find project root and cypilot dir
     project_root = find_project_root(Path.cwd())
     if project_root is None:
         print(json.dumps({
@@ -106,11 +98,10 @@ def cmd_kit_install(argv: List[str]) -> int:
 
     cypilot_dir = (project_root / cypilot_rel).resolve()
     config_dir = cypilot_dir / "config"
-
-    # Check if already registered
     ref_dir = cypilot_dir / "kits" / kit_slug
     user_bp_dir = config_dir / "kits" / kit_slug / "blueprints"
 
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-if-already-registered
     if ref_dir.exists() and not args.force:
         print(json.dumps({
             "status": "FAIL",
@@ -118,6 +109,7 @@ def cmd_kit_install(argv: List[str]) -> int:
             "hint": "Use --force to overwrite",
         }, indent=2, ensure_ascii=False))
         return 2
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-if-already-registered
 
     if args.dry_run:
         print(json.dumps({
@@ -130,28 +122,34 @@ def cmd_kit_install(argv: List[str]) -> int:
         }, indent=2, ensure_ascii=False))
         return 0
 
-    # Save reference copy
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-save-reference
     if ref_dir.exists():
         shutil.rmtree(ref_dir)
     shutil.copytree(kit_source, ref_dir)
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-save-reference
 
-    # Copy blueprints to user-editable location
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-copy-blueprints
     if user_bp_dir.exists():
         shutil.rmtree(user_bp_dir)
     user_bp_dir.parent.mkdir(parents=True, exist_ok=True)
     shutil.copytree(blueprints_dir, user_bp_dir)
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-copy-blueprints
 
-    # Process blueprints → generate outputs
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-process-blueprints
     from ..utils.blueprint import process_kit
 
     config_kits_dir = config_dir / "kits"
     summary, errors = process_kit(
         kit_slug, user_bp_dir, config_kits_dir, dry_run=False,
     )
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-process-blueprints
 
-    # Register in core.toml
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-register-kit
     _register_kit_in_core_toml(config_dir, kit_slug, kit_version, cypilot_dir)
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-register-kit
 
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-return-install-ok
+    # @cpt-begin:cpt-cypilot-state-blueprint-system-kit-install:p1:inst-install-complete
     result: Dict[str, Any] = {
         "status": "PASS" if not errors else "WARN",
         "action": "installed",
@@ -165,46 +163,26 @@ def cmd_kit_install(argv: List[str]) -> int:
 
     print(json.dumps(result, indent=2, ensure_ascii=False))
     return 0
-
-# @cpt-end:cpt-cypilot-state-blueprint-system-kit-install:p1:inst-install-complete
-# @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-return-install-ok
-# @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-register-kit
-# @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-process-blueprints
-# @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-copy-blueprints
-# @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-save-reference
-# @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-if-already-registered
-# @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-extract-metadata
-# @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-if-invalid-source
-# @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-validate-source
-# @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-user-install
+    # @cpt-end:cpt-cypilot-state-blueprint-system-kit-install:p1:inst-install-complete
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-return-install-ok
 
 
 # ---------------------------------------------------------------------------
 # Kit Update
 # ---------------------------------------------------------------------------
 
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-user-update
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-resolve-kits
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-foreach-kit
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-load-new-source
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-if-force
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-force-overwrite
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-regenerate
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-update-version
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-return-update-ok
-# @cpt-begin:cpt-cypilot-state-blueprint-system-kit-install:p1:inst-update-complete
-# @cpt-begin:cpt-cypilot-state-blueprint-system-kit-install:p1:inst-version-drift
-
 def cmd_kit_update(argv: List[str]) -> int:
     """Update installed kits.
 
     Usage: cypilot kit update [--force] [--kit SLUG]
     """
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-user-update
     p = argparse.ArgumentParser(prog="kit update", description="Update installed kits")
     p.add_argument("--kit", default=None, help="Kit slug to update (default: all)")
     p.add_argument("--force", action="store_true", help="Force overwrite user blueprints")
     p.add_argument("--dry-run", action="store_true", help="Show what would be done")
     args = p.parse_args(argv)
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-user-update
 
     from ..utils.files import find_project_root, _read_cypilot_var
 
@@ -230,7 +208,7 @@ def cmd_kit_update(argv: List[str]) -> int:
         }, indent=2, ensure_ascii=False))
         return 2
 
-    # Resolve target kits
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-resolve-kits
     if args.kit:
         kit_dirs = [kits_ref_dir / args.kit]
         if not kit_dirs[0].is_dir():
@@ -245,30 +223,39 @@ def cmd_kit_update(argv: List[str]) -> int:
     if not kit_dirs:
         print(json.dumps({"status": "FAIL", "message": "No kits found"}, ensure_ascii=False))
         return 2
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-resolve-kits
 
     from ..utils.blueprint import process_kit
 
     results: List[Dict[str, Any]] = []
     all_errors: List[str] = []
 
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-foreach-kit
+    # @cpt-begin:cpt-cypilot-state-blueprint-system-kit-install:p1:inst-version-drift
     for kit_dir in kit_dirs:
         kit_slug = kit_dir.name
+
+        # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-load-new-source
         ref_bp_dir = kit_dir / "blueprints"
         user_bp_dir = config_dir / "kits" / kit_slug / "blueprints"
 
         if not ref_bp_dir.is_dir():
             all_errors.append(f"Kit '{kit_slug}' has no blueprints/ in reference")
             continue
+        # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-load-new-source
 
+        # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-if-force
+        # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-force-overwrite
         if args.force:
-            # Force: overwrite user blueprints from reference
             if not args.dry_run:
                 if user_bp_dir.exists():
                     shutil.rmtree(user_bp_dir)
                 user_bp_dir.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copytree(ref_bp_dir, user_bp_dir)
+        # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-force-overwrite
+        # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-if-force
 
-        # Regenerate outputs from (possibly updated) user blueprints
+        # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-regenerate
         source_bp_dir = user_bp_dir if user_bp_dir.is_dir() else ref_bp_dir
         config_kits_dir = config_dir / "kits"
 
@@ -285,7 +272,16 @@ def cmd_kit_update(argv: List[str]) -> int:
                 "artifact_kinds": summary.get("artifact_kinds", []),
             })
             all_errors.extend(errors)
+        # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-regenerate
+    # @cpt-end:cpt-cypilot-state-blueprint-system-kit-install:p1:inst-version-drift
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-foreach-kit
 
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-update-version
+    # (version updated implicitly during process_kit regeneration)
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-update-version
+
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-return-update-ok
+    # @cpt-begin:cpt-cypilot-state-blueprint-system-kit-install:p1:inst-update-complete
     overall = "PASS" if not all_errors else "WARN"
     output: Dict[str, Any] = {
         "status": overall,
@@ -297,39 +293,25 @@ def cmd_kit_update(argv: List[str]) -> int:
 
     print(json.dumps(output, indent=2, ensure_ascii=False))
     return 0
-
-# @cpt-end:cpt-cypilot-state-blueprint-system-kit-install:p1:inst-version-drift
-# @cpt-end:cpt-cypilot-state-blueprint-system-kit-install:p1:inst-update-complete
-# @cpt-end:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-return-update-ok
-# @cpt-end:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-update-version
-# @cpt-end:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-regenerate
-# @cpt-end:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-force-overwrite
-# @cpt-end:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-if-force
-# @cpt-end:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-load-new-source
-# @cpt-end:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-foreach-kit
-# @cpt-end:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-resolve-kits
-# @cpt-end:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-user-update
+    # @cpt-end:cpt-cypilot-state-blueprint-system-kit-install:p1:inst-update-complete
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-return-update-ok
 
 
 # ---------------------------------------------------------------------------
 # Generate Resources
 # ---------------------------------------------------------------------------
 
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-generate-resources:p1:inst-user-generate
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-generate-resources:p1:inst-resolve-gen-kits
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-generate-resources:p1:inst-foreach-gen-kit
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-generate-resources:p1:inst-gen-process
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-generate-resources:p1:inst-return-gen-ok
-
 def cmd_generate_resources(argv: List[str]) -> int:
     """Regenerate kit resources from blueprints.
 
     Usage: cypilot generate-resources [--kit SLUG]
     """
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-generate-resources:p1:inst-user-generate
     p = argparse.ArgumentParser(prog="generate-resources", description="Regenerate kit resources from blueprints")
     p.add_argument("--kit", default=None, help="Kit slug (default: all)")
     p.add_argument("--dry-run", action="store_true", help="Show what would be done")
     args = p.parse_args(argv)
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-generate-resources:p1:inst-user-generate
 
     from ..utils.files import find_project_root, _read_cypilot_var
 
@@ -347,7 +329,7 @@ def cmd_generate_resources(argv: List[str]) -> int:
     config_dir = cypilot_dir / "config"
     config_kits_dir = config_dir / "kits"
 
-    # Find kits with user blueprints
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-generate-resources:p1:inst-resolve-gen-kits
     if args.kit:
         bp_dirs = [(args.kit, config_kits_dir / args.kit / "blueprints")]
     else:
@@ -365,17 +347,20 @@ def cmd_generate_resources(argv: List[str]) -> int:
             "hint": "Run 'cypilot kit install <path>' first",
         }, indent=2, ensure_ascii=False))
         return 2
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-generate-resources:p1:inst-resolve-gen-kits
 
     from ..utils.blueprint import process_kit
 
     results: List[Dict[str, Any]] = []
     all_errors: List[str] = []
 
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-generate-resources:p1:inst-foreach-gen-kit
     for kit_slug, bp_dir in bp_dirs:
         if not bp_dir.is_dir():
             all_errors.append(f"Kit '{kit_slug}' blueprints directory not found: {bp_dir}")
             continue
 
+        # @cpt-begin:cpt-cypilot-flow-blueprint-system-generate-resources:p1:inst-gen-process
         summary, errors = process_kit(
             kit_slug, bp_dir, config_kits_dir, dry_run=args.dry_run,
         )
@@ -385,7 +370,10 @@ def cmd_generate_resources(argv: List[str]) -> int:
             "artifact_kinds": summary.get("artifact_kinds", []),
         })
         all_errors.extend(errors)
+        # @cpt-end:cpt-cypilot-flow-blueprint-system-generate-resources:p1:inst-gen-process
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-generate-resources:p1:inst-foreach-gen-kit
 
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-generate-resources:p1:inst-return-gen-ok
     overall = "PASS" if not all_errors else "WARN"
     output: Dict[str, Any] = {
         "status": overall,
@@ -397,27 +385,12 @@ def cmd_generate_resources(argv: List[str]) -> int:
 
     print(json.dumps(output, indent=2, ensure_ascii=False))
     return 0
-
-# @cpt-end:cpt-cypilot-flow-blueprint-system-generate-resources:p1:inst-return-gen-ok
-# @cpt-end:cpt-cypilot-flow-blueprint-system-generate-resources:p1:inst-gen-process
-# @cpt-end:cpt-cypilot-flow-blueprint-system-generate-resources:p1:inst-foreach-gen-kit
-# @cpt-end:cpt-cypilot-flow-blueprint-system-generate-resources:p1:inst-resolve-gen-kits
-# @cpt-end:cpt-cypilot-flow-blueprint-system-generate-resources:p1:inst-user-generate
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-generate-resources:p1:inst-return-gen-ok
 
 
 # ---------------------------------------------------------------------------
 # Validate Kits (enhanced with blueprint validation)
 # ---------------------------------------------------------------------------
-
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-user-validate-kits
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-load-registered-kits
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-foreach-validate-kit
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-verify-blueprints-dir
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-foreach-blueprint
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-validate-markers
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-verify-identity
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-verify-content
-# @cpt-begin:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-return-validate-ok
 
 def cmd_validate_kits_blueprints(argv: List[str]) -> int:
     """Validate kit blueprints (structural validation).
@@ -427,6 +400,7 @@ def cmd_validate_kits_blueprints(argv: List[str]) -> int:
 
     Usage: cypilot validate-kits --blueprints
     """
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-user-validate-kits
     from ..utils.files import find_project_root, _read_cypilot_var
     from ..utils.blueprint import parse_blueprint
 
@@ -443,10 +417,12 @@ def cmd_validate_kits_blueprints(argv: List[str]) -> int:
     cypilot_dir = (project_root / cypilot_rel).resolve()
     config_dir = cypilot_dir / "config"
     config_kits_dir = config_dir / "kits"
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-user-validate-kits
 
     kit_reports: List[Dict[str, Any]] = []
     all_errors: List[str] = []
 
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-load-registered-kits
     if not config_kits_dir.is_dir():
         print(json.dumps({
             "status": "PASS",
@@ -454,7 +430,9 @@ def cmd_validate_kits_blueprints(argv: List[str]) -> int:
             "message": "No kits directory found",
         }, indent=2, ensure_ascii=False))
         return 0
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-load-registered-kits
 
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-foreach-validate-kit
     for kit_dir in sorted(config_kits_dir.iterdir()):
         if not kit_dir.is_dir():
             continue
@@ -464,6 +442,7 @@ def cmd_validate_kits_blueprints(argv: List[str]) -> int:
         report: Dict[str, Any] = {"kit": kit_slug}
         kit_errors: List[str] = []
 
+        # @cpt-begin:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-verify-blueprints-dir
         if not bp_dir.is_dir():
             kit_errors.append(f"Kit '{kit_slug}' missing blueprints/ directory")
             report["status"] = "FAIL"
@@ -480,20 +459,25 @@ def cmd_validate_kits_blueprints(argv: List[str]) -> int:
             all_errors.extend(kit_errors)
             kit_reports.append(report)
             continue
+        # @cpt-end:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-verify-blueprints-dir
 
         has_identity = False
         artifact_kinds: List[str] = []
 
+        # @cpt-begin:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-foreach-blueprint
         for bp_file in bp_files:
+            # @cpt-begin:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-validate-markers
             bp = parse_blueprint(bp_file)
             kit_errors.extend(bp.errors)
+            # @cpt-end:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-validate-markers
 
-            # Check @cpt:blueprint identity marker
+            # @cpt-begin:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-verify-identity
             has_bp_marker = any(m.marker_type == "blueprint" for m in bp.markers)
             if has_bp_marker:
                 has_identity = True
+            # @cpt-end:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-verify-identity
 
-            # Check at least one content marker
+            # @cpt-begin:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-verify-content
             has_content = any(
                 m.marker_type in ("heading", "rule", "check", "rules", "checklist", "prompt", "example")
                 for m in bp.markers
@@ -503,9 +487,11 @@ def cmd_validate_kits_blueprints(argv: List[str]) -> int:
                     f"{bp_file.name}: no content markers found "
                     f"(expected @cpt:heading, @cpt:rule, @cpt:check, etc.)"
                 )
+            # @cpt-end:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-verify-content
 
             if bp.artifact_kind:
                 artifact_kinds.append(bp.artifact_kind)
+        # @cpt-end:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-foreach-blueprint
 
         if not has_identity:
             kit_errors.append(
@@ -522,7 +508,9 @@ def cmd_validate_kits_blueprints(argv: List[str]) -> int:
             report["status"] = "PASS"
 
         kit_reports.append(report)
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-foreach-validate-kit
 
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-return-validate-ok
     overall = "PASS" if not all_errors else "FAIL"
     output: Dict[str, Any] = {
         "status": overall,
@@ -533,16 +521,7 @@ def cmd_validate_kits_blueprints(argv: List[str]) -> int:
 
     print(json.dumps(output, indent=2, ensure_ascii=False))
     return 0 if overall == "PASS" else 2
-
-# @cpt-end:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-return-validate-ok
-# @cpt-end:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-verify-content
-# @cpt-end:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-verify-identity
-# @cpt-end:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-validate-markers
-# @cpt-end:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-foreach-blueprint
-# @cpt-end:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-verify-blueprints-dir
-# @cpt-end:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-foreach-validate-kit
-# @cpt-end:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-load-registered-kits
-# @cpt-end:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-user-validate-kits
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-return-validate-ok
 
 
 # ---------------------------------------------------------------------------
