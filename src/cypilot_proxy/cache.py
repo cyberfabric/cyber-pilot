@@ -160,7 +160,11 @@ def download_and_cache(
     # @cpt-end:cpt-cypilot-algo-core-infra-cache-skill:p1:inst-write-version
 
     # @cpt-begin:cpt-cypilot-algo-core-infra-cache-skill:p1:inst-return-cache-path-new
-    return True, f"Skill bundle cached successfully (version {resolved_version})"
+    return True, (
+        f"Cached: {resolved_version}\n"
+        f"  from: {asset_url}\n"
+        f"  to:   {cache_dir}"
+    )
     # @cpt-end:cpt-cypilot-algo-core-infra-cache-skill:p1:inst-return-cache-path-new
 
 
