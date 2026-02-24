@@ -64,12 +64,14 @@ def resolve_latest_version() -> Tuple[Optional[str], Optional[str]]:
 
 def download_and_cache(
     version: Optional[str] = None,
+    force: bool = False,
 ) -> Tuple[bool, str]:
     """
     Download skill bundle from GitHub and extract to cache directory.
 
     Args:
         version: Target version tag. If None, resolves to "latest".
+        force: If True, re-download even if cache version matches.
 
     Returns:
         (success, message) tuple.
@@ -89,7 +91,7 @@ def download_and_cache(
     # @cpt-end:cpt-cypilot-algo-core-infra-cache-skill:p1:inst-resolve-version
 
     # @cpt-begin:cpt-cypilot-algo-core-infra-cache-skill:p1:inst-if-cache-fresh
-    if version_file.is_file():
+    if not force and version_file.is_file():
         cached_version = version_file.read_text(encoding="utf-8").strip()
         if cached_version == resolved_version:
             # @cpt-begin:cpt-cypilot-algo-core-infra-cache-skill:p1:inst-return-cache-hit
