@@ -1,3 +1,22 @@
+<!-- @cpt:root-agents -->
+# Cypilot AI Agent Navigation
+
+**Version**: 1.2
+
+---
+
+## Variables
+
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `{cypilot}` | `@/.cypilot` | Cypilot install directory |
+
+## Navigation Rules
+
+ALWAYS open and follow `{cypilot}/config/AGENTS.md` FIRST
+
+<!-- /@cpt:root-agents -->
+
 # Cypilot AI Agent Navigation
 
 **Version**: 1.1
