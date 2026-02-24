@@ -3,7 +3,7 @@ Cypilot Context - Global context for Cypilot tooling.
 
 Loads and caches:
 - Adapter directory and project root
-- ArtifactsMeta from artifacts.json
+- ArtifactsMeta from artifacts.toml
 - All templates for each kit
 - Registered system names
 
@@ -47,10 +47,10 @@ class CypilotContext:
         Returns:
             CypilotContext or None if adapter not found or load failed
         """
-        from .files import find_adapter_directory
+        from .files import find_cypilot_directory
 
         start = start_path or Path.cwd()
-        adapter_dir = find_adapter_directory(start)
+        adapter_dir = find_cypilot_directory(start)
         if not adapter_dir:
             return None
 
@@ -125,7 +125,7 @@ class CypilotContext:
                 get_id_kind_tokens=_get_id_kind_tokens,
             )
             if autodetect_errs:
-                registry_path = (adapter_dir / "artifacts.json").resolve()
+                registry_path = (adapter_dir / "artifacts.toml").resolve()
                 for msg in autodetect_errs:
                     errors.append(error(
                         "registry",
@@ -135,7 +135,7 @@ class CypilotContext:
                         details=str(msg),
                     ))
         except Exception as e:
-            registry_path = (adapter_dir / "artifacts.json").resolve()
+            registry_path = (adapter_dir / "artifacts.toml").resolve()
             errors.append(error(
                 "registry",
                 "Autodetect expansion failed",

@@ -160,22 +160,18 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 
 ### Create Config Directory
 
-- [ ] `p1` - **ID**: `cpt-cypilot-algo-core-infra-create-config`
+- [x] `p1` - **ID**: `cpt-cypilot-algo-core-infra-create-config`
 
-**Input**: Install directory path, root system definition
+**Input**: Adapter directory path, root system definition, cypilot core relative path
 
-**Output**: Created `config/core.toml` and `config/artifacts.toml`
+**Output**: Created `core.toml` in adapter directory (artifacts.json created separately as JSON)
 
 **Steps**:
-1. [ ] - `p1` - Create `config/` directory inside install directory - `inst-mkdir-config`
-2. [ ] - `p1` - Write `config/core.toml` with: project root path, root system definition (name, slug, kit="sdlc"), kit registrations - `inst-write-core-toml`
-3. [ ] - `p1` - Write `config/artifacts.toml` with root system entry: - `inst-write-artifacts-toml`
-   1. [ ] - `p1` - Set `artifacts_dir = "architecture"` (default) - `inst-set-artifacts-dir`
-   2. [ ] - `p1` - Add autodetect rules for standard artifact kinds: PRD.md, DESIGN.md, ADR/*.md, DECOMPOSITION.md, features/*.md — all with default traceability levels - `inst-add-autodetect-rules`
-   3. [ ] - `p1` - Add default codebase entry: `path = "src"`, extensions = [".py", ".ts", ".js", ".go", ".rs", ".java"] - `inst-add-codebase`
-   4. [ ] - `p1` - Add default ignore patterns: `vendor/*`, `node_modules/*`, `.git/*` - `inst-add-ignore`
-4. [ ] - `p1` - Validate both files against schemas before final write - `inst-validate-schemas`
-5. [ ] - `p1` - **RETURN** paths to created files - `inst-return-config-paths`
+1. [x] - `p1` - Create adapter directory if absent - `inst-mkdir-config`
+2. [x] - `p1` - Write `core.toml` with: root system definition (name, slug, kit="sdlc"), paths.core relative to adapter - `inst-write-core-toml`
+3. [x] - `p1` - Write `artifacts.json` with default registry (systems, autodetect rules, codebase, ignore patterns) - `inst-write-artifacts-toml`
+4. [x] - `p2` - Validate files against schemas before final write - `inst-validate-schemas`
+5. [x] - `p1` - **RETURN** paths to created files - `inst-return-config-paths`
 
 ### Inject Root AGENTS.md
 

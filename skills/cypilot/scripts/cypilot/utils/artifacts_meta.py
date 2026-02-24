@@ -1,7 +1,7 @@
 """
 Cypilot Validator - Artifacts Metadata Registry
 
-Parses and provides access to artifacts.json with the hierarchical system structure.
+Parses and provides access to artifacts.toml with the hierarchical system structure.
 """
 
 import fnmatch
@@ -315,7 +315,7 @@ class SystemNode:
 
 class ArtifactsMeta:
     """
-    Parses and provides access to artifacts.json.
+    Parses and provides access to artifacts.toml.
 
     Provides methods to find:
     - Artifacts by path or kind
@@ -847,7 +847,12 @@ class ArtifactsMeta:
 
     @classmethod
     def from_file(cls, path: Path) -> "ArtifactsMeta":
-        """Create ArtifactsMeta from file path."""
+        """Create ArtifactsMeta from file path (TOML or JSON)."""
+        if path.suffix == ".toml":
+            import tomllib
+            with open(path, "rb") as f:
+                data = tomllib.load(f)
+            return cls.from_dict(data)
         content = path.read_text(encoding="utf-8")
         return cls.from_json(content)
 
@@ -930,22 +935,44 @@ class ArtifactsMeta:
 
 def load_artifacts_meta(adapter_dir: Path) -> Tuple[Optional[ArtifactsMeta], Optional[str]]:
     """
-    Load ArtifactsMeta from adapter directory.
+    Load ArtifactsMeta from cypilot directory.
+
+    Merges kits from core.toml into the registry before building ArtifactsMeta.
 
     Args:
-        adapter_dir: Path to adapter directory containing artifacts.json
+        adapter_dir: Path to cypilot directory containing artifacts.toml and core.toml
 
     Returns:
         Tuple of (ArtifactsMeta or None, error message or None)
     """
     path = adapter_dir / ARTIFACTS_REGISTRY_FILENAME
+    # Fallback: try legacy artifacts.json if artifacts.toml not found
     if not path.is_file():
-        return None, f"Missing artifacts registry: {path}"
+        legacy = adapter_dir / "artifacts.json"
+        if legacy.is_file():
+            path = legacy
+        else:
+            return None, f"Missing artifacts registry: {path}"
     try:
-        meta = ArtifactsMeta.from_file(path)
+        if path.suffix == ".toml":
+            import tomllib
+            with open(path, "rb") as f:
+                data = tomllib.load(f)
+        else:
+            data = json.loads(path.read_text(encoding="utf-8"))
+
+        # Merge kits from core.toml if not already in registry (new layout)
+        if "kits" not in data or not data["kits"]:
+            core_path = adapter_dir / "core.toml"
+            if core_path.is_file():
+                import tomllib as _tl
+                with open(core_path, "rb") as f:
+                    core = _tl.load(f)
+                if isinstance(core.get("kits"), dict):
+                    data["kits"] = core["kits"]
+
+        meta = ArtifactsMeta.from_dict(data)
         return meta, None
-    except json.JSONDecodeError as e:
-        return None, f"Invalid JSON in artifacts registry {path}: {e}"
     except Exception as e:
         return None, f"Failed to load artifacts registry {path}: {e}"
 
@@ -1049,26 +1076,19 @@ def generate_slug(name: str) -> str:
 
 def generate_default_registry(
     project_name: str,
-    cypilot_core_rel_path: str,
 ) -> dict:
-    """Generate default artifacts.json registry for a new project.
+    """Generate default artifacts.toml registry for a new project.
 
     Args:
         project_name: Name of the project (used as system name)
-        cypilot_core_rel_path: Relative path from adapter directory to Cypilot kits
 
     Returns:
-        Dictionary with the default registry structure (new format)
+        Dictionary with the default registry structure.
+        Note: kits are defined in core.toml, not here.
     """
     return {
         "version": "1.0",
         "project_root": "..",
-        "kits": {
-            "cypilot-sdlc": {
-                "format": "Cypilot",
-                "path": _join_path(cypilot_core_rel_path, "kits/sdlc"),
-            },
-        },
         "systems": [
             {
                 "name": project_name,

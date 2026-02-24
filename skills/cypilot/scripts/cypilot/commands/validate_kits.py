@@ -10,7 +10,7 @@ def cmd_validate_kits(argv: List[str]) -> int:
     """Validate Cypilot kit packages.
 
     Checks that:
-    - kits referenced in artifacts.json are accessible
+    - kits referenced in artifacts.toml are accessible
     - constraints.json (if present) parses and matches the expected schema
     """
     p = argparse.ArgumentParser(prog="validate-kits", description="Validate Cypilot kit packages")

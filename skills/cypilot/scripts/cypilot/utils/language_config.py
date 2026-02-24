@@ -78,10 +78,10 @@ def load_language_config(start_path: Optional[Path] = None) -> LanguageConfig:
         return _default_language_config()
     
     config = load_project_config(project_root)
-    if config is None or "codeScanning" not in config:
+    if config is None:
         return _default_language_config()
-    
-    scanning = config["codeScanning"]
+
+    scanning = config.get("codeScanning") or config.get("code_scanning")
     if not isinstance(scanning, dict):
         return _default_language_config()
     

@@ -13,7 +13,7 @@ from ..utils.constraints import (
 )
 from ..utils import error_codes as EC
 from ..utils.document import read_text_safe
-from ..utils.files import find_adapter_directory, find_project_root, load_artifacts_registry
+from ..utils.files import find_cypilot_directory, find_project_root, load_artifacts_registry
 
 
 def run_self_check_from_meta(
@@ -367,7 +367,7 @@ def run_self_check_from_meta(
     if not isinstance(kits, dict) or not kits:
         out = {
             "status": "ERROR",
-            "message": "No kits defined in artifacts.json",
+            "message": "No kits defined in artifacts.toml",
             "project_root": project_root.as_posix(),
             "adapter_dir": adapter_dir.as_posix(),
         }
@@ -534,7 +534,7 @@ def cmd_self_check(argv: List[str]) -> int:
         print(json.dumps({"status": "ERROR", "message": "Project root not found"}, indent=2, ensure_ascii=False))
         return 1
 
-    adapter_dir = find_adapter_directory(project_root)
+    adapter_dir = find_cypilot_directory(project_root)
     if adapter_dir is None:
         print(json.dumps({"status": "ERROR", "message": "Adapter directory not found"}, indent=2, ensure_ascii=False))
         return 1
@@ -550,7 +550,7 @@ def cmd_self_check(argv: List[str]) -> int:
     if slug_errors:
         print(json.dumps({
             "status": "ERROR",
-            "message": "Invalid slugs in artifacts.json",
+            "message": "Invalid slugs in artifacts.toml",
             "slug_errors": slug_errors,
         }, indent=2, ensure_ascii=False))
         return 1

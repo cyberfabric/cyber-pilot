@@ -516,7 +516,7 @@ def cmd_agents(argv: List[str]) -> int:
     if project_root is None:
         print(json.dumps({
             "status": "NOT_FOUND",
-            "message": "No project root found (no .git or .cypilot-config.json)",
+            "message": "No project root found (no AGENTS.md with @cpt:root-agents or .git)",
             "searched_from": start_path.as_posix(),
         }, indent=2, ensure_ascii=False))
         return 1

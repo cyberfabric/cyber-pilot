@@ -9,8 +9,7 @@ import re
 
 # === PROJECT CONFIGURATION ===
 
-PROJECT_CONFIG_FILENAME = ".cypilot-config.json"
-ARTIFACTS_REGISTRY_FILENAME = "artifacts.json"
+ARTIFACTS_REGISTRY_FILENAME = "artifacts.toml"
 
 # === ARTIFACT STRUCTURE PATTERNS ===
 

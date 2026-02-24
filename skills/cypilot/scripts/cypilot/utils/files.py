@@ -9,7 +9,10 @@ import re
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-from ..constants import ARTIFACTS_REGISTRY_FILENAME, PROJECT_CONFIG_FILENAME
+from ..constants import ARTIFACTS_REGISTRY_FILENAME
+from . import toml_utils
+
+_MARKER_START = "<!-- @cpt:root-agents -->"
 
 
 def cfg_get_str(cfg: object, *keys: str) -> Optional[str]:
@@ -25,13 +28,19 @@ def cfg_get_str(cfg: object, *keys: str) -> Optional[str]:
 
 def find_project_root(start: Path) -> Optional[Path]:
     """
-    Find project root by looking for .cypilot-config.json or .git directory.
+    Find project root by looking for AGENTS.md with @cpt:root-agents marker or .git directory.
     Searches up to 25 levels in directory hierarchy.
     """
     current = start.resolve()
     for _ in range(25):
-        if (current / PROJECT_CONFIG_FILENAME).is_file():
-            return current
+        agents = current / "AGENTS.md"
+        if agents.is_file():
+            try:
+                head = agents.read_text(encoding="utf-8")[:512]
+            except OSError:
+                head = ""
+            if _MARKER_START in head:
+                return current
 
         git_marker = current / ".git"
         if git_marker.exists():
@@ -44,21 +53,38 @@ def find_project_root(start: Path) -> Optional[Path]:
     return None
 
 
-def load_project_config(project_root: Path) -> Optional[dict]:
-    """Load and parse .cypilot-config.json from project root."""
-    path = (project_root / PROJECT_CONFIG_FILENAME)
-    if not path.is_file():
+def _read_cypilot_var(project_root: Path) -> Optional[str]:
+    """Read ``cypilot`` variable from root AGENTS.md TOML block."""
+    agents_file = project_root / "AGENTS.md"
+    if not agents_file.is_file():
         return None
     try:
-        raw = path.read_text(encoding="utf-8")
-        cfg = json.loads(raw)
+        content = agents_file.read_text(encoding="utf-8")
+    except OSError:
+        return None
+    if _MARKER_START not in content:
+        return None
+    data = toml_utils.parse_toml_from_markdown(content)
+    val = data.get("cypilot")
+    return val.strip() if isinstance(val, str) and val.strip() else None
+
+
+def load_project_config(project_root: Path) -> Optional[dict]:
+    """Load project config from core.toml in adapter dir (discovered via AGENTS.md)."""
+    adapter_rel = _read_cypilot_var(project_root)
+    if adapter_rel is None:
+        return None
+    core_toml = (project_root / adapter_rel / "core.toml").resolve()
+    if not core_toml.is_file():
+        return None
+    try:
+        return toml_utils.load(core_toml)
     except Exception:
         return None
-    return cfg if isinstance(cfg, dict) else None
 
 
 def cypilot_root_from_project_config() -> Optional[Path]:
-    """Get Cypilot core path from project configuration."""
+    """Get Cypilot core path from adapter core.toml [paths] section."""
     project_root = find_project_root(Path.cwd())
     if project_root is None:
         return None
@@ -67,28 +93,26 @@ def cypilot_root_from_project_config() -> Optional[Path]:
     if cfg is None:
         return None
 
-    # Canonical keys (camelCase), plus a couple of permissive variants.
-    core_rel = cfg_get_str(cfg, "cypilotCorePath", "cypilot_core_path", "cypilotCoreDir")
+    paths = cfg.get("paths")
+    core_rel = cfg_get_str(paths, "core") if isinstance(paths, dict) else None
     if core_rel is None:
         return None
 
-    core = (project_root / core_rel).resolve()
+    adapter_rel = _read_cypilot_var(project_root) or ""
+    core = (project_root / adapter_rel / core_rel).resolve()
     if (core / "AGENTS.md").exists() and (core / "requirements").is_dir() and (core / "workflows").is_dir():
         return core
     return None
 
 
-def find_adapter_directory(start: Path, cypilot_root: Optional[Path] = None) -> Optional[Path]:
+def find_cypilot_directory(start: Path, cypilot_root: Optional[Path] = None) -> Optional[Path]:
     """
-    Find .cypilot-adapter directory starting from project root.
-    Uses smart recursive search to find adapter in ANY location within project.
-    
-    Heuristic:
-    1. Check explicit config first (cypilotAdapterPath)
+    Find adapter directory starting from project root.
+
+    Resolution order:
+    1. Read ``cypilot`` variable from root AGENTS.md TOML block
     2. Recursively search for directories with AGENTS.md + specs/
-    3. Prefer shallower directories (closer to root)
-    4. Skip common non-adapter directories
-    
+
     Args:
         start: Starting path for search
         cypilot_root: Known Cypilot core location (from agent context)
@@ -96,21 +120,16 @@ def find_adapter_directory(start: Path, cypilot_root: Optional[Path] = None) -> 
     project_root = find_project_root(start)
     if project_root is None:
         return None
-    
-    # PRIORITY 1: Check config first - explicit path always wins
-    cfg = load_project_config(project_root)
-    if cfg is not None:
-        adapter_rel = cfg.get("cypilotAdapterPath")
-        if adapter_rel is not None and isinstance(adapter_rel, str):
-            # Config exists and specifies adapter path
-            adapter_dir = (project_root / adapter_rel).resolve()
-            if (adapter_dir / "AGENTS.md").exists():
-                return adapter_dir
-            # Config path is invalid - DO NOT fallback to recursive search
-            # This is a configuration error that must be fixed
-            return None
-    
-    # PRIORITY 2: Recursive search (only if no config exists)
+
+    # PRIORITY 1: Read cypilot variable from AGENTS.md TOML block
+    adapter_rel = _read_cypilot_var(project_root)
+    if adapter_rel is not None:
+        adapter_dir = (project_root / adapter_rel).resolve()
+        if (adapter_dir / "AGENTS.md").exists():
+            return adapter_dir
+        return None
+
+    # PRIORITY 2: Recursive search (only if no TOML variable found)
     skip_dirs = {
         ".git", "node_modules", "venv", "__pycache__", ".pytest_cache",
         "target", "build", "dist", ".idea", ".vscode", "vendor",
@@ -201,7 +220,7 @@ def find_adapter_directory(start: Path, cypilot_root: Optional[Path] = None) -> 
     return search_recursive(project_root)
 
 
-def load_adapter_config(adapter_dir: Path) -> Dict[str, object]:
+def load_cypilot_config(adapter_dir: Path) -> Dict[str, object]:
     """
     Load adapter configuration from AGENTS.md and specs/
     Returns dict with adapter metadata and available specs
@@ -236,16 +255,23 @@ def load_adapter_config(adapter_dir: Path) -> Dict[str, object]:
 
 def load_artifacts_registry(adapter_dir: Path) -> Tuple[Optional[dict], Optional[str]]:
     path = adapter_dir / ARTIFACTS_REGISTRY_FILENAME
+    # Fallback: try legacy artifacts.json if artifacts.toml not found
     if not path.is_file():
-        return None, f"Missing artifacts registry: {path}"
+        legacy = adapter_dir / "artifacts.json"
+        if legacy.is_file():
+            path = legacy
+        else:
+            return None, f"Missing artifacts registry: {path}"
     try:
-        raw = path.read_text(encoding="utf-8")
-        cfg = json.loads(raw)
+        if path.suffix == ".toml":
+            cfg = toml_utils.load(path)
+        else:
+            raw = path.read_text(encoding="utf-8")
+            cfg = json.loads(raw)
     except Exception as e:
         return None, f"Failed to read artifacts registry {path}: {e}"
     if not isinstance(cfg, dict):
-        return None, f"Invalid artifacts registry (expected JSON object): {path}"
-    # Support both old format (artifacts list) and new format (systems list)
+        return None, f"Invalid artifacts registry (expected dict): {path}"
     if not isinstance(cfg.get("systems"), list) and not isinstance(cfg.get("artifacts"), list):
         return None, f"Invalid artifacts registry (missing 'systems' or 'artifacts' list): {path}"
     return cfg, None
