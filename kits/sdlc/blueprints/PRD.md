@@ -1350,8 +1350,6 @@ belongs_to = "Source code, README files, developer documentation"
 ```
 `@/cpt:check`
 
-`@cpt:template`
-
 `@cpt:heading`
 ```toml
 id = "prd-h1-title"
@@ -2331,5 +2329,3 @@ section = "semantic"
 | Scale risk | Real-time may not scale beyond 50 concurrent users | Load testing before launch |
 ```
 `@/cpt:example`
-
-`@/cpt:template`

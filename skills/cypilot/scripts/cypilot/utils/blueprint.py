@@ -361,37 +361,74 @@ def _collect_template(bp: ParsedBlueprint) -> str:
     """Build template.md from @cpt:heading markers.
 
     Uses the 'template' key (with placeholder syntax) from heading TOML.
+    Falls back to 'pattern' when 'template' is empty (if pattern is not a regex).
     Preserves @cpt:prompt content as writing instructions under headings.
     Strips metadata markers from template output.
     """
     parts: List[str] = []
-    prompts: Dict[int, str] = {}
 
-    # Index prompt markers by their position for interleaving
-    for mk in bp.markers:
-        if mk.marker_type == "prompt":
-            prompts[mk.line_start] = mk.markdown_content or mk.raw_content.strip()
+    heading_markers = [m for m in bp.markers if m.marker_type == "heading"]
+    prompt_markers = [m for m in bp.markers if m.marker_type == "prompt"]
 
-    for mk in bp.markers:
-        if mk.marker_type != "heading":
-            continue
-        td = mk.toml_data
-        level = td.get("level", 2)
-        title = td.get("title", "")
+    # Section counters for numbered headings: level → counter
+    section_counters: Dict[int, int] = {}
+    last_numbered_level = 0
+
+    for idx, hm in enumerate(heading_markers):
+        td = hm.toml_data
+        level = int(td.get("level", 2))
         template_text = td.get("template", "")
+        pattern = td.get("pattern", "")
+        numbered = td.get("numbered", False)
 
-        if title:
-            prefix = "#" * int(level)
-            parts.append(f"{prefix} {title}")
-            if template_text:
-                parts.append("")
-                parts.append(template_text)
+        # Determine heading text: template > pattern (if not regex)
+        heading_text = template_text
+        if not heading_text and pattern:
+            # Strip trailing glob-style * (means "optional suffix" in heading matching)
+            clean_pattern = pattern.rstrip("*").rstrip()
+            # Skip actual regex patterns (backslash sequences, char classes, anchors)
+            if clean_pattern and not re.search(r"[\\{}\[\]|^$]|[+?]", clean_pattern):
+                heading_text = clean_pattern
 
-        # Check if there's a prompt right after this heading
-        for prompt_line, prompt_text in sorted(prompts.items()):
-            if mk.line_end < prompt_line:
-                # Find the next heading to see if this prompt belongs here
-                break
+        if not heading_text:
+            continue
+
+        # Build section number for numbered headings
+        section_num = ""
+        if numbered:
+            # Reset deeper counters when a new section at this level starts
+            for lv in list(section_counters.keys()):
+                if lv > level:
+                    del section_counters[lv]
+            section_counters[level] = section_counters.get(level, 0) + 1
+            # Build hierarchical number (e.g., "1", "1.1", "1.1.1")
+            num_parts = []
+            for lv in sorted(section_counters.keys()):
+                if lv <= level:
+                    num_parts.append(str(section_counters[lv]))
+            section_num = ".".join(num_parts)
+            last_numbered_level = level
+
+        prefix = "#" * level
+        if section_num:
+            parts.append(f"{prefix} {section_num} {heading_text}")
+        else:
+            parts.append(f"{prefix} {heading_text}")
+
+        # Find prompts between this heading's end and the next heading's start
+        next_heading_start = (
+            heading_markers[idx + 1].line_start
+            if idx + 1 < len(heading_markers)
+            else float("inf")
+        )
+        for pm in prompt_markers:
+            if hm.line_end < pm.line_start < next_heading_start:
+                prompt_text = pm.markdown_content or pm.raw_content.strip()
+                if prompt_text:
+                    parts.append("")
+                    parts.append(prompt_text)
+
+        parts.append("")
 
     if not parts:
         return ""
@@ -399,24 +436,49 @@ def _collect_template(bp: ParsedBlueprint) -> str:
 
 
 def _collect_example(bp: ParsedBlueprint) -> str:
-    """Build example.md from @cpt:heading 'examples' arrays and @cpt:example blocks."""
+    """Build example.md from @cpt:heading 'examples' arrays and @cpt:example blocks.
+
+    Per spec: headings use the first entry from the 'examples' array
+    (already formatted with # prefix), then @cpt:example content follows.
+    """
     parts: List[str] = []
 
-    for mk in bp.markers:
-        if mk.marker_type == "heading":
-            td = mk.toml_data
-            examples = td.get("examples", [])
-            title = td.get("title", "")
-            level = td.get("level", 2)
-            if examples and isinstance(examples, list) and len(examples) > 0:
-                prefix = "#" * int(level)
-                parts.append(f"{prefix} {title}")
+    heading_markers = [m for m in bp.markers if m.marker_type == "heading"]
+    example_markers = [m for m in bp.markers if m.marker_type == "example"]
+
+    for idx, hm in enumerate(heading_markers):
+        td = hm.toml_data
+        examples = td.get("examples", [])
+
+        # Use the first example entry as the heading line (already has # prefix)
+        heading_line = ""
+        if examples and isinstance(examples, list) and len(examples) > 0:
+            heading_line = str(examples[0])
+
+        # Find example blocks between this heading and the next
+        next_heading_start = (
+            heading_markers[idx + 1].line_start
+            if idx + 1 < len(heading_markers)
+            else float("inf")
+        )
+        section_examples: List[str] = []
+        for em in example_markers:
+            if hm.line_end < em.line_start < next_heading_start:
+                content = em.markdown_content or em.raw_content.strip()
+                if content:
+                    section_examples.append(content)
+
+        # Only emit heading + content if there's example content
+        if section_examples:
+            if heading_line:
+                parts.append(heading_line)
                 parts.append("")
-                parts.append(str(examples[0]))
-        elif mk.marker_type == "example":
-            content = mk.markdown_content or mk.raw_content.strip()
-            if content:
-                parts.append(content)
+            parts.extend(section_examples)
+            parts.append("")
+        elif heading_line:
+            # Heading example without body content — still emit for structure
+            parts.append(heading_line)
+            parts.append("")
 
     if not parts:
         return ""
@@ -602,10 +664,14 @@ def process_kit(
         # @cpt-end:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-extract-kind
 
         # @cpt-begin:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-gen-artifact
-        if kind:
+        has_artifact_key = any(
+            m.marker_type == "blueprint" and m.toml_data.get("artifact")
+            for m in bp.markers
+        )
+        if has_artifact_key:
             artifact_out = kit_output_dir / "artifacts" / kind.upper()
         else:
-            artifact_out = kit_output_dir / "artifacts"
+            artifact_out = kit_output_dir
 
         written, gen_errors = generate_artifact_outputs(
             bp, artifact_out, dry_run=dry_run,
