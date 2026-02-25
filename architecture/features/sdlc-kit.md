@@ -112,7 +112,7 @@ Without SDLC-specific content, Cypilot is a generic ID system with no domain val
    1. [ ] - `p1` - Check that output directory `config/kits/{slug}/artifacts/{KIND}/` exists - `inst-check-output-dir`
    2. [ ] - `p1` - Check required files present: `rules.md`, `checklist.md`, `template.md` - `inst-check-required-files`
    3. [ ] - `p1` - **IF** any required file missing, record as FAIL for this kind - `inst-if-missing-file`
-4. [ ] - `p1` - Check kit-wide `constraints.json` exists at `config/kits/{slug}/constraints.json` - `inst-check-constraints`
+4. [ ] - `p1` - Check kit-wide `constraints.toml` exists at `config/kits/{slug}/constraints.toml` - `inst-check-constraints`
 5. [ ] - `p1` - Check codebase outputs exist - `inst-check-codebase`
 6. [ ] - `p1` - **IF** any check failed **RETURN** FAIL with list of missing files - `inst-if-any-fail`
 7. [ ] - `p1` - **RETURN** PASS with coverage (kinds verified, files checked) - `inst-return-valid`
@@ -174,7 +174,7 @@ The SDLC kit **MUST** support the artifact-first pipeline: PRD → DESIGN → AD
 
 - [ ] `p1` - **ID**: `cpt-cypilot-dod-sdlc-kit-output-integrity`
 
-All generated outputs (templates, rules, checklists, examples, constraints) **MUST** correctly reflect the current blueprint content. The Blueprint Processor **MUST** produce: `rules.md` (from `@cpt:rules` + `@cpt:rule`), `checklist.md` (from `@cpt:checklist` + `@cpt:check`), `template.md` (from `@cpt:heading` + `@cpt:prompt`), `example.md` (from `@cpt:heading` examples + `@cpt:example`), and `constraints.json` (from `@cpt:heading` + `@cpt:id`). Codebase blueprint **MUST** produce `codebase/rules.md` and `codebase/checklist.md`.
+All generated outputs (templates, rules, checklists, examples, constraints) **MUST** correctly reflect the current blueprint content. The Blueprint Processor **MUST** produce: `rules.md` (from `@cpt:rules` + `@cpt:rule`), `checklist.md` (from `@cpt:checklist` + `@cpt:check`), `template.md` (from `@cpt:heading` + `@cpt:prompt`), `example.md` (from `@cpt:heading` examples + `@cpt:example`), and `constraints.toml` (from `@cpt:heading` + `@cpt:id`). Codebase blueprint **MUST** produce `codebase/rules.md` and `codebase/checklist.md`.
 
 **Implements**:
 - `cpt-cypilot-algo-sdlc-kit-validate-completeness`
@@ -211,5 +211,5 @@ The system **MUST** provide `cypilot self-check` that validates all installed ki
 - [ ] Pipeline guidance correctly identifies greenfield vs brownfield starting points
 - [ ] Each artifact kind is usable independently without requiring prior artifact kinds
 - [ ] Guides exist for greenfield (`GREENFIELD.md`), brownfield (`BROWNFIELD.md`), and monolith (`MONOLITH.md`) scenarios
-- [ ] Generated `constraints.json` aggregates all ID kinds from SDLC blueprints
+- [ ] Generated `constraints.toml` aggregates all heading and ID constraints from SDLC blueprints
 - [ ] All commands output JSON to stdout and use exit codes 0 (PASS) / 2 (FAIL)

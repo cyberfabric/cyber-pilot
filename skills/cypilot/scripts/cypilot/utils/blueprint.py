@@ -319,42 +319,230 @@ def generate_artifact_outputs(
 
 
 def _collect_rules(bp: ParsedBlueprint) -> str:
-    """Collect rules content from @cpt:rules and @cpt:rule markers."""
-    sections: List[str] = []
+    """Build rules.md from @cpt:rules skeleton + @cpt:rule entries.
 
+    Per spec (architecture/specs/kit/rules.md):
+    1. Parse @cpt:rules TOML to build section skeleton
+    2. Collect all @cpt:rule blocks, group by kind → section
+    3. Emit sections in fixed order: prerequisites → requirements → tasks →
+       validation → error_handling → next_steps
+    4. Within each section, emit sub-sections with collected rules
+    """
+    # Fixed section order per spec
+    SECTION_ORDER = [
+        "prerequisites", "requirements", "tasks",
+        "validation", "error_handling", "next_steps",
+    ]
+    SECTION_TITLES = {
+        "prerequisites": "Prerequisites",
+        "requirements": "Requirements",
+        "tasks": "Tasks",
+        "validation": "Validation",
+        "error_handling": "Error Handling",
+        "next_steps": "Next Steps",
+    }
+
+    # Parse @cpt:rules skeleton
+    skeleton: Dict[str, List[str]] = {}
     for mk in bp.markers:
         if mk.marker_type == "rules":
-            # Main rules block — use markdown content or raw
-            content = mk.markdown_content or mk.raw_content.strip()
-            if content:
-                sections.append(content)
-        elif mk.marker_type == "rule":
-            content = mk.markdown_content or mk.raw_content.strip()
-            if content:
-                sections.append(content)
+            td = mk.toml_data
+            for kind_key in SECTION_ORDER:
+                if kind_key in td:
+                    subs = td[kind_key].get("sections", []) or td[kind_key].get("phases", [])
+                    skeleton[kind_key] = subs if isinstance(subs, list) else []
 
-    if not sections:
+    # Group @cpt:rule entries by kind → section (preserving order)
+    from collections import OrderedDict
+    rules_by_kind: Dict[str, Dict[str, List[str]]] = {}
+    for mk in bp.markers:
+        if mk.marker_type == "rule":
+            td = mk.toml_data
+            kind = td.get("kind", "")
+            section = td.get("section", "")
+            content = mk.markdown_content
+            if kind and section and content:
+                rules_by_kind.setdefault(kind, OrderedDict()).setdefault(section, []).append(content)
+
+    if not skeleton and not rules_by_kind:
         return ""
-    return "\n\n".join(sections) + "\n"
+
+    # Build output
+    kind_label = bp.artifact_kind.upper() if bp.artifact_kind else "CODEBASE"
+    kit = bp.kit_slug or "sdlc"
+    parts: List[str] = []
+
+    # Header
+    parts.append(f"# {kind_label} Rules")
+    parts.append("")
+    parts.append(f"**Artifact**: {kind_label}")
+    parts.append(f"**Kit**: {kit}")
+    parts.append("")
+    parts.append("**Dependencies**:")
+    parts.append("- `template.md` — structural reference")
+    parts.append("- `checklist.md` — semantic quality criteria")
+    parts.append("- `examples/example.md` — reference implementation")
+    parts.append("")
+
+    # Sections in fixed order
+    for kind_key in SECTION_ORDER:
+        sub_sections = skeleton.get(kind_key, [])
+        kind_rules = rules_by_kind.get(kind_key, {})
+        if not sub_sections and not kind_rules:
+            continue
+
+        parts.append("---")
+        parts.append("")
+        parts.append(f"## {SECTION_TITLES.get(kind_key, kind_key.replace('_', ' ').title())}")
+        parts.append("")
+
+        # Use skeleton order for sub-sections; fall back to rule order
+        seen: set = set()
+        ordered_subs = list(sub_sections)
+        for s in kind_rules:
+            if s not in seen and s not in ordered_subs:
+                ordered_subs.append(s)
+            seen.add(s)
+
+        for sub in ordered_subs:
+            sub_title = sub.replace("_", " ").title()
+            parts.append(f"### {sub_title}")
+            rule_items = kind_rules.get(sub, [])
+            for item in rule_items:
+                parts.append(item)
+            parts.append("")
+
+    if len(parts) <= 8:  # Only header, no sections
+        return ""
+    return "\n".join(parts)
 
 
 def _collect_checklist(bp: ParsedBlueprint) -> str:
-    """Collect checklist content from @cpt:checklist and @cpt:check markers."""
-    sections: List[str] = []
+    """Build checklist.md from @cpt:checklist skeleton + @cpt:check entries.
+
+    Per spec (architecture/specs/kit/checklist.md):
+    1. Parse @cpt:checklist TOML for domains, severity levels, review priority
+    2. Collect all @cpt:check blocks, group by domain → kind
+    3. For each domain: emit header + standards, MUST HAVE, MUST NOT HAVE
+    4. Checks sorted by severity (CRITICAL first) within each kind
+    """
+    # Parse @cpt:checklist skeleton
+    severity_levels: List[str] = []
+    review_priority: List[str] = []
+    domains: List[Dict[str, Any]] = []
 
     for mk in bp.markers:
         if mk.marker_type == "checklist":
-            content = mk.markdown_content or mk.raw_content.strip()
-            if content:
-                sections.append(content)
-        elif mk.marker_type == "check":
-            content = mk.markdown_content or mk.raw_content.strip()
-            if content:
-                sections.append(content)
+            td = mk.toml_data
+            severity_levels = td.get("severity", {}).get("levels", [])
+            review_priority = td.get("review", {}).get("priority", [])
+            domains = td.get("domain", [])
+            if isinstance(domains, dict):
+                domains = [domains]
 
-    if not sections:
+    # Build domain lookup: abbr → domain info
+    domain_map: Dict[str, Dict[str, Any]] = {}
+    domain_order: List[str] = []
+    for d in domains:
+        abbr = d.get("abbr", "")
+        if abbr:
+            domain_map[abbr] = d
+            domain_order.append(abbr)
+
+    # Collect @cpt:check entries grouped by domain → kind
+    checks_by_domain: Dict[str, Dict[str, List[Dict[str, Any]]]] = {}
+    for mk in bp.markers:
+        if mk.marker_type == "check":
+            td = mk.toml_data
+            domain = td.get("domain", "")
+            kind = td.get("kind", "must_have")
+            content = mk.markdown_content
+            if domain and content:
+                entry = {
+                    "id": td.get("id", ""),
+                    "title": td.get("title", ""),
+                    "severity": td.get("severity", "MEDIUM"),
+                    "ref": td.get("ref", ""),
+                    "belongs_to": td.get("belongs_to", ""),
+                    "applicable_when": td.get("applicable_when", ""),
+                    "not_applicable_when": td.get("not_applicable_when", ""),
+                    "content": content,
+                }
+                checks_by_domain.setdefault(domain, {}).setdefault(kind, []).append(entry)
+
+    if not checks_by_domain:
         return ""
-    return "\n\n".join(sections) + "\n"
+
+    # Severity sort key
+    sev_order = {s: i for i, s in enumerate(severity_levels)} if severity_levels else {}
+
+    # Build output
+    kind_label = bp.artifact_kind.upper() if bp.artifact_kind else "CODEBASE"
+    kit = bp.kit_slug or "sdlc"
+    parts: List[str] = []
+
+    # Header
+    parts.append(f"# {kind_label} Quality Checklist")
+    parts.append("")
+    parts.append(f"**Artifact**: {kind_label}")
+    parts.append(f"**Kit**: {kit}")
+    parts.append("")
+    if severity_levels:
+        parts.append(f"**Severity levels**: {' > '.join(severity_levels)}")
+    if review_priority:
+        parts.append(f"**Review priority**: {' → '.join(review_priority)}")
+    parts.append("")
+
+    # Domain sections in defined order; append any undeclared domains at end
+    all_domains = list(domain_order)
+    for d in checks_by_domain:
+        if d not in all_domains:
+            all_domains.append(d)
+
+    for abbr in all_domains:
+        domain_checks = checks_by_domain.get(abbr)
+        if not domain_checks:
+            continue
+
+        d_info = domain_map.get(abbr, {})
+        d_name = d_info.get("name", abbr)
+        d_standards = d_info.get("standards", [])
+
+        parts.append("---")
+        parts.append("")
+        parts.append(f"## {abbr} — {d_name}")
+        parts.append("")
+        if d_standards:
+            parts.append(f"**Standards**: {', '.join(d_standards)}")
+            parts.append("")
+
+        for kind_key, kind_title in [("must_have", "MUST HAVE"), ("must_not_have", "MUST NOT HAVE")]:
+            items = domain_checks.get(kind_key, [])
+            if not items:
+                continue
+
+            # Sort by severity
+            items.sort(key=lambda x: sev_order.get(x["severity"], 99))
+
+            parts.append(f"### {kind_title}")
+            parts.append("")
+
+            for item in items:
+                check_id = item["id"]
+                title = item["title"]
+                severity = item["severity"]
+                parts.append(f"#### {check_id} — {title} [{severity}]")
+                parts.append("")
+                parts.append(item["content"])
+                parts.append("")
+                if item["ref"]:
+                    parts.append(f"> **Ref**: {item['ref']}")
+                    parts.append("")
+                if item["belongs_to"]:
+                    parts.append(f"> **Belongs to**: {item['belongs_to']}")
+                    parts.append("")
+
+    return "\n".join(parts)
 
 
 def _collect_template(bp: ParsedBlueprint) -> str:
@@ -498,10 +686,10 @@ def generate_constraints(
 ) -> Tuple[Optional[str], List[str]]:
     """Generate kit-wide constraints.toml from all blueprints.
 
-    Args:
-        blueprints: List of parsed blueprints for a kit.
-        output_path: Path to write constraints.toml.
-        dry_run: If True, don't write file.
+    Per spec (architecture/specs/kit/constraints.md):
+    1. For each blueprint with artifact key: collect @cpt:heading → [[artifacts.KIND.headings]]
+    2. Collect @cpt:id → [artifacts.KIND.identifiers.kind] with [ref.TARGET] sub-tables
+    3. Serialize as TOML with deterministic key ordering
 
     Returns:
         (written_path or None, errors) tuple.
@@ -509,95 +697,145 @@ def generate_constraints(
     errors: List[str] = []
 
     # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-init-constraints
-    id_kinds: Dict[str, Dict[str, Any]] = {}
-    headings: Dict[str, List[Dict[str, Any]]] = {}
+    # Per-artifact data: kind → { headings: [...], identifiers: { id_kind: {...} } }
+    artifacts_data: Dict[str, Dict[str, Any]] = {}
+    kit_slug = ""
     # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-init-constraints
 
     # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-foreach-bp-constraints
     for bp in blueprints:
         # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-extract-kind-constraint
+        # Only artifact blueprints contribute (not codebase)
+        has_artifact_key = any(
+            m.marker_type == "blueprint" and m.toml_data.get("artifact")
+            for m in bp.markers
+        )
+        if not has_artifact_key:
+            continue
         kind = bp.artifact_kind.upper() if bp.artifact_kind else ""
+        if not kind:
+            continue
+        if not kit_slug and bp.kit_slug:
+            kit_slug = bp.kit_slug
         # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-extract-kind-constraint
+
+        art = artifacts_data.setdefault(kind, {"headings": [], "identifiers": {}})
 
         for mk in bp.markers:
             # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-foreach-heading
             if mk.marker_type == "heading":
                 td = mk.toml_data
-                pattern = td.get("pattern", "")
-                # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-add-heading-pattern
-                if pattern and kind:
-                    headings.setdefault(kind, []).append({
-                        "title": td.get("title", ""),
-                        "pattern": pattern,
-                        "required": td.get("required", False),
-                    })
-                # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-add-heading-pattern
+                heading_id = td.get("id", "")
+                if not heading_id:
+                    continue
+                entry: Dict[str, Any] = {"id": heading_id, "level": td.get("level", 2)}
+                if "required" in td:
+                    entry["required"] = td["required"]
+                if "multiple" in td:
+                    entry["multiple"] = td["multiple"]
+                if "numbered" in td:
+                    entry["numbered"] = td["numbered"]
+                if td.get("pattern"):
+                    entry["pattern"] = td["pattern"]
+                if td.get("description"):
+                    entry["description"] = td["description"]
+                art["headings"].append(entry)
             # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-foreach-heading
 
             # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-foreach-id
             elif mk.marker_type == "id":
                 td = mk.toml_data
-                id_name = td.get("name", td.get("kind", ""))
-                if id_name:
-                    # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-extract-id-kind
-                    id_entry: Dict[str, Any] = {
-                        "to_code": td.get("to_code", False),
-                    }
-                    defined_in = td.get("defined_in", [])
-                    referenced_in = td.get("referenced_in", [])
-                    if defined_in:
-                        id_entry["defined_in"] = defined_in
-                    if referenced_in:
-                        id_entry["referenced_in"] = referenced_in
-                    # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-extract-id-kind
-
-                    # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-add-id-kind
-                    if id_name in id_kinds:
-                        existing = id_kinds[id_name]
-                        for key in ("defined_in", "referenced_in"):
-                            if key in id_entry:
-                                old = existing.get(key, [])
-                                new = id_entry[key]
-                                merged = list(dict.fromkeys(old + new))
-                                existing[key] = merged
-                    else:
-                        id_kinds[id_name] = id_entry
-                    # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-add-id-kind
+                id_kind = td.get("kind", "")
+                if not id_kind:
+                    continue
+                id_entry: Dict[str, Any] = {}
+                for key in ("name", "description", "template"):
+                    if td.get(key):
+                        id_entry[key] = td[key]
+                for bool_key in ("required", "task", "priority", "to_code"):
+                    if bool_key in td:
+                        id_entry[bool_key] = td[bool_key]
+                if td.get("headings"):
+                    id_entry["headings"] = td["headings"]
+                # Collect [ref.ARTIFACT] sub-tables
+                refs: Dict[str, Dict[str, Any]] = {}
+                if "ref" in td and isinstance(td["ref"], dict):
+                    for target, ref_data in td["ref"].items():
+                        ref_entry: Dict[str, Any] = {}
+                        if isinstance(ref_data, dict):
+                            for rk in ("coverage", "task", "priority"):
+                                if rk in ref_data:
+                                    ref_entry[rk] = ref_data[rk]
+                            if ref_data.get("headings"):
+                                ref_entry["headings"] = ref_data["headings"]
+                        refs[target] = ref_entry
+                if refs:
+                    id_entry["ref"] = refs
+                art["identifiers"][id_kind] = id_entry
             # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-foreach-id
     # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-foreach-bp-constraints
 
+    if not artifacts_data:
+        return None, errors
+
     # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-write-constraints
     lines: List[str] = [
-        "# Kit constraints (generated from blueprints)",
-        "# Do not edit manually — regenerate with: cypilot generate-resources",
-        "",
-        'version = "1.0"',
+        "# Auto-generated from all kit blueprints — do not edit manually",
+        f'kit = "{kit_slug or "sdlc"}"',
         "",
     ]
 
-    if id_kinds:
-        lines.append("[id_kinds]")
-        lines.append("")
-        for name, entry in sorted(id_kinds.items()):
-            lines.append(f"[id_kinds.{name}]")
-            lines.append(f"to_code = {'true' if entry.get('to_code') else 'false'}")
-            for list_key in ("defined_in", "referenced_in"):
-                if list_key in entry:
-                    vals = entry[list_key]
-                    vals_str = ", ".join(f'"{ v}"' for v in vals)
-                    lines.append(f"{list_key} = [{vals_str}]")
-            lines.append("")
+    def _toml_val(v: Any) -> str:
+        if isinstance(v, bool):
+            return "true" if v else "false"
+        if isinstance(v, int):
+            return str(v)
+        if isinstance(v, str):
+            escaped = v.replace("\\", "\\\\").replace('"', '\\"')
+            return f'"{escaped}"'
+        if isinstance(v, list):
+            items = ", ".join(
+                f'"{i.replace(chr(92), chr(92)*2).replace(chr(34), chr(92)+chr(34))}"'
+                if isinstance(i, str) else str(i)
+                for i in v
+            )
+            return f"[{items}]"
+        return str(v)
 
-    if headings:
-        lines.append("[headings]")
-        lines.append("")
-        for kind_name, heading_list in sorted(headings.items()):
-            lines.append(f"[[headings.{kind_name}]]")
-            for h in heading_list:
-                lines.append(f'title = "{h["title"]}"')
-                lines.append(f'pattern = "{h["pattern"]}"')
-                lines.append(f'required = {"true" if h.get("required") else "false"}')
+    for art_kind in sorted(artifacts_data.keys()):
+        art = artifacts_data[art_kind]
+
+        # Heading constraints
+        if art["headings"]:
+            lines.append(f"# ── {art_kind} Heading outline {'─' * max(1, 50 - len(art_kind))}")
+            lines.append("")
+            for h in art["headings"]:
+                lines.append(f"[[artifacts.{art_kind}.headings]]")
+                for hk in ("id", "level", "required", "multiple", "numbered", "pattern", "description"):
+                    if hk in h:
+                        lines.append(f"{hk} = {_toml_val(h[hk])}")
                 lines.append("")
+
+        # ID kind constraints
+        if art["identifiers"]:
+            lines.append(f"# ── {art_kind} ID kinds {'─' * max(1, 50 - len(art_kind))}")
+            lines.append("")
+            for id_kind in sorted(art["identifiers"].keys()):
+                id_data = art["identifiers"][id_kind]
+                refs = id_data.pop("ref", {})
+                lines.append(f"[artifacts.{art_kind}.identifiers.{id_kind}]")
+                for ik in ("name", "description", "required", "task", "priority", "to_code", "template", "headings"):
+                    if ik in id_data:
+                        lines.append(f"{ik} = {_toml_val(id_data[ik])}")
+                lines.append("")
+                # Reference sub-tables
+                for target in sorted(refs.keys()):
+                    ref_data = refs[target]
+                    lines.append(f"[artifacts.{art_kind}.identifiers.{id_kind}.ref.{target}]")
+                    for rk in ("coverage", "task", "priority", "headings"):
+                        if rk in ref_data:
+                            lines.append(f"{rk} = {_toml_val(ref_data[rk])}")
+                    lines.append("")
 
     content = "\n".join(lines)
 
