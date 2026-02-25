@@ -5,7 +5,7 @@ import re
 import shutil
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from ..utils.artifacts_meta import create_backup, generate_default_registry, generate_slug
 from ..utils.files import find_project_root
@@ -18,6 +18,9 @@ CACHE_DIR = Path.home() / ".cypilot" / "cache"
 
 def _copy_from_cache(cache_dir: Path, target_dir: Path, force: bool = False) -> Dict[str, str]:
     """Copy tool directories from cache into project .cypilot/ dir.
+
+    Reference directories (kits, skills, architecture, etc.) are ALWAYS refreshed
+    from cache since they are managed content. User-editable content lives in config/.
 
     Returns dict of {dir_name: action} where action is 'created', 'updated', or 'skipped'.
     """
@@ -377,7 +380,42 @@ def cmd_init(argv: List[str]) -> int:
     # @cpt-end:cpt-cypilot-algo-core-infra-create-config:p1:inst-write-artifacts-toml
 
     # @cpt-begin:cpt-cypilot-flow-core-infra-project-init:p1:inst-delegate-kits
-    # Stub: Kit Manager (Feature 2 boundary) — default kit registered in artifacts.toml
+    kit_results: Dict[str, Any] = {}
+    kits_ref_dir = cypilot_dir / "kits"
+    config_kits_dir = config_dir / "kits"
+    if kits_ref_dir.is_dir() and not args.dry_run:
+        from ..utils.blueprint import process_kit
+
+        for kit_dir in sorted(kits_ref_dir.iterdir()):
+            if not kit_dir.is_dir():
+                continue
+            bp_dir = kit_dir / "blueprints"
+            if not bp_dir.is_dir():
+                continue
+
+            kit_slug = kit_dir.name
+            user_bp_dir = config_kits_dir / kit_slug / "blueprints"
+
+            # Copy blueprints to config/kits/{slug}/blueprints/ (user-editable)
+            if user_bp_dir.exists():
+                shutil.rmtree(user_bp_dir)
+            user_bp_dir.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copytree(bp_dir, user_bp_dir)
+
+            # Generate resources from blueprints
+            summary, kit_errors = process_kit(
+                kit_slug, user_bp_dir, config_kits_dir, dry_run=False,
+            )
+            kit_results[kit_slug] = {
+                "files_written": summary.get("files_written", 0),
+                "artifact_kinds": summary.get("artifact_kinds", []),
+                "errors": kit_errors,
+            }
+            if kit_errors:
+                errors.extend(
+                    {"path": kit_slug, "error": e} for e in kit_errors
+                )
+    actions["kits"] = json.dumps(kit_results)
     # @cpt-end:cpt-cypilot-flow-core-infra-project-init:p1:inst-delegate-kits
 
     # @cpt-begin:cpt-cypilot-flow-core-infra-project-init:p1:inst-delegate-agents
