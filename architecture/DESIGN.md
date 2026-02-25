@@ -58,13 +58,13 @@ Each kit is a blueprint package: a `blueprints/` directory containing one `.md` 
 
 ##### ID and Traceability System
 
-- [ ] `p1` - `cpt-cypilot-fr-core-traceability`
+- [x] `p1` - `cpt-cypilot-fr-core-traceability`
 
 **Design Response**: Traceability Engine scans artifacts for `cpt-{system}-{kind}-{slug}` IDs, resolves cross-references, detects code tags (`@cpt-*`), and provides query commands (list-ids, where-defined, where-used, get-content). Validation enforces constraints from `constraints.toml`.
 
 ##### Cypilot DSL (CDSL)
 
-- [ ] `p1` - `cpt-cypilot-fr-core-cdsl`
+- [x] `p1` - `cpt-cypilot-fr-core-cdsl`
 
 **Design Response**: CDSL is a plain English specification language embedded in Markdown. The tool parses CDSL instruction markers (`- [ ] Inst-label:`) for implementation tracking. CDSL validation is part of the Validator component's template compliance checks.
 
@@ -76,7 +76,7 @@ Each kit is a blueprint package: a `blueprints/` directory containing one `.md` 
 
 ##### Artifact Validation
 
-- [ ] `p1` - `cpt-cypilot-fr-sdlc-validation`
+- [x] `p1` - `cpt-cypilot-fr-sdlc-validation`
 
 **Design Response**: Validator component performs single-pass scanning of artifact files: template structure compliance, ID format validation, priority marker presence, placeholder detection, and constraint enforcement. Cross-artifact validation checks covered_by references, checked consistency, and ID resolution across all registered artifacts.
 
@@ -130,7 +130,7 @@ All outputs are **core-defined** — the Blueprint Processor owns all marker typ
 
 ##### Cross-Artifact Validation
 
-- [ ] `p1` - `cpt-cypilot-fr-sdlc-cross-artifact`
+- [x] `p1` - `cpt-cypilot-fr-sdlc-cross-artifact`
 
 **Design Response**: The Validator component performs cross-artifact checks by loading all registered artifacts for a system and comparing ID definitions against references. Checks include: covered_by reference completeness per constraints.toml rules, checked-ref-implies-checked-def consistency, and ID resolution across artifact boundaries. Cross-artifact validation runs as part of `cypilot validate` (no separate command).
 
@@ -216,7 +216,7 @@ At the bottom is the **Kit layer**. The **Kit Manager** handles kit installation
 
 #### Determinism First
 
-- [ ] `p1` - **ID**: `cpt-cypilot-principle-determinism-first`
+- [x] `p1` - **ID**: `cpt-cypilot-principle-determinism-first`
 
 Everything that can be validated, checked, or enforced without an LLM MUST be handled by deterministic scripts. The LLM is reserved only for tasks requiring reasoning, creativity, or natural language understanding. This ensures reproducible results: same input → same output, regardless of which AI agent runs the command.
 
@@ -228,7 +228,7 @@ All domain-specific value is delivered by kits. Kits bring blueprints from which
 
 #### Traceability by Design
 
-- [ ] `p1` - **ID**: `cpt-cypilot-principle-traceability-by-design`
+- [x] `p1` - **ID**: `cpt-cypilot-principle-traceability-by-design`
 
 All design elements use structured `cpt-*` IDs following the format `cpt-{system}-{kind}-{slug}`. Code tags (`@cpt-*`) link implementation to design. Cross-references between artifacts are validated deterministically. The ID system is the backbone of Cypilot's value proposition — it enables automated verification that code implements what was designed.
 
@@ -240,7 +240,7 @@ Kits are blueprint packages that define artifact kinds via `blueprints/*.md` fil
 
 #### Machine-Readable Output
 
-- [ ] `p2` - **ID**: `cpt-cypilot-principle-machine-readable`
+- [x] `p2` - **ID**: `cpt-cypilot-principle-machine-readable`
 
 All CLI commands output JSON to stdout. Config files use TOML with deterministic serialization. Validation results include file paths and line numbers. This enables programmatic consumption by CI pipelines, IDE plugins, and agent workflows without parsing human-readable text.
 
@@ -270,7 +270,7 @@ The simplest solution that satisfies the requirements is the correct one. No abs
 
 #### CI & Automation First, LLM Last Resort
 
-- [ ] `p1` - **ID**: `cpt-cypilot-principle-ci-automation-first`
+- [x] `p1` - **ID**: `cpt-cypilot-principle-ci-automation-first`
 
 Every check, validation, and enforcement MUST be implementable as a deterministic CI step. LLM-based analysis is used only when deterministic methods are provably insufficient (e.g., semantic quality review, natural language understanding). If a task can be expressed as a regex, a schema check, or a graph traversal — it MUST NOT require an LLM. This ensures that quality gates are reproducible, fast, and free of hallucination risk.
 
@@ -314,7 +314,7 @@ CLI proxy and skill engine must work natively on Linux, Windows, and macOS witho
 
 #### No Weakening of Rules
 
-- [ ] `p1` - **ID**: `cpt-cypilot-constraint-no-weakening`
+- [x] `p1` - **ID**: `cpt-cypilot-constraint-no-weakening`
 
 Validation rules cannot be bypassed or weakened in STRICT mode. The deterministic gate must pass before semantic review proceeds. This constraint ensures that the quality floor is maintained — agents cannot skip validation steps or downgrade severity of issues.
 
@@ -515,7 +515,7 @@ Does NOT execute workflows (workflows are interpreted by AI agents). Does NOT co
 
 #### Validator
 
-- [ ] `p1` - **ID**: `cpt-cypilot-component-validator`
+- [x] `p1` - **ID**: `cpt-cypilot-component-validator`
 
 ##### Why this component exists
 
@@ -546,7 +546,7 @@ Does NOT perform semantic validation (checklist review is done by AI agents). Do
 
 #### Traceability Engine
 
-- [ ] `p1` - **ID**: `cpt-cypilot-component-traceability-engine`
+- [x] `p1` - **ID**: `cpt-cypilot-component-traceability-engine`
 
 ##### Why this component exists
 

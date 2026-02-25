@@ -49,7 +49,7 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
 
 - **Design Principles Covered**:
 
-  - [ ] `p1` - `cpt-cypilot-principle-determinism-first`
+  - [x] `p1` - `cpt-cypilot-principle-determinism-first`
   - [ ] `p1` - `cpt-cypilot-principle-occams-razor`
   - [ ] `p2` - `cpt-cypilot-principle-tool-managed-config`
   - [ ] `p1` - `cpt-cypilot-principle-zero-harm`
@@ -151,7 +151,7 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
 
 ### 2.3 [Traceability & Validation](feature-traceability-validation/) ⏳ HIGH
 
-- [ ] `p1` - **ID**: `cpt-cypilot-feature-traceability-validation`
+- [x] `p1` - **ID**: `cpt-cypilot-feature-traceability-validation`
 
 - **Purpose**: Provide the deterministic quality gate — ID scanning, cross-reference resolution, structural validation, and constraint enforcement — that catches issues without relying on LLMs.
 
@@ -171,23 +171,23 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
 
 - **Requirements Covered**:
 
-  - [ ] `p1` - `cpt-cypilot-fr-core-traceability`
-  - [ ] `p1` - `cpt-cypilot-fr-core-cdsl`
-  - [ ] `p1` - `cpt-cypilot-fr-sdlc-validation`
-  - [ ] `p1` - `cpt-cypilot-fr-sdlc-cross-artifact`
+  - [x] `p1` - `cpt-cypilot-fr-core-traceability`
+  - [x] `p1` - `cpt-cypilot-fr-core-cdsl`
+  - [x] `p1` - `cpt-cypilot-fr-sdlc-validation`
+  - [x] `p1` - `cpt-cypilot-fr-sdlc-cross-artifact`
   - [x] `p1` - `cpt-cypilot-nfr-validation-performance`
   - [x] `p1` - `cpt-cypilot-nfr-security-integrity`
 
 - **Design Principles Covered**:
 
-  - [ ] `p1` - `cpt-cypilot-principle-determinism-first`
-  - [ ] `p1` - `cpt-cypilot-principle-traceability-by-design`
-  - [ ] `p1` - `cpt-cypilot-principle-ci-automation-first`
-  - [ ] `p2` - `cpt-cypilot-principle-machine-readable`
+  - [x] `p1` - `cpt-cypilot-principle-determinism-first`
+  - [x] `p1` - `cpt-cypilot-principle-traceability-by-design`
+  - [x] `p1` - `cpt-cypilot-principle-ci-automation-first`
+  - [x] `p2` - `cpt-cypilot-principle-machine-readable`
 
 - **Design Constraints Covered**:
 
-  - [ ] `p1` - `cpt-cypilot-constraint-no-weakening`
+  - [x] `p1` - `cpt-cypilot-constraint-no-weakening`
 
 - **Domain Model Entities**:
   - Identifier
@@ -196,8 +196,8 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
 
 - **Design Components**:
 
-  - [ ] `p1` - `cpt-cypilot-component-validator`
-  - [ ] `p1` - `cpt-cypilot-component-traceability-engine`
+  - [x] `p1` - `cpt-cypilot-component-validator`
+  - [x] `p1` - `cpt-cypilot-component-traceability-engine`
 
 - **API**:
   - `cypilot validate --artifact <path>`
@@ -346,8 +346,8 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
 
 - **Design Principles Covered**:
 
-  - [ ] `p1` - `cpt-cypilot-principle-determinism-first`
-  - [ ] `p1` - `cpt-cypilot-principle-ci-automation-first`
+  - [x] `p1` - `cpt-cypilot-principle-determinism-first`
+  - [x] `p1` - `cpt-cypilot-principle-ci-automation-first`
 
 - **Design Constraints Covered**:
 
@@ -459,7 +459,7 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
 
 - **Design Principles Covered**:
 
-  - [ ] `p2` - `cpt-cypilot-principle-machine-readable`
+  - [x] `p2` - `cpt-cypilot-principle-machine-readable`
   - [ ] `p1` - `cpt-cypilot-principle-zero-harm`
 
 - **Design Constraints Covered**:
@@ -518,7 +518,7 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
 
 - **Design Principles Covered**:
 
-  - [ ] `p1` - `cpt-cypilot-principle-traceability-by-design`
+  - [x] `p1` - `cpt-cypilot-principle-traceability-by-design`
   - [ ] `p2` - `cpt-cypilot-principle-skill-documented`
 
 - **Design Constraints Covered**:
