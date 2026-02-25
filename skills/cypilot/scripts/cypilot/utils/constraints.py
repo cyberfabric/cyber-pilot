@@ -298,6 +298,7 @@ class ArtifactRecord:
     constraints: Optional[ArtifactKindConstraints] = None
 
 
+# @cpt-algo:cpt-cypilot-algo-traceability-validation-validate-structure:p1
 def validate_artifact_file(
     *,
     artifact_path: Path,
@@ -317,6 +318,7 @@ def validate_artifact_file(
     if constraints is None:
         return {"errors": errors, "warnings": warnings}
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-check-headings
     # Phase 1: headings contract
     if getattr(constraints, "headings", None):
         rep = validate_headings_contract(
@@ -330,14 +332,19 @@ def validate_artifact_file(
         errors.extend(rep.get("errors", []))
         warnings.extend(rep.get("warnings", []))
 
+        # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-if-headings-fail
         # Stop here: IDs are validated only after outline contract is satisfied.
         if rep.get("errors"):
             return {"errors": errors, "warnings": warnings}
+        # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-if-headings-fail
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-check-headings
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-scan-ids
     # Phase 2: identifier/content validation
     hits = scan_cpt_ids(artifact_path)
     defs = [h for h in hits if str(h.get("type")) == "definition"]
     refs = [h for h in hits if str(h.get("type")) == "reference"]
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-scan-ids
 
     defs_by_id: Dict[str, Dict[str, object]] = {}
     for d in defs:
@@ -345,7 +352,10 @@ def validate_artifact_file(
         if did and did not in defs_by_id:
             defs_by_id[did] = d
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-scan-cdsl
     cdsl_hits = scan_cdsl_instructions(artifact_path)
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-scan-cdsl
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-foreach-cdsl-mismatch
     for ch in cdsl_hits:
         if bool(ch.get("checked", False)):
             continue
@@ -360,6 +370,7 @@ def validate_artifact_file(
         if not bool(parent_def.get("checked", False)):
             continue
         inst_s = str(ch.get("inst") or "").strip()
+        # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-emit-cdsl-error
         errors.append(error(
             "structure",
             f"CDSL step `{pid}`{(' inst ' + inst_s) if inst_s else ''} is unchecked but parent ID is already checked in {kind} artifact",
@@ -369,6 +380,8 @@ def validate_artifact_file(
             id=pid,
             inst=inst_s or None,
         ))
+        # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-emit-cdsl-error
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-foreach-cdsl-mismatch
 
     headings_scanned = _scan_headings(artifact_path)
 
@@ -394,6 +407,7 @@ def validate_artifact_file(
                 return int(headings_scanned[j].get("line", 1) or 1) - 1
         return 10**9
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-foreach-parent-child
     defs_sorted = sorted(defs, key=lambda d: int(d.get("line", 0) or 0))
     refs_task_sorted = sorted(
         [r for r in refs if bool(r.get("has_task", False))],
@@ -442,6 +456,7 @@ def validate_artifact_file(
         all_ref_children_checked = all(bool(r.get("checked", False)) for r in ref_children)
         any_ref_child_unchecked = any(not bool(r.get("checked", False)) for r in ref_children)
 
+        # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-if-all-done-parent-not
         if all_children_checked and all_ref_children_checked and (not parent_checked):
             errors.append(error(
                 "structure",
@@ -451,7 +466,9 @@ def validate_artifact_file(
                 line=parent_line,
                 id=parent_id,
             ))
+        # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-if-all-done-parent-not
 
+        # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-if-parent-done-child-not
         if parent_checked and (any_child_unchecked or any_ref_child_unchecked):
             first_unchecked = next((c for c in children if not bool(c.get("checked", False))), None)
             first_ref_unchecked = next((r for r in ref_children if not bool(r.get("checked", False))), None)
@@ -466,7 +483,10 @@ def validate_artifact_file(
                 id=first_id,
                 parent_id=parent_id,
             ))
+        # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-if-parent-done-child-not
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-foreach-parent-child
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-validate-id-format
     allowed_defs = {c.kind.strip().lower() for c in (constraints.defined_id or [])}
     constraint_by_kind = {c.kind.strip().lower(): c for c in (constraints.defined_id or []) if isinstance(getattr(c, "kind", None), str)}
     # All known kind tokens for system boundary detection.
@@ -738,10 +758,14 @@ def validate_artifact_file(
             target_headings=id_headings if id_headings else None,
             target_headings_info=id_headings_info,
         ))
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-validate-id-format
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-return-structure
     return {"errors": errors, "warnings": warnings}
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-return-structure
 
 
+# @cpt-algo:cpt-cypilot-algo-traceability-validation-cross-validate:p1
 def cross_validate_artifacts(
     artifacts: Sequence[ArtifactRecord],
     registered_systems: Optional[Iterable[str]] = None,
@@ -886,6 +910,7 @@ def cross_validate_artifacts(
             out.append({"id": hs, "description": km.get(hs)})
         return out
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-build-index
     # Index scan results
     defs_by_id: Dict[str, List[Dict[str, object]]] = {}
     refs_by_id: Dict[str, List[Dict[str, object]]] = {}
@@ -939,7 +964,9 @@ def cross_validate_artifacts(
                 if system:
                     present_kinds_by_system.setdefault(system, set()).add(ak)
                     refs_by_system_kind.setdefault(system, {}).setdefault(ak, []).append(row)
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-build-index
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-foreach-ref
     # Definition existence for internal systems
     for rid, rows in refs_by_id.items():
         if is_external_system_ref(rid):
@@ -947,6 +974,7 @@ def cross_validate_artifacts(
         if rid in defs_by_id:
             continue
         for r in rows:
+            # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-if-no-def
             errors.append(error(
                 "structure",
                 f"Reference to `{rid}` has no matching definition in any artifact",
@@ -955,7 +983,10 @@ def cross_validate_artifacts(
                 line=int(r.get("line", 1) or 1),
                 id=rid,
             ))
+            # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-if-no-def
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-foreach-ref
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-foreach-checked-ref
     # Done status consistency
     for rid, rrows in refs_by_id.items():
         for r in rrows:
@@ -969,6 +1000,7 @@ def cross_validate_artifacts(
                     continue
                 if bool(d.get("checked", False)):
                     continue
+                # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-if-ref-done-def-not
                 errors.append(error(
                     "structure",
                     f"Reference to `{rid}` is checked [x] but its definition is still unchecked",
@@ -977,7 +1009,10 @@ def cross_validate_artifacts(
                     line=int(r.get("line", 1) or 1),
                     id=rid,
                 ))
+                # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-if-ref-done-def-not
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-foreach-checked-ref
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-foreach-checked-def
     # Reverse: definition checked but reference unchecked
     for rid, rrows in refs_by_id.items():
         defs = defs_by_id.get(rid, [])
@@ -1004,6 +1039,9 @@ def cross_validate_artifacts(
                 id=rid,
                 def_artifact_kind=defs_with_task[0].get("artifact_kind"),
             ))
+            # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-if-def-done-ref-not
+            # (error emitted above)
+            # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-if-def-done-ref-not
 
     for rid, rrows in refs_by_id.items():
         defs = defs_by_id.get(rid, [])
@@ -1022,7 +1060,9 @@ def cross_validate_artifacts(
                 line=int(r.get("line", 1) or 1),
                 id=rid,
             ))
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-foreach-checked-def
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-enforce-coverage
     # Per-artifact kind required ID kind presence and headings
     for art in artifacts:
         ak = str(art.artifact_kind).strip().upper()
@@ -1292,8 +1332,11 @@ def cross_validate_artifacts(
                                         id_kind_template=id_kind_template,
                                     ))
                                     break
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-enforce-coverage
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-return-cross
     return {"errors": errors, "warnings": warnings}
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-return-cross
 
 
 def _parse_examples(v: object) -> Tuple[Optional[List[object]], Optional[str]]:

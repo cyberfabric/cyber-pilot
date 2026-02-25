@@ -8,11 +8,13 @@ from ..utils.codebase import CodeFile
 from ..utils.document import scan_cpt_ids
 
 
+# @cpt-flow:cpt-cypilot-flow-traceability-validation-query:p1
 def cmd_list_ids(argv: List[str]) -> int:
     """List Cypilot IDs from artifacts.
 
     If no artifact is specified, scans all Cypilot-format artifacts from the adapter registry.
     """
+    # @cpt-begin:cpt-cypilot-flow-traceability-validation-query:p1:inst-user-query
     p = argparse.ArgumentParser(prog="list-ids")
     p.add_argument("--artifact", default=None, help="Path to Cypilot artifact file (if omitted, scans all registered Cypilot artifacts)")
     p.add_argument("--pattern", default=None, help="Filter IDs by substring or regex pattern")
@@ -21,7 +23,9 @@ def cmd_list_ids(argv: List[str]) -> int:
     p.add_argument("--all", action="store_true", help="Include duplicate IDs in results")
     p.add_argument("--include-code", action="store_true", help="Also scan code files for Cypilot marker references")
     args = p.parse_args(argv)
+    # @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-user-query
 
+    # @cpt-begin:cpt-cypilot-flow-traceability-validation-query:p1:inst-query-load-context
     # Collect artifacts to scan: (artifact_path, artifact_kind)
     artifacts_to_scan: List[Tuple[Path, str]] = []
     ctx = None
@@ -78,7 +82,9 @@ def cmd_list_ids(argv: List[str]) -> int:
         if not artifacts_to_scan:
             print(json.dumps({"status": "ERROR", "message": "No Cypilot-format artifacts found in registry."}, indent=None, ensure_ascii=False))
             return 1
+    # @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-query-load-context
 
+    # @cpt-begin:cpt-cypilot-flow-traceability-validation-query:p1:inst-scan-all
     # Parse artifacts and collect IDs
     hits: List[Dict[str, object]] = []
 
@@ -130,6 +136,7 @@ def cmd_list_ids(argv: List[str]) -> int:
             if fh.get("priority") is not None:
                 h["priority"] = fh.get("priority")
             hits.append(h)
+    # @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-scan-all
 
     # Scan code files if requested
     code_files_scanned = 0
@@ -181,6 +188,7 @@ def cmd_list_ids(argv: List[str]) -> int:
                         h["inst"] = ref.inst
                     hits.append(h)
 
+    # @cpt-begin:cpt-cypilot-flow-traceability-validation-query:p1:inst-if-list
     # Apply filters
     if args.kind:
         kind_filter = str(args.kind)
@@ -215,5 +223,8 @@ def cmd_list_ids(argv: List[str]) -> int:
     if code_files_scanned > 0:
         result["code_files_scanned"] = code_files_scanned
 
+    # @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-if-list
+    # @cpt-begin:cpt-cypilot-flow-traceability-validation-query:p1:inst-return-query
     print(json.dumps(result, indent=None, ensure_ascii=False))
     return 0
+    # @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-return-query

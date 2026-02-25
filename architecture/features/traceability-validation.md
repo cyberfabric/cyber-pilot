@@ -33,7 +33,7 @@ Catches structural and traceability issues that AI agents miss or hallucinate â€
 
 ### Validate Artifacts
 
-- [ ] `p1` - **ID**: `cpt-cypilot-flow-traceability-validation-validate`
+- [x] `p1` - **ID**: `cpt-cypilot-flow-traceability-validation-validate`
 
 **Actor**: `cpt-cypilot-actor-user`
 
@@ -48,22 +48,22 @@ Catches structural and traceability issues that AI agents miss or hallucinate â€
 - Code marker references non-existent artifact ID â†’ FAIL with orphan details
 
 **Steps**:
-1. [ ] - `p1` - User invokes `cypilot validate [--artifact <path>] [--skip-code] [--verbose]` - `inst-user-validate`
-2. [ ] - `p1` - Load project context: adapter, registry, systems, kits, constraints - `inst-load-context`
-3. [ ] - `p1` - Resolve artifacts to validate: if `--artifact` specified resolve single artifact from registry, otherwise collect all registered Cypilot-format artifacts - `inst-resolve-artifacts`
-4. [ ] - `p1` - Run self-check: validate kit examples against templates to ensure kit integrity - `inst-self-check`
-5. [ ] - `p1` - **FOR EACH** artifact to validate - `inst-foreach-artifact`
-   1. [ ] - `p1` - Load kind-specific constraints from kit - `inst-load-constraints`
-   2. [ ] - `p1` - Validate artifact structure using `cpt-cypilot-algo-traceability-validation-validate-structure` - `inst-validate-structure`
-6. [ ] - `p1` - **IF** per-artifact errors exist **RETURN** FAIL report (stop before cross-validation) - `inst-if-structure-fail`
-7. [ ] - `p1` - Cross-validate references across all artifacts using `cpt-cypilot-algo-traceability-validation-cross-validate` - `inst-cross-validate`
-8. [ ] - `p1` - **IF** `--skip-code` is not set, validate code traceability using `cpt-cypilot-algo-traceability-validation-cross-validate-code` - `inst-if-code`
-9. [ ] - `p1` - Enrich errors with fixing prompts for LLM agents - `inst-enrich-errors`
-10. [ ] - `p1` - **RETURN** JSON report (status, artifact count, error/warning counts, coverage stats, next step hint) - `inst-return-report`
+1. [x] - `p1` - User invokes `cypilot validate [--artifact <path>] [--skip-code] [--verbose]` - `inst-user-validate`
+2. [x] - `p1` - Load project context: adapter, registry, systems, kits, constraints - `inst-load-context`
+3. [x] - `p1` - Resolve artifacts to validate: if `--artifact` specified resolve single artifact from registry, otherwise collect all registered Cypilot-format artifacts - `inst-resolve-artifacts`
+4. [x] - `p1` - Run self-check: validate kit examples against templates to ensure kit integrity - `inst-self-check`
+5. [x] - `p1` - **FOR EACH** artifact to validate - `inst-foreach-artifact`
+   1. [x] - `p1` - Load kind-specific constraints from kit - `inst-load-constraints`
+   2. [x] - `p1` - Validate artifact structure using `cpt-cypilot-algo-traceability-validation-validate-structure` - `inst-validate-structure`
+6. [x] - `p1` - **IF** per-artifact errors exist **RETURN** FAIL report (stop before cross-validation) - `inst-if-structure-fail`
+7. [x] - `p1` - Cross-validate references across all artifacts using `cpt-cypilot-algo-traceability-validation-cross-validate` - `inst-cross-validate`
+8. [x] - `p1` - **IF** `--skip-code` is not set, validate code traceability using `cpt-cypilot-algo-traceability-validation-cross-validate-code` - `inst-if-code`
+9. [x] - `p1` - Enrich errors with fixing prompts for LLM agents - `inst-enrich-errors`
+10. [x] - `p1` - **RETURN** JSON report (status, artifact count, error/warning counts, coverage stats, next step hint) - `inst-return-report`
 
 ### Query Traceability
 
-- [ ] `p1` - **ID**: `cpt-cypilot-flow-traceability-validation-query`
+- [x] `p1` - **ID**: `cpt-cypilot-flow-traceability-validation-query`
 
 **Actor**: `cpt-cypilot-actor-user`
 
@@ -77,146 +77,146 @@ Catches structural and traceability issues that AI agents miss or hallucinate â€
 - ID not found in any artifact â†’ empty result with exit code 2
 
 **Steps**:
-1. [ ] - `p1` - User invokes one of: `list-ids [--kind K] [--pattern P]`, `where-defined --id <id>`, `where-used --id <id>`, `get-content --id <id>` - `inst-user-query`
-2. [ ] - `p1` - Load project context and resolve all registered artifacts - `inst-query-load-context`
-3. [ ] - `p1` - Scan all artifacts using `cpt-cypilot-algo-traceability-validation-scan-ids` to build ID index - `inst-scan-all`
-4. [ ] - `p1` - **IF** `list-ids`: filter index by `--kind` and `--pattern`, return definitions - `inst-if-list`
-5. [ ] - `p1` - **IF** `where-defined`: find definition entries for the given ID - `inst-if-where-def`
-6. [ ] - `p1` - **IF** `where-used`: find reference entries for the given ID across artifacts and code - `inst-if-where-used`
-7. [ ] - `p1` - **IF** `get-content`: locate ID definition, extract content block from heading scope - `inst-if-get-content`
-8. [ ] - `p1` - **RETURN** JSON result - `inst-return-query`
+1. [x] - `p1` - User invokes one of: `list-ids [--kind K] [--pattern P]`, `where-defined --id <id>`, `where-used --id <id>`, `get-content --id <id>` - `inst-user-query`
+2. [x] - `p1` - Load project context and resolve all registered artifacts - `inst-query-load-context`
+3. [x] - `p1` - Scan all artifacts using `cpt-cypilot-algo-traceability-validation-scan-ids` to build ID index - `inst-scan-all`
+4. [x] - `p1` - **IF** `list-ids`: filter index by `--kind` and `--pattern`, return definitions - `inst-if-list`
+5. [x] - `p1` - **IF** `where-defined`: find definition entries for the given ID - `inst-if-where-def`
+6. [x] - `p1` - **IF** `where-used`: find reference entries for the given ID across artifacts and code - `inst-if-where-used`
+7. [x] - `p1` - **IF** `get-content`: locate ID definition, extract content block from heading scope - `inst-if-get-content`
+8. [x] - `p1` - **RETURN** JSON result - `inst-return-query`
 
 ## 3. Processes / Business Logic (CDSL)
 
 ### Scan Artifact IDs
 
-- [ ] `p1` - **ID**: `cpt-cypilot-algo-traceability-validation-scan-ids`
+- [x] `p1` - **ID**: `cpt-cypilot-algo-traceability-validation-scan-ids`
 
 **Input**: Path to a Markdown artifact file
 
 **Output**: List of ID hits: `{id, line, type (definition|reference), checked, has_task, has_priority, priority}`
 
 **Steps**:
-1. [ ] - `p1` - Read file as UTF-8 lines - `inst-read-file`
-2. [ ] - `p1` - **FOR EACH** line (skipping fenced code blocks) - `inst-foreach-line`
-   1. [ ] - `p1` - Match ID definition pattern: `**ID**: \`cpt-...\`` with optional checkbox and priority - `inst-match-def`
-   2. [ ] - `p1` - **IF** definition matched, extract id, checked, has_task, priority and append as definition hit - `inst-if-def`
-   3. [ ] - `p1` - **ELSE** match standalone reference pattern: `\`cpt-...\`` with optional checkbox - `inst-match-ref`
-   4. [ ] - `p1` - **ELSE** scan for inline backticked `cpt-*` references - `inst-match-inline`
-3. [ ] - `p1` - **RETURN** ordered list of hits - `inst-return-hits`
+1. [x] - `p1` - Read file as UTF-8 lines - `inst-read-file`
+2. [x] - `p1` - **FOR EACH** line (skipping fenced code blocks) - `inst-foreach-line`
+   1. [x] - `p1` - Match ID definition pattern: `**ID**: \`cpt-...\`` with optional checkbox and priority - `inst-match-def`
+   2. [x] - `p1` - **IF** definition matched, extract id, checked, has_task, priority and append as definition hit - `inst-if-def`
+   3. [x] - `p1` - **ELSE** match standalone reference pattern: `\`cpt-...\`` with optional checkbox - `inst-match-ref`
+   4. [x] - `p1` - **ELSE** scan for inline backticked `cpt-*` references - `inst-match-inline`
+3. [x] - `p1` - **RETURN** ordered list of hits - `inst-return-hits`
 
 ### Scan CDSL Instructions
 
-- [ ] `p1` - **ID**: `cpt-cypilot-algo-traceability-validation-scan-cdsl`
+- [x] `p1` - **ID**: `cpt-cypilot-algo-traceability-validation-scan-cdsl`
 
 **Input**: Path to a Markdown artifact file
 
 **Output**: List of CDSL instruction records: `{parent_id, inst, checked, line, priority}`
 
 **Steps**:
-1. [ ] - `p1` - Read file as UTF-8 lines - `inst-read-file`
-2. [ ] - `p1` - Track current parent ID by scanning ID definitions at heading level - `inst-track-parent`
-3. [ ] - `p1` - **FOR EACH** line matching CDSL instruction pattern (numbered list item with `inst-{slug}` suffix) - `inst-foreach-cdsl`
-   1. [ ] - `p1` - Extract checked status, priority, instruction slug - `inst-extract-inst`
-   2. [ ] - `p1` - Associate with current parent ID - `inst-associate-parent`
-4. [ ] - `p1` - **RETURN** list of instruction records - `inst-return-cdsl`
+1. [x] - `p1` - Read file as UTF-8 lines - `inst-read-file`
+2. [x] - `p1` - Track current parent ID by scanning ID definitions at heading level - `inst-track-parent`
+3. [x] - `p1` - **FOR EACH** line matching CDSL instruction pattern (numbered list item with `inst-{slug}` suffix) - `inst-foreach-cdsl`
+   1. [x] - `p1` - Extract checked status, priority, instruction slug - `inst-extract-inst`
+   2. [x] - `p1` - Associate with current parent ID - `inst-associate-parent`
+4. [x] - `p1` - **RETURN** list of instruction records - `inst-return-cdsl`
 
 ### Validate Artifact Structure
 
-- [ ] `p1` - **ID**: `cpt-cypilot-algo-traceability-validation-validate-structure`
+- [x] `p1` - **ID**: `cpt-cypilot-algo-traceability-validation-validate-structure`
 
 **Input**: Artifact path, artifact kind, kind-specific constraints, registered systems
 
 **Output**: `{errors, warnings}` lists
 
 **Steps**:
-1. [ ] - `p1` - **IF** constraints have headings contract, validate heading patterns (required sections, levels, ordering) - `inst-check-headings`
-2. [ ] - `p1` - **IF** headings errors exist **RETURN** early (IDs depend on correct structure) - `inst-if-headings-fail`
-3. [ ] - `p1` - Scan IDs using `cpt-cypilot-algo-traceability-validation-scan-ids` - `inst-scan-ids`
-4. [ ] - `p1` - Scan CDSL instructions using `cpt-cypilot-algo-traceability-validation-scan-cdsl` - `inst-scan-cdsl`
-5. [ ] - `p1` - **FOR EACH** CDSL step where parent ID is checked but step is unchecked - `inst-foreach-cdsl-mismatch`
-   1. [ ] - `p1` - Emit error: CDSL step unchecked but parent already checked - `inst-emit-cdsl-error`
-6. [ ] - `p1` - **FOR EACH** parent-child ID pair (heading scope) - `inst-foreach-parent-child`
-   1. [ ] - `p1` - **IF** all children checked AND parent unchecked, emit error - `inst-if-all-done-parent-not`
-   2. [ ] - `p1` - **IF** parent checked AND any child unchecked, emit error - `inst-if-parent-done-child-not`
-7. [ ] - `p1` - Validate ID format and heading scoping per constraints - `inst-validate-id-format`
-8. [ ] - `p1` - **RETURN** accumulated errors and warnings - `inst-return-structure`
+1. [x] - `p1` - **IF** constraints have headings contract, validate heading patterns (required sections, levels, ordering) - `inst-check-headings`
+2. [x] - `p1` - **IF** headings errors exist **RETURN** early (IDs depend on correct structure) - `inst-if-headings-fail`
+3. [x] - `p1` - Scan IDs using `cpt-cypilot-algo-traceability-validation-scan-ids` - `inst-scan-ids`
+4. [x] - `p1` - Scan CDSL instructions using `cpt-cypilot-algo-traceability-validation-scan-cdsl` - `inst-scan-cdsl`
+5. [x] - `p1` - **FOR EACH** CDSL step where parent ID is checked but step is unchecked - `inst-foreach-cdsl-mismatch`
+   1. [x] - `p1` - Emit error: CDSL step unchecked but parent already checked - `inst-emit-cdsl-error`
+6. [x] - `p1` - **FOR EACH** parent-child ID pair (heading scope) - `inst-foreach-parent-child`
+   1. [x] - `p1` - **IF** all children checked AND parent unchecked, emit error - `inst-if-all-done-parent-not`
+   2. [x] - `p1` - **IF** parent checked AND any child unchecked, emit error - `inst-if-parent-done-child-not`
+7. [x] - `p1` - Validate ID format and heading scoping per constraints - `inst-validate-id-format`
+8. [x] - `p1` - **RETURN** accumulated errors and warnings - `inst-return-structure`
 
 ### Cross-Validate Artifacts
 
-- [ ] `p1` - **ID**: `cpt-cypilot-algo-traceability-validation-cross-validate`
+- [x] `p1` - **ID**: `cpt-cypilot-algo-traceability-validation-cross-validate`
 
 **Input**: List of all artifact records (path, kind, constraints)
 
 **Output**: `{errors, warnings}` lists
 
 **Steps**:
-1. [ ] - `p1` - Scan all artifacts to build definition index (`defs_by_id`) and reference index (`refs_by_id`) - `inst-build-index`
-2. [ ] - `p1` - **FOR EACH** reference to an internal-system ID - `inst-foreach-ref`
-   1. [ ] - `p1` - **IF** no matching definition exists, emit error: reference to undefined ID - `inst-if-no-def`
-3. [ ] - `p1` - **FOR EACH** reference with checked task marker - `inst-foreach-checked-ref`
-   1. [ ] - `p1` - **IF** corresponding definition has task marker AND is unchecked, emit error: ref done but def not done - `inst-if-ref-done-def-not`
-4. [ ] - `p1` - **FOR EACH** definition with checked task marker - `inst-foreach-checked-def`
-   1. [ ] - `p1` - **IF** any task-tracked reference is unchecked, emit error: def done but ref not done - `inst-if-def-done-ref-not`
-5. [ ] - `p1` - Enforce coverage rules from constraints (required cross-references between artifact kinds) - `inst-enforce-coverage`
-6. [ ] - `p1` - **RETURN** accumulated errors and warnings - `inst-return-cross`
+1. [x] - `p1` - Scan all artifacts to build definition index (`defs_by_id`) and reference index (`refs_by_id`) - `inst-build-index`
+2. [x] - `p1` - **FOR EACH** reference to an internal-system ID - `inst-foreach-ref`
+   1. [x] - `p1` - **IF** no matching definition exists, emit error: reference to undefined ID - `inst-if-no-def`
+3. [x] - `p1` - **FOR EACH** reference with checked task marker - `inst-foreach-checked-ref`
+   1. [x] - `p1` - **IF** corresponding definition has task marker AND is unchecked, emit error: ref done but def not done - `inst-if-ref-done-def-not`
+4. [x] - `p1` - **FOR EACH** definition with checked task marker - `inst-foreach-checked-def`
+   1. [x] - `p1` - **IF** any task-tracked reference is unchecked, emit error: def done but ref not done - `inst-if-def-done-ref-not`
+5. [x] - `p1` - Enforce coverage rules from constraints (required cross-references between artifact kinds) - `inst-enforce-coverage`
+6. [x] - `p1` - **RETURN** accumulated errors and warnings - `inst-return-cross`
 
 ### Scan Code Markers
 
-- [ ] `p1` - **ID**: `cpt-cypilot-algo-traceability-validation-scan-code`
+- [x] `p1` - **ID**: `cpt-cypilot-algo-traceability-validation-scan-code`
 
 **Input**: Path to a code file
 
 **Output**: Parsed code file: scope markers, block markers, references, structural errors
 
 **Steps**:
-1. [ ] - `p1` - Read file lines - `inst-read-code`
-2. [ ] - `p1` - **FOR EACH** line matching `@cpt-{kind}:{id}:p{N}` - `inst-match-scope`
-   1. [ ] - `p1` - Extract kind, id, phase; add to scope markers list - `inst-extract-scope`
-3. [ ] - `p1` - **FOR EACH** line matching `@cpt-begin:{id}:p{N}:inst-{local}` - `inst-match-begin`
-   1. [ ] - `p1` - Push onto open block stack - `inst-push-block`
-4. [ ] - `p1` - **FOR EACH** line matching `@cpt-end:{id}:p{N}:inst-{local}` - `inst-match-end`
-   1. [ ] - `p1` - Pop from stack, validate matching begin marker - `inst-pop-block`
-   2. [ ] - `p1` - **IF** no matching begin or id/inst mismatch, emit structural error - `inst-if-mismatch`
-5. [ ] - `p1` - **IF** unclosed blocks remain on stack, emit errors - `inst-if-unclosed`
-6. [ ] - `p1` - **RETURN** parsed code file with markers and structural errors - `inst-return-code`
+1. [x] - `p1` - Read file lines - `inst-read-code`
+2. [x] - `p1` - **FOR EACH** line matching `@cpt-{kind}:{id}:p{N}` - `inst-match-scope`
+   1. [x] - `p1` - Extract kind, id, phase; add to scope markers list - `inst-extract-scope`
+3. [x] - `p1` - **FOR EACH** line matching `@cpt-begin:{id}:p{N}:inst-{local}` - `inst-match-begin`
+   1. [x] - `p1` - Push onto open block stack - `inst-push-block`
+4. [x] - `p1` - **FOR EACH** line matching `@cpt-end:{id}:p{N}:inst-{local}` - `inst-match-end`
+   1. [x] - `p1` - Pop from stack, validate matching begin marker - `inst-pop-block`
+   2. [x] - `p1` - **IF** no matching begin or id/inst mismatch, emit structural error - `inst-if-mismatch`
+5. [x] - `p1` - **IF** unclosed blocks remain on stack, emit errors - `inst-if-unclosed`
+6. [x] - `p1` - **RETURN** parsed code file with markers and structural errors - `inst-return-code`
 
 ### Cross-Validate Code
 
-- [ ] `p1` - **ID**: `cpt-cypilot-algo-traceability-validation-cross-validate-code`
+- [x] `p1` - **ID**: `cpt-cypilot-algo-traceability-validation-cross-validate-code`
 
 **Input**: Parsed code files, artifact ID set, `to_code` ID set, forbidden IDs (unchecked task), CDSL instruction map
 
 **Output**: `{errors, warnings}` lists
 
 **Steps**:
-1. [ ] - `p1` - **IF** traceability mode is DOCS-ONLY and markers found, emit error: markers prohibited - `inst-if-docs-only`
-2. [ ] - `p1` - Collect all IDs referenced in code markers - `inst-collect-code-ids`
-3. [ ] - `p1` - **FOR EACH** code marker referencing an ID not in artifact definitions - `inst-foreach-orphan`
-   1. [ ] - `p1` - Emit error: orphaned code marker (ID not defined in any artifact) - `inst-emit-orphan`
-4. [ ] - `p1` - **FOR EACH** code marker referencing a `to_code` ID whose task checkbox is unchecked - `inst-foreach-forbidden`
-   1. [ ] - `p1` - Emit error: code marker exists but artifact task not checked - `inst-emit-forbidden`
-5. [ ] - `p1` - **FOR EACH** `to_code` ID without any code marker - `inst-foreach-missing`
-   1. [ ] - `p1` - Emit error: missing code marker for `to_code` ID - `inst-emit-missing`
-6. [ ] - `p1` - **FOR EACH** CDSL instruction in artifacts with code block markers - `inst-foreach-inst`
-   1. [ ] - `p1` - **IF** artifact instruction has no matching `@cpt-begin/@cpt-end` block, emit error - `inst-if-inst-missing`
-   2. [ ] - `p1` - **IF** code block has no matching CDSL step in artifact, emit error - `inst-if-inst-orphan`
-7. [ ] - `p1` - **RETURN** accumulated errors and warnings - `inst-return-code-cross`
+1. [x] - `p1` - **IF** traceability mode is DOCS-ONLY and markers found, emit error: markers prohibited - `inst-if-docs-only`
+2. [x] - `p1` - Collect all IDs referenced in code markers - `inst-collect-code-ids`
+3. [x] - `p1` - **FOR EACH** code marker referencing an ID not in artifact definitions - `inst-foreach-orphan`
+   1. [x] - `p1` - Emit error: orphaned code marker (ID not defined in any artifact) - `inst-emit-orphan`
+4. [x] - `p1` - **FOR EACH** code marker referencing a `to_code` ID whose task checkbox is unchecked - `inst-foreach-forbidden`
+   1. [x] - `p1` - Emit error: code marker exists but artifact task not checked - `inst-emit-forbidden`
+5. [x] - `p1` - **FOR EACH** `to_code` ID without any code marker - `inst-foreach-missing`
+   1. [x] - `p1` - Emit error: missing code marker for `to_code` ID - `inst-emit-missing`
+6. [x] - `p1` - **FOR EACH** CDSL instruction in artifacts with code block markers - `inst-foreach-inst`
+   1. [x] - `p1` - **IF** artifact instruction has no matching `@cpt-begin/@cpt-end` block, emit error - `inst-if-inst-missing`
+   2. [x] - `p1` - **IF** code block has no matching CDSL step in artifact, emit error - `inst-if-inst-orphan`
+7. [x] - `p1` - **RETURN** accumulated errors and warnings - `inst-return-code-cross`
 
 ## 4. States (CDSL)
 
 ### Validation Report Lifecycle
 
-- [ ] `p1` - **ID**: `cpt-cypilot-state-traceability-validation-report`
+- [x] `p1` - **ID**: `cpt-cypilot-state-traceability-validation-report`
 
 **States**: NOT_RUN, PASS, FAIL, ERROR
 
 **Initial State**: NOT_RUN
 
 **Transitions**:
-1. [ ] - `p1` - **FROM** NOT_RUN **TO** PASS **WHEN** validation completes with zero errors (exit code 0) - `inst-pass`
-2. [ ] - `p1` - **FROM** NOT_RUN **TO** FAIL **WHEN** validation completes with structural or traceability errors (exit code 2) - `inst-fail`
-3. [ ] - `p1` - **FROM** NOT_RUN **TO** ERROR **WHEN** validation cannot run (no adapter, missing config, exit code 1) - `inst-error`
+1. [x] - `p1` - **FROM** NOT_RUN **TO** PASS **WHEN** validation completes with zero errors (exit code 0) - `inst-pass`
+2. [x] - `p1` - **FROM** NOT_RUN **TO** FAIL **WHEN** validation completes with structural or traceability errors (exit code 2) - `inst-fail`
+3. [x] - `p1` - **FROM** NOT_RUN **TO** ERROR **WHEN** validation cannot run (no adapter, missing config, exit code 1) - `inst-error`
 
 ## 5. Definitions of Done
 

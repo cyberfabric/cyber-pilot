@@ -110,6 +110,7 @@ class CodeFile:
         if self._loaded:
             return list(self._errors)
 
+        # @cpt-begin:cpt-cypilot-algo-traceability-validation-scan-code:p1:inst-read-code
         try:
             text = self.path.read_text(encoding="utf-8")
         except Exception as e:
@@ -118,10 +119,14 @@ class CodeFile:
             return [err]
 
         lines = text.splitlines()
+        # @cpt-end:cpt-cypilot-algo-traceability-validation-scan-code:p1:inst-read-code
         self._parse_markers(lines)
         self._loaded = True
+        # @cpt-begin:cpt-cypilot-algo-traceability-validation-scan-code:p1:inst-return-code
         return list(self._errors)
+        # @cpt-end:cpt-cypilot-algo-traceability-validation-scan-code:p1:inst-return-code
 
+    # @cpt-algo:cpt-cypilot-algo-traceability-validation-scan-code:p1
     def _parse_markers(self, lines: List[str]) -> None:
         """Parse all Cypilot markers from code lines."""
         # Track open block markers for pairing
@@ -130,6 +135,7 @@ class CodeFile:
         for idx, line in enumerate(lines):
             line_no = idx + 1
 
+            # @cpt-begin:cpt-cypilot-algo-traceability-validation-scan-code:p1:inst-match-scope
             # Check for scope markers
             for m in _SCOPE_MARKER_RE.finditer(line):
                 marker = ScopeMarker(
@@ -140,6 +146,7 @@ class CodeFile:
                     raw=line,
                 )
                 self.scope_markers.append(marker)
+                # @cpt-begin:cpt-cypilot-algo-traceability-validation-scan-code:p1:inst-extract-scope
                 self.references.append(CodeReference(
                     id=m.group("id"),
                     line=line_no,
@@ -148,7 +155,10 @@ class CodeFile:
                     inst=None,
                     marker_type="scope",
                 ))
+                # @cpt-end:cpt-cypilot-algo-traceability-validation-scan-code:p1:inst-extract-scope
+            # @cpt-end:cpt-cypilot-algo-traceability-validation-scan-code:p1:inst-match-scope
 
+            # @cpt-begin:cpt-cypilot-algo-traceability-validation-scan-code:p1:inst-match-begin
             # Check for block begin markers
             for m in _BLOCK_BEGIN_RE.finditer(line):
                 key = f"{m.group('id')}:{m.group('phase')}:{m.group('inst')}"
@@ -163,12 +173,18 @@ class CodeFile:
                         inst=m.group("inst"),
                     ))
                 else:
+                    # @cpt-begin:cpt-cypilot-algo-traceability-validation-scan-code:p1:inst-push-block
                     open_blocks[key] = (line_no, m.group("id"), int(m.group("phase")), m.group("inst"))
+                    # @cpt-end:cpt-cypilot-algo-traceability-validation-scan-code:p1:inst-push-block
+            # @cpt-end:cpt-cypilot-algo-traceability-validation-scan-code:p1:inst-match-begin
 
+            # @cpt-begin:cpt-cypilot-algo-traceability-validation-scan-code:p1:inst-match-end
             # Check for block end markers
             for m in _BLOCK_END_RE.finditer(line):
                 key = f"{m.group('id')}:{m.group('phase')}:{m.group('inst')}"
+                # @cpt-begin:cpt-cypilot-algo-traceability-validation-scan-code:p1:inst-pop-block
                 if key not in open_blocks:
+                    # @cpt-begin:cpt-cypilot-algo-traceability-validation-scan-code:p1:inst-if-mismatch
                     self._errors.append(error(
                         "marker",
                         f"@cpt-end for `{m.group('id')}` inst `{m.group('inst')}` at line {line_no} in `{self.path.name}` has no matching @cpt-begin",
@@ -178,6 +194,7 @@ class CodeFile:
                         id=m.group("id"),
                         inst=m.group("inst"),
                     ))
+                    # @cpt-end:cpt-cypilot-algo-traceability-validation-scan-code:p1:inst-if-mismatch
                 else:
                     start_line, cpt, phase, inst = open_blocks.pop(key)
                     content = tuple(lines[start_line:idx])  # lines between begin/end
@@ -210,7 +227,10 @@ class CodeFile:
                         inst=inst,
                         marker_type="block",
                     ))
+                # @cpt-end:cpt-cypilot-algo-traceability-validation-scan-code:p1:inst-pop-block
+            # @cpt-end:cpt-cypilot-algo-traceability-validation-scan-code:p1:inst-match-end
 
+        # @cpt-begin:cpt-cypilot-algo-traceability-validation-scan-code:p1:inst-if-unclosed
         # Report unclosed blocks
         for key, (start_line, cpt, phase, inst) in open_blocks.items():
             self._errors.append(error(
@@ -222,6 +242,7 @@ class CodeFile:
                 id=cpt,
                 inst=inst,
             ))
+        # @cpt-end:cpt-cypilot-algo-traceability-validation-scan-code:p1:inst-if-unclosed
 
     def list_ids(self) -> List[str]:
         """List all unique Cypilot IDs referenced in this code file."""
@@ -286,6 +307,7 @@ class CodeFile:
         return {"errors": errors, "warnings": warnings}
 
 
+# @cpt-algo:cpt-cypilot-algo-traceability-validation-cross-validate-code:p1
 def cross_validate_code(
     code_files: Sequence[CodeFile],
     artifact_ids: Set[str],
@@ -309,6 +331,7 @@ def cross_validate_code(
     errors: List[Dict[str, object]] = []
     warnings: List[Dict[str, object]] = []
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate-code:p1:inst-if-docs-only
     if traceability == "DOCS-ONLY":
         # In DOCS-ONLY mode, code markers are prohibited
         for cf in code_files:
@@ -321,20 +344,25 @@ def cross_validate_code(
                     line=1,
                 ))
         return {"errors": errors, "warnings": warnings}
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate-code:p1:inst-if-docs-only
 
     # FULL traceability mode
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate-code:p1:inst-collect-code-ids
     # Collect all IDs referenced in code
     code_ids: Set[str] = set()
     for cf in code_files:
         code_ids.update(cf.list_ids())
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate-code:p1:inst-collect-code-ids
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate-code:p1:inst-foreach-orphan
     # Check for orphaned markers (code refs IDs not in artifacts)
     first_forbidden: Dict[str, Tuple[Path, int]] = {}
     for cf in code_files:
         for ref in cf.references:
             if forbidden_code_ids and ref.id in forbidden_code_ids and ref.id not in first_forbidden:
                 first_forbidden[ref.id] = (cf.path, int(ref.line))
+            # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate-code:p1:inst-emit-orphan
             if ref.id not in artifact_ids:
                 errors.append(error(
                     "traceability",
@@ -344,10 +372,14 @@ def cross_validate_code(
                     line=ref.line,
                     id=ref.id,
                 ))
+            # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate-code:p1:inst-emit-orphan
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate-code:p1:inst-foreach-orphan
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate-code:p1:inst-foreach-forbidden
     if forbidden_code_ids:
         for fid in sorted(first_forbidden.keys()):
             p, ln = first_forbidden[fid]
+            # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate-code:p1:inst-emit-forbidden
             errors.append(error(
                 "structure",
                 f"`{fid}` is marked to_code=\"true\" and referenced in code at line {ln} but its task checkbox is not checked in the artifact",
@@ -356,10 +388,14 @@ def cross_validate_code(
                 line=ln,
                 id=fid,
             ))
+            # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate-code:p1:inst-emit-forbidden
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate-code:p1:inst-foreach-forbidden
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate-code:p1:inst-foreach-missing
     # Check for missing markers (to_code IDs without code markers)
     missing_ids = to_code_ids - code_ids
     for missing_id in sorted(missing_ids):
+        # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate-code:p1:inst-emit-missing
         errors.append(error(
             "coverage",
             f"`{missing_id}` is marked to_code=\"true\" but no @cpt marker referencing it exists in the codebase",
@@ -368,7 +404,10 @@ def cross_validate_code(
             line=1,
             id=missing_id,
         ))
+        # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate-code:p1:inst-emit-missing
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate-code:p1:inst-foreach-missing
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate-code:p1:inst-foreach-inst
     # Instruction-level cross-validation
     if artifact_instances:
         # Collect code instructions per ID from block markers
@@ -380,6 +419,7 @@ def cross_validate_code(
         for cid, art_insts in sorted(artifact_instances.items()):
             code_insts = set(code_inst_by_id.get(cid, {}).keys())
 
+            # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate-code:p1:inst-if-inst-missing
             # Artifact instruction not in code → missing implementation
             for inst in sorted(art_insts - code_insts):
                 errors.append(error(
@@ -391,7 +431,9 @@ def cross_validate_code(
                     id=cid,
                     inst=inst,
                 ))
+            # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate-code:p1:inst-if-inst-missing
 
+            # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate-code:p1:inst-if-inst-orphan
             # Code instruction not in artifact → orphaned marker
             for inst in sorted(code_insts - art_insts):
                 loc_path, loc_line = code_inst_by_id[cid][inst]
@@ -404,8 +446,12 @@ def cross_validate_code(
                     id=cid,
                     inst=inst,
                 ))
+            # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate-code:p1:inst-if-inst-orphan
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate-code:p1:inst-foreach-inst
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate-code:p1:inst-return-code-cross
     return {"errors": errors, "warnings": warnings}
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate-code:p1:inst-return-code-cross
 
 
 def load_code_file(code_path: Path) -> Tuple[Optional[CodeFile], List[Dict[str, object]]]:

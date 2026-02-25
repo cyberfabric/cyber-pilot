@@ -57,6 +57,7 @@ def _normalize_cpt_id_from_line(line: str) -> Optional[str]:
     return matches[0] if matches else None
 
 
+# @cpt-algo:cpt-cypilot-algo-traceability-validation-scan-ids:p1
 def scan_cpt_ids(path: Path) -> List[Dict[str, object]]:
     """Scan a file for Cypilot IDs by scanning document text.
 
@@ -66,13 +67,16 @@ def scan_cpt_ids(path: Path) -> List[Dict[str, object]]:
     - Treats lines like `` `cpt-...` `` / checkbox variants as *references*.
     - Treats any `` `cpt-...` `` occurrence as a *reference* (unless it was a definition line).
     """
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-scan-ids:p1:inst-read-file
     lines = read_text_safe(path)
     if lines is None:
         return []
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-scan-ids:p1:inst-read-file
 
     hits: List[Dict[str, object]] = []
     in_fence = False
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-scan-ids:p1:inst-foreach-line
     for idx0, raw in enumerate(lines):
         if _CODE_FENCE_RE.match(raw):
             in_fence = not in_fence
@@ -84,7 +88,10 @@ def scan_cpt_ids(path: Path) -> List[Dict[str, object]]:
         if not stripped:
             continue
 
+        # @cpt-begin:cpt-cypilot-algo-traceability-validation-scan-ids:p1:inst-match-def
         m = _ID_DEF_RE.match(stripped)
+        # @cpt-end:cpt-cypilot-algo-traceability-validation-scan-ids:p1:inst-match-def
+        # @cpt-begin:cpt-cypilot-algo-traceability-validation-scan-ids:p1:inst-if-def
         if m:
             checked = (m.group("task") or "").lower().find("x") != -1
             priority = m.group("priority") or m.group("priority_only") or m.group("priority_only2")
@@ -101,7 +108,9 @@ def scan_cpt_ids(path: Path) -> List[Dict[str, object]]:
                 h["priority"] = priority
             hits.append(h)
             continue
+        # @cpt-end:cpt-cypilot-algo-traceability-validation-scan-ids:p1:inst-if-def
 
+        # @cpt-begin:cpt-cypilot-algo-traceability-validation-scan-ids:p1:inst-match-ref
         # Reference line format (optionally checkbox / priority).
         stripped_ref = stripped
         if stripped_ref.startswith("- "):
@@ -124,12 +133,18 @@ def scan_cpt_ids(path: Path) -> List[Dict[str, object]]:
                 h["priority"] = priority
             hits.append(h)
             continue
+        # @cpt-end:cpt-cypilot-algo-traceability-validation-scan-ids:p1:inst-match-ref
 
+        # @cpt-begin:cpt-cypilot-algo-traceability-validation-scan-ids:p1:inst-match-inline
         # Generic inline backticked references.
         for mm in _BACKTICK_ID_RE.finditer(raw):
             hits.append({"id": mm.group(1), "line": idx0 + 1, "type": "reference", "checked": False})
+        # @cpt-end:cpt-cypilot-algo-traceability-validation-scan-ids:p1:inst-match-inline
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-scan-ids:p1:inst-foreach-line
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-scan-ids:p1:inst-return-hits
     return hits
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-scan-ids:p1:inst-return-hits
 
 
 def headings_by_line(path: Path) -> List[List[str]]:
@@ -162,6 +177,7 @@ def headings_by_line(path: Path) -> List[List[str]]:
     return out
 
 
+# @cpt-algo:cpt-cypilot-algo-traceability-validation-scan-cdsl:p1
 def scan_cdsl_instructions(path: Path) -> List[Dict[str, object]]:
     """Scan a file for CDSL instruction lines by scanning document text.
 
@@ -177,14 +193,17 @@ def scan_cdsl_instructions(path: Path) -> List[Dict[str, object]]:
       - parent_id: Optional[str]
       - line: int (1-based)
     """
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-scan-cdsl:p1:inst-read-file
     lines = read_text_safe(path)
     if lines is None:
         return []
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-scan-cdsl:p1:inst-read-file
 
     hits: List[Dict[str, object]] = []
     in_fence = False
     last_defined_id: Optional[str] = None
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-scan-cdsl:p1:inst-foreach-cdsl
     for idx0, raw in enumerate(lines):
         if _CODE_FENCE_RE.match(raw):
             in_fence = not in_fence
@@ -196,17 +215,20 @@ def scan_cdsl_instructions(path: Path) -> List[Dict[str, object]]:
         if not stripped:
             continue
 
+        # @cpt-begin:cpt-cypilot-algo-traceability-validation-scan-cdsl:p1:inst-track-parent
         mdef = _ID_DEF_RE.match(stripped)
         if mdef:
             id_value = mdef.group("id") or mdef.group("id2") or mdef.group("id3")
             if id_value:
                 last_defined_id = id_value
             continue
+        # @cpt-end:cpt-cypilot-algo-traceability-validation-scan-cdsl:p1:inst-track-parent
 
         m = _CDSL_LINE_RE.match(raw)
         if not m:
             continue
 
+        # @cpt-begin:cpt-cypilot-algo-traceability-validation-scan-cdsl:p1:inst-extract-inst
         check = str(m.group("check") or " ").strip().lower()
         checked = check == "x"
         phase_raw = str(m.group("phase") or "").strip()
@@ -214,7 +236,9 @@ def scan_cdsl_instructions(path: Path) -> List[Dict[str, object]]:
         if not mph:
             continue
         phase = int(mph.group("num"))
+        # @cpt-end:cpt-cypilot-algo-traceability-validation-scan-cdsl:p1:inst-extract-inst
 
+        # @cpt-begin:cpt-cypilot-algo-traceability-validation-scan-cdsl:p1:inst-associate-parent
         hits.append({
             "type": "cdsl",
             "checked": checked,
@@ -223,8 +247,12 @@ def scan_cdsl_instructions(path: Path) -> List[Dict[str, object]]:
             "parent_id": last_defined_id,
             "line": idx0 + 1,
         })
+        # @cpt-end:cpt-cypilot-algo-traceability-validation-scan-cdsl:p1:inst-associate-parent
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-scan-cdsl:p1:inst-foreach-cdsl
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-scan-cdsl:p1:inst-return-cdsl
     return hits
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-scan-cdsl:p1:inst-return-cdsl
 
 
 def get_content_scoped(

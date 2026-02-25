@@ -6,6 +6,7 @@ from typing import Dict, List, Tuple
 from ..utils.document import scan_cpt_ids
 
 
+# @cpt-flow:cpt-cypilot-flow-traceability-validation-query:p1
 def cmd_where_defined(argv: List[str]) -> int:
     """Find where a Cypilot ID is defined."""
     p = argparse.ArgumentParser(prog="where-defined", description="Find where an Cypilot ID is defined")
@@ -72,6 +73,7 @@ def cmd_where_defined(argv: List[str]) -> int:
         print(json.dumps({"status": "ERROR", "message": "No Cypilot artifacts found in registry"}, indent=None, ensure_ascii=False))
         return 1
 
+    # @cpt-begin:cpt-cypilot-flow-traceability-validation-query:p1:inst-if-where-def
     # Search for definitions
     definitions: List[Dict[str, object]] = []
 
@@ -107,4 +109,5 @@ def cmd_where_defined(argv: List[str]) -> int:
         "count": len(definitions),
         "definitions": definitions,
     }, indent=None, ensure_ascii=False))
+    # @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-if-where-def
     return 0 if status == "FOUND" else 2
