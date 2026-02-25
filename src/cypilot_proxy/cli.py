@@ -95,6 +95,10 @@ def main(argv: Optional[List[str]] = None) -> int:
         # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-return-cache-update
     # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-update-cache
 
+    # Re-add --force to args for init (skill needs it for config overwrite)
+    if force_update and args and args[0] == "init":
+        args.append("--force")
+
     # For init with --version: update cache first, then forward init to skill
     if target_version is not None:
         from cypilot_proxy.cache import download_and_cache
@@ -110,7 +114,17 @@ def main(argv: Optional[List[str]] = None) -> int:
     # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-else-no-project
     # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-check-cache
     # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-cache
-    skill_path, source = resolve_skill()
+    # For init --force / --version: use cached skill to avoid chicken-and-egg
+    # (old project skill would run init that copies new code, but old code is in memory)
+    use_cache_for_init = (
+        args and args[0] == "init"
+        and (force_update or target_version is not None)
+    )
+    if use_cache_for_init:
+        skill_path = find_cached_skill()
+        source = "cache" if skill_path else "none"
+    else:
+        skill_path, source = resolve_skill()
     # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-cache
     # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-check-cache
     # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-else-no-project
