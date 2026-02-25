@@ -35,7 +35,7 @@ purpose: Define structure and usage of artifacts.toml for agent operations
 
 **Add to adapter AGENTS.md** (path relative to adapter directory):
 ```
-ALWAYS open and follow `{cypilot_path}/requirements/artifacts-registry.md` WHEN working with artifacts.toml
+ALWAYS open and follow `{cypilot_path}/.core/requirements/artifacts-registry.md` WHEN working with artifacts.toml
 ```
 Where `{cypilot_path}` is resolved from the adapter's `**Extends**:` declaration.
 

@@ -13,6 +13,21 @@ from ..constants import ARTIFACTS_REGISTRY_FILENAME
 from . import toml_utils
 
 _MARKER_START = "<!-- @cpt:root-agents -->"
+_CORE_SUBDIR = ".core"
+
+
+def core_subpath(cypilot_root: Path, *parts: str) -> Path:
+    """Resolve a subpath within a cypilot root, checking .core/ first.
+
+    New layout:  .cypilot/.core/workflows/
+    Old layout:  .cypilot/workflows/  (source repo or legacy install)
+
+    Returns the .core/ path if .core/ exists, otherwise the flat path.
+    """
+    core = cypilot_root / _CORE_SUBDIR
+    if core.is_dir():
+        return core.joinpath(*parts)
+    return cypilot_root.joinpath(*parts)
 
 
 def cfg_get_str(cfg: object, *keys: str) -> Optional[str]:
@@ -54,7 +69,7 @@ def find_project_root(start: Path) -> Optional[Path]:
 
 
 def _read_cypilot_var(project_root: Path) -> Optional[str]:
-    """Read ``cypilot`` variable from root AGENTS.md TOML block."""
+    """Read ``cypilot_path`` (or legacy ``cypilot``) variable from root AGENTS.md TOML block."""
     agents_file = project_root / "AGENTS.md"
     if not agents_file.is_file():
         return None
@@ -65,7 +80,7 @@ def _read_cypilot_var(project_root: Path) -> Optional[str]:
     if _MARKER_START not in content:
         return None
     data = toml_utils.parse_toml_from_markdown(content)
-    val = data.get("cypilot")
+    val = data.get("cypilot_path") or data.get("cypilot")
     return val.strip() if isinstance(val, str) and val.strip() else None
 
 
@@ -103,7 +118,7 @@ def cypilot_root_from_project_config() -> Optional[Path]:
 
     adapter_rel = _read_cypilot_var(project_root) or ""
     core = (project_root / adapter_rel / core_rel).resolve()
-    if (core / "AGENTS.md").exists() and (core / "requirements").is_dir() and (core / "workflows").is_dir():
+    if _is_cypilot_root(core):
         return core
     return None
 
@@ -291,6 +306,22 @@ def iter_registry_entries(registry: dict) -> List[dict]:
     return out
 
 
+def _is_cypilot_root(path: Path) -> bool:
+    """Check if *path* looks like a cypilot root (flat or .core/ layout)."""
+    # New layout: .core/ subdir with requirements + workflows
+    core = path / _CORE_SUBDIR
+    if core.is_dir() and (core / "requirements").is_dir() and (core / "workflows").is_dir():
+        return True
+    # Old / source-repo layout: flat requirements + workflows + AGENTS.md
+    if (
+        (path / "AGENTS.md").exists()
+        and (path / "requirements").is_dir()
+        and (path / "workflows").is_dir()
+    ):
+        return True
+    return False
+
+
 def cypilot_root_from_this_file() -> Path:
     """
     Find Cypilot root by walking up directory tree looking for Cypilot markers.
@@ -304,12 +335,7 @@ def cypilot_root_from_this_file() -> Path:
     
     # Walk up directory tree looking for Cypilot root markers
     for _ in range(10):  # Limit search depth to avoid infinite loop
-        # Check for Cypilot root markers: AGENTS.md + requirements/ + workflows/
-        if (
-            (current / "AGENTS.md").exists() and
-            (current / "requirements").is_dir() and
-            (current / "workflows").is_dir()
-        ):
+        if _is_cypilot_root(current):
             return current
         
         parent = current.parent

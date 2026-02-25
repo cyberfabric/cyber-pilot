@@ -1,6 +1,6 @@
 # Cypilot SDLC Code Checklist (Kit-Specific)
 
-ALWAYS open and follow `{cypilot_path}/requirements/code-checklist.md` FIRST
+ALWAYS open and follow `{cypilot_path}/.core/requirements/code-checklist.md` FIRST
 
 **Artifact**: Code Implementation (Cypilot SDLC)
 **Version**: 1.0
@@ -19,7 +19,7 @@ ALWAYS open and follow `{cypilot_path}/requirements/code-checklist.md` FIRST
 
 Before running the SDLC-specific checks:
 
-- [ ] Determine traceability mode from `artifacts.json` for the relevant system/artifact: `FULL` vs `DOCS-ONLY`
+- [ ] Determine traceability mode from `artifacts.toml` for the relevant system/artifact: `FULL` vs `DOCS-ONLY`
 - [ ] If `FULL`: identify the design source(s) to trace (Feature design is preferred)
 - [ ] If `DOCS-ONLY`: skip traceability requirements and validate semantics against provided design sources
 
@@ -91,4 +91,4 @@ These checks are **Cypilot SDLC-specific** because they require Cypilot artifact
 
 ---
 
-Use `{cypilot_path}/requirements/code-checklist.md` for all generic code quality checks.
+Use `{cypilot_path}/.core/requirements/code-checklist.md` for all generic code quality checks.

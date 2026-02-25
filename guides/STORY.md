@@ -76,7 +76,7 @@ _Output (as visible in screenshot; truncated):_
 "project_name": "Cypilot",
 "status": "FOUND",
 "project_root": "/Volumes/CaseSensitive/coding/cypilot",
-"artifacts_registry_path": "/Volumes/CaseSensitive/coding/cypilot/.cypilot-adapter/artifacts.json",
+"artifacts_registry_path": "/Volumes/CaseSensitive/coding/cypilot/.cypilot-adapter/artifacts.toml",
 "artifacts_registry": {
   "version": "1.0",
   "project_root": "..",
@@ -365,7 +365,7 @@ Reply with:
 
 #### 0400 — Ask “what is an artifact?”
 
-**Summary:** The user asks what an “artifact” is. The agent defines artifacts as registered documentation files in `artifacts.json` and explains how registration enables deterministic validation and traceability.
+**Summary:** The user asks what an “artifact” is. The agent defines artifacts as registered documentation files in `artifacts.toml` and explains how registration enables deterministic validation and traceability.
 
 <details>
   <summary>Expand chat details...</summary>
@@ -391,7 +391,7 @@ In Cypilot, an artifact is a registered documentation file (a “source of truth
 Concretely:
 
 - [Where it’s declared] In the artifacts registry:
-  - `{adapter-directory}/artifacts.json` (in this repo: `.cypilot-adapter/artifacts.json`)
+  - `{cypilot_path}/config/artifacts.toml` (in this repo: `.cypilot-adapter/artifacts.toml`)
 - [What it contains] Entries like:
   - `path`: where the file lives (e.g. `architecture/PRD.md`)
   - `kind`: what type it is (`PRD`, `DESIGN`, `ADR`, `DECOMPOSITION`, `SPEC`)
@@ -417,14 +417,14 @@ From the adapter-info output earlier, this repo registers artifacts like:
 
 #### Artifact vs codebase (important distinction)
 
-- Artifact = a doc file registered under `systems[].artifacts[]` in `artifacts.json`.
-- Codebase = a source directory registered under `systems[].codebase[]` in `artifacts.json` so traceability scans know where to look.
+- Artifact = a doc file registered under `systems[].artifacts[]` in `artifacts.toml`.
+- Codebase = a source directory registered under `systems[].codebase[]` in `artifacts.toml` so traceability scans know where to look.
 
 If you want, I can show you the registry.
 
 Say:
 
-- `cypilot analyze: show me the artifacts.json entries for this repo`
+- `cypilot analyze: show me the artifacts.toml entries for this repo`
 - `cypilot analyze: validate all registered artifacts`
 
 </details>
@@ -460,7 +460,7 @@ In other words: the kit is the ruleset Cypilot uses to process artifacts.
 
 “Kit configured” just means:
 
-- your `.cypilot-adapter/artifacts.json` has a `kits` section, and
+- your `.cypilot-adapter/artifacts.toml` has a `kits` section, and
 - your system node points at one of them via `system.kit`.
 
 Example (conceptually):
@@ -504,7 +504,7 @@ If you want, I can point to the exact JSON.
 
 Say:
 
-- `cypilot analyze: show me the kit config in .cypilot-adapter/artifacts.json`
+- `cypilot analyze: show me the kit config in .cypilot-adapter/artifacts.toml`
 
 </details>
 
@@ -656,7 +656,7 @@ _2 more_
 
 _Thought for 15s_
 
-📟 [execution-protocol]: Entering “Understand Registry / Load Adapter Specs” — I’m going to re-check the adapter registry (`artifacts.json`) and load the adapter’s project structure + conventions specs so we place your new “overwork alert” example in the repo in a compliant location before generating any code.
+📟 [execution-protocol]: Entering “Understand Registry / Load Adapter Specs” — I’m going to re-check the adapter registry (`artifacts.toml`) and load the adapter’s project structure + conventions specs so we place your new “overwork alert” example in the repo in a compliant location before generating any code.
 
 Command: `python3`
 
@@ -672,7 +672,7 @@ _Output (as visible in screenshot; truncated):_
 
 _Using legacy terminal_
 
-_Read `artifacts.json` and 7 other files_
+_Read `artifacts.toml` and 7 other files_
 
 _Analyzed /Volumes/CaseSensitive/coding/cypilot_
 
@@ -785,7 +785,7 @@ _Thought for 31s_
 
 - Fastest path to value: you’ll be using it the same day.
 - Lowest risk to this repo:
-  - no changes to `{ } .cypilot-adapter/artifacts.json`
+  - no changes to `{ } .cypilot-adapter/artifacts.toml`
   - no interaction with Cypilot validation gates (beyond normal code quality)
 - Keeps Cypilot core clean: it’s clearly an “example utility”, not part of the methodology engine.
 
@@ -824,7 +824,7 @@ _Thought for 31s_
 #### Costs / risks
 
 - More time + more files (it’s a mini-project).
-- If we register these artifacts in `{ } .cypilot-adapter/artifacts.json` (to enable full deterministic workflows), that may:
+- If we register these artifacts in `{ } .cypilot-adapter/artifacts.toml` (to enable full deterministic workflows), that may:
   - affect repo-wide validations (`make validate`, `cypilot validate`)
   - potentially require follow-up adjustments if any existing tests assume current registry shape
 - If we don’t register them (keep docs local), you still get “SDLC-style docs”, but you lose some deterministic tooling benefits.
@@ -927,7 +927,7 @@ Context: IDs must follow `cpt-{hierarchy-prefix}-{kind}-{slug}` and remain uniqu
 
 Proposal:
 
-- Registry: Add a new system to `{ } .cypilot-adapter/artifacts.json`:
+- Registry: Add a new system to `{ } .cypilot-adapter/artifacts.toml`:
   - name: Example: Overwork Alert
   - slug: overwork-alert
   - kit: cypilot-sdlc
@@ -946,7 +946,7 @@ This yields IDs like:
 - `cpt-ex-ovwa-fr-configurable-limit`
 - `cpt-ex-ovwa-feature-overwork-alert`
 
-Reply: confirm slug (`overwork-alert` OK?) and confirm we should register the system in `{ } artifacts.json` (needed for the cleanest deterministic “end-to-end” flow).
+Reply: confirm slug (`overwork-alert` OK?) and confirm we should register the system in `{ } artifacts.toml` (needed for the cleanest deterministic “end-to-end” flow).
 
 </details>
 
@@ -1138,7 +1138,7 @@ Open questions (proposal):
 
 Reply with either:
 
-- `approve all` (and optionally: confirm `slug=overwork-alert` + confirm “register system in artifacts.json”), or
+- `approve all` (and optionally: confirm `slug=overwork-alert` + confirm “register system in artifacts.toml”), or
 - Edits by section number (e.g., “0: slug should be owa...”; “3: add FR for quiet hours”, etc.)
 
 After you approve PRD inputs, I’ll move to DESIGN inputs next (architecture/components) and continue the SDLC chain.
@@ -1197,7 +1197,7 @@ What would you like me to write to disk now (requires explicit confirmation befo
 - PRD only
   - Create folder(s) as needed and write PRD to `examples/overwork_alert/architecture/PRD.md` (no registry changes yet).
 - PRD + register system
-  - Write `PRD.md` and update `.cypilot-adapter/artifacts.json` to register the new system under `examples/overwork_alert/...` for deterministic validation + traceability.
+  - Write `PRD.md` and update `.cypilot-adapter/artifacts.toml` to register the new system under `examples/overwork_alert/...` for deterministic validation + traceability.
 - PRD + register system + scaffold chain
   - Do the above, plus create empty placeholders for DESIGN/DECOMPOSITION/SPEC files in the proposed locations (content to be generated next).
 - Hold off on writes
@@ -1221,13 +1221,13 @@ Asked 1 question:
 
 _Thought for 2s_
 
-📟 [execution-protocol]: Entering “Write Phase (gated)” — you selected PRD + register system, so I’ll now (1) inspect current `{ } artifacts.json` structure and whether `examples/overwork_alert/...` exists, then (2) write `examples/overwork_alert/architecture/PRD.md` and patch `{ } .cypilot-adapter/artifacts.json` accordingly.
+📟 [execution-protocol]: Entering “Write Phase (gated)” — you selected PRD + register system, so I’ll now (1) inspect current `{ } artifacts.toml` structure and whether `examples/overwork_alert/...` exists, then (2) write `examples/overwork_alert/architecture/PRD.md` and patch `{ } .cypilot-adapter/artifacts.toml` accordingly.
 
-_Explored `artifacts.json` and searched 2 queries_
+_Explored `artifacts.toml` and searched 2 queries_
 
 _Thought for 23s_
 
-📟 [execution-protocol]: Before writing `{ } artifacts.json` and creating `examples/overwork_alert/...`, I’m going to load the artifacts registry schema + rules and the project structure spec, then I’ll generate the PRD file from the PRD template and patch the registry in a single, safe change set.
+📟 [execution-protocol]: Before writing `{ } artifacts.toml` and creating `examples/overwork_alert/...`, I’m going to load the artifacts registry schema + rules and the project structure spec, then I’ll generate the PRD file from the PRD template and patch the registry in a single, safe change set.
 
 _Read `artifacts.schema.json` and 3 other files_
 
@@ -1242,7 +1242,7 @@ Diff preview (as visible in screenshot; truncated):
 ...
 ```
 
-`artifacts.json` (+19)
+`artifacts.toml` (+19)
 
 ```json
 ...
@@ -1259,7 +1259,7 @@ Written to disk
 - PRD created
   - `examples/overwork_alert/architecture/PRD.md`
 - System registered
-  - Updated `{ } .cypilot-adapter/artifacts.json` with a new system:
+  - Updated `{ } .cypilot-adapter/artifacts.toml` with a new system:
     - name: Example: Overwork Alert
     - slug: overwork-alert
     - artifacts_dir: `examples/overwork_alert/architecture`
@@ -1273,7 +1273,7 @@ Written to disk
 Links:
 
 - PRD: [PRD.md](../examples/overwork_alert/architecture/PRD.md)
-- Registry: [artifacts.json](../.cypilot-adapter/artifacts.json)
+- Registry: [artifacts.toml](../.cypilot-adapter/artifacts.toml)
 
 #### 1003 — Next steps: validation + DESIGN
 
@@ -1303,7 +1303,7 @@ A couple of DESIGN-level choices I’ll ask you to confirm when we start:
 
 #### Status
 
-- Done: PRD written + registered in `{ } artifacts.json`.
+- Done: PRD written + registered in `{ } artifacts.toml`.
 - In progress: SDLC artifact chain (next: DESIGN → DECOMPOSITION → SPEC).
 - Pending: Implementation (CODE) after specs.
 
@@ -1467,7 +1467,7 @@ Domain model (types, not implementation)
 #### Status
 
 - Done: PRD deterministic validation PASS.
-- Next: You answer A/B/C → I draft DESIGN in chat → you approve → I write `examples/overwork_alert/architecture/DESIGN.md` and register it in `{ } .cypilot-adapter/artifacts.json`.
+- Next: You answer A/B/C → I draft DESIGN in chat → you approve → I write `examples/overwork_alert/architecture/DESIGN.md` and register it in `{ } .cypilot-adapter/artifacts.toml`.
 
 </details>
 
@@ -1593,7 +1593,7 @@ Reply with:
 
 Then I’ll ask for explicit write confirmation to:
 
-- Create the ADR file + register it in `{ } .cypilot-adapter/artifacts.json`
+- Create the ADR file + register it in `{ } .cypilot-adapter/artifacts.toml`
 - Update PRD to align with A/B (only if you want that), then re-run validate
 - Draft DESIGN in chat for your approval, then write `examples/overwork_alert/architecture/DESIGN.md`
 
@@ -1640,9 +1640,9 @@ Asked 1 question:
 
 _Thought for 5s_
 
-📟 [execution-protocol]: You confirmed ADR + registry + align PRD, so I’ll now (1) read the exact PRD sections to patch safely, (2) create the ADR file under `examples/overwork_alert/architecture/ADR/`, and (3) update `{ } .cypilot-adapter/artifacts.json` to register that ADR. After that, I’ll run `cypilot validate` on PRD + ADR.
+📟 [execution-protocol]: You confirmed ADR + registry + align PRD, so I’ll now (1) read the exact PRD sections to patch safely, (2) create the ADR file under `examples/overwork_alert/architecture/ADR/`, and (3) update `{ } .cypilot-adapter/artifacts.toml` to register that ADR. After that, I’ll run `cypilot validate` on PRD + ADR.
 
-_Read `PRD.md` and `artifacts.json`_
+_Read `PRD.md` and `artifacts.toml`_
 
 _Thought for 25s_
 
@@ -1656,9 +1656,9 @@ Diff preview (as visible in screenshot; truncated):
 ...
 ```
 
-📟 [requirements/artifacts-registry.md]: Before I touch `{ } artifacts.json` again, I’m going to check what Cypilot CLI commands exist for registry operations so we comply with the “use CLI commands, not direct file manipulation” rule. Then I’ll create the ADR file, register it, and re-run validation.
+📟 [requirements/artifacts-registry.md]: Before I touch `{ } artifacts.toml` again, I’m going to check what Cypilot CLI commands exist for registry operations so we comply with the “use CLI commands, not direct file manipulation” rule. Then I’ll create the ADR file, register it, and re-run validation.
 
-_Explored `cypilot.clispec` and searched `.json|artifacts.json|artifact registry`_
+_Explored `cypilot.clispec` and searched `.json|artifacts.toml|artifact registry`_
 
 Command:
 
@@ -1690,7 +1690,7 @@ Search and utility commands:
 
 **ASSISTANT**
 
-LOG [ADR generation]: I’m going to (1) check whether an Overwork Alert ADR file already exists, (2) create the new ADR file under `examples/overwork_alert/architecture/ADR/general/`, (3) register it in `{ } .cypilot-adapter/artifacts.json`, and then (4) run `cypilot validate --skip-code` on PRD + ADR.
+LOG [ADR generation]: I’m going to (1) check whether an Overwork Alert ADR file already exists, (2) create the new ADR file under `examples/overwork_alert/architecture/ADR/general/`, (3) register it in `{ } .cypilot-adapter/artifacts.toml`, and then (4) run `cypilot validate --skip-code` on PRD + ADR.
 
 _Searched `0001-*overwork*` in /Volumes/CaseSensitive/coding/cypilot (0)_
 
@@ -1706,7 +1706,7 @@ Diff preview (as visible in screenshot; truncated):
 ...
 ```
 
-`artifacts.json` (+2, -1)
+`artifacts.toml` (+2, -1)
 
 ```json
 ...
@@ -1751,7 +1751,7 @@ LOG [ADR deterministic validation]: The ADR failed structural validation because
 Links:
 
 - ADR: [0001-cpt-ex-ovwa-adr-cli-daemon-launchagent-no-menubar-v1.md](../examples/overwork_alert/architecture/ADR/general/0001-cpt-ex-ovwa-adr-cli-daemon-launchagent-no-menubar-v1.md)
-- Registry: [artifacts.json](../.cypilot-adapter/artifacts.json)
+- Registry: [artifacts.toml](../.cypilot-adapter/artifacts.toml)
 
 #### 1302 — ADR structural fix + validation pass
 
@@ -1798,7 +1798,7 @@ Command:
 
 _Thought for 14s_
 
-LOG [AGENTS.md]: Cypilot acknowledgment (to proceed) — I understand MUST = mandatory, I will follow workflows step-by-step, and I will not create/modify files without your explicit confirmation. Next I’ll generate `DESIGN.md` for Overwork Alert and (optionally) register it in `{ } .cypilot-adapter/artifacts.json`, then rerun deterministic validation to reduce the remaining PRD warnings.
+LOG [AGENTS.md]: Cypilot acknowledgment (to proceed) — I understand MUST = mandatory, I will follow workflows step-by-step, and I will not create/modify files without your explicit confirmation. Next I’ll generate `DESIGN.md` for Overwork Alert and (optionally) register it in `{ } .cypilot-adapter/artifacts.toml`, then rerun deterministic validation to reduce the remaining PRD warnings.
 
 Asked 1 question:
 
@@ -1823,13 +1823,13 @@ Links:
 
 **ASSISTANT**
 
-I’m going to load the DESIGN template/rules (and the adapter/registry rules required when editing `{ } artifacts.json`), check whether `examples/overwork_alert/architecture/DESIGN.md` already exists, then create it and register it in `{ } .cypilot-adapter/artifacts.json`. After that I’ll run `cypilot validate --skip-code` on the new DESIGN artifact.
+I’m going to load the DESIGN template/rules (and the adapter/registry rules required when editing `{ } artifacts.toml`), check whether `examples/overwork_alert/architecture/DESIGN.md` already exists, then create it and register it in `{ } .cypilot-adapter/artifacts.toml`. After that I’ll run `cypilot validate --skip-code` on the new DESIGN artifact.
 
 _Explored files and searched `DESIGN.md`_
 
 _Thought for 4s_
 
-LOG [DESIGN generation]: I’ll now gather the remaining PRD IDs (FR/NFR/actors) and skim the DESIGN example for formatting, then I’ll create `examples/overwork_alert/architecture/DESIGN.md`, register it in `{ } .cypilot-adapter/artifacts.json`, and run deterministic validation on the new DESIGN artifact.
+LOG [DESIGN generation]: I’ll now gather the remaining PRD IDs (FR/NFR/actors) and skim the DESIGN example for formatting, then I’ll create `examples/overwork_alert/architecture/DESIGN.md`, register it in `{ } .cypilot-adapter/artifacts.toml`, and run deterministic validation on the new DESIGN artifact.
 
 _Read `PRD.md` and `example.md`_
 
@@ -1844,7 +1844,7 @@ Diff preview (as visible in screenshot; truncated):
 ...
 ```
 
-`artifacts.json` (+2, -1)
+`artifacts.toml` (+2, -1)
 
 ```json
 ...
@@ -1879,7 +1879,7 @@ _Output (as visible in screenshot; truncated):_
 Links:
 
 - DESIGN: [DESIGN.md](../examples/overwork_alert/architecture/DESIGN.md)
-- Registry: [artifacts.json](../.cypilot-adapter/artifacts.json)
+- Registry: [artifacts.toml](../.cypilot-adapter/artifacts.toml)
 
 #### 1304 — DESIGN patched to match template + validation pass
 
@@ -1957,7 +1957,7 @@ _Read `example.md`_
 
 _Thought for 47s_
 
-LOG [DECOMPOSITION + SPEC generation]: I’ll now create `examples/overwork_alert/architecture/DECOMPOSITION.md` plus a small initial set of SPEC files under `examples/overwork_alert/architecture/features/`, register them in `{ } .cypilot-adapter/artifacts.json`, then run `cypilot validate --skip-code` to ensure deterministic validation passes.
+LOG [DECOMPOSITION + SPEC generation]: I’ll now create `examples/overwork_alert/architecture/DECOMPOSITION.md` plus a small initial set of SPEC files under `examples/overwork_alert/architecture/features/`, register them in `{ } .cypilot-adapter/artifacts.toml`, then run `cypilot validate --skip-code` to ensure deterministic validation passes.
 
 Diff preview (as visible in screenshot; truncated):
 
@@ -1968,7 +1968,7 @@ Diff preview (as visible in screenshot; truncated):
 ...
 ```
 
-_Read `artifacts.json` (lines 1–35)_
+_Read `artifacts.toml` (lines 1–35)_
 
 _Thought for 2s_
 
@@ -1994,7 +1994,7 @@ Links:
 
 - DECOMPOSITION: [DECOMPOSITION.md](../examples/overwork_alert/architecture/DECOMPOSITION.md)
 - Specs directory: [architecture/features/](../examples/overwork_alert/architecture/features/)
-- Registry: [artifacts.json](../.cypilot-adapter/artifacts.json)
+- Registry: [artifacts.toml](../.cypilot-adapter/artifacts.toml)
 
 #### 1306 — Generate the remaining SPEC set + register in registry
 
@@ -2005,9 +2005,9 @@ Links:
 
 **ASSISTANT**
 
-I’m going to generate the remaining artifacts: register `DECOMPOSITION.md`, create the `specs/` directory with 4 SPEC docs (tracker core, notifications, CLI control, LaunchAgent autostart), register those specs in `{ } .cypilot-adapter/artifacts.json`, then re-run `cypilot validate --skip-code` to ensure everything still passes deterministic validation.
+I’m going to generate the remaining artifacts: register `DECOMPOSITION.md`, create the `specs/` directory with 4 SPEC docs (tracker core, notifications, CLI control, LaunchAgent autostart), register those specs in `{ } .cypilot-adapter/artifacts.toml`, then re-run `cypilot validate --skip-code` to ensure everything still passes deterministic validation.
 
-I’ll finish the artifact chain by (1) registering `DECOMPOSITION.md` and creating the 4 SPEC files under `examples/overwork_alert/architecture/features/`, (2) registering those SPECs in `{ } .cypilot-adapter/artifacts.json`, and (3) running `cypilot validate --skip-code` again to confirm deterministic validation passes.
+I’ll finish the artifact chain by (1) registering `DECOMPOSITION.md` and creating the 4 SPEC files under `examples/overwork_alert/architecture/features/`, (2) registering those SPECs in `{ } .cypilot-adapter/artifacts.toml`, and (3) running `cypilot validate --skip-code` again to confirm deterministic validation passes.
 
 _Read `template-system.md` and 3 other files_
 
@@ -2021,7 +2021,7 @@ _Read `template.py` (lines 880–999)_
 
 _Thought for 20s_
 
-_Read `artifacts.json` (lines 30–58)_
+_Read `artifacts.toml` (lines 30–58)_
 
 _Thought for 27s_
 
@@ -2035,7 +2035,7 @@ _Thought for 88s_
 
 Diff preview (as visible in screenshot; truncated):
 
-`artifacts.json` (+6, -1)
+`artifacts.toml` (+6, -1)
 
 ```json
 ...
@@ -2093,7 +2093,7 @@ Links:
 - SPEC: [notifications.md](../examples/overwork_alert/architecture/features/notifications.md)
 - SPEC: [cli-control.md](../examples/overwork_alert/architecture/features/cli-control.md)
 - SPEC: [launchagent-autostart.md](../examples/overwork_alert/architecture/features/launchagent-autostart.md)
-- Registry: [artifacts.json](../.cypilot-adapter/artifacts.json)
+- Registry: [artifacts.toml](../.cypilot-adapter/artifacts.toml)
 
 #### 1307 — Deterministic validation finds SPEC filename/ID mismatches
 
@@ -2266,7 +2266,7 @@ Links:
 - SPEC: [notifications.md](../examples/overwork_alert/architecture/features/notifications.md)
 - SPEC: [cli-control.md](../examples/overwork_alert/architecture/features/cli-control.md)
 - SPEC: [launchagent-autostart.md](../examples/overwork_alert/architecture/features/launchagent-autostart.md)
-- Registry: [artifacts.json](../.cypilot-adapter/artifacts.json)
+- Registry: [artifacts.toml](../.cypilot-adapter/artifacts.toml)
 
 #### 1309 — Completion summary + clear next step
 
@@ -2280,7 +2280,7 @@ Links:
 #### Status
 
 - DECOMPOSITION + SPEC generation is complete
-- All Overwork Alert artifacts are registered in `{ } .cypilot-adapter/artifacts.json`
+- All Overwork Alert artifacts are registered in `{ } .cypilot-adapter/artifacts.toml`
 - Deterministic validation passes for the whole registry (`cypilot validate --skip-code`):
   - status: PASS
   - error_count: 0
@@ -2592,7 +2592,7 @@ _Thought for 19s_
 
 I’ll do an expert-level review of the 4 SPECs against Cypilot’s SPEC rules/checklist: what’s solid, what’s missing/ambiguous, and what I’d change before coding (without editing files yet). I’m going to load the SPEC rules.md + checklist.md + registry, then produce a prioritized recommendations list.
 
-_Read `artifacts.json` and 4 other files_
+_Read `artifacts.toml` and 4 other files_
 
 _Thought for 48s_
 
@@ -3014,7 +3014,7 @@ Links:
 - SPEC: [notifications.md](../examples/overwork_alert/architecture/features/notifications.md)
 - SPEC: [cli-control.md](../examples/overwork_alert/architecture/features/cli-control.md)
 - SPEC: [launchagent-autostart.md](../examples/overwork_alert/architecture/features/launchagent-autostart.md)
-- Registry: [artifacts.json](../.cypilot-adapter/artifacts.json)
+- Registry: [artifacts.toml](../.cypilot-adapter/artifacts.toml)
 
 <a id="part-9-implementation"></a>
 ## Part 9 — Implement the tool + tests (1700–1901)
@@ -3055,7 +3055,7 @@ Error while analyzing directory
 
 _Thought for 22s_
 
- 📟 [execution-protocol]: I’ll recover cleanly from the missing `src/` directory by (1) re-running Cypilot Protocol Guard (`adapter-info`), (2) loading the required adapter “code writing” specs (tech stack, conventions, project structure, etc.), (3) inspecting `artifacts.json` to confirm the intended code path for this example, and then (4) proposing the exact file layout to create under `examples/overwork_alert/` and asking for your explicit “yes” before creating any new files.
+ 📟 [execution-protocol]: I’ll recover cleanly from the missing `src/` directory by (1) re-running Cypilot Protocol Guard (`adapter-info`), (2) loading the required adapter “code writing” specs (tech stack, conventions, project structure, etc.), (3) inspecting `artifacts.toml` to confirm the intended code path for this example, and then (4) proposing the exact file layout to create under `examples/overwork_alert/` and asking for your explicit “yes” before creating any new files.
 
 Command: `python3`
 
@@ -3121,7 +3121,7 @@ Links:
 
 📟 [execution-protocol]: Cypilot mode ENABLED (you invoked “cypilot, let’s implement it!”).
 
-📟 [execution-protocol]: Adapter status FOUND; Rules Mode is STRICT (registered artifacts + codebase in `{ } .cypilot-adapter/artifacts.json`).
+📟 [execution-protocol]: Adapter status FOUND; Rules Mode is STRICT (registered artifacts + codebase in `{ } .cypilot-adapter/artifacts.toml`).
 
 📟 [workflows/generate.md]: Entering Phase 1 (Collect Information) — I verified the registry expects code at `examples/overwork_alert/src`, but that directory does not exist yet.
 

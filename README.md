@@ -156,7 +156,7 @@ _Output (as visible in screenshot; truncated):_
 "project_name": "Cypilot",
 "status": "FOUND",
 "project_root": "/Volumes/CaseSensitive/coding/cypilot",
-"artifacts_registry_path": "/Volumes/CaseSensitive/coding/cypilot/.cypilot-adapter/artifacts.json",
+"artifacts_registry_path": "/Volumes/CaseSensitive/coding/cypilot/.cypilot-adapter/artifacts.toml",
 "artifacts_registry": {
   "version": "1.0",
   "project_root": "..",
@@ -367,11 +367,11 @@ Reply with: `cypilot generate: <your goal>` + which of the three targets.
 | Prompt | What the agent does |
 |--------|---------------------|
 | `cypilot configure adapter for Python monorepo with FastAPI` | Generates adapter with tech-stack specs, testing conventions, and codebase mappings |
-| `cypilot add src/api/ to tracked codebase` | Updates `artifacts.json` to include directory in traceability scanning |
-| `cypilot register FEATURE at architecture/features/payments.md` | Adds artifact entry to `artifacts.json` with kind, path, and system mapping |
+| `cypilot add src/api/ to tracked codebase` | Updates `artifacts.toml` to include directory in traceability scanning |
+| `cypilot register FEATURE at architecture/features/payments.md` | Adds artifact entry to `artifacts.toml` with kind, path, and system mapping |
 | `cypilot add tech-stack spec for PostgreSQL + Redis` | Creates `specs/tech-stack.md` with database and caching conventions |
 | `cypilot update testing conventions` | Modifies `specs/testing.md` with project-specific test patterns |
-| `cypilot show adapter config` | Displays `artifacts.json` structure, registered artifacts, and codebase mappings |
+| `cypilot show adapter config` | Displays `artifacts.toml` structure, registered artifacts, and codebase mappings |
 | `cypilot regenerate AGENTS.md` | Rebuilds navigation rules based on current artifact registry |
 
 **Artifact Generation**
@@ -450,7 +450,7 @@ For agents that don't support the Agent Skills specification, Cypilot provides *
 | `/cypilot` | — | Enable Cypilot mode, discover adapter, show available workflows |
 | `/cypilot-generate` | `workflows/generate.md` | Create/update artifacts (PRD, DESIGN, DECOMPOSITION, ADR, FEATURE) or implement code with traceability markers |
 | `/cypilot-analyze` | `workflows/analyze.md` | Validate artifacts against templates or code against design (deterministic + semantic) |
-| `/cypilot-adapter` | `workflows/adapter.md` | Create/update project adapter — scan structure, configure rules, generate `AGENTS.md` and `artifacts.json` |
+| `/cypilot-adapter` | `workflows/adapter.md` | Create/update project adapter — scan structure, configure rules, generate `AGENTS.md` and `artifacts.toml` |
 
 Each workflow includes feedback loops, quality gates, and references to relevant checklists and rules.
 

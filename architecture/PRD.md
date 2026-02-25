@@ -207,14 +207,14 @@ The system MUST provide a unified `agents` command that generates agent-specific
 The system MUST support extensible kit packages. Each kit is a blueprint package with the following minimum required structure:
 
 1. **Blueprints directory** — each kit MUST provide a `blueprints/` directory containing one `.md` file per artifact kind. The filename (without `.md`) becomes the artifact kind slug (e.g., `PRD.md` → artifact kind `PRD`). This is the single source of truth for all kit resources.
-2. **Installation** — during installation, the tool MUST save the kit source to `{cypilot}/kits/{slug}/` (reference copy) and copy blueprints to `config/kits/{slug}/blueprints/` (user-editable). The Blueprint Processor MUST then generate all outputs into `config/kits/{slug}/artifacts/<KIND>/` and `config/kits/{slug}/workflows/`.
+2. **Installation** — during installation, the tool MUST save the kit source to `{cypilot_path}/.core/kits/{slug}/` (reference copy) and copy blueprints to `config/kits/{slug}/blueprints/` (user-editable). The Blueprint Processor MUST then generate all outputs into `config/kits/{slug}/artifacts/<KIND>/` and `config/kits/{slug}/workflows/`.
 3. **Versioning** — each kit MUST have its own version (independent of the core Cypilot version). The version MUST be stored in the kit's `@cpt:blueprint` marker metadata.
-4. **Migration** — the tool MUST support two update modes: **force** (`cypilot kit update --force`) updates the reference in `{cypilot}/kits/{slug}/`, overwrites all user blueprints, and regenerates outputs; **additive** (`cypilot kit update`, default) uses the reference (`{cypilot}/kits/{slug}/`) for a three-way diff, preserving user modifications. New markers are inserted; deleted markers stay deleted; user-modified sections are preserved. After merge, the reference is updated.
+4. **Migration** — the tool MUST support two update modes: **force** (`cypilot kit update --force`) updates the reference in `{cypilot_path}/.core/kits/{slug}/`, overwrites all user blueprints, and regenerates outputs; **additive** (`cypilot kit update`, default) uses the reference (`{cypilot_path}/.core/kits/{slug}/`) for a three-way diff, preserving user modifications. New markers are inserted; deleted markers stay deleted; user-modified sections are preserved. After merge, the reference is updated.
 5. **SKILL extensions** — a kit MAY include `@cpt:skill` markers in blueprints that extend the core SKILL.md with kit-specific commands and workflows.
 6. **System prompt extensions** — a kit MAY include `@cpt:system-prompt` markers in blueprints that are automatically loaded when the kit's artifacts or workflows are used.
 7. **Workflow registrations** — a kit MAY include `@cpt:workflow` markers in blueprints that generate workflow files and agent entry points.
 
-**User extensibility**: users MUST be able to edit blueprints in `config/kits/{slug}/blueprints/` and regenerate outputs with `cypilot generate-resources`. User modifications MUST be preserved across additive kit updates using the reference in `{cypilot}/kits/{slug}/` for three-way diff.
+**User extensibility**: users MUST be able to edit blueprints in `config/kits/{slug}/blueprints/` and regenerate outputs with `cypilot generate-resources`. User modifications MUST be preserved across additive kit updates using the reference in `{cypilot_path}/.core/kits/{slug}/` for three-way diff.
 
 Kit installation MUST register the kit in `config/core.toml`, create the kit's directory structure in `config/kits/<slug>/`, and generate all resources. The system MUST provide CLI commands to: install kits, update kits, and create new custom kits. The `validate-kits` command MUST validate that kit packages are structurally correct (have a `blueprints/` directory with valid blueprint files).
 
@@ -775,8 +775,8 @@ The SDLC kit MUST support per-project PR review configuration with: prompt selec
 **Flow**:
 
 1. User installs a new kit or extends an existing one (e.g., `cypilot kit install sdlc`)
-2. Tool saves kit source to `{cypilot}/kits/{slug}/` (reference copy)
-3. Tool copies blueprints from `{cypilot}/kits/{slug}/blueprints/` to `config/kits/{slug}/blueprints/` (user-editable)
+2. Tool saves kit source to `{cypilot_path}/.core/kits/{slug}/` (reference copy)
+3. Tool copies blueprints from `{cypilot_path}/.core/kits/{slug}/blueprints/` to `config/kits/{slug}/blueprints/` (user-editable)
 4. Blueprint Processor generates all outputs into `config/kits/{slug}/artifacts/` and `config/kits/{slug}/workflows/`
 5. Tool registers the kit in `config/core.toml`
 6. Tool validates kit structural correctness

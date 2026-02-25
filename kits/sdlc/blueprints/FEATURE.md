@@ -1,3 +1,23 @@
+# FEATURE Blueprint
+<!-- 
+  Blueprint for Feature Specification Documents.
+  
+  This file is the single source of truth for:
+  - template.md generation (from @cpt:heading + @cpt:prompt markers)
+  - example.md generation (from @cpt:heading examples + @cpt:example markers)
+  - rules.md generation (from @cpt:rules + @cpt:rule markers)
+  - checklist.md generation (from @cpt:checklist + @cpt:check markers)
+  - constraints.toml contributions (from @cpt:heading + @cpt:id markers)
+  
+  All text between markers is ignored by the generator.
+  
+  FEATURE defines precise behavior using CDSL (Context-Driven Specification
+  Language): actor flows, processes/algorithms, state machines, definitions
+  of done, and acceptance criteria.
+-->
+
+## Metadata
+
 `@cpt:blueprint`
 ```toml
 version = 1
@@ -6,6 +26,8 @@ artifact = "FEATURE"
 codebase = false
 ```
 `@/cpt:blueprint`
+
+## Skill Integration
 
 `@cpt:skill`
 ```markdown
@@ -22,6 +44,12 @@ codebase = false
 - **Analyze FEATURE**: validate structure (deterministic) then semantic quality (checklist-based)
 ```
 `@/cpt:skill`
+
+---
+
+## Rules Definition
+
+### Rules Skeleton
 
 `@cpt:rules`
 ```toml
@@ -45,6 +73,8 @@ sections = ["options"]
 ```
 `@/cpt:rules`
 
+### Prerequisites
+
 `@cpt:rule`
 ```toml
 kind = "prerequisites"
@@ -56,11 +86,15 @@ section = "load_dependencies"
 - [ ] Load `examples/task-crud.md` for reference style
 - [ ] Read DECOMPOSITION to get feature ID and context
 - [ ] Read DESIGN to understand domain types and components
-- [ ] Read adapter `artifacts.json` to determine FEATURE artifact path
+- [ ] Read adapter `artifacts.toml` to determine FEATURE artifact path
 - [ ] Load `../../constraints.json` for kit-level constraints
-- [ ] Load `{cypilot_path}/requirements/identifiers.md` for ID formats
+- [ ] Load `{cypilot_path}/.core/requirements/identifiers.md` for ID formats
 ```
 `@/cpt:rule`
+
+### Requirements
+
+#### Structural
 
 `@cpt:rule`
 ```toml
@@ -79,6 +113,8 @@ section = "structural"
 ```
 `@/cpt:rule`
 
+#### Versioning
+
 `@cpt:rule`
 ```toml
 kind = "requirements"
@@ -91,6 +127,8 @@ section = "versioning"
 - [ ] Versioning code markers must match: `@cpt-{kind}:cpt-{system}-{kind}-{slug}-v2:p{N}`
 ```
 `@/cpt:rule`
+
+#### Semantic
 
 `@cpt:rule`
 ```toml
@@ -109,6 +147,8 @@ section = "semantic"
 ```
 `@/cpt:rule`
 
+#### Traceability
+
 `@cpt:rule`
 ```toml
 kind = "requirements"
@@ -120,6 +160,8 @@ section = "traceability"
 - [ ] Each CDSL instruction maps to code marker
 ```
 `@/cpt:rule`
+
+#### Constraints
 
 `@cpt:rule`
 ```toml
@@ -134,6 +176,8 @@ section = "constraints"
   - which cross-artifact references are required / optional / prohibited
 ```
 `@/cpt:rule`
+
+#### Scope
 
 `@cpt:rule`
 ```toml
@@ -154,6 +198,8 @@ section = "scope"
 ```
 `@/cpt:rule`
 
+#### Upstream Traceability
+
 `@cpt:rule`
 ```toml
 kind = "requirements"
@@ -164,6 +210,8 @@ section = "upstream_traceability"
 - [ ] When feature complete → update status in DECOMPOSITION (→ IMPLEMENTED)
 ```
 `@/cpt:rule`
+
+#### Feature Status
 
 `@cpt:rule`
 ```toml
@@ -177,6 +225,8 @@ section = "featstatus"
 - [ ] `featstatus` is a documentation/status rollup marker (not a `to_code` identifier)
 ```
 `@/cpt:rule`
+
+#### Checkbox Management
 
 `@cpt:rule`
 ```toml
@@ -193,6 +243,10 @@ section = "checkbox_management"
 ```
 `@/cpt:rule`
 
+### Task Phases
+
+#### Setup
+
 `@cpt:rule`
 ```toml
 kind = "tasks"
@@ -206,6 +260,8 @@ section = "setup"
 - [ ] Read DESIGN to understand domain types and components
 ```
 `@/cpt:rule`
+
+#### Content Creation
 
 `@cpt:rule`
 ```toml
@@ -222,6 +278,8 @@ section = "content_creation"
 ```
 `@/cpt:rule`
 
+#### IDs & Structure
+
 `@cpt:rule`
 ```toml
 kind = "tasks"
@@ -237,6 +295,8 @@ section = "ids_and_structure"
 ```
 `@/cpt:rule`
 
+#### Quality Check
+
 `@cpt:rule`
 ```toml
 kind = "tasks"
@@ -250,6 +310,10 @@ section = "quality_check"
 ```
 `@/cpt:rule`
 
+### Error Handling
+
+#### Missing Decomposition
+
 `@cpt:rule`
 ```toml
 kind = "error_handling"
@@ -261,6 +325,8 @@ section = "missing_decomposition"
 ```
 `@/cpt:rule`
 
+#### Missing Design
+
 `@cpt:rule`
 ```toml
 kind = "error_handling"
@@ -271,6 +337,8 @@ section = "missing_design"
 - [ ] Option 2: Continue without DESIGN (reduced domain model context)
 ```
 `@/cpt:rule`
+
+#### Missing Parent
 
 `@cpt:rule`
 ```toml
@@ -284,6 +352,8 @@ section = "missing_parent"
 ```
 `@/cpt:rule`
 
+#### Escalation
+
 `@cpt:rule`
 ```toml
 kind = "error_handling"
@@ -295,6 +365,10 @@ section = "escalation"
 - [ ] Ask user when state transitions ambiguous
 ```
 `@/cpt:rule`
+
+### Validation
+
+#### Structural
 
 `@cpt:rule`
 ```toml
@@ -312,6 +386,8 @@ section = "structural"
 ```
 `@/cpt:rule`
 
+#### Semantic
+
 `@cpt:rule`
 ```toml
 kind = "validation"
@@ -324,6 +400,8 @@ Apply `checklist.md` systematically:
 3. Use example for quality baseline
 ```
 `@/cpt:rule`
+
+#### Traceability
 
 `@cpt:rule`
 ```toml
@@ -338,6 +416,8 @@ For IDs with `to_code="true"`:
 ```
 `@/cpt:rule`
 
+### Next Steps
+
 `@cpt:rule`
 ```toml
 kind = "next_steps"
@@ -351,6 +431,14 @@ section = "options"
 - [ ] Want checklist review only → `/cypilot-analyze semantic` — semantic validation
 ```
 `@/cpt:rule`
+
+---
+
+## Checklist Definition
+
+Feature quality checks organized by domain.
+
+### Checklist Skeleton
 
 `@cpt:checklist`
 ```toml
@@ -431,6 +519,8 @@ name = "Deliberate Omissions"
 standards = []
 ```
 `@/cpt:checklist`
+
+### Architecture Checks (ARCH)
 
 `@cpt:check`
 ```toml
@@ -560,6 +650,8 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+### Semantic Alignment Checks (SEM)
+
 `@cpt:check`
 ```toml
 id = "SEM-FDESIGN-001"
@@ -640,6 +732,8 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+### Performance Checks (PERF)
+
 `@cpt:check`
 ```toml
 id = "PERF-FDESIGN-001"
@@ -708,6 +802,8 @@ kind = "must_have"
 - [ ] Performance test requirements documented
 ```
 `@/cpt:check`
+
+### Security Checks (SEC)
 
 `@cpt:check`
 ```toml
@@ -812,6 +908,8 @@ applicable_when = "Security-sensitive features"
 ```
 `@/cpt:check`
 
+### Reliability Checks (REL)
+
 `@cpt:check`
 ```toml
 id = "REL-FDESIGN-001"
@@ -883,6 +981,8 @@ applicable_when = "Distributed or high-availability features"
 - [ ] Resource exhaustion handling documented
 ```
 `@/cpt:check`
+
+### Data Checks (DATA)
 
 `@cpt:check`
 ```toml
@@ -969,6 +1069,8 @@ applicable_when = "Features handling PII"
 ```
 `@/cpt:check`
 
+### Integration Checks (INT)
+
 `@cpt:check`
 ```toml
 id = "INT-FDESIGN-001"
@@ -1054,6 +1156,8 @@ applicable_when = "Features using caching"
 ```
 `@/cpt:check`
 
+### Operations Checks (OPS)
+
 `@cpt:check`
 ```toml
 id = "OPS-FDESIGN-001"
@@ -1117,6 +1221,8 @@ applicable_when = "Features requiring phased rollout"
 ```
 `@/cpt:check`
 
+### Maintainability Checks (MAINT)
+
 `@cpt:check`
 ```toml
 id = "MAINT-FDESIGN-001"
@@ -1164,6 +1270,8 @@ kind = "must_have"
 - [ ] Future improvement opportunities noted
 ```
 `@/cpt:check`
+
+### Testing Checks (TEST)
 
 `@cpt:check`
 ```toml
@@ -1216,6 +1324,8 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+### Compliance Checks (COMPL)
+
 `@cpt:check`
 ```toml
 id = "COMPL-FDESIGN-001"
@@ -1248,6 +1358,8 @@ applicable_when = "Features handling personal data"
 - [ ] Data subject rights supported
 ```
 `@/cpt:check`
+
+### Usability Checks (UX)
 
 `@cpt:check`
 ```toml
@@ -1285,6 +1397,8 @@ applicable_when = "Web/UI features"
 ```
 `@/cpt:check`
 
+### Business Checks (BIZ)
+
 `@cpt:check`
 ```toml
 id = "BIZ-FDESIGN-001"
@@ -1319,6 +1433,8 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+### Documentation Checks (DOC)
+
 `@cpt:check`
 ```toml
 id = "DOC-FDESIGN-001"
@@ -1333,6 +1449,10 @@ kind = "must_have"
 - [ ] Reviewer can distinguish "considered and excluded" from "forgot"
 ```
 `@/cpt:check`
+
+### Anti-Pattern Checks (must_not_have)
+
+Content that does NOT belong in a FEATURE document.
 
 `@cpt:check`
 ```toml
@@ -1489,6 +1609,17 @@ belongs_to = "Infrastructure code repository"
 ```
 `@/cpt:check`
 
+---
+
+## Template Structure
+
+Headings, prompts, IDs, and examples that define the generated `template.md`
+and `example.md` files. The FEATURE template covers: context (overview,
+purpose, actors, references), actor flows with CDSL instructions, processes/
+algorithms, state machines, definitions of done, and acceptance criteria.
+
+### Title (H1)
+
 `@cpt:heading`
 ```toml
 id = "feature-h1-title"
@@ -1521,8 +1652,6 @@ headings = ["feature-h1-title"]
 `@cpt:prompt`
 ```markdown
 - [ ] `p1` - **ID**: `cpt-{system}-featstatus-{feature-slug}`
-
-Place the featstatus ID immediately after the H1 title, followed by the parent feature reference from DECOMPOSITION.
 ```
 `@/cpt:prompt`
 
@@ -1536,18 +1665,26 @@ Place the featstatus ID immediately after the H1 title, followed by the parent f
 ```
 `@/cpt:example`
 
+### Feature Context
+
 `@cpt:heading`
 ```toml
 id = "feature-context"
 level = 2
 required = true
-numbered = false
+numbered = true
 multiple = false
 pattern = "Feature Context"
 description = "Feature context section."
-examples = ["## Feature Context"]
+examples = ["## 1. Feature Context"]
 ```
 `@/cpt:heading`
+
+`@cpt:prompt`
+```markdown
+- [ ] `p2` - `cpt-{system}-feature-{slug}`
+```
+`@/cpt:prompt`
 
 `@cpt:heading`
 ```toml
@@ -1558,14 +1695,13 @@ numbered = true
 multiple = false
 pattern = "Overview"
 description = "Feature overview."
-examples = ["### 1. Overview"]
+examples = ["### 1.1 Overview"]
 ```
 `@/cpt:heading`
 
 `@cpt:prompt`
 ```markdown
-Brief overview of what this feature does (1-2 sentences).
-Include: problem statement, primary value, key assumptions.
+{Brief overview of what this feature does — 1-2 sentences.}
 ```
 `@/cpt:prompt`
 
@@ -1588,14 +1724,13 @@ numbered = true
 multiple = false
 pattern = "Purpose"
 description = "Feature purpose."
-examples = ["### 2. Purpose"]
+examples = ["### 1.2 Purpose"]
 ```
 `@/cpt:heading`
 
 `@cpt:prompt`
 ```markdown
-Why this feature exists, what PRD requirements or DESIGN element it addresses.
-Include success criteria.
+{Why this feature exists, what PRD requirements or DESIGN element it addresses.}
 ```
 `@/cpt:prompt`
 
@@ -1616,13 +1751,15 @@ numbered = true
 multiple = false
 pattern = "Actors"
 description = "Actors involved in the feature."
-examples = ["### 3. Actors"]
+examples = ["### 1.3 Actors"]
 ```
 `@/cpt:heading`
 
 `@cpt:prompt`
 ```markdown
-List actors involved in this feature as ID references from PRD.
+| Actor | Role in Feature |
+|-------|-----------------|
+| `cpt-{system}-actor-{slug}` | {What this actor does in this feature} |
 ```
 `@/cpt:prompt`
 
@@ -1642,13 +1779,15 @@ numbered = true
 multiple = false
 pattern = "References"
 description = "References to related artifacts."
-examples = ["### 4. References"]
+examples = ["### 1.4 References"]
 ```
 `@/cpt:heading`
 
 `@cpt:prompt`
 ```markdown
-Links to related artifacts: Overall Design, ADRs, related features, dependencies.
+- **PRD**: [PRD.md](../PRD.md)
+- **Design**: [DESIGN.md](../DESIGN.md)
+- **Dependencies**: {List feature dependencies or "None"}
 ```
 `@/cpt:prompt`
 
@@ -1660,18 +1799,26 @@ Links to related artifacts: Overall Design, ADRs, related features, dependencies
 ```
 `@/cpt:example`
 
+### Actor Flows (CDSL)
+
 `@cpt:heading`
 ```toml
 id = "feature-actor-flows"
 level = 2
 required = true
-numbered = false
+numbered = true
 multiple = false
-pattern = "Actor Flows*"
+pattern = "Actor Flows (CDSL)"
 description = "Actor flows section."
-examples = ["## Actor Flows"]
+examples = ["## 2. Actor Flows (CDSL)"]
 ```
 `@/cpt:heading`
+
+`@cpt:prompt`
+```markdown
+User-facing interactions that start with an actor (human or external system) and describe the end-to-end flow of a use case. Each flow has a triggering actor and shows how the system responds to actor actions.
+```
+`@/cpt:prompt`
 
 `@cpt:heading`
 ```toml
@@ -1680,6 +1827,7 @@ level = 3
 required = true
 numbered = false
 multiple = true
+template = "{Flow Name}"
 description = "A single actor flow."
 examples = ["### Create Task"]
 ```
@@ -1704,15 +1852,23 @@ headings = ["feature-actor-flow"]
 ```markdown
 - [ ] `p1` - **ID**: `cpt-{system}-flow-{feature-slug}-{slug}`
 
-**Actors**: list actor ID references
+**Actor**: `cpt-{system}-actor-{slug}`
 
-**Steps** (CDSL format):
+**Success Scenarios**:
+- {Scenario 1}
+
+**Error Scenarios**:
+- {Error scenario 1}
+
+**Steps**:
 1. [ ] - `p1` - {Actor action} - `inst-{step-id}`
-2. [ ] - `p1` - {API: METHOD /path (summary)} - `inst-{step-id}`
-3. [ ] - `p1` - {DB: OPERATION table(s) (filters)} - `inst-{step-id}`
+2. [ ] - `p1` - {API: METHOD /path (request/response summary)} - `inst-{step-id}`
+3. [ ] - `p1` - {DB: OPERATION table(s) (key columns/filters)} - `inst-{step-id}`
 4. [ ] - `p1` - **IF** {condition} - `inst-{step-id}`
    1. [ ] - `p1` - {Action if true} - `inst-{step-id}`
-5. [ ] - `p1` - **RETURN** {result} - `inst-{step-id}`
+5. [ ] - `p1` - **ELSE** - `inst-{step-id}`
+   1. [ ] - `p1` - {Action if false} - `inst-{step-id}`
+6. [ ] - `p1` - **RETURN** {result} - `inst-{step-id}`
 ```
 `@/cpt:prompt`
 
@@ -1737,18 +1893,26 @@ headings = ["feature-actor-flow"]
 ```
 `@/cpt:example`
 
+### Processes / Business Logic
+
 `@cpt:heading`
 ```toml
 id = "feature-processes"
 level = 2
 required = true
-numbered = false
+numbered = true
 multiple = false
-pattern = "Processes / Business Logic*"
+pattern = "Processes / Business Logic (CDSL)"
 description = "Processes / business logic section."
-examples = ["## Processes / Business Logic"]
+examples = ["## 3. Processes / Business Logic (CDSL)"]
 ```
 `@/cpt:heading`
+
+`@cpt:prompt`
+```markdown
+Internal system functions and procedures that do not interact with actors directly. Examples: database layer operations, authorization logic, middleware, validation routines, library functions, background jobs. These are reusable building blocks called by Actor Flows or other processes.
+```
+`@/cpt:prompt`
 
 `@cpt:heading`
 ```toml
@@ -1757,6 +1921,7 @@ level = 3
 required = true
 numbered = false
 multiple = true
+template = "{Process Name}"
 description = "A single process/algorithm."
 examples = ["### Validate Task"]
 ```
@@ -1782,12 +1947,20 @@ headings = ["feature-processes"]
 - [ ] `p2` - **ID**: `cpt-{system}-algo-{feature-slug}-{slug}`
 
 **Input**: {Input description}
+
 **Output**: {Output description}
 
-**Steps** (CDSL format):
+**Steps**:
 1. [ ] - `p1` - {Parse/normalize input} - `inst-{step-id}`
-2. [ ] - `p1` - **IF** {condition} **RETURN** {error} - `inst-{step-id}`
-3. [ ] - `p1` - **RETURN** {result} - `inst-{step-id}`
+2. [ ] - `p1` - {DB: OPERATION table(s) (key columns/filters)} - `inst-{step-id}`
+3. [ ] - `p1` - {API: METHOD /path (request/response summary)} - `inst-{step-id}`
+4. [ ] - `p1` - **FOR EACH** {item} in {collection} - `inst-{step-id}`
+   1. [ ] - `p1` - {Process item} - `inst-{step-id}`
+5. [ ] - `p1` - **TRY** - `inst-{step-id}`
+   1. [ ] - `p1` - {Risky operation} - `inst-{step-id}`
+6. [ ] - `p1` - **CATCH** {error} - `inst-{step-id}`
+   1. [ ] - `p1` - {Handle error} - `inst-{step-id}`
+7. [ ] - `p1` - **RETURN** {result} - `inst-{step-id}`
 ```
 `@/cpt:prompt`
 
@@ -1806,18 +1979,26 @@ headings = ["feature-processes"]
 ```
 `@/cpt:example`
 
+### States
+
 `@cpt:heading`
 ```toml
 id = "feature-states"
 level = 2
 required = true
-numbered = false
+numbered = true
 multiple = false
-pattern = "States*"
+pattern = "States (CDSL)"
 description = "States section."
-examples = ["## States"]
+examples = ["## 4. States (CDSL)"]
 ```
 `@/cpt:heading`
+
+`@cpt:prompt`
+```markdown
+Optional: Include when entities have explicit lifecycle states.
+```
+`@/cpt:prompt`
 
 `@cpt:heading`
 ```toml
@@ -1826,6 +2007,7 @@ level = 3
 required = true
 numbered = false
 multiple = true
+template = "{Entity Name} State Machine"
 description = "A single state machine."
 examples = ["### Task Status"]
 ```
@@ -1851,10 +2033,12 @@ headings = ["feature-state"]
 - [ ] `p2` - **ID**: `cpt-{system}-state-{feature-slug}-{slug}`
 
 **States**: {State1}, {State2}, {State3}
+
 **Initial State**: {State1}
 
-**Transitions** (CDSL format):
+**Transitions**:
 1. [ ] - `p1` - **FROM** {State1} **TO** {State2} **WHEN** {condition} - `inst-{step-id}`
+2. [ ] - `p1` - **FROM** {State2} **TO** {State3} **WHEN** {condition} - `inst-{step-id}`
 ```
 `@/cpt:prompt`
 
@@ -1870,18 +2054,26 @@ headings = ["feature-state"]
 ```
 `@/cpt:example`
 
+### Definitions of Done
+
 `@cpt:heading`
 ```toml
 id = "feature-dod"
 level = 2
 required = true
-numbered = false
+numbered = true
 multiple = false
 pattern = "Definitions of Done"
 description = "Definitions of done section."
-examples = ["## Definitions of Done"]
+examples = ["## 5. Definitions of Done"]
 ```
 `@/cpt:heading`
+
+`@cpt:prompt`
+```markdown
+Specific implementation tasks derived from flows/algorithms above.
+```
+`@/cpt:prompt`
 
 `@cpt:heading`
 ```toml
@@ -1890,6 +2082,7 @@ level = 3
 required = true
 numbered = false
 multiple = true
+template = "{Requirement Title}"
 description = "A single definition of done entry."
 examples = ["### Task Creation"]
 ```
@@ -1914,15 +2107,15 @@ headings = ["feature-dod-entry"]
 ```markdown
 - [ ] `p1` - **ID**: `cpt-{system}-dod-{feature-slug}-{slug}`
 
-{Clear description of what to implement — "The system MUST..."}
+The system **MUST** {clear description of what to implement}.
 
-**Implementation details**: API, DB, Domain entities.
+**Implements**:
+- `cpt-{system}-flow-{feature-slug}-{slug}`
 
-**Implements**: flow and algo ID references.
-
-**Covers (PRD)**: FR/NFR ID references.
-
-**Covers (DESIGN)**: principle, constraint, component, seq, dbtable ID references.
+**Touches**:
+- API: `{METHOD} {/path}`
+- DB: `{table}`
+- Entities: `{EntityName}`
 ```
 `@/cpt:prompt`
 
@@ -1957,22 +2150,25 @@ Users can create tasks with title, description, priority, and due date. The syst
 ```
 `@/cpt:example`
 
+### Acceptance Criteria
+
 `@cpt:heading`
 ```toml
 id = "feature-acceptance-criteria"
 level = 2
 required = true
-numbered = false
+numbered = true
 multiple = false
 pattern = "Acceptance Criteria"
 description = "Acceptance criteria for the feature."
-examples = ["## Acceptance Criteria"]
+examples = ["## 6. Acceptance Criteria"]
 ```
 `@/cpt:heading`
 
 `@cpt:prompt`
 ```markdown
-List testable acceptance criteria as checkboxes.
+- [ ] {Testable criterion for this feature}
+- [ ] {Another testable criterion}
 ```
 `@/cpt:prompt`
 

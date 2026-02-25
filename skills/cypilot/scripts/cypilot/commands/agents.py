@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from ..utils.files import find_project_root
+from ..utils.files import core_subpath, find_project_root, _is_cypilot_root
 
 
 def _safe_relpath(path: Path, base: Path) -> str:
@@ -48,8 +48,10 @@ def _target_path_from_root(target: Path, project_root: Path) -> str:
 
 
 # Directories and files to copy when cypilot is external to the project.
-_COPY_DIRS = ["workflows", "requirements", "schemas", "templates", "prompts", "kits", "skills"]
-_COPY_FILES = ["AGENTS.md"]
+_COPY_DIRS = ["workflows", "requirements", "schemas", "templates", "prompts", "kits"]
+_COPY_ROOT_DIRS = ["skills"]
+_COPY_FILES: list = []
+_CORE_SUBDIR = ".core"
 _COPY_IGNORE = shutil.ignore_patterns(
     "__pycache__", "*.pyc", ".git", ".venv", "tests", ".pytest_cache", ".coverage", "coverage.json",
 )
@@ -78,12 +80,8 @@ def _ensure_cypilot_local(
     if (local_dot / ".git").exists():
         return local_dot, {"action": "none", "reason": "existing_submodule"}
 
-    # 3. Existing installation (has AGENTS.md + workflows/ + skill entry)
-    if (
-        (local_dot / "AGENTS.md").is_file()
-        and (local_dot / "workflows").is_dir()
-        and (local_dot / "skills" / "cypilot" / "SKILL.md").is_file()
-    ):
+    # 3. Existing installation (.core/ layout or legacy flat layout)
+    if _is_cypilot_root(local_dot):
         return local_dot, {"action": "none", "reason": "existing_installation"}
 
     # 4. Copy (dry-run keeps original root so template rendering still works)
@@ -94,7 +92,17 @@ def _ensure_cypilot_local(
         file_count = 0
         local_dot.mkdir(parents=True, exist_ok=True)
 
+        core_dst = local_dot / _CORE_SUBDIR
+        core_dst.mkdir(parents=True, exist_ok=True)
+
         for dirname in _COPY_DIRS:
+            src = cypilot_root / dirname
+            if src.is_dir():
+                dst = core_dst / dirname
+                shutil.copytree(src, dst, ignore=_COPY_IGNORE, dirs_exist_ok=True)
+                file_count += sum(1 for _ in dst.rglob("*") if _.is_file())
+
+        for dirname in _COPY_ROOT_DIRS:
             src = cypilot_root / dirname
             if src.is_dir():
                 dst = local_dot / dirname
@@ -104,7 +112,7 @@ def _ensure_cypilot_local(
         for fname in _COPY_FILES:
             src = cypilot_root / fname
             if src.is_file():
-                shutil.copy2(src, local_dot / fname)
+                shutil.copy2(src, core_dst / fname)
                 file_count += 1
 
         return local_dot, {"action": "copied", "file_count": file_count}
@@ -471,7 +479,7 @@ def _render_template(lines: List[str], variables: Dict[str, str]) -> str:
 
 
 def _list_workflow_files(cypilot_root: Path) -> List[str]:
-    workflows_dir = (cypilot_root / "workflows").resolve()
+    workflows_dir = core_subpath(cypilot_root, "workflows").resolve()
     if not workflows_dir.is_dir():
         return []
     out: List[str] = []
@@ -524,7 +532,7 @@ def cmd_agents(argv: List[str]) -> int:
     cypilot_root = Path(args.cypilot_root).resolve() if args.cypilot_root else None
     if cypilot_root is None:
         cypilot_root = (Path(__file__).resolve().parents[5])
-        if not ((cypilot_root / "AGENTS.md").exists() and (cypilot_root / "workflows").is_dir()):
+        if not _is_cypilot_root(cypilot_root):
             cypilot_root = Path(__file__).resolve().parents[7]
 
     cypilot_root, copy_report = _ensure_cypilot_local(cypilot_root, project_root, args.dry_run)
@@ -605,7 +613,7 @@ def cmd_agents(argv: List[str]) -> int:
                 command = "cypilot" if wf_name == "cypilot" else f"{prefix}{wf_name}"
                 filename = filename_fmt.format(command=command, workflow_name=wf_name)
                 desired_path = (workflow_dir / filename).resolve()
-                target_workflow_path = (cypilot_root / "workflows" / f"{wf_name}.md").resolve()
+                target_workflow_path = core_subpath(cypilot_root, "workflows", f"{wf_name}.md").resolve()
 
                 if desired_path.as_posix() in skill_output_paths:
                     continue
@@ -722,7 +730,7 @@ def cmd_agents(argv: List[str]) -> int:
                 else:
                     expected = Path(target_rel)
                 try:
-                    expected.relative_to(cypilot_root / "workflows")
+                    expected.relative_to(core_subpath(cypilot_root, "workflows"))
                 except ValueError:
                     continue
                 if expected.exists():

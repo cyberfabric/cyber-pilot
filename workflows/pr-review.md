@@ -45,10 +45,10 @@ Previous results are stale the moment a new review request arrives.
 ## Paths
 
 - **Script**: `python3 {cypilot_path}/skills/scripts/pr.py`
-- **Config**: `{cypilot_adapter_path}/pr-review.json`
-- **Templates**: `{cypilot_path}/templates/pr/`
+- **Config**: `{cypilot_path}/config/pr-review.json`
+- **Templates**: `{cypilot_path}/.core/templates/pr/`
 - **Checklists**: `docs/checklists/` (PRD.md, DESIGN.md, ADR.md, etc.)
-- **Prompts**: `{cypilot_path}/prompts/pr/`
+- **Prompts**: `{cypilot_path}/.core/prompts/pr/`
 - **PR data**: `.prs/{ID}/`
 - **Exclude list**: `.prs/config.yaml` → `exclude_prs`
 
@@ -56,7 +56,7 @@ Previous results are stale the moment a new review request arrives.
 
 - [ ] `gh` CLI installed and authenticated (`gh auth status`)
 - [ ] Repository has GitHub remote configured
-- [ ] `{cypilot_adapter_path}/pr-review.json` has `prompts` configured
+- [ ] `{cypilot_path}/config/pr-review.json` has `prompts` configured
 
 ---
 
@@ -80,7 +80,7 @@ overwrites any previously fetched files.
 Do NOT skip this step. Do NOT reuse previously fetched data.
 
 ## Step 3: Select review prompt and checklist
-Read `{cypilot_adapter_path}/pr-review.json` → `prompts` list. For each prompt
+Read `{cypilot_path}/config/pr-review.json` → `prompts` list. For each prompt
 entry, read the `description` field. Based on the PR title, body (in
 `meta.json`), and the files changed (in `diff.patch`), select the most
 appropriate review prompt. If unsure, default to "Code Review".
@@ -121,7 +121,7 @@ Prioritise files with the largest delta first. Produce a thorough
 review covering the areas specified in the prompt and checklist.
 
 d. **Write review output**
-Read the template at `{cypilot_path}/templates/pr/code-review.md` and
+Read the template at `{cypilot_path}/.core/templates/pr/code-review.md` and
 use it to structure the review. Save the review to
 `.prs/{ID}/review.md`.
 The review must follow the template format, including the mandatory

@@ -140,8 +140,8 @@ Each marker may contain two types of fenced code blocks:
 | Marker | Content Blocks | Owner | Description | Generates |
 |--------|---------------|-------|-------------|-----------|
 | `@cpt:blueprint` | toml | core | Blueprint identity and metadata | — |
-| `@cpt:skill` | markdown | core | SKILL.md extension content | → SKILL.md |
-| `@cpt:system-prompt` | markdown | core | Agent directives (ALWAYS/WHEN) | → AGENTS.md |
+| `@cpt:skill` | markdown | core | SKILL.md extension content | → `config/SKILL.md` (aggregated) |
+| `@cpt:system-prompt` | markdown | core | Agent directives (ALWAYS/WHEN) | → `config/AGENTS.md` (appended) |
 | `@cpt:workflow` | toml + markdown | core | Workflow definition | → `workflows/{name}.md` + agent entry points |
 | `@cpt:rules` | toml | core | rules.md structure skeleton | → rules.md |
 | `@cpt:rule` | toml + markdown | core | Individual rule entry | → rules.md |
@@ -206,7 +206,7 @@ Contains a single ` ```markdown ` block with SKILL.md extension content.
 `@/cpt:skill`
 ````
 
-Content is collected by the core and composed into the main SKILL.md during agent entry point generation (`cypilot agents`). This ensures AI agents discover kit capabilities automatically.
+Content from all blueprints in the kit is aggregated and written to `config/SKILL.md` during `cypilot init` / `cypilot kit install`. The main SKILL.md has a navigation rule (`ALWAYS open and follow {cypilot_path}/config/SKILL.md WHEN it exists`) that ensures AI agents discover kit capabilities automatically.
 
 ---
 
@@ -219,14 +219,14 @@ Contains a single ` ```markdown ` block with concise agent directives. Should co
 ````markdown
 `@cpt:system-prompt`
 ```markdown
-ALWAYS load `{cypilot_path}/specs/traceability.md` BEFORE generating or validating a PRD
+ALWAYS load `{cypilot_path}/.core/requirements/traceability.md` BEFORE generating or validating a PRD
 ALWAYS describe WHAT the system does, NEVER HOW — implementation details belong in DESIGN
 ALWAYS use observable behavior language (MUST/MUST NOT/SHOULD) WHEN writing functional requirements
 ```
 `@/cpt:system-prompt`
 ````
 
-Content is loaded by generate and analyze workflows when processing this artifact kind. Provides additional agent context without manual prompt management.
+Content from all blueprints in the kit is appended to `config/AGENTS.md` during `cypilot init` / `cypilot kit install`. Since `config/AGENTS.md` is loaded via the Protocol Guard, these directives are automatically active when the agent processes the corresponding artifact kind.
 
 ---
 
@@ -787,14 +787,14 @@ The Blueprint Processor parses all markers and invokes output generators. All ou
 
 ### Reference Principle
 
-The **installed kit** in `{cypilot}/kits/{slug}/` serves as the reference for all update operations. When a kit is installed, its source is saved to `{cypilot}/kits/{slug}/` — this is the reference copy. User-editable blueprints live in `config/kits/{slug}/blueprints/`.
+The **installed kit** in `{cypilot_path}/.core/kits/{slug}/` serves as the reference for all update operations. When a kit is installed, its source is saved to `{cypilot_path}/.core/kits/{slug}/` — this is the reference copy. User-editable blueprints live in `config/kits/{slug}/blueprints/`.
 
 ### Initial Installation
 
 When a kit is installed (`cypilot init` or `cypilot kit install`):
 
-1. The tool saves the kit source to `{cypilot}/kits/{slug}/` (reference copy).
-2. Blueprints are copied from `{cypilot}/kits/{slug}/blueprints/` to `config/kits/{slug}/blueprints/` (user-editable).
+1. The tool saves the kit source to `{cypilot_path}/.core/kits/{slug}/` (reference copy).
+2. Blueprints are copied from `{cypilot_path}/.core/kits/{slug}/blueprints/` to `config/kits/{slug}/blueprints/` (user-editable).
 3. All output files are generated from the user blueprints.
 4. The kit version is recorded in `config/core.toml`.
 
@@ -806,8 +806,8 @@ When a kit is installed (`cypilot init` or `cypilot kit install`):
 
 Overwrites all user blueprints from the reference and regenerates all outputs. User edits are discarded.
 
-1. Update `{cypilot}/kits/{slug}/` with new kit version.
-2. Copy all blueprints from `{cypilot}/kits/{slug}/blueprints/` → `config/kits/{slug}/blueprints/` (overwrite).
+1. Update `{cypilot_path}/.core/kits/{slug}/` with new kit version.
+2. Copy all blueprints from `{cypilot_path}/.core/kits/{slug}/blueprints/` → `config/kits/{slug}/blueprints/` (overwrite).
 3. Regenerate all outputs.
 4. Update kit version in `config/core.toml`.
 
@@ -817,19 +817,19 @@ Use when: starting fresh, after breaking edits, or when you want to fully sync w
 
 **Command**: `cypilot kit update`
 
-Three-way diff using the **current reference** in `{cypilot}/kits/{slug}/` as the base:
+Three-way diff using the **current reference** in `{cypilot_path}/.core/kits/{slug}/` as the base:
 
 ```
-{cypilot}/kits/{slug}/ (current)  ── the reference
+{cypilot_path}/.core/kits/{slug}/ (current)  ── the reference
     ↕ diff A: detect user modifications
 config/kits/{slug}/blueprints/    ── user’s version
 
-{cypilot}/kits/{slug}/ (current)  ── the reference
+{cypilot_path}/.core/kits/{slug}/ (current)  ── the reference
     ↕ diff B: detect kit upstream changes
 new kit version                   ── the updated upstream
 ```
 
-The reference is always available in `{cypilot}/kits/{slug}/`. After a successful merge, the reference is replaced with the new version.
+The reference is always available in `{cypilot_path}/.core/kits/{slug}/`. After a successful merge, the reference is replaced with the new version.
 
 **Merge rules**:
 

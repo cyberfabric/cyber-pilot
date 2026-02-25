@@ -38,15 +38,15 @@
 - `checklist.md` — code quality criteria
 - `{adapter-dir}/AGENTS.md` — project conventions
 - `../constraints.json` — kit-level constraints (primary rules for ID definitions/references)
-- `{cypilot_path}/requirements/kit-constraints.md` — constraints specification
-- `{cypilot_path}/schemas/kit-constraints.schema.json` — constraints JSON Schema
+- `{cypilot_path}/.core/requirements/kit-constraints.md` — constraints specification
+- `{cypilot_path}/.core/schemas/kit-constraints.schema.json` — constraints JSON Schema
 - **Source** (one of, in priority order):
   1. FEATURE design — registered artifact with `to_code="true"` IDs
   2. Other Cypilot artifact — PRD, DESIGN, ADR, DECOMPOSITION
   3. Similar content — user-provided description, feature, or requirements
   4. Prompt only — direct user instructions
 
-**ALWAYS open and follow** `{cypilot_path}/requirements/traceability.md` WHEN Traceability Mode is FULL (marker syntax, validation rules, coverage requirements)
+**ALWAYS open and follow** `{cypilot_path}/.core/requirements/traceability.md` WHEN Traceability Mode is FULL (marker syntax, validation rules, coverage requirements)
 
 **ALWAYS open and follow** `../constraints.json` (kit root) and treat it as the primary validator for:
 - Allowed ID kinds
@@ -55,7 +55,7 @@
 
 **ALWAYS read** the FEATURE artifact being implemented (the source of `to_code="true"` IDs). The FEATURE contains flows, algorithms, states, and definition-of-done tasks that define what code must do.
 
-**ALWAYS read** the system's DESIGN artifact (if registered in `artifacts.json`) to understand overall architecture, components, principles, and constraints before implementing code. The DESIGN provides essential context for making implementation decisions aligned with system architecture.
+**ALWAYS read** the system's DESIGN artifact (if registered in `artifacts.toml`) to understand overall architecture, components, principles, and constraints before implementing code. The DESIGN provides essential context for making implementation decisions aligned with system architecture.
 
 ---
 
@@ -70,7 +70,7 @@ Agent confirms understanding of requirements:
 
 ### Traceability Requirements
 
-**Reference**: `{cypilot_path}/requirements/traceability.md` for full specification
+**Reference**: `{cypilot_path}/.core/requirements/traceability.md` for full specification
 
 - [ ] Traceability Mode determined per feature (FULL vs DOCS-ONLY)
 - [ ] If Mode ON: markers follow feature syntax (`@cpt-*`, `@cpt-begin`/`@cpt-end`)
@@ -247,7 +247,7 @@ If implementation cannot be completed in a single session:
 
 ### Phase 3: Cypilot Markers (Traceability Mode ON only)
 
-**Reference**: `{cypilot_path}/requirements/traceability.md` for full marker syntax
+**Reference**: `{cypilot_path}/.core/requirements/traceability.md` for full marker syntax
 
 **Apply markers per feature:**
 - Scope markers: `@cpt-{kind}:{cpt-id}:p{N}` at function/class entry
@@ -320,7 +320,7 @@ For each ID/scope marked as implemented:
 
 ### Phase 2: Traceability Validation (Mode ON only)
 
-**Reference**: `{cypilot_path}/requirements/traceability.md` for validation rules
+**Reference**: `{cypilot_path}/.core/requirements/traceability.md` for validation rules
 
 **Deterministic checks** (per feature):
 - [ ] Marker format valid
@@ -403,7 +403,7 @@ For each test scenario from design:
 
 ### Traceability Report
 
-**Format**: See `{cypilot_path}/requirements/traceability.md` → Validation Report
+**Format**: See `{cypilot_path}/.core/requirements/traceability.md` → Validation Report
 
 ### Quality Report
 

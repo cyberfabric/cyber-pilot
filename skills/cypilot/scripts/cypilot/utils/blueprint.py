@@ -54,9 +54,9 @@ class ParsedBlueprint:
 _OPEN_RE = re.compile(r"^`@cpt:(\w[\w-]*)` *$")
 _CLOSE_RE = re.compile(r"^`@/cpt:(\w[\w-]*)` *$")
 
-# Regex for fenced code blocks inside marker content
-_FENCE_OPEN_RE = re.compile(r"^```(\w+)\s*$")
-_FENCE_CLOSE_RE = re.compile(r"^```\s*$")
+# Regex for fenced code blocks inside marker content (3+ backticks)
+_FENCE_OPEN_RE = re.compile(r"^(`{3,})(\w+)\s*$")
+# _FENCE_CLOSE_RE is dynamic — must match >= opening backtick count
 
 
 # ---------------------------------------------------------------------------
@@ -172,7 +172,7 @@ def _extract_fenced_blocks(
     result: ParsedBlueprint,
     marker_line: int,
 ) -> None:
-    """Extract fenced code blocks (```toml, ```markdown) from marker content."""
+    """Extract fenced code blocks (```toml, ````markdown, etc.) from marker content."""
     i = 0
     while i < len(content_lines):
         line = content_lines[i].strip()
@@ -181,17 +181,20 @@ def _extract_fenced_blocks(
             i += 1
             continue
 
-        lang = m_fence.group(1).lower()
+        fence_len = len(m_fence.group(1))
+        lang = m_fence.group(2).lower()
+        # Closing fence: >= same number of backticks, nothing else
+        close_re = re.compile(r"^`{" + str(fence_len) + r",}\s*$")
         j = i + 1
         while j < len(content_lines):
-            if _FENCE_CLOSE_RE.match(content_lines[j].strip()):
+            if close_re.match(content_lines[j].strip()):
                 break
             j += 1
 
         if j >= len(content_lines):
             result.errors.append(
                 f"{result.path}:{marker_line}: unclosed fenced block "
-                f"(```{lang}) inside `@cpt:{marker_type}`"
+                f"({m_fence.group(1)}{lang}) inside `@cpt:{marker_type}`"
             )
             i += 1
             continue
@@ -213,15 +216,17 @@ def _extract_fenced_blocks(
 
 
 def _extract_markdown_block(content_lines: List[str]) -> str:
-    """Extract the first ```markdown fenced block from content lines."""
+    """Extract the first ```markdown (or ````markdown, etc.) fenced block from content lines."""
     i = 0
     while i < len(content_lines):
         line = content_lines[i].strip()
         m_fence = _FENCE_OPEN_RE.match(line)
-        if m_fence and m_fence.group(1).lower() == "markdown":
+        if m_fence and m_fence.group(2).lower() == "markdown":
+            fence_len = len(m_fence.group(1))
+            close_re = re.compile(r"^`{" + str(fence_len) + r",}\s*$")
             j = i + 1
             while j < len(content_lines):
-                if _FENCE_CLOSE_RE.match(content_lines[j].strip()):
+                if close_re.match(content_lines[j].strip()):
                     return "\n".join(content_lines[i + 1: j])
                 j += 1
         i += 1
@@ -316,6 +321,24 @@ def generate_artifact_outputs(
     # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-return-outputs
     return written, errors
     # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-return-outputs
+
+
+def _collect_skill_blocks(bp: ParsedBlueprint) -> str:
+    """Extract markdown content from @cpt:skill markers."""
+    parts: List[str] = []
+    for mk in bp.markers:
+        if mk.marker_type == "skill" and mk.markdown_content.strip():
+            parts.append(mk.markdown_content.strip())
+    return "\n\n".join(parts)
+
+
+def _collect_sysprompt_blocks(bp: ParsedBlueprint) -> str:
+    """Extract markdown content from @cpt:sysprompt markers."""
+    parts: List[str] = []
+    for mk in bp.markers:
+        if mk.marker_type == "sysprompt" and mk.markdown_content.strip():
+            parts.append(mk.markdown_content.strip())
+    return "\n\n".join(parts)
 
 
 def _collect_rules(bp: ParsedBlueprint) -> str:
@@ -555,6 +578,17 @@ def _collect_template(bp: ParsedBlueprint) -> str:
     """
     parts: List[str] = []
 
+    # Emit frontmatter if defined in @cpt:blueprint
+    for mk in bp.markers:
+        if mk.marker_type == "blueprint":
+            fm = mk.toml_data.get("template_frontmatter", "")
+            if fm:
+                parts.append("---")
+                parts.append(fm.strip())
+                parts.append("--- ")
+                parts.append("")
+            break
+
     heading_markers = [m for m in bp.markers if m.marker_type == "heading"]
     prompt_markers = [m for m in bp.markers if m.marker_type == "prompt"]
 
@@ -589,12 +623,15 @@ def _collect_template(bp: ParsedBlueprint) -> str:
                 if lv > level:
                     del section_counters[lv]
             section_counters[level] = section_counters.get(level, 0) + 1
-            # Build hierarchical number (e.g., "1", "1.1", "1.1.1")
+            # Build hierarchical number (e.g., "1.", "1.1", "1.1.1")
             num_parts = []
             for lv in sorted(section_counters.keys()):
                 if lv <= level:
                     num_parts.append(str(section_counters[lv]))
             section_num = ".".join(num_parts)
+            # Single-level numbers get trailing dot (e.g., "1." not "1")
+            if "." not in section_num:
+                section_num += "."
             last_numbered_level = level
 
         prefix = "#" * level
@@ -620,7 +657,9 @@ def _collect_template(bp: ParsedBlueprint) -> str:
 
     if not parts:
         return ""
-    return "\n".join(parts) + "\n"
+    # Strip trailing blank lines, ensure single trailing newline
+    result = "\n".join(parts).rstrip("\n") + "\n"
+    return result
 
 
 def _collect_example(bp: ParsedBlueprint) -> str:
@@ -630,6 +669,17 @@ def _collect_example(bp: ParsedBlueprint) -> str:
     (already formatted with # prefix), then @cpt:example content follows.
     """
     parts: List[str] = []
+
+    # Emit frontmatter if defined in @cpt:blueprint
+    for mk in bp.markers:
+        if mk.marker_type == "blueprint":
+            fm = mk.toml_data.get("example_frontmatter", "")
+            if fm:
+                parts.append("---")
+                parts.append(fm.strip())
+                parts.append("--- ")
+                parts.append("")
+            break
 
     heading_markers = [m for m in bp.markers if m.marker_type == "heading"]
     example_markers = [m for m in bp.markers if m.marker_type == "example"]
@@ -929,11 +979,25 @@ def process_kit(
     errors.extend(c_errors)
     # @cpt-end:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-gen-constraints
 
+    # Aggregate @cpt:skill and @cpt:sysprompt blocks across all blueprints
+    all_skill_parts: List[str] = []
+    all_sysprompt_parts: List[str] = []
+    for bp in all_blueprints:
+        kind_label = bp.artifact_kind.upper() or bp.path.stem.upper()
+        skill_text = _collect_skill_blocks(bp)
+        if skill_text:
+            all_skill_parts.append(f"## {kind_label}\n\n{skill_text}")
+        sysprompt_text = _collect_sysprompt_blocks(bp)
+        if sysprompt_text:
+            all_sysprompt_parts.append(sysprompt_text)
+
     # @cpt-begin:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-return-generated
     summary: Dict[str, Any] = {
         "files_written": len(all_written),
         "artifact_kinds": artifact_kinds,
         "files": all_written,
+        "skill_content": "\n\n".join(all_skill_parts),
+        "sysprompt_content": "\n\n".join(all_sysprompt_parts),
     }
     return summary, errors
     # @cpt-end:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-return-generated

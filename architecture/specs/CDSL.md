@@ -497,4 +497,4 @@ example_code();
 **References**:
 - `overall-design-content.md` — Root DESIGN behavioral sections
 - `spec-design-content.md` — Spec DESIGN behavioral sections
-- `{adapter-directory}/AGENTS.md` — Project-specific CDSL overrides (if any)
+- `{cypilot_path}/config/AGENTS.md` — Project-specific CDSL overrides (if any)

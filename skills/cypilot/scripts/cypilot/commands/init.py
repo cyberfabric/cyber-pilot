@@ -11,35 +11,47 @@ from ..utils.artifacts_meta import create_backup, generate_default_registry, gen
 from ..utils.files import find_project_root
 from ..utils import toml_utils
 
-# Directories to copy from cache into project .cypilot/ dir
-COPY_DIRS = ["kits", "skills", "architecture", "requirements", "schemas", "workflows"]
+# Directories to copy from cache into project .cypilot/.core/ dir
+COPY_DIRS = ["kits", "architecture", "requirements", "schemas", "workflows"]
+# Directories to copy to .cypilot/ root (not .core/) — agent entry points need stable paths
+COPY_ROOT_DIRS = ["skills"]
 CACHE_DIR = Path.home() / ".cypilot" / "cache"
+CORE_SUBDIR = ".core"
 
 
 def _copy_from_cache(cache_dir: Path, target_dir: Path, force: bool = False) -> Dict[str, str]:
     """Copy tool directories from cache into project .cypilot/ dir.
 
-    Reference directories (kits, skills, architecture, etc.) are ALWAYS refreshed
-    from cache since they are managed content. User-editable content lives in config/.
+    Core directories go into .core/ (read-only reference content).
+    Root directories (skills) stay at .cypilot/ root for stable agent entry points.
+    User-editable content lives in config/.
 
     Returns dict of {dir_name: action} where action is 'created', 'updated', or 'skipped'.
     """
+    core_dir = target_dir / CORE_SUBDIR
+    core_dir.mkdir(parents=True, exist_ok=True)
     results: Dict[str, str] = {}
-    for name in COPY_DIRS:
-        src = cache_dir / name
-        dst = target_dir / name
+
+    def _copy_one(src: Path, dst: Path, name: str) -> None:
         if not src.is_dir():
             results[name] = "missing_in_cache"
-            continue
+            return
         if dst.exists():
             if not force:
                 results[name] = "skipped"
-                continue
+                return
             shutil.rmtree(dst)
             results[name] = "updated"
         else:
             results[name] = "created"
         shutil.copytree(src, dst)
+
+    for name in COPY_DIRS:
+        _copy_one(cache_dir / name, core_dir / name, name)
+
+    for name in COPY_ROOT_DIRS:
+        _copy_one(cache_dir / name, target_dir / name, name)
+
     return results
 
 
@@ -54,7 +66,7 @@ def _default_core_toml(system_name: str, system_slug: str) -> dict:
         "kits": {
             "cypilot-sdlc": {
                 "format": "Cypilot",
-                "path": "kits/sdlc",
+                "path": ".core/kits/sdlc",
             },
         },
     }
@@ -135,7 +147,7 @@ def _read_existing_install(project_root: Path) -> Optional[str]:
     for m in _TOML_FENCE_RE.finditer(content):
         try:
             data = tomllib.loads(m.group(1))
-            val = data.get("cypilot")
+            val = data.get("cypilot_path") or data.get("cypilot")
             if isinstance(val, str) and val.strip():
                 adapter_dir = project_root / val.strip()
                 if adapter_dir.is_dir():
@@ -154,12 +166,12 @@ def _compute_managed_block(install_dir: str) -> str:
         f"**Remember these variables while working in this project:**\n"
         f"\n"
         f"```toml\n"
-        f'cypilot = "{install_dir}"\n'
+        f'cypilot_path = "{install_dir}"\n'
         f"```\n"
         f"\n"
         f"## Navigation Rules\n"
         f"\n"
-        f"ALWAYS open and follow `{{cypilot}}/AGENTS.md` FIRST\n"
+        f"ALWAYS open and follow `{{cypilot_path}}/config/AGENTS.md` FIRST\n"
         f"\n"
         f"{MARKER_END}"
     )
@@ -311,9 +323,9 @@ def cmd_init(argv: List[str]) -> int:
         "",
         "## Navigation Rules",
         "",
-        "ALWAYS open and follow `schemas/artifacts.schema.toml` WHEN working with artifacts.toml",
+        "ALWAYS open and follow `.core/schemas/artifacts.schema.json` WHEN working with artifacts.toml",
         "",
-        "ALWAYS open and follow `requirements/artifacts-registry.md` WHEN working with artifacts.toml",
+        "ALWAYS open and follow `.core/requirements/artifacts-registry.md` WHEN working with artifacts.toml",
         "",
         artifacts_when,
         "",
@@ -381,7 +393,7 @@ def cmd_init(argv: List[str]) -> int:
 
     # @cpt-begin:cpt-cypilot-flow-core-infra-project-init:p1:inst-delegate-kits
     kit_results: Dict[str, Any] = {}
-    kits_ref_dir = cypilot_dir / "kits"
+    kits_ref_dir = cypilot_dir / CORE_SUBDIR / "kits"
     config_kits_dir = config_dir / "kits"
     if kits_ref_dir.is_dir() and not args.dry_run:
         from ..utils.blueprint import process_kit
@@ -415,6 +427,27 @@ def cmd_init(argv: List[str]) -> int:
                 errors.extend(
                     {"path": kit_slug, "error": e} for e in kit_errors
                 )
+
+            # Collect aggregated skill/sysprompt content from kit blueprints
+            skill_content = summary.get("skill_content", "")
+            if skill_content:
+                skill_md_path = config_dir / "SKILL.md"
+                header = f"# Cypilot Skill Extensions\n\nGenerated from kit `{kit_slug}` blueprints.\n\n"
+                existing = ""
+                if skill_md_path.is_file():
+                    existing = skill_md_path.read_text(encoding="utf-8")
+                if not existing:
+                    skill_md_path.write_text(header + skill_content + "\n", encoding="utf-8")
+                else:
+                    skill_md_path.write_text(existing.rstrip() + "\n\n" + skill_content + "\n", encoding="utf-8")
+                actions["config_skill"] = "created" if not existing else "updated"
+
+            sysprompt_content = summary.get("sysprompt_content", "")
+            if sysprompt_content:
+                agents_content = agents_path.read_text(encoding="utf-8") if agents_path.is_file() else ""
+                agents_content = agents_content.rstrip() + "\n\n" + sysprompt_content + "\n"
+                agents_path.write_text(agents_content, encoding="utf-8")
+                actions["config_agents_sysprompt"] = "injected"
     actions["kits"] = json.dumps(kit_results)
     # @cpt-end:cpt-cypilot-flow-core-infra-project-init:p1:inst-delegate-kits
 

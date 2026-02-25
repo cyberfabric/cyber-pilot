@@ -1,20 +1,15 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://example.com/cypilot/artifacts.schema.json",
-  "title": "Cypilot Artifact Registry (artifacts.json)",
+  "title": "Cypilot Artifact Registry (artifacts.toml)",
   "type": "object",
   "additionalProperties": false,
-  "required": ["version", "systems", "kits"],
+  "required": ["version", "systems"],
   "examples": [
     {
+      "_comment": "Kits are defined in core.toml and merged at load time. They may optionally appear here for standalone use.",
       "version": "1.0",
       "project_root": "..",
-      "kits": {
-        "cypilot-sdlc": {
-          "format": "Cypilot",
-          "path": "kits/sdlc"
-        }
-      },
       "systems": [
         {
           "name": "MyApp",
@@ -61,10 +56,11 @@
       "type": "string",
       "minLength": 1,
       "default": "..",
-      "description": "Relative path from artifacts.json to the project root directory. All paths in artifacts and codebase are resolved relative to this."
+      "description": "Relative path from artifacts.toml to the project root directory. All paths in artifacts and codebase are resolved relative to this."
     },
     "kits": {
-      "$ref": "#/$defs/kits"
+      "$ref": "#/$defs/kits",
+      "description": "Optional in artifacts.toml — kits are normally defined in core.toml and merged at load time. May appear here for standalone or legacy use."
     },
     "ignore": {
       "type": "array",

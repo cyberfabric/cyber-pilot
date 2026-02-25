@@ -13,22 +13,22 @@ ALWAYS open and follow `{cypilot_path}/skills/cypilot/SKILL.md` FIRST WHEN {cypi
 
 **Type**: Operation
 
-ALWAYS open and follow `{cypilot_path}/requirements/execution-protocol.md` FIRST
+ALWAYS open and follow `{cypilot_path}/.core/requirements/execution-protocol.md` FIRST
 
-ALWAYS open and follow `{cypilot_path}/requirements/reverse-engineering.md` WHEN BROWNFIELD project AND user requests to analyze codebase, search in code, or generate artifacts from existing code
+ALWAYS open and follow `{cypilot_path}/.core/requirements/reverse-engineering.md` WHEN BROWNFIELD project AND user requests to analyze codebase, search in code, or generate artifacts from existing code
 
 NEVER open reverse-engineering.md WHEN GREENFIELD project — there is no code to reverse-engineer
 
-ALWAYS open and follow `{cypilot_path}/requirements/code-checklist.md` WHEN user requests implementing, generating, or editing code (Code mode)
+ALWAYS open and follow `{cypilot_path}/.core/requirements/code-checklist.md` WHEN user requests implementing, generating, or editing code (Code mode)
 
-OPEN and follow `{cypilot_path}/requirements/prompt-engineering.md` WHEN user requests generation or updates of:
+OPEN and follow `{cypilot_path}/.core/requirements/prompt-engineering.md` WHEN user requests generation or updates of:
 - System prompts, agent prompts, or LLM prompts
 - Agent instructions or agent guidelines
 - Skills, workflows, or methodologies
 - AGENTS.md or navigation rules
 - Any document containing instructions for AI agents
 
-For context compaction recovery during multi-phase workflows, follow `{cypilot_path}/requirements/execution-protocol.md` Section "Compaction Recovery".
+For context compaction recovery during multi-phase workflows, follow `{cypilot_path}/.core/requirements/execution-protocol.md` Section "Compaction Recovery".
 
 ---
 
@@ -109,16 +109,16 @@ ALWAYS SKIP this section WHEN GREENFIELD — nothing to reverse-engineer
 Universal generation workflow. Handles three modes:
 - **Artifact mode**: Uses template + checklist + example (PRD, DESIGN, DECOMPOSITION, ADR, SPEC)
 - **Code mode**: Uses checklist only (implementation, fixes, refactoring)
-- **Adapter mode**: Uses adapter.md workflow (create/update adapter, specs, artifacts.json)
+- **Adapter mode**: Uses adapter.md workflow (create/update adapter, specs, artifacts.toml)
 
-**Adapter mode trigger**: When target is adapter files (AGENTS.md, artifacts.json, specs/), delegate to `{cypilot_path}/workflows/adapter.md`.
+**Adapter mode trigger**: When target is adapter files (AGENTS.md, artifacts.toml, specs/), delegate to `{cypilot_path}/.core/workflows/adapter.md`.
 
 After executing `execution-protocol.md`, you have: TARGET_TYPE, RULES, KIND, PATH, MODE, and resolved dependencies.
 
 ### Resolved Variables (from `execution-protocol.md` + adapter-info)
 
-- `{cypilot_adapter_path}` — adapter directory from `cypilot.py adapter-info` (contains `artifacts.json`)
-- `{ARTIFACTS_REGISTRY}` — `{cypilot_adapter_path}/artifacts.json`
+- `{cypilot_path}/config/` — adapter directory from `cypilot.py adapter-info` (contains `artifacts.toml`)
+- `{ARTIFACTS_REGISTRY}` — `{cypilot_path}/config/artifacts.toml`
 - `{KITS_PATH}` — kit package base directory resolved from registry (registry schema uses `kits`/`kit`)
 - `{PATH}` — target artifact/code path for the current operation
 
@@ -140,7 +140,7 @@ This workflow can require loading multiple long templates/checklists/examples an
 
 ## ⛔ Agent Anti-Patterns (STRICT mode)
 
-**Reference**: `{cypilot_path}/requirements/agent-compliance.md` for full list.
+**Reference**: `{cypilot_path}/.core/requirements/agent-compliance.md` for full list.
 
 **Critical anti-patterns for generation**:
 
@@ -212,7 +212,7 @@ This workflow can require loading multiple long templates/checklists/examples an
 
 | Dependency | Purpose | If missing |
 |------------|---------|------------|
-| **Code checklist** | Baseline quality criteria for all code work | Load `{cypilot_path}/requirements/code-checklist.md` |
+| **Code checklist** | Baseline quality criteria for all code work | Load `{cypilot_path}/.core/requirements/code-checklist.md` |
 | **Design artifact** | Requirements to implement | Ask user to specify source |
 
 **MUST NOT proceed** to Phase 1 until all dependencies are available.
@@ -226,7 +226,7 @@ This workflow can require loading multiple long templates/checklists/examples an
 **If unclear from context, ask**:
 ```
 Which system does this artifact/code belong to?
-- {list systems from artifacts.json}
+- {list systems from artifacts.toml}
 - Create new system
 ```
 
@@ -244,7 +244,7 @@ Where should the result go?
 
 **If file output + using rules**:
 - Determine correct path based on system and kind
-- Plan registry entry for `artifacts.json`
+- Plan registry entry for `artifacts.toml`
 - Check for existing file (UPDATE vs CREATE mode)
 
 ### Parent Artifact References
@@ -444,7 +444,7 @@ Resume: Re-read this checkpoint, verify no file changes, continue to Phase 3.
 {additional files if any}
 
 ### Artifacts registry:
-- `{cypilot_adapter_path}/artifacts.json`: {entry additions/updates, if any}
+- `{cypilot_path}/config/artifacts.toml`: {entry additions/updates, if any}
 
 **Proceed?** [yes/no/modify]
 ```
@@ -460,7 +460,7 @@ Resume: Re-read this checkpoint, verify no file changes, continue to Phase 3.
 
 **Only after confirmation**:
 
-1. Update `{cypilot_adapter_path}/artifacts.json` if new artifact path introduced
+1. Update `{cypilot_path}/config/artifacts.toml` if new artifact path introduced
 2. Create directories if needed
 3. Write file(s)
 4. Verify content
@@ -562,7 +562,7 @@ What would you like to do next?
 
 ## Validation Criteria
 
-- [ ] {cypilot_path}/requirements/execution-protocol.md executed
+- [ ] {cypilot_path}/.core/requirements/execution-protocol.md executed
 - [ ] Dependencies loaded (checklist, template, example)
 - [ ] System context clarified (if using rules)
 - [ ] Output destination clarified

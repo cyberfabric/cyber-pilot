@@ -1,11 +1,41 @@
+# ADR Blueprint
+<!-- 
+  Blueprint for Architecture Decision Records (ADR).
+  
+  This file is the single source of truth for:
+  - template.md generation (from @cpt:heading + @cpt:prompt markers)
+  - example.md generation (from @cpt:heading examples + @cpt:example markers)
+  - rules.md generation (from @cpt:rules + @cpt:rule markers)
+  - checklist.md generation (from @cpt:checklist + @cpt:check markers)
+  - constraints.toml contributions (from @cpt:heading + @cpt:id markers)
+  
+  All text between markers is ignored by the generator — it serves as
+  human-readable documentation for anyone editing this blueprint.
+  
+  Based on: Michael Nygard's ADR template (2011), ISO/IEC/IEEE 42010:2022
+-->
+
+## Metadata
+
 `@cpt:blueprint`
 ```toml
 version = 1
 kit = "sdlc"
 artifact = "ADR"
 codebase = false
+template_frontmatter = """
+status: accepted
+date: {YYYY-MM-DD}
+decision-makers: {optionally fill decision makers names, accounts or remove that field}"""
+example_frontmatter = """
+status: accepted
+date: 2026-02-16"""
 ```
 `@/cpt:blueprint`
+
+## Skill Integration
+
+Commands and workflows exposed to AI agents for ADR operations.
 
 `@cpt:skill`
 ```markdown
@@ -19,6 +49,16 @@ codebase = false
 - **Analyze ADR**: validate structure (deterministic) then semantic quality (checklist-based)
 ```
 `@/cpt:skill`
+
+---
+
+## Rules Definition
+
+Rules are organized into sections that map to the generated `rules.md`.
+The `@cpt:rules` skeleton defines the section structure; individual `@cpt:rule`
+markers provide the content for each section.
+
+### Rules Skeleton
 
 `@cpt:rules`
 ```toml
@@ -42,6 +82,10 @@ sections = ["options"]
 ```
 `@/cpt:rules`
 
+### Prerequisites
+
+Dependencies that must be loaded before working with an ADR artifact.
+
 `@cpt:rule`
 ```toml
 kind = "prerequisites"
@@ -51,12 +95,18 @@ section = "load_dependencies"
 - [ ] Load `template.md` for structure
 - [ ] Load `checklist.md` for semantic guidance
 - [ ] Load `examples/example.md` for reference style
-- [ ] Read adapter `artifacts.json` to determine ADR directory
-- [ ] Load `{cypilot_path}/requirements/identifiers.md` for ID formats
+- [ ] Read adapter `artifacts.toml` to determine ADR directory
+- [ ] Load `{cypilot_path}/.core/requirements/identifiers.md` for ID formats
 - [ ] Load `../../constraints.json` for kit-level constraints
-- [ ] Load `{cypilot_path}/requirements/kit-constraints.md` for constraints specification
+- [ ] Load `{cypilot_path}/.core/requirements/kit-constraints.md` for constraints specification
 ```
 `@/cpt:rule`
+
+### Requirements
+
+Structural and semantic rules that every ADR must satisfy.
+
+#### Structural Requirements
 
 `@cpt:rule`
 ```toml
@@ -73,6 +123,10 @@ section = "structural"
 ```
 `@/cpt:rule`
 
+#### Versioning Rules
+
+ADR immutability and supersession policy.
+
 `@cpt:rule`
 ```toml
 kind = "requirements"
@@ -86,6 +140,10 @@ section = "versioning"
 - [ ] Superseding ADR: `cpt-{hierarchy-prefix}-adr-{new-slug}` with status SUPERSEDED on original
 ```
 `@/cpt:rule`
+
+#### Semantic Quality
+
+Content quality standards for ADR sections.
 
 `@cpt:rule`
 ```toml
@@ -102,6 +160,10 @@ section = "semantic"
 - [ ] Valid status (PROPOSED, ACCEPTED, REJECTED, DEPRECATED, SUPERSEDED)
 ```
 `@/cpt:rule`
+
+#### Decision Scope
+
+Guidelines for what constitutes an ADR-worthy decision.
 
 `@cpt:rule`
 ```toml
@@ -132,6 +194,10 @@ section = "scope"
 ```
 `@/cpt:rule`
 
+#### Status & Traceability
+
+Valid statuses and transition rules for ADR lifecycle.
+
 `@cpt:rule`
 ```toml
 kind = "requirements"
@@ -158,6 +224,10 @@ section = "status_traceability"
 ```
 `@/cpt:rule`
 
+#### Constraints Integration
+
+How ADR relates to kit-level constraints validation.
+
 `@cpt:rule`
 ```toml
 kind = "requirements"
@@ -173,6 +243,12 @@ section = "constraints"
 ```
 `@/cpt:rule`
 
+### Task Phases
+
+Step-by-step workflow for creating an ADR.
+
+#### Setup
+
 `@cpt:rule`
 ```toml
 kind = "tasks"
@@ -182,10 +258,14 @@ section = "setup"
 - [ ] Load `template.md` for structure
 - [ ] Load `checklist.md` for semantic guidance
 - [ ] Load `examples/example.md` for reference style
-- [ ] Read adapter `artifacts.json` to determine ADR directory
+- [ ] Read adapter `artifacts.toml` to determine ADR directory
 - [ ] Determine next ADR number (ADR-NNNN)
 ```
 `@/cpt:rule`
+
+#### Content Creation
+
+How to use the example as a reference when writing each ADR section.
 
 `@cpt:rule`
 ```toml
@@ -204,6 +284,10 @@ section = "content_creation"
 ```
 `@/cpt:rule`
 
+#### IDs & Structure
+
+ID generation and structural verification.
+
 `@cpt:rule`
 ```toml
 kind = "tasks"
@@ -216,6 +300,10 @@ section = "ids_and_structure"
 - [ ] Verify uniqueness with `cypilot list-ids`
 ```
 `@/cpt:rule`
+
+#### Quality Check
+
+Final self-review before completion.
 
 `@cpt:rule`
 ```toml
@@ -230,6 +318,12 @@ section = "quality_check"
 ```
 `@/cpt:rule`
 
+### Error Handling
+
+Recovery procedures for common ADR authoring issues.
+
+#### Number Conflict
+
 `@cpt:rule`
 ```toml
 kind = "error_handling"
@@ -243,6 +337,8 @@ section = "number_conflict"
 ```
 `@/cpt:rule`
 
+#### Missing Directory
+
 `@cpt:rule`
 ```toml
 kind = "error_handling"
@@ -255,6 +351,10 @@ section = "missing_directory"
 ```
 `@/cpt:rule`
 
+#### Escalation
+
+When to involve the user.
+
 `@cpt:rule`
 ```toml
 kind = "error_handling"
@@ -266,6 +366,12 @@ section = "escalation"
 - [ ] Ask user when compliance or security implications are uncertain
 ```
 `@/cpt:rule`
+
+### Validation
+
+Post-creation validation steps.
+
+#### Structural Validation
 
 `@cpt:rule`
 ```toml
@@ -280,6 +386,8 @@ section = "structural"
 ```
 `@/cpt:rule`
 
+#### Semantic Validation
+
 `@cpt:rule`
 ```toml
 kind = "validation"
@@ -292,6 +400,10 @@ section = "semantic"
 - [ ] Verify consequences documented
 ```
 `@/cpt:rule`
+
+### Next Steps
+
+Recommended actions after completing an ADR.
 
 `@cpt:rule`
 ```toml
@@ -306,6 +418,18 @@ section = "options"
 - [ ] Want checklist review only → `/cypilot-analyze semantic` — semantic validation
 ```
 `@/cpt:rule`
+
+---
+
+## Checklist Definition
+
+The `@cpt:checklist` defines severity levels and review domains.
+Each `@cpt:check` is an individual checklist item grouped by domain.
+
+Domains are prioritized: ARCH → SEC → BIZ are reviewed first.
+Check severity: CRITICAL items block acceptance; HIGH/MEDIUM/LOW are advisory.
+
+### Checklist Skeleton
 
 `@cpt:checklist`
 ```toml
@@ -381,6 +505,10 @@ name = "Writing Quality"
 standards = ["Michael Nygard ADR Template"]
 ```
 `@/cpt:checklist`
+
+### Architecture Checks (ARCH)
+
+Core ADR quality: decision significance, context, options, rationale, traceability.
 
 `@cpt:check`
 ```toml
@@ -563,6 +691,10 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+### Performance Checks (PERF)
+
+Applicable when the decision affects performance-sensitive systems.
+
 `@cpt:check`
 ```toml
 id = "PERF-ADR-001"
@@ -600,6 +732,10 @@ applicable_when = "Performance-sensitive systems"
 - [ ] Performance monitoring approach outlined
 ```
 `@/cpt:check`
+
+### Security Checks (SEC)
+
+Applicable when the decision involves user data, network, or authentication.
 
 `@cpt:check`
 ```toml
@@ -660,6 +796,10 @@ applicable_when = "Auth-related decisions"
 ```
 `@/cpt:check`
 
+### Reliability Checks (REL)
+
+Applicable for production systems with SLAs.
+
 `@cpt:check`
 ```toml
 id = "REL-ADR-001"
@@ -696,6 +836,10 @@ kind = "must_have"
 - [ ] Runbook updates required documented
 ```
 `@/cpt:check`
+
+### Data Checks (DATA)
+
+Applicable when the decision affects persistent storage or data migrations.
 
 `@cpt:check`
 ```toml
@@ -736,6 +880,10 @@ applicable_when = "Data classification or privacy impact"
 ```
 `@/cpt:check`
 
+### Integration Checks (INT)
+
+Applicable when the decision affects external APIs or contracts.
+
 `@cpt:check`
 ```toml
 id = "INT-ADR-001"
@@ -773,6 +921,10 @@ applicable_when = "API contract changes"
 ```
 `@/cpt:check`
 
+### Operations Checks (OPS)
+
+Applicable for deployed services.
+
 `@cpt:check`
 ```toml
 id = "OPS-ADR-001"
@@ -809,6 +961,8 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+### Maintainability Checks (MAINT)
+
 `@cpt:check`
 ```toml
 id = "MAINT-ADR-001"
@@ -842,6 +996,8 @@ kind = "must_have"
 - [ ] Migration to future solutions documented
 ```
 `@/cpt:check`
+
+### Testing Checks (TEST)
 
 `@cpt:check`
 ```toml
@@ -878,6 +1034,10 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+### Compliance Checks (COMPL)
+
+Applicable when the decision has regulatory implications.
+
 `@cpt:check`
 ```toml
 id = "COMPL-ADR-001"
@@ -897,6 +1057,10 @@ applicable_when = "Regulated industries"
 ```
 `@/cpt:check`
 
+### Usability Checks (UX)
+
+Applicable when the decision impacts user experience.
+
 `@cpt:check`
 ```toml
 id = "UX-ADR-001"
@@ -914,6 +1078,8 @@ applicable_when = "End-user impact"
 - [ ] Documentation updates required documented
 ```
 `@/cpt:check`
+
+### Business Checks (BIZ)
 
 `@cpt:check`
 ```toml
@@ -949,6 +1115,10 @@ kind = "must_have"
 - [ ] Contingency plans documented
 ```
 `@/cpt:check`
+
+### Writing Quality Checks (QUALITY)
+
+Document clarity, conciseness, and formatting standards.
 
 `@cpt:check`
 ```toml
@@ -1021,6 +1191,12 @@ kind = "must_have"
 - [ ] Success criteria verifiable
 ```
 `@/cpt:check`
+
+### Anti-Pattern Checks (must_not_have)
+
+These checks flag content that does NOT belong in an ADR.
+ADRs should be focused on one decision — not restate the full architecture,
+include implementation details, or embed full PRD content.
 
 `@cpt:check`
 ```toml
@@ -1217,6 +1393,20 @@ belongs_to = "Complete the ADR before publishing, or use PROPOSED status"
 ```
 `@/cpt:check`
 
+---
+
+## Template Structure
+
+Headings, prompts, IDs, and examples that define the generated `template.md`
+and `example.md` files.
+
+Each `@cpt:heading` defines a section in the template with its level, numbering,
+and pattern for validation. `@cpt:prompt` provides the placeholder content that
+appears in the generated template. `@cpt:example` provides example content.
+`@cpt:id` defines identifier schemas used in those sections.
+
+### Title (H1)
+
 `@cpt:heading`
 ```toml
 id = "adr-h1-title"
@@ -1249,8 +1439,6 @@ headings = ["adr-h1-title"]
 `@cpt:prompt`
 ```markdown
 **ID**: `cpt-{system}-adr-{slug}`
-
-Place the ADR ID immediately after the H1 title.
 ```
 `@/cpt:prompt`
 
@@ -1261,6 +1449,8 @@ Place the ADR ID immediately after the H1 title.
 **ID**: `cpt-ex-task-flow-adr-postgres-storage`
 ```
 `@/cpt:example`
+
+### Context and Problem Statement
 
 `@cpt:heading`
 ```toml
@@ -1277,8 +1467,7 @@ examples = ["## Context and Problem Statement"]
 
 `@cpt:prompt`
 ```markdown
-Describe the context and problem statement in 2-3 sentences.
-You may articulate the problem as a question. Include what the system needs to handle.
+{Describe the context and problem statement in 2-3 sentences. You may articulate the problem as a question.}
 ```
 `@/cpt:prompt`
 
@@ -1295,6 +1484,8 @@ The system will handle:
 ```
 `@/cpt:example`
 
+### Decision Drivers
+
 `@cpt:heading`
 ```toml
 id = "adr-decision-drivers"
@@ -1310,8 +1501,8 @@ examples = ["## Decision Drivers"]
 
 `@cpt:prompt`
 ```markdown
-List the key decision drivers as bullet points. These should be specific, measurable forces
-that influence the decision. Prioritize them.
+* {Decision driver 1, e.g., a force, facing concern, …}
+* {Decision driver 2, e.g., a force, facing concern, …}
 ```
 `@/cpt:prompt`
 
@@ -1323,6 +1514,8 @@ that influence the decision. Prioritize them.
 - Operational maturity and hosting options important
 ```
 `@/cpt:example`
+
+### Considered Options
 
 `@cpt:heading`
 ```toml
@@ -1339,8 +1532,9 @@ examples = ["## Considered Options"]
 
 `@cpt:prompt`
 ```markdown
-List at least 2-3 genuinely viable options. Each option should have a brief description
-highlighting its key characteristics. No strawman options.
+* {Title of option 1}
+* {Title of option 2}
+* {Title of option 3}
 ```
 `@/cpt:prompt`
 
@@ -1351,6 +1545,8 @@ highlighting its key characteristics. No strawman options.
 3. **SQLite** — Embedded database for simpler deployment, limited concurrent access, no built-in replication
 ```
 `@/cpt:example`
+
+### Decision Outcome
 
 `@cpt:heading`
 ```toml
@@ -1367,8 +1563,7 @@ examples = ["## Decision Outcome"]
 
 `@cpt:prompt`
 ```markdown
-State the chosen option and explain WHY. Connect rationale to context and constraints.
-Format: Chosen option: "{title}", because {justification}.
+Chosen option: "{title of option 1}", because {justification, e.g., only option which meets k.o. criterion decision driver | resolves force | comes out best}.
 ```
 `@/cpt:prompt`
 
@@ -1377,6 +1572,8 @@ Format: Chosen option: "{title}", because {justification}.
 Chosen option: **PostgreSQL**, because tasks have relational data (users, assignments, comments) that benefit from joins, strong consistency is needed for status transitions and assignments, team has existing PostgreSQL expertise, and it supports JSON columns for flexible metadata if needed later.
 ```
 `@/cpt:example`
+
+#### Consequences
 
 `@cpt:heading`
 ```toml
@@ -1393,10 +1590,8 @@ examples = ["### Consequences"]
 
 `@cpt:prompt`
 ```markdown
-Document both positive and negative consequences. Use format:
-- Positive: {good consequence}
-- Negative: {bad consequence}
-- Follow-up: {action needed}
+* Good, because {positive consequence, e.g., improvement of one or more desired qualities}
+* Bad, because {negative consequence, e.g., compromising one or more desired qualities}
 ```
 `@/cpt:prompt`
 
@@ -1409,6 +1604,10 @@ Document both positive and negative consequences. Use format:
 - Follow-up: Set up connection pooling for scalability
 ```
 `@/cpt:example`
+
+#### Confirmation
+
+How the decision will be validated after implementation.
 
 `@cpt:heading`
 ```toml
@@ -1425,8 +1624,7 @@ examples = ["### Confirmation"]
 
 `@cpt:prompt`
 ```markdown
-Describe how the implementation/compliance of the ADR can be confirmed.
-E.g., design/code review, ArchUnit test, prototype validation, etc.
+{Describe how the implementation/compliance of the ADR can be confirmed. E.g., design/code review, ArchUnit test, etc.}
 ```
 `@/cpt:prompt`
 
@@ -1438,6 +1636,10 @@ Confirmed when:
 - Migration story is documented and validated on a schema change
 ```
 `@/cpt:example`
+
+### Pros and Cons of the Options
+
+Detailed evaluation of each considered option.
 
 `@cpt:heading`
 ```toml
@@ -1459,6 +1661,7 @@ level = 3
 required = true
 numbered = false
 multiple = true
+template = "{Title of option 1}"
 description = "A single option evaluation entry (pros/cons)."
 examples = ["### PostgreSQL", "### MongoDB", "### SQLite"]
 ```
@@ -1466,10 +1669,19 @@ examples = ["### PostgreSQL", "### MongoDB", "### SQLite"]
 
 `@cpt:prompt`
 ```markdown
-For each option, list pros and cons. Use format:
-- Pros: {arguments for}
-- Cons: {arguments against}
-Present options neutrally — no leading language.
+{Description or pointer to more information}
+
+* Good, because {argument a}
+* Good, because {argument b}
+* Neutral, because {argument c}
+* Bad, because {argument d}
+
+### {Title of option 2}
+
+{Description or pointer to more information}
+
+* Good, because {argument a}
+* Bad, because {argument b}
 ```
 `@/cpt:prompt`
 
@@ -1507,7 +1719,7 @@ examples = ["## More Information"]
 
 `@cpt:prompt`
 ```markdown
-Additional evidence, team agreement, links to related decisions and resources.
+{Additional evidence, team agreement, links to related decisions and resources.}
 ```
 `@/cpt:prompt`
 
@@ -1533,8 +1745,15 @@ examples = ["## Traceability"]
 
 `@cpt:prompt`
 ```markdown
-Links to related artifacts: PRD, DESIGN.
-List impacted requirement and design element IDs with brief descriptions.
+- **PRD**: [PRD.md](../PRD.md)
+- **DESIGN**: [DESIGN.md](../DESIGN.md)
+
+This decision directly addresses the following requirements or design elements:
+
+* `cpt-{system}-fr-{slug}` — {Brief description of how this decision satisfies/constrains this requirement}
+* `cpt-{system}-nfr-{slug}` — {Brief description of how this decision satisfies/constrains this requirement}
+* `cpt-{system}-usecase-{slug}` — {Brief description of the interaction/use case impacted}
+* `cpt-{system}-design-{slug}` — {Brief description of design element affected}
 ```
 `@/cpt:prompt`
 

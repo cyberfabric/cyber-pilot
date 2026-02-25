@@ -1,4 +1,3 @@
-
 # Technical Design — {Module Name}
 
 ## 1. Architecture Overview
@@ -16,7 +15,7 @@ Requirements that significantly influence architecture decisions.
 #### Functional Drivers
 
 | Requirement | Design Response |
-|-------------|-----------------|
+|-------------|------------------|
 | `cpt-{system}-fr-{slug}` | {How architecture addresses this requirement} |
 
 #### NFR Allocation
@@ -126,7 +125,7 @@ This table maps non-functional requirements from PRD to specific design/architec
 {Internal system/module dependencies within the platform. All inter-module communication goes through versioned contracts, SDK clients, or plugin interfaces — never through internal types.}
 
 | Dependency Module | Interface Used | Purpose |
-|-------------------|----------------|---------|
+|-------------------|----------------|----------|
 | {module_name} | {contract / SDK client / plugin} | {Why this module is needed} |
 
 **Dependency Rules** (per project conventions):

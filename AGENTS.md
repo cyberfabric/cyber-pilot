@@ -4,12 +4,12 @@
 **Remember these variables while working in this project:**
 
 ```toml
-cypilot = ".cypilot-adapter"
+cypilot_path = ".cypilot-adapter"
 ```
 
 ## Navigation Rules
 
-ALWAYS open and follow `{cypilot}/AGENTS.md` FIRST
+ALWAYS open and follow `{cypilot_path}/config/AGENTS.md` FIRST
 
 <!-- /@cpt:root-agents -->
 
@@ -21,7 +21,7 @@ ALWAYS open and follow `{cypilot}/AGENTS.md` FIRST
 
 ## Navigation Rules
 
-ALWAYS open and follow `{adapter-directory}/AGENTS.md` WHEN starting any Cypilot work
+ALWAYS open and follow `{cypilot_path}/config/AGENTS.md` WHEN starting any Cypilot work
 
 ### Dependency Error Handling
 

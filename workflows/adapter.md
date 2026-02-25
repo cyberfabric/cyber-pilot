@@ -2,7 +2,7 @@
 cypilot: true
 type: workflow
 name: cypilot-adapter
-description: Create/update project Cypilot adapter - scan structure, configure rules, generate AGENTS.md and artifacts.json
+description: Create/update project Cypilot adapter - scan structure, configure rules, generate AGENTS.md and artifacts.toml
 version: 1.0
 purpose: Unified Cypilot adapter workflow - scan, configure, validate
 ---
@@ -13,7 +13,7 @@ ALWAYS open and follow `{cypilot_path}/skills/cypilot/SKILL.md` FIRST WHEN {cypi
 
 **Type**: Operation
 **Role**: Any
-**Artifact**: `{adapter-directory}/AGENTS.md` + `artifacts.json` + specs
+**Artifact**: `{cypilot_path}/config/AGENTS.md` + `artifacts.toml` + specs
 
 ---
 
@@ -59,19 +59,19 @@ Unified adapter workflow that handles the complete lifecycle:
 
 ---
 
-ALWAYS open and follow `{cypilot_path}/requirements/execution-protocol.md` WHEN executing this workflow
+ALWAYS open and follow `{cypilot_path}/.core/requirements/execution-protocol.md` WHEN executing this workflow
 
 ## Requirements
 
-**ALWAYS open and follow**: `{cypilot_path}/requirements/adapter-structure.md`
+**ALWAYS open and follow**: `{cypilot_path}/.core/requirements/adapter-structure.md`
 
-**ALWAYS open and follow**: `{cypilot_path}/schemas/artifacts.schema.json` WHEN generating artifacts.json
+**ALWAYS open and follow**: `{cypilot_path}/.core/schemas/artifacts.schema.json` WHEN generating artifacts.toml
 
-**ALWAYS open and follow**: `{cypilot_path}/requirements/reverse-engineering.md` WHEN scanning project structure (Phase 1)
+**ALWAYS open and follow**: `{cypilot_path}/.core/requirements/reverse-engineering.md` WHEN scanning project structure (Phase 1)
 
 Extract:
 - Adapter structure requirements
-- artifacts.json schema
+- artifacts.toml schema
 - Spec-to-artifact-kind mapping from each kit
 
 ---
@@ -109,7 +109,7 @@ Check in order:
 If found:
   ADAPTER_EXISTS = true
   ADAPTER_DIR = {path}
-  Load existing artifacts.json if present
+  Load existing artifacts.toml if present
 
 If not found:
   ADAPTER_EXISTS = false
@@ -175,7 +175,7 @@ Propose level structure:
 
 ### 1.4 Spec Discovery Scan
 
-**Reference**: `{cypilot_path}/requirements/adapter-structure.md` → Spec Discovery Guide
+**Reference**: `{cypilot_path}/.core/requirements/adapter-structure.md` → Spec Discovery Guide
 
 Scan for domain-specific knowledge following the 12-domain model from Cypilot checklists:
 
@@ -372,9 +372,9 @@ Store as: `TRACEABILITY_CONFIG`
 mkdir -p {ADAPTER_DIR}/specs
 ```
 
-### 3.2 Generate artifacts.json
+### 3.2 Generate artifacts.toml
 
-Create `{ADAPTER_DIR}/artifacts.json` following schema:
+Create `{ADAPTER_DIR}/artifacts.toml` following schema:
 
 ```json
 {
@@ -669,7 +669,7 @@ Validate:
      - Contains Extends declaration
      - Contains project name
 
-  3. artifacts.json
+  3. artifacts.toml
      - Valid against schema
      - All paths resolve correctly
       - Kit packages configured
@@ -701,7 +701,7 @@ ADAPTER FILES
 ───────────────────────────────────────────────────────────────────────────────
 ✅ AGENTS.md exists
 ✅ Extends declaration valid
-✅ artifacts.json valid
+✅ artifacts.toml valid
 
 ───────────────────────────────────────────────────────────────────────────────
 SPEC FILES
@@ -758,7 +758,7 @@ Run adapter workflow with --agent {windsurf|cursor|claude|copilot}
 ## Validation Criteria
 
 - [ ] All workflow steps completed
-- [ ] artifacts.json valid against schema
+- [ ] artifacts.toml valid against schema
 - [ ] AGENTS.md follows template
 - [ ] All referenced paths exist
 
@@ -789,6 +789,6 @@ Run adapter workflow with --agent {windsurf|cursor|claude|copilot}
 
 ## References
 
-**Requirements**: `{cypilot_path}/requirements/adapter-structure.md`
-**Schema**: `{cypilot_path}/schemas/artifacts.schema.json`
-**Methodology**: `{cypilot_path}/requirements/reverse-engineering.md`
+**Requirements**: `{cypilot_path}/.core/requirements/adapter-structure.md`
+**Schema**: `{cypilot_path}/.core/schemas/artifacts.schema.json`
+**Methodology**: `{cypilot_path}/.core/requirements/reverse-engineering.md`

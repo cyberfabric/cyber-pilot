@@ -221,7 +221,7 @@ Agent MUST structure validation output as follows:
 ```
 ⚠️ Checklist not found: {path}
 → Cannot perform semantic validation without criteria
-→ Fix: Verify rules path, check artifacts.json configuration
+→ Fix: Verify rules path, check artifacts.toml configuration
 ```
 **Action**: STOP — semantic validation requires checklist.
 

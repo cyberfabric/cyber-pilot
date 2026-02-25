@@ -242,11 +242,11 @@ Examples (in your adapter):
 
 ### Behavior Description Language (Optional Override)
 - **Default**: Cypilot DSL (CDSL) for flows/algorithms/states
-- **Can override**: Create custom behavior specification in `{adapter-directory}/`
+- **Can override**: Create custom behavior specification in `{cypilot_path}/config/`
 - **Example**:
 
 ```text
-Replace: {cypilot_path}/requirements/CDSL.md
+Replace: {cypilot_path}/.core/requirements/CDSL.md
 With:    {project-root}/.cypilot-adapter/CustomBDL.md
 ```
 - **Requirements**: Define control flow keywords, syntax rules, validation criteria

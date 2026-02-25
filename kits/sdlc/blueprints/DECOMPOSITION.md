@@ -1,3 +1,23 @@
+# DECOMPOSITION Blueprint
+<!-- 
+  Blueprint for Decomposition Plans.
+  
+  This file is the single source of truth for:
+  - template.md generation (from @cpt:heading + @cpt:prompt markers)
+  - example.md generation (from @cpt:heading examples + @cpt:example markers)
+  - rules.md generation (from @cpt:rules + @cpt:rule markers)
+  - checklist.md generation (from @cpt:checklist + @cpt:check markers)
+  - constraints.toml contributions (from @cpt:heading + @cpt:id markers)
+  
+  All text between markers is ignored by the generator — it serves as
+  human-readable documentation for anyone editing this blueprint.
+  
+  DECOMPOSITION bridges DESIGN → FEATURE by listing features, ordering,
+  dependencies, and traceability to PRD/DESIGN.
+-->
+
+## Metadata
+
 `@cpt:blueprint`
 ```toml
 version = 1
@@ -6,6 +26,8 @@ artifact = "DECOMPOSITION"
 codebase = false
 ```
 `@/cpt:blueprint`
+
+## Skill Integration
 
 `@cpt:skill`
 ```markdown
@@ -20,6 +42,12 @@ codebase = false
 - **Analyze DECOMPOSITION**: validate structure (deterministic) then decomposition quality (checklist-based)
 ```
 `@/cpt:skill`
+
+---
+
+## Rules Definition
+
+### Rules Skeleton
 
 `@cpt:rules`
 ```toml
@@ -43,6 +71,8 @@ sections = ["options"]
 ```
 `@/cpt:rules`
 
+### Prerequisites
+
 `@cpt:rule`
 ```toml
 kind = "prerequisites"
@@ -54,11 +84,15 @@ section = "load_dependencies"
 - [ ] Load `examples/example.md` for reference style
 - [ ] Read DESIGN to identify elements to decompose
 - [ ] Read PRD to identify requirements to cover
-- [ ] Read adapter `artifacts.json` to determine artifact paths
+- [ ] Read adapter `artifacts.toml` to determine artifact paths
 - [ ] Load `../../constraints.json` for kit-level constraints
-- [ ] Load `{cypilot_path}/requirements/identifiers.md` for ID formats
+- [ ] Load `{cypilot_path}/.core/requirements/identifiers.md` for ID formats
 ```
 `@/cpt:rule`
+
+### Requirements
+
+#### Structural
 
 `@cpt:rule`
 ```toml
@@ -75,6 +109,8 @@ section = "structural"
 - [ ] No duplicate feature IDs
 ```
 `@/cpt:rule`
+
+#### Decomposition Quality
 
 `@cpt:rule`
 ```toml
@@ -108,6 +144,8 @@ section = "decomposition_quality"
 ```
 `@/cpt:rule`
 
+#### Upstream Traceability
+
 `@cpt:rule`
 ```toml
 kind = "requirements"
@@ -119,6 +157,8 @@ section = "upstream_traceability"
 - [ ] When all features for a capability IMPLEMENTED → mark capability `[x]` in PRD
 ```
 `@/cpt:rule`
+
+#### Checkbox Management
 
 `@cpt:rule`
 ```toml
@@ -140,6 +180,8 @@ section = "checkbox_management"
 ```
 `@/cpt:rule`
 
+#### Constraints
+
 `@cpt:rule`
 ```toml
 kind = "requirements"
@@ -155,6 +197,10 @@ section = "constraints"
 ```
 `@/cpt:rule`
 
+### Task Phases
+
+#### Setup
+
 `@cpt:rule`
 ```toml
 kind = "tasks"
@@ -168,6 +214,8 @@ section = "setup"
 - [ ] Read PRD to identify requirements to cover
 ```
 `@/cpt:rule`
+
+#### Content Creation
 
 `@cpt:rule`
 ```toml
@@ -184,6 +232,8 @@ section = "content_creation"
 ```
 `@/cpt:rule`
 
+#### IDs & Structure
+
 `@cpt:rule`
 ```toml
 kind = "tasks"
@@ -198,6 +248,8 @@ section = "ids_and_structure"
 ```
 `@/cpt:rule`
 
+#### Quality Check
+
 `@cpt:rule`
 ```toml
 kind = "tasks"
@@ -211,6 +263,8 @@ section = "quality_check"
 - [ ] Verify dependency graph is valid DAG
 ```
 `@/cpt:rule`
+
+#### Checkbox Workflow
 
 `@cpt:rule`
 ```toml
@@ -228,6 +282,10 @@ section = "checkbox_workflow"
 ```
 `@/cpt:rule`
 
+### Error Handling
+
+#### Missing Dependencies
+
 `@cpt:rule`
 ```toml
 kind = "error_handling"
@@ -238,6 +296,8 @@ section = "missing_dependencies"
 - [ ] If template not found: STOP — cannot proceed without template
 ```
 `@/cpt:rule`
+
+#### Quality Issues
 
 `@cpt:rule`
 ```toml
@@ -250,6 +310,8 @@ section = "quality_issues"
 ```
 `@/cpt:rule`
 
+#### Escalation
+
 `@cpt:rule`
 ```toml
 kind = "error_handling"
@@ -261,6 +323,10 @@ section = "escalation"
 - [ ] Ask user when dependency ordering unclear
 ```
 `@/cpt:rule`
+
+### Validation
+
+#### Structural
 
 `@cpt:rule`
 ```toml
@@ -277,6 +343,8 @@ section = "structural"
 ```
 `@/cpt:rule`
 
+#### Decomposition Quality
+
 `@cpt:rule`
 ```toml
 kind = "validation"
@@ -292,6 +360,8 @@ Apply `checklist.md` systematically:
 ```
 `@/cpt:rule`
 
+### Next Steps
+
 `@cpt:rule`
 ```toml
 kind = "next_steps"
@@ -305,6 +375,14 @@ section = "options"
 - [ ] Want checklist review only → `/cypilot-analyze semantic` — decomposition quality validation
 ```
 `@/cpt:rule`
+
+---
+
+## Checklist Definition
+
+Decomposition quality checks organized by domain.
+
+### Checklist Skeleton
 
 `@cpt:checklist`
 ```toml
@@ -366,6 +444,11 @@ standards = []
 ```
 `@/cpt:checklist`
 
+### Coverage Checks (COV)
+
+100% design element coverage — every component, sequence, and data entity
+must be assigned to at least one feature.
+
 `@cpt:check`
 ```toml
 id = "COV-001"
@@ -418,6 +501,10 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+### Exclusivity Checks (EXC)
+
+No scope overlaps between features.
+
 `@cpt:check`
 ```toml
 id = "EXC-001"
@@ -465,6 +552,10 @@ kind = "must_have"
 - [ ] Integration points are explicit
 ```
 `@/cpt:check`
+
+### Attribute Checks (ATTR)
+
+Each feature has all required attributes.
 
 `@cpt:check`
 ```toml
@@ -549,6 +640,10 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+### Leveling Checks (LEV)
+
+Feature ordering, priority, and implementation sequence.
+
 `@cpt:check`
 ```toml
 id = "LEV-001"
@@ -596,6 +691,8 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+### Configuration Checks (CFG)
+
 `@cpt:check`
 ```toml
 id = "CFG-001"
@@ -627,6 +724,10 @@ kind = "must_have"
 - [ ] Feature structure supports incremental delivery
 ```
 `@/cpt:check`
+
+### Traceability Checks (TRC)
+
+Upstream links to PRD/DESIGN.
 
 `@cpt:check`
 ```toml
@@ -692,6 +793,8 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+### Dependency Checks (DEP)
+
 `@cpt:check`
 ```toml
 id = "DEP-001"
@@ -740,6 +843,8 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+### Checkbox Checks (CHK)
+
 `@cpt:check`
 ```toml
 id = "CHK-001"
@@ -771,6 +876,8 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+### Documentation Checks (DOC)
+
 `@cpt:check`
 ```toml
 id = "DOC-001"
@@ -785,6 +892,8 @@ kind = "must_have"
 - [ ] No silent omissions — reviewer can distinguish "considered and excluded" from "forgot"
 ```
 `@/cpt:check`
+
+### Format Checks (FMT)
 
 `@cpt:check`
 ```toml
@@ -834,6 +943,8 @@ kind = "must_have"
 - [ ] Priority followed by dash and backtick-enclosed ID
 ```
 `@/cpt:check`
+
+### Anti-Pattern Checks (must_not_have)
 
 `@cpt:check`
 ```toml
@@ -885,6 +996,16 @@ belongs_to = "ADR artifact"
 ```
 `@/cpt:check`
 
+---
+
+## Template Structure
+
+Headings, prompts, IDs, and examples that define the generated `template.md`
+and `example.md` files. The DECOMPOSITION template covers: overview, feature
+entries with status/priority/scope/dependencies/traceability.
+
+### Title (H1)
+
 `@cpt:heading`
 ```toml
 id = "decomposition-h1-title"
@@ -892,12 +1013,14 @@ level = 1
 required = true
 numbered = false
 multiple = false
-template = "Decomposition: {title}"
+template = "Decomposition: {PROJECT_NAME}"
 prompt = "Project or system name"
 description = "DECOMPOSITION document title (H1)."
 examples = ["# Decomposition: TaskFlow"]
 ```
 `@/cpt:heading`
+
+### Overview
 
 `@cpt:heading`
 ```toml
@@ -914,8 +1037,7 @@ examples = ["## 1. Overview"]
 
 `@cpt:prompt`
 ```markdown
-Describe how the DESIGN was decomposed into features, the decomposition strategy,
-and any relevant decomposition rationale. Include: strategy bullets, coverage verification note.
+{ Description of how the DESIGN was decomposed into features, the decomposition strategy, and any relevant decomposition rationale. }
 ```
 `@/cpt:prompt`
 
@@ -930,6 +1052,8 @@ TaskFlow design is decomposed into features organized around core task managemen
 - 100% coverage of all DESIGN elements verified
 ```
 `@/cpt:example`
+
+### Feature Entries
 
 `@cpt:heading`
 ```toml
@@ -964,8 +1088,6 @@ headings = ["decomposition-entries"]
 **Overall implementation status:**
 
 - [ ] `p1` - **ID**: `cpt-{system}-status-overall`
-
-Then list each feature entry as an H3 subsection.
 ```
 `@/cpt:prompt`
 
@@ -976,6 +1098,7 @@ level = 3
 required = true
 numbered = true
 multiple = true
+template = "[{Feature Title 1}](feature-{slug}/) - HIGH"
 description = "A single feature entry."
 examples = ["### 2.1 [Task CRUD](feature-task-crud/) ⏳ HIGH"]
 ```
@@ -998,20 +1121,200 @@ headings = ["decomposition-entry"]
 
 `@cpt:prompt`
 ```markdown
-For each feature entry, include:
-- **ID**: `cpt-{system}-feature-{slug}` with priority and checkbox
-- **Purpose**: Few sentences describing what this feature accomplishes
-- **Depends On**: None or feature ID references
-- **Scope**: In-scope items as bullet list
-- **Out of scope**: Excluded items as bullet list
-- **Requirements Covered**: PRD FR/NFR ID references with checkboxes
-- **Design Principles Covered**: Principle ID references with checkboxes
-- **Design Constraints Covered**: Constraint ID references with checkboxes
-- **Domain Model Entities**: Entity names
-- **Design Components**: Component ID references with checkboxes
-- **API**: Endpoints or CLI commands
-- **Sequences**: Sequence ID references with checkboxes
-- **Data**: Database table ID references with checkboxes
+- [ ] `p1` - **ID**: `cpt-{system}-feature-{slug}`
+
+- **Purpose**: {Few sentences describing what this feature accomplishes and why it matters}
+
+- **Depends On**: None
+
+- **Scope**:
+  - {in-scope item 1}
+  - {in-scope item 2}
+
+- **Out of scope**:
+  - {out-of-scope item 1}
+  - {out-of-scope item 2}
+
+- **Requirements Covered**:
+
+  - [ ] `p1` - `cpt-{system}-fr-{slug}`
+  - [ ] `p1` - `cpt-{system}-nfr-{slug}`
+
+- **Design Principles Covered**:
+
+  - [ ] `p1` - `cpt-{system}-principle-{slug}`
+
+- **Design Constraints Covered**:
+
+  - [ ] `p1` - `cpt-{system}-constraint-{slug}`
+
+- **Domain Model Entities**:
+  - {entity 1}
+  - {entity 2}
+
+
+- **Design Components**:
+
+  - [ ] `p1` - `cpt-{system}-component-{slug}`
+
+
+
+- **API**:
+  - POST /api/{resource}
+  - GET /api/{resource}/{id}
+  - {CLI command}
+
+
+- **Sequences**:
+
+  - [ ] `p1` - `cpt-{system}-seq-{slug}`
+
+
+- **Data**:
+
+  - [ ] `p1` - `cpt-{system}-dbtable-{slug}`
+
+
+
+
+
+
+### 2.2 [{Feature Title 2}](feature-{slug}/) - MEDIUM
+
+
+- [ ] `p2` - **ID**: `cpt-{system}-feature-{slug}`
+
+
+- **Purpose**: {Few sentences describing what this feature accomplishes and why it matters}
+
+
+
+- **Depends On**: `cpt-{system}-feature-{slug}` (previous feature)
+
+
+
+- **Scope**:
+  - {in-scope item 1}
+  - {in-scope item 2}
+
+
+
+- **Out of scope**:
+  - {out-of-scope item 1}
+
+
+- **Requirements Covered**:
+
+  - [ ] `p2` - `cpt-{system}-fr-{slug}`
+
+
+- **Design Principles Covered**:
+
+  - [ ] `p2` - `cpt-{system}-principle-{slug}`
+
+
+- **Design Constraints Covered**:
+
+  - [ ] `p2` - `cpt-{system}-constraint-{slug}`
+
+
+
+- **Domain Model Entities**:
+  - {entity}
+
+
+- **Design Components**:
+
+  - [ ] `p2` - `cpt-{system}-component-{slug}`
+
+
+
+- **API**:
+  - PUT /api/{resource}/{id}
+  - DELETE /api/{resource}/{id}
+
+
+- **Sequences**:
+
+  - [ ] `p2` - `cpt-{system}-seq-{slug}`
+
+
+- **Data**:
+
+  - [ ] `p2` - `cpt-{system}-dbtable-{slug}`
+
+
+
+
+
+
+### 2.3 [{Feature Title 3}](feature-{slug}/) - LOW
+
+
+- [ ] `p3` - **ID**: `cpt-{system}-feature-{slug}`
+
+
+- **Purpose**: {Few sentences describing what this feature accomplishes and why it matters}
+
+
+
+- **Depends On**: `cpt-{system}-feature-{slug}`
+
+
+
+- **Scope**:
+  - {in-scope item}
+
+
+
+- **Out of scope**:
+  - {out-of-scope item}
+
+
+- **Requirements Covered**:
+
+  - [ ] `p3` - `cpt-{system}-fr-{slug}`
+
+
+- **Design Principles Covered**:
+
+  - [ ] `p3` - `cpt-{system}-principle-{slug}`
+
+
+- **Design Constraints Covered**:
+
+  - [ ] `p3` - `cpt-{system}-constraint-{slug}`
+
+
+
+- **Domain Model Entities**:
+  - {entity}
+
+
+- **Design Components**:
+
+  - [ ] `p3` - `cpt-{system}-component-{slug}`
+
+
+
+- **API**:
+  - GET /api/{resource}/stats
+
+
+- **Sequences**:
+
+  - [ ] `p3` - `cpt-{system}-seq-{slug}`
+
+
+- **Data**:
+
+  - [ ] `p3` - `cpt-{system}-dbtable-{slug}`
+
+
+
+
+
+---
 ```
 `@/cpt:prompt`
 
@@ -1090,10 +1393,20 @@ examples = ["## 3. Feature Dependencies"]
 `@/cpt:heading`
 
 `@cpt:prompt`
-```markdown
-Show dependency graph as ASCII/text diagram. Include rationale for each dependency edge.
-If no dependencies, state "None."
+````markdown
+```text
+cpt-{system}-feature-{foundation-slug}
+    ↓
+    ├─→ cpt-{system}-feature-{dependent-1-slug}
+    └─→ cpt-{system}-feature-{dependent-2-slug}
 ```
+
+**Dependency Rationale**:
+
+- `cpt-{system}-feature-{dependent-1-slug}` requires `cpt-{system}-feature-{foundation-slug}`: {explain why dependent-1 needs foundation}
+- `cpt-{system}-feature-{dependent-2-slug}` requires `cpt-{system}-feature-{foundation-slug}`: {explain why dependent-2 needs foundation}
+- `cpt-{system}-feature-{dependent-1-slug}` and `cpt-{system}-feature-{dependent-2-slug}` are independent of each other and can be developed in parallel
+````
 `@/cpt:prompt`
 
 `@cpt:example`

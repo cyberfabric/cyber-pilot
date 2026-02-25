@@ -28,10 +28,10 @@
 - `template.md` — required structure
 - `checklist.md` — semantic quality criteria
 - `examples/example.md` — reference implementation
-- `{cypilot_path}/requirements/identifiers.md` — ID formats and naming
+- `{cypilot_path}/.core/requirements/identifiers.md` — ID formats and naming
 - `../../constraints.json` — kit-level constraints (primary rules for ID definitions/references)
-- `{cypilot_path}/requirements/kit-constraints.md` — constraints specification
-- `{cypilot_path}/schemas/kit-constraints.schema.json` — constraints JSON Schema
+- `{cypilot_path}/.core/requirements/kit-constraints.md` — constraints specification
+- `{cypilot_path}/.core/schemas/kit-constraints.schema.json` — constraints JSON Schema
 
 ---
 
@@ -44,7 +44,7 @@ Agent confirms understanding of requirements:
 - [ ] DESIGN follows `template.md` structure
 - [ ] Artifact frontmatter (optional): use `cpt:` format for document metadata
 - [ ] All required sections present and non-empty
-- [ ] All IDs follow `cpt-{hierarchy-prefix}-{kind}-{slug}` convention (see artifacts.json for hierarchy)
+- [ ] All IDs follow `cpt-{hierarchy-prefix}-{kind}-{slug}` convention (see artifacts.toml for hierarchy)
 - [ ] References to PRD are valid
 - [ ] No placeholder content (TODO, TBD, FIXME)
 - [ ] No duplicate IDs within document
@@ -110,8 +110,8 @@ Agent confirms understanding of requirements:
   - which cross-artifact references are required / optional / prohibited
 
 **References**:
-- `{cypilot_path}/requirements/kit-constraints.md`
-- `{cypilot_path}/schemas/kit-constraints.schema.json`
+- `{cypilot_path}/.core/requirements/kit-constraints.md`
+- `{cypilot_path}/.core/schemas/kit-constraints.schema.json`
 
 **Validation Checks**:
 - `cypilot validate` enforces `identifiers[<kind>].references` rules (required / optional / prohibited)

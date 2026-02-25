@@ -50,7 +50,7 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
 3. [x] - `p1` - **IF** validation fails **RETURN** error with structural requirements - `inst-if-invalid-source`
 4. [x] - `p1` - Extract kit metadata: read `@cpt:blueprint` marker from first blueprint to get kit slug and version - `inst-extract-metadata`
 5. [x] - `p1` - **IF** kit slug already registered AND `--force` not set **RETURN** error with hint - `inst-if-already-registered`
-6. [x] - `p1` - Save kit source to `{cypilot}/kits/{slug}/` (reference copy) - `inst-save-reference`
+6. [x] - `p1` - Save kit source to `{cypilot_path}/.core/kits/{slug}/` (reference copy) - `inst-save-reference`
 7. [x] - `p1` - Copy blueprints to `config/kits/{slug}/blueprints/` (user-editable) - `inst-copy-blueprints`
 8. [x] - `p1` - Process all blueprints using `cpt-cypilot-algo-blueprint-system-process-kit` - `inst-process-blueprints`
 9. [x] - `p1` - Register kit in `config/core.toml` with slug, format, path, and artifact templates - `inst-register-kit`
@@ -74,7 +74,7 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
 1. [x] - `p1` - User invokes `cypilot kit update [--force] [--kit SLUG]` - `inst-user-update`
 2. [x] - `p1` - Resolve target kits: if `--kit` specified use that, otherwise update all installed kits - `inst-resolve-kits`
 3. [x] - `p1` - **FOR EACH** kit in target kits - `inst-foreach-kit`
-   1. [x] - `p1` - Load new kit source from cache at `{cypilot}/kits/{slug}/` - `inst-load-new-source`
+   1. [x] - `p1` - Load new kit source from cache at `{cypilot_path}/.core/kits/{slug}/` - `inst-load-new-source`
    2. [x] - `p1` - **IF** `--force` - `inst-if-force`
       1. [x] - `p1` - Overwrite user blueprints in `config/kits/{slug}/blueprints/` with new source - `inst-force-overwrite`
    3. [x] - `p1` - Regenerate all outputs using `cpt-cypilot-algo-blueprint-system-process-kit` - `inst-regenerate`
@@ -209,7 +209,7 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
 
 - [ ] `p2` - **ID**: `cpt-cypilot-algo-blueprint-system-three-way-merge`
 
-**Input**: Reference blueprint (old version in `{cypilot}/kits/{slug}/`), user blueprint (`config/kits/{slug}/blueprints/`), new blueprint (from updated kit source)
+**Input**: Reference blueprint (old version in `{cypilot_path}/.core/kits/{slug}/`), user blueprint (`config/kits/{slug}/blueprints/`), new blueprint (from updated kit source)
 
 **Output**: Merged blueprint content, or list of conflicts
 
@@ -324,7 +324,7 @@ The system **MUST** aggregate `@cpt:heading` and `@cpt:id` markers from all blue
 
 - [x] `p1` - **ID**: `cpt-cypilot-dod-blueprint-system-kit-install`
 
-The system **MUST** provide `cypilot kit install <path>` that saves kit source to `{cypilot}/kits/{slug}/` (reference), copies blueprints to `config/kits/{slug}/blueprints/` (user-editable), processes all blueprints to generate outputs, and registers the kit in `config/core.toml`. Installation of an already-registered kit without `--force` **MUST** produce exit code 2 with a helpful message.
+The system **MUST** provide `cypilot kit install <path>` that saves kit source to `{cypilot_path}/.core/kits/{slug}/` (reference), copies blueprints to `config/kits/{slug}/blueprints/` (user-editable), processes all blueprints to generate outputs, and registers the kit in `config/core.toml`. Installation of an already-registered kit without `--force` **MUST** produce exit code 2 with a helpful message.
 
 **Implements**:
 - `cpt-cypilot-flow-blueprint-system-kit-install`
@@ -340,7 +340,7 @@ The system **MUST** provide `cypilot kit install <path>` that saves kit source t
 
 - [x] `p1` - **ID**: `cpt-cypilot-dod-blueprint-system-kit-update`
 
-The system **MUST** provide `cypilot kit update [--force] [--kit SLUG]`. Force mode **MUST** overwrite all user blueprints and regenerate outputs. Additive mode (p2) **MUST** use three-way diff with the reference in `{cypilot}/kits/{slug}/` to preserve user modifications while incorporating new markers.
+The system **MUST** provide `cypilot kit update [--force] [--kit SLUG]`. Force mode **MUST** overwrite all user blueprints and regenerate outputs. Additive mode (p2) **MUST** use three-way diff with the reference in `{cypilot_path}/.core/kits/{slug}/` to preserve user modifications while incorporating new markers.
 
 **Implements**:
 - `cpt-cypilot-flow-blueprint-system-kit-update`

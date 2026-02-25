@@ -94,7 +94,7 @@ Later:  cypilot make DESIGN                   → Document architecture
 
 ## What You Will Produce
 
-Cypilot artifacts registered in `.cypilot-adapter/artifacts.json` ([taxonomy](TAXONOMY.md)):
+Cypilot artifacts registered in `.cypilot-adapter/artifacts.toml` ([taxonomy](TAXONOMY.md)):
 
 | Artifact | Default Location |
 |----------|------------------|
