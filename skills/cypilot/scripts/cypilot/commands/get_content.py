@@ -7,6 +7,7 @@ from ..utils.codebase import CodeFile
 from ..utils.document import get_content_scoped
 
 
+# @cpt-flow:cpt-cypilot-flow-traceability-validation-query:p1
 def cmd_get_content(argv: List[str]) -> int:
     """Get best-effort content block for a specific Cypilot ID."""
     p = argparse.ArgumentParser(prog="get-content", description="Get content block for a specific Cypilot ID")
@@ -16,6 +17,7 @@ def cmd_get_content(argv: List[str]) -> int:
     p.add_argument("--inst", default=None, help="Instruction ID for code blocks (e.g., 'inst-validate-input')")
     args = p.parse_args(argv)
 
+    # @cpt-begin:cpt-cypilot-flow-traceability-validation-query:p1:inst-if-get-content
     # Handle code file path
     if args.code:
         code_path = Path(args.code).resolve()
@@ -93,4 +95,5 @@ def cmd_get_content(argv: List[str]) -> int:
         "system": system.name,
         "traceability": artifact_meta.traceability,
     }, indent=None, ensure_ascii=False))
+    # @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-if-get-content
     return 0

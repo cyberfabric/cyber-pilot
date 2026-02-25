@@ -6,6 +6,7 @@ from typing import Dict, List, Tuple
 from ..utils.document import scan_cpt_ids
 
 
+# @cpt-flow:cpt-cypilot-flow-traceability-validation-query:p1
 def cmd_where_used(argv: List[str]) -> int:
     """Find all references to a Cypilot ID."""
     p = argparse.ArgumentParser(prog="where-used", description="Find all references to an Cypilot ID")
@@ -73,6 +74,7 @@ def cmd_where_used(argv: List[str]) -> int:
         print(json.dumps({"status": "ERROR", "message": "No Cypilot artifacts found in registry"}, indent=None, ensure_ascii=False))
         return 1
 
+    # @cpt-begin:cpt-cypilot-flow-traceability-validation-query:p1:inst-if-where-used
     # Search for references
     references: List[Dict[str, object]] = []
 
@@ -94,6 +96,7 @@ def cmd_where_used(argv: List[str]) -> int:
     # Sort by artifact and line
     references = sorted(references, key=lambda r: (str(r.get("artifact", "")), int(r.get("line", 0))))
 
+    # @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-if-where-used
     print(json.dumps({
         "id": target_id,
         "artifacts_scanned": len(artifacts_to_scan),
