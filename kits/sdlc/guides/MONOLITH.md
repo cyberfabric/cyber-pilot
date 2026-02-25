@@ -14,7 +14,7 @@ Maintain:
 
 ## Artifact Registry Structure
 
-In a modular monolith, modules are represented as `children` in the system hierarchy. The `artifacts.json` schema supports nested systems for this purpose.
+In a modular monolith, modules are represented as `children` in the system hierarchy. The `artifacts.toml` schema supports nested systems for this purpose.
 
 ### Canonical Hierarchies
 
@@ -333,7 +333,7 @@ The registry maps to this file structure:
 ```text
 project-root/
 ├── .cypilot-adapter/
-│   └── artifacts.json
+│   └── artifacts.toml
 ├── architecture/
 │   ├── PRD.md
 │   ├── DESIGN.md

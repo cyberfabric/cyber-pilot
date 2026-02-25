@@ -46,10 +46,10 @@ section = "load_dependencies"
 - [ ] Read adapter `AGENTS.md` for code conventions
 - [ ] Load source artifact/description (FEATURE preferred)
 - [ ] Load `checklist.md` for quality guidance
-- [ ] Load `{cypilot_path}/requirements/code-checklist.md` for generic code quality checks
+- [ ] Load `{cypilot_path}/.core/requirements/code-checklist.md` for generic code quality checks
 - [ ] If FEATURE source: identify all IDs with `to_code="true"` attribute
 - [ ] Determine Traceability Mode (FULL vs DOCS-ONLY)
-- [ ] If Traceability Mode FULL: load `{cypilot_path}/requirements/traceability.md`
+- [ ] If Traceability Mode FULL: load `{cypilot_path}/.core/requirements/traceability.md`
 - [ ] Load `../constraints.json` for kit-level constraints
 ```
 `@/cpt:rule`
@@ -71,7 +71,7 @@ kind = "requirements"
 section = "traceability"
 ```
 ```markdown
-**Reference**: `{cypilot_path}/requirements/traceability.md` for full specification
+**Reference**: `{cypilot_path}/.core/requirements/traceability.md` for full specification
 
 - [ ] Traceability Mode determined per feature (FULL vs DOCS-ONLY)
 - [ ] If Mode ON: markers follow syntax (`@cpt-*`, `@cpt-begin`/`@cpt-end`)
@@ -265,7 +265,7 @@ kind = "validation"
 section = "traceability"
 ```
 ```markdown
-**Mode ON only.** Reference: `{cypilot_path}/requirements/traceability.md`
+**Mode ON only.** Reference: `{cypilot_path}/.core/requirements/traceability.md`
 
 - [ ] Marker format valid
 - [ ] All begin/end pairs matched

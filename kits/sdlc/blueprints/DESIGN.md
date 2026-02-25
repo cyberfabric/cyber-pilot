@@ -1,3 +1,23 @@
+# DESIGN Blueprint
+<!-- 
+  Blueprint for Technical Design Documents.
+  
+  This file is the single source of truth for:
+  - template.md generation (from @cpt:heading + @cpt:prompt markers)
+  - example.md generation (from @cpt:heading examples + @cpt:example markers)
+  - rules.md generation (from @cpt:rules + @cpt:rule markers)
+  - checklist.md generation (from @cpt:checklist + @cpt:check markers)
+  - constraints.toml contributions (from @cpt:heading + @cpt:id markers)
+  
+  All text between markers is ignored by the generator.
+  
+  DESIGN is the system blueprint: architecture, components, boundaries,
+  interfaces, drivers, principles, and constraints.
+  Based on: ISO/IEC/IEEE 42010:2022, IEEE 1016-2009
+-->
+
+## Metadata
+
 `@cpt:blueprint`
 ```toml
 version = 1
@@ -6,6 +26,8 @@ artifact = "DESIGN"
 codebase = false
 ```
 `@/cpt:blueprint`
+
+## Skill Integration
 
 `@cpt:skill`
 ```markdown
@@ -20,6 +42,12 @@ codebase = false
 - **Analyze DESIGN**: validate structure (deterministic) then semantic quality (checklist-based)
 ```
 `@/cpt:skill`
+
+---
+
+## Rules Definition
+
+### Rules Skeleton
 
 `@cpt:rules`
 ```toml
@@ -43,6 +71,8 @@ sections = ["options"]
 ```
 `@/cpt:rules`
 
+### Prerequisites
+
 `@cpt:rule`
 ```toml
 kind = "prerequisites"
@@ -53,12 +83,16 @@ section = "load_dependencies"
 - [ ] Load `checklist.md` for semantic guidance
 - [ ] Load `examples/example.md` for reference style
 - [ ] Read parent PRD for context
-- [ ] Load `{cypilot_path}/requirements/identifiers.md` for ID formats
+- [ ] Load `{cypilot_path}/.core/requirements/identifiers.md` for ID formats
 - [ ] Load `../../constraints.json` for kit-level constraints
-- [ ] Load `{cypilot_path}/requirements/kit-constraints.md` for constraints specification
-- [ ] Load `{cypilot_path}/schemas/kit-constraints.schema.json` for constraints JSON Schema
+- [ ] Load `{cypilot_path}/.core/requirements/kit-constraints.md` for constraints specification
+- [ ] Load `{cypilot_path}/.core/schemas/kit-constraints.schema.json` for constraints JSON Schema
 ```
 `@/cpt:rule`
+
+### Requirements
+
+#### Structural
 
 `@cpt:rule`
 ```toml
@@ -69,12 +103,14 @@ section = "structural"
 - [ ] DESIGN follows `template.md` structure
 - [ ] Artifact frontmatter (optional): use `cpt:` format for document metadata
 - [ ] All required sections present and non-empty
-- [ ] All IDs follow `cpt-{hierarchy-prefix}-{kind}-{slug}` convention (see artifacts.json for hierarchy)
+- [ ] All IDs follow `cpt-{hierarchy-prefix}-{kind}-{slug}` convention (see artifacts.toml for hierarchy)
 - [ ] References to PRD are valid
 - [ ] No placeholder content (TODO, TBD, FIXME)
 - [ ] No duplicate IDs within document
 ```
 `@/cpt:rule`
+
+#### Versioning
 
 `@cpt:rule`
 ```toml
@@ -88,6 +124,8 @@ section = "versioning"
 - [ ] Keep changelog of significant changes
 ```
 `@/cpt:rule`
+
+#### Semantic
 
 `@cpt:rule`
 ```toml
@@ -105,6 +143,8 @@ section = "semantic"
 - [ ] PRD capabilities traced to components
 ```
 `@/cpt:rule`
+
+#### Scope
 
 `@cpt:rule`
 ```toml
@@ -140,6 +180,8 @@ section = "scope"
 ```
 `@/cpt:rule`
 
+#### Traceability
+
 `@cpt:rule`
 ```toml
 kind = "requirements"
@@ -151,6 +193,8 @@ section = "traceability"
 - [ ] When all design elements for PRD capability implemented → mark capability `[x]` in PRD
 ```
 `@/cpt:rule`
+
+#### Constraints
 
 `@cpt:rule`
 ```toml
@@ -167,6 +211,10 @@ section = "constraints"
 ```
 `@/cpt:rule`
 
+### Task Phases
+
+#### Setup
+
 `@cpt:rule`
 ```toml
 kind = "tasks"
@@ -179,6 +227,8 @@ section = "setup"
 - [ ] Read parent PRD for context
 ```
 `@/cpt:rule`
+
+#### Content Creation
 
 `@cpt:rule`
 ```toml
@@ -205,6 +255,8 @@ If DESIGN cannot be completed in a single session:
 ```
 `@/cpt:rule`
 
+#### IDs & References
+
 `@cpt:rule`
 ```toml
 kind = "tasks"
@@ -219,6 +271,8 @@ section = "ids_and_references"
 ```
 `@/cpt:rule`
 
+#### Quality Check
+
 `@cpt:rule`
 ```toml
 kind = "tasks"
@@ -230,6 +284,10 @@ section = "quality_check"
 - [ ] Verify PRD traceability
 ```
 `@/cpt:rule`
+
+### Error Handling
+
+#### Missing PRD
 
 `@cpt:rule`
 ```toml
@@ -243,6 +301,8 @@ section = "missing_prd"
 ```
 `@/cpt:rule`
 
+#### Incomplete PRD
+
 `@cpt:rule`
 ```toml
 kind = "error_handling"
@@ -252,6 +312,8 @@ section = "incomplete_prd"
 - [ ] If PRD exists but is outdated: review PRD before proceeding
 ```
 `@/cpt:rule`
+
+#### Escalation
 
 `@cpt:rule`
 ```toml
@@ -264,6 +326,10 @@ section = "escalation"
 - [ ] Ask user when PRD requirements are ambiguous or contradictory
 ```
 `@/cpt:rule`
+
+### Validation
+
+#### Structural
 
 `@cpt:rule`
 ```toml
@@ -279,6 +345,8 @@ section = "structural"
 ```
 `@/cpt:rule`
 
+#### Semantic
+
 `@cpt:rule`
 ```toml
 kind = "validation"
@@ -293,6 +361,8 @@ section = "semantic"
 ```
 `@/cpt:rule`
 
+### Next Steps
+
 `@cpt:rule`
 ```toml
 kind = "next_steps"
@@ -306,6 +376,14 @@ section = "options"
 - [ ] Want checklist review only → `/cypilot-analyze semantic` — semantic validation
 ```
 `@/cpt:rule`
+
+---
+
+## Checklist Definition
+
+Design quality checks organized by domain.
+
+### Checklist Skeleton
 
 `@cpt:checklist`
 ```toml
@@ -386,6 +464,10 @@ name = "Documentation"
 standards = []
 ```
 `@/cpt:checklist`
+
+### Architecture Checks (ARCH)
+
+Structural and architectural quality.
 
 `@cpt:check`
 ```toml
@@ -581,6 +663,8 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+### Semantic Alignment Checks (SEM)
+
 `@cpt:check`
 ```toml
 id = "SEM-DESIGN-001"
@@ -643,6 +727,8 @@ kind = "must_have"
 - [ ] Any deviation from ADR decisions is explicitly justified and approved
 ```
 `@/cpt:check`
+
+### Performance Checks (PERF)
 
 `@cpt:check`
 ```toml
@@ -717,6 +803,8 @@ kind = "must_have"
 - [ ] Cost optimization patterns documented
 ```
 `@/cpt:check`
+
+### Security Checks (SEC)
 
 `@cpt:check`
 ```toml
@@ -831,6 +919,8 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+### Reliability Checks (REL)
+
 `@cpt:check`
 ```toml
 id = "REL-DESIGN-001"
@@ -923,6 +1013,8 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+### Data Checks (DATA)
+
 `@cpt:check`
 ```toml
 id = "DATA-DESIGN-001"
@@ -996,6 +1088,8 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+### Integration Checks (INT)
+
 `@cpt:check`
 ```toml
 id = "INT-DESIGN-001"
@@ -1068,6 +1162,8 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+### Operations Checks (OPS)
+
 `@cpt:check`
 ```toml
 id = "OPS-DESIGN-001"
@@ -1137,6 +1233,8 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+### Maintainability Checks (MAINT)
+
 `@cpt:check`
 ```toml
 id = "MAINT-DESIGN-001"
@@ -1188,6 +1286,8 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+### Testing Checks (TEST)
+
 `@cpt:check`
 ```toml
 id = "TEST-DESIGN-001"
@@ -1223,6 +1323,8 @@ kind = "must_have"
 - [ ] Contract test approach documented
 ```
 `@/cpt:check`
+
+### Compliance Checks (COMPL)
 
 `@cpt:check`
 ```toml
@@ -1260,6 +1362,8 @@ applicable_when = "Handles EU personal data, PII"
 ```
 `@/cpt:check`
 
+### Usability Checks (UX)
+
 `@cpt:check`
 ```toml
 id = "UX-DESIGN-001"
@@ -1277,6 +1381,8 @@ applicable_when = "System has user-facing frontend"
 - [ ] Offline support architecture documented (if applicable)
 ```
 `@/cpt:check`
+
+### Business Checks (BIZ)
 
 `@cpt:check`
 ```toml
@@ -1296,6 +1402,8 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+### Documentation Checks (DOC)
+
 `@cpt:check`
 ```toml
 id = "DOC-DESIGN-001"
@@ -1310,6 +1418,10 @@ kind = "must_have"
 - [ ] Reviewer can distinguish "author considered and excluded" from "author forgot"
 ```
 `@/cpt:check`
+
+### Anti-Pattern Checks (must_not_have)
+
+Content that does NOT belong in a DESIGN document.
 
 `@cpt:check`
 ```toml
@@ -1489,6 +1601,17 @@ belongs_to = "Secret management system (Vault, AWS Secrets Manager, etc.)"
 ```
 `@/cpt:check`
 
+---
+
+## Template Structure
+
+Headings, prompts, IDs, and examples that define the generated `template.md`
+and `example.md` files. The DESIGN template covers: architecture overview,
+domain model, components, design drivers, principles, constraints,
+dependencies, sequences, database design, and traceability.
+
+### Title (H1)
+
 `@cpt:heading`
 ```toml
 id = "design-h1-title"
@@ -1496,12 +1619,14 @@ level = 1
 required = true
 numbered = false
 multiple = false
-template = "Technical Design — {title}"
+template = "Technical Design — {Module Name}"
 prompt = "Module or system name"
 description = "DESIGN document title (H1)."
 examples = ["# Technical Design — TaskFlow"]
 ```
 `@/cpt:heading`
+
+### Architecture Overview
 
 `@cpt:heading`
 ```toml
@@ -1531,8 +1656,7 @@ examples = ["### 1.1 Architectural Vision"]
 
 `@cpt:prompt`
 ```markdown
-Write 2-3 paragraphs: Technical approach, key decisions, design philosophy.
-How does this architecture satisfy the requirements?
+{2-3 paragraphs: Technical approach, key decisions, design philosophy. How does this architecture satisfy the requirements?}
 ```
 `@/cpt:prompt`
 
@@ -1559,9 +1683,53 @@ examples = ["### 1.2 Architecture Drivers"]
 
 `@cpt:prompt`
 ```markdown
-Document requirements that significantly influence architecture decisions.
-Include functional drivers (PRD FR references with design responses),
-NFR allocation table, and ADR references.
+Requirements that significantly influence architecture decisions.
+
+**ADRs**: `cpt-{system}-adr-{slug}`
+```
+`@/cpt:prompt`
+
+`@cpt:heading`
+```toml
+id = "design-arch-overview-drivers-functional"
+level = 4
+required = true
+numbered = false
+multiple = false
+pattern = "Functional Drivers"
+description = "Functional drivers table mapping PRD requirements to design responses."
+examples = ["#### Functional Drivers"]
+```
+`@/cpt:heading`
+
+`@cpt:prompt`
+```markdown
+| Requirement | Design Response |
+|-------------|------------------|
+| `cpt-{system}-fr-{slug}` | {How architecture addresses this requirement} |
+```
+`@/cpt:prompt`
+
+`@cpt:heading`
+```toml
+id = "design-arch-overview-drivers-nfr"
+level = 4
+required = true
+numbered = false
+multiple = false
+pattern = "NFR Allocation"
+description = "NFR allocation table mapping non-functional requirements to design elements."
+examples = ["#### NFR Allocation"]
+```
+`@/cpt:heading`
+
+`@cpt:prompt`
+```markdown
+This table maps non-functional requirements from PRD to specific design/architecture responses, demonstrating how quality attributes are realized.
+
+| NFR ID | NFR Summary | Allocated To | Design Response | Verification Approach |
+|--------|-------------|--------------|-----------------|----------------------|
+| `cpt-{system}-nfr-{slug}` | {Brief NFR description} | {Component/layer/mechanism} | {How this design element realizes the NFR} | {How compliance is verified} |
 ```
 `@/cpt:prompt`
 
@@ -1621,7 +1789,16 @@ headings = ["design-arch-overview-layers"]
 
 `@cpt:prompt`
 ```markdown
-Add architecture diagram (Mermaid or ASCII). Document layers with responsibilities and technologies in a table.
+{Add architecture diagram here: Mermaid or ASCII}
+
+- [ ] `p3` - **ID**: `cpt-{system}-tech-{slug}`
+
+| Layer | Responsibility | Technology |
+|-------|---------------|------------|
+| Presentation | {description} | {tech} |
+| Application | {description} | {tech} |
+| Domain | {description} | {tech} |
+| Infrastructure | {description} | {tech} |
 ```
 `@/cpt:prompt`
 
@@ -1635,6 +1812,8 @@ Add architecture diagram (Mermaid or ASCII). Document layers with responsibiliti
 | Data Access | Database queries, caching | PostgreSQL, Redis |
 ```
 `@/cpt:example`
+
+### Principles & Constraints
 
 `@cpt:heading`
 ```toml
@@ -1677,12 +1856,26 @@ headings = ["design-principles"]
 ```
 `@/cpt:id`
 
+`@cpt:heading`
+```toml
+id = "design-principle-entry"
+level = 4
+required = true
+numbered = false
+# multiple = true|false  # allowed by default (can repeat)
+template = "{Principle Name}"
+description = "Individual design principle entry."
+examples = ["#### Real-time First", "#### Simplicity over Specs"]
+```
+`@/cpt:heading`
+
 `@cpt:prompt`
 ```markdown
-Define design principles. Each principle needs:
-- ID following `cpt-{system}-principle-{slug}`
-- Description of the principle and why it matters
-- ADR references (if applicable)
+- [ ] `p2` - **ID**: `cpt-{system}-principle-{slug}`
+
+{Description of the principle and why it matters for this system.}
+
+**ADRs**: `cpt-{system}-adr-{slug}`
 ```
 `@/cpt:prompt`
 
@@ -1730,12 +1923,26 @@ headings = ["design-constraints"]
 ```
 `@/cpt:id`
 
+`@cpt:heading`
+```toml
+id = "design-constraint-entry"
+level = 4
+required = true
+numbered = false
+# multiple = true|false  # allowed by default (can repeat)
+template = "{Constraint Name}"
+description = "Individual design constraint entry."
+examples = ["#### Supported Platforms", "#### Data Residency"]
+```
+`@/cpt:heading`
+
 `@cpt:prompt`
 ```markdown
-Document constraints (technical, regulatory, organizational). Each needs:
-- ID following `cpt-{system}-constraint-{slug}`
-- Description and impact on design
-- ADR references (if applicable)
+- [ ] `p2` - **ID**: `cpt-{system}-constraint-{slug}`
+
+{Description of the constraint (technical, regulatory, organizational) and its impact on design.}
+
+**ADRs**: `cpt-{system}-adr-{slug}`
 ```
 `@/cpt:prompt`
 
@@ -1748,6 +1955,10 @@ Document constraints (technical, regulatory, organizational). Each needs:
 Must run on Node.js 18+. PostgreSQL 14+ required for JSONB support. Browser support: last 2 versions of Chrome, Firefox, Safari, Edge.
 ```
 `@/cpt:example`
+
+### Technical Architecture
+
+Domain model, components, API contracts, dependencies, sequences, and database.
 
 `@cpt:heading`
 ```toml
@@ -1792,8 +2003,18 @@ examples = ["### 3.1 Domain Model"]
 
 `@cpt:prompt`
 ```markdown
-Document core entities, relationships, invariants. Reference machine-readable schemas if available.
-Technology, location, core entities table, and relationships list.
+**Technology**: {GTS, Rust structs},
+
+**Location**: [{domain-model-file}]({path/to/domain-model})
+
+**Core Entities**:
+
+| Entity | Description | Schema |
+|--------|-------------|--------|
+| {EntityName} | {Purpose} | [{file}]({path}) |
+
+**Relationships**:
+- {Entity1} → {Entity2}: {Relationship description}
 ```
 `@/cpt:prompt`
 
@@ -1833,10 +2054,104 @@ headings = ["design-tech-arch-component-model"]
 
 `@cpt:prompt`
 ```markdown
-Describe all components. Include component diagram (Mermaid or ASCII).
-For each component document:
-- Why it exists, responsibility scope, responsibility boundaries
-- Related components (by ID)
+{Describe all components covered by this design. For single-component designs, document that component. For multi-component designs, list all components with their responsibilities and interfaces. Include a component diagram (Mermaid or ASCII) showing structure and relationships.}
+```
+`@/cpt:prompt`
+
+`@cpt:heading`
+```toml
+id = "design-component-entry"
+level = 4
+required = true
+numbered = false
+# multiple = true|false  # allowed by default (can repeat)
+template = "{Component Name}"
+description = "Individual component entry."
+examples = ["#### API Server", "#### Task Service"]
+```
+`@/cpt:heading`
+
+`@cpt:prompt`
+```markdown
+- [ ] `p2` - **ID**: `cpt-{system}-component-{slug}`
+```
+`@/cpt:prompt`
+
+`@cpt:heading`
+```toml
+id = "design-component-why"
+level = 5
+required = true
+numbered = false
+multiple = false
+pattern = "Why this component exists"
+description = "Rationale for this component's existence."
+examples = ["##### Why this component exists"]
+```
+`@/cpt:heading`
+
+`@cpt:prompt`
+```markdown
+{What problem it solves / why it is needed in the architecture.}
+```
+`@/cpt:prompt`
+
+`@cpt:heading`
+```toml
+id = "design-component-scope"
+level = 5
+required = true
+numbered = false
+multiple = false
+pattern = "Responsibility scope"
+description = "Core responsibilities and invariants."
+examples = ["##### Responsibility scope"]
+```
+`@/cpt:heading`
+
+`@cpt:prompt`
+```markdown
+{What this component owns: core responsibilities, invariants, main operations.}
+```
+`@/cpt:prompt`
+
+`@cpt:heading`
+```toml
+id = "design-component-boundaries"
+level = 5
+required = true
+numbered = false
+multiple = false
+pattern = "Responsibility boundaries"
+description = "Explicit non-responsibilities and delegation boundaries."
+examples = ["##### Responsibility boundaries"]
+```
+`@/cpt:heading`
+
+`@cpt:prompt`
+```markdown
+{What it explicitly does NOT do; what is delegated to other components; constraints on responsibilities.}
+```
+`@/cpt:prompt`
+
+`@cpt:heading`
+```toml
+id = "design-component-related"
+level = 5
+required = true
+numbered = false
+multiple = false
+pattern = "Related components (by ID)"
+description = "Component-to-component relationships using IDs."
+examples = ["##### Related components (by ID)"]
+```
+`@/cpt:heading`
+
+`@cpt:prompt`
+```markdown
+{List component-to-component relationships using component IDs.}
+
+- `cpt-{system}-component-{slug}` — {relationship type: depends on | calls | publishes to | subscribes to | shares model with | owns data for | etc.}
 ```
 `@/cpt:prompt`
 
@@ -1883,8 +2198,19 @@ headings = ["design-tech-arch-api-contracts"]
 
 `@cpt:prompt`
 ```markdown
-Document API contracts: technology, location, endpoints overview table.
-Include contract references and versioning strategy.
+{For module-level design: Document all public API contracts exposed by this module. For multi-component design: Document the primary API contracts exposed by each component. Add references to module designs}
+
+- [ ] `p2` - **ID**: `cpt-{system}-interface-{slug}`
+
+- **Contracts**: `cpt-{system}-contract-{slug}`
+- **Technology**: {REST/OpenAPI | GraphQL | gRPC | etc.}
+- **Location**: [{api-spec-file}]({path/to/api-spec})
+
+**Endpoints Overview**:
+
+| Method | Path | Description | Stability |
+|--------|------|-------------|-----------|
+| `{METHOD}` | `{/path}` | {Description} | {stable/unstable} |
 ```
 `@/cpt:prompt`
 
@@ -1909,7 +2235,18 @@ examples = ["### 3.4 Internal Dependencies"]
 
 `@cpt:prompt`
 ```markdown
-Document internal system/module dependencies. Table with dependency module, interface used, and purpose.
+{Internal system/module dependencies within the platform. All inter-module communication goes through versioned contracts, SDK clients, or plugin interfaces — never through internal types.}
+
+| Dependency Module | Interface Used | Purpose |
+|-------------------|----------------|----------|
+| {module_name} | {contract / SDK client / plugin} | {Why this module is needed} |
+
+**Dependency Rules** (per project conventions):
+- No circular dependencies
+- Always use SDK modules for inter-module communication
+- No cross-category sideways deps except through contracts
+- Only integration/adapter modules talk to external systems
+- `SecurityContext` must be propagated across all in-process calls
 ```
 `@/cpt:prompt`
 
@@ -1928,8 +2265,35 @@ examples = ["### 3.5 External Dependencies"]
 
 `@cpt:prompt`
 ```markdown
-Document external systems, databases, and third-party services.
-Define protocols, data formats, and integration points.
+External systems, databases, and third-party services this module interacts with. Define protocols, data formats, and integration points.
+```
+`@/cpt:prompt`
+
+`@cpt:heading`
+```toml
+id = "design-external-dep-entry"
+level = 4
+required = false
+numbered = false
+# multiple = true|false  # allowed by default (can repeat)
+template = "{External System / Database / Service Name}"
+description = "Individual external dependency entry."
+examples = ["#### PostgreSQL", "#### Redis"]
+```
+`@/cpt:heading`
+
+`@cpt:prompt`
+```markdown
+| Dependency Module | Interface Used | Purpose |
+|-------------------|---------------|---------|
+| {module_name} | {contract / SDK client / plugin} | {Why this module is needed} |
+
+**Dependency Rules** (per project conventions):
+- No circular dependencies
+- Always use SDK modules for inter-module communication
+- No cross-category sideways deps except through contracts
+- Only integration/adapter modules talk to external systems
+- `SecurityContext` must be propagated across all in-process calls
 ```
 `@/cpt:prompt`
 
@@ -1963,9 +2327,42 @@ headings = ["design-tech-arch-seq"]
 
 `@cpt:prompt`
 ```markdown
-Document key interaction sequences with sequence diagrams (Mermaid).
-Each sequence needs: ID, use case reference, actor reference, diagram, description.
+{Document key interaction sequences and message flows between components.}
 ```
+`@/cpt:prompt`
+
+`@cpt:heading`
+```toml
+id = "design-seq-entry"
+level = 4
+required = true
+numbered = false
+# multiple = true|false  # allowed by default (can repeat)
+template = "{Sequence Name}"
+description = "Individual sequence diagram entry."
+examples = ["#### Create Task Flow", "#### Authentication Flow"]
+```
+`@/cpt:heading`
+
+`@cpt:prompt`
+````markdown
+**ID**: `cpt-{system}-seq-{slug}`
+
+**Use cases**: `cpt-{system}-usecase-{slug}` (ID from PRD)
+
+**Actors**: `cpt-{system}-actor-{slug}` (ID from PRD)
+
+```mermaid
+sequenceDiagram
+    User ->> System: Request
+    System ->> Module B: Call
+    System ->> Database: Query
+    Database -->> System: Result
+    System -->> User: Response
+```
+
+**Description**: {Brief description of what this sequence accomplishes}
+````
 `@/cpt:prompt`
 
 `@cpt:example`
@@ -2023,8 +2420,44 @@ headings = ["design-tech-arch-db"]
 
 `@cpt:prompt`
 ```markdown
-Document database tables/schemas. Each table needs:
-- ID, schema (columns table), PK, constraints, additional info, example data.
+{ For module-level design: Document database tables, schemas, and data models. For multi-component design: refer to component-level design documents. }
+```
+`@/cpt:prompt`
+
+`@cpt:heading`
+```toml
+id = "design-dbtable-entry"
+level = 4
+required = false
+numbered = false
+# multiple = true|false  # allowed by default (can repeat)
+template = "Table: {table_name}"
+description = "Individual database table entry."
+examples = ["#### Table: tasks", "#### Table: users"]
+```
+`@/cpt:heading`
+
+`@cpt:prompt`
+```markdown
+**ID**: `cpt-{system}-dbtable-{slug}`
+
+**Schema**:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| {col} | {type} | {description} |
+
+**PK**: {primary key column(s)}
+
+**Constraints**: {NOT NULL, UNIQUE, etc.}
+
+**Additional info**: {Indexes, relationships, triggers, etc.}
+
+**Example**:
+
+| {col1} | {col2} | {col3} |
+|--------|--------|--------|
+| {val1} | {val2} | {val3} |
 ```
 `@/cpt:prompt`
 
@@ -2046,6 +2479,8 @@ Constraints: `status IN ('TODO', 'IN_PROGRESS', 'DONE')`, `assignee_id REFERENCE
 ```
 `@/cpt:example`
 
+### Additional Context & Traceability
+
 `@cpt:heading`
 ```toml
 id = "design-additional-context"
@@ -2061,7 +2496,7 @@ examples = ["## 4. Additional context"]
 
 `@cpt:prompt`
 ```markdown
-Any useful additional context: trade-offs, future considerations, migration notes.
+{whatever useful additional context}
 ```
 `@/cpt:prompt`
 
@@ -2080,7 +2515,9 @@ examples = ["## 5. Traceability"]
 
 `@cpt:prompt`
 ```markdown
-Links to related artifacts: PRD, ADRs, Features.
+- **PRD**: [PRD.md](./PRD.md)
+- **ADRs**: [ADR/](./ADR/)
+- **Features**: [features/](./features/)
 ```
 `@/cpt:prompt`
 

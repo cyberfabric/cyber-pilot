@@ -94,10 +94,10 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
 - **Scope**:
   - Blueprint Processor: parse `@cpt:` markers, extract TOML/Markdown content blocks
   - Resource generation: `rules.md`, `checklist.md`, `template.md`, `example.md`, `constraints.toml`, `workflows/*.md`, `codebase/rules.md`, `codebase/checklist.md`
-  - Kit Manager: install kits (save to `{cypilot}/kits/{slug}/`, copy blueprints to `config/kits/{slug}/blueprints/`), register in `core.toml`
+  - Kit Manager: install kits (save to `{cypilot_path}/.core/kits/{slug}/`, copy blueprints to `config/kits/{slug}/blueprints/`), register in `core.toml`
   - Update model: force mode (full overwrite) and additive mode (three-way diff using reference)
-  - SKILL composition: collect `@cpt:skill` sections for Agent Generator
-  - System prompt collection: collect `@cpt:system-prompt` sections
+  - SKILL composition: collect `@cpt:skill` sections and write to `config/SKILL.md`
+  - System prompt composition: collect `@cpt:system-prompt` sections and append to `config/AGENTS.md`
   - Workflow registration: generate workflow files from `@cpt:workflow` markers
   - Blueprint validation: verify structure, marker closure, unique IDs
 
@@ -142,7 +142,7 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
   None (blueprint processing is invoked internally by kit install/update)
 
 - **Data**:
-  - `{cypilot}/kits/{slug}/` — reference kit copies
+  - `{cypilot_path}/.core/kits/{slug}/` — reference kit copies
   - `config/kits/{slug}/blueprints/` — user-editable blueprint copies
   - `config/kits/{slug}/constraints.toml` — kit-wide structural constraints
   - `config/kits/{slug}/artifacts/{KIND}/` — generated per-artifact outputs
@@ -550,13 +550,13 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
 
 - [ ] `p1` - **ID**: `cpt-cypilot-feature-v2-v3-migration`
 
-- **Purpose**: Migrate existing Cypilot v2 projects (adapter-based, `artifacts.json`, legacy kit structure) to v3 (blueprint-based, `artifacts.toml`, global CLI installer, `config/` directory) with zero data loss.
+- **Purpose**: Migrate existing Cypilot v2 projects (adapter-based, `artifacts.toml`, legacy kit structure) to v3 (blueprint-based, `artifacts.toml`, global CLI installer, `config/` directory) with zero data loss.
 
 - **Depends On**: `cpt-cypilot-feature-core-infra`, `cpt-cypilot-feature-blueprint-system`, `cpt-cypilot-feature-traceability-validation`
 
 - **Scope**:
-  - Detect v2 installation: identify `.cypilot-adapter/` directory, `artifacts.json`, legacy kit paths
-  - Convert `artifacts.json` → `config/artifacts.toml`: map systems, artifacts, codebase, autodetect, ignore rules to TOML format
+  - Detect v2 installation: identify `.cypilot-adapter/` directory, `artifacts.toml`, legacy kit paths
+  - Convert `artifacts.toml` → `config/artifacts.toml`: map systems, artifacts, codebase, autodetect, ignore rules to TOML format
   - Convert legacy adapter directory → `config/` structure: migrate adapter-level specs to `config/sysprompts/`
   - Generate `config/core.toml` from legacy config: extract system definitions, kit registrations
   - Create `config/AGENTS.md` from legacy adapter `AGENTS.md`: convert WHEN rules, update paths
@@ -607,7 +607,7 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
 
 - **Data**:
   - `.cypilot-adapter/` → `config/` (converted)
-  - `artifacts.json` → `config/artifacts.toml` (converted)
+  - `artifacts.toml` → `config/artifacts.toml` (converted)
   - `.cypilot-adapter/AGENTS.md` → `config/AGENTS.md` (converted)
   - `.cypilot-adapter/specs/` → `config/sysprompts/` (converted)
 

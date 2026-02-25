@@ -117,8 +117,8 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 **Output**: Path to skill engine entry point, or error
 
 **Steps**:
-1. [x] - `p1` - Walk from current directory upward looking for `AGENTS.md` with `<!-- @cpt:root-agents -->` marker, read `{cypilot}` variable to get install dir - `inst-walk-parents`
-2. [x] - `p1` - **IF** install dir found and skill entry point exists at `{cypilot}/skills/cypilot/scripts/cypilot.py` - `inst-if-marker`
+1. [x] - `p1` - Walk from current directory upward looking for `AGENTS.md` with `<!-- @cpt:root-agents -->` marker, read `{cypilot_path}` variable to get install dir - `inst-walk-parents`
+2. [x] - `p1` - **IF** install dir found and skill entry point exists at `{cypilot_path}/.core/skills/cypilot/scripts/cypilot.py` - `inst-if-marker`
    1. [x] - `p1` - **RETURN** path to project skill engine - `inst-return-project-path`
 3. [x] - `p1` - **ELSE** check `~/.cypilot/cache/` for cached skill bundle - `inst-check-global-cache`
 4. [x] - `p1` - **IF** cache exists - `inst-if-cache-exists`
@@ -182,7 +182,7 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 **Output**: Updated or created `{project_root}/AGENTS.md`
 
 **Steps**:
-1. [x] - `p1` - Compute managed block content: TOML fenced block with `cypilot = "{install_dir}"`, navigation rule `ALWAYS open and follow {cypilot}/AGENTS.md FIRST` - `inst-compute-block`
+1. [x] - `p1` - Compute managed block content: TOML fenced block with `cypilot_path = "{install_dir}"`, navigation rule `ALWAYS open and follow {cypilot_path}/config/AGENTS.md FIRST` - `inst-compute-block`
 2. [x] - `p1` - **IF** `{project_root}/AGENTS.md` does not exist - `inst-if-no-agents`
    1. [x] - `p1` - Create file with managed block wrapped in `<!-- @cpt:root-agents -->` markers - `inst-create-agents-file`
 3. [x] - `p1` - **ELSE** read existing file content - `inst-read-existing`

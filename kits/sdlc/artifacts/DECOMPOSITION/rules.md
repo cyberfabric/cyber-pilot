@@ -9,10 +9,10 @@
 - `template.md` — required structure
 - `checklist.md` — decomposition quality criteria
 - `examples/example.md` — reference implementation
-- `{cypilot_path}/requirements/identifiers.md` — ID formats and naming
+- `{cypilot_path}/.core/requirements/identifiers.md` — ID formats and naming
 - `../../constraints.json` — kit-level constraints (primary rules for ID definitions/references)
-- `{cypilot_path}/requirements/kit-constraints.md` — constraints specification
-- `{cypilot_path}/schemas/kit-constraints.schema.json` — constraints JSON Schema
+- `{cypilot_path}/.core/requirements/kit-constraints.md` — constraints specification
+- `{cypilot_path}/.core/schemas/kit-constraints.schema.json` — constraints JSON Schema
 
 ---
 
@@ -52,7 +52,7 @@ Agent confirms understanding of requirements:
 
 - [ ] DECOMPOSITION follows `template.md` structure
 - [ ] All required sections present and non-empty
-- [ ] Each feature has unique ID: `cpt-{hierarchy-prefix}-feature-{slug}` (see artifacts.json for hierarchy)
+- [ ] Each feature has unique ID: `cpt-{hierarchy-prefix}-feature-{slug}` (see artifacts.toml for hierarchy)
 - [ ] Each feature has priority marker (`p1`-`p9`)
 - [ ] Each feature has valid status
 - [ ] No placeholder content (TODO, TBD, FIXME)
@@ -129,8 +129,8 @@ Cross-artifact reference requirements and prohibitions are enforced using `../..
   - which cross-artifact references are required / optional / prohibited
 
 **References**:
-- `{cypilot_path}/requirements/kit-constraints.md`
-- `{cypilot_path}/schemas/kit-constraints.schema.json`
+- `{cypilot_path}/.core/requirements/kit-constraints.md`
+- `{cypilot_path}/.core/schemas/kit-constraints.schema.json`
 
 ---
 
@@ -145,7 +145,7 @@ Agent executes tasks during generation:
 - [ ] Load `examples/example.md` for reference style
 - [ ] Read DESIGN to identify elements to decompose
 - [ ] Read PRD to identify requirements to cover
-- [ ] Read adapter `artifacts.json` to determine artifact paths
+- [ ] Read adapter `artifacts.toml` to determine artifact paths
 - [ ] Read adapter `specs/project-structure.md` (if exists) for directory conventions
 
 ### Phase 2: Content Creation

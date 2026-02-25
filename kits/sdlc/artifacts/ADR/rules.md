@@ -33,10 +33,10 @@
 - `template.md` — required structure
 - `checklist.md` — semantic quality criteria
 - `examples/example.md` — reference implementation
-- `{cypilot_path}/requirements/identifiers.md` — ID formats and naming
+- `{cypilot_path}/.core/requirements/identifiers.md` — ID formats and naming
 - `../../constraints.json` — kit-level constraints (primary rules for ID definitions/references)
-- `{cypilot_path}/requirements/kit-constraints.md` — constraints specification
-- `{cypilot_path}/schemas/kit-constraints.schema.json` — constraints JSON Schema
+- `{cypilot_path}/.core/requirements/kit-constraints.md` — constraints specification
+- `{cypilot_path}/.core/schemas/kit-constraints.schema.json` — constraints JSON Schema
 
 ---
 
@@ -133,8 +133,8 @@ Keep REJECTED ADRs for historical record — do not delete.
   - which cross-artifact references are required / optional / prohibited
 
 **References**:
-- `{cypilot_path}/requirements/kit-constraints.md`
-- `{cypilot_path}/schemas/kit-constraints.schema.json`
+- `{cypilot_path}/.core/requirements/kit-constraints.md`
+- `{cypilot_path}/.core/schemas/kit-constraints.schema.json`
 
 **Validation Checks**:
 - `cypilot validate` enforces `identifiers[<kind>].references` rules for ADR coverage in DESIGN
@@ -150,16 +150,16 @@ Agent executes tasks during generation:
 - [ ] Load `template.md` for structure
 - [ ] Load `checklist.md` for semantic guidance
 - [ ] Load `examples/example.md` for reference style
-- [ ] Read adapter `artifacts.json` to determine ADR directory
+- [ ] Read adapter `artifacts.toml` to determine ADR directory
 - [ ] Determine next ADR number (ADR-NNNN)
 
 **ADR path resolution**:
 1. List existing ADRs from `artifacts` array where `kind: "ADR"`
 2. For new ADR, derive default path:
-   - Read system's `artifacts_dir` from `artifacts.json` (default: `architecture`)
+   - Read system's `artifacts_dir` from `artifacts.toml` (default: `architecture`)
    - Use kit's default subdirectory for ADRs: `ADR/`
    - Create at: `{artifacts_dir}/ADR/{NNNN}-{slug}.md`
-3. Register new ADR in `artifacts.json` with FULL path
+3. Register new ADR in `artifacts.toml` with FULL path
 
 **ADR Number Assignment**:
 

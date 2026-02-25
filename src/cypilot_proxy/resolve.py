@@ -16,9 +16,9 @@ MARKER_START = "<!-- @cpt:root-agents -->"
 
 _TOML_FENCE_RE = re.compile(r"```toml\s*\n(.*?)```", re.DOTALL)
 
-# Legacy: extract {cypilot} from markdown table (pre-TOML format)
+# Legacy: extract {cypilot_path} or {cypilot} from markdown table (pre-TOML format)
 _CYPILOT_VAR_RE = re.compile(
-    r"\|\s*`\{cypilot\}`\s*\|\s*`([^`]+)`\s*\|"
+    r"\|\s*`\{cypilot(?:_path)?\}`\s*\|\s*`([^`]+)`\s*\|"
 )
 
 # Legacy: extract install dir from old-format navigation rule
@@ -56,7 +56,7 @@ def _parse_toml_from_markdown(text: str) -> Dict[str, Any]:
 
 def read_cypilot_path(project_root: Path) -> Optional[str]:
     """
-    Read the ``cypilot`` variable from root AGENTS.md.
+    Read the ``cypilot_path`` (or legacy ``cypilot``) variable from root AGENTS.md.
 
     Tries TOML fenced block first (new format), then falls back to legacy
     markdown table extraction.
@@ -73,13 +73,13 @@ def read_cypilot_path(project_root: Path) -> Optional[str]:
     if MARKER_START not in content:
         return None
 
-    # New format: ```toml block with cypilot = "..."
+    # New format: ```toml block with cypilot_path = "..." (or legacy cypilot = "...")
     toml_data = _parse_toml_from_markdown(content)
-    value = toml_data.get("cypilot")
+    value = toml_data.get("cypilot_path") or toml_data.get("cypilot")
     if isinstance(value, str) and value.strip():
         return value.strip()
 
-    # Legacy: markdown table | `{cypilot}` | `@/...` |
+    # Legacy: markdown table | `{cypilot_path}` or `{cypilot}` | `@/...` |
     m = _CYPILOT_VAR_RE.search(content)
     if m is not None:
         legacy_value = m.group(1).strip()
@@ -95,7 +95,7 @@ def find_install_dir(project_root: Path) -> Optional[str]:
     Determine the Cypilot install directory relative to project root.
 
     Resolution order:
-    1. Read {cypilot} variable from AGENTS.md managed block (new format)
+    1. Read {cypilot_path} variable from AGENTS.md managed block (new format)
     2. Parse old-format navigation rule from AGENTS.md
     3. Scan for common install directory names
     """
@@ -132,10 +132,10 @@ def get_version_file() -> Path:
 
 def find_project_skill(start_dir: Optional[Path] = None) -> Optional[Path]:
     """
-    Find project-installed skill by reading {cypilot} variable from root AGENTS.md.
+    Find project-installed skill by reading {cypilot_path} variable from root AGENTS.md.
 
     Walks up from start_dir to find AGENTS.md with @cpt:root-agents marker,
-    reads the {cypilot} variable to get the install directory, then looks
+    reads the {cypilot_path} variable to get the install directory, then looks
     for the skill entry point there.
 
     Returns path to the skill entry point (cypilot.py) or None.
@@ -151,7 +151,9 @@ def find_project_skill(start_dir: Optional[Path] = None) -> Optional[Path]:
     # @cpt-end:cpt-cypilot-algo-core-infra-resolve-skill:p1:inst-walk-parents
 
     # @cpt-begin:cpt-cypilot-algo-core-infra-resolve-skill:p1:inst-if-marker
-    skill_dir = project_root / install_dir / "skills" / "cypilot" / "scripts"
+    # Check .core/ layout first, then flat layout
+    core_skill_dir = project_root / install_dir / ".core" / "skills" / "cypilot" / "scripts"
+    skill_dir = core_skill_dir if core_skill_dir.is_dir() else project_root / install_dir / "skills" / "cypilot" / "scripts"
     entry_point = skill_dir / "cypilot.py"
     if entry_point.is_file():
         # @cpt-begin:cpt-cypilot-algo-core-infra-resolve-skill:p1:inst-return-project-path

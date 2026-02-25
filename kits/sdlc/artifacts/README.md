@@ -67,7 +67,7 @@ checklist: kits/sdlc/artifacts/{KIND}/checklist.md
 example:   kits/sdlc/artifacts/{KIND}/examples/example.md
 ```
 
-### In artifacts.json
+### In artifacts.toml
 
 ```json
 {

@@ -1,6 +1,4 @@
-
 # Decomposition: {PROJECT_NAME}
-
 
 ## 1. Overview
 

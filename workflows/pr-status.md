@@ -41,8 +41,8 @@ Previous results are stale the moment a new status request arrives.
 ## Paths
 
 - **Script**: `python3 {cypilot_path}/skills/scripts/pr.py`
-- **Config**: `{cypilot_adapter_path}/pr-review.json`
-- **Templates**: `{cypilot_path}/templates/pr/`
+- **Config**: `{cypilot_path}/config/pr-review.json`
+- **Templates**: `{cypilot_path}/.core/templates/pr/`
 - **PR data**: `.prs/{ID}/`
 - **Exclude list**: `.prs/config.yaml` → `exclude_prs`
 

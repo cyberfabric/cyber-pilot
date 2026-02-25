@@ -13,13 +13,13 @@ ALWAYS open and follow `{cypilot_path}/skills/cypilot/SKILL.md` FIRST WHEN {cypi
 
 **Type**: Analysis
 
-ALWAYS open and follow `{cypilot_path}/requirements/execution-protocol.md` FIRST
+ALWAYS open and follow `{cypilot_path}/.core/requirements/execution-protocol.md` FIRST
 
-ALWAYS open and follow `{cypilot_path}/requirements/code-checklist.md` WHEN user requests analysis of code, codebase changes, or implementation behavior (Code mode)
+ALWAYS open and follow `{cypilot_path}/.core/requirements/code-checklist.md` WHEN user requests analysis of code, codebase changes, or implementation behavior (Code mode)
 
-ALWAYS open and follow `{cypilot_path}/requirements/consistency-checklist.md` WHEN user requests analysis of documentation/artifact consistency, contradiction detection, or cross-document alignment (Consistency mode)
+ALWAYS open and follow `{cypilot_path}/.core/requirements/consistency-checklist.md` WHEN user requests analysis of documentation/artifact consistency, contradiction detection, or cross-document alignment (Consistency mode)
 
-OPEN and follow `{cypilot_path}/requirements/prompt-engineering.md` WHEN user requests analysis of:
+OPEN and follow `{cypilot_path}/.core/requirements/prompt-engineering.md` WHEN user requests analysis of:
 - System prompts, agent prompts, or LLM prompts
 - Agent instructions or agent guidelines
 - Skills, workflows, or methodologies
@@ -52,7 +52,7 @@ OPEN and follow `{cypilot_path}/requirements/prompt-engineering.md` WHEN user re
 
 ## ⛔ Agent Anti-Patterns (STRICT mode)
 
-**Reference**: `{cypilot_path}/requirements/agent-compliance.md` for full list.
+**Reference**: `{cypilot_path}/.core/requirements/agent-compliance.md` for full list.
 
 **Critical anti-patterns for analysis**:
 
@@ -127,12 +127,12 @@ This workflow can require loading multiple long checklists/specs. To prevent con
 - Semantic review is MANDATORY regardless of STRICT/RELAXED mode
 
 **When `PROMPT_REVIEW=true`**:
-- Open and follow `{cypilot_path}/requirements/prompt-engineering.md`
+- Open and follow `{cypilot_path}/.core/requirements/prompt-engineering.md`
 - Execute 9-layer prompt engineering analysis
 - Skip standard Cypilot analysis (not applicable to prompts)
 - Output using prompt-engineering.md format
 - Traceability checks: N/A (prompts don't have code markers)
-- Registry checks: N/A (prompts may not be in artifacts.json)
+- Registry checks: N/A (prompts may not be in artifacts.toml)
 
 ---
 
@@ -165,7 +165,7 @@ This workflow can require loading multiple long checklists/specs. To prevent con
 
 | Dependency | Purpose | If missing |
 |------------|---------|------------|
-| **Code checklist** | Baseline criteria for all code work | Load `{cypilot_path}/requirements/code-checklist.md` |
+| **Code checklist** | Baseline criteria for all code work | Load `{cypilot_path}/.core/requirements/code-checklist.md` |
 | **Design artifact** | Requirements that should be implemented | Ask user to specify source |
 
 **MUST NOT proceed** to Phase 1 until all dependencies are available.
@@ -186,24 +186,24 @@ What is the analysis scope?
 
 ### Traceability Mode
 
-**Check artifact's traceability setting in artifacts.json**:
+**Check artifact's traceability setting in artifacts.toml**:
 - `FULL` → Check code markers, cross-reference IDs in codebase
 - `DOCS-ONLY` → Skip codebase traceability checks
 
 **If FULL traceability**:
-- Identify codebase directories from artifacts.json
+- Identify codebase directories from artifacts.toml
 - Plan to check for `@cpt-*` markers
 - Plan to verify all IDs have code implementations
 
 ### Registry Consistency
 
 **Verify artifact is registered**:
-- Check if target path exists in artifacts.json
+- Check if target path exists in artifacts.toml
 - Verify kind matches registered kind
 - Verify system assignment is correct
 
 **If not registered**:
-- Warn user and suggest registering it in `{cypilot_adapter_path}/artifacts.json` (preferred for STRICT analysis)
+- Warn user and suggest registering it in `{cypilot_path}/config/artifacts.toml` (preferred for STRICT analysis)
 - If user wants to proceed anyway, require `/cypilot-analyze semantic` and clearly label output as semantic-only (no deterministic gate)
 
 ### Cross-Reference Scope
@@ -243,7 +243,7 @@ STOP analysis.
 **MUST run first when available** (when not semantic-only).
 
 Deterministic gate is considered **available** when:
-- Target is registered in `{cypilot_adapter_path}/artifacts.json` under a system with a `kit` configured (registry schema uses `kits`/`kit`), AND
+- Target is registered in `{cypilot_path}/config/artifacts.toml` under a system with a `kit` configured (registry schema uses `kits`/`kit`), AND
 - The kit `format` supports Cypilot CLI checks (typically `format: "Cypilot"`), AND
 - You are analysing an artifact or code path supported by the CLI.
 
@@ -300,7 +300,7 @@ Blocking issues:
 
 **If STRICT mode**:
 - Semantic review is MANDATORY, not optional
-- Agent MUST follow `{cypilot_path}/requirements/agent-compliance.md`
+- Agent MUST follow `{cypilot_path}/.core/requirements/agent-compliance.md`
 - Agent MUST provide evidence for each checklist category
 - Agent MUST NOT skip categories or report bulk "PASS"
 - Failure to complete semantic review → analysis INVALID
@@ -327,7 +327,7 @@ Execute phases from rules.md:
 - **Phase 2: Semantic Validation** — checklist-based, from rules.md
 
 Use checklist from Phase 0 dependencies.
-Load adapter specs: `{cypilot_adapter_path}/AGENTS.md` → follow MANDATORY specs
+Load adapter specs: `{cypilot_path}/config/AGENTS.md` → follow MANDATORY specs
 
 Check (from rules.md + standard):
 - [ ] Content quality per checklist
@@ -387,7 +387,7 @@ Check (from rules.md + standard):
 
 ### Registry Consistency
 
-- [ ] Artifact is registered in artifacts.json
+- [ ] Artifact is registered in artifacts.toml
 - [ ] Kind matches registered kind
 - [ ] System assignment is correct
 - [ ] Path is correct
@@ -596,7 +596,7 @@ In RELAXED mode, self-test is advisory only. Include disclaimer:
 
 ## Validation Criteria
 
-- [ ] {cypilot_path}/requirements/execution-protocol.md executed
+- [ ] {cypilot_path}/.core/requirements/execution-protocol.md executed
 - [ ] Dependencies loaded (checklist, template, example)
 - [ ] Analysis scope clarified
 - [ ] Traceability mode determined

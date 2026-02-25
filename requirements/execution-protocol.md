@@ -66,7 +66,7 @@ Common steps shared by `generate.md` and `analyze.md`. Both workflows MUST execu
 **Recovery protocol**:
 
 1. Detect compaction from conversation summary signals
-2. Re-run: `cypilot adapter-info` + load required specs from `{cypilot_adapter_path}/AGENTS.md`
+2. Re-run: `cypilot adapter-info` + load required specs from `{cypilot_path}/config/AGENTS.md`
 3. Announce restored context (workflow, target, loaded specs), then continue
 
 **Agent MUST NOT**:
@@ -97,7 +97,7 @@ After adapter discovery, determine **Rules Mode**:
 
 ### Rules Mode: STRICT (Cypilot rules enabled)
 
-**Condition**: `artifacts.json` found AND contains `rules` section AND target artifact/code matches registered system.
+**Condition**: `artifacts.toml` found AND contains `rules` section AND target artifact/code matches registered system.
 
 **Behavior**:
 - Full protocol enforcement
@@ -114,9 +114,9 @@ Rules Mode: STRICT (cypilot-sdlc rules loaded)
 
 ### Rules Mode: BOOTSTRAP (new project)
 
-ALWAYS detect BOOTSTRAP mode WHEN adapter found AND `artifacts.json` has empty `systems[].artifacts` array
+ALWAYS detect BOOTSTRAP mode WHEN adapter found AND `artifacts.toml` has empty `systems[].artifacts` array
 
-ALWAYS read `kits` section from `artifacts.json` WHEN BOOTSTRAP mode detected
+ALWAYS read `kits` section from `artifacts.toml` WHEN BOOTSTRAP mode detected
 
 ALWAYS scan `{kit.path}/artifacts/` directories WHEN listing available artifact kinds
 
@@ -124,7 +124,7 @@ ALWAYS determine project type WHEN BOOTSTRAP mode:
 - **GREENFIELD**: No existing source code — starting fresh, design-first approach
 - **BROWNFIELD**: Existing source code — needs reverse-engineering to extract design from code
 
-ALWAYS detect GREENFIELD WHEN codebase directories in `artifacts.json` are empty OR contain only config files (no `.py`, `.ts`, `.js`, `.go`, `.rs`, `.java` etc.)
+ALWAYS detect GREENFIELD WHEN codebase directories in `artifacts.toml` are empty OR contain only config files (no `.py`, `.ts`, `.js`, `.go`, `.rs`, `.java` etc.)
 
 ALWAYS detect BROWNFIELD WHEN codebase directories contain source code files
 
@@ -153,7 +153,7 @@ NEVER show warnings or "reduced rigor" messages WHEN in BOOTSTRAP mode
 
 ### Rules Mode: RELAXED (no adapter)
 
-ALWAYS detect RELAXED mode WHEN no adapter found OR no `kits` in artifacts.json
+ALWAYS detect RELAXED mode WHEN no adapter found OR no `kits` in artifacts.toml
 
 ALWAYS propose initialization WHEN RELAXED mode:
 ```
@@ -193,7 +193,7 @@ python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py adapter-info --root {PR
 
 **Parse output**: `status`, `adapter_dir`, `project_root`, `specs`, `rules`
 
-**If FOUND**: Load `{cypilot_adapter_path}/AGENTS.md` for navigation rules
+**If FOUND**: Load `{cypilot_path}/config/AGENTS.md` for navigation rules
 
 **If NOT_FOUND**: Suggest running `/cypilot-adapter` to bootstrap
 
@@ -201,7 +201,7 @@ python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py adapter-info --root {PR
 
 ## Understand Registry
 
-**MUST read** `{cypilot_adapter_path}/artifacts.json`:
+**MUST read** `{cypilot_path}/config/artifacts.toml`:
 
 1. **Rules**: What rule packages exist (`cypilot-sdlc`, `cpt-core`, etc.)
 2. **Systems**: What systems are registered and their hierarchy
@@ -227,7 +227,7 @@ Ask which kit to use (or manual dependencies) if unclear.
 Ask whether target is **Artifact** or **Code** (and which kind/path).
 
 ### 3. Specific System (if using kit)
-Ask which system (from `artifacts.json`) if using a kit and system is unclear.
+Ask which system (from `artifacts.toml`) if using a kit and system is unclear.
 
 **If context is clear**: proceed silently, don't ask unnecessary questions.
 
@@ -239,12 +239,12 @@ Ask which system (from `artifacts.json`) if using a kit and system is unclear.
 
 ### 1. Resolve Kit Package
 
-From `artifacts.json`:
+From `artifacts.toml`:
 
 ```
 1. Find system containing target artifact
 2. Get kit name: system.kit (e.g., "cypilot-sdlc")
-3. Look up path: artifacts.json.kits[kit_name].path
+3. Look up path: artifacts.toml.kits[kit_name].path
 4. KIT_BASE = resolved path (could be anything: "kits/sdlc", "my-kit", etc.)
 ```
 
@@ -264,12 +264,12 @@ From `artifacts.json`:
 
 ### 2. Determine Artifact Type
 
-From explicit parameter or artifacts.json lookup:
+From explicit parameter or artifacts.toml lookup:
 
 | Source | Resolution |
 |--------|------------|
 | `cypilot generate PRD` | Explicit: PRD |
-| `cypilot analyze {path}` | Lookup: `artifacts.json.systems[].artifacts[path].kind` |
+| `cypilot analyze {path}` | Lookup: `artifacts.toml.systems[].artifacts[path].kind` |
 | Path in `codebase[]` | CODE |
 
 ### 3. Load Rules.md
@@ -316,7 +316,7 @@ I understand the following requirements for {ARTIFACT_TYPE}:
 ```
 
 **Store loaded context**:
-- `KIT_BASE` — base path from artifacts.json
+- `KIT_BASE` — base path from artifacts.toml
 - `KITS_PATH` — full path to rules.md
 - `TEMPLATE` — loaded template content
 - `CHECKLIST` — loaded checklist content
@@ -327,7 +327,7 @@ I understand the following requirements for {ARTIFACT_TYPE}:
 
 **After rules loaded and target type determined**, load applicable adapter specs:
 
-**Read adapter AGENTS.md** at `{cypilot_adapter_path}/AGENTS.md`
+**Read adapter AGENTS.md** at `{cypilot_path}/config/AGENTS.md`
 
 **Parse WHEN clauses** matching current context:
 
@@ -392,13 +392,13 @@ For each line matching: ALWAYS open and follow `{spec}` WHEN Cypilot follows rul
 ```
 **Action**: STOP.
 
-### artifacts.json Parse Error
+### artifacts.toml Parse Error
 
-**If artifacts.json is malformed**:
+**If artifacts.toml is malformed**:
 ```
-⚠️ Cannot parse artifacts.json: {parse error}
-→ Fix JSON syntax errors in {cypilot_adapter_path}/artifacts.json
-→ Validate with: python3 -m json.tool artifacts.json
+⚠️ Cannot parse artifacts.toml: {parse error}
+→ Fix JSON syntax errors in {cypilot_path}/config/artifacts.toml
+→ Validate with: python3 -m json.tool artifacts.toml
 ```
 **Action**: STOP.
 
@@ -408,7 +408,7 @@ For each line matching: ALWAYS open and follow `{spec}` WHEN Cypilot follows rul
 ```
 ⚠️ Rules file not found: {KITS_PATH}
 → Verify kit package exists at {KIT_BASE}
-→ Check artifacts.json kits section has correct path
+→ Check artifacts.toml kits section has correct path
 → Run /cypilot-adapter --rescan to regenerate
 ```
 **Action**: STOP.
@@ -426,10 +426,10 @@ For each line matching: ALWAYS open and follow `{spec}` WHEN Cypilot follows rul
 
 ### System Not Registered
 
-**If target artifact's system not in artifacts.json**:
+**If target artifact's system not in artifacts.toml**:
 ```
 ⚠️ System not found: {system_name}
-→ Registered systems: {list from artifacts.json}
+→ Registered systems: {list from artifacts.toml}
 → Options:
   1. Register system via /cypilot-adapter
   2. Use existing system
@@ -464,7 +464,7 @@ For each line matching: ALWAYS open and follow `{spec}` WHEN Cypilot follows rul
 ### Discovery (DI)
 
 - DI.1 (YES): Adapter discovery executed (`cypilot adapter-info`)
-- DI.2 (YES): `artifacts.json` read/understood (agent lists systems/rules)
+- DI.2 (YES): `artifacts.toml` read/understood (agent lists systems/rules)
 - DI.3 (YES): Rules directories explored (agent lists artifact kinds)
 
 ### Clarification (CL)

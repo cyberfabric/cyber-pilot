@@ -37,10 +37,10 @@
 - `template.md` — required structure
 - `checklist.md` — semantic quality criteria
 - `examples/example.md` — reference implementation
-- `{cypilot_path}/requirements/identifiers.md` — ID formats and naming
+- `{cypilot_path}/.core/requirements/identifiers.md` — ID formats and naming
 - `../../constraints.json` — kit-level constraints (primary rules for ID definitions/references)
-- `{cypilot_path}/requirements/kit-constraints.md` — constraints specification
-- `{cypilot_path}/schemas/kit-constraints.schema.json` — constraints JSON Schema
+- `{cypilot_path}/.core/requirements/kit-constraints.md` — constraints specification
+- `{cypilot_path}/.core/schemas/kit-constraints.schema.json` — constraints JSON Schema
 
 ---
 
@@ -54,7 +54,7 @@ Agent confirms understanding of requirements:
 - [ ] Artifact frontmatter (optional): use `cpt:` format for document metadata
 - [ ] References parent feature from DECOMPOSITION manifest
 - [ ] All flows, algorithms, states, DoD items have unique IDs
-- [ ] All IDs follow `cpt-{system}-{kind}-{slug}` pattern (see artifacts.json for hierarchy)
+- [ ] All IDs follow `cpt-{system}-{kind}-{slug}` pattern (see artifacts.toml for hierarchy)
 - [ ] All IDs have priority markers (`p1`-`p9`) when required by constraints
 - [ ] CDSL instructions follow format: `N. [ ] - \`pN\` - Description - \`inst-slug\``
 - [ ] No placeholder content (TODO, TBD, FIXME)
@@ -95,8 +95,8 @@ Agent confirms understanding of requirements:
   - which cross-artifact references are required / optional / prohibited
 
 **References**:
-- `{cypilot_path}/requirements/kit-constraints.md`
-- `{cypilot_path}/schemas/kit-constraints.schema.json`
+- `{cypilot_path}/.core/requirements/kit-constraints.md`
+- `{cypilot_path}/.core/schemas/kit-constraints.schema.json`
 
 ### FEATURE Scope Guidelines
 
@@ -223,14 +223,14 @@ Agent executes tasks during generation:
 - [ ] Load `examples/example.md` for reference style
 - [ ] Read DECOMPOSITION to get feature ID and context
 - [ ] Read DESIGN to understand domain types and components
-- [ ] Read adapter `artifacts.json` to determine FEATURE artifact path
+- [ ] Read adapter `artifacts.toml` to determine FEATURE artifact path
 - [ ] Read adapter `specs/project-structure.md` (if exists) for directory conventions
 
 **FEATURE path resolution**:
 1. Check if FEATURE with matching slug already registered in `artifacts` array
 2. If found, use registered path (it's a FULL path relative to `project_root`)
 3. If not found, derive default path:
-   - Read system's `artifacts_dir` from `artifacts.json` (default: `architecture`)
+   - Read system's `artifacts_dir` from `artifacts.toml` (default: `architecture`)
    - Use kit's default subdirectory for FEATUREs: `specs/` (temporary compatibility)
    - Create at: `{artifacts_dir}/specs/{slug}.md`
 

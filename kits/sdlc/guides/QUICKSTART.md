@@ -51,7 +51,7 @@ Learn what each artifact means: [TAXONOMY.md](TAXONOMY.md)
 | Prompt | What happens |
 |--------|--------------|
 | `cypilot on` | Enables Cypilot mode, discovers adapter, loads project context |
-| `cypilot init` | Creates `.cypilot-adapter/` with `artifacts.json` and domain context files |
+| `cypilot init` | Creates `.cypilot-adapter/` with `artifacts.toml` and domain context files |
 | `cypilot show pipeline` | Displays current artifact hierarchy and validation status |
 
 **Customizing artifact locations:**
@@ -61,7 +61,7 @@ Learn what each artifact means: [TAXONOMY.md](TAXONOMY.md)
 | `cypilot set artifacts_dir to docs/design/` | Changes default base directory for new artifacts |
 | `cypilot register PRD at docs/requirements/product-requirements.md` | Registers existing file as PRD artifact |
 | `cypilot move PRD to docs/requirements/PRD.md` | Moves artifact and updates registry |
-| `cypilot show artifact locations` | Displays current paths from `artifacts.json` |
+| `cypilot show artifact locations` | Displays current paths from `artifacts.toml` |
 
 ---
 

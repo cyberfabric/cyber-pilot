@@ -458,7 +458,7 @@ cypilot adapter-info
 ```json
 {
   "adapter_path": ".cypilot-adapter",
-  "artifacts_json": ".cypilot-adapter/artifacts.json",
+  "artifacts_json": ".cypilot-adapter/artifacts.toml",
   "systems": [
     {
       "name": "Cypilot",
@@ -568,7 +568,7 @@ cypilot doctor
 | Config integrity | `config/core.toml` exists and parses, schema valid |
 | Skill version | project skill matches or is newer than cache |
 | Kit structure | all registered kits have valid entry points |
-| Blueprint integrity | all blueprints in `config/kits/<slug>/blueprints/` parse successfully, reference kits in `{cypilot}/kits/` present |
+| Blueprint integrity | all blueprints in `config/kits/<slug>/blueprints/` parse successfully, reference kits in `{cypilot_path}/.core/kits/` present |
 
 **Output** (JSON):
 ```json

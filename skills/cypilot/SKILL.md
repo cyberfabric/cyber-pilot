@@ -1,6 +1,6 @@
 ---
 name: cypilot
-description: Artifacts (PRD/DESIGN/ADR/DECOMPOSITION/FEATURE) + checklists; deterministic validation & consistency analysis (structure, cross-refs, cross-artifact consistency, tasks, covered-by, ID/CDSL extraction from artifact text); code↔artifact traceability with `@cpt-*`; ID search/navigation (list-ids, where-defined/used, get-content); coding support via generate workflow; reverse-engineering guidance for brownfield codebases; prompt-engineering methodology for improving agent instructions; adapter + registry discovery (adapter-info, artifacts.json, kits/rules); init/bootstrap; workflow router (analyze/generate); agent integrations (agents: workflow proxies + SKILL outputs for windsurf/cursor/claude/copilot/openai).
+description: Artifacts (PRD/DESIGN/ADR/DECOMPOSITION/FEATURE) + checklists; deterministic validation & consistency analysis (structure, cross-refs, cross-artifact consistency, tasks, covered-by, ID/CDSL extraction from artifact text); code↔artifact traceability with `@cpt-*`; ID search/navigation (list-ids, where-defined/used, get-content); coding support via generate workflow; reverse-engineering guidance for brownfield codebases; prompt-engineering methodology for improving agent instructions; adapter + registry discovery (adapter-info, artifacts.toml, kits/rules); init/bootstrap; workflow router (analyze/generate); agent integrations (agents: workflow proxies + SKILL outputs for windsurf/cursor/claude/copilot/openai).
 ---
 
 # Cypilot Unified Tool
@@ -120,11 +120,13 @@ git -C {cypilot_path} pull --ff-only
 git -C {cypilot_path} submodule update --init --recursive
 ```
 
-ALWAYS FIRST open and remember `{cypilot_path}/AGENTS.md`
+ALWAYS FIRST open and remember `{cypilot_path}/config/AGENTS.md`
+
+ALWAYS open and follow `{cypilot_path}/config/SKILL.md` WHEN it exists
 
 ALWAYS FIRST run `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py adapter-info` BEFORE any Cypilot workflow action
 
-ALWAYS FIRST read `{cypilot_adapter_path}/AGENTS.md` WHEN adapter status is FOUND
+ALWAYS FIRST read `{cypilot_path}/config/AGENTS.md` WHEN adapter status is FOUND
 
 ALWAYS FIRST parse and load ALL matched WHEN clause specs BEFORE proceeding with workflow
 
@@ -180,9 +182,9 @@ ALWAYS run `python3 {cypilot_path}/skills/scripts/pr.py list` directly WHEN user
 
 Cypilot has exactly **TWO** workflows. No exceptions.
 
-ALWAYS open and follow `{cypilot_path}/workflows/generate.md` WHEN user intent is WRITE: create, edit, fix, update, implement, refactor, delete, add, setup, configure, build, code
+ALWAYS open and follow `{cypilot_path}/.core/workflows/generate.md` WHEN user intent is WRITE: create, edit, fix, update, implement, refactor, delete, add, setup, configure, build, code
 
-ALWAYS open and follow `{cypilot_path}/workflows/analyze.md` WHEN user intent is READ: analyze, validate, review, analyze, check, inspect, audit, compare, list, show, find
+ALWAYS open and follow `{cypilot_path}/.core/workflows/analyze.md` WHEN user intent is READ: analyze, validate, review, analyze, check, inspect, audit, compare, list, show, find
 
 ALWAYS ask user "analyze (read-only) or generate (modify)?" WHEN intent is UNCLEAR: help, look at, work with, handle and STOP WHEN user user cancel or exit
 
@@ -217,10 +219,10 @@ When routed to list PRs:
 
 When routed to PR review:
 1. **ALWAYS fetch fresh data first** — run `pr.py fetch` even if data exists from a prior run
-2. Read `{cypilot_path}/workflows/pr-review.md` and follow its steps
+2. Read `{cypilot_path}/.core/workflows/pr-review.md` and follow its steps
 3. Use `python3 {cypilot_path}/skills/scripts/pr.py` as the script
 4. When target is `ALL` or no PR number given, run `pr.py list` first to show available PRs
-5. Select prompt and checklist from `{cypilot_adapter_path}/pr-review.json` → `prompts`
+5. Select prompt and checklist from `{cypilot_path}/config/pr-review.json` → `prompts`
 6. Load prompt from `promptFile` and checklist from `checklist` in matched entry
 7. Use templates from `.cypilot/templates/pr/`
 
@@ -228,7 +230,7 @@ When routed to PR review:
 
 When routed to PR status:
 1. **ALWAYS fetch fresh data first** — `pr.py status` auto-fetches, but never assume prior data is current
-2. Read `{cypilot_path}/workflows/pr-status.md` and follow its steps
+2. Read `{cypilot_path}/.core/workflows/pr-status.md` and follow its steps
 3. Use `python3 {cypilot_path}/skills/scripts/pr.py` as the script
 4. When target is `ALL` or no PR number given, run `pr.py list` first to show available PRs
 

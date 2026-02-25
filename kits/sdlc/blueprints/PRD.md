@@ -1,3 +1,22 @@
+# PRD Blueprint
+<!-- 
+  Blueprint for Product Requirements Documents (PRD).
+  
+  This file is the single source of truth for:
+  - template.md generation (from @cpt:heading + @cpt:prompt markers)
+  - example.md generation (from @cpt:heading examples + @cpt:example markers)
+  - rules.md generation (from @cpt:rules + @cpt:rule markers)
+  - checklist.md generation (from @cpt:checklist + @cpt:check markers)
+  - constraints.toml contributions (from @cpt:heading + @cpt:id markers)
+  
+  All text between markers is ignored by the generator — it serves as
+  human-readable documentation for anyone editing this blueprint.
+  
+  Based on: ISO/IEC/IEEE 29148:2018, ISO/IEC 25010:2011
+-->
+
+## Metadata
+
 `@cpt:blueprint`
 ```toml
 version = 1
@@ -6,6 +25,10 @@ artifact = "PRD"
 codebase = false
 ```
 `@/cpt:blueprint`
+
+## Skill Integration
+
+Commands and workflows exposed to AI agents for PRD operations.
 
 `@cpt:skill`
 ```markdown
@@ -20,6 +43,14 @@ codebase = false
 - **Analyze PRD**: validate structure (deterministic) then semantic quality (checklist-based)
 ```
 `@/cpt:skill`
+
+---
+
+## Rules Definition
+
+Rules are organized into sections that map to the generated `rules.md`.
+
+### Rules Skeleton
 
 `@cpt:rules`
 ```toml
@@ -43,6 +74,10 @@ sections = ["options"]
 ```
 `@/cpt:rules`
 
+### Prerequisites
+
+Dependencies that must be loaded before working with a PRD artifact.
+
 `@cpt:rule`
 ```toml
 kind = "prerequisites"
@@ -53,11 +88,15 @@ section = "load_dependencies"
 - [ ] Load `checklist.md` for semantic guidance
 - [ ] Load `examples/example.md` for reference style
 - [ ] Read adapter config for project ID prefix
-- [ ] Load `{cypilot_path}/requirements/identifiers.md` for ID formats
+- [ ] Load `{cypilot_path}/.core/requirements/identifiers.md` for ID formats
 - [ ] Load `../../constraints.json` for kit-level constraints
-- [ ] Load `{cypilot_path}/requirements/kit-constraints.md` for constraints specification
+- [ ] Load `{cypilot_path}/.core/requirements/kit-constraints.md` for constraints specification
 ```
 `@/cpt:rule`
+
+### Requirements
+
+#### Structural Requirements
 
 `@cpt:rule`
 ```toml
@@ -75,6 +114,8 @@ section = "structural"
 ```
 `@/cpt:rule`
 
+#### Versioning Rules
+
 `@cpt:rule`
 ```toml
 kind = "requirements"
@@ -88,6 +129,8 @@ section = "versioning"
 ```
 `@/cpt:rule`
 
+#### Traceability
+
 `@cpt:rule`
 ```toml
 kind = "requirements"
@@ -99,6 +142,8 @@ section = "traceability"
 - [ ] When all capabilities `[x]` → product version complete
 ```
 `@/cpt:rule`
+
+#### Constraints Integration
 
 `@cpt:rule`
 ```toml
@@ -115,6 +160,10 @@ section = "constraints"
 ```
 `@/cpt:rule`
 
+### Task Phases
+
+#### Setup
+
 `@cpt:rule`
 ```toml
 kind = "tasks"
@@ -127,6 +176,8 @@ section = "setup"
 - [ ] Read adapter config for project ID prefix
 ```
 `@/cpt:rule`
+
+#### Content Creation
 
 `@cpt:rule`
 ```toml
@@ -146,6 +197,8 @@ section = "content_creation"
 ```
 `@/cpt:rule`
 
+#### IDs & Structure
+
 `@cpt:rule`
 ```toml
 kind = "tasks"
@@ -159,6 +212,8 @@ section = "ids_and_structure"
 ```
 `@/cpt:rule`
 
+#### Quality Check
+
 `@cpt:rule`
 ```toml
 kind = "tasks"
@@ -170,6 +225,10 @@ section = "quality_check"
 - [ ] Ensure no MUST NOT HAVE violations
 ```
 `@/cpt:rule`
+
+### Validation
+
+#### Structural Validation
 
 `@cpt:rule`
 ```toml
@@ -185,6 +244,8 @@ section = "structural"
   - No duplicate IDs
 ```
 `@/cpt:rule`
+
+#### Semantic Validation
 
 `@cpt:rule`
 ```toml
@@ -202,6 +263,10 @@ section = "semantic"
 ```
 `@/cpt:rule`
 
+### Error Handling
+
+#### Missing Dependencies
+
 `@cpt:rule`
 ```toml
 kind = "error_handling"
@@ -214,6 +279,8 @@ section = "missing_dependencies"
 ```
 `@/cpt:rule`
 
+#### Missing Adapter
+
 `@cpt:rule`
 ```toml
 kind = "error_handling"
@@ -224,6 +291,8 @@ section = "missing_adapter"
 - [ ] Ask user to confirm or provide custom prefix
 ```
 `@/cpt:rule`
+
+#### Escalation
 
 `@cpt:rule`
 ```toml
@@ -238,6 +307,10 @@ section = "escalation"
 ```
 `@/cpt:rule`
 
+### Next Steps
+
+Recommended actions after completing a PRD.
+
 `@cpt:rule`
 ```toml
 kind = "next_steps"
@@ -250,6 +323,14 @@ section = "options"
 - [ ] Want checklist review only → `/cypilot-analyze semantic` — semantic validation
 ```
 `@/cpt:rule`
+
+---
+
+## Checklist Definition
+
+Severity levels, review domains, and individual check items for PRD quality.
+
+### Checklist Skeleton
 
 `@cpt:checklist`
 ```toml
@@ -339,6 +420,10 @@ name = "Documentation"
 standards = []
 ```
 `@/cpt:checklist`
+
+### Business Checks (BIZ)
+
+Product vision, actors, scope, use cases, acceptance criteria.
 
 `@cpt:check`
 ```toml
@@ -474,6 +559,10 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+### Architecture Checks (ARCH)
+
+FR/NFR quality, measurability, and design-readiness.
+
 `@cpt:check`
 ```toml
 id = "ARCH-PRD-001"
@@ -563,6 +652,8 @@ kind = "must_have"
 - [ ] Backward compatibility requirements documented (if applicable)
 ```
 `@/cpt:check`
+
+### Security Checks (SEC)
 
 `@cpt:check`
 ```toml
@@ -659,6 +750,8 @@ not_applicable_when = "No personal data processing"
 ```
 `@/cpt:check`
 
+### Safety Checks (SAFE)
+
 `@cpt:check`
 ```toml
 id = "SAFE-PRD-001"
@@ -699,6 +792,8 @@ not_applicable_when = "Pure information system, no physical interaction"
 ```
 `@/cpt:check`
 
+### Testing Checks (TEST)
+
 `@cpt:check`
 ```toml
 id = "TEST-PRD-001"
@@ -734,6 +829,8 @@ kind = "must_have"
 - [ ] Requirements can be independently verified
 ```
 `@/cpt:check`
+
+### Performance Checks (PERF)
 
 `@cpt:check`
 ```toml
@@ -788,6 +885,8 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+### Reliability Checks (REL)
+
 `@cpt:check`
 ```toml
 id = "REL-PRD-001"
@@ -841,6 +940,8 @@ kind = "must_have"
 - [ ] Support escalation paths identified
 ```
 `@/cpt:check`
+
+### Usability Checks (UX)
 
 `@cpt:check`
 ```toml
@@ -939,6 +1040,8 @@ not_applicable_when = "Narrow technical audience, internal tool"
 ```
 `@/cpt:check`
 
+### Data Checks (DATA)
+
 `@cpt:check`
 ```toml
 id = "DATA-PRD-001"
@@ -993,6 +1096,8 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+### Integration Checks (INT)
+
 `@cpt:check`
 ```toml
 id = "INT-PRD-001"
@@ -1028,6 +1133,8 @@ kind = "must_have"
 - [ ] API documentation requirements stated (OpenAPI/Swagger)
 ```
 `@/cpt:check`
+
+### Compliance Checks (COMPL)
 
 `@cpt:check`
 ```toml
@@ -1085,6 +1192,8 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+### Maintainability Checks (MAINT)
+
 `@cpt:check`
 ```toml
 id = "MAINT-PRD-001"
@@ -1119,6 +1228,8 @@ kind = "must_have"
 - [ ] Troubleshooting support requirements documented
 ```
 `@/cpt:check`
+
+### Operations Checks (OPS)
 
 `@cpt:check`
 ```toml
@@ -1156,6 +1267,8 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+### Documentation Checks (DOC)
+
 `@cpt:check`
 ```toml
 id = "DOC-PRD-001"
@@ -1170,6 +1283,10 @@ kind = "must_have"
 - [ ] Reviewer can distinguish "author considered and excluded" from "author forgot"
 ```
 `@/cpt:check`
+
+### Anti-Pattern Checks (must_not_have)
+
+Content that does NOT belong in a PRD.
 
 `@cpt:check`
 ```toml
@@ -1350,6 +1467,17 @@ belongs_to = "Source code, README files, developer documentation"
 ```
 `@/cpt:check`
 
+---
+
+## Template Structure
+
+Headings, prompts, IDs, and examples that define the generated `template.md`
+and `example.md` files. The PRD template covers: overview, actors, operational
+context, scope, functional/non-functional requirements, interfaces, use cases,
+acceptance criteria, dependencies, assumptions, and risks.
+
+### Title (H1)
+
 `@cpt:heading`
 ```toml
 id = "prd-h1-title"
@@ -1358,12 +1486,14 @@ required = true
 numbered = false
 multiple = false
 pattern = "PRD\\s*[—–-]\\s*.+"
-template = "PRD — {title}"
+template = "PRD — {Module/Feature Name}"
 prompt = "Title of product"
 description = "PRD document title (H1)."
 examples = ["# PRD — TaskFlow"]
 ```
 `@/cpt:heading`
+
+### Overview
 
 `@cpt:heading`
 ```toml
@@ -1393,8 +1523,7 @@ examples = ["### 1.1 Purpose"]
 
 `@cpt:prompt`
 ```markdown
-Write 1-2 paragraphs: what is this system/module and what problem does it solve?
-What are the key features? Reference the system name from adapter config.
+{1-2 paragraphs: What is this system/module and what problem does it solve? What are the key features?}
 ```
 `@/cpt:prompt`
 
@@ -1433,8 +1562,7 @@ examples = ["### 1.2 Background / Problem Statement"]
 
 `@cpt:prompt`
 ```markdown
-Write 2-3 paragraphs: context, current pain points, why this capability is needed now.
-Include target users and key problems solved as structured lists.
+{2-3 paragraphs: Context, current pain points, why this capability is needed now.}
 ```
 `@/cpt:prompt`
 
@@ -1474,7 +1602,7 @@ level = 3
 required = true
 numbered = true
 multiple = false
-pattern = "Goals \\(Business Outcomes\\)"
+pattern = "Goals (Business Outcomes)"
 description = "Business outcomes and goals."
 examples = ["### 1.3 Goals (Business Outcomes)"]
 ```
@@ -1482,8 +1610,8 @@ examples = ["### 1.3 Goals (Business Outcomes)"]
 
 `@cpt:prompt`
 ```markdown
-List measurable success criteria with baselines and targets.
-List key capabilities as bullet points.
+- {Goal 1: measurable business outcome}
+- {Goal 2: measurable business outcome}
 ```
 `@/cpt:prompt`
 
@@ -1531,7 +1659,9 @@ examples = ["### 1.4 Glossary"]
 
 `@cpt:prompt`
 ```markdown
-Define key domain terms in a table. Include all terms that have specific meaning in this product's context.
+| Term | Definition |
+|------|------------|
+| {Term} | {Definition} |
 ```
 `@/cpt:prompt`
 
@@ -1544,6 +1674,10 @@ Define key domain terms in a table. Include all terms that have specific meaning
 | Notification | An alert emitted when tasks change or become overdue |
 ```
 `@/cpt:example`
+
+### Actors
+
+Human and system actors that interact with the module.
 
 `@cpt:heading`
 ```toml
@@ -1575,10 +1709,7 @@ headings = ["prd-actors"]
 
 `@cpt:prompt`
 ```markdown
-Document actors (users, systems) that interact with this module.
-Each actor needs an ID, role description, and needs.
-Actors MUST have specific roles — never use generic labels like "users" or "developers".
-Stakeholder needs are managed at project/task level by steering committee — document only actors that interact with this module.
+> **Note**: Stakeholder needs are managed at project/task level by steering committee. Document **actors** (users, systems) that interact with this module.
 ```
 `@/cpt:prompt`
 
@@ -1609,12 +1740,25 @@ examples = ["### 2.1 Human Actors"]
 ```
 `@/cpt:heading`
 
+`@cpt:heading`
+```toml
+id = "prd-actor-entry"
+level = 4
+required = true
+numbered = false
+# multiple = true|false  # allowed by default (can repeat)
+template = "{Actor Name}"
+description = "Individual human actor entry."
+examples = ["#### Team Member", "#### Team Lead"]
+```
+`@/cpt:heading`
+
 `@cpt:prompt`
 ```markdown
-List human actors with specific roles. Each actor needs:
-- ID following `cpt-{system}-actor-{slug}`
-- Role description
-- Needs from the system
+**ID**: `cpt-{system}-actor-{slug}`
+
+**Role**: {Description of what this actor does and their relationship to the system.}
+**Needs**: {What this actor needs from the system.}
 ```
 `@/cpt:prompt`
 
@@ -1649,11 +1793,24 @@ examples = ["### 2.2 System Actors"]
 ```
 `@/cpt:heading`
 
+`@cpt:heading`
+```toml
+id = "prd-actor-system-entry"
+level = 4
+required = true
+numbered = false
+# multiple = true|false  # allowed by default (can repeat)
+template = "{System Actor Name}"
+description = "Individual system actor entry."
+examples = ["#### Notification Service", "#### External Auth Provider"]
+```
+`@/cpt:heading`
+
 `@cpt:prompt`
 ```markdown
-List system actors (external services, schedulers, etc.). Each needs:
-- ID following `cpt-{system}-actor-{slug}`
-- Role description
+**ID**: `cpt-{system}-actor-{slug}`
+
+**Role**: {Description of what this system actor does (external service, scheduler, etc.)}
 ```
 `@/cpt:prompt`
 
@@ -1667,6 +1824,8 @@ List system actors (external services, schedulers, etc.). Each needs:
 ```
 `@/cpt:example`
 
+### Operational Concept & Environment
+
 `@cpt:heading`
 ```toml
 id = "prd-operational-concept"
@@ -1679,6 +1838,12 @@ description = "Operational concept and environment constraints."
 examples = ["## 3. Operational Concept & Environment"]
 ```
 `@/cpt:heading`
+
+`@cpt:prompt`
+```markdown
+> **Note**: Project-wide runtime, OS, architecture, lifecycle policy, and integration patterns defined in root PRD. Document only module-specific deviations here. **Delete this section if no special constraints.**
+```
+`@/cpt:prompt`
 
 `@cpt:heading`
 ```toml
@@ -1695,11 +1860,11 @@ examples = ["### 3.1 Module-Specific Environment Constraints"]
 
 `@cpt:prompt`
 ```markdown
-Document module-specific environment constraints only.
-If no special constraints, state "None." and move on.
-Project-wide runtime, OS, architecture, lifecycle policy, and integration patterns
-are defined in root PRD — document only deviations here.
-Delete this section if no special constraints.
+{Only if this module has constraints beyond project defaults:}
+
+- {Constraint 1, e.g., "Requires GPU acceleration for X"}
+- {Constraint 2, e.g., "Incompatible with async runtime due to Y"}
+- {Constraint 3, e.g., "Requires external dependency: Z library v2.0+"}
 ```
 `@/cpt:prompt`
 
@@ -1708,6 +1873,10 @@ Delete this section if no special constraints.
 None.
 ```
 `@/cpt:example`
+
+### Scope
+
+In-scope and out-of-scope boundaries.
 
 `@cpt:heading`
 ```toml
@@ -1737,7 +1906,8 @@ examples = ["### 4.1 In Scope"]
 
 `@cpt:prompt`
 ```markdown
-List capabilities and features that ARE included in this PRD scope.
+- {Capability or feature that IS included}
+- {Another capability}
 ```
 `@/cpt:prompt`
 
@@ -1764,7 +1934,8 @@ examples = ["### 4.2 Out of Scope"]
 
 `@cpt:prompt`
 ```markdown
-List capabilities explicitly NOT included. Future considerations not addressed now.
+- {Capability explicitly NOT included in this PRD}
+- {Future consideration not addressed now}
 ```
 `@/cpt:prompt`
 
@@ -1784,6 +1955,8 @@ section = "semantic"
 - Cross-organization collaboration
 ```
 `@/cpt:example`
+
+### Functional Requirements
 
 `@cpt:heading`
 ```toml
@@ -1827,14 +2000,9 @@ headings = ["feature-context-purpose"]
 
 `@cpt:prompt`
 ```markdown
+> **Testing strategy**: All requirements verified via automated tests (unit, integration, e2e) targeting 90%+ code coverage unless otherwise specified. Document verification method only for non-test approaches (analysis, inspection, demonstration).
+
 Functional requirements define WHAT the system must do. Group by feature area or priority tier.
-Each requirement needs:
-- Task checkbox with priority marker
-- Unique ID following `cpt-{system}-fr-{slug}` convention
-- Observable behavior statement using MUST/MUST NOT/SHOULD
-- Rationale explaining business value
-- Actor references
-All requirements verified via automated tests targeting 90%+ code coverage unless otherwise specified.
 ```
 `@/cpt:prompt`
 
@@ -1859,17 +2027,45 @@ section = "semantic"
 
 `@cpt:heading`
 ```toml
-id = "prd-fr-entry"
+id = "prd-fr-group"
 level = 3
+required = true
+numbered = true
+# multiple = true|false  # allowed by default (can repeat)
+template = "{Feature Area / Priority Tier}"
+description = "Feature area or priority tier grouping."
+examples = ["### 5.1 Core Features", "### 5.2 Notifications"]
+```
+`@/cpt:heading`
+
+`@cpt:heading`
+```toml
+id = "prd-fr-entry"
+level = 4
 required = true
 numbered = false
 # multiple = true|false  # allowed by default (can repeat)
-template = "{name}"
-prompt = "Feature area or priority tier name"
-description = "Functional requirement entry heading."
-examples = ["### FR-001 Task Management", "### FR-002 Notifications"]
+template = "{Requirement Name}"
+description = "Individual functional requirement entry."
+examples = ["#### Task Management", "#### Notification Delivery"]
 ```
 `@/cpt:heading`
+
+`@cpt:prompt`
+```markdown
+- [ ] `p1` - **ID**: `cpt-{system}-fr-{slug}`
+
+The system **MUST** {do something specific and verifiable}.
+
+**Rationale**: {Why this requirement exists — business value or stakeholder need.}
+
+**Actors**: `cpt-{system}-actor-{slug}`
+
+**Verification Method** (optional): {Only if non-standard: analysis | inspection | demonstration | specialized test approach}
+
+**Acceptance Evidence** (optional): {Only if non-obvious: specific test suite path, analysis report, review checklist}
+```
+`@/cpt:prompt`
 
 `@cpt:example`
 ```markdown
@@ -1894,6 +2090,8 @@ The system MUST send push notifications for task assignments. The system MUST se
 **Actors**: `cpt-ex-task-flow-actor-notifier`, `cpt-ex-task-flow-actor-member`
 ```
 `@/cpt:example`
+
+### Non-Functional Requirements
 
 `@cpt:heading`
 ```toml
@@ -1935,12 +2133,6 @@ headings = ["feature-context-purpose"]
 ```
 `@/cpt:id`
 
-`@cpt:prompt`
-```markdown
-Include NFRs only if they deviate from or extend project defaults.
-Each NFR needs measurable thresholds with specific conditions.
-Also document explicit NFR exclusions with reasoning.
-```
 `@/cpt:prompt`
 
 `@cpt:rule`
@@ -1969,8 +2161,34 @@ examples = ["### 6.1 NFR Inclusions"]
 
 `@cpt:prompt`
 ```markdown
-Only include NFRs that deviate from or extend project defaults.
-Each NFR needs measurable thresholds with specific conditions.
+{Only include this section if there are NFRs that deviate from or extend project defaults.}
+```
+`@/cpt:prompt`
+
+`@cpt:heading`
+```toml
+id = "prd-nfr-entry"
+level = 4
+required = false
+numbered = false
+# multiple = true|false  # allowed by default (can repeat)
+template = "{NFR Name}"
+description = "Individual non-functional requirement entry."
+examples = ["#### Response Time", "#### Availability"]
+```
+`@/cpt:heading`
+
+`@cpt:prompt`
+```markdown
+- [ ] `p1` - **ID**: `cpt-{system}-nfr-{slug}`
+
+The system **MUST** {measurable NFR with specific thresholds, e.g., "respond within 50ms at p95" (stricter than project default)}.
+
+**Threshold**: {Quantitative target with units and conditions}
+
+**Rationale**: {Why this module needs different/additional NFR}
+
+**Verification Method** (optional): {Only if non-standard approach needed}
 ```
 `@/cpt:prompt`
 
@@ -2001,6 +2219,14 @@ examples = ["### 6.2 NFR Exclusions"]
 ```
 `@/cpt:heading`
 
+`@cpt:prompt`
+```markdown
+{Document any project-default NFRs that do NOT apply to this module}
+
+- {Default NFR name}: {Reason for exclusion}
+```
+`@/cpt:prompt`
+
 `@cpt:rule`
 ```toml
 kind = "requirements"
@@ -2018,6 +2244,10 @@ section = "semantic"
 - **Regulatory Compliance** (COMPL-PRD-001/002/003): Not applicable — No PII or regulated data in MVP scope
 ```
 `@/cpt:example`
+
+### Public Interfaces
+
+API surface and external integration contracts.
 
 `@cpt:heading`
 ```toml
@@ -2072,8 +2302,7 @@ headings = ["design-tech-arch-api-contracts"]
 
 `@cpt:prompt`
 ```markdown
-Define the public API surface, versioning/compatibility guarantees, and integration contracts.
-If none, state "None." in each subsection.
+Define the public API surface, versioning/compatibility guarantees, and integration contracts provided by this library.
 ```
 `@/cpt:prompt`
 
@@ -2089,6 +2318,33 @@ description = "Public API surface."
 examples = ["### 7.1 Public API Surface"]
 ```
 `@/cpt:heading`
+
+`@cpt:heading`
+```toml
+id = "prd-interface-entry"
+level = 4
+required = false
+numbered = false
+# multiple = true|false  # allowed by default (can repeat)
+template = "{Interface Name}"
+description = "Individual public interface entry."
+examples = ["#### CLI Interface", "#### REST API"]
+```
+`@/cpt:heading`
+
+`@cpt:prompt`
+```markdown
+- [ ] `p1` - **ID**: `cpt-{system}-interface-{slug}`
+
+**Type**: {Rust module/trait/struct | REST API | CLI | Protocol | Data format}
+
+**Stability**: {stable | unstable | experimental}
+
+**Description**: {What this interface provides}
+
+**Breaking Change Policy**: {e.g., Major version bump required}
+```
+`@/cpt:prompt`
 
 `@cpt:example`
 ```markdown
@@ -2109,11 +2365,44 @@ examples = ["### 7.2 External Integration Contracts"]
 ```
 `@/cpt:heading`
 
+`@cpt:prompt`
+```markdown
+Contracts this library expects from external systems or provides to downstream clients.
+```
+`@/cpt:prompt`
+
+`@cpt:heading`
+```toml
+id = "prd-contract-entry"
+level = 4
+required = false
+numbered = false
+# multiple = true|false  # allowed by default (can repeat)
+template = "{Contract Name}"
+description = "Individual external integration contract entry."
+examples = ["#### Notification Center API", "#### Auth Provider Contract"]
+```
+`@/cpt:heading`
+
+`@cpt:prompt`
+```markdown
+- [ ] `p2` - **ID**: `cpt-{system}-contract-{slug}`
+
+**Direction**: {provided by library | required from client}
+
+**Protocol/Format**: {e.g., HTTP/REST, gRPC, JSON Schema}
+
+**Compatibility**: {Backward/forward compatibility guarantees}
+```
+`@/cpt:prompt`
+
 `@cpt:example`
 ```markdown
 None.
 ```
 `@/cpt:example`
+
+### Use Cases
 
 `@cpt:heading`
 ```toml
@@ -2153,9 +2442,41 @@ headings = ["feature-actor-flow"]
 
 `@cpt:prompt`
 ```markdown
-Include use cases when interaction flows add clarity beyond requirement statements.
-Each use case needs: actor, preconditions, main flow, postconditions, alternative flows.
-Use cases MUST include alternative flows for error scenarios.
+Optional: Include when interaction flows add clarity beyond requirement statements.
+```
+`@/cpt:prompt`
+
+`@cpt:heading`
+```toml
+id = "prd-usecase-entry"
+level = 4
+required = false
+numbered = false
+# multiple = true|false  # allowed by default (can repeat)
+template = "{Use Case Name}"
+description = "Individual use case entry."
+examples = ["#### Create Task", "#### Configure Notifications"]
+```
+`@/cpt:heading`
+
+`@cpt:prompt`
+```markdown
+- [ ] `p2` - **ID**: `cpt-{system}-usecase-{slug}`
+
+**Actor**: `cpt-{system}-actor-{slug}`
+
+**Preconditions**:
+- {Required state before execution}
+
+**Main Flow**:
+1. {Actor action or system response}
+2. {Next step}
+
+**Postconditions**:
+- {State after successful completion}
+
+**Alternative Flows**:
+- **{Condition}**: {What happens instead}
 ```
 `@/cpt:prompt`
 
@@ -2199,6 +2520,8 @@ section = "semantic"
 ```
 `@/cpt:example`
 
+### Acceptance Criteria, Dependencies, Assumptions, Risks
+
 `@cpt:heading`
 ```toml
 id = "prd-acceptance-criteria"
@@ -2214,8 +2537,10 @@ examples = ["## 9. Acceptance Criteria"]
 
 `@cpt:prompt`
 ```markdown
-List business-level acceptance criteria for the PRD as a whole.
-Each criterion must be testable.
+Business-level acceptance criteria for the PRD as a whole.
+
+- [ ] {Testable criterion that validates a key business outcome}
+- [ ] {Another testable criterion}
 ```
 `@/cpt:prompt`
 
@@ -2242,7 +2567,9 @@ examples = ["## 10. Dependencies"]
 
 `@cpt:prompt`
 ```markdown
-List external dependencies with descriptions and criticality levels.
+| Dependency | Description | Criticality |
+|------------|-------------|-------------|
+| {Service/System} | {What it provides} | {p1/p2/p3} |
 ```
 `@/cpt:prompt`
 
@@ -2269,8 +2596,7 @@ examples = ["## 11. Assumptions"]
 
 `@cpt:prompt`
 ```markdown
-State key assumptions about environment, users, or dependent systems.
-List open questions with owners and target resolution dates.
+- {Assumption about environment, users, or dependent systems}
 ```
 `@/cpt:prompt`
 
@@ -2307,7 +2633,9 @@ examples = ["## 12. Risks"]
 
 `@cpt:prompt`
 ```markdown
-Document risks as a table with impact assessment and mitigation strategy for each.
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| {Risk description} | {Potential impact} | {Mitigation strategy} |
 ```
 `@/cpt:prompt`
 
