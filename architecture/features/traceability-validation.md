@@ -4,7 +4,7 @@
 
 ## 1. Feature Context
 
-- [ ] `p1` - `cpt-cypilot-feature-traceability-validation`
+- [x] `p1` - `cpt-cypilot-feature-traceability-validation`
 
 ### 1.1 Overview
 

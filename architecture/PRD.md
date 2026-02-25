@@ -244,7 +244,7 @@ The blueprint MUST support optional **workflow registrations** — structured de
 
 #### ID and Traceability System
 
-- [ ] `p1` - **ID**: `cpt-cypilot-fr-core-traceability`
+- [x] `p1` - **ID**: `cpt-cypilot-fr-core-traceability`
 
 The system MUST provide a unique ID system for all design elements using structured format `cpt-{system-slug}-{kind}-{slug}`. This is the core domain of Cypilot: the core knows that artifacts exist, knows how to locate them (via autodetect rules provided by kits), knows which kit owns which artifact kind, and owns the ID format, scanning, and cross-reference resolution. The system MUST support code tags (`@cpt-*`) linking implementation to design. Traceability validation MUST be configurable per artifact (FULL or DOCS-ONLY). The system MUST provide commands: `list-ids`, `list-id-kinds`, `get-content`, `where-defined`, `where-used`. IDs MAY be versioned by appending `-vN` suffix. When an ID is replaced, references MUST be updated across all artifacts and code. Cross-artifact validation MUST check: covered_by references resolve, checked references imply checked definitions, and all ID references resolve to definitions. Artifact-specific validation logic (template compliance, structural rules) is delegated to the owning kit's plugin.
 
@@ -253,7 +253,7 @@ The system MUST provide a unique ID system for all design elements using structu
 
 #### Cypilot DSL (CDSL)
 
-- [ ] `p1` - **ID**: `cpt-cypilot-fr-core-cdsl`
+- [x] `p1` - **ID**: `cpt-cypilot-fr-core-cdsl`
 
 The system MUST define a plain English behavioral specification language (CDSL) for actor flows, algorithms, and state descriptions. CDSL MUST use structured numbered lists with bold keywords (**IF**, **ELSE**, **WHILE**, **FOR EACH**, **AND**, **OR**, **NOT**, **MUST**, **REQUIRED**, **OPTIONAL**). CDSL MUST support instruction markers with checkboxes (`- [ ] Inst-label: description`) and phase-based organization (`p1`, `p2`, etc.) for implementation tracking. CDSL MUST be readable by non-programmers for validation and review. CDSL MUST translate directly to code with traceability tags. CDSL MUST be actor-centric (steps start with **Actor** or **System**).
 
@@ -366,7 +366,7 @@ The SDLC kit MUST provide a blueprint package with artifact definitions for PRD,
 
 #### Artifact Validation
 
-- [ ] `p1` - **ID**: `cpt-cypilot-fr-sdlc-validation`
+- [x] `p1` - **ID**: `cpt-cypilot-fr-sdlc-validation`
 
 The SDLC kit MUST provide deterministic structural and semantic validation for all artifact kinds. Validation MUST include: template structure compliance, ID format validation, priority marker presence, placeholder detection (TODO, TBD, FIXME), and cross-reference validation. Validation MUST produce a score breakdown with actionable issues including file paths and line numbers. Pass/fail thresholds MUST be configurable per artifact kind.
 
@@ -375,7 +375,7 @@ The SDLC kit MUST provide deterministic structural and semantic validation for a
 
 #### Cross-Artifact Validation
 
-- [ ] `p1` - **ID**: `cpt-cypilot-fr-sdlc-cross-artifact`
+- [x] `p1` - **ID**: `cpt-cypilot-fr-sdlc-cross-artifact`
 
 The SDLC kit MUST validate cross-artifact relationships when multiple artifacts are validated together. ID blocks with `covered_by` attributes MUST have at least one reference in artifacts whose kind matches the covered_by list. All ID references MUST resolve to a definition in some artifact. When a reference is marked as checked (`[x]`), the corresponding definition MUST also be marked as checked. Cross-artifact validation MUST be deterministic and report all consistency violations with line numbers and artifact paths.
 
