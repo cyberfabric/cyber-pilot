@@ -266,14 +266,14 @@ description = "Review a GitHub PR against configurable checklists and prompts"
 
 **Generates**: two outputs per workflow:
 
-1. **Kit workflow file**: `config/kits/<slug>/workflows/{name}.md` — the full workflow definition assembled from the ` ```markdown ` content block, with frontmatter metadata.
+1. **Kit workflow file**: `.gen/kits/<slug>/workflows/{name}.md` — the full workflow definition assembled from the ` ```markdown ` content block, with frontmatter metadata.
 2. **Agent entry points**: during `cypilot agents`, each workflow gets an entry point in every agent's native format that references the kit workflow file:
    - Windsurf: `.windsurf/workflows/cypilot-{name}.md`
    - Cursor: `.cursor/rules/cypilot-{name}.md`
    - Claude: `.claude/commands/cypilot-{name}.md`
    - Copilot: `.github/prompts/cypilot-{name}.md`
 
-**Generated kit workflow file** (`config/kits/sdlc/workflows/pr-review.md`):
+**Generated kit workflow file** (`.gen/kits/sdlc/workflows/pr-review.md`):
 ```markdown
 ---
 name: pr-review
@@ -297,10 +297,10 @@ name: Cypilot PR Review
 description: Review a GitHub PR against configurable checklists and prompts
 ---
 
-Follow the workflow defined in `{cypilot_path}/config/kits/sdlc/workflows/pr-review.md`
+Follow the workflow defined in `{cypilot_path}/.gen/kits/sdlc/workflows/pr-review.md`
 ```
 
-Agent entry points are fully overwritten on every `cypilot agents` run. Kit workflow files are regenerated from blueprints on `cypilot generate-resources`.
+Agent entry points are fully overwritten on every `cypilot agents` run. Kit workflow files are regenerated from blueprints on `cypilot init`.
 
 ---
 
