@@ -68,9 +68,31 @@ def cmd_where_defined(argv: List[str]) -> int:
             if artifact_path.exists():
                 artifacts_to_scan.append((artifact_path, str(artifact_meta.kind)))
 
+        # Workspace: also scan artifacts from remote sources
+        from ..utils.context import WorkspaceContext
+        if isinstance(ctx, WorkspaceContext):
+            for sc in ctx.sources.values():
+                if not sc.reachable or sc.meta is None:
+                    continue
+                for art, _sys in sc.meta.iter_all_artifacts():
+                    art_path = (sc.path / art.path).resolve()
+                    if art_path.exists():
+                        artifacts_to_scan.append((art_path, str(art.kind)))
+
     if not artifacts_to_scan:
         print(json.dumps({"status": "ERROR", "message": "No Cypilot artifacts found in registry"}, indent=None, ensure_ascii=False))
         return 1
+
+    # Build path-to-source mapping for workspace results
+    path_to_source: Dict[str, str] = {}
+    from ..utils.context import WorkspaceContext
+    if isinstance(ctx, WorkspaceContext):
+        for sc in ctx.sources.values():
+            if not sc.reachable or sc.meta is None:
+                continue
+            for art, _sys in sc.meta.iter_all_artifacts():
+                art_path = (sc.path / art.path).resolve()
+                path_to_source[str(art_path)] = sc.name
 
     # Search for definitions
     definitions: List[Dict[str, object]] = []
@@ -81,13 +103,17 @@ def cmd_where_defined(argv: List[str]) -> int:
                 continue
             if str(h.get("id") or "") != target_id:
                 continue
-            definitions.append({
+            d: Dict[str, object] = {
                 "artifact": str(artifact_path),
                 "artifact_type": artifact_type,
                 "line": int(h.get("line", 1) or 1),
                 "kind": None,
                 "checked": bool(h.get("checked", False)),
-            })
+            }
+            src = path_to_source.get(str(artifact_path))
+            if src:
+                d["source"] = src
+            definitions.append(d)
 
     if not definitions:
         print(json.dumps({

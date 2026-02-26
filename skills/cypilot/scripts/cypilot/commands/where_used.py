@@ -69,9 +69,31 @@ def cmd_where_used(argv: List[str]) -> int:
             if artifact_path.exists():
                 artifacts_to_scan.append((artifact_path, str(artifact_meta.kind)))
 
+        # Workspace: also scan artifacts from remote sources
+        from ..utils.context import WorkspaceContext
+        if isinstance(ctx, WorkspaceContext):
+            for sc in ctx.sources.values():
+                if not sc.reachable or sc.meta is None:
+                    continue
+                for art, _sys in sc.meta.iter_all_artifacts():
+                    art_path = (sc.path / art.path).resolve()
+                    if art_path.exists():
+                        artifacts_to_scan.append((art_path, str(art.kind)))
+
     if not artifacts_to_scan:
         print(json.dumps({"status": "ERROR", "message": "No Cypilot artifacts found in registry"}, indent=None, ensure_ascii=False))
         return 1
+
+    # Build path-to-source mapping for workspace results
+    path_to_source: Dict[str, str] = {}
+    from ..utils.context import WorkspaceContext
+    if isinstance(ctx, WorkspaceContext):
+        for sc in ctx.sources.values():
+            if not sc.reachable or sc.meta is None:
+                continue
+            for art, _sys in sc.meta.iter_all_artifacts():
+                art_path = (sc.path / art.path).resolve()
+                path_to_source[str(art_path)] = sc.name
 
     # Search for references
     references: List[Dict[str, object]] = []
@@ -82,14 +104,18 @@ def cmd_where_used(argv: List[str]) -> int:
                 continue
             if h.get("type") == "definition" and not bool(args.include_definitions):
                 continue
-            references.append({
+            r: Dict[str, object] = {
                 "artifact": str(artifact_path),
                 "artifact_type": artifact_type,
                 "line": int(h.get("line", 1) or 1),
                 "kind": None,
                 "type": str(h.get("type")),
                 "checked": bool(h.get("checked", False)),
-            })
+            }
+            src = path_to_source.get(str(artifact_path))
+            if src:
+                r["source"] = src
+            references.append(r)
 
     # Sort by artifact and line
     references = sorted(references, key=lambda r: (str(r.get("artifact", "")), int(r.get("line", 0))))

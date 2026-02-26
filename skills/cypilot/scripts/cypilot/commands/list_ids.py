@@ -20,6 +20,7 @@ def cmd_list_ids(argv: List[str]) -> int:
     p.add_argument("--kind", default=None, help="Filter by inferred ID kind")
     p.add_argument("--all", action="store_true", help="Include duplicate IDs in results")
     p.add_argument("--include-code", action="store_true", help="Also scan code files for Cypilot marker references")
+    p.add_argument("--source", default=None, help="Filter by workspace source name (workspace mode only)")
     args = p.parse_args(argv)
 
     # Collect artifacts to scan: (artifact_path, artifact_kind)
@@ -74,6 +75,19 @@ def cmd_list_ids(argv: List[str]) -> int:
             artifact_path = (project_root / artifact_meta.path).resolve()
             if artifact_path.exists():
                 artifacts_to_scan.append((artifact_path, str(artifact_meta.kind)))
+
+        # Workspace: also scan artifacts from remote sources
+        from ..utils.context import WorkspaceContext
+        if isinstance(ctx, WorkspaceContext):
+            for sc in ctx.sources.values():
+                if not sc.reachable or sc.meta is None:
+                    continue
+                if args.source and sc.name != args.source:
+                    continue
+                for art, _sys in sc.meta.iter_all_artifacts():
+                    art_path = (sc.path / art.path).resolve()
+                    if art_path.exists():
+                        artifacts_to_scan.append((art_path, str(art.kind)))
 
         if not artifacts_to_scan:
             print(json.dumps({"status": "ERROR", "message": "No Cypilot-format artifacts found in registry."}, indent=None, ensure_ascii=False))

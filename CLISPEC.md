@@ -417,8 +417,94 @@ Syntax highlighting:
 
 ---
 
+## Workspace Commands (v1.2+)
+
+```
+COMMAND workspace-init
+SYNOPSIS: cypilot workspace-init [--root <dir>] [--output <path>] [--inline] [--dry-run]
+DESCRIPTION: Initialize a multi-repo workspace by scanning sibling directories for repos with adapters.
+
+OPTIONS:
+  --root     path   [default: parent of project root]  Directory to scan for sibling repos
+  --output   path   [default: scan root]  Where to write .cypilot-workspace.json
+  --inline   boolean  Write workspace inline into current repo's .cypilot-config.json
+  --dry-run  boolean  Print what would be generated without writing files
+
+EXIT CODES:
+  0  Success (workspace created or dry-run complete)
+  1  Error (no project root found)
+
+EXAMPLE:
+  $ cypilot workspace-init --dry-run
+  $ cypilot workspace-init --inline
+```
+
+---
+
+```
+COMMAND workspace-add
+SYNOPSIS: cypilot workspace-add --name <name> --path <path> [--role <role>] [--adapter <path>]
+DESCRIPTION: Add a source to an existing standalone .cypilot-workspace.json.
+
+OPTIONS:
+  --name     string   required  Human-readable source name
+  --path     path     required  Path to source repo (relative to workspace file)
+  --role     string   [default: full]  Source role: artifacts, codebase, kits, full
+  --adapter  path     Path to adapter dir within source
+
+EXIT CODES:
+  0  Success (source added)
+  1  Error (no workspace found or save failed)
+
+EXAMPLE:
+  $ cypilot workspace-add --name hyperspot --path ../hyperspot --role full --adapter .cypilot-adapter
+```
+
+---
+
+```
+COMMAND workspace-add-inline
+SYNOPSIS: cypilot workspace-add-inline --name <name> --path <path> [--role <role>] [--adapter <path>]
+DESCRIPTION: Add a source inline to the current repo's .cypilot-config.json workspace section.
+
+OPTIONS:
+  --name     string   required  Human-readable source name
+  --path     path     required  Path to source repo (relative to project root)
+  --role     string   [default: full]  Source role: artifacts, codebase, kits, full
+  --adapter  path     Path to adapter dir within source
+
+EXIT CODES:
+  0  Success (source added inline)
+  1  Error (no project root or external workspace ref)
+
+EXAMPLE:
+  $ cypilot workspace-add-inline --name docs --path ../docs-repo --role artifacts
+```
+
+---
+
+```
+COMMAND workspace-info
+SYNOPSIS: cypilot workspace-info
+DESCRIPTION: Display workspace configuration, list sources, show per-source status.
+
+EXIT CODES:
+  0  Success (workspace info displayed, or no workspace found)
+  1  Error (no project root)
+
+EXAMPLE:
+  $ cypilot workspace-info
+```
+
+---
+
 ## Version History
 
+- **v1.2** (2026-02): Workspace support
+  - Workspace commands (workspace-init, workspace-add, workspace-add-inline, workspace-info)
+  - Cross-repo source references in artifacts.json
+  - --source filter for list-ids
+  - --local-only flag for validate
 - **v1.0** (2026-01): Initial specification
   - Basic structure
   - Type system

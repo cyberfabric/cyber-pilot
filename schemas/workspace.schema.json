@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/cypilot/workspace.schema.json",
+  "title": "Cypilot Workspace Configuration (.cypilot-workspace.json)",
+  "description": "Federation layer for multi-repo workspace support. Maps named sources (repos) to local paths with roles.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "sources"],
+  "examples": [
+    {
+      "version": "1.0",
+      "sources": {
+        "docs-repo": {
+          "path": "../docs-repo",
+          "adapter": ".cypilot-adapter",
+          "role": "artifacts"
+        },
+        "code-repo": {
+          "path": "../code-repo",
+          "adapter": ".cypilot-adapter",
+          "role": "codebase"
+        },
+        "shared-kits": {
+          "path": "../shared-kits",
+          "adapter": null,
+          "role": "kits"
+        }
+      },
+      "traceability": {
+        "cross_repo": true,
+        "resolve_remote_ids": true
+      }
+    }
+  ],
+  "properties": {
+    "version": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Schema version (currently '1.0')"
+    },
+    "sources": {
+      "type": "object",
+      "description": "Named source repositories in the workspace. Keys are human-readable names.",
+      "additionalProperties": {
+        "$ref": "#/$defs/source_entry"
+      }
+    },
+    "traceability": {
+      "$ref": "#/$defs/traceability_config"
+    }
+  },
+  "$defs": {
+    "source_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Local filesystem path to the source repo. Resolved relative to workspace file location."
+        },
+        "adapter": {
+          "type": ["string", "null"],
+          "description": "Path to adapter directory within the source repo (e.g., '.cypilot-adapter'). Null if repo has no adapter."
+        },
+        "role": {
+          "type": "string",
+          "enum": ["artifacts", "codebase", "kits", "full"],
+          "default": "full",
+          "description": "Constrains what the source contributes. 'artifacts' = only artifacts, 'codebase' = only code, 'kits' = only kits, 'full' = everything."
+        }
+      }
+    },
+    "traceability_config": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cross_repo": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable cross-repo traceability (resolve IDs across sources)"
+        },
+        "resolve_remote_ids": {
+          "type": "boolean",
+          "default": true,
+          "description": "Allow resolving @cpt-* IDs defined in remote sources"
+        }
+      }
+    }
+  }
+}

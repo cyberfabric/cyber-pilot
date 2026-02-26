@@ -83,6 +83,30 @@ def _cmd_adapter_info(argv: List[str]) -> int:
 
 
 # =============================================================================
+# WORKSPACE COMMANDS
+# =============================================================================
+
+def _cmd_workspace_init(argv: List[str]) -> int:
+    from .commands.workspace_init import cmd_workspace_init
+    return cmd_workspace_init(argv)
+
+
+def _cmd_workspace_add(argv: List[str]) -> int:
+    from .commands.workspace_add import cmd_workspace_add
+    return cmd_workspace_add(argv)
+
+
+def _cmd_workspace_add_inline(argv: List[str]) -> int:
+    from .commands.workspace_add import cmd_workspace_add_inline
+    return cmd_workspace_add_inline(argv)
+
+
+def _cmd_workspace_info(argv: List[str]) -> int:
+    from .commands.workspace_info import cmd_workspace_info
+    return cmd_workspace_info(argv)
+
+
+# =============================================================================
 # MAIN ENTRY POINT
 # =============================================================================
 
@@ -91,9 +115,14 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     # Load global Cypilot context on startup (templates, systems, etc.)
     # Always reload context based on current working directory (no caching)
-    from .utils.context import CypilotContext, set_context
+    # Attempt workspace context first, fallback to single-repo
+    from .utils.context import CypilotContext, WorkspaceContext, set_context
     ctx = CypilotContext.load()
-    set_context(ctx)
+    if ctx is not None:
+        ws_ctx = WorkspaceContext.load(ctx)
+        set_context(ws_ctx if ws_ctx is not None else ctx)
+    else:
+        set_context(None)
     # Context may be None if no adapter found - that's OK for some commands like init
 
     # Define all available commands
@@ -108,7 +137,10 @@ def main(argv: Optional[List[str]] = None) -> int:
         "self-check",
         "agents",
     ]
-    all_commands = analysis_commands + search_commands + legacy_aliases
+    workspace_commands = [
+        "workspace-init", "workspace-add", "workspace-add-inline", "workspace-info",
+    ]
+    all_commands = analysis_commands + search_commands + workspace_commands + legacy_aliases
 
     # Handle --help / -h at top level
     if argv_list and argv_list[0] in ("-h", "--help"):
@@ -124,6 +156,10 @@ def main(argv: Optional[List[str]] = None) -> int:
         for c in search_commands:
             print(f"  {c}")
         print()
+        print("Workspace commands:")
+        for c in workspace_commands:
+            print(f"  {c}")
+        print()
         print("Legacy aliases:")
         print("  validate-code → validate")
         print("  validate-rules → validate-kits")
@@ -137,6 +173,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             "message": "Missing subcommand",
             "analysis_commands": analysis_commands,
             "search_commands": search_commands,
+            "workspace_commands": workspace_commands,
         }, indent=None, ensure_ascii=False))
         return 1
 
@@ -174,6 +211,14 @@ def main(argv: Optional[List[str]] = None) -> int:
         return _cmd_self_check(rest)
     elif cmd == "agents":
         return _cmd_agents(rest)
+    elif cmd == "workspace-init":
+        return _cmd_workspace_init(rest)
+    elif cmd == "workspace-add":
+        return _cmd_workspace_add(rest)
+    elif cmd == "workspace-add-inline":
+        return _cmd_workspace_add_inline(rest)
+    elif cmd == "workspace-info":
+        return _cmd_workspace_info(rest)
     else:
         print(json.dumps({
             "status": "ERROR",
