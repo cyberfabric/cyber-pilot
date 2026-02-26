@@ -250,6 +250,8 @@ def _compute_managed_block(install_dir: str) -> str:
         f"\n"
         f"ALWAYS open and follow `{{cypilot_path}}/config/AGENTS.md` WHEN it exists\n"
         f"\n"
+        f"ALWAYS invoke `{{cypilot_path}}/.core/skills/cypilot/SKILL.md` WHEN user asks to do something with Cypilot\n"
+        f"\n"
         f"{MARKER_END}"
     )
     # @cpt-end:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-compute-block
