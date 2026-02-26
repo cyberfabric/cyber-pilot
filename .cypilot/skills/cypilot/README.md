@@ -14,7 +14,7 @@ Unified Cypilot tool for artifact validation, search, and traceability.
 | `get-content` | Get content block for a specific Cypilot ID |
 | `where-defined` | Find where an Cypilot ID is defined |
 | `where-used` | Find all references to an Cypilot ID |
-| `adapter-info` | Discover Cypilot adapter configuration |
+| `info` | Discover Cypilot adapter configuration |
 | `init` | Initialize Cypilot config and adapter |
 | `agents` | Generate agent-specific workflow proxies and skill outputs |
 | `self-check` | Validate examples against templates |

@@ -26,7 +26,7 @@ EXAMPLE:
   $ python3 scripts/cypilot.py init --force
 
 RELATED:
-  - @CLI.adapter-info
+  - @CLI.info
   - @CLI.agents
   - @Workflow.adapter
 ---
@@ -209,8 +209,8 @@ RELATED:
   - @CLI.validate
 ---
 
-COMMAND adapter-info
-SYNOPSIS: python3 scripts/cypilot.py adapter-info [options]
+COMMAND info
+SYNOPSIS: python3 scripts/cypilot.py info [options]
 DESCRIPTION: Discover Cypilot adapter configuration and location in a project
 
 ARGUMENTS:
@@ -225,9 +225,9 @@ EXIT CODES:
   2  Adapter not found
 
 EXAMPLE:
-  $ python3 scripts/cypilot.py adapter-info
-  $ python3 scripts/cypilot.py adapter-info --root /path/to/project
-  $ python3 scripts/cypilot.py adapter-info --root . --cypilot-root ../Cypilot
+  $ python3 scripts/cypilot.py info
+  $ python3 scripts/cypilot.py info --root /path/to/project
+  $ python3 scripts/cypilot.py info --root . --cypilot-root ../Cypilot
 
 RELATED:
   - @Workflow.adapter
@@ -318,7 +318,7 @@ EXAMPLE:
 
 RELATED:
   - @CLI.init
-  - @CLI.adapter-info
+  - @CLI.info
   - @Workflow.adapter
 
 ---

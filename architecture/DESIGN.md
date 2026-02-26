@@ -699,7 +699,7 @@ Does NOT own the blueprint contract or processor — uses core Blueprint Process
 | `where-defined <id>` | Find where an ID is defined | 0=found, 2=not found |
 | `where-used <id>` | Find where an ID is referenced | 0 |
 | `get-content <id>` | Get content block for an ID | 0=found, 2=not found |
-| `adapter-info` | Show adapter status and registry | 0 |
+| `info` | Show adapter status and registry | 0 |
 | `agents [--agent A]` | Generate agent entry points | 0 |
 | `doctor` | Environment health check | 0=healthy, 2=issues |
 | `config show` | Display current core config | 0 |
@@ -864,7 +864,7 @@ sequenceDiagram
 sequenceDiagram
     User->>AI Agent: "create PRD"
     AI Agent->>AI Agent: load SKILL.md
-    AI Agent->>Skill Engine: adapter-info
+    AI Agent->>Skill Engine: info
     Skill Engine-->>AI Agent: system, kits, artifacts
     AI Agent->>AI Agent: load rules.md, template.md, checklist.md
     AI Agent->>User: batch questions with proposals

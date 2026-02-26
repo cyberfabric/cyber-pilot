@@ -1,6 +1,6 @@
 ---
 name: cypilot
-description: Artifacts (PRD/DESIGN/ADR/DECOMPOSITION/FEATURE) + checklists; deterministic validation & consistency analysis (structure, cross-refs, cross-artifact consistency, tasks, covered-by, ID/CDSL extraction from artifact text); code↔artifact traceability with `@cpt-*`; ID search/navigation (list-ids, where-defined/used, get-content); coding support via generate workflow; reverse-engineering guidance for brownfield codebases; prompt-engineering methodology for improving agent instructions; adapter + registry discovery (adapter-info, artifacts.toml, kits/rules); init/bootstrap; workflow router (analyze/generate); agent integrations (agents: workflow proxies + SKILL outputs for windsurf/cursor/claude/copilot/openai).
+description: Artifacts (PRD/DESIGN/ADR/DECOMPOSITION/FEATURE) + checklists; deterministic validation & consistency analysis (structure, cross-refs, cross-artifact consistency, tasks, covered-by, ID/CDSL extraction from artifact text); code↔artifact traceability with `@cpt-*`; ID search/navigation (list-ids, where-defined/used, get-content); coding support via generate workflow; reverse-engineering guidance for brownfield codebases; prompt-engineering methodology for improving agent instructions; adapter + registry discovery (info, artifacts.toml, kits/rules); init/bootstrap; workflow router (analyze/generate); agent integrations (agents: workflow proxies + SKILL outputs for windsurf/cursor/claude/copilot/openai).
 ---
 
 # Cypilot Unified Tool
@@ -128,7 +128,7 @@ ALWAYS open and follow `{cypilot_path}/.gen/SKILL.md` WHEN it exists
 
 ALWAYS open and follow `{cypilot_path}/config/SKILL.md` WHEN it exists
 
-ALWAYS FIRST run `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py adapter-info` BEFORE any Cypilot workflow action
+ALWAYS FIRST run `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py info` BEFORE any Cypilot workflow action
 
 ALWAYS FIRST read `{cypilot_path}/.gen/AGENTS.md` WHEN adapter status is FOUND
 
@@ -150,7 +150,7 @@ ALWAYS STOP and re-run Protocol Guard WHEN specs should be loaded but weren't li
 
 ALWAYS set `{cypilot_mode}` = `on` FIRST WHEN user invokes `cypilot {prompt}`
 
-ALWAYS run `adapter-info` WHEN enabling Cypilot mode
+ALWAYS run `info` WHEN enabling Cypilot mode
 
 ALWAYS show status after enabling:
 ```
@@ -266,9 +266,9 @@ python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py where-defined --i
 python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py where-used --id <id>
 ```
 
-### adapter-info
+### info
 ```bash
-python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py adapter-info
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py info
 ```
 Output: status, adapter_dir, project_name, specs, kits
 

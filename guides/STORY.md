@@ -63,7 +63,7 @@ _Thought for 4s_
 
 Next I will:
 
-- Run Cypilot’s required **Protocol Guard** command `adapter-info` (read-only) so we can print the “Cypilot Mode Enabled / Adapter: …” status block.
+- Run Cypilot’s required **Protocol Guard** command `info` (read-only) so we can print the “Cypilot Mode Enabled / Adapter: …” status block.
 
 Command:
 
@@ -94,7 +94,7 @@ Cypilot Mode Enabled
 Adapter: FOUND at /Volumes/CaseSensitive/coding/cypilot/.cypilot-adapter
 ```
 
-📟 [skills/cypilot/SKILL.md]: Completed “Protocol Guard” — ran `adapter-info` to confirm adapter status and load adapter registry metadata before any workflow action.
+📟 [skills/cypilot/SKILL.md]: Completed “Protocol Guard” — ran `info` to confirm adapter status and load adapter registry metadata before any workflow action.
 
 #### Agent acknowledgment (required)
 
@@ -407,7 +407,7 @@ Registering docs as artifacts enables:
 
 #### Examples of artifacts (from this repo)
 
-From the adapter-info output earlier, this repo registers artifacts like:
+From the info output earlier, this repo registers artifacts like:
 
 - `architecture/PRD.md` (kind `PRD`)
 - `architecture/DESIGN.md` (kind `DESIGN`)
@@ -494,7 +494,7 @@ That’s what Cypilot uses when it says “validate this artifact”.
 
 #### In this repo (Cypilot self-hosted)
 
-From earlier `adapter-info`, your configured kit is:
+From earlier `info`, your configured kit is:
 
 - `cypilot-sdlc` with path: `kits/sdlc` and format: `"Cypilot"`
 
@@ -2350,7 +2350,7 @@ _3 / 5 tasks done_
 
 _Read `SKILL.md` and 7 other files_
 
-📟 [skills/cypilot/SKILL.md]: Running required Protocol Guard (`adapter-info`) and loading the analyze (read-only) workflow, then I’ll review 4 SPECs in plain language (what they mean and how they fit together).
+📟 [skills/cypilot/SKILL.md]: Running required Protocol Guard (`info`) and loading the analyze (read-only) workflow, then I’ll review 4 SPECs in plain language (what they mean and how they fit together).
 
 Command: `python3`
 
@@ -2786,7 +2786,7 @@ Out of scope / not applicable (v1):
 
 #### 1601 — Recovery: re-enter Protocol Guard + finish remaining SPEC patches
 
-**Summary:** The agent recovers by re-running Protocol Guard (`adapter-info`), re-enters the generate workflow, and patches the remaining two SPECs (`cli-control.md`, `launchagent-autostart.md`) for IPC security, error handling, idempotency, and acceptance criteria.
+**Summary:** The agent recovers by re-running Protocol Guard (`info`), re-enters the generate workflow, and patches the remaining two SPECs (`cli-control.md`, `launchagent-autostart.md`) for IPC security, error handling, idempotency, and acceptance criteria.
 
 <details>
   <summary>Expand chat details...</summary>
@@ -2799,7 +2799,7 @@ _Thought for 25s_
 
 Command:
 
-`python3 skills/cypilot/scripts/cypilot.py adapter-info`
+`python3 skills/cypilot/scripts/cypilot.py info`
 
 _Output (as visible in screenshot; truncated):_
 
@@ -3055,7 +3055,7 @@ Error while analyzing directory
 
 _Thought for 22s_
 
- 📟 [execution-protocol]: I’ll recover cleanly from the missing `src/` directory by (1) re-running Cypilot Protocol Guard (`adapter-info`), (2) loading the required adapter “code writing” specs (tech stack, conventions, project structure, etc.), (3) inspecting `artifacts.toml` to confirm the intended code path for this example, and then (4) proposing the exact file layout to create under `examples/overwork_alert/` and asking for your explicit “yes” before creating any new files.
+ 📟 [execution-protocol]: I’ll recover cleanly from the missing `src/` directory by (1) re-running Cypilot Protocol Guard (`info`), (2) loading the required adapter “code writing” specs (tech stack, conventions, project structure, etc.), (3) inspecting `artifacts.toml` to confirm the intended code path for this example, and then (4) proposing the exact file layout to create under `examples/overwork_alert/` and asking for your explicit “yes” before creating any new files.
 
 Command: `python3`
 

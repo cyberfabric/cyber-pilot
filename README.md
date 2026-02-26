@@ -143,7 +143,7 @@ _Thought for 4s_
 
 Next I will:
 
-- Run Cypilot's required **Protocol Guard** command `adapter-info` (read-only) so we can print the "Cypilot Mode Enabled / Adapter: …" status block.
+- Run Cypilot's required **Protocol Guard** command `info` (read-only) so we can print the "Cypilot Mode Enabled / Adapter: …" status block.
 
 Command:
 
@@ -174,7 +174,7 @@ Cypilot Mode Enabled
 Adapter: FOUND at /Volumes/CaseSensitive/coding/cypilot/.cypilot-adapter
 ```
 
-📟 [skills/cypilot/SKILL.md]: Completed "Protocol Guard" — ran `adapter-info` to confirm adapter status and load adapter registry metadata before any workflow action.
+📟 [skills/cypilot/SKILL.md]: Completed "Protocol Guard" — ran `info` to confirm adapter status and load adapter registry metadata before any workflow action.
 
 #### Agent acknowledgment (required)
 

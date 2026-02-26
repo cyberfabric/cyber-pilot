@@ -1,5 +1,5 @@
 """
-Test adapter-info command.
+Test info command.
 
 Tests adapter discovery, config loading, and error handling.
 """
@@ -25,10 +25,10 @@ from cypilot.utils.files import (
 
 
 class TestAdapterInfoCommand(unittest.TestCase):
-    """Test suite for adapter-info CLI command."""
+    """Test suite for info CLI command."""
     
     def test_adapter_info_found_with_config(self):
-        """Test adapter-info when adapter exists and is configured."""
+        """Test info when adapter exists and is configured."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Setup: Create project structure with config
             project_root = Path(tmp_dir) / "project"
@@ -67,7 +67,7 @@ class TestAdapterInfoCommand(unittest.TestCase):
             # Run command
             stdout_capture = io.StringIO()
             with redirect_stdout(stdout_capture):
-                exit_code = main(["adapter-info", "--root", str(project_root)])
+                exit_code = main(["info", "--root", str(project_root)])
             
             # Verify output
             output = json.loads(stdout_capture.getvalue())
@@ -139,7 +139,7 @@ class TestAdapterInfoCommand(unittest.TestCase):
 
             stdout_capture = io.StringIO()
             with redirect_stdout(stdout_capture):
-                exit_code = main(["adapter-info", "--root", str(project_root)])
+                exit_code = main(["info", "--root", str(project_root)])
             self.assertEqual(exit_code, 0)
             output = json.loads(stdout_capture.getvalue())
             reg = output.get("artifacts_registry")
@@ -170,7 +170,7 @@ class TestAdapterInfoCommand(unittest.TestCase):
             self.assertTrue(any(a.get("path") == "modules/m/docs/PRD.md" for a in all_artifacts))
     
     def test_adapter_info_found_without_config(self):
-        """Test adapter-info finds adapter via recursive search when no config."""
+        """Test info finds adapter via recursive search when no config."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Setup: Create project structure WITHOUT config
             project_root = Path(tmp_dir) / "project"
@@ -192,7 +192,7 @@ class TestAdapterInfoCommand(unittest.TestCase):
             # Run command
             stdout_capture = io.StringIO()
             with redirect_stdout(stdout_capture):
-                exit_code = main(["adapter-info", "--root", str(project_root)])
+                exit_code = main(["info", "--root", str(project_root)])
             
             # Verify output
             output = json.loads(stdout_capture.getvalue())
@@ -206,7 +206,7 @@ class TestAdapterInfoCommand(unittest.TestCase):
             self.assertIn("artifacts_registry", output)
     
     def test_adapter_info_not_found(self):
-        """Test adapter-info when no adapter exists."""
+        """Test info when no adapter exists."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Setup: Create project without adapter
             project_root = Path(tmp_dir) / "project"
@@ -216,7 +216,7 @@ class TestAdapterInfoCommand(unittest.TestCase):
             # Run command
             stdout_capture = io.StringIO()
             with redirect_stdout(stdout_capture):
-                exit_code = main(["adapter-info", "--root", str(project_root)])
+                exit_code = main(["info", "--root", str(project_root)])
             
             # Verify output
             output = json.loads(stdout_capture.getvalue())
@@ -227,7 +227,7 @@ class TestAdapterInfoCommand(unittest.TestCase):
             self.assertIn("adapter-bootstrap", output["hint"])
     
     def test_adapter_info_config_error(self):
-        """Test adapter-info when config exists but path is invalid."""
+        """Test info when config exists but path is invalid."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Setup: Create project with invalid config
             project_root = Path(tmp_dir) / "project"
@@ -242,7 +242,7 @@ class TestAdapterInfoCommand(unittest.TestCase):
             # Run command
             stdout_capture = io.StringIO()
             with redirect_stdout(stdout_capture):
-                exit_code = main(["adapter-info", "--root", str(project_root)])
+                exit_code = main(["info", "--root", str(project_root)])
             
             # Verify output
             output = json.loads(stdout_capture.getvalue())
@@ -253,7 +253,7 @@ class TestAdapterInfoCommand(unittest.TestCase):
             self.assertEqual(output["config_path"], "invalid-path")
     
     def test_adapter_info_no_project_root(self):
-        """Test adapter-info when not in a project (no .git or config)."""
+        """Test info when not in a project (no .git or config)."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Setup: Create empty directory (not a project)
             empty_dir = Path(tmp_dir) / "not-a-project"
@@ -262,7 +262,7 @@ class TestAdapterInfoCommand(unittest.TestCase):
             # Run command
             stdout_capture = io.StringIO()
             with redirect_stdout(stdout_capture):
-                exit_code = main(["adapter-info", "--root", str(empty_dir)])
+                exit_code = main(["info", "--root", str(empty_dir)])
             
             # Verify output
             output = json.loads(stdout_capture.getvalue())
@@ -272,7 +272,7 @@ class TestAdapterInfoCommand(unittest.TestCase):
             self.assertIn("No project root found", output["message"])
     
     def test_adapter_info_with_cypilot_root_exclusion(self):
-        """Test adapter-info excludes Cypilot core directory when cypilot-root provided."""
+        """Test info excludes Cypilot core directory when cypilot-root provided."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Setup: Create nested structure with both Cypilot and adapter
             project_root = Path(tmp_dir) / "project"
@@ -299,7 +299,7 @@ class TestAdapterInfoCommand(unittest.TestCase):
             stdout_capture = io.StringIO()
             with redirect_stdout(stdout_capture):
                 exit_code = main([
-                    "adapter-info",
+                    "info",
                     "--root", str(project_root),
                     "--cypilot-root", str(cypilot_core)
                 ])

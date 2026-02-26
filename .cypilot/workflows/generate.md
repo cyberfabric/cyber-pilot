@@ -38,7 +38,7 @@ For context compaction recovery during multi-phase workflows, follow `{cypilot_p
   - [Table of Contents](#table-of-contents)
   - [Reverse Engineering Prerequisite (BROWNFIELD only)](#reverse-engineering-prerequisite-brownfield-only)
   - [Overview](#overview)
-    - [Resolved Variables (from `execution-protocol.md` + adapter-info)](#resolved-variables-from-execution-protocolmd--adapter-info)
+    - [Resolved Variables (from `execution-protocol.md` + info)](#resolved-variables-from-execution-protocolmd--info)
   - [Context Budget \& Overflow Prevention (CRITICAL)](#context-budget--overflow-prevention-critical)
   - [⛔ Agent Anti-Patterns (STRICT mode)](#-agent-anti-patterns-strict-mode)
   - [Rules Mode Behavior](#rules-mode-behavior)
@@ -85,7 +85,7 @@ ALWAYS SKIP this section WHEN GREENFIELD — nothing to reverse-engineer
 **BROWNFIELD only** — when existing code needs to inform artifacts:
 
 1. **Check if adapter has project analysis**:
-  - Does `cypilot.py adapter-info` report any `specs`?
+  - Does `cypilot.py info` report any `specs`?
   - If specs exist, load and follow them before generating.
   - If no specs exist, offer rescan.
 
@@ -115,9 +115,9 @@ Universal generation workflow. Handles three modes:
 
 After executing `execution-protocol.md`, you have: TARGET_TYPE, RULES, KIND, PATH, MODE, and resolved dependencies.
 
-### Resolved Variables (from `execution-protocol.md` + adapter-info)
+### Resolved Variables (from `execution-protocol.md` + info)
 
-- `{cypilot_adapter_path}` — adapter directory from `cypilot.py adapter-info` (contains `artifacts.json`)
+- `{cypilot_adapter_path}` — adapter directory from `cypilot.py info` (contains `artifacts.json`)
 - `{ARTIFACTS_REGISTRY}` — `{cypilot_adapter_path}/artifacts.json`
 - `{KITS_PATH}` — kit package base directory resolved from registry (registry schema uses `kits`/`kit`)
 - `{PATH}` — target artifact/code path for the current operation
