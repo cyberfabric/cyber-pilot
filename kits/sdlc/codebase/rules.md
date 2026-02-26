@@ -51,7 +51,7 @@
 - [ ] If FEATURE source: identify all IDs with `to_code="true"` attribute
 - [ ] Determine Traceability Mode (FULL vs DOCS-ONLY)
 - [ ] If Traceability Mode FULL: load `{cypilot_path}/.core/architecture/specs/traceability.md`
-- [ ] Load `{cypilot_path}/config/kits/sdlc/constraints.toml` for kit-level constraints
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/constraints.toml` for kit-level constraints
 
 **Source** (one of, in priority order):
 1. FEATURE design — registered artifact with `to_code="true"` IDs
