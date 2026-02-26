@@ -12,9 +12,8 @@ from ..utils.files import find_project_root
 from ..utils import toml_utils
 
 # Directories to copy from cache into project .cypilot/.core/ dir
-COPY_DIRS = ["kits", "architecture", "requirements", "schemas", "workflows"]
-# Directories to copy to .cypilot/ root (not .core/) — agent entry points need stable paths
-COPY_ROOT_DIRS = ["skills"]
+COPY_DIRS = ["kits", "architecture", "requirements", "schemas", "workflows", "skills"]
+COPY_ROOT_DIRS: list[str] = []
 CACHE_DIR = Path.home() / ".cypilot" / "cache"
 CORE_SUBDIR = ".core"
 
@@ -23,7 +22,6 @@ def _copy_from_cache(cache_dir: Path, target_dir: Path, force: bool = False) -> 
     """Copy tool directories from cache into project .cypilot/ dir.
 
     Core directories go into .core/ (read-only reference content).
-    Root directories (skills) stay at .cypilot/ root for stable agent entry points.
     User-editable content lives in config/.
 
     Returns dict of {dir_name: action} where action is 'created', 'updated', or 'skipped'.
