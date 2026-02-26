@@ -83,9 +83,9 @@ section = "load_dependencies"
 - [ ] Load `checklist.md` for semantic guidance
 - [ ] Load `examples/example.md` for reference style
 - [ ] Read parent PRD for context
-- [ ] Load `{cypilot_path}/.core/requirements/identifiers.md` for ID formats
-- [ ] Load `../../constraints.json` for kit-level constraints
-- [ ] Load `{cypilot_path}/.core/requirements/kit-constraints.md` for constraints specification
+- [ ] Load `{cypilot_path}/.core/architecture/specs/traceability.md` for ID formats
+- [ ] Load `{cypilot_path}/config/kits/sdlc/constraints.toml` for kit-level constraints
+- [ ] Load `{cypilot_path}/.core/architecture/specs/kit/constraints.md` for constraints specification
 - [ ] Load `{cypilot_path}/.core/schemas/kit-constraints.schema.json` for constraints JSON Schema
 ```
 `@/cpt:rule`
@@ -202,8 +202,8 @@ kind = "requirements"
 section = "constraints"
 ```
 ```markdown
-- [ ] ALWAYS open and follow `../../constraints.json` (kit root)
-- [ ] Treat `constraints.json` as primary validator for:
+- [ ] ALWAYS open and follow `{cypilot_path}/config/kits/sdlc/constraints.toml` (kit root)
+- [ ] Treat `constraints.toml` as primary validator for:
   - where IDs are defined
   - where IDs are referenced
   - which cross-artifact references are required / optional / prohibited
@@ -1622,7 +1622,7 @@ multiple = false
 template = "Technical Design — {Module Name}"
 prompt = "Module or system name"
 description = "DESIGN document title (H1)."
-examples = ["# Technical Design — TaskFlow"]
+examples = ["# Technical Design: TaskFlow"]
 ```
 `@/cpt:heading`
 
@@ -1650,7 +1650,7 @@ numbered = true
 multiple = false
 pattern = "Architectural Vision"
 description = "High-level architectural vision."
-examples = ["### 1.1 Architectural Vision"]
+examples = ["### Architectural Vision"]
 ```
 `@/cpt:heading`
 
@@ -1677,7 +1677,7 @@ numbered = true
 multiple = false
 pattern = "Architecture Drivers"
 description = "Architecture drivers: requirements, constraints, and ADR links."
-examples = ["### 1.2 Architecture Drivers"]
+examples = []
 ```
 `@/cpt:heading`
 
@@ -1698,7 +1698,7 @@ numbered = false
 multiple = false
 pattern = "Functional Drivers"
 description = "Functional drivers table mapping PRD requirements to design responses."
-examples = ["#### Functional Drivers"]
+examples = []
 ```
 `@/cpt:heading`
 
@@ -1719,7 +1719,7 @@ numbered = false
 multiple = false
 pattern = "NFR Allocation"
 description = "NFR allocation table mapping non-functional requirements to design elements."
-examples = ["#### NFR Allocation"]
+examples = []
 ```
 `@/cpt:heading`
 
@@ -1735,6 +1735,8 @@ This table maps non-functional requirements from PRD to specific design/architec
 
 `@cpt:example`
 ```markdown
+### Architecture drivers
+
 #### Product requirements
 
 ##### Task Management
@@ -1749,13 +1751,25 @@ This table maps non-functional requirements from PRD to specific design/architec
 
 **Solution**: WebSocket push with Redis PubSub for real-time notification delivery.
 
+##### Security
+
+- [ ] `p1` - `cpt-ex-task-flow-nfr-security`
+
+**Solution**: JWT authentication with role-based authorization middleware.
+
+##### Performance
+
+- [ ] `p2` - `cpt-ex-task-flow-nfr-performance`
+
+**Solution**: Connection pooling and query optimization for sub-500ms responses.
+
 #### Architecture Decisions Records
 
 ##### PostgreSQL for Storage
 
 - [ ] `p1` - `cpt-ex-task-flow-adr-postgres-storage`
 
-Use PostgreSQL for durable task storage. Chosen for strong ACID guarantees, relational query support, and team expertise.
+Use PostgreSQL for durable task storage. Chosen for strong ACID guarantees, relational query support, and team expertise. Trade-off: requires separate DB server vs embedded SQLite.
 ```
 `@/cpt:example`
 
@@ -1768,7 +1782,7 @@ numbered = true
 multiple = false
 pattern = "Architecture Layers"
 description = "Architecture layering and responsibilities."
-examples = ["### 1.3 Architecture Layers"]
+examples = ["### Architecture Layers"]
 ```
 `@/cpt:heading`
 
@@ -1865,7 +1879,7 @@ numbered = false
 # multiple = true|false  # allowed by default (can repeat)
 template = "{Principle Name}"
 description = "Individual design principle entry."
-examples = ["#### Real-time First", "#### Simplicity over Specs"]
+examples = []
 ```
 `@/cpt:heading`
 
@@ -1891,7 +1905,7 @@ Prefer architectures that keep task state and notifications consistent and obser
 
 - [ ] `p2` - **ID**: `cpt-ex-task-flow-principle-simplicity`
 
-Choose simpler solutions over spec-rich ones. Avoid premature optimization and unnecessary abstractions.
+Choose simpler solutions over spec-rich ones. Avoid premature optimization and unnecessary abstractions. Code should be readable by junior developers.
 ```
 `@/cpt:example`
 
@@ -1932,7 +1946,7 @@ numbered = false
 # multiple = true|false  # allowed by default (can repeat)
 template = "{Constraint Name}"
 description = "Individual design constraint entry."
-examples = ["#### Supported Platforms", "#### Data Residency"]
+examples = []
 ```
 `@/cpt:heading`
 
@@ -2058,6 +2072,18 @@ headings = ["design-tech-arch-component-model"]
 ```
 `@/cpt:prompt`
 
+`@cpt:example`
+````markdown
+```mermaid
+graph LR
+    A[React SPA] -->|REST/WS| B[API Server]
+    B --> C[PostgreSQL]
+    B --> D[Redis PubSub]
+    D --> B
+```
+````
+`@/cpt:example`
+
 `@cpt:heading`
 ```toml
 id = "design-component-entry"
@@ -2067,7 +2093,7 @@ numbered = false
 # multiple = true|false  # allowed by default (can repeat)
 template = "{Component Name}"
 description = "Individual component entry."
-examples = ["#### API Server", "#### Task Service"]
+examples = []
 ```
 `@/cpt:heading`
 
@@ -2086,7 +2112,7 @@ numbered = false
 multiple = false
 pattern = "Why this component exists"
 description = "Rationale for this component's existence."
-examples = ["##### Why this component exists"]
+examples = []
 ```
 `@/cpt:heading`
 
@@ -2105,7 +2131,7 @@ numbered = false
 multiple = false
 pattern = "Responsibility scope"
 description = "Core responsibilities and invariants."
-examples = ["##### Responsibility scope"]
+examples = []
 ```
 `@/cpt:heading`
 
@@ -2124,7 +2150,7 @@ numbered = false
 multiple = false
 pattern = "Responsibility boundaries"
 description = "Explicit non-responsibilities and delegation boundaries."
-examples = ["##### Responsibility boundaries"]
+examples = []
 ```
 `@/cpt:heading`
 
@@ -2143,7 +2169,7 @@ numbered = false
 multiple = false
 pattern = "Related components (by ID)"
 description = "Component-to-component relationships using IDs."
-examples = ["##### Related components (by ID)"]
+examples = []
 ```
 `@/cpt:heading`
 
@@ -2250,6 +2276,12 @@ examples = ["### 3.4 Internal Dependencies"]
 ```
 `@/cpt:prompt`
 
+`@cpt:example`
+```markdown
+None.
+```
+`@/cpt:example`
+
 `@cpt:heading`
 ```toml
 id = "design-tech-arch-external-deps"
@@ -2269,6 +2301,12 @@ External systems, databases, and third-party services this module interacts with
 ```
 `@/cpt:prompt`
 
+`@cpt:example`
+```markdown
+None.
+```
+`@/cpt:example`
+
 `@cpt:heading`
 ```toml
 id = "design-external-dep-entry"
@@ -2278,7 +2316,7 @@ numbered = false
 # multiple = true|false  # allowed by default (can repeat)
 template = "{External System / Database / Service Name}"
 description = "Individual external dependency entry."
-examples = ["#### PostgreSQL", "#### Redis"]
+examples = []
 ```
 `@/cpt:heading`
 
@@ -2340,7 +2378,7 @@ numbered = false
 # multiple = true|false  # allowed by default (can repeat)
 template = "{Sequence Name}"
 description = "Individual sequence diagram entry."
-examples = ["#### Create Task Flow", "#### Authentication Flow"]
+examples = []
 ```
 `@/cpt:heading`
 
@@ -2366,13 +2404,22 @@ sequenceDiagram
 `@/cpt:prompt`
 
 `@cpt:example`
-```markdown
+````markdown
 #### Create Task Flow
 
 - [ ] `p1` - **ID**: `cpt-ex-task-flow-seq-create-task`
 
-Lead or member creates task via REST API. Server validates input, inserts into database, then publishes event to Redis for real-time distribution.
+```mermaid
+sequenceDiagram
+    Member->>API: POST /tasks
+    API->>PostgreSQL: INSERT task
+    API->>Redis: PUBLISH task.created
+    Redis-->>API: FAN-OUT
+    API-->>Member: WS task.created
 ```
+
+Lead or member creates task via REST API. Server validates input, inserts into database, then publishes event to Redis for real-time distribution. All connected clients receive WebSocket notification within 2 seconds.
+````
 `@/cpt:example`
 
 `@cpt:heading`
@@ -2433,7 +2480,7 @@ numbered = false
 # multiple = true|false  # allowed by default (can repeat)
 template = "Table: {table_name}"
 description = "Individual database table entry."
-examples = ["#### Table: tasks", "#### Table: users"]
+examples = []
 ```
 `@/cpt:heading`
 
@@ -2467,15 +2514,37 @@ examples = ["#### Table: tasks", "#### Table: users"]
 
 - [ ] `p1` - **ID**: `cpt-ex-task-flow-dbtable-tasks`
 
+Schema
+
 | Column | Type | Description |
 |--------|------|-------------|
 | id | uuid | Task ID (PK) |
 | title | text | Task title (required) |
+| description | text | Task description |
 | status | enum | TODO, IN_PROGRESS, DONE |
 | assignee_id | uuid | FK to users.id |
 
 PK: `id`
+
 Constraints: `status IN ('TODO', 'IN_PROGRESS', 'DONE')`, `assignee_id REFERENCES users(id)`
+
+Example
+
+| id | title | status |
+|----|-------|--------|
+| 550e8400... | Implement login | IN_PROGRESS |
+
+### 3.6: Topology (optional)
+
+- [ ] **ID**: `cpt-ex-task-flow-topology-local`
+
+Local development: React SPA (port 3000) + API server (port 4000) + PostgreSQL (port 5432) + Redis (port 6379) on single machine. Production: Kubernetes deployment with horizontal scaling of API pods.
+
+### 3.7: Tech stack (optional)
+
+**Status**: Accepted
+
+Backend: Node.js 18 LTS, TypeScript 5.x, Express 4.x, pg-pool for PostgreSQL, ioredis for Redis. Frontend: React 18, TypeScript, Vite build tool. Testing: Jest, React Testing Library. Rationale: Team familiarity, mature ecosystem, strong TypeScript support.
 ```
 `@/cpt:example`
 
@@ -2490,7 +2559,7 @@ numbered = true
 multiple = false
 pattern = "Additional context"
 description = "Optional additional context."
-examples = ["## 4. Additional context"]
+examples = ["## 4. Additional Context"]
 ```
 `@/cpt:heading`
 
@@ -2509,7 +2578,7 @@ numbered = true
 multiple = false
 pattern = "Traceability"
 description = "Optional traceability links."
-examples = ["## 5. Traceability"]
+examples = []
 ```
 `@/cpt:heading`
 
@@ -2523,9 +2592,9 @@ examples = ["## 5. Traceability"]
 
 `@cpt:example`
 ```markdown
-- **PRD**: [PRD.md](./PRD.md)
-- **ADRs**: [ADR/](./ADR/)
-- **Features**: [features/](./features/)
+TaskFlow prioritizes real-time collaboration and predictable REST semantics. Future considerations include mobile app support and Slack integration. Trade-offs accepted: PostgreSQL requires operational overhead vs SQLite simplicity.
+
+**Date**: 2025-01-15
 ```
 `@/cpt:example`
 

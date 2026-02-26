@@ -4,7 +4,7 @@
 
 - [x] - `cpt-ex-ovwa-feature-notifications`
 
-## 1. Feature Context
+## Feature Context
 
 ### 1. Overview
 This feature defines when and how the daemon notifies the user after exceeding the configured active-time limit. It covers the first alert and repeat reminders while the user remains active and tracking is running.
@@ -33,7 +33,7 @@ Ensure the user receives timely, repeatable overwork alerts once the active-time
 - Overall Design: [DESIGN.md](../DESIGN.md)
 - Related feature: tracker-core.md
 
-## 2. Actor Flows
+## Actor Flows
 
 ### Send first over-limit alert
 
@@ -64,7 +64,7 @@ Ensure the user receives timely, repeatable overwork alerts once the active-time
 6. [x] - `p1` - Daemon updates last_reminder_at - `inst-update-last-reminder`
 
 
-## 3. Processes / Business Logic (CDSL)
+## Processes / Business Logic
 
 ### Determine whether to send a notification
 
@@ -78,7 +78,7 @@ Ensure the user receives timely, repeatable overwork alerts once the active-time
 6. [x] - `p1` - **RETURN** do_not_notify - `inst-default-no`
 
 
-## 4. States
+## States
 
 ### Over-limit notification state
 
@@ -89,7 +89,7 @@ Ensure the user receives timely, repeatable overwork alerts once the active-time
 3. [x] - `p1` - **FROM** OVER_LIMIT_REMINDING **TO** UNDER_LIMIT **WHEN** session is reset - `inst-transition-reset`
 
 
-## 5. Definitions of Done
+## Definitions of Done
 
 ### Over-limit notifications and repeat reminders
 
@@ -126,12 +126,12 @@ When active time exceeds the configured limit while tracking is RUNNING and the 
 
 
 
-## 6. Acceptance Criteria
+## Acceptance Criteria
 
 - [ ] Notifications are delivered for first over-limit event within 5 seconds when tracker is RUNNING and user is active.
 - [ ] Repeat reminders are not delivered more frequently than repeat_interval_seconds.
 
-## 7. Additional Context (optional)
+## Additional Context (optional)
 
 If notifications cannot be delivered (suppressed by system settings or subprocess failures), tracking continues and the user can still query status via the CLI.
 

@@ -4,7 +4,7 @@
 
 - [x] - `cpt-ex-ovwa-feature-cli-control`
 
-## 1. Feature Context
+## Feature Context
 
 ### 1. Overview
 This feature defines user-facing CLI controls and the local-only control channel contract between the CLI and the daemon. It covers status reporting, pause/resume, manual reset, and stop.
@@ -37,7 +37,7 @@ Allow the user to inspect and control the tracker in a predictable, explicit man
 - Overall Design: [DESIGN.md](../DESIGN.md)
 - Related feature: tracker-core.md
 
-## 2. Actor Flows
+## Actor Flows
 
 ### View status
 
@@ -106,7 +106,7 @@ Allow the user to inspect and control the tracker in a predictable, explicit man
 5. [x] - `p1` - CLI prints confirmation - `inst-print-stop-confirm`
 
 
-## 3. Processes / Business Logic (CDSL)
+## Processes / Business Logic
 
 ### Handle control command
 
@@ -121,7 +121,7 @@ Allow the user to inspect and control the tracker in a predictable, explicit man
 7. [x] - `p1` - **IF** cmd="stop" request daemon shutdown and **RETURN** ok - `inst-handle-stop`
 
 
-## 4. States
+## States
 
 ### Control channel request lifecycle
 
@@ -131,7 +131,7 @@ Allow the user to inspect and control the tracker in a predictable, explicit man
 2. [x] - `p1` - **FROM** VALIDATED **TO** RESPONDED **WHEN** daemon sends response - `inst-transition-responded`
 
 
-## 5. Definitions of Done
+## Definitions of Done
 
 ### Manual reset and CLI control semantics
 
@@ -174,13 +174,13 @@ The CLI must provide status, pause, resume, reset, and stop commands. Reset clea
 
 
 
-## 6. Acceptance Criteria
+## Acceptance Criteria
 
 - [ ] `status` returns within 2 seconds when the daemon is healthy.
 - [ ] `reset` completes within 2 seconds when the daemon is healthy.
 - [ ] CLI returns clear non-zero exit codes when daemon is unreachable or response is invalid.
 
-## 7. Additional Context (optional)
+## Additional Context (optional)
 
 Pause/resume flows follow the same control channel pattern as reset/status and are handled by the same command handler algorithm.
 

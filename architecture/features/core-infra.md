@@ -2,33 +2,33 @@
 
 - [ ] `p1` - **ID**: `cpt-cypilot-featstatus-core-infra`
 
-## 1. Feature Context
+## Feature Context
 
 - [ ] `p1` - `cpt-cypilot-feature-core-infra`
 
-### 1.1 Overview
+### 1. Overview
 
 Foundation layer providing the global CLI proxy, skill engine command dispatch, config directory management, and project initialization. This feature is the base upon which all other Cypilot features are built — no other feature can function without it.
 
-### 1.2 Purpose
+### 2. Purpose
 
 Enables users to install Cypilot globally, initialize it in any project with sensible defaults, and execute deterministic commands with consistent JSON output. Addresses PRD requirements for a ≤5-minute install-to-init experience (`cpt-cypilot-fr-core-installer`, `cpt-cypilot-fr-core-init`) and a structured config directory (`cpt-cypilot-fr-core-config`).
 
-### 1.3 Actors
+### 3. Actors
 
 | Actor | Role in Feature |
 |-------|-----------------|
 | `cpt-cypilot-actor-user` | Runs `cypilot init`, `cypilot config show`, `cypilot migrate-config` |
 | `cpt-cypilot-actor-cypilot-cli` | Global proxy that resolves skill target and forwards commands |
 
-### 1.4 References
+### 4. References
 
 - **PRD**: [PRD.md](../PRD.md)
 - **Design**: [DESIGN.md](../DESIGN.md)
 - **CLI Spec**: [cli.md](../specs/cli.md)
 - **Dependencies**: None (foundation feature)
 
-## 2. Actor Flows (CDSL)
+## Actor Flows
 
 ### Global CLI Invocation
 
@@ -106,7 +106,7 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 12. [x] - `p1` - **RETURN** JSON: `{status, install_dir, kits_installed, agents_configured, systems}` (exit 0) - `inst-return-init-ok`
 
 
-## 3. Processes / Business Logic (CDSL)
+## Processes / Business Logic
 
 ### Resolve Skill Target
 
@@ -226,7 +226,7 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 3. [x] - `p1` - **RETURN** path to created file - `inst-return-config-agents-path`
 
 
-## 4. States (CDSL)
+## States
 
 ### Project Installation State
 
@@ -241,7 +241,7 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 2. [x] - `p1` - **FROM** INITIALIZED **TO** STALE **WHEN** cached skill version is newer than project skill version - `inst-version-mismatch`
 3. [x] - `p1` - **FROM** STALE **TO** INITIALIZED **WHEN** `cypilot update` completes successfully - `inst-update-complete`
 
-## 5. Definitions of Done
+## Definitions of Done
 
 ### CLI Proxy Routes Commands
 
@@ -343,7 +343,7 @@ The system **MUST** verify the root `AGENTS.md` managed block on every CLI invoc
 - `cpt-cypilot-principle-zero-harm`
 - `cpt-cypilot-component-skill-engine`
 
-## 6. Acceptance Criteria
+## Acceptance Criteria
 
 - [x] `cypilot init` creates `.cypilot/core.toml` and `.cypilot/artifacts.toml` with correct root system definition
 - [x] `cypilot init` in an already-initialized project returns exit code 2 with helpful message

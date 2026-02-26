@@ -2,32 +2,32 @@
 
 - [ ] `p1` - **ID**: `cpt-cypilot-featstatus-blueprint-system`
 
-## 1. Feature Context
+## Feature Context
 
 - [ ] `p1` - `cpt-cypilot-feature-blueprint-system`
 
-### 1.1 Overview
+### 1. Overview
 
 Single-source-of-truth blueprint files that define artifact kinds and generate all kit resources. Each blueprint is a Markdown file enriched with `@cpt:` markers from which the Blueprint Processor deterministically produces templates, rules, checklists, examples, constraints, and workflows. The Kit Manager handles kit lifecycle — installation, registration, update, and structural validation.
 
-### 1.2 Purpose
+### 2. Purpose
 
 Eliminates resource duplication across kit artifacts. Without blueprints, every artifact kind requires separate manually-maintained files (template, rules, checklist, constraints) that duplicate structural knowledge and drift apart over time. Addresses PRD requirements for an extensible kit system (`cpt-cypilot-fr-core-kits`) and a core blueprint contract (`cpt-cypilot-fr-core-blueprint`).
 
-### 1.3 Actors
+### 3. Actors
 
 | Actor | Role in Feature |
 |-------|-----------------|
 | `cpt-cypilot-actor-user` | Installs kits, customizes blueprints, triggers resource generation and kit updates |
 | `cpt-cypilot-actor-cypilot-cli` | Executes blueprint processing, kit management commands, and structural validation |
 
-### 1.4 References
+### 4. References
 
 - **PRD**: [PRD.md](../PRD.md) — `cpt-cypilot-fr-core-blueprint`, `cpt-cypilot-fr-core-kits`
 - **Design**: [DESIGN.md](../DESIGN.md) — `cpt-cypilot-component-blueprint-processor`, `cpt-cypilot-component-kit-manager`
 - **Dependencies**: `cpt-cypilot-feature-core-infra`
 
-## 2. Actor Flows (CDSL)
+## Actor Flows
 
 ### Kit Installation
 
@@ -126,7 +126,7 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
       3. [x] - `p1` - Verify at least one `@cpt:heading` or output marker present - `inst-verify-content`
 4. [x] - `p1` - **RETURN** validation result (PASS/FAIL, per-kit details) - `inst-return-validate-ok`
 
-## 3. Processes / Business Logic (CDSL)
+## Processes / Business Logic
 
 ### Parse Blueprint
 
@@ -256,7 +256,7 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
       2. [ ] - `p2` - Write to `config/kits/{slug}/workflows/{name}.md` - `inst-write-workflow`
 2. [ ] - `p2` - **RETURN** list of generated workflow paths - `inst-return-workflows`
 
-## 4. States (CDSL)
+## States
 
 ### Kit Installation State
 
@@ -271,7 +271,7 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
 2. [x] - `p1` - **FROM** INSTALLED **TO** OUTDATED **WHEN** cached kit version differs from installed version - `inst-version-drift`
 3. [x] - `p1` - **FROM** OUTDATED **TO** INSTALLED **WHEN** `cypilot kit update` completes successfully - `inst-update-complete`
 
-## 5. Definitions of Done
+## Definitions of Done
 
 ### Blueprint Parsing
 
@@ -385,7 +385,7 @@ The system **MUST** provide `cypilot generate-resources [--kit SLUG]` that re-pr
 - `cpt-cypilot-component-blueprint-processor`
 - `cpt-cypilot-principle-plugin-extensibility`
 
-## 6. Acceptance Criteria
+## Acceptance Criteria
 
 - [ ] `cypilot kit install <path>` installs a kit, generates all outputs, and registers in `config/core.toml`
 - [ ] `cypilot kit update --force` overwrites user blueprints and regenerates all outputs

@@ -965,17 +965,22 @@ def load_artifacts_meta(adapter_dir: Path) -> Tuple[Optional[ArtifactsMeta], Opt
         else:
             data = json.loads(path.read_text(encoding="utf-8"))
 
-        # Merge kits from core.toml if not already in registry (new layout)
-        if "kits" not in data or not data["kits"]:
-            core_path = config_dir / "core.toml"
-            if not core_path.is_file():
-                core_path = adapter_dir / "core.toml"
-            if core_path.is_file():
-                import tomllib as _tl
-                with open(core_path, "rb") as f:
-                    core = _tl.load(f)
-                if isinstance(core.get("kits"), dict):
-                    data["kits"] = core["kits"]
+        # Merge fields from core.toml into registry data (new layout)
+        core_path = config_dir / "core.toml"
+        if not core_path.is_file():
+            core_path = adapter_dir / "core.toml"
+        if core_path.is_file():
+            import tomllib as _tl
+            with open(core_path, "rb") as f:
+                core = _tl.load(f)
+            # version and project_root: core.toml is authoritative, artifacts.toml is fallback
+            if isinstance(core.get("version"), str) and "version" not in data:
+                data["version"] = core["version"]
+            if isinstance(core.get("project_root"), str) and "project_root" not in data:
+                data["project_root"] = core["project_root"]
+            # kits: merge from core.toml if not already in registry
+            if ("kits" not in data or not data["kits"]) and isinstance(core.get("kits"), dict):
+                data["kits"] = core["kits"]
 
         meta = ArtifactsMeta.from_dict(data)
         return meta, None
@@ -1090,11 +1095,9 @@ def generate_default_registry(
 
     Returns:
         Dictionary with the default registry structure.
-        Note: kits are defined in core.toml, not here.
+        Note: version, project_root, and kits are defined in core.toml, not here.
     """
     return {
-        "version": "1.0",
-        "project_root": "..",
         "systems": [
             {
                 "name": project_name,

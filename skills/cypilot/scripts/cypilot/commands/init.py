@@ -58,6 +58,8 @@ def _copy_from_cache(cache_dir: Path, target_dir: Path, force: bool = False) -> 
 def _default_core_toml(system_name: str, system_slug: str) -> dict:
     """Build default core.toml data for a new project."""
     return {
+        "version": "1.0",
+        "project_root": "..",
         "system": {
             "name": system_name,
             "slug": system_slug,
@@ -325,7 +327,7 @@ def cmd_init(argv: List[str]) -> int:
         "",
         "ALWAYS open and follow `.core/schemas/artifacts.schema.json` WHEN working with artifacts.toml",
         "",
-        "ALWAYS open and follow `.core/requirements/artifacts-registry.md` WHEN working with artifacts.toml",
+        "ALWAYS open and follow `.core/architecture/specs/artifacts-registry.md` WHEN working with artifacts.toml",
         "",
         artifacts_when,
         "",

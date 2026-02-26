@@ -2,19 +2,19 @@
 
 - [ ] `p1` - **ID**: `cpt-cypilot-featstatus-sdlc-kit`
 
-## 1. Feature Context
+## Feature Context
 
 - [ ] `p1` - `cpt-cypilot-feature-sdlc-kit`
 
-### 1.1 Overview
+### 1. Overview
 
 The SDLC kit delivers the primary domain content for Cypilot — blueprint `.md` files defining PRD, DESIGN, ADR, DECOMPOSITION, and FEATURE artifact kinds, plus a codebase blueprint for code review. Each blueprint uses `@cpt:` markers that the Blueprint Processor transforms into templates, rules, checklists, examples, and kit-wide constraints. The kit also provides pipeline guides (greenfield, brownfield, monolith) and a self-check command for verifying kit integrity.
 
-### 1.2 Purpose
+### 2. Purpose
 
 Without SDLC-specific content, Cypilot is a generic ID system with no domain value. This kit provides the artifact-first development methodology — PRD → DESIGN → ADR → DECOMPOSITION → FEATURE → CODE — that is Cypilot's primary use case. Addresses PRD requirements for an artifact pipeline (`cpt-cypilot-fr-sdlc-pipeline`) and an SDLC blueprint package (`cpt-cypilot-fr-sdlc-plugin`).
 
-### 1.3 Actors
+### 3. Actors
 
 | Actor | Role in Feature |
 |-------|-----------------|
@@ -22,13 +22,13 @@ Without SDLC-specific content, Cypilot is a generic ID system with no domain val
 | `cpt-cypilot-actor-ai-agent` | Generates artifacts using kit templates/rules/checklists, follows pipeline ordering |
 | `cpt-cypilot-actor-cypilot-cli` | Executes self-check validation, resolves pipeline context |
 
-### 1.4 References
+### 4. References
 
 - **PRD**: [PRD.md](../PRD.md) — `cpt-cypilot-fr-sdlc-pipeline`, `cpt-cypilot-fr-sdlc-plugin`
 - **Design**: [DESIGN.md](../DESIGN.md) — `cpt-cypilot-component-sdlc-plugin`
 - **Dependencies**: `cpt-cypilot-feature-blueprint-system`, `cpt-cypilot-feature-traceability-validation`
 
-## 2. Actor Flows (CDSL)
+## Actor Flows
 
 ### Artifact Pipeline Guidance
 
@@ -77,7 +77,7 @@ Without SDLC-specific content, Cypilot is a generic ID system with no domain val
 5. [ ] - `p1` - **IF** any kit fails **RETURN** FAIL with per-kit details - `inst-if-fail`
 6. [ ] - `p1` - **RETURN** PASS with coverage summary (kits checked, blueprints found, outputs verified) - `inst-return-pass`
 
-## 3. Processes / Business Logic (CDSL)
+## Processes / Business Logic
 
 ### Resolve Pipeline Position
 
@@ -117,7 +117,7 @@ Without SDLC-specific content, Cypilot is a generic ID system with no domain val
 6. [ ] - `p1` - **IF** any check failed **RETURN** FAIL with list of missing files - `inst-if-any-fail`
 7. [ ] - `p1` - **RETURN** PASS with coverage (kinds verified, files checked) - `inst-return-valid`
 
-## 4. States (CDSL)
+## States
 
 ### Pipeline Position
 
@@ -136,7 +136,7 @@ Without SDLC-specific content, Cypilot is a generic ID system with no domain val
 
 > Kit lifecycle state (UNINSTALLED → INSTALLED → OUTDATED) is owned by `cpt-cypilot-feature-blueprint-system` (`cpt-cypilot-state-blueprint-system-kit-install`).
 
-## 5. Definitions of Done
+## Definitions of Done
 
 ### Blueprint Coverage
 
@@ -201,7 +201,7 @@ The system **MUST** provide `cypilot self-check` that validates all installed ki
 **Covers (DESIGN)**:
 - `cpt-cypilot-component-sdlc-plugin`
 
-## 6. Acceptance Criteria
+## Acceptance Criteria
 
 - [ ] All 5 artifact blueprints (PRD, DESIGN, ADR, DECOMPOSITION, FEATURE) exist in `kits/sdlc/blueprints/` with correct `@cpt:` markers
 - [ ] Codebase blueprint exists and generates `codebase/rules.md` and `codebase/checklist.md`

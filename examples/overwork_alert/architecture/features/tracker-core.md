@@ -4,7 +4,7 @@
 
 - [x] - `cpt-ex-ovwa-feature-tracker-core`
 
-## 1. Feature Context
+## Feature Context
 
 ### 1. Overview
 This feature defines the core background tracking loop: how the daemon measures “active work time” using macOS idle time, how it applies configuration defaults, and how it maintains session-scoped in-memory tracker state.
@@ -42,7 +42,7 @@ Provide deterministic, low-overhead, idle-aware active-time accumulation that do
 - ADRs: `cpt-ex-ovwa-adr-cli-daemon-launchagent-no-menubar`
 - Related feature: notifications.md
 
-## 2. Actor Flows
+## Actor Flows
 
 ### Run tracking tick loop
 
@@ -61,7 +61,7 @@ Provide deterministic, low-overhead, idle-aware active-time accumulation that do
 8. [x] - `p1` - **RETURN** updated TrackerState - `inst-return-state`
 
 
-## 3. Processes / Business Logic (CDSL)
+## Processes / Business Logic
 
 ### Accumulate active time
 
@@ -76,7 +76,7 @@ Provide deterministic, low-overhead, idle-aware active-time accumulation that do
 7. [x] - `p1` - **RETURN** updated TrackerState - `inst-return-updated-state`
 
 
-## 4. States
+## States
 
 ### Tracker runtime status
 
@@ -86,7 +86,7 @@ Provide deterministic, low-overhead, idle-aware active-time accumulation that do
 2. [x] - `p1` - **FROM** PAUSED **TO** RUNNING **WHEN** user sends resume command - `inst-transition-resume`
 
 
-## 5. Definitions of Done
+## Definitions of Done
 
 ### Idle-aware active-time accumulation
 
@@ -160,13 +160,13 @@ If no configuration is present or some configuration values are invalid, the dae
 
 
 
-## 6. Acceptance Criteria
+## Acceptance Criteria
 
 - [ ] When idle exceeds idle_threshold_seconds, accumulation stops within 10 seconds.
 - [ ] When active work resumes (idle below threshold) and status is RUNNING, accumulation resumes on the next tick.
 - [ ] Invalid/missing config values fall back to safe defaults without crashing.
 
-## 7. Additional Context (optional)
+## Additional Context (optional)
 
 This feature intentionally excludes manual reset, pause/resume, and CLI control details; those are defined in cli-control.md.
 

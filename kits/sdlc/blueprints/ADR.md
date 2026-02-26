@@ -96,9 +96,9 @@ section = "load_dependencies"
 - [ ] Load `checklist.md` for semantic guidance
 - [ ] Load `examples/example.md` for reference style
 - [ ] Read adapter `artifacts.toml` to determine ADR directory
-- [ ] Load `{cypilot_path}/.core/requirements/identifiers.md` for ID formats
-- [ ] Load `../../constraints.json` for kit-level constraints
-- [ ] Load `{cypilot_path}/.core/requirements/kit-constraints.md` for constraints specification
+- [ ] Load `{cypilot_path}/.core/architecture/specs/traceability.md` for ID formats
+- [ ] Load `{cypilot_path}/config/kits/sdlc/constraints.toml` for kit-level constraints
+- [ ] Load `{cypilot_path}/.core/architecture/specs/kit/constraints.md` for constraints specification
 ```
 `@/cpt:rule`
 
@@ -234,8 +234,8 @@ kind = "requirements"
 section = "constraints"
 ```
 ```markdown
-- [ ] ALWAYS open and follow `../../constraints.json` (kit root)
-- [ ] Treat `constraints.json` as primary validator for:
+- [ ] ALWAYS open and follow `{cypilot_path}/config/kits/sdlc/constraints.toml` (kit root)
+- [ ] Treat `constraints.toml` as primary validator for:
   - where IDs are defined
   - where IDs are referenced
   - which cross-artifact references are required / optional / prohibited
@@ -1444,8 +1444,6 @@ headings = ["adr-h1-title"]
 
 `@cpt:example`
 ```markdown
-# ADR-0001: Use PostgreSQL for Task Storage
-
 **ID**: `cpt-ex-task-flow-adr-postgres-storage`
 ```
 `@/cpt:example`
@@ -1687,8 +1685,6 @@ examples = ["### PostgreSQL", "### MongoDB", "### SQLite"]
 
 `@cpt:example`
 ```markdown
-### PostgreSQL
-
 - Pros: Strong consistency, rich SQL queries, mature ecosystem
 - Cons: Operational overhead (DB server, backups, migrations)
 
@@ -1739,7 +1735,7 @@ numbered = false
 multiple = false
 pattern = "Traceability"
 description = "Optional traceability links back to requirements/decisions."
-examples = ["## Traceability"]
+examples = []
 ```
 `@/cpt:heading`
 
@@ -1757,13 +1753,4 @@ This decision directly addresses the following requirements or design elements:
 ```
 `@/cpt:prompt`
 
-`@cpt:example`
-```markdown
-- **PRD**: [PRD.md](../PRD.md)
-- **DESIGN**: [DESIGN.md](../DESIGN.md)
-
-This decision directly addresses:
-
-* `cpt-ex-task-flow-fr-task-management` — Enables persistent task storage with relational queries
-```
 `@/cpt:example`
