@@ -28,6 +28,10 @@
    - [Phase 1: Structural Validation (Deterministic)](#phase-1-structural-validation-deterministic)
    - [Phase 2: Decomposition Quality Validation (Checklist-based)](#phase-2-decomposition-quality-validation-checklist-based)
    - [Phase 3: Validation Report](#phase-3-validation-report)
+   - [Phase 4: Applicability Context](#phase-4-applicability-context)
+   - [Phase 5: Report Format](#phase-5-report-format)
+   - [Phase 6: Domain Disposition](#phase-6-domain-disposition)
+   - [Phase 7: Reporting](#phase-7-reporting)
 5. [Error Handling](#error-handling)
    - [Missing Dependencies](#missing-dependencies)
    - [Quality Issues](#quality-issues)
@@ -220,6 +224,105 @@ Semantic: PASS/FAIL (N issues)
 
 Issues:
 - [SEVERITY] CHECKLIST-ID: Description
+```
+
+### Phase 4: Applicability Context
+
+**Purpose of DECOMPOSITION artifact**: Break down the overall DESIGN into implementable work packages (features) that can be assigned, tracked, and implemented independently.
+
+**What this checklist tests**: Quality of the decomposition itself — not the quality of requirements, design decisions, security, performance, or other concerns. Those belong in PRD and DESIGN checklists.
+
+**Key principle**: A perfect decomposition has:
+1. **100% coverage** — every design element appears in at least one feature
+2. **No overlap** — no design element appears in multiple features without clear reason
+3. **Complete attributes** — every feature has identification, purpose, scope, dependencies
+4. **Consistent granularity** — features are at similar abstraction levels
+5. **Bidirectional traceability** — can trace both ways between design and features
+
+### Phase 5: Report Format
+
+Report **only** problems (do not list what is OK).
+
+For each issue include:
+
+- **Checklist Item**: `{CHECKLIST-ID}` — {Checklist item title}
+- **Severity**: CRITICAL|HIGH|MEDIUM|LOW
+- **Issue**: What is wrong
+- **Evidence**: Quote or location in artifact
+- **Why it matters**: Impact on decomposition quality
+- **Proposal**: Concrete fix
+
+```markdown
+## Review Report (Issues Only)
+
+### 1. {Short issue title}
+
+**Checklist Item**: `{CHECKLIST-ID}` — {Checklist item title}
+
+**Severity**: CRITICAL|HIGH|MEDIUM|LOW
+
+#### Issue
+
+{What is wrong}
+
+#### Evidence
+
+{Quote or "No mention found"}
+
+#### Why It Matters
+
+{Impact on decomposition quality}
+
+#### Proposal
+
+{Concrete fix}
+```
+
+### Phase 6: Domain Disposition
+
+For each major checklist category, confirm:
+
+- [ ] COV (Coverage): Addressed or violation reported
+- [ ] EXC (Exclusivity): Addressed or violation reported
+- [ ] ATTR (Attributes): Addressed or violation reported
+- [ ] TRC (Traceability): Addressed or violation reported
+- [ ] DEP (Dependencies): Addressed or violation reported
+
+### Phase 7: Reporting
+
+Report **only** problems (do not list what is OK).
+
+For each issue include:
+
+- **Issue**: What is wrong
+- **Evidence**: Quote or location in artifact
+- **Why it matters**: Impact on decomposition quality
+- **Proposal**: Concrete fix
+
+```markdown
+## Review Report (Issues Only)
+
+### 1. {Short issue title}
+
+**Checklist Item**: `{CHECKLIST-ID}` — {Checklist item title}
+
+**Severity**: CRITICAL|HIGH|MEDIUM|LOW
+
+#### Issue
+
+{What is wrong}
+
+#### Evidence
+
+{Quote or "No mention found"}
+
+#### Why It Matters
+
+{Impact on decomposition quality}
+
+#### Proposal
+
+{Concrete fix}
 ```
 
 ---

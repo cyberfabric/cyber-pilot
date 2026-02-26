@@ -66,7 +66,10 @@ markers provide the content for each section.
 sections = ["load_dependencies"]
 
 [requirements]
-sections = ["structural", "versioning", "semantic", "scope", "status_traceability", "constraints"]
+sections = ["structural", "versioning", "semantic", "scope", "status_traceability", "constraints", "deliberate_omissions", "writing_quality"]
+[requirements.names]
+deliberate_omissions = "Deliberate Omissions (MUST NOT HAVE)"
+writing_quality = "ADR Writing Quality"
 
 [tasks]
 phases = ["setup", "content_creation", "ids_and_structure", "quality_check"]
@@ -74,10 +77,15 @@ phases = ["setup", "content_creation", "ids_and_structure", "quality_check"]
 ids_and_structure = "IDs and Structure"
 
 [validation]
-phases = ["structural", "semantic", "validation_report"]
+phases = ["structural", "semantic", "validation_report", "applicability", "review_scope", "report_format", "reporting", "pr_review"]
 [validation.names]
 structural = "Structural Validation (Deterministic)"
 semantic = "Semantic Validation (Checklist-based)"
+applicability = "Applicability Context"
+review_scope = "Review Scope Selection"
+report_format = "Report Format"
+reporting = "Reporting Commitment"
+pr_review = "PR Review Focus (ADR)"
 
 [error_handling]
 sections = ["number_conflict", "missing_directory", "escalation"]
@@ -261,6 +269,66 @@ section = "constraints"
 
 **Validation Checks**:
 - `cypilot validate` enforces `identifiers[<kind>].references` rules for ADR coverage in DESIGN
+```
+`@/cpt:rule`
+
+#### Deliberate Omissions (MUST NOT HAVE)
+
+`@cpt:rule`
+```toml
+kind = "requirements"
+section = "deliberate_omissions"
+```
+```markdown
+ADRs must NOT contain the following — report as violation if found:
+
+- **ARCH-ADR-NO-001**: No Complete Architecture Description (CRITICAL) — ADR is a decision record, not an architecture document
+- **ARCH-ADR-NO-002**: No Spec Implementation Details (HIGH) — ADR captures *why*, not *how* to implement
+- **BIZ-ADR-NO-001**: No Product Requirements (HIGH) — requirements belong in PRD
+- **BIZ-ADR-NO-002**: No Implementation Tasks (HIGH) — tasks belong in DECOMPOSITION/FEATURE
+- **DATA-ADR-NO-001**: No Complete Schema Definitions (MEDIUM) — schemas belong in DESIGN
+- **MAINT-ADR-NO-001**: No Code Implementation (HIGH) — code belongs in implementation
+- **SEC-ADR-NO-001**: No Security Secrets (CRITICAL) — secrets must never appear in documentation
+- **TEST-ADR-NO-001**: No Test Implementation (MEDIUM) — tests belong in code
+- **OPS-ADR-NO-001**: No Operational Procedures (MEDIUM) — procedures belong in runbooks
+- **ARCH-ADR-NO-003**: No Trivial Decisions (MEDIUM) — ADRs are for significant decisions only
+- **ARCH-ADR-NO-004**: No Incomplete Decisions (HIGH) — ADR must have a clear decision, not "TBD"
+```
+`@/cpt:rule`
+
+#### ADR Writing Quality
+
+`@cpt:rule`
+```toml
+kind = "requirements"
+section = "writing_quality"
+```
+```markdown
+**Standards**: Michael Nygard ADR Template — writing style guidance
+
+**QUALITY-001: Neutrality** (MEDIUM)
+- [ ] Options described neutrally (no leading language)
+- [ ] Pros and cons balanced for all options
+- [ ] No strawman arguments
+- [ ] Honest about chosen option's weaknesses
+
+**QUALITY-002: Clarity** (HIGH) — Ref: ISO 29148 §5.2.5, IEEE 1016 §4.2
+- [ ] Decision can be understood without insider knowledge
+- [ ] Acronyms expanded on first use
+- [ ] Technical terms defined if unusual
+- [ ] No ambiguous language
+
+**QUALITY-003: Actionability** (HIGH) — Ref: Michael Nygard "Decision" section
+- [ ] Clear what action to take based on decision
+- [ ] Implementation guidance provided
+- [ ] Scope of application clear
+- [ ] Exceptions documented
+
+**QUALITY-004: Reviewability** (MEDIUM) — Ref: ISO 42010 §6.7
+- [ ] Can be reviewed in a reasonable time
+- [ ] Evidence and references provided
+- [ ] Assumptions verifiable
+- [ ] Consequences measurable
 ```
 `@/cpt:rule`
 
@@ -465,6 +533,170 @@ Issues:
 - [SEVERITY] CHECKLIST-ID: Description
 ```
 ````
+`@/cpt:rule`
+
+#### Applicability Context
+
+`@cpt:rule`
+```toml
+kind = "validation"
+section = "applicability"
+```
+```markdown
+Before evaluating each checklist item, the expert MUST:
+
+1. **Understand the artifact's domain** — What kind of system/project is this ADR for? (e.g., CLI tool, web service, data pipeline, methodology framework)
+
+2. **Determine applicability for each requirement** — Not all checklist items apply to all ADRs:
+   - A CLI tool ADR may not need Security Impact analysis
+   - A methodology framework ADR may not need Performance Impact analysis
+   - A local development tool ADR may not need Operational Readiness analysis
+
+3. **Require explicit handling** — For each checklist item:
+   - If applicable: The document MUST address it (present and complete)
+   - If not applicable: The document MUST explicitly state "Not applicable because..." with reasoning
+   - If missing without explanation: Report as violation
+
+4. **Never skip silently** — The expert MUST NOT skip a requirement just because it's not mentioned. Either:
+   - The requirement is met (document addresses it), OR
+   - The requirement is explicitly marked not applicable (document explains why), OR
+   - The requirement is violated (report it with applicability justification)
+
+**Key principle**: The reviewer must be able to distinguish "author considered and excluded" from "author forgot"
+
+For each major checklist category (ARCH, PERF, SEC, REL, DATA, INT, OPS, MAINT, TEST, COMPL, UX, BIZ), confirm:
+
+- [ ] Category is addressed in the document, OR
+- [ ] Category is explicitly marked "Not applicable" with reasoning in the document, OR
+- [ ] Category absence is reported as a violation (with applicability justification)
+```
+`@/cpt:rule`
+
+#### Review Scope Selection
+
+`@cpt:rule`
+```toml
+kind = "validation"
+section = "review_scope"
+```
+```markdown
+Select review depth based on ADR complexity and impact:
+
+| ADR Type | Review Mode | Domains to Check |
+|----------|-------------|------------------|
+| Simple (single component, low risk) | **Quick** | ARCH only |
+| Standard (multi-component, moderate risk) | **Standard** | ARCH + relevant domains |
+| Complex (architectural, high risk) | **Full** | All applicable domains |
+
+**Quick Review (ARCH Only)** — For simple, low-risk decisions:
+- ARCH-ADR-001 through ARCH-ADR-006, QUALITY-002, QUALITY-003
+- Skip all domain-specific sections (PERF, SEC, REL, etc.)
+
+**Standard Review** — Select domains by ADR subject:
+
+| ADR Subject | Required Domains |
+|-------------|------------------|
+| Technology choice | ARCH, MAINT, OPS |
+| Security mechanism | ARCH, SEC, COMPL |
+| Database/storage | ARCH, DATA, PERF |
+| API/integration | ARCH, INT, SEC |
+| Infrastructure | ARCH, OPS, REL, PERF |
+| User-facing spec | ARCH, UX, BIZ |
+
+**Full Review** — All applicable domains.
+
+**Domain Applicability Quick Reference**:
+
+| Domain | When Required | When N/A |
+|--------|--------------|----------|
+| PERF | Performance-sensitive systems | Methodology, documentation |
+| SEC | User data, network, auth | Local-only tools |
+| REL | Production systems, SLAs | Dev tools, prototypes |
+| DATA | Persistent storage, migrations | Stateless components |
+| INT | External APIs, contracts | Self-contained systems |
+| OPS | Deployed services | Libraries, frameworks |
+| MAINT | Long-lived code | Throwaway prototypes |
+| TEST | Quality-critical systems | Exploratory work |
+| COMPL | Regulated industries | Internal tools |
+| UX | End-user impact | Backend infrastructure |
+```
+`@/cpt:rule`
+
+#### Report Format
+
+`@cpt:rule`
+```toml
+kind = "validation"
+section = "report_format"
+```
+````markdown
+**Format Selection**:
+
+| Review Mode | Report Format |
+|-------------|---------------|
+| Quick | Compact (table) |
+| Standard | Compact or Full |
+| Full | Full (detailed) |
+
+**Compact Format** (for Quick/Standard reviews):
+
+```markdown
+## ADR Review: {title}
+| # | ID | Sev | Issue | Fix |
+|---|-----|-----|-------|-----|
+| 1 | ARCH-002 | CRIT | Missing problem statement | Add 2+ sentences describing the problem |
+| 2 | ARCH-003 | HIGH | Only 1 option listed | Add at least 1 viable alternative |
+**Review mode**: Quick (ARCH core only)
+**Domains checked**: ARCH
+**Domains N/A**: PERF, SEC, REL, DATA, INT, OPS (methodology ADR)
+```
+
+**Full Format** — For each issue:
+- **Why Applicable**: Explain why this requirement applies to this ADR's context
+- **Checklist Item**: `{CHECKLIST-ID}` — {Checklist item title}
+- **Severity**: CRITICAL|HIGH|MEDIUM|LOW
+- **Issue**: What is wrong
+- **Evidence**: Quote or "No mention found"
+- **Why it matters**: Impact (risk, cost, user harm, compliance)
+- **Proposal**: Concrete fix with clear acceptance criteria
+````
+`@/cpt:rule`
+
+#### Reporting Commitment
+
+`@cpt:rule`
+```toml
+kind = "validation"
+section = "reporting"
+```
+```markdown
+- [ ] I reported all issues I found
+- [ ] I used the exact report format defined in this checklist (no deviations)
+- [ ] I included Why Applicable justification for each issue
+- [ ] I included evidence and impact for each issue
+- [ ] I proposed concrete fixes for each issue
+- [ ] I did not hide or omit known problems
+- [ ] I verified explicit handling for all major checklist categories
+- [ ] I am ready to iterate on the proposals and re-review after changes
+```
+`@/cpt:rule`
+
+#### PR Review Focus (ADR)
+
+`@cpt:rule`
+```toml
+kind = "validation"
+section = "pr_review"
+```
+```markdown
+When reviewing PRs that add or change Architecture Decision Records, additionally focus on:
+
+- [ ] Ensure the problem is module/system scoped, not generic and repeatable
+- [ ] Compliance with `template.md` structure (generated from blueprint)
+- [ ] Ensure the problem is not already solved by other existing ADRs in the project ADR directory (see `{cypilot_path}/config/artifacts.toml` for path)
+- [ ] Alternatives are genuinely different approaches (not straw men)
+- [ ] Decision rationale is concrete and traceable to project constraints
+```
 `@/cpt:rule`
 
 ### Next Steps
