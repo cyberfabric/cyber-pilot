@@ -48,8 +48,8 @@ def _target_path_from_root(target: Path, project_root: Path) -> str:
 
 
 # Directories and files to copy when cypilot is external to the project.
-_COPY_DIRS = ["workflows", "requirements", "schemas", "templates", "prompts", "kits", "architecture"]
-_COPY_ROOT_DIRS = ["skills"]
+_COPY_DIRS = ["workflows", "requirements", "schemas", "templates", "prompts", "kits", "architecture", "skills"]
+_COPY_ROOT_DIRS: list[str] = []
 _COPY_FILES: list = []
 _CORE_SUBDIR = ".core"
 _COPY_IGNORE = shutil.ignore_patterns(
@@ -712,7 +712,7 @@ def _process_single_agent(
             if not isinstance(outputs, list) or not all(isinstance(x, dict) for x in outputs):
                 skills_result["errors"].append("outputs must be an array of objects")
             else:
-                target_skill_abs = (cypilot_root / "skills" / "cypilot" / "SKILL.md").resolve()
+                target_skill_abs = core_subpath(cypilot_root, "skills", "cypilot", "SKILL.md").resolve()
                 if not target_skill_abs.is_file():
                     skills_result["errors"].append(
                         "Cypilot skill source not found (expected: " + target_skill_abs.as_posix() + "). "
