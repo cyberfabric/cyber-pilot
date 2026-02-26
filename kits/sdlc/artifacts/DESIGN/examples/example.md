@@ -1,5 +1,12 @@
 # Technical Design: TaskFlow
 
+## Table of Contents
+
+1. [1. Architecture Overview](#1-architecture-overview)
+2. [2. Principles & Constraints](#2-principles-constraints)
+3. [3. Technical Architecture](#3-technical-architecture)
+4. [4. Additional Context](#4-additional-context)
+
 ## 1. Architecture Overview
 
 ### Architectural Vision

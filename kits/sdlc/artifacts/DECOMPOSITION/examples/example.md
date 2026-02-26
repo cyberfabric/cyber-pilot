@@ -1,5 +1,11 @@
 # Decomposition: TaskFlow
 
+## Table of Contents
+
+1. [1. Overview](#1-overview)
+2. [2. Entries](#2-entries)
+3. [3. Feature Dependencies](#3-feature-dependencies)
+
 ## 1. Overview
 
 TaskFlow design is decomposed into features organized around core task management capabilities. The decomposition follows a dependency order where foundational CRUD operations enable higher-level features like notifications and reporting.

@@ -28,9 +28,23 @@ sections = ["structural", "traceability", "checkbox_cascade", "versioning", "eng
 
 [tasks]
 phases = ["setup", "implementation", "markers", "sync_feature", "quality_check", "tag_verification"]
+[tasks.names]
+implementation = "Implementation (Work Packages)"
+markers = "Cypilot Markers (Traceability Mode ON only)"
+sync_feature = "Sync FEATURE (Traceability Mode ON only)"
+tag_verification = "Tag Verification (Traceability Mode ON only)"
 
 [validation]
-sections = ["coverage", "traceability", "tests", "build_lint", "test_execution", "code_quality", "logic_consistency", "semantic_review"]
+phases = ["coverage", "traceability", "tests", "build_lint", "test_execution", "code_quality", "logic_consistency", "semantic_review"]
+[validation.names]
+coverage = "Implementation Coverage"
+traceability = "Traceability Validation (Mode ON only)"
+tests = "Test Scenarios Validation"
+build_lint = "Build and Lint Validation"
+test_execution = "Test Execution"
+code_quality = "Code Quality Validation"
+logic_consistency = "Code Logic Consistency with Design"
+semantic_review = "Semantic Expert Review (Always)"
 
 [next_steps]
 sections = ["after_success", "after_issues", "no_design"]
@@ -51,6 +65,16 @@ section = "load_dependencies"
 - [ ] Determine Traceability Mode (FULL vs DOCS-ONLY)
 - [ ] If Traceability Mode FULL: load `{cypilot_path}/.core/architecture/specs/traceability.md`
 - [ ] Load `{cypilot_path}/config/kits/sdlc/constraints.toml` for kit-level constraints
+
+**Source** (one of, in priority order):
+1. FEATURE design — registered artifact with `to_code="true"` IDs
+2. Other Cypilot artifact — PRD, DESIGN, ADR, DECOMPOSITION
+3. Similar content — user-provided description, feature, or requirements
+4. Prompt only — direct user instructions
+
+**ALWAYS read** the FEATURE artifact being implemented (the source of `to_code="true"` IDs). The FEATURE contains flows, algorithms, states, and definition-of-done tasks that define what code must do.
+
+**ALWAYS read** the system's DESIGN artifact (if registered in `artifacts.toml`) to understand overall architecture, components, principles, and constraints before implementing code.
 ```
 `@/cpt:rule`
 
@@ -74,9 +98,9 @@ section = "traceability"
 **Reference**: `{cypilot_path}/.core/architecture/specs/traceability.md` for full specification
 
 - [ ] Traceability Mode determined per feature (FULL vs DOCS-ONLY)
-- [ ] If Mode ON: markers follow syntax (`@cpt-*`, `@cpt-begin`/`@cpt-end`)
+- [ ] If Mode ON: markers follow feature syntax (`@cpt-*`, `@cpt-begin`/`@cpt-end`)
 - [ ] If Mode ON: all `to_code="true"` IDs have markers
-- [ ] If Mode ON: every implemented CDSL instruction has paired block markers in code
+- [ ] If Mode ON: every implemented CDSL instruction (`[x] ... \`inst-*\``) has a paired `@cpt-begin/.../@cpt-end` block marker in code
 - [ ] If Mode ON: no orphaned/stale markers
 - [ ] If Mode ON: design checkboxes synced with code
 - [ ] If Mode OFF: no Cypilot markers in code
@@ -88,7 +112,16 @@ section = "traceability"
 kind = "requirements"
 section = "checkbox_cascade"
 ```
-```markdown
+````markdown
+CODE implementation triggers upstream checkbox updates through markers:
+
+| Code Marker | FEATURE ID | Upstream Effect |
+|-------------|-----------|-----------------|
+| `@cpt-flow:{cpt-id}:p{N}` | kind: `flow` | When all pN markers exist → check `flow` ID in FEATURE |
+| `@cpt-algo:{cpt-id}:p{N}` | kind: `algo` | When all pN markers exist → check `algo` ID in FEATURE |
+| `@cpt-state:{cpt-id}:p{N}` | kind: `state` | When all pN markers exist → check `state` ID in FEATURE |
+| `@cpt-dod:{cpt-id}:p{N}` | kind: `dod` | When all pN markers exist + evidence complete → check `dod` ID in FEATURE |
+
 **Full Cascade Chain**:
 ```
 CODE markers exist
@@ -100,12 +133,28 @@ DECOMPOSITION: feature entry [x]
 PRD/DESIGN: referenced IDs [x] when ALL downstream refs [x]
 ```
 
+**When to Update Upstream Checkboxes**:
+1. **After implementing CDSL instruction**: add block markers, mark step `[x]` in FEATURE
+2. **After completing flow/algo/state/dod**: all steps `[x]` → mark ID `[x]` in FEATURE
+3. **After completing FEATURE**: all IDs `[x]` → mark feature entry `[x]` in DECOMPOSITION
+4. **After DECOMPOSITION updated**: check if all referenced IDs are `[x]` → mark in PRD/DESIGN
+
 **Consistency rules (MANDATORY)**:
-- [ ] Never mark CDSL instruction `[x]` unless corresponding code block markers exist
-- [ ] Never add code block marker pair unless corresponding CDSL instruction exists in design
-- [ ] Parent ID checkbox state MUST be consistent with all nested task-tracked items
-- [ ] Never mark a reference as `[x]` if its definition is still `[ ]`
-```
+- [ ] Never mark CDSL instruction `[x]` unless corresponding code block markers exist and wrap non-empty implementation code
+- [ ] Never add code block marker pair unless corresponding CDSL instruction exists in design (add it first if missing)
+- [ ] Parent ID checkbox state MUST be consistent with all nested task-tracked items within its scope (as determined by heading boundaries)
+- [ ] Task-tracked items include:
+  - ID definitions with a task checkbox (e.g. `- [ ] p1 - **ID**: cpt-...`)
+  - Task-checkbox references inside content (e.g. `- [ ] p1 - cpt-...`)
+- [ ] If parent ID is `[x]` then ALL nested task-tracked items within its scope MUST be `[x]`
+- [ ] If ALL nested task-tracked items within its scope are `[x]` then parent ID MUST be `[x]`
+- [ ] Never mark a reference as `[x]` if its definition is still `[ ]` (cross-artifact consistency is validated)
+
+**Validation Checks**:
+- `cypilot validate` will warn if code marker exists but FEATURE checkbox is `[ ]`
+- `cypilot validate` will warn if FEATURE checkbox is `[x]` but code marker is missing
+- `cypilot validate` will report coverage: N% of FEATURE IDs have code markers
+````
 `@/cpt:rule`
 
 `@cpt:rule`
@@ -117,6 +166,7 @@ section = "versioning"
 - [ ] When design ID versioned (`-v2`): update code markers to match
 - [ ] Marker format with version: `@cpt-flow:{cpt-id}-v2:p{N}`
 - [ ] Migration: update all markers when design version increments
+- [ ] Keep old markers commented during transition (optional)
 ```
 `@/cpt:rule`
 
@@ -127,14 +177,19 @@ section = "engineering"
 ```
 ```markdown
 - [ ] **TDD**: Write failing test first, implement minimal code to pass, then refactor
-- [ ] **SOLID**: SRP, OCP, LSP, ISP, DIP
-- [ ] **DRY**: Remove duplication by extracting shared logic
-- [ ] **KISS**: Prefer simplest correct solution
+- [ ] **SOLID**:
+  - Single Responsibility: Each module/function focused on one reason to change
+  - Open/Closed: Extend behavior via composition/configuration, not editing unrelated logic
+  - Liskov Substitution: Implementations honor interface contract and invariants
+  - Interface Segregation: Prefer small, purpose-driven interfaces over broad ones
+  - Dependency Inversion: Depend on abstractions; inject dependencies for testability
+- [ ] **DRY**: Remove duplication by extracting shared logic with clear ownership
+- [ ] **KISS**: Prefer simplest correct solution matching design and adapter conventions
 - [ ] **YAGNI**: No specs/abstractions not required by current design scope
-- [ ] **Refactoring discipline**: Refactor only after tests pass
+- [ ] **Refactoring discipline**: Refactor only after tests pass; keep behavior unchanged
 - [ ] **Testability**: Structure code so core logic is testable without heavy integration
-- [ ] **Error handling**: Fail explicitly with clear errors
-- [ ] **Observability**: Log meaningful events at integration boundaries
+- [ ] **Error handling**: Fail explicitly with clear errors; never silently ignore failures
+- [ ] **Observability**: Log meaningful events at integration boundaries (no secrets)
 ```
 `@/cpt:rule`
 
@@ -217,6 +272,7 @@ After each work package, sync checkboxes:
 1. Mark implemented CDSL steps `[x]` in FEATURE
 2. When all steps done → mark flow/algo/state/dod `[x]` in FEATURE
 3. When all IDs done → mark feature entry `[x]` in DECOMPOSITION
+4. Update feature status: `⏳ PLANNED` → `🔄 IN_PROGRESS` → `✅ IMPLEMENTED`
 ```
 `@/cpt:rule`
 
@@ -294,10 +350,26 @@ section = "tests"
 kind = "validation"
 section = "build_lint"
 ```
-```markdown
+````markdown
 - [ ] Build succeeds, no compilation errors
 - [ ] Linter passes, no linter errors
+
+**Report format**:
 ```
+Code Quality Report
+═══════════════════
+Build: PASS/FAIL
+Lint: PASS/FAIL
+Tests: X/Y passed
+Coverage: N%
+Checklist: PASS/FAIL (N issues)
+Issues:
+- [SEVERITY] CHECKLIST-ID: Description
+Logic Consistency: PASS/FAIL
+- CRITICAL divergences: [...]
+- MINOR divergences: [...]
+```
+````
 `@/cpt:rule`
 
 `@cpt:rule`
@@ -336,11 +408,23 @@ kind = "validation"
 section = "logic_consistency"
 ```
 ```markdown
-- [ ] Code logic matches requirement specification (no contradictions)
-- [ ] Flow steps executed in correct order
-- [ ] Algorithm logic matches design specification
-- [ ] State transitions match design state machine
-- [ ] Error handling matches design error specifications
+**For each requirement marked IMPLEMENTED:**
+- [ ] Read requirement specification
+- [ ] Locate implementing code via @cpt-dod tags
+- [ ] Verify code logic matches requirement (no contradictions)
+- [ ] Verify no skipped mandatory steps
+- [ ] Verify error handling matches design error specifications
+
+**For each flow marked implemented:**
+- [ ] All flow steps executed in correct order
+- [ ] No steps bypassed that would change behavior
+- [ ] Conditional logic matches design conditions
+- [ ] Error paths match design error handling
+
+**For each algorithm marked implemented:**
+- [ ] Performance characteristics match design (O(n), O(1), etc.)
+- [ ] Edge cases handled as designed
+- [ ] No logic shortcuts that violate design constraints
 ```
 `@/cpt:rule`
 
@@ -349,15 +433,49 @@ section = "logic_consistency"
 kind = "validation"
 section = "semantic_review"
 ```
-```markdown
-Expert panel review after producing validation output.
+````markdown
+Run expert panel review after producing validation output.
+
+**Review Scope Selection**:
 
 | Change Size | Review Mode | Experts |
-|-------------|-------------|---------|
-| <50 LOC | Abbreviated | Developer + 1 relevant expert |
-| 50-200 LOC | Standard | Developer, QA, Security, Architect |
-| >200 LOC or architectural | Full | All experts |
+|-------------|-------------|--------|
+| <50 LOC, single concern | Abbreviated | Developer + 1 relevant expert |
+| 50-200 LOC, multiple concerns | Standard | Developer, QA, Security, Architect |
+| >200 LOC or architectural | Full | All 8 experts |
+
+**Abbreviated Review** (for small, focused changes):
+1. Developer reviews code quality and design alignment
+2. Select ONE additional expert based on change type
+3. Skip remaining experts with note: `Abbreviated review: {N} LOC, single concern`
+
+**Full Expert Panel**: Developer, QA Engineer, Security Expert, Performance Engineer, DevOps Engineer, Architect, Monitoring Engineer, Database Architect/Data Engineer
+
+**For EACH expert:**
+1. Adopt role (write: `Role assumed: {expert}`)
+2. Review actual code and tests in validation scope
+3. If design artifact available: evaluate design-to-code alignment
+4. Identify issues (contradictions, missing behavior, unclear intent, unnecessary complexity, missing non-functional concerns)
+5. Provide concrete proposals (what to remove, add, rewrite)
+6. Propose corrective workflow: `feature`, `design`, or `code`
+
+**Expert review output format:**
 ```
+**Review status**: COMPLETED
+**Reviewed artifact**: Code ({scope})
+- **Role assumed**: {expert}
+- **Checklist completed**: YES
+- **Findings**:
+- **Proposed edits**:
+**Recommended corrective workflow**: {feature | design | code}
+```
+
+**PASS only if:**
+- Build/lint/tests pass per adapter
+- Coverage meets adapter requirements
+- No CRITICAL divergences between code and design
+- If Traceability Mode ON: required tags present and properly paired
+````
 `@/cpt:rule`
 
 `@cpt:rule`
@@ -401,10 +519,6 @@ section = "no_design"
 ```toml
 group_by_kind = false
 
-postamble = """---
-
-Use `{cypilot_path}/.core/requirements/code-checklist.md` for all generic code quality checks."""
-
 [severity]
 levels = ["CRITICAL", "HIGH", "MEDIUM", "LOW"]
 
@@ -445,6 +559,14 @@ Before running the SDLC-specific checks:
 - [ ] If `DOCS-ONLY`: skip traceability requirements and validate semantics against provided design sources
 ````
 `@/cpt:checklist`
+
+`@cpt:checklist_epilogue`
+````markdown
+---
+
+Use `{cypilot_path}/.core/requirements/code-checklist.md` for all generic code quality checks.
+````
+`@/cpt:checklist_epilogue`
 
 `@cpt:check`
 ```toml

@@ -61,9 +61,15 @@ sections = ["structural", "versioning", "semantic", "traceability", "constraints
 
 [tasks]
 phases = ["setup", "content_creation", "ids_and_structure", "quality_check"]
+[tasks.names]
+ids_and_structure = "IDs and Structure"
 
 [validation]
-sections = ["structural", "semantic", "traceability"]
+phases = ["structural", "semantic", "traceability", "validation_report"]
+[validation.names]
+structural = "Structural Validation (Deterministic)"
+semantic = "Semantic Validation (Checklist-based)"
+traceability = "Traceability Validation (if FULL mode)"
 
 [error_handling]
 sections = ["missing_decomposition", "missing_design", "missing_parent", "escalation"]
@@ -86,7 +92,7 @@ section = "load_dependencies"
 - [ ] Load `examples/task-crud.md` for reference style
 - [ ] Read DECOMPOSITION to get feature ID and context
 - [ ] Read DESIGN to understand domain types and components
-- [ ] Read adapter `artifacts.toml` to determine FEATURE artifact path
+- [ ] Read `{cypilot_path}/config/artifacts.toml` to determine FEATURE artifact path
 - [ ] Load `{cypilot_path}/config/kits/sdlc/constraints.toml` for kit-level constraints
 - [ ] Load `{cypilot_path}/.core/architecture/specs/traceability.md` for ID formats
 ```
@@ -103,10 +109,12 @@ section = "structural"
 ```
 ```markdown
 - [ ] FEATURE follows `template.md` structure
+- [ ] Artifact frontmatter (optional): use `cpt:` format for document metadata
 - [ ] References parent feature from DECOMPOSITION manifest
 - [ ] All flows, algorithms, states, DoD items have unique IDs
-- [ ] All IDs follow `cpt-{system}-{kind}-{slug}` pattern
+- [ ] All IDs follow `cpt-{system}-{kind}-{slug}` pattern (see artifacts.toml for hierarchy)
 - [ ] All IDs have priority markers (`p1`-`p9`) when required by constraints
+- [ ] If you want to keep feature ownership obvious, include the feature slug in `{slug}` (example: `algo-cli-control-handle-command`)
 - [ ] CDSL instructions follow format: `N. [ ] - \`pN\` - Description - \`inst-slug\``
 - [ ] No placeholder content (TODO, TBD, FIXME)
 - [ ] No duplicate IDs within document
@@ -174,6 +182,15 @@ section = "constraints"
   - where IDs are defined
   - where IDs are referenced
   - which cross-artifact references are required / optional / prohibited
+
+**References**:
+- `{cypilot_path}/.core/requirements/kit-constraints.md`
+- `{cypilot_path}/.core/schemas/kit-constraints.schema.json`
+
+**Validation Checks**:
+- `cypilot validate` enforces `identifiers[<kind>].references` rules (required / optional / prohibited)
+- `cypilot validate` enforces headings scoping for ID definitions and references
+- `cypilot validate` enforces "checked ref implies checked def" consistency
 ```
 `@/cpt:rule`
 
@@ -185,7 +202,7 @@ kind = "requirements"
 section = "scope"
 ```
 ```markdown
-**One FEATURE per feature from DECOMPOSITION manifest**.
+**One FEATURE per feature from DECOMPOSITION manifest**. Match scope to implementation unit.
 
 | Scope | Examples | Guideline |
 |-------|----------|-----------|
@@ -193,8 +210,23 @@ section = "scope"
 | **Right size** | "User login flow" covering single capability | Clear boundary, implementable unit |
 | **Too narrow** | "Validate email format" | Implementation detail, belongs in flow/algo |
 
-**FEATURE-worthy content**: Actor flows, algorithms, state machines, DoD items, test scenarios.
-**NOT FEATURE-worthy**: System architecture (DESIGN), technology decisions (ADR), business requirements (PRD).
+**FEATURE-worthy content**:
+- Actor flows (complete user journeys)
+- Algorithms (processing logic)
+- State machines (entity lifecycle)
+- DoD items / acceptance criteria
+- Test scenarios
+
+**NOT FEATURE-worthy** (use other artifacts):
+- System architecture → DESIGN
+- Technology decisions → ADR
+- Business requirements → PRD
+- Multiple unrelated capabilities → Split into FEATUREs
+
+**Relationship to other artifacts**:
+- **DECOMPOSITION** → FEATURE: DECOMPOSITION lists what to build, FEATURE details implementable behavior
+- **DESIGN** → FEATURE: DESIGN provides architecture context, FEATURE details implementable behavior
+- **FEATURE** → CODE: FEATURE defines behavior, CODE implements with traceability markers
 ```
 `@/cpt:rule`
 
@@ -219,10 +251,12 @@ kind = "requirements"
 section = "featstatus"
 ```
 ```markdown
-- [ ] FEATURE defines a `featstatus` ID definition directly under the H1 title
+- [ ] FEATURE defines a `featstatus` ID definition directly under the H1 title (before `## Feature Context`)
 - [ ] Template: `cpt-{system}-featstatus-{feature-slug}`
-- [ ] `featstatus` is `[x]` only when ALL nested task-tracked IDs and references are `[x]`
-- [ ] `featstatus` is a documentation/status rollup marker (not a `to_code` identifier)
+- [ ] The `featstatus` checkbox MUST be consistent with all task-tracked items within its scope:
+  - If `featstatus` is `[x]` then ALL nested task-tracked ID definitions AND ALL task-checkbox references within its content MUST be `[x]`
+  - If ALL nested task-tracked ID definitions AND ALL task-checkbox references within its content are `[x]` then `featstatus` MUST be `[x]`
+- [ ] `featstatus` is a documentation/status rollup marker (it is not a `to_code` identifier kind)
 ```
 `@/cpt:rule`
 
@@ -234,12 +268,64 @@ kind = "requirements"
 section = "checkbox_management"
 ```
 ```markdown
+**Quick Reference**: Check FEATURE element when ALL code markers for that element exist and implementation verified.
+
 | ID kind | `to_code` | Check when... |
 |---------|-----------|---------------|
-| `flow` | `true` | ALL `@cpt-flow:` code markers exist |
-| `algo` | `true` | ALL `@cpt-algo:` code markers exist |
-| `state` | `true` | ALL `@cpt-state:` code markers exist |
+| `flow` | `true` | ALL `@cpt-flow:cpt-{system}-flow-{feature-slug}-{slug}:p{N}` markers exist in code |
+| `algo` | `true` | ALL `@cpt-algo:cpt-{system}-algo-{feature-slug}-{slug}:p{N}` markers exist in code |
+| `state` | `true` | ALL `@cpt-state:cpt-{system}-state-{feature-slug}-{slug}:p{N}` markers exist in code |
 | `dod` | `true` | Implementation complete AND tests pass |
+
+**Detailed Rules**:
+
+| Kind | `to_code` | Meaning |
+|---------|-----------|--------|
+| `flow` | `true` | Flow is checked when code markers exist and implementation verified |
+| `algo` | `true` | Algorithm is checked when code markers exist and implementation verified |
+| `state` | `true` | State machine is checked when code markers exist and implementation verified |
+| `dod` | `true` | DoD item is checked when implementation complete and tests pass |
+
+**Checkbox States**:
+1. **Flow Checkbox** (kind: `flow`):
+   - `[ ] **ID**: cpt-{system}-flow-{feature-slug}-{slug}` — unchecked until implemented
+   - `[x] **ID**: cpt-{system}-flow-{feature-slug}-{slug}` — checked when ALL code markers exist
+2. **Algorithm Checkbox** (kind: `algo`):
+   - `[ ] **ID**: cpt-{system}-algo-{feature-slug}-{slug}` — unchecked until implemented
+   - `[x] **ID**: cpt-{system}-algo-{feature-slug}-{slug}` — checked when ALL code markers exist
+3. **State Machine Checkbox** (kind: `state`):
+   - `[ ] **ID**: cpt-{system}-state-{feature-slug}-{slug}` — unchecked until implemented
+   - `[x] **ID**: cpt-{system}-state-{feature-slug}-{slug}` — checked when ALL code markers exist
+4. **DoD Checkbox** (kind: `dod`):
+   - `[ ] p1 - cpt-{system}-dod-{feature-slug}-{slug}` — unchecked until satisfied
+   - `[x] p1 - cpt-{system}-dod-{feature-slug}-{slug}` — checked when implementation complete and tests pass
+
+**When to Update Upstream Artifacts**:
+- [ ] When `flow` is checked → verify all CDSL instructions have code markers
+- [ ] When `algo` is checked → verify algorithm logic is implemented
+- [ ] When `state` is checked → verify all transitions are implemented
+- [ ] When `dod` is checked → verify requirement is satisfied and tested
+- [ ] When ALL defined IDs in FEATURE are `[x]` → mark feature as complete in DECOMPOSITION
+- [ ] When feature is `[x]` → update upstream references in DECOMPOSITION (which cascades to PRD/DESIGN)
+
+**Validation Checks**:
+- `cypilot validate` will warn if `to_code="true"` ID has no code markers
+- `cypilot validate` will warn if a reference points to a non-existent ID
+- `cypilot validate` will report code coverage: N% of CDSL instructions have markers
+
+**Cross-Artifact References**:
+
+| Reference Type | Source Artifact | Purpose |
+|----------------|-----------------|--------|
+| Parent feature ID | DECOMPOSITION | Links to parent feature in manifest |
+| Actor ID (`cpt-{system}-actor-{slug}`) | PRD | Identifies actors involved in flows |
+| FR ID (`cpt-{system}-fr-{slug}`) | PRD | Covers functional requirement |
+| NFR ID (`cpt-{system}-nfr-{slug}`) | PRD | Covers non-functional requirement |
+| Principle ID (`cpt-{system}-principle-{slug}`) | DESIGN | Applies design principle |
+| Constraint ID (`cpt-{system}-constraint-{slug}`) | DESIGN | Satisfies design constraint |
+| Component ID (`cpt-{system}-component-{slug}`) | DESIGN | Uses design component |
+| Sequence ID (`cpt-{system}-seq-{slug}`) | DESIGN | Implements sequence diagram |
+| Data ID (`cpt-{system}-dbtable-{slug}`) | DESIGN | Uses database table |
 ```
 `@/cpt:rule`
 
@@ -258,6 +344,11 @@ section = "setup"
 - [ ] Load `examples/task-crud.md` for reference style
 - [ ] Read DECOMPOSITION to get feature ID and context
 - [ ] Read DESIGN to understand domain types and components
+- [ ] Read `{cypilot_path}/config/artifacts.toml` to determine FEATURE artifact path
+
+**FEATURE path resolution**:
+- Read system's `artifacts_dir` from `artifacts.toml` (default: `architecture`)
+- Use kit's default subdirectory for FEATUREs: `features/`
 ```
 `@/cpt:rule`
 
@@ -335,6 +426,9 @@ section = "missing_design"
 ```markdown
 - [ ] Option 1: Run `/cypilot-generate DESIGN` first (recommended for architectural context)
 - [ ] Option 2: Continue without DESIGN (reduced domain model context)
+  - Document "DESIGN pending" in FEATURE frontmatter
+  - Skip component/type references validation
+  - Plan to update when DESIGN available
 ```
 `@/cpt:rule`
 
@@ -416,6 +510,27 @@ For IDs with `to_code="true"`:
 ```
 `@/cpt:rule`
 
+#### Validation Report
+
+`@cpt:rule`
+```toml
+kind = "validation"
+section = "validation_report"
+```
+````markdown
+```
+FEATURE Validation Report
+═══════════════════════════
+
+Structural: PASS/FAIL
+Semantic: PASS/FAIL (N issues)
+
+Issues:
+- [SEVERITY] CHECKLIST-ID: Description
+```
+````
+`@/cpt:rule`
+
 ### Next Steps
 
 `@cpt:rule`
@@ -446,81 +561,217 @@ Feature quality checks organized by domain.
 levels = ["CRITICAL", "HIGH", "MEDIUM", "LOW"]
 
 [review]
-priority = ["ARCH", "SEC", "BIZ", "SEM"]
+priority = ["ARCH", "SEM", "PERF", "SEC", "REL", "DATA", "INT", "OPS", "MAINT", "TEST", "COMPL", "UX", "BIZ", "DOC"]
 
 [[domain]]
 abbr = "ARCH"
-name = "Architecture"
-standards = ["IEEE 1016-2009"]
+name = "🏗️ ARCHITECTURE Expertise"
+header = "🏗️ ARCHITECTURE Expertise (ARCH)"
+standards_text = """> **Standard**: [IEEE 1016-2009](https://standards.ieee.org/ieee/1016/4502/) — Software Design Descriptions
+>
+> Design entities require: identification, type, purpose, function, subordinates, dependencies, resources, processing, data (§5.4)"""
 
 [[domain]]
 abbr = "SEM"
 name = "Semantic Alignment"
-standards = ["ISO/IEC/IEEE 29148:2018"]
+header = "Semantic Alignment (SEM)"
+standards_text = """> **Standard**: [ISO/IEC/IEEE 29148:2018](https://www.iso.org/standard/72089.html) — Requirements Engineering
+>
+> "Each requirement shall be traceable bidirectionally... uniquely identified" (§5.2.8, §6.5)"""
 
 [[domain]]
 abbr = "PERF"
-name = "Performance"
-standards = ["ISO/IEC 25010:2011"]
+name = "⚡ PERFORMANCE Expertise"
+header = "⚡ PERFORMANCE Expertise (PERF)"
+standards_text = """> **Standard**: [ISO/IEC 25010:2011](https://www.iso.org/standard/35733.html) — Performance Efficiency
+>
+> Sub-characteristics: time behavior, resource utilization, capacity under defined conditions"""
 
 [[domain]]
 abbr = "SEC"
-name = "Security"
-standards = ["ISO/IEC 25010:2011", "OWASP ASVS 5.0"]
+name = "🔒 SECURITY Expertise"
+header = "🔒 SECURITY Expertise (SEC)"
+standards_text = """> **Standards**:
+> - [ISO/IEC 25010:2011](https://www.iso.org/standard/35733.html) — Security: confidentiality, integrity, non-repudiation, accountability, authenticity
+> - [OWASP ASVS 5.0](https://owasp.org/www-project-application-security-verification-standard/) — Application Security Verification Standard"""
 
 [[domain]]
 abbr = "REL"
-name = "Reliability"
-standards = ["ISO/IEC 25010:2011"]
+name = "🛡️ RELIABILITY Expertise"
+header = "🛡️ RELIABILITY Expertise (REL)"
+standards_text = """> **Standard**: [ISO/IEC 25010:2011](https://www.iso.org/standard/35733.html) — Reliability
+>
+> Sub-characteristics: maturity, availability, fault tolerance, recoverability"""
 
 [[domain]]
 abbr = "DATA"
-name = "Data"
+name = "📊 DATA Expertise"
+header = "📊 DATA Expertise (DATA)"
 standards = []
 
 [[domain]]
 abbr = "INT"
-name = "Integration"
+name = "🔌 INTEGRATION Expertise"
+header = "🔌 INTEGRATION Expertise (INT)"
 standards = []
 
 [[domain]]
 abbr = "OPS"
-name = "Operations"
+name = "🖥️ OPERATIONS Expertise"
+header = "🖥️ OPERATIONS Expertise (OPS)"
 standards = []
 
 [[domain]]
 abbr = "MAINT"
-name = "Maintainability"
-standards = ["ISO/IEC 25010:2011"]
+name = "🔧 MAINTAINABILITY Expertise"
+header = "🔧 MAINTAINABILITY Expertise (MAINT)"
+standards_text = """> **Standard**: [ISO/IEC 25010:2011](https://www.iso.org/standard/35733.html) — Maintainability
+>
+> Sub-characteristics: modularity, reusability, analysability, modifiability, testability"""
 
 [[domain]]
 abbr = "TEST"
-name = "Testing"
-standards = ["ISO/IEC/IEEE 29119-3:2021"]
+name = "🧪 TESTING Expertise"
+header = "🧪 TESTING Expertise (TEST)"
+standards_text = """> **Standards**:
+> - [ISO/IEC/IEEE 29119-3:2021](https://www.iso.org/standard/79429.html) — Test documentation templates
+> - [ISO/IEC 25010:2011](https://www.iso.org/standard/35733.html) §4.2.7.5 — Testability sub-characteristic"""
 
 [[domain]]
 abbr = "COMPL"
-name = "Compliance"
+name = "📜 COMPLIANCE Expertise"
+header = "📜 COMPLIANCE Expertise (COMPL)"
 standards = []
 
 [[domain]]
 abbr = "UX"
-name = "Usability"
-standards = ["ISO/IEC 25010:2011", "WCAG 2.2"]
+name = "👤 USABILITY Expertise"
+header = "👤 USABILITY Expertise (UX)"
+standards_text = """> **Standards**:
+> - [ISO/IEC 25010:2011](https://www.iso.org/standard/35733.html) — Usability: learnability, operability, user error protection, accessibility
+> - [WCAG 2.2](https://www.w3.org/TR/WCAG22/) — Web Content Accessibility Guidelines (Level AA)"""
 
 [[domain]]
 abbr = "BIZ"
-name = "Business"
-standards = ["ISO/IEC/IEEE 29148:2018"]
+name = "🏢 BUSINESS Expertise"
+header = "🏢 BUSINESS Expertise (BIZ)"
+standards_text = """> **Standard**: [ISO/IEC/IEEE 29148:2018](https://www.iso.org/standard/72089.html) — Requirements Engineering
+>
+> "Requirements shall be necessary, implementation-free, unambiguous, consistent, complete, singular, feasible, traceable, verifiable" (§5.2)"""
 
 [[domain]]
 abbr = "DOC"
-name = "Deliberate Omissions"
+name = "DOC"
+header = "DOC (DOC)"
 standards = []
-```
-`@/cpt:checklist`
 
-### Architecture Checks (ARCH)
+```
+````markdown
+# FEATURE Expert Checklist
+
+**Artifact**: Feature (FEATURE)
+**Version**: 2.0
+**Last Updated**: 2026-02-03
+**Purpose**: Comprehensive quality checklist for FEATURE artifacts
+
+---
+
+## Referenced Standards
+
+This checklist validates FEATURE artifacts based on the following international standards:
+
+| Standard | Domain | Description |
+|----------|--------|-------------|
+| [IEEE 1016-2009](https://standards.ieee.org/ieee/1016/4502/) | **Design Description** | Software Design Descriptions — detailed design viewpoint, design entities |
+| [ISO/IEC/IEEE 29148:2018](https://www.iso.org/standard/72089.html) | **Requirements Notation** | Requirements engineering — behavioral requirements, shall notation, traceability |
+| [ISO/IEC 25010:2011](https://www.iso.org/standard/35733.html) | **Quality Model** | SQuaRE — 8 quality characteristics: performance, security, reliability, maintainability |
+| [ISO/IEC/IEEE 29119-3:2021](https://www.iso.org/standard/79429.html) | **Test Documentation** | Software testing — test specification, acceptance criteria |
+| [OWASP ASVS 5.0](https://owasp.org/www-project-application-security-verification-standard/) | **Security Verification** | Application security requirements — authentication, authorization, input validation |
+| [WCAG 2.2](https://www.w3.org/TR/WCAG22/) | **Accessibility** | Web Content Accessibility Guidelines — POUR principles, Level AA |
+---
+
+## Review Scope Selection
+
+**Choose review mode based on feature complexity and risk**:
+
+| Review Mode | When to Use | Domains to Check |
+|-------------|-------------|------------------|
+| **Quick** | Simple CRUD, minor updates | ARCH (core) + BIZ + changed domains |
+| **Standard** | New feature, moderate complexity | All applicable domains |
+| **Full** | Security-sensitive, complex logic | All 12 domains with evidence |
+
+### Quick Review (Core Items Only)
+
+**MUST CHECK** (blocking):
+- [ ] ARCH-FDESIGN-001: Feature Context Completeness
+- [ ] ARCH-FDESIGN-003: Actor Flow Completeness
+- [ ] BIZ-FDESIGN-001: Requirements Alignment
+- [ ] DOC-FDESIGN-001: Explicit Non-Applicability
+
+**Changed sections** — also check relevant domain items for any sections modified.
+
+### Domain Prioritization by Feature Type
+
+| Feature Type | Priority Domains (check first) | Secondary Domains | Often N/A |
+|--------------|-------------------------------|-------------------|-----------|
+| **User-facing UI** | ARCH, UX, SEC, TEST | PERF, REL, DATA | OPS, INT, COMPL |
+| **Backend API** | ARCH, SEC, DATA, INT | PERF, REL, TEST | UX, COMPL |
+| **Data Processing** | ARCH, DATA, PERF, REL | INT, TEST | SEC, UX, OPS, COMPL |
+| **CLI Command** | ARCH, MAINT, TEST | DATA, INT | SEC, PERF, UX, OPS, COMPL |
+| **Integration/Webhook** | ARCH, INT, SEC, REL | DATA, TEST | UX, PERF, OPS, COMPL |
+| **Auth/Security** | SEC, ARCH, DATA, REL | TEST, COMPL | UX, PERF, OPS, INT |
+
+**Applicability Rule**: Domains in "Often N/A" column still require explicit "Not applicable because..." statement in document if skipped.
+
+---
+
+## Prerequisites
+
+Before starting the review, confirm:
+
+- [ ] I understand this checklist validates FEATURE artifacts
+- [ ] I will follow the Applicability Context rules below
+- [ ] I will check ALL items in MUST HAVE sections
+- [ ] I will verify ALL items in MUST NOT HAVE sections
+- [ ] I will document any violations found
+- [ ] I will provide specific feedback for each failed check
+- [ ] I will complete the Final Checklist and provide a review report
+
+---
+
+## Applicability Context
+
+Before evaluating each checklist item, the expert MUST:
+
+1. **Understand the feature's domain** — What kind of feature is this? (e.g., user-facing UI feature, backend API feature, data processing pipeline, CLI command)
+
+2. **Determine applicability for each requirement** — Not all checklist items apply to all features:
+   - A simple CRUD feature may not need complex State Management analysis
+   - A read-only feature may not need Data Integrity analysis
+   - A CLI feature may not need UI/UX analysis
+
+3. **Require explicit handling** — For each checklist item:
+   - If applicable: The document MUST address it (present and complete)
+   - If not applicable: The document MUST explicitly state "Not applicable because..." with reasoning
+   - If missing without explanation: Report as violation
+
+4. **Never skip silently** — The expert MUST NOT skip a requirement just because it's not mentioned. Either:
+   - The requirement is met (document addresses it), OR
+   - The requirement is explicitly marked not applicable (document explains why), OR
+   - The requirement is violated (report it with applicability justification)
+
+**Key principle**: The reviewer must be able to distinguish "author considered and excluded" from "author forgot"
+
+---
+
+## Severity Dictionary
+
+- **CRITICAL**: Unsafe/misleading/unverifiable; blocks downstream work.
+- **HIGH**: Major ambiguity/risk; should be fixed before approval.
+- **MEDIUM**: Meaningful improvement; fix when feasible.
+- **LOW**: Minor improvement; optional.
+````
+`@/cpt:checklist`
 
 `@cpt:check`
 ```toml
@@ -528,15 +779,15 @@ id = "ARCH-FDESIGN-001"
 domain = "ARCH"
 title = "Feature Context Completeness"
 severity = "CRITICAL"
-ref = "IEEE 1016-2009 §5.4.1"
+ref = "IEEE 1016-2009 §5.4.1 (Design entity attributes)"
 kind = "must_have"
 ```
 ```markdown
-- [ ] Feature identifier is present and stable
+- [ ] Feature identifier is present and stable (unique within the project)
 - [ ] Feature status documented
 - [ ] Overall Design reference present
 - [ ] Requirements source reference present
-- [ ] Actors/user roles defined and referenced consistently
+- [ ] Actors/user roles are defined and referenced consistently
 - [ ] Feature scope clearly stated
 - [ ] Feature boundaries explicit
 - [ ] Out-of-scope items documented
@@ -552,10 +803,11 @@ severity = "CRITICAL"
 kind = "must_have"
 ```
 ```markdown
-- [ ] Shared types/schemas referenced from canonical source
-- [ ] Shared APIs/contracts referenced from canonical source
-- [ ] Architectural decisions consistent with design baseline
-- [ ] Domain concepts referenced consistently with canonical domain model
+- [ ] Any shared types/schemas are referenced from a canonical source (architecture doc, schema repo, API contract)
+- [ ] Any shared APIs/contracts are referenced from a canonical source (API documentation/spec)
+- [ ] Architectural decisions are consistent with the architecture and design baseline (if it exists)
+- [ ] Domain concepts are referenced consistently with the canonical domain model (if it exists)
+- [ ] API endpoints/contracts are referenced consistently with the canonical API documentation (if it exists)
 - [ ] Principles compliance documented
 ```
 `@/cpt:check`
@@ -569,13 +821,13 @@ severity = "CRITICAL"
 kind = "must_have"
 ```
 ```markdown
-- [ ] Flows/user-journeys section exists and is sufficiently detailed
+- [ ] A flows/user-journeys section exists and is sufficiently detailed
 - [ ] All user-facing functionality has actor flows
-- [ ] Each flow has a unique name/identifier
+- [ ] Each flow has a unique name/identifier within the document
 - [ ] Flows cover happy path
 - [ ] Flows cover error paths
 - [ ] Flows cover edge cases
-- [ ] Actor/user roles defined consistently with requirements
+- [ ] Actor/user roles are defined consistently with the requirements document
 ```
 `@/cpt:check`
 
@@ -588,9 +840,9 @@ severity = "CRITICAL"
 kind = "must_have"
 ```
 ```markdown
-- [ ] Algorithms/business-rules section exists and is sufficiently detailed
+- [ ] A algorithms/business-rules section exists and is sufficiently detailed
 - [ ] All business logic has algorithms
-- [ ] Each algorithm has a unique name/identifier
+- [ ] Each algorithm has a unique name/identifier within the document
 - [ ] Algorithms are deterministic and testable
 - [ ] Input/output clearly defined
 - [ ] Error handling documented
@@ -607,12 +859,13 @@ severity = "HIGH"
 kind = "must_have"
 ```
 ```markdown
-- [ ] States/state-machine section exists when stateful behavior is present
+- [ ] A states/state-machine section exists when stateful behavior is present (can be minimal)
 - [ ] Stateful components have state definitions
 - [ ] State transitions define explicit triggers/conditions
 - [ ] Valid states enumerated
 - [ ] Transition guards documented
 - [ ] Invalid state transitions documented
+- [ ] State persistence documented (if applicable)
 ```
 `@/cpt:check`
 
@@ -647,10 +900,9 @@ kind = "must_have"
 - [ ] Plugin/hook opportunities documented
 - [ ] Configuration options documented
 - [ ] Feature flags integration documented
+- [ ] Versioning considerations documented
 ```
 `@/cpt:check`
-
-### Semantic Alignment Checks (SEM)
 
 `@cpt:check`
 ```toml
@@ -658,7 +910,7 @@ id = "SEM-FDESIGN-001"
 domain = "SEM"
 title = "PRD Coverage Integrity"
 severity = "CRITICAL"
-ref = "ISO/IEC/IEEE 29148:2018 §6.5"
+ref = "ISO/IEC/IEEE 29148:2018 §6.5 (Traceability)"
 kind = "must_have"
 ```
 ```markdown
@@ -679,7 +931,7 @@ kind = "must_have"
 ```
 ```markdown
 - [ ] Feature design adheres to design principles referenced in the Overall Design
-- [ ] Feature design respects all design constraints
+- [ ] Feature design respects all design constraints and does not bypass them
 - [ ] Any constraint exception is explicitly documented with rationale
 ```
 `@/cpt:check`
@@ -709,8 +961,8 @@ severity = "HIGH"
 kind = "must_have"
 ```
 ```markdown
-- [ ] Actor flows, algorithms, and state machines are consistent with design context
-- [ ] DoD mappings cover required design references
+- [ ] Actor flows, algorithms, and state machines are consistent with the design context
+- [ ] Definition of Done mappings cover required design references (principles, constraints, components, sequences, tables)
 - [ ] Any semantic deviation from design is documented and approved
 ```
 `@/cpt:check`
@@ -725,14 +977,13 @@ kind = "must_have"
 ```
 ```markdown
 - [ ] Feature ID matches the entry in the DECOMPOSITION
-- [ ] Purpose, scope, and out-of-scope items align with DECOMPOSITION entry
-- [ ] Dependencies match the DECOMPOSITION dependency list
+- [ ] Purpose, scope, and out-of-scope items align with the DECOMPOSITION entry
+- [ ] Dependencies in the feature design match the DECOMPOSITION dependency list
 - [ ] Requirements covered (FR/NFR) match the DECOMPOSITION mapping
-- [ ] Design elements covered match the DECOMPOSITION entry
+- [ ] Design principles and constraints covered match the DECOMPOSITION mapping
+- [ ] Domain entities, components, APIs, sequences, and data tables match the DECOMPOSITION entry
 ```
 `@/cpt:check`
-
-### Performance Checks (PERF)
 
 `@cpt:check`
 ```toml
@@ -740,14 +991,14 @@ id = "PERF-FDESIGN-001"
 domain = "PERF"
 title = "Performance-Critical Paths"
 severity = "HIGH"
-ref = "ISO/IEC 25010:2011 §4.2.2"
+ref = "ISO/IEC 25010:2011 §4.2.2 (Performance efficiency)"
 kind = "must_have"
-applicable_when = "Performance-sensitive features"
 ```
 ```markdown
 - [ ] Hot paths identified
 - [ ] Latency-sensitive operations marked
 - [ ] Caching strategy documented
+- [ ] Batch processing opportunities identified
 - [ ] N+1 query prevention addressed
 - [ ] Database query optimization documented
 ```
@@ -760,13 +1011,13 @@ domain = "PERF"
 title = "Resource Management"
 severity = "HIGH"
 kind = "must_have"
-applicable_when = "Resource-intensive features"
 ```
 ```markdown
 - [ ] Memory allocation patterns documented
 - [ ] Connection pooling documented
 - [ ] Resource cleanup documented
 - [ ] Large data handling documented
+- [ ] Streaming approaches documented (if applicable)
 - [ ] Pagination documented (if applicable)
 ```
 `@/cpt:check`
@@ -782,8 +1033,10 @@ kind = "must_have"
 ```markdown
 - [ ] Concurrent access handling documented
 - [ ] Lock contention minimized
+- [ ] Stateless patterns used where possible
 - [ ] Horizontal scaling support documented
 - [ ] Rate limiting handled
+- [ ] Throttling documented
 ```
 `@/cpt:check`
 
@@ -800,10 +1053,9 @@ kind = "must_have"
 - [ ] Throughput targets stated
 - [ ] Resource usage limits stated
 - [ ] Performance test requirements documented
+- [ ] Baseline metrics identified
 ```
 `@/cpt:check`
-
-### Security Checks (SEC)
 
 `@cpt:check`
 ```toml
@@ -811,15 +1063,16 @@ id = "SEC-FDESIGN-001"
 domain = "SEC"
 title = "Authentication Integration"
 severity = "CRITICAL"
-ref = "OWASP ASVS V2; ISO 25010 §4.2.6"
+ref = "OWASP ASVS V2 (Authentication), ISO 25010 §4.2.6 (Authenticity)"
 kind = "must_have"
-applicable_when = "User-facing or API features"
 ```
 ```markdown
 - [ ] Authentication requirements documented
 - [ ] Session handling documented
 - [ ] Token validation documented
 - [ ] Authentication failure handling documented
+- [ ] Multi-factor requirements documented (if applicable)
+- [ ] Service-to-service auth documented (if applicable)
 ```
 `@/cpt:check`
 
@@ -830,7 +1083,6 @@ domain = "SEC"
 title = "Authorization Implementation"
 severity = "CRITICAL"
 kind = "must_have"
-applicable_when = "Features with access control"
 ```
 ```markdown
 - [ ] Permission checks documented in flows
@@ -838,6 +1090,7 @@ applicable_when = "Features with access control"
 - [ ] Resource-level authorization documented
 - [ ] Authorization failure handling documented
 - [ ] Privilege escalation prevention documented
+- [ ] Cross-tenant access prevention documented (if applicable)
 ```
 `@/cpt:check`
 
@@ -847,15 +1100,17 @@ id = "SEC-FDESIGN-003"
 domain = "SEC"
 title = "Input Validation"
 severity = "CRITICAL"
-ref = "OWASP ASVS V5"
+ref = "OWASP ASVS V5 (Validation, Sanitization), ISO 25010 §4.2.6 (Integrity)"
 kind = "must_have"
-applicable_when = "Features accepting user input"
 ```
 ```markdown
 - [ ] All inputs validated
 - [ ] Validation rules documented
 - [ ] Validation failure handling documented
-- [ ] Injection prevention documented
+- [ ] SQL injection prevention documented
+- [ ] XSS prevention documented
+- [ ] Command injection prevention documented
+- [ ] Path traversal prevention documented
 ```
 `@/cpt:check`
 
@@ -866,13 +1121,14 @@ domain = "SEC"
 title = "Data Protection"
 severity = "CRITICAL"
 kind = "must_have"
-applicable_when = "Features handling sensitive data"
 ```
 ```markdown
 - [ ] Sensitive data handling documented
 - [ ] PII handling documented
 - [ ] Encryption requirements documented
+- [ ] Data masking documented (if applicable)
 - [ ] Secure data transmission documented
+- [ ] Data sanitization documented
 ```
 `@/cpt:check`
 
@@ -883,12 +1139,14 @@ domain = "SEC"
 title = "Audit Trail"
 severity = "HIGH"
 kind = "must_have"
-applicable_when = "Auditable operations"
 ```
 ```markdown
 - [ ] Auditable actions identified
 - [ ] Audit logging documented
 - [ ] User attribution documented
+- [ ] Timestamp handling documented
+- [ ] Audit data retention documented
+- [ ] Non-repudiation requirements documented
 ```
 `@/cpt:check`
 
@@ -899,16 +1157,15 @@ domain = "SEC"
 title = "Security Error Handling"
 severity = "HIGH"
 kind = "must_have"
-applicable_when = "Security-sensitive features"
 ```
 ```markdown
 - [ ] Security errors don't leak information
 - [ ] Error messages are safe
+- [ ] Stack traces hidden from users
+- [ ] Timing attacks mitigated
 - [ ] Rate limiting on security operations documented
 ```
 `@/cpt:check`
-
-### Reliability Checks (REL)
 
 `@cpt:check`
 ```toml
@@ -916,7 +1173,7 @@ id = "REL-FDESIGN-001"
 domain = "REL"
 title = "Error Handling Completeness"
 severity = "CRITICAL"
-ref = "ISO/IEC 25010:2011 §4.2.5"
+ref = "ISO/IEC 25010:2011 §4.2.5 (Fault tolerance, Recoverability)"
 kind = "must_have"
 ```
 ```markdown
@@ -936,12 +1193,12 @@ domain = "REL"
 title = "Fault Tolerance"
 severity = "HIGH"
 kind = "must_have"
-applicable_when = "Features with external dependencies"
 ```
 ```markdown
 - [ ] External dependency failures handled
 - [ ] Timeout handling documented
 - [ ] Retry logic documented
+- [ ] Circuit breaker integration documented
 - [ ] Fallback behavior documented
 - [ ] Graceful degradation documented
 ```
@@ -953,15 +1210,15 @@ id = "REL-FDESIGN-003"
 domain = "REL"
 title = "Data Integrity"
 severity = "CRITICAL"
-ref = "ISO/IEC 25010:2011 §4.2.6.2"
+ref = "ISO/IEC 25010:2011 §4.2.6.2 (Integrity)"
 kind = "must_have"
-applicable_when = "Features with data mutations"
 ```
 ```markdown
 - [ ] Transaction boundaries documented
 - [ ] Consistency guarantees documented
 - [ ] Concurrent modification handling documented
 - [ ] Idempotency documented (where applicable)
+- [ ] Data validation before persistence documented
 - [ ] Rollback scenarios documented
 ```
 `@/cpt:check`
@@ -973,16 +1230,32 @@ domain = "REL"
 title = "Resilience Patterns"
 severity = "MEDIUM"
 kind = "must_have"
-applicable_when = "Distributed or high-availability features"
 ```
 ```markdown
 - [ ] Bulkhead patterns documented (if applicable)
 - [ ] Backpressure handling documented
+- [ ] Queue overflow handling documented
 - [ ] Resource exhaustion handling documented
+- [ ] Deadlock prevention documented
 ```
 `@/cpt:check`
 
-### Data Checks (DATA)
+`@cpt:check`
+```toml
+id = "REL-FDESIGN-005"
+domain = "REL"
+title = "Recovery Procedures"
+severity = "MEDIUM"
+kind = "must_have"
+```
+```markdown
+- [ ] Recovery from partial failure documented
+- [ ] Data reconciliation documented
+- [ ] Manual intervention procedures documented
+- [ ] Compensating transactions documented (if applicable)
+- [ ] State recovery documented
+```
+`@/cpt:check`
 
 `@cpt:check`
 ```toml
@@ -991,13 +1264,14 @@ domain = "DATA"
 title = "Data Access Patterns"
 severity = "HIGH"
 kind = "must_have"
-applicable_when = "Features with data operations"
 ```
 ```markdown
 - [ ] Read patterns documented
 - [ ] Write patterns documented
 - [ ] Query patterns documented
 - [ ] Index usage documented
+- [ ] Join patterns documented
+- [ ] Aggregation patterns documented
 ```
 `@/cpt:check`
 
@@ -1008,12 +1282,13 @@ domain = "DATA"
 title = "Data Validation"
 severity = "CRITICAL"
 kind = "must_have"
-applicable_when = "Features accepting data input"
 ```
 ```markdown
 - [ ] Business rule validation documented
 - [ ] Format validation documented
+- [ ] Range validation documented
 - [ ] Referential integrity validation documented
+- [ ] Uniqueness validation documented
 - [ ] Validation error messages documented
 ```
 `@/cpt:check`
@@ -1025,11 +1300,12 @@ domain = "DATA"
 title = "Data Transformation"
 severity = "HIGH"
 kind = "must_have"
-applicable_when = "Features with data transformations"
 ```
 ```markdown
 - [ ] Input transformation documented
 - [ ] Output transformation documented
+- [ ] Data mapping documented
+- [ ] Format conversion documented
 - [ ] Null handling documented
 - [ ] Default value handling documented
 ```
@@ -1042,13 +1318,14 @@ domain = "DATA"
 title = "Data Lifecycle"
 severity = "MEDIUM"
 kind = "must_have"
-applicable_when = "Features with data persistence"
 ```
 ```markdown
 - [ ] Data creation documented
 - [ ] Data update documented
 - [ ] Data deletion documented
+- [ ] Data archival documented (if applicable)
 - [ ] Data retention compliance documented
+- [ ] Data migration considerations documented
 ```
 `@/cpt:check`
 
@@ -1057,19 +1334,18 @@ applicable_when = "Features with data persistence"
 id = "DATA-FDESIGN-005"
 domain = "DATA"
 title = "Data Privacy"
-severity = "HIGH"
+severity = "HIGH (if applicable)"
 kind = "must_have"
-applicable_when = "Features handling PII"
 ```
 ```markdown
 - [ ] PII handling documented
 - [ ] Data minimization applied
 - [ ] Consent handling documented
+- [ ] Data subject rights support documented
+- [ ] Cross-border transfer handling documented
 - [ ] Anonymization/pseudonymization documented
 ```
 `@/cpt:check`
-
-### Integration Checks (INT)
 
 `@cpt:check`
 ```toml
@@ -1078,13 +1354,13 @@ domain = "INT"
 title = "API Interactions"
 severity = "HIGH"
 kind = "must_have"
-applicable_when = "Features with API calls"
 ```
 ```markdown
 - [ ] API calls documented with method + path
 - [ ] Request construction documented
 - [ ] Response handling documented
 - [ ] Error response handling documented
+- [ ] Rate limiting handling documented
 - [ ] Retry behavior documented
 ```
 `@/cpt:check`
@@ -1096,13 +1372,14 @@ domain = "INT"
 title = "Database Operations"
 severity = "HIGH"
 kind = "must_have"
-applicable_when = "Features with DB operations"
 ```
 ```markdown
 - [ ] DB operations documented with operation + table
 - [ ] Query patterns documented
 - [ ] Transaction usage documented
+- [ ] Connection management documented
 - [ ] Query parameterization documented
+- [ ] Result set handling documented
 ```
 `@/cpt:check`
 
@@ -1111,15 +1388,16 @@ applicable_when = "Features with DB operations"
 id = "INT-FDESIGN-003"
 domain = "INT"
 title = "External Integrations"
-severity = "HIGH"
+severity = "HIGH (if applicable)"
 kind = "must_have"
-applicable_when = "Features with external system calls"
 ```
 ```markdown
 - [ ] External system calls documented
 - [ ] Integration authentication documented
 - [ ] Timeout configuration documented
 - [ ] Failure handling documented
+- [ ] Data format translation documented
+- [ ] Version compatibility documented
 ```
 `@/cpt:check`
 
@@ -1128,15 +1406,16 @@ applicable_when = "Features with external system calls"
 id = "INT-FDESIGN-004"
 domain = "INT"
 title = "Event/Message Handling"
-severity = "MEDIUM"
+severity = "MEDIUM (if applicable)"
 kind = "must_have"
-applicable_when = "Features with event/message patterns"
 ```
 ```markdown
 - [ ] Event publishing documented
 - [ ] Event consumption documented
 - [ ] Message format documented
+- [ ] Ordering guarantees documented
 - [ ] Delivery guarantees documented
+- [ ] Dead letter handling documented
 ```
 `@/cpt:check`
 
@@ -1145,18 +1424,18 @@ applicable_when = "Features with event/message patterns"
 id = "INT-FDESIGN-005"
 domain = "INT"
 title = "Cache Integration"
-severity = "MEDIUM"
+severity = "MEDIUM (if applicable)"
 kind = "must_have"
-applicable_when = "Features using caching"
 ```
 ```markdown
-- [ ] Cache read/write patterns documented
+- [ ] Cache read patterns documented
+- [ ] Cache write patterns documented
 - [ ] Cache invalidation documented
+- [ ] Cache miss handling documented
 - [ ] Cache TTL documented
+- [ ] Cache consistency documented
 ```
 `@/cpt:check`
-
-### Operations Checks (OPS)
 
 `@cpt:check`
 ```toml
@@ -1165,13 +1444,14 @@ domain = "OPS"
 title = "Observability"
 severity = "HIGH"
 kind = "must_have"
-applicable_when = "Deployed features"
 ```
 ```markdown
 - [ ] Logging points documented
 - [ ] Log levels documented
 - [ ] Metrics collection documented
+- [ ] Tracing integration documented
 - [ ] Correlation ID handling documented
+- [ ] Debug information documented
 ```
 `@/cpt:check`
 
@@ -1186,6 +1466,9 @@ kind = "must_have"
 ```markdown
 - [ ] Configuration parameters documented
 - [ ] Default values documented
+- [ ] Configuration validation documented
+- [ ] Runtime configuration documented
+- [ ] Environment-specific configuration documented
 - [ ] Feature flags documented
 ```
 `@/cpt:check`
@@ -1197,11 +1480,13 @@ domain = "OPS"
 title = "Health & Diagnostics"
 severity = "MEDIUM"
 kind = "must_have"
-applicable_when = "Service features"
 ```
 ```markdown
 - [ ] Health check contributions documented
+- [ ] Diagnostic endpoints documented
+- [ ] Self-healing behavior documented
 - [ ] Troubleshooting guidance documented
+- [ ] Common issues documented
 ```
 `@/cpt:check`
 
@@ -1212,16 +1497,13 @@ domain = "OPS"
 title = "Rollout & Rollback"
 severity = "HIGH"
 kind = "must_have"
-applicable_when = "Features requiring phased rollout"
 ```
 ```markdown
-- [ ] Rollout strategy documented when applicable
-- [ ] Rollback strategy documented
-- [ ] Data migration/backward compatibility addressed when applicable
+- [ ] Rollout strategy is documented (phased rollout, feature flag, etc.) when applicable
+- [ ] Rollback strategy is documented
+- [ ] Data migration/backward compatibility considerations are addressed when applicable
 ```
 `@/cpt:check`
-
-### Maintainability Checks (MAINT)
 
 `@cpt:check`
 ```toml
@@ -1229,13 +1511,14 @@ id = "MAINT-FDESIGN-001"
 domain = "MAINT"
 title = "Code Organization"
 severity = "MEDIUM"
-ref = "ISO/IEC 25010:2011 §4.2.7"
+ref = "ISO/IEC 25010:2011 §4.2.7 (Modularity, Modifiability)"
 kind = "must_have"
 ```
 ```markdown
 - [ ] Module structure implied
 - [ ] Separation of concerns evident
 - [ ] Single responsibility evident
+- [ ] Dependency injection opportunities identified
 - [ ] Interface boundaries clear
 ```
 `@/cpt:check`
@@ -1252,7 +1535,9 @@ kind = "must_have"
 - [ ] Flows self-documenting
 - [ ] Complex logic explained
 - [ ] Business rules documented
+- [ ] Assumptions documented
 - [ ] Edge cases documented
+- [ ] Examples provided where helpful
 ```
 `@/cpt:check`
 
@@ -1268,10 +1553,10 @@ kind = "must_have"
 - [ ] Known limitations documented
 - [ ] Workarounds documented
 - [ ] Future improvement opportunities noted
+- [ ] Deprecation plans documented (if applicable)
+- [ ] Migration considerations documented
 ```
 `@/cpt:check`
-
-### Testing Checks (TEST)
 
 `@cpt:check`
 ```toml
@@ -1279,7 +1564,7 @@ id = "TEST-FDESIGN-001"
 domain = "TEST"
 title = "Testability"
 severity = "HIGH"
-ref = "ISO/IEC 25010:2011 §4.2.7.5; ISO/IEC/IEEE 29119-3:2021"
+ref = "ISO/IEC 25010:2011 §4.2.7.5 (Testability), ISO/IEC/IEEE 29119-3:2021"
 kind = "must_have"
 ```
 ```markdown
@@ -1288,6 +1573,7 @@ kind = "must_have"
 - [ ] States are testable (verifiable transitions)
 - [ ] Mock boundaries clear
 - [ ] Test data requirements documented
+- [ ] Test isolation achievable
 ```
 `@/cpt:check`
 
@@ -1305,6 +1591,7 @@ kind = "must_have"
 - [ ] E2E test scenarios documented
 - [ ] Edge case tests identified
 - [ ] Error path tests identified
+- [ ] Performance test targets identified
 ```
 `@/cpt:check`
 
@@ -1318,28 +1605,29 @@ kind = "must_have"
 ```
 ```markdown
 - [ ] Each requirement has verifiable criteria
-- [ ] Criteria are unambiguous and measurable
-- [ ] Criteria cover happy path and error paths
+- [ ] Criteria are unambiguous
+- [ ] Criteria are measurable
+- [ ] Criteria cover happy path
+- [ ] Criteria cover error paths
 - [ ] Criteria testable automatically
 ```
 `@/cpt:check`
-
-### Compliance Checks (COMPL)
 
 `@cpt:check`
 ```toml
 id = "COMPL-FDESIGN-001"
 domain = "COMPL"
 title = "Regulatory Compliance"
-severity = "HIGH"
+severity = "HIGH (if applicable)"
 kind = "must_have"
-applicable_when = "Regulated features"
 ```
 ```markdown
 - [ ] Compliance requirements addressed
 - [ ] Audit trail requirements met
 - [ ] Data handling compliant
 - [ ] Consent handling compliant
+- [ ] Retention requirements met
+- [ ] Reporting requirements addressed
 ```
 `@/cpt:check`
 
@@ -1348,18 +1636,18 @@ applicable_when = "Regulated features"
 id = "COMPL-FDESIGN-002"
 domain = "COMPL"
 title = "Privacy Compliance"
-severity = "HIGH"
+severity = "HIGH (if applicable)"
 kind = "must_have"
-applicable_when = "Features handling personal data"
 ```
 ```markdown
 - [ ] Privacy by design evident
 - [ ] Data minimization applied
+- [ ] Purpose limitation documented
+- [ ] Consent handling documented
 - [ ] Data subject rights supported
+- [ ] Cross-border considerations addressed
 ```
 `@/cpt:check`
-
-### Usability Checks (UX)
 
 `@cpt:check`
 ```toml
@@ -1367,15 +1655,15 @@ id = "UX-FDESIGN-001"
 domain = "UX"
 title = "User Experience Flows"
 severity = "MEDIUM"
-ref = "ISO/IEC 25010:2011 §4.2.4"
+ref = "ISO/IEC 25010:2011 §4.2.4 (Usability)"
 kind = "must_have"
-applicable_when = "User-facing features"
 ```
 ```markdown
 - [ ] User journey clear
 - [ ] Feedback points documented
 - [ ] Error messages user-friendly
 - [ ] Loading states documented
+- [ ] Progress indication documented
 - [ ] Confirmation flows documented
 ```
 `@/cpt:check`
@@ -1385,19 +1673,18 @@ applicable_when = "User-facing features"
 id = "UX-FDESIGN-002"
 domain = "UX"
 title = "Accessibility"
-severity = "MEDIUM"
-ref = "WCAG 2.2 Level AA"
+severity = "MEDIUM (if applicable)"
+ref = "[WCAG 2.2](https://www.w3.org/TR/WCAG22/) Level AA, ISO/IEC 25010:2011 §4.2.4.6 (Accessibility)"
 kind = "must_have"
-applicable_when = "Web/UI features"
 ```
 ```markdown
 - [ ] Accessibility requirements addressed
 - [ ] Keyboard navigation supported
 - [ ] Screen reader support documented
+- [ ] Color contrast considered
+- [ ] Focus management documented
 ```
 `@/cpt:check`
-
-### Business Checks (BIZ)
 
 `@cpt:check`
 ```toml
@@ -1405,12 +1692,13 @@ id = "BIZ-FDESIGN-001"
 domain = "BIZ"
 title = "Requirements Alignment"
 severity = "CRITICAL"
-ref = "ISO/IEC/IEEE 29148:2018 §5.2"
+ref = "ISO/IEC/IEEE 29148:2018 §5.2 (Characteristics of requirements)"
 kind = "must_have"
 ```
 ```markdown
-- [ ] All feature requirements (DoD) documented
+- [ ] All feature requirements (Definitions of Done) documented
 - [ ] Requirements trace to PRD
+- [ ] Requirements trace to a roadmap/backlog item (if used)
 - [ ] Business rules accurately captured
 - [ ] Edge cases reflect business reality
 - [ ] Acceptance criteria business-verifiable
@@ -1430,10 +1718,9 @@ kind = "must_have"
 - [ ] User needs addressed
 - [ ] Business process supported
 - [ ] Success metrics achievable
+- [ ] ROI evident
 ```
 `@/cpt:check`
-
-### Documentation Checks (DOC)
 
 `@cpt:check`
 ```toml
@@ -1444,15 +1731,11 @@ severity = "CRITICAL"
 kind = "must_have"
 ```
 ```markdown
-- [ ] If a section or requirement is intentionally omitted, it is explicitly stated
-- [ ] No silent omissions
-- [ ] Reviewer can distinguish "considered and excluded" from "forgot"
+- [ ] If a section or requirement is intentionally omitted, it is explicitly stated in the document (e.g., "Not applicable because...")
+- [ ] No silent omissions — every major checklist area is either present or has a documented reason for absence
+- [ ] Reviewer can distinguish "author considered and excluded" from "author forgot"
 ```
 `@/cpt:check`
-
-### Anti-Pattern Checks (must_not_have)
-
-Content that does NOT belong in a FEATURE document.
 
 `@cpt:check`
 ```toml
@@ -1461,13 +1744,16 @@ domain = "ARCH"
 title = "No System-Level Type Redefinitions"
 severity = "CRITICAL"
 kind = "must_not_have"
-belongs_to = "Central domain model / schema documentation"
 ```
 ```markdown
-- [ ] No new system-wide entity/type definitions
+**What to check**:
+- [ ] No new system-wide entity/type definitions (define once in a canonical place)
 - [ ] No new value object definitions
 - [ ] No domain model changes
 - [ ] No schema definitions
+- [ ] No type aliases
+
+**Where it belongs**: Central domain model / schema documentation
 ```
 `@/cpt:check`
 
@@ -1478,13 +1764,16 @@ domain = "ARCH"
 title = "No New API Endpoints"
 severity = "CRITICAL"
 kind = "must_not_have"
-belongs_to = "API contract documentation"
 ```
 ```markdown
+**What to check**:
 - [ ] No new endpoint definitions
 - [ ] No new API contracts
 - [ ] No request/response schema definitions
+- [ ] No new HTTP methods on existing endpoints
 - [ ] Reference existing endpoints by ID only
+
+**Where it belongs**: API contract documentation (e.g., OpenAPI)
 ```
 `@/cpt:check`
 
@@ -1495,13 +1784,16 @@ domain = "ARCH"
 title = "No Architectural Decisions"
 severity = "HIGH"
 kind = "must_not_have"
-belongs_to = "ADR"
 ```
 ```markdown
+**What to check**:
 - [ ] No "we chose X over Y" discussions
 - [ ] No pattern selection justifications
 - [ ] No technology choice explanations
 - [ ] No pros/cons analysis
+- [ ] No decision debates
+
+**Where it belongs**: `ADR`
 ```
 `@/cpt:check`
 
@@ -1512,13 +1804,16 @@ domain = "BIZ"
 title = "No Product Requirements"
 severity = "HIGH"
 kind = "must_not_have"
-belongs_to = "PRD"
 ```
 ```markdown
+**What to check**:
 - [ ] No actor definitions (reference PRD)
 - [ ] No functional requirement definitions (reference PRD)
 - [ ] No use case definitions (reference PRD)
 - [ ] No NFR definitions (reference PRD)
+- [ ] No business vision
+
+**Where it belongs**: `PRD`
 ```
 `@/cpt:check`
 
@@ -1529,13 +1824,17 @@ domain = "BIZ"
 title = "No Sprint/Task Breakdowns"
 severity = "HIGH"
 kind = "must_not_have"
-belongs_to = "Project management tools"
 ```
 ```markdown
+**What to check**:
 - [ ] No sprint assignments
+- [ ] No task lists beyond phases
 - [ ] No effort estimates
 - [ ] No developer assignments
 - [ ] No timeline estimates
+- [ ] No Jira/Linear ticket references
+
+**Where it belongs**: Project management tools
 ```
 `@/cpt:check`
 
@@ -1546,14 +1845,17 @@ domain = "MAINT"
 title = "No Code Snippets"
 severity = "HIGH"
 kind = "must_not_have"
-belongs_to = "Source code repository"
 ```
 ```markdown
+**What to check**:
 - [ ] No production code
 - [ ] No code diffs
 - [ ] No implementation code
+- [ ] No configuration file contents
 - [ ] No SQL queries (describe operations instead)
 - [ ] No API request/response JSON
+
+**Where it belongs**: Source code repository
 ```
 `@/cpt:check`
 
@@ -1564,13 +1866,16 @@ domain = "TEST"
 title = "No Test Implementation"
 severity = "MEDIUM"
 kind = "must_not_have"
-belongs_to = "Test directories in source code"
 ```
 ```markdown
+**What to check**:
 - [ ] No test code
 - [ ] No test scripts
 - [ ] No test data files
+- [ ] No assertion implementations
 - [ ] No mock implementations
+
+**Where it belongs**: Test directories in source code
 ```
 `@/cpt:check`
 
@@ -1581,14 +1886,17 @@ domain = "SEC"
 title = "No Security Secrets"
 severity = "CRITICAL"
 kind = "must_not_have"
-belongs_to = "Secret management system"
 ```
 ```markdown
+**What to check**:
 - [ ] No API keys
 - [ ] No passwords
 - [ ] No certificates
 - [ ] No encryption keys
 - [ ] No connection strings with credentials
+- [ ] No tokens
+
+**Where it belongs**: Secret management system
 ```
 `@/cpt:check`
 
@@ -1599,15 +1907,19 @@ domain = "OPS"
 title = "No Infrastructure Code"
 severity = "MEDIUM"
 kind = "must_not_have"
-belongs_to = "Infrastructure code repository"
 ```
 ```markdown
+**What to check**:
 - [ ] No Terraform/CloudFormation
 - [ ] No Kubernetes manifests
 - [ ] No Docker configurations
 - [ ] No CI/CD pipeline definitions
+- [ ] No deployment scripts
+
+**Where it belongs**: Infrastructure code repository
 ```
 `@/cpt:check`
+
 
 ---
 

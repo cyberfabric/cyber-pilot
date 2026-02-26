@@ -62,9 +62,14 @@ sections = ["structural", "versioning", "semantic", "traceability", "constraints
 
 [tasks]
 phases = ["setup", "content_creation", "ids_and_structure", "quality_check"]
+[tasks.names]
+ids_and_structure = "IDs and Structure"
 
 [validation]
-sections = ["structural", "semantic"]
+phases = ["structural", "semantic", "validation_report"]
+[validation.names]
+structural = "Structural Validation (Deterministic)"
+semantic = "Semantic Validation (Checklist-based)"
 
 [error_handling]
 sections = ["missing_dependencies", "missing_adapter", "escalation"]
@@ -156,7 +161,15 @@ section = "constraints"
   - where IDs are defined
   - where IDs are referenced
   - which cross-artifact references are required / optional / prohibited
-- [ ] Automated validation: `cypilot validate` enforces identifier reference rules, headings scoping, and checkbox consistency
+
+**References**:
+- `{cypilot_path}/.core/requirements/kit-constraints.md`
+- `{cypilot_path}/.core/schemas/kit-constraints.schema.json`
+
+**Validation Checks**:
+- `cypilot validate` enforces `identifiers[<kind>].references` rules (required / optional / prohibited)
+- `cypilot validate` enforces headings scoping for ID definitions and references
+- `cypilot validate` enforces "checked ref implies checked def" consistency
 ```
 `@/cpt:rule`
 
@@ -205,8 +218,8 @@ kind = "tasks"
 section = "ids_and_structure"
 ```
 ```markdown
-- [ ] Generate actor IDs: `cpt-{hierarchy-prefix}-actor-{slug}`
-- [ ] Generate capability IDs: `cpt-{hierarchy-prefix}-fr-{slug}`
+- [ ] Generate actor IDs: `cpt-{hierarchy-prefix}-actor-{slug}` (e.g., `cpt-myapp-actor-admin-user`)
+- [ ] Generate capability IDs: `cpt-{hierarchy-prefix}-fr-{slug}` (e.g., `cpt-myapp-fr-user-management`)
 - [ ] Assign priorities based on business impact
 - [ ] Verify uniqueness with `cypilot list-ids`
 ```
@@ -261,6 +274,27 @@ section = "semantic"
 - [ ] Compare content depth to `examples/example.md`
   - Flag significant quality gaps
 ```
+`@/cpt:rule`
+
+#### Validation Report
+
+`@cpt:rule`
+```toml
+kind = "validation"
+section = "validation_report"
+```
+````markdown
+```
+PRD Validation Report
+═════════════════════
+
+Structural: PASS/FAIL
+Semantic: PASS/FAIL (N issues)
+
+Issues:
+- [SEVERITY] CHECKLIST-ID: Description
+```
+````
 `@/cpt:rule`
 
 ### Error Handling
@@ -335,95 +369,228 @@ Severity levels, review domains, and individual check items for PRD quality.
 `@cpt:checklist`
 ```toml
 [severity]
-# Descending order; each check item assigns exactly one
 levels = ["CRITICAL", "HIGH", "MEDIUM", "LOW"]
-# CRITICAL — blocks downstream work
-# HIGH     — fix before approval
-# MEDIUM   — fix when feasible
-# LOW      — optional improvement
 
 [review]
-# Recommended review order (subset of domains)
-priority = ["BIZ", "ARCH", "SEC", "TEST"]
-
-# Domain order below defines section sequence in generated checklist.md
-# Each @cpt:check references a domain by its `abbr`
+priority = ["BIZ", "ARCH", "SEC", "SAFE", "PERF", "REL", "UX", "MAINT", "COMPL", "DATA", "INT", "OPS", "TEST", "DOC"]
 
 [[domain]]
 abbr = "BIZ"
-name = "Business"
-standards = ["ISO/IEC/IEEE 29148:2018 §6.2 (StRS), §6.4 (SRS)"]
+name = "BUSINESS Expertise"
+header = "BUSINESS Expertise (BIZ)"
+standards_text = """> **Standards**: [ISO/IEC/IEEE 29148:2018](https://www.iso.org/standard/72089.html) §6.2 (StRS content), §6.4 (SRS content)"""
 
 [[domain]]
 abbr = "ARCH"
-name = "Architecture"
-standards = ["ISO/IEC 25010:2023 §4.2.7–8", "ISO/IEC/IEEE 29148 §6.3"]
+name = "ARCHITECTURE Expertise"
+header = "ARCHITECTURE Expertise (ARCH)"
+standards_text = """> **Standards**: [ISO/IEC 25010:2023](https://www.iso.org/standard/78176.html) (Maintainability, Flexibility), [ISO/IEC/IEEE 29148](https://www.iso.org/standard/72089.html) §6.3 (SyRS)"""
 
 [[domain]]
 abbr = "SEC"
-name = "Security"
-standards = ["ISO/IEC 25010:2023 §4.2.6", "OWASP ASVS 5.0", "NIST SP 800-53 Rev.5", "ISO/IEC 27001:2022"]
+name = "🔒 SECURITY Expertise"
+header = "🔒 SECURITY Expertise (SEC)"
+standards_text = """> **Standards**: [ISO/IEC 25010:2023](https://www.iso.org/standard/78176.html) §4.2.6 (Security), [OWASP ASVS 5.0](https://owasp.org/www-project-application-security-verification-standard/), [NIST SP 800-53 Rev.5](https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final), [ISO/IEC 27001:2022](https://www.iso.org/standard/27001)"""
 
 [[domain]]
 abbr = "SAFE"
-name = "Safety"
-standards = ["ISO/IEC 25010:2023 §4.2.9"]
-
-[[domain]]
-abbr = "TEST"
-name = "Testing"
-standards = ["ISO/IEC/IEEE 29119", "ISO/IEC/IEEE 29148 §5.2.8"]
+name = "🛡️ SAFETY Expertise"
+header = "🛡️ SAFETY Expertise (SAFE)"
+standards_text = """> **Standards**: [ISO/IEC 25010:2023](https://www.iso.org/standard/78176.html) §4.2.9 (Safety characteristic) — **NEW in 2023 edition**"""
 
 [[domain]]
 abbr = "PERF"
-name = "Performance"
-standards = ["ISO/IEC 25010:2023 §4.2.2"]
+name = "⚡ PERFORMANCE Expertise"
+header = "⚡ PERFORMANCE Expertise (PERF)"
+standards_text = """> **Standards**: [ISO/IEC 25010:2023](https://www.iso.org/standard/78176.html) §4.2.2 (Performance Efficiency)"""
 
 [[domain]]
 abbr = "REL"
-name = "Reliability"
-standards = ["ISO/IEC 25010:2023 §4.2.5", "ISO 22301:2019", "SOC 2 Availability"]
+name = "🛡️ RELIABILITY Expertise"
+header = "🛡️ RELIABILITY Expertise (REL)"
+standards_text = """> **Standards**: [ISO/IEC 25010:2023](https://www.iso.org/standard/78176.html) §4.2.5 (Reliability), [ISO 22301:2019](https://www.iso.org/standard/75106.html) (Business Continuity), SOC 2 Availability TSC"""
 
 [[domain]]
 abbr = "UX"
-name = "Usability"
-standards = ["ISO/IEC 25010:2023 §4.2.4", "ISO 9241-11:2018", "ISO 9241-210:2019", "WCAG 2.2"]
-
-[[domain]]
-abbr = "DATA"
-name = "Data"
-standards = ["GDPR", "ISO/IEC 25012"]
-
-[[domain]]
-abbr = "INT"
-name = "Integration"
-standards = ["ISO/IEC 25010:2023 §4.2.3"]
-
-[[domain]]
-abbr = "COMPL"
-name = "Compliance"
-standards = ["GDPR", "HIPAA", "PCI DSS 4.0.1", "SOC 2 TSC"]
+name = "👤 USABILITY Expertise"
+header = "👤 USABILITY Expertise (UX)"
+standards_text = """> **Standards**: [ISO/IEC 25010:2023](https://www.iso.org/standard/78176.html) §4.2.4 (Interaction Capability), [ISO 9241-11:2018](https://www.iso.org/standard/63500.html), [ISO 9241-210:2019](https://www.iso.org/standard/77520.html), [WCAG 2.2](https://www.w3.org/WAI/standards-guidelines/wcag/)"""
 
 [[domain]]
 abbr = "MAINT"
-name = "Maintainability"
-standards = ["ISO/IEC 25010:2023 §4.2.7"]
+name = "🔧 MAINTAINABILITY Expertise"
+header = "🔧 MAINTAINABILITY Expertise (MAINT)"
+standards_text = """> **Standards**: [ISO/IEC 25010:2023](https://www.iso.org/standard/78176.html) §4.2.7 (Maintainability)"""
+
+[[domain]]
+abbr = "COMPL"
+name = "📜 COMPLIANCE Expertise"
+header = "📜 COMPLIANCE Expertise (COMPL)"
+standards_text = """> **Standards**: [GDPR](https://gdpr-info.eu/), [HIPAA](https://www.hhs.gov/hipaa/for-professionals/security/laws-regulations/index.html), [PCI DSS 4.0.1](https://blog.pcisecuritystandards.org/pci-dss-v4-0-resource-hub), [SOC 2 TSC](https://www.aicpa-cima.com/resources/download/2017-trust-services-criteria-with-revised-points-of-focus-2022), [SOX](https://www.sec.gov/about/laws/soa2002.pdf)"""
+
+[[domain]]
+abbr = "DATA"
+name = "📊 DATA Expertise"
+header = "📊 DATA Expertise (DATA)"
+standards_text = """> **Standards**: [GDPR](https://gdpr-info.eu/) (personal data), [ISO/IEC 25012](https://www.iso.org/standard/35736.html) (Data Quality)"""
+
+[[domain]]
+abbr = "INT"
+name = "🔌 INTEGRATION Expertise"
+header = "🔌 INTEGRATION Expertise (INT)"
+standards_text = """> **Standards**: [ISO/IEC 25010:2023](https://www.iso.org/standard/78176.html) §4.2.3 (Compatibility — Interoperability)"""
 
 [[domain]]
 abbr = "OPS"
-name = "Operations"
-standards = ["ISO 22301:2019", "NIST 800-53 CM/CP"]
+name = "🖥️ OPERATIONS Expertise"
+header = "🖥️ OPERATIONS Expertise (OPS)"
+standards_text = """> **Standards**: [ISO 22301:2019](https://www.iso.org/standard/75106.html) (Business Continuity), NIST 800-53 CM/CP families"""
+
+[[domain]]
+abbr = "TEST"
+name = "🧪 TESTING Expertise"
+header = "🧪 TESTING Expertise (TEST)"
+standards_text = """> **Standards**: [ISO/IEC/IEEE 29119](https://www.iso.org/standard/81291.html) (Software Testing), [ISO/IEC/IEEE 29148](https://www.iso.org/standard/72089.html) §5.2.8 (Verification)"""
 
 [[domain]]
 abbr = "DOC"
-name = "Documentation"
+name = "DOC"
+header = "DOC (DOC)"
 standards = []
+
 ```
+````markdown
+# PRD Expert Checklist
+
+**Artifact**: Product Requirements Document (PRD)
+**Version**: 1.2
+**Last Updated**: 2026-02-03
+**Purpose**: Comprehensive quality checklist for PRD artifacts
+
+---
+
+## Referenced Standards
+
+This checklist incorporates requirements and best practices from the following international standards:
+
+| Standard | Domain | Description |
+|----------|--------|-------------|
+| [ISO/IEC/IEEE 29148:2018](https://www.iso.org/standard/72089.html) | Requirements Engineering | Life cycle processes for requirements engineering (supersedes IEEE 830) |
+| [ISO/IEC 25010:2023](https://www.iso.org/standard/78176.html) | Software Quality | Product quality model with 9 characteristics |
+| [ISO/IEC 27001:2022](https://www.iso.org/standard/27001) | Information Security | ISMS requirements |
+| [ISO 22301:2019](https://www.iso.org/standard/75106.html) | Business Continuity | BCMS requirements |
+| [ISO 9241-11:2018](https://www.iso.org/standard/63500.html) | Usability | Usability definitions and framework |
+| [ISO 9241-210:2019](https://www.iso.org/standard/77520.html) | Human-Centred Design | HCD for interactive systems |
+| [WCAG 2.2](https://www.w3.org/WAI/standards-guidelines/wcag/) | Accessibility | Web Content Accessibility Guidelines |
+| [OWASP ASVS 5.0](https://owasp.org/www-project-application-security-verification-standard/) | Application Security | Security verification requirements |
+| [NIST SP 800-53 Rev.5](https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final) | Security Controls | Security and privacy controls catalog |
+| [RFC 6749](https://datatracker.ietf.org/doc/html/rfc6749) | Authentication | OAuth 2.0 Authorization Framework |
+| [GDPR Art. 25](https://gdpr-info.eu/art-25-gdpr/) | Privacy | Data protection by design and default |
+| [HIPAA](https://www.hhs.gov/hipaa/for-professionals/security/laws-regulations/index.html) | Healthcare Privacy | Health information privacy and security |
+| [PCI DSS 4.0.1](https://blog.pcisecuritystandards.org/pci-dss-v4-0-resource-hub) | Payment Security | Payment card data security |
+| [SOC 2 TSC](https://www.aicpa-cima.com/resources/download/2017-trust-services-criteria-with-revised-points-of-focus-2022) | Trust Services | Security, availability, confidentiality, processing integrity, privacy |
+---
+
+## Prerequisites
+
+Before starting the review, confirm:
+
+- [ ] I understand this checklist validates PRD artifacts
+- [ ] I will follow the Applicability Context rules below
+- [ ] I will check ALL items in MUST HAVE sections
+- [ ] I will verify ALL items in MUST NOT HAVE sections
+- [ ] I will document any violations found
+- [ ] I will provide specific feedback for each failed check
+- [ ] I will complete the Final Checklist and provide a review report
+- [ ] I will use the [Reporting](#reporting) format for output (see end of document)
+
+---
+
+## Applicability Context
+
+Before evaluating each checklist item, the expert MUST:
+
+1. **Understand the product's domain** — What kind of product is this PRD for? (e.g., consumer app, enterprise platform, developer tool, internal system)
+
+2. **Determine applicability for each requirement** — Not all checklist items apply to all PRDs:
+   - An internal tool PRD may not need market positioning analysis
+   - A developer framework PRD may not need end-user personas
+   - A methodology PRD may not need regulatory compliance analysis
+
+3. **Require explicit handling** — For each checklist item:
+   - If applicable: The document MUST address it (present and complete)
+   - If not applicable: The document MUST explicitly state "Not applicable because..." with reasoning
+   - If missing without explanation: Report as violation
+
+4. **Never skip silently** — The expert MUST NOT skip a requirement just because it's not mentioned. Either:
+   - The requirement is met (document addresses it), OR
+   - The requirement is explicitly marked not applicable (document explains why), OR
+   - The requirement is violated (report it with applicability justification)
+
+**Key principle**: The reviewer must be able to distinguish "author considered and excluded" from "author forgot"
+
+---
+
+## Severity Dictionary
+
+- **CRITICAL**: Unsafe/misleading/unverifiable; blocks downstream work.
+- **HIGH**: Major ambiguity/risk; should be fixed before approval.
+- **MEDIUM**: Meaningful improvement; fix when feasible.
+- **LOW**: Minor improvement; optional.
+
+---
+
+## Applicability Determination
+
+**For items marked "(if applicable)"**, determine applicability using these criteria:
+
+| Domain | Applicable When | Not Applicable When |
+|--------|-----------------|---------------------|
+| Market positioning (BIZ-PRD-002) | External product, competitive market | Internal tool, no competitors |
+| SSO/federation (SEC-PRD-001) | Enterprise product, multi-tenant | Single-user tool, local-only |
+| Privacy by Design (SEC-PRD-005) | Handles EU personal data, PII | No personal data processing |
+| Safety (SAFE-PRD-001/002) | Could harm people/property/environment, medical devices, vehicles, industrial | Pure information system, no physical interaction |
+| Regulatory (COMPL-PRD-001) | Handles PII, financial data, healthcare | Internal dev tool, no user data |
+| Accessibility (UX-PRD-002) | Public-facing, government, enterprise | Internal tool with known user base |
+| Inclusivity (UX-PRD-005) | Diverse user base, public-facing | Narrow technical audience, internal tool |
+| Internationalization (UX-PRD-003) | Multi-region deployment planned | Single-locale deployment |
+| Offline capability (UX-PRD-004) | Mobile app, unreliable network | Server-side tool, always-connected |
+
+**When uncertain**: Mark as applicable and let the PRD author explicitly exclude with reasoning.
+
+---
+
+## Checkpointing (Long Reviews)
+
+This checklist is 700+ lines. For reviews that may exceed context limits:
+
+### Checkpoint After Each Domain
+
+After completing each expertise domain (BIZ, ARCH, SEC, etc.), output:
+```
+✓ {DOMAIN} complete: {N} items checked, {M} issues found
+Issues: {list issue IDs}
+Remaining: {list unchecked domains}
+```
+
+### If Context Runs Low
+
+1. **Save progress**: List completed domains and issues found so far
+2. **Note position**: "Stopped at {DOMAIN}-{ID}"
+3. **Resume instruction**: "Continue from {DOMAIN}-{ID}, issues so far: {list}"
+
+### Minimum Viable Review
+
+If full review impossible, prioritize in this order:
+1. **BIZ** (CRITICAL) — Vision, Requirements, Use Cases
+2. **ARCH-PRD-001** (CRITICAL) — Scope Boundaries
+3. **SEC-PRD-001/002** (CRITICAL) — Auth/Authorization
+4. **DOC-PRD-001** (CRITICAL) — Deliberate Omissions
+5. **MUST NOT HAVE** (all CRITICAL/HIGH items)
+
+Mark review as "PARTIAL" if not all domains completed.
+````
 `@/cpt:checklist`
-
-### Business Checks (BIZ)
-
-Product vision, actors, scope, use cases, acceptance criteria.
 
 `@cpt:check`
 ```toml
@@ -450,7 +617,7 @@ id = "BIZ-PRD-002"
 domain = "BIZ"
 title = "Stakeholder Coverage"
 severity = "HIGH"
-ref = "ISO/IEC/IEEE 29148 §6.2.2 (Stakeholders), ISO 9241-210 §4"
+ref = "ISO/IEC/IEEE 29148 §6.2.2 (Stakeholders), ISO 9241-210 §4 (HCD principles)"
 kind = "must_have"
 ```
 ```markdown
@@ -468,7 +635,7 @@ id = "BIZ-PRD-003"
 domain = "BIZ"
 title = "Requirements Completeness"
 severity = "CRITICAL"
-ref = "ISO/IEC/IEEE 29148 §5.2.6, §6.4.3"
+ref = "ISO/IEC/IEEE 29148 §5.2.6 (Requirements analysis), §6.4.3 (Specific requirements)"
 kind = "must_have"
 ```
 ```markdown
@@ -503,7 +670,7 @@ id = "BIZ-PRD-005"
 domain = "BIZ"
 title = "Success Metrics"
 severity = "HIGH"
-ref = "ISO/IEC/IEEE 29148 §6.2.4, ISO 9241-11 §5"
+ref = "ISO/IEC/IEEE 29148 §6.2.4 (Operational concept), ISO 9241-11 §5 (Measures of usability)"
 kind = "must_have"
 ```
 ```markdown
@@ -559,17 +726,13 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-### Architecture Checks (ARCH)
-
-FR/NFR quality, measurability, and design-readiness.
-
 `@cpt:check`
 ```toml
 id = "ARCH-PRD-001"
 domain = "ARCH"
 title = "Scope Boundaries"
 severity = "CRITICAL"
-ref = "ISO/IEC/IEEE 29148 §6.3.2, §6.3.4"
+ref = "ISO/IEC/IEEE 29148 §6.3.2 (System overview), §6.3.4 (System interfaces)"
 kind = "must_have"
 ```
 ```markdown
@@ -587,7 +750,7 @@ id = "ARCH-PRD-002"
 domain = "ARCH"
 title = "Modularity Enablement"
 severity = "MEDIUM"
-ref = "ISO/IEC 25010:2023 §4.2.7.2"
+ref = "ISO/IEC 25010:2023 §4.2.7.2 (Modularity subcharacteristic)"
 kind = "must_have"
 ```
 ```markdown
@@ -605,7 +768,7 @@ id = "ARCH-PRD-003"
 domain = "ARCH"
 title = "Scalability Considerations"
 severity = "MEDIUM"
-ref = "ISO/IEC 25010:2023 §4.2.8.4"
+ref = "ISO/IEC 25010:2023 §4.2.8.4 (Scalability subcharacteristic of Flexibility)"
 kind = "must_have"
 ```
 ```markdown
@@ -623,7 +786,7 @@ id = "ARCH-PRD-004"
 domain = "ARCH"
 title = "System Actor Clarity"
 severity = "HIGH"
-ref = "ISO/IEC/IEEE 29148 §6.3.4"
+ref = "ISO/IEC/IEEE 29148 §6.3.4 (System interfaces)"
 kind = "must_have"
 ```
 ```markdown
@@ -641,10 +804,12 @@ id = "ARCH-PRD-005"
 domain = "ARCH"
 title = "Compatibility Requirements"
 severity = "MEDIUM"
-ref = "ISO/IEC 25010:2023 §4.2.3"
+ref = "[ISO/IEC 25010:2023](https://www.iso.org/standard/78176.html) §4.2.3 (Compatibility characteristic)"
 kind = "must_have"
 ```
 ```markdown
+> **New in v1.2**: Added per ISO/IEC 25010:2023 which defines Compatibility as a distinct quality characteristic covering co-existence and interoperability.
+
 - [ ] Co-existence requirements documented (operation alongside other products without adverse impact)
 - [ ] Interoperability requirements stated (ability to exchange information with other systems)
 - [ ] Data format compatibility requirements captured (file formats, protocols)
@@ -653,18 +818,14 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-### Security Checks (SEC)
-
 `@cpt:check`
 ```toml
 id = "SEC-PRD-001"
 domain = "SEC"
 title = "Authentication Requirements"
 severity = "CRITICAL"
-ref = "OWASP ASVS V2, RFC 6749, NIST 800-53 IA"
+ref = "OWASP ASVS V2 (Authentication), [RFC 6749](https://datatracker.ietf.org/doc/html/rfc6749) (OAuth 2.0), NIST 800-53 IA family"
 kind = "must_have"
-applicable_when = "Enterprise product, multi-tenant"
-not_applicable_when = "Single-user tool, local-only"
 ```
 ```markdown
 - [ ] User authentication needs stated
@@ -681,7 +842,7 @@ id = "SEC-PRD-002"
 domain = "SEC"
 title = "Authorization Requirements"
 severity = "CRITICAL"
-ref = "OWASP ASVS V4, NIST 800-53 AC, ISO 27001 A.9"
+ref = "OWASP ASVS V4 (Access Control), NIST 800-53 AC family, ISO 27001 A.9"
 kind = "must_have"
 ```
 ```markdown
@@ -699,7 +860,7 @@ id = "SEC-PRD-003"
 domain = "SEC"
 title = "Data Classification"
 severity = "HIGH"
-ref = "ISO/IEC 25010:2023 §4.2.6.2, NIST 800-53 SC, GDPR Art. 9"
+ref = "ISO/IEC 25010:2023 §4.2.6.2 (Confidentiality), NIST 800-53 SC family, [GDPR Art. 9](https://gdpr-info.eu/art-9-gdpr/)"
 kind = "must_have"
 ```
 ```markdown
@@ -717,7 +878,7 @@ id = "SEC-PRD-004"
 domain = "SEC"
 title = "Audit Requirements"
 severity = "MEDIUM"
-ref = "ISO/IEC 25010:2023 §4.2.6.5, NIST 800-53 AU, SOC 2 CC6/CC7"
+ref = "ISO/IEC 25010:2023 §4.2.6.5 (Accountability), NIST 800-53 AU family, SOC 2 CC6/CC7"
 kind = "must_have"
 ```
 ```markdown
@@ -734,13 +895,13 @@ kind = "must_have"
 id = "SEC-PRD-005"
 domain = "SEC"
 title = "Privacy by Design"
-severity = "HIGH"
-ref = "GDPR Article 25, EDPB Guidelines 4/2019"
+severity = "HIGH (if applicable)"
+ref = "[GDPR Article 25](https://gdpr-info.eu/art-25-gdpr/), [EDPB Guidelines 4/2019](https://www.edpb.europa.eu/sites/default/files/files/file1/edpb_guidelines_201904_dataprotection_by_design_and_by_default_v2.0_en.pdf)"
 kind = "must_have"
-applicable_when = "Handles EU personal data, PII"
-not_applicable_when = "No personal data processing"
 ```
 ```markdown
+> **New in v1.2**: Added per GDPR Article 25 requirement for data protection by design and by default. Applicable when processing personal data of EU residents or when building products that will handle PII.
+
 - [ ] Privacy requirements embedded from project inception (not retrofitted)
 - [ ] Data minimization principle stated (collect only what is necessary)
 - [ ] Purpose limitation documented (data used only for stated purposes)
@@ -750,18 +911,14 @@ not_applicable_when = "No personal data processing"
 ```
 `@/cpt:check`
 
-### Safety Checks (SAFE)
-
 `@cpt:check`
 ```toml
 id = "SAFE-PRD-001"
 domain = "SAFE"
 title = "Operational Safety Requirements"
-severity = "CRITICAL"
-ref = "ISO/IEC 25010:2023 §4.2.9.1, §4.2.9.2"
+severity = "CRITICAL (if applicable)"
+ref = "ISO/IEC 25010:2023 §4.2.9.1 (Operational constraint), §4.2.9.2 (Risk identification)"
 kind = "must_have"
-applicable_when = "Could harm people/property/environment, medical, vehicles, industrial"
-not_applicable_when = "Pure information system, no physical interaction"
 ```
 ```markdown
 - [ ] Safety-critical operations identified
@@ -777,11 +934,9 @@ not_applicable_when = "Pure information system, no physical interaction"
 id = "SAFE-PRD-002"
 domain = "SAFE"
 title = "Fail-Safe and Hazard Prevention"
-severity = "CRITICAL"
-ref = "ISO/IEC 25010:2023 §4.2.9.3–5"
+severity = "CRITICAL (if applicable)"
+ref = "ISO/IEC 25010:2023 §4.2.9.3 (Fail safe), §4.2.9.4 (Hazard warning), §4.2.9.5 (Safe integration)"
 kind = "must_have"
-applicable_when = "Could harm people/property/environment, medical, vehicles, industrial"
-not_applicable_when = "Pure information system, no physical interaction"
 ```
 ```markdown
 - [ ] Fail-safe behavior requirements documented (safe state on failure)
@@ -792,53 +947,13 @@ not_applicable_when = "Pure information system, no physical interaction"
 ```
 `@/cpt:check`
 
-### Testing Checks (TEST)
-
-`@cpt:check`
-```toml
-id = "TEST-PRD-001"
-domain = "TEST"
-title = "Acceptance Criteria"
-severity = "HIGH"
-ref = "ISO/IEC/IEEE 29148 §5.2.8, ISO/IEC/IEEE 29119-1 §4"
-kind = "must_have"
-```
-```markdown
-- [ ] Each functional requirement has verifiable acceptance criteria
-- [ ] Use cases define expected outcomes
-- [ ] NFRs have measurable thresholds
-- [ ] Edge cases are testable
-- [ ] Negative test cases implied
-```
-`@/cpt:check`
-
-`@cpt:check`
-```toml
-id = "TEST-PRD-002"
-domain = "TEST"
-title = "Testability"
-severity = "MEDIUM"
-ref = "ISO/IEC/IEEE 29148 §5.2.5, ISO/IEC 25010:2023 §4.2.7.4"
-kind = "must_have"
-```
-```markdown
-- [ ] Requirements are unambiguous enough to test (ISO 29148 §5.2.5)
-- [ ] Requirements don't use vague terms ("fast", "easy", "intuitive")
-- [ ] Requirements specify concrete behaviors
-- [ ] Requirements avoid compound statements (multiple "and"s)
-- [ ] Requirements can be independently verified
-```
-`@/cpt:check`
-
-### Performance Checks (PERF)
-
 `@cpt:check`
 ```toml
 id = "PERF-PRD-001"
 domain = "PERF"
 title = "Response Time Expectations"
 severity = "HIGH"
-ref = "ISO/IEC 25010:2023 §4.2.2.2"
+ref = "ISO/IEC 25010:2023 §4.2.2.2 (Time behaviour)"
 kind = "must_have"
 ```
 ```markdown
@@ -856,7 +971,7 @@ id = "PERF-PRD-002"
 domain = "PERF"
 title = "Throughput Requirements"
 severity = "MEDIUM"
-ref = "ISO/IEC 25010:2023 §4.2.2.3–4"
+ref = "ISO/IEC 25010:2023 §4.2.2.3 (Resource utilization), §4.2.2.4 (Capacity)"
 kind = "must_have"
 ```
 ```markdown
@@ -885,15 +1000,13 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-### Reliability Checks (REL)
-
 `@cpt:check`
 ```toml
 id = "REL-PRD-001"
 domain = "REL"
 title = "Availability Requirements"
 severity = "HIGH"
-ref = "ISO/IEC 25010:2023 §4.2.5.2, SOC 2 A1.1"
+ref = "ISO/IEC 25010:2023 §4.2.5.2 (Availability), SOC 2 A1.1"
 kind = "must_have"
 ```
 ```markdown
@@ -911,7 +1024,7 @@ id = "REL-PRD-002"
 domain = "REL"
 title = "Recovery Requirements"
 severity = "HIGH"
-ref = "ISO/IEC 25010:2023 §4.2.5.4, ISO 22301:2019 §8.4, NIST 800-53 CP"
+ref = "ISO/IEC 25010:2023 §4.2.5.4 (Recoverability), [ISO 22301:2019](https://www.iso.org/standard/75106.html) §8.4 (Business continuity plans), NIST 800-53 CP family"
 kind = "must_have"
 ```
 ```markdown
@@ -929,7 +1042,7 @@ id = "REL-PRD-003"
 domain = "REL"
 title = "Error Handling Expectations"
 severity = "MEDIUM"
-ref = "ISO/IEC 25010:2023 §4.2.5.3"
+ref = "ISO/IEC 25010:2023 §4.2.5.3 (Fault tolerance)"
 kind = "must_have"
 ```
 ```markdown
@@ -941,15 +1054,13 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-### Usability Checks (UX)
-
 `@cpt:check`
 ```toml
 id = "UX-PRD-001"
 domain = "UX"
 title = "User Experience Goals"
 severity = "HIGH"
-ref = "ISO 9241-11 §5, ISO/IEC 25010:2023 §4.2.4"
+ref = "ISO 9241-11 §5 (Framework for usability), ISO/IEC 25010:2023 §4.2.4 (Interaction Capability)"
 kind = "must_have"
 ```
 ```markdown
@@ -967,10 +1078,8 @@ id = "UX-PRD-002"
 domain = "UX"
 title = "Accessibility Requirements"
 severity = "HIGH"
-ref = "WCAG 2.2, ISO/IEC 25010:2023 §4.2.4.7, EN 301 549"
+ref = "[WCAG 2.2](https://www.w3.org/WAI/standards-guidelines/wcag/) (A/AA/AAA levels), ISO/IEC 25010:2023 §4.2.4.7 (Accessibility), [EN 301 549](https://www.etsi.org/standards/en-301-549)"
 kind = "must_have"
-applicable_when = "Public-facing, government, enterprise"
-not_applicable_when = "Internal tool with known user base"
 ```
 ```markdown
 - [ ] Accessibility standards referenced (WCAG 2.2 level — typically AA)
@@ -988,8 +1097,6 @@ domain = "UX"
 title = "Internationalization Requirements"
 severity = "MEDIUM"
 kind = "must_have"
-applicable_when = "Multi-region deployment planned"
-not_applicable_when = "Single-locale deployment"
 ```
 ```markdown
 - [ ] Supported languages listed
@@ -1006,10 +1113,8 @@ id = "UX-PRD-004"
 domain = "UX"
 title = "Device/Platform Requirements"
 severity = "MEDIUM"
-ref = "ISO/IEC 25010:2023 §4.2.8"
+ref = "ISO/IEC 25010:2023 §4.2.8 (Flexibility — Installability, Adaptability)"
 kind = "must_have"
-applicable_when = "Mobile app, unreliable network"
-not_applicable_when = "Server-side tool, always-connected"
 ```
 ```markdown
 - [ ] Supported platforms listed (web, mobile, desktop)
@@ -1025,13 +1130,13 @@ not_applicable_when = "Server-side tool, always-connected"
 id = "UX-PRD-005"
 domain = "UX"
 title = "Inclusivity Requirements"
-severity = "MEDIUM"
-ref = "ISO/IEC 25010:2023 §4.2.4.8"
+severity = "MEDIUM (if applicable)"
+ref = "[ISO/IEC 25010:2023](https://www.iso.org/standard/78176.html) §4.2.4.8 (Inclusivity) — **NEW subcharacteristic in 2023 edition**"
 kind = "must_have"
-applicable_when = "Diverse user base, public-facing"
-not_applicable_when = "Narrow technical audience, internal tool"
 ```
 ```markdown
+> **New in v1.2**: Inclusivity was added as a subcharacteristic of Interaction Capability in ISO/IEC 25010:2023. It addresses the widest possible range of users, including those with different backgrounds, abilities, and characteristics.
+
 - [ ] Diverse user populations considered (age, culture, language, ability)
 - [ ] Cognitive accessibility requirements documented (beyond WCAG)
 - [ ] Support for users with temporary situational limitations considered
@@ -1040,167 +1145,13 @@ not_applicable_when = "Narrow technical audience, internal tool"
 ```
 `@/cpt:check`
 
-### Data Checks (DATA)
-
-`@cpt:check`
-```toml
-id = "DATA-PRD-001"
-domain = "DATA"
-title = "Data Ownership"
-severity = "HIGH"
-ref = "GDPR Art. 4, Art. 26, Art. 28"
-kind = "must_have"
-```
-```markdown
-- [ ] Data ownership clearly defined
-- [ ] Data stewardship responsibilities identified (controller vs processor)
-- [ ] Data sharing expectations documented
-- [ ] Third-party data usage requirements stated (GDPR Art. 28)
-- [ ] User-generated content ownership defined
-```
-`@/cpt:check`
-
-`@cpt:check`
-```toml
-id = "DATA-PRD-002"
-domain = "DATA"
-title = "Data Quality Requirements"
-severity = "MEDIUM"
-ref = "ISO/IEC 25012, GDPR Art. 5(1)(d)"
-kind = "must_have"
-```
-```markdown
-- [ ] Data accuracy requirements stated (ISO 25012 §4.2.1)
-- [ ] Data completeness requirements documented (ISO 25012 §4.2.2)
-- [ ] Data freshness requirements captured (ISO 25012 §4.2.8 Currentness)
-- [ ] Data validation requirements stated
-- [ ] Data cleansing requirements documented
-```
-`@/cpt:check`
-
-`@cpt:check`
-```toml
-id = "DATA-PRD-003"
-domain = "DATA"
-title = "Data Lifecycle"
-severity = "MEDIUM"
-ref = "GDPR Art. 5(1)(e), Art. 17"
-kind = "must_have"
-```
-```markdown
-- [ ] Data retention requirements stated (GDPR storage limitation)
-- [ ] Data archival requirements documented
-- [ ] Data purging requirements captured (right to erasure)
-- [ ] Data migration requirements stated
-- [ ] Historical data access requirements documented
-```
-`@/cpt:check`
-
-### Integration Checks (INT)
-
-`@cpt:check`
-```toml
-id = "INT-PRD-001"
-domain = "INT"
-title = "External System Integration"
-severity = "HIGH"
-ref = "ISO/IEC 25010:2023 §4.2.3.2, ISO/IEC/IEEE 29148 §6.3.4"
-kind = "must_have"
-```
-```markdown
-- [ ] Required integrations listed
-- [ ] Integration direction specified
-- [ ] Data exchange requirements documented
-- [ ] Integration availability requirements stated
-- [ ] Fallback requirements for integration failures documented
-```
-`@/cpt:check`
-
-`@cpt:check`
-```toml
-id = "INT-PRD-002"
-domain = "INT"
-title = "API Requirements"
-severity = "MEDIUM"
-ref = "OpenAPI Specification, RFC 6749"
-kind = "must_have"
-```
-```markdown
-- [ ] API exposure requirements stated
-- [ ] API consumer requirements documented
-- [ ] API versioning requirements stated
-- [ ] Rate limiting expectations documented
-- [ ] API documentation requirements stated (OpenAPI/Swagger)
-```
-`@/cpt:check`
-
-### Compliance Checks (COMPL)
-
-`@cpt:check`
-```toml
-id = "COMPL-PRD-001"
-domain = "COMPL"
-title = "Regulatory Requirements"
-severity = "CRITICAL"
-ref = "GDPR, HIPAA, PCI DSS, SOX"
-kind = "must_have"
-applicable_when = "Handles PII, financial data, healthcare"
-not_applicable_when = "Internal dev tool, no user data"
-```
-```markdown
-- [ ] Applicable regulations identified (GDPR, HIPAA, SOX, PCI DSS, etc.)
-- [ ] Compliance certification requirements stated
-- [ ] Audit requirements documented
-- [ ] Reporting requirements captured
-- [ ] Data sovereignty requirements stated (GDPR Art. 44-49)
-```
-`@/cpt:check`
-
-`@cpt:check`
-```toml
-id = "COMPL-PRD-002"
-domain = "COMPL"
-title = "Industry Standards"
-severity = "MEDIUM"
-ref = "ISO 27001, ISO 22301, SOC 2, ISO 9001"
-kind = "must_have"
-```
-```markdown
-- [ ] Industry standards referenced (ISO, NIST, OWASP, etc.)
-- [ ] Best practice frameworks identified
-- [ ] Certification requirements stated (ISO 27001, SOC 2, etc.)
-- [ ] Interoperability standards documented
-- [ ] Security standards referenced (OWASP ASVS, NIST 800-53)
-```
-`@/cpt:check`
-
-`@cpt:check`
-```toml
-id = "COMPL-PRD-003"
-domain = "COMPL"
-title = "Legal Requirements"
-severity = "HIGH"
-ref = "GDPR Art. 12-23, Art. 6-7"
-kind = "must_have"
-```
-```markdown
-- [ ] Terms of service requirements stated
-- [ ] Privacy policy requirements documented
-- [ ] Consent management requirements captured (GDPR Art. 7)
-- [ ] Data subject rights requirements stated (access, rectification, erasure, portability)
-- [ ] Contractual obligations documented
-```
-`@/cpt:check`
-
-### Maintainability Checks (MAINT)
-
 `@cpt:check`
 ```toml
 id = "MAINT-PRD-001"
 domain = "MAINT"
 title = "Documentation Requirements"
 severity = "MEDIUM"
-ref = "ISO/IEC/IEEE 29148 §6.6"
+ref = "ISO/IEC/IEEE 29148 §6.6 (Information items)"
 kind = "must_have"
 ```
 ```markdown
@@ -1229,7 +1180,149 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-### Operations Checks (OPS)
+`@cpt:check`
+```toml
+id = "COMPL-PRD-001"
+domain = "COMPL"
+title = "Regulatory Requirements"
+severity = "CRITICAL (if applicable)"
+ref = "GDPR (EU personal data), HIPAA (US healthcare), PCI DSS (payment cards), SOX (financial reporting)"
+kind = "must_have"
+```
+```markdown
+- [ ] Applicable regulations identified (GDPR, HIPAA, SOX, PCI DSS, etc.)
+- [ ] Compliance certification requirements stated
+- [ ] Audit requirements documented
+- [ ] Reporting requirements captured
+- [ ] Data sovereignty requirements stated (GDPR Art. 44-49)
+```
+`@/cpt:check`
+
+`@cpt:check`
+```toml
+id = "COMPL-PRD-002"
+domain = "COMPL"
+title = "Industry Standards"
+severity = "MEDIUM"
+ref = "ISO 27001 (security), ISO 22301 (continuity), SOC 2 (trust services), ISO 9001 (quality)"
+kind = "must_have"
+```
+```markdown
+- [ ] Industry standards referenced (ISO, NIST, OWASP, etc.)
+- [ ] Best practice frameworks identified
+- [ ] Certification requirements stated (ISO 27001, SOC 2, etc.)
+- [ ] Interoperability standards documented
+- [ ] Security standards referenced (OWASP ASVS, NIST 800-53)
+```
+`@/cpt:check`
+
+`@cpt:check`
+```toml
+id = "COMPL-PRD-003"
+domain = "COMPL"
+title = "Legal Requirements"
+severity = "HIGH (if applicable)"
+ref = "GDPR Art. 12-23 (Data subject rights), GDPR Art. 6-7 (Consent)"
+kind = "must_have"
+```
+```markdown
+- [ ] Terms of service requirements stated
+- [ ] Privacy policy requirements documented
+- [ ] Consent management requirements captured (GDPR Art. 7)
+- [ ] Data subject rights requirements stated (access, rectification, erasure, portability)
+- [ ] Contractual obligations documented
+```
+`@/cpt:check`
+
+`@cpt:check`
+```toml
+id = "DATA-PRD-001"
+domain = "DATA"
+title = "Data Ownership"
+severity = "HIGH"
+ref = "GDPR Art. 4 (Definitions — controller, processor), GDPR Art. 26 (Joint controllers)"
+kind = "must_have"
+```
+```markdown
+- [ ] Data ownership clearly defined
+- [ ] Data stewardship responsibilities identified (controller vs processor)
+- [ ] Data sharing expectations documented
+- [ ] Third-party data usage requirements stated (GDPR Art. 28)
+- [ ] User-generated content ownership defined
+```
+`@/cpt:check`
+
+`@cpt:check`
+```toml
+id = "DATA-PRD-002"
+domain = "DATA"
+title = "Data Quality Requirements"
+severity = "MEDIUM"
+ref = "[ISO/IEC 25012](https://www.iso.org/standard/35736.html) (Data Quality model), GDPR Art. 5(1)(d) (Accuracy principle)"
+kind = "must_have"
+```
+```markdown
+- [ ] Data accuracy requirements stated (ISO 25012 §4.2.1)
+- [ ] Data completeness requirements documented (ISO 25012 §4.2.2)
+- [ ] Data freshness requirements captured (ISO 25012 §4.2.8 Currentness)
+- [ ] Data validation requirements stated
+- [ ] Data cleansing requirements documented
+```
+`@/cpt:check`
+
+`@cpt:check`
+```toml
+id = "DATA-PRD-003"
+domain = "DATA"
+title = "Data Lifecycle"
+severity = "MEDIUM"
+ref = "GDPR Art. 5(1)(e) (Storage limitation), GDPR Art. 17 (Right to erasure)"
+kind = "must_have"
+```
+```markdown
+- [ ] Data retention requirements stated (GDPR storage limitation)
+- [ ] Data archival requirements documented
+- [ ] Data purging requirements captured (right to erasure)
+- [ ] Data migration requirements stated
+- [ ] Historical data access requirements documented
+```
+`@/cpt:check`
+
+`@cpt:check`
+```toml
+id = "INT-PRD-001"
+domain = "INT"
+title = "External System Integration"
+severity = "HIGH"
+ref = "ISO/IEC 25010:2023 §4.2.3.2 (Interoperability), ISO/IEC/IEEE 29148 §6.3.4 (System interfaces)"
+kind = "must_have"
+```
+```markdown
+- [ ] Required integrations listed
+- [ ] Integration direction specified
+- [ ] Data exchange requirements documented
+- [ ] Integration availability requirements stated
+- [ ] Fallback requirements for integration failures documented
+```
+`@/cpt:check`
+
+`@cpt:check`
+```toml
+id = "INT-PRD-002"
+domain = "INT"
+title = "API Requirements"
+severity = "MEDIUM"
+ref = "[OpenAPI Specification](https://spec.openapis.org/oas/latest.html), RFC 6749 (OAuth for API auth)"
+kind = "must_have"
+```
+```markdown
+- [ ] API exposure requirements stated
+- [ ] API consumer requirements documented
+- [ ] API versioning requirements stated
+- [ ] Rate limiting expectations documented
+- [ ] API documentation requirements stated (OpenAPI/Swagger)
+```
+`@/cpt:check`
 
 `@cpt:check`
 ```toml
@@ -1237,7 +1330,7 @@ id = "OPS-PRD-001"
 domain = "OPS"
 title = "Deployment Requirements"
 severity = "MEDIUM"
-ref = "NIST 800-53 CM"
+ref = "NIST 800-53 CM family (Configuration Management)"
 kind = "must_have"
 ```
 ```markdown
@@ -1255,19 +1348,53 @@ id = "OPS-PRD-002"
 domain = "OPS"
 title = "Monitoring Requirements"
 severity = "MEDIUM"
-ref = "NIST 800-53 AU, SI"
+ref = "NIST 800-53 AU family (Audit and Accountability), SI family (System and Information Integrity)"
 kind = "must_have"
 ```
 ```markdown
 - [ ] Alerting requirements stated
 - [ ] Dashboard requirements documented
 - [ ] Log retention requirements captured
-- [ ] Incident response requirements stated (NIST 800-53 IR)
+- [ ] Incident response requirements stated (NIST 800-53 IR family)
 - [ ] Capacity monitoring requirements documented
 ```
 `@/cpt:check`
 
-### Documentation Checks (DOC)
+`@cpt:check`
+```toml
+id = "TEST-PRD-001"
+domain = "TEST"
+title = "Acceptance Criteria"
+severity = "HIGH"
+ref = "ISO/IEC/IEEE 29148 §5.2.8 (Requirements verification), ISO/IEC/IEEE 29119-1 §4 (Test concepts)"
+kind = "must_have"
+```
+```markdown
+- [ ] Each functional requirement has verifiable acceptance criteria
+- [ ] Use cases define expected outcomes
+- [ ] NFRs have measurable thresholds
+- [ ] Edge cases are testable
+- [ ] Negative test cases implied
+```
+`@/cpt:check`
+
+`@cpt:check`
+```toml
+id = "TEST-PRD-002"
+domain = "TEST"
+title = "Testability"
+severity = "MEDIUM"
+ref = "ISO/IEC/IEEE 29148 §5.2.5 (Characteristics of well-formed requirements), ISO/IEC 25010:2023 §4.2.7.4 (Testability)"
+kind = "must_have"
+```
+```markdown
+- [ ] Requirements are unambiguous enough to test (ISO 29148 §5.2.5)
+- [ ] Requirements don't use vague terms ("fast", "easy", "intuitive")
+- [ ] Requirements specify concrete behaviors
+- [ ] Requirements avoid compound statements (multiple "and"s)
+- [ ] Requirements can be independently verified
+```
+`@/cpt:check`
 
 `@cpt:check`
 ```toml
@@ -1278,15 +1405,11 @@ severity = "CRITICAL"
 kind = "must_have"
 ```
 ```markdown
-- [ ] If a section or requirement is intentionally omitted, it is explicitly stated (e.g., "Not applicable because...")
+- [ ] If a section or requirement is intentionally omitted, it is explicitly stated in the document (e.g., "Not applicable because...")
 - [ ] No silent omissions — every major checklist area is either present or has a documented reason for absence
 - [ ] Reviewer can distinguish "author considered and excluded" from "author forgot"
 ```
 `@/cpt:check`
-
-### Anti-Pattern Checks (must_not_have)
-
-Content that does NOT belong in a PRD.
 
 `@cpt:check`
 ```toml
@@ -1295,15 +1418,17 @@ domain = "ARCH"
 title = "No Technical Implementation Details"
 severity = "CRITICAL"
 kind = "must_not_have"
-belongs_to = "DESIGN"
 ```
 ```markdown
+**What to check**:
 - [ ] No database schema definitions
 - [ ] No API endpoint specifications
 - [ ] No technology stack decisions
 - [ ] No code snippets or pseudocode
 - [ ] No infrastructure specifications
 - [ ] No framework/library choices
+
+**Where it belongs**: `DESIGN` (Overall Design)
 ```
 `@/cpt:check`
 
@@ -1314,14 +1439,16 @@ domain = "ARCH"
 title = "No Architectural Decisions"
 severity = "CRITICAL"
 kind = "must_not_have"
-belongs_to = "ADR"
 ```
 ```markdown
+**What to check**:
 - [ ] No microservices vs monolith decisions
 - [ ] No database choice justifications
 - [ ] No cloud provider selections
 - [ ] No architectural pattern discussions
 - [ ] No component decomposition
+
+**Where it belongs**: `ADR` (Architecture Decision Records)
 ```
 `@/cpt:check`
 
@@ -1332,14 +1459,16 @@ domain = "BIZ"
 title = "No Implementation Tasks"
 severity = "HIGH"
 kind = "must_not_have"
-belongs_to = "Project management tools or DESIGN"
 ```
 ```markdown
+**What to check**:
 - [ ] No sprint/iteration plans
 - [ ] No task breakdowns
 - [ ] No effort estimates
 - [ ] No developer assignments
 - [ ] No implementation timelines
+
+**Where it belongs**: Project management tools (Jira, Linear, etc.) or Spec DESIGN
 ```
 `@/cpt:check`
 
@@ -1350,14 +1479,16 @@ domain = "BIZ"
 title = "No Spec-Level Design"
 severity = "HIGH"
 kind = "must_not_have"
-belongs_to = "DESIGN"
 ```
 ```markdown
+**What to check**:
 - [ ] No detailed user flows
 - [ ] No wireframes or UI specifications
 - [ ] No algorithm descriptions
 - [ ] No state machine definitions
 - [ ] No detailed error handling logic
+
+**Where it belongs**: `Spec DESIGN` (Spec Design)
 ```
 `@/cpt:check`
 
@@ -1368,14 +1499,16 @@ domain = "DATA"
 title = "No Data Schema Definitions"
 severity = "HIGH"
 kind = "must_not_have"
-belongs_to = "DESIGN (domain model and schemas)"
 ```
 ```markdown
+**What to check**:
 - [ ] No entity-relationship diagrams
 - [ ] No table definitions
 - [ ] No JSON schema specifications
 - [ ] No data type specifications
 - [ ] No field-level constraints
+
+**Where it belongs**: Architecture and design documentation (domain model and schemas)
 ```
 `@/cpt:check`
 
@@ -1386,14 +1519,16 @@ domain = "INT"
 title = "No API Specifications"
 severity = "HIGH"
 kind = "must_not_have"
-belongs_to = "API contract documentation (OpenAPI) or DESIGN"
 ```
 ```markdown
+**What to check**:
 - [ ] No REST endpoint definitions
 - [ ] No request/response schemas
 - [ ] No HTTP method specifications
 - [ ] No authentication header specifications
 - [ ] No error response formats
+
+**Where it belongs**: API contract documentation (e.g., OpenAPI) or architecture and design documentation
 ```
 `@/cpt:check`
 
@@ -1404,13 +1539,15 @@ domain = "TEST"
 title = "No Test Cases"
 severity = "MEDIUM"
 kind = "must_not_have"
-belongs_to = "Test plans, test suites, QA documentation"
 ```
 ```markdown
+**What to check**:
 - [ ] No detailed test scripts
 - [ ] No test data specifications
 - [ ] No automation code
 - [ ] No test environment specifications
+
+**Where it belongs**: Test plans, test suites, or QA documentation
 ```
 `@/cpt:check`
 
@@ -1421,14 +1558,16 @@ domain = "OPS"
 title = "No Infrastructure Specifications"
 severity = "MEDIUM"
 kind = "must_not_have"
-belongs_to = "Infrastructure-as-code repositories or OPS documentation"
 ```
 ```markdown
+**What to check**:
 - [ ] No server specifications
 - [ ] No Kubernetes manifests
 - [ ] No Docker configurations
 - [ ] No CI/CD pipeline definitions
 - [ ] No monitoring tool configurations
+
+**Where it belongs**: Infrastructure-as-code repositories or operations/infrastructure documentation
 ```
 `@/cpt:check`
 
@@ -1439,14 +1578,16 @@ domain = "SEC"
 title = "No Security Implementation Details"
 severity = "HIGH"
 kind = "must_not_have"
-belongs_to = "Security architecture documentation or ADRs"
 ```
 ```markdown
+**What to check**:
 - [ ] No encryption algorithm specifications
 - [ ] No key management procedures
 - [ ] No firewall rules
 - [ ] No security tool configurations
 - [ ] No penetration test results
+
+**Where it belongs**: Security architecture documentation or ADRs
 ```
 `@/cpt:check`
 
@@ -1457,15 +1598,18 @@ domain = "MAINT"
 title = "No Code-Level Documentation"
 severity = "MEDIUM"
 kind = "must_not_have"
-belongs_to = "Source code, README files, developer documentation"
 ```
 ```markdown
+**What to check**:
 - [ ] No code comments
 - [ ] No function/class documentation
 - [ ] No inline code examples
 - [ ] No debugging instructions
+
+**Where it belongs**: Source code, README files, or developer documentation
 ```
 `@/cpt:check`
+
 
 ---
 

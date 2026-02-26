@@ -5,6 +5,35 @@
 **Last Updated**: 2026-02-03
 **Purpose**: Comprehensive quality checklist for FEATURE artifacts
 
+## Table of Contents
+
+1. [Referenced Standards](#referenced-standards)
+2. [Review Scope Selection](#review-scope-selection)
+3. [Prerequisites](#prerequisites)
+4. [Applicability Context](#applicability-context)
+5. [Severity Dictionary](#severity-dictionary)
+6. [MUST HAVE](#must-have)
+   - [🏗️ ARCHITECTURE Expertise (ARCH)](#architecture-expertise-arch)
+   - [Semantic Alignment (SEM)](#semantic-alignment-sem)
+   - [⚡ PERFORMANCE Expertise (PERF)](#performance-expertise-perf)
+   - [🔒 SECURITY Expertise (SEC)](#security-expertise-sec)
+   - [🛡️ RELIABILITY Expertise (REL)](#reliability-expertise-rel)
+   - [📊 DATA Expertise (DATA)](#data-expertise-data)
+   - [🔌 INTEGRATION Expertise (INT)](#integration-expertise-int)
+   - [🖥️ OPERATIONS Expertise (OPS)](#operations-expertise-ops)
+   - [🔧 MAINTAINABILITY Expertise (MAINT)](#maintainability-expertise-maint)
+   - [🧪 TESTING Expertise (TEST)](#testing-expertise-test)
+   - [📜 COMPLIANCE Expertise (COMPL)](#compliance-expertise-compl)
+   - [👤 USABILITY Expertise (UX)](#usability-expertise-ux)
+   - [🏢 BUSINESS Expertise (BIZ)](#business-expertise-biz)
+   - [DOC (DOC)](#doc-doc)
+7. [MUST NOT HAVE](#must-not-have)
+8. [Validation Summary](#validation-summary)
+   - [Final Checklist](#final-checklist)
+   - [Reporting Readiness Checklist](#reporting-readiness-checklist)
+   - [Reporting](#reporting)
+   - [Reporting Commitment](#reporting-commitment)
+
 ---
 
 ## Referenced Standards
@@ -19,36 +48,6 @@ This checklist validates FEATURE artifacts based on the following international 
 | [ISO/IEC/IEEE 29119-3:2021](https://www.iso.org/standard/79429.html) | **Test Documentation** | Software testing — test specification, acceptance criteria |
 | [OWASP ASVS 5.0](https://owasp.org/www-project-application-security-verification-standard/) | **Security Verification** | Application security requirements — authentication, authorization, input validation |
 | [WCAG 2.2](https://www.w3.org/TR/WCAG22/) | **Accessibility** | Web Content Accessibility Guidelines — POUR principles, Level AA |
-
----
-
-## Table of Contents
-
-1. [Review Scope Selection](#review-scope-selection)
-2. [Prerequisites](#prerequisites)
-3. [Applicability Context](#applicability-context)
-4. [Severity Dictionary](#severity-dictionary)
-5. [MUST HAVE](#must-have)
-   - [ARCHITECTURE Expertise (ARCH)](#️-architecture-expertise-arch)
-   - [PERFORMANCE Expertise (PERF)](#-performance-expertise-perf)
-   - [SECURITY Expertise (SEC)](#-security-expertise-sec)
-   - [RELIABILITY Expertise (REL)](#️-reliability-expertise-rel)
-   - [DATA Expertise (DATA)](#-data-expertise-data)
-   - [INTEGRATION Expertise (INT)](#-integration-expertise-int)
-   - [OPERATIONS Expertise (OPS)](#️-operations-expertise-ops)
-   - [MAINTAINABILITY Expertise (MAINT)](#-maintainability-expertise-maint)
-   - [TESTING Expertise (TEST)](#-testing-expertise-test)
-   - [COMPLIANCE Expertise (COMPL)](#-compliance-expertise-compl)
-   - [USABILITY Expertise (UX)](#-usability-expertise-ux)
-   - [BUSINESS Expertise (BIZ)](#-business-expertise-biz)
-   - [Semantic Alignment (SEM)](#semantic-alignment-sem)
-   - [Deliberate Omissions](#deliberate-omissions)
-6. [MUST NOT HAVE](#must-not-have)
-7. [Validation Summary](#validation-summary)
-   - [Final Checklist](#final-checklist)
-   - [Reporting Readiness Checklist](#reporting-readiness-checklist)
-   - [Reporting](#reporting)
-
 ---
 
 ## Review Scope Selection
@@ -751,7 +750,7 @@ Before evaluating each checklist item, the expert MUST:
 
 ---
 
-## Deliberate Omissions
+## DOC (DOC)
 
 ### DOC-FDESIGN-001: Explicit Non-Applicability
 **Severity**: CRITICAL
@@ -764,9 +763,7 @@ Before evaluating each checklist item, the expert MUST:
 
 # MUST NOT HAVE
 
----
-
-## ❌ ARCH-FDESIGN-NO-001: No System-Level Type Redefinitions
+### ARCH-FDESIGN-NO-001: No System-Level Type Redefinitions
 **Severity**: CRITICAL
 
 **What to check**:
@@ -778,9 +775,7 @@ Before evaluating each checklist item, the expert MUST:
 
 **Where it belongs**: Central domain model / schema documentation
 
----
-
-## ❌ ARCH-FDESIGN-NO-002: No New API Endpoints
+### ARCH-FDESIGN-NO-002: No New API Endpoints
 **Severity**: CRITICAL
 
 **What to check**:
@@ -792,9 +787,7 @@ Before evaluating each checklist item, the expert MUST:
 
 **Where it belongs**: API contract documentation (e.g., OpenAPI)
 
----
-
-## ❌ ARCH-FDESIGN-NO-003: No Architectural Decisions
+### ARCH-FDESIGN-NO-003: No Architectural Decisions
 **Severity**: HIGH
 
 **What to check**:
@@ -806,9 +799,7 @@ Before evaluating each checklist item, the expert MUST:
 
 **Where it belongs**: `ADR`
 
----
-
-## ❌ BIZ-FDESIGN-NO-001: No Product Requirements
+### BIZ-FDESIGN-NO-001: No Product Requirements
 **Severity**: HIGH
 
 **What to check**:
@@ -820,9 +811,7 @@ Before evaluating each checklist item, the expert MUST:
 
 **Where it belongs**: `PRD`
 
----
-
-## ❌ BIZ-FDESIGN-NO-002: No Sprint/Task Breakdowns
+### BIZ-FDESIGN-NO-002: No Sprint/Task Breakdowns
 **Severity**: HIGH
 
 **What to check**:
@@ -835,9 +824,7 @@ Before evaluating each checklist item, the expert MUST:
 
 **Where it belongs**: Project management tools
 
----
-
-## ❌ MAINT-FDESIGN-NO-001: No Code Snippets
+### MAINT-FDESIGN-NO-001: No Code Snippets
 **Severity**: HIGH
 
 **What to check**:
@@ -850,9 +837,7 @@ Before evaluating each checklist item, the expert MUST:
 
 **Where it belongs**: Source code repository
 
----
-
-## ❌ TEST-FDESIGN-NO-001: No Test Implementation
+### TEST-FDESIGN-NO-001: No Test Implementation
 **Severity**: MEDIUM
 
 **What to check**:
@@ -864,9 +849,7 @@ Before evaluating each checklist item, the expert MUST:
 
 **Where it belongs**: Test directories in source code
 
----
-
-## ❌ SEC-FDESIGN-NO-001: No Security Secrets
+### SEC-FDESIGN-NO-001: No Security Secrets
 **Severity**: CRITICAL
 
 **What to check**:
@@ -879,9 +862,7 @@ Before evaluating each checklist item, the expert MUST:
 
 **Where it belongs**: Secret management system
 
----
-
-## ❌ OPS-FDESIGN-NO-001: No Infrastructure Code
+### OPS-FDESIGN-NO-001: No Infrastructure Code
 **Severity**: MEDIUM
 
 **What to check**:
@@ -909,7 +890,7 @@ Confirm before reporting results:
 
 ### Explicit Handling Verification
 
-For each major checklist category (ARCH, PERF, SEC, REL, DATA, INT, OPS, MAINT, TEST, COMPL, UX, BIZ), confirm:
+For each major checklist category (ARCH, SEM, PERF, SEC, REL, DATA, INT, OPS, MAINT, TEST, COMPL, UX, BIZ, DOC), confirm:
 
 - [ ] Category is addressed in the document, OR
 - [ ] Category is explicitly marked "Not applicable" with reasoning in the document, OR
@@ -938,7 +919,7 @@ Report **only** problems (do not list what is OK).
 
 For each issue include:
 
-- **Why Applicable**: Explain why this requirement applies to this specific feature's context (e.g., "This feature handles user authentication, therefore security analysis is required")
+- **Why Applicable**: Explain why this requirement applies to this artifact's context
 - **Issue**: What is wrong (requirement missing or incomplete)
 - **Evidence**: Quote the exact text or describe the exact location in the artifact (or note "No mention found")
 - **Why it matters**: Impact (risk, cost, user harm, compliance)
@@ -957,7 +938,7 @@ For each issue include:
 
 #### Why Applicable
 
-{Explain why this requirement applies to this feature's context. E.g., "This feature processes user data, therefore data integrity analysis is required."}
+{Explain why this requirement applies to this artifact's context}
 
 #### Issue
 
@@ -989,12 +970,10 @@ For quick reviews, use this condensed table format:
 ## FEATURE Review Summary
 
 | ID | Severity | Issue | Proposal |
-|----|----------|-------|----------|
-| ARCH-FDESIGN-001 | HIGH | Missing feature scope | Add scope statement to Section A |
-| BIZ-FDESIGN-001 | MEDIUM | No PRD traceability | Add requirement references |
+|-----|----------|-------|----------|
+| {ID} | HIGH | Missing required element | Add element to Section X |
 
-**Applicability**: {Feature type} — checked {N} priority domains, {M} marked N/A
-
+**Applicability**: checked {N} priority domains, {M} marked N/A
 ```
 
 ---

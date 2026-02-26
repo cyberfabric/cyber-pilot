@@ -1,5 +1,20 @@
 # PRD — TaskFlow
 
+## Table of Contents
+
+1. [1. Overview](#1-overview)
+2. [2. Actors](#2-actors)
+3. [3. Operational Concept & Environment](#3-operational-concept-environment)
+4. [4. Scope](#4-scope)
+5. [5. Functional Requirements](#5-functional-requirements)
+6. [6. Non-Functional Requirements](#6-non-functional-requirements)
+7. [7. Public Library Interfaces](#7-public-library-interfaces)
+8. [8. Use Cases](#8-use-cases)
+9. [9. Acceptance Criteria](#9-acceptance-criteria)
+10. [10. Dependencies](#10-dependencies)
+11. [11. Assumptions](#11-assumptions)
+12. [12. Risks](#12-risks)
+
 ## 1. Overview
 
 ### 1.1 Purpose

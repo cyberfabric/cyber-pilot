@@ -7,6 +7,15 @@ date: 2026-02-16
 
 **ID**: `cpt-ex-task-flow-adr-postgres-storage`
 
+## Table of Contents
+
+1. [Context and Problem Statement](#context-and-problem-statement)
+2. [Decision Drivers](#decision-drivers)
+3. [Considered Options](#considered-options)
+4. [Decision Outcome](#decision-outcome)
+5. [Pros and Cons of the Options](#pros-and-cons-of-the-options)
+6. [More Information](#more-information)
+
 ## Context and Problem Statement
 
 TaskFlow needs persistent storage for tasks, users, and audit history. We need to choose between SQL and NoSQL databases considering query patterns, data relationships, and team expertise.
