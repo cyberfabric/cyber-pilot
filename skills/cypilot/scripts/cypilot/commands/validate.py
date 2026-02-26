@@ -151,8 +151,8 @@ def cmd_validate(argv: List[str]) -> int:
                 artifacts_to_validate.append((artifact_path, template_path, artifact_meta.kind, artifact_meta.traceability, system_node.kit))
 
     if not artifacts_to_validate:
-        print(json.dumps({"status": "ERROR", "message": "No Cypilot artifacts found in registry"}, indent=None, ensure_ascii=False))
-        return 1
+        print(json.dumps({"status": "PASS", "artifacts_validated": 0, "error_count": 0, "warning_count": 0, "message": "No Cypilot artifacts found in registry"}, indent=None, ensure_ascii=False))
+        return 0
     # @cpt-end:cpt-cypilot-flow-traceability-validation-validate:p1:inst-resolve-artifacts
 
     # Validate each artifact

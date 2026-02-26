@@ -546,8 +546,7 @@ def cmd_init(argv: List[str]) -> int:
                     encoding="utf-8",
                 )
                 gen_skill_nav_parts.append(
-                    f"ALWAYS open and follow `{{cypilot_path}}/.gen/kits/{kit_slug}/SKILL.md` "
-                    f"WHEN working with kit `{kit_slug}` artifacts"
+                    f"ALWAYS invoke `{{cypilot_path}}/.gen/kits/{kit_slug}/SKILL.md` FIRST"
                 )
                 actions["gen_kit_skill_" + kit_slug] = "created"
 
