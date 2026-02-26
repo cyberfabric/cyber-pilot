@@ -39,7 +39,7 @@ ALWAYS open and follow `{cypilot_path}/.core/requirements/artifacts-registry.md`
 ```
 Where `{cypilot_path}` is resolved from the adapter's `**Extends**:` declaration.
 
-**ALWAYS use**: `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py adapter-info` to discover adapter location
+**ALWAYS use**: `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py adapter-info` to discover adapter location
 
 **ALWAYS use**: `cypilot.py` CLI commands for artifact operations (list-ids, where-defined, where-used, validate)
 
@@ -643,7 +643,7 @@ Codebase paths are resolved directly: `{project_root}/{codebase.path}`
 
 ## CLI Commands
 
-**Note**: All commands use `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py` where `{cypilot_path}` is the Cypilot installation path. Examples below use `cypilot.py` as shorthand.
+**Note**: All commands use `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py` where `{cypilot_path}` is the Cypilot installation path. Examples below use `cypilot.py` as shorthand.
 
 ### Discovery
 

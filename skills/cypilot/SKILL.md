@@ -120,13 +120,17 @@ git -C {cypilot_path} pull --ff-only
 git -C {cypilot_path} submodule update --init --recursive
 ```
 
-ALWAYS FIRST open and remember `{cypilot_path}/config/AGENTS.md`
+ALWAYS FIRST open and remember `{cypilot_path}/.gen/AGENTS.md`
+
+ALWAYS open and follow `{cypilot_path}/config/AGENTS.md` WHEN it exists
+
+ALWAYS open and follow `{cypilot_path}/.gen/SKILL.md` WHEN it exists
 
 ALWAYS open and follow `{cypilot_path}/config/SKILL.md` WHEN it exists
 
-ALWAYS FIRST run `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py adapter-info` BEFORE any Cypilot workflow action
+ALWAYS FIRST run `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py adapter-info` BEFORE any Cypilot workflow action
 
-ALWAYS FIRST read `{cypilot_path}/config/AGENTS.md` WHEN adapter status is FOUND
+ALWAYS FIRST read `{cypilot_path}/.gen/AGENTS.md` WHEN adapter status is FOUND
 
 ALWAYS FIRST parse and load ALL matched WHEN clause specs BEFORE proceeding with workflow
 
@@ -159,7 +163,7 @@ Adapter: {FOUND at path | NOT_FOUND}
 
 ALWAYS use script entrypoint:
 ```bash
-python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py <subcommand> [options]
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py <subcommand> [options]
 ```
 
 ALWAYS use `=` form for pattern args starting with `-`: `--pattern=-req-`
@@ -170,11 +174,11 @@ ALWAYS use `=` form for pattern args starting with `-`: `--pattern=-req-`
 
 ALWAYS SKIP Protocol Guard and workflow loading WHEN user invokes quick commands
 
-ALWAYS run `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py init --yes` directly WHEN user invokes `cypilot init`
+ALWAYS run `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py init --yes` directly WHEN user invokes `cypilot init`
 
-ALWAYS run `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py agents --agent <name>` directly WHEN user invokes `cypilot agents <name>`
+ALWAYS run `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py agents --agent <name>` directly WHEN user invokes `cypilot agents <name>`
 
-ALWAYS run `python3 {cypilot_path}/skills/scripts/pr.py list` directly WHEN user invokes `cypilot list PRs` or any PR listing intent — NEVER use `gh pr list`
+ALWAYS run `python3 {cypilot_path}/.core/skills/scripts/pr.py list` directly WHEN user invokes `cypilot list PRs` or any PR listing intent — NEVER use `gh pr list`
 
 ---
 
@@ -192,26 +196,26 @@ ALWAYS ask user "analyze (read-only) or generate (modify)?" WHEN intent is UNCLE
 
 ALWAYS re-fetch and re-analyze from scratch WHEN a PR review or status request is detected — even if the same PR was reviewed earlier in this conversation. Previous results are stale the moment a new request arrives. NEVER skip fetch or reuse earlier analysis.
 
-ALWAYS run `python3 {cypilot_path}/skills/scripts/pr.py list` WHEN user intent matches PR list patterns:
+ALWAYS run `python3 {cypilot_path}/.core/skills/scripts/pr.py list` WHEN user intent matches PR list patterns:
 - `list PRs`, `list open PRs`, `cypilot list PRs`
 - `show PRs`, `show open PRs`, `what PRs are open`
 - Any request to enumerate or browse open pull requests
 
 AVOID use `gh pr list` directly — ALWAYS use `pr.py list` for listing PRs.
 
-ALWAYS route to the `/cypilot-pr-review` workflow WHEN user intent matches PR review patterns:
+ALWAYS route to the `cypilot-pr-review` workflow WHEN user intent matches PR review patterns:
 - `review PR {number}`, `review PR #{number}`, `review PR https://...`
 - `cypilot review PR {number}`, `PR review {number}`
 - `code review PR {number}`, `check PR {number}`
 
-ALWAYS route to the `/cypilot-pr-status` workflow WHEN user intent matches PR status patterns:
+ALWAYS route to the `cypilot-pr-status` workflow WHEN user intent matches PR status patterns:
 - `PR status {number}`, `cypilot PR status {number}`
 - `status of PR {number}`, `check PR status {number}`
 
 ### PR List (Quick Command)
 
 When routed to list PRs:
-1. Run `python3 {cypilot_path}/skills/scripts/pr.py list`
+1. Run `python3 {cypilot_path}/.core/skills/scripts/pr.py list`
 2. Present the output to the user (respects `.prs/config.yaml` exclude list)
 3. No Protocol Guard or workflow loading required — this is a quick command
 
@@ -220,18 +224,18 @@ When routed to list PRs:
 When routed to PR review:
 1. **ALWAYS fetch fresh data first** — run `pr.py fetch` even if data exists from a prior run
 2. Read `{cypilot_path}/.core/workflows/pr-review.md` and follow its steps
-3. Use `python3 {cypilot_path}/skills/scripts/pr.py` as the script
+3. Use `python3 {cypilot_path}/.core/skills/scripts/pr.py` as the script
 4. When target is `ALL` or no PR number given, run `pr.py list` first to show available PRs
 5. Select prompt and checklist from `{cypilot_path}/config/pr-review.json` → `prompts`
 6. Load prompt from `promptFile` and checklist from `checklist` in matched entry
-7. Use templates from `.cypilot/templates/pr/`
+7. Use templates from `{cypilot_path}/.core/templates/pr/`
 
 ### PR Status Workflow
 
 When routed to PR status:
 1. **ALWAYS fetch fresh data first** — `pr.py status` auto-fetches, but never assume prior data is current
 2. Read `{cypilot_path}/.core/workflows/pr-status.md` and follow its steps
-3. Use `python3 {cypilot_path}/skills/scripts/pr.py` as the script
+3. Use `python3 {cypilot_path}/.core/skills/scripts/pr.py` as the script
 4. When target is `ALL` or no PR number given, run `pr.py list` first to show available PRs
 
 ---
@@ -240,7 +244,7 @@ When routed to PR status:
 
 ### validate
 ```bash
-python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py validate [--artifact <path>] [--skip-code] [--verbose]
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate [--artifact <path>] [--skip-code] [--verbose]
 ```
 Validates artifacts/code with deterministic validation checks (structure, cross-refs, task statuses, traceability).
 
@@ -248,40 +252,40 @@ Legacy aliases: `validate-code` (same behavior), `validate-rules` (alias for `va
 
 ### list-ids
 ```bash
-python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py list-ids [--artifact <path>] [--pattern <string>] [--kind <string>]
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py list-ids [--artifact <path>] [--pattern <string>] [--kind <string>]
 ```
 
 ### get-content
 ```bash
-python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py get-content (--artifact <path> | --code <path>) --id <string>
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py get-content (--artifact <path> | --code <path>) --id <string>
 ```
 
 ### where-defined / where-used
 ```bash
-python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py where-defined --id <id>
-python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py where-used --id <id>
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py where-defined --id <id>
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py where-used --id <id>
 ```
 
 ### adapter-info
 ```bash
-python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py adapter-info
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py adapter-info
 ```
 Output: status, adapter_dir, project_name, specs, kits
 
 ### init
 ```bash
-python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py init [--yes] [--dry-run]
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py init [--yes] [--dry-run]
 ```
 
 ### agents
 ```bash
-python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py agents --agent <name>
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py agents --agent <name>
 ```
 Supported: windsurf, cursor, claude, copilot, openai
 
 Shortcut:
 ```bash
-python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py agents --openai
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py agents --openai
 ```
 
 ---
@@ -290,7 +294,7 @@ python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py agents --openai
 
 Optional `{project-root}/.cypilot-config.json`:
 ```json
-{"cypilotCorePath": ".cypilot", "cypilotAdapterPath": ".cypilot-adapter"}
+{"cypilotCorePath": "cypilot", "cypilotAdapterPath": ".cypilot-adapter"}
 ```
 
 All commands output JSON. Exit codes: 0=PASS, 1=filesystem error, 2=FAIL.

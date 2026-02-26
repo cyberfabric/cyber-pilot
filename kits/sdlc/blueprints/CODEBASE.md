@@ -399,6 +399,12 @@ section = "no_design"
 
 `@cpt:checklist`
 ```toml
+group_by_kind = false
+
+postamble = """---
+
+Use `{cypilot_path}/.core/requirements/code-checklist.md` for all generic code quality checks."""
+
 [severity]
 levels = ["CRITICAL", "HIGH", "MEDIUM", "LOW"]
 
@@ -408,8 +414,36 @@ priority = ["SEM"]
 [[domain]]
 abbr = "SEM"
 name = "Semantic Alignment"
+header = "Semantic Alignment (SEM)"
+preamble = "These checks are **Cypilot SDLC-specific** because they require Cypilot artifacts (Feature design, Overall Design, ADRs, PRD/DESIGN coverage) and/or Cypilot markers."
 standards = []
 ```
+````markdown
+# Cypilot SDLC Code Checklist (Kit-Specific)
+
+ALWAYS open and follow `{cypilot_path}/.core/requirements/code-checklist.md` FIRST
+
+**Artifact**: Code Implementation (Cypilot SDLC)
+**Version**: 1.0
+**Purpose**: Kit-specific checks that require Cypilot SDLC artifacts (PRD/DESIGN/DECOMPOSITION/FEATURE/ADR) and/or Cypilot traceability.
+
+---
+
+## Table of Contents
+
+1. [Traceability Preconditions](#traceability-preconditions)
+2. [Semantic Alignment (SEM)](#semantic-alignment-sem)
+
+---
+
+## Traceability Preconditions
+
+Before running the SDLC-specific checks:
+
+- [ ] Determine traceability mode from `artifacts.toml` for the relevant system/artifact: `FULL` vs `DOCS-ONLY`
+- [ ] If `FULL`: identify the design source(s) to trace (Feature design is preferred)
+- [ ] If `DOCS-ONLY`: skip traceability requirements and validate semantics against provided design sources
+````
 `@/cpt:checklist`
 
 `@cpt:check`
@@ -421,9 +455,10 @@ severity = "HIGH"
 kind = "must_have"
 ```
 ```markdown
-- [ ] Resolve Feature design via `@cpt-*` markers using `cypilot where-defined` or `cypilot where-used`
-- [ ] If no markers, ask user for Feature design location
-- [ ] Resolve Overall Design by following references from Feature design
+- [ ] Resolve Feature design via `@cpt-*` markers using the `cypilot where-defined` or `cypilot where-used` skill
+- [ ] If no `@cpt-*` markers exist, ask the user to provide the Feature design location before proceeding
+- [ ] If the user is unsure, search the repository for candidate feature designs and present options for user selection
+- [ ] Resolve Overall Design by following references from the Feature design (or ask the user for the design path)
 ```
 `@/cpt:check`
 
@@ -436,9 +471,9 @@ severity = "HIGH"
 kind = "must_have"
 ```
 ```markdown
-- [ ] Code behavior aligns with Feature Overview, Purpose, and key assumptions
-- [ ] All referenced actors represented by actual interfaces, entrypoints, or roles in code
-- [ ] Referenced ADRs and related specs do not conflict with implementation choices
+- [ ] Confirm code behavior aligns with the Feature Overview, Purpose, and key assumptions
+- [ ] Verify all referenced actors are represented by actual interfaces, entrypoints, or roles in code
+- [ ] Ensure referenced ADRs and related specs do not conflict with current implementation choices
 ```
 `@/cpt:check`
 
@@ -451,9 +486,9 @@ severity = "HIGH"
 kind = "must_have"
 ```
 ```markdown
-- [ ] Each implemented flow follows ordered steps, triggers, and outcomes in Actor Flows
-- [ ] Conditionals, branching, and return paths match flow logic
-- [ ] All flow steps marked with IDs are implemented and traceable
+- [ ] Verify each implemented flow follows the ordered steps, triggers, and outcomes in Actor Flows
+- [ ] Confirm conditionals, branching, and return paths match the flow logic
+- [ ] Validate all flow steps marked with IDs are implemented and traceable
 ```
 `@/cpt:check`
 
@@ -466,9 +501,9 @@ severity = "HIGH"
 kind = "must_have"
 ```
 ```markdown
-- [ ] Algorithm steps match Feature design algorithms (inputs, rules, outputs)
-- [ ] Data transformations and calculations match described business rules
-- [ ] Loop/iteration behavior and validation rules align with algorithm steps
+- [ ] Validate algorithm steps match the Feature design algorithms (inputs, rules, outputs)
+- [ ] Ensure data transformations and calculations match the described business rules
+- [ ] Confirm loop/iteration behavior and validation rules align with algorithm steps
 ```
 `@/cpt:check`
 
@@ -481,9 +516,9 @@ severity = "HIGH"
 kind = "must_have"
 ```
 ```markdown
-- [ ] State transitions match Feature design state machine
-- [ ] Triggers and guards for transitions match defined conditions
-- [ ] Invalid transitions are prevented or handled explicitly
+- [ ] Confirm state transitions match the Feature design state machine
+- [ ] Verify triggers and guards for transitions match defined conditions
+- [ ] Ensure invalid transitions are prevented or handled explicitly
 ```
 `@/cpt:check`
 
@@ -496,11 +531,11 @@ severity = "HIGH"
 kind = "must_have"
 ```
 ```markdown
-- [ ] Each DoD requirement is implemented and testable
-- [ ] Implementation details (API, DB, domain entities) match the requirement section
-- [ ] Requirement mappings to flows and algorithms are satisfied
-- [ ] PRD coverage (FR/NFR) is preserved in implementation outcomes
-- [ ] Design coverage (principles, constraints, components, sequences, db tables) is satisfied
+- [ ] Verify each requirement in Definition of Done is implemented and testable
+- [ ] Confirm implementation details (API, DB, domain entities) match the requirement section
+- [ ] Validate requirement mappings to flows and algorithms are satisfied
+- [ ] Ensure PRD coverage (FR/NFR) is preserved in implementation outcomes
+- [ ] Ensure Design coverage (principles, constraints, components, sequences, db tables) is satisfied
 ```
 `@/cpt:check`
 
@@ -513,15 +548,16 @@ severity = "HIGH"
 kind = "must_have"
 ```
 ```markdown
-- [ ] Architecture vision and system boundaries are respected
-- [ ] Architecture drivers (FR/NFR) are satisfied by implementation
-- [ ] ADR decisions reflected in code choices or explicitly overridden
-- [ ] Principles and constraints enforced in implementation
-- [ ] Domain model entities and invariants respected by code
-- [ ] Component responsibilities, boundaries, and dependencies match component model
-- [ ] API contracts and integration boundaries honored
-- [ ] Interactions and sequences implemented as described
-- [ ] Database schemas, constraints, and access patterns align with design
-- [ ] Any deviation documented with rationale and approval
+- [ ] Confirm architecture vision and system boundaries are respected
+- [ ] Validate architecture drivers (FR/NFR) are still satisfied by implementation
+- [ ] Verify ADR decisions are reflected in code choices or explicitly overridden
+- [ ] Confirm principles and constraints are enforced in implementation
+- [ ] Validate domain model entities and invariants are respected by code
+- [ ] Confirm component responsibilities, boundaries, and dependencies match the component model
+- [ ] Validate API contracts and integration boundaries are honored
+- [ ] Verify interactions and sequences are implemented as described
+- [ ] Ensure database schemas, constraints, and access patterns align with design
+- [ ] Confirm topology and tech stack choices are not contradicted
+- [ ] Document any deviation with a rationale and approval
 ```
 `@/cpt:check`

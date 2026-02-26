@@ -14,13 +14,14 @@ from . import toml_utils
 
 _MARKER_START = "<!-- @cpt:root-agents -->"
 _CORE_SUBDIR = ".core"
+_GEN_SUBDIR = ".gen"
 
 
 def core_subpath(cypilot_root: Path, *parts: str) -> Path:
     """Resolve a subpath within a cypilot root, checking .core/ first.
 
-    New layout:  .cypilot/.core/workflows/
-    Old layout:  .cypilot/workflows/  (source repo or legacy install)
+    New layout:  cypilot/.core/workflows/
+    Old layout:  cypilot/workflows/  (source repo or legacy install)
 
     Returns the .core/ path if .core/ exists, otherwise the flat path.
     """
@@ -28,6 +29,16 @@ def core_subpath(cypilot_root: Path, *parts: str) -> Path:
     if core.is_dir():
         return core.joinpath(*parts)
     return cypilot_root.joinpath(*parts)
+
+
+def gen_subpath(cypilot_root: Path, *parts: str) -> Path:
+    """Resolve a subpath within the .gen/ directory.
+
+    Layout: cypilot/.gen/kits/sdlc/SKILL.md
+
+    Returns the .gen/ path unconditionally (generated dir always uses .gen/).
+    """
+    return (cypilot_root / _GEN_SUBDIR).joinpath(*parts)
 
 
 def cfg_get_str(cfg: object, *keys: str) -> Optional[str]:

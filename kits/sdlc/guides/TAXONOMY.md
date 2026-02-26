@@ -185,9 +185,9 @@ Phase tokens:
 
 ## Validation commands
 
-- Validate artifacts (templates + cross-refs): `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py validate`
-- Validate code markers (pairing + coverage): `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py validate-code`
-- Validate kit package itself: `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py validate-kits`
+- Validate artifacts (templates + cross-refs): `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate`
+- Validate code markers (pairing + coverage): `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate-code`
+- Validate kit package itself: `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate-kits`
 
 ## References
 

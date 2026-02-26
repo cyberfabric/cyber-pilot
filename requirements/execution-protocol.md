@@ -66,7 +66,7 @@ Common steps shared by `generate.md` and `analyze.md`. Both workflows MUST execu
 **Recovery protocol**:
 
 1. Detect compaction from conversation summary signals
-2. Re-run: `cypilot adapter-info` + load required specs from `{cypilot_path}/config/AGENTS.md`
+2. Re-run: `cypilot adapter-info` + load required specs from `{cypilot_path}/.gen/AGENTS.md`
 3. Announce restored context (workflow, target, loaded specs), then continue
 
 **Agent MUST NOT**:
@@ -188,12 +188,12 @@ ALWAYS proceed as normal coding assistant WHEN user declines initialization
 ## Discover Adapter
 
 ```bash
-python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py adapter-info --root {PROJECT_ROOT} --cypilot-root {cypilot_path}
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py adapter-info --root {PROJECT_ROOT} --cypilot-root {cypilot_path}
 ```
 
 **Parse output**: `status`, `adapter_dir`, `project_root`, `specs`, `rules`
 
-**If FOUND**: Load `{cypilot_path}/config/AGENTS.md` for navigation rules
+**If FOUND**: Load `{cypilot_path}/.gen/AGENTS.md` for navigation rules
 
 **If NOT_FOUND**: Suggest running `/cypilot-adapter` to bootstrap
 
@@ -327,7 +327,7 @@ I understand the following requirements for {ARTIFACT_TYPE}:
 
 **After rules loaded and target type determined**, load applicable adapter specs:
 
-**Read adapter AGENTS.md** at `{cypilot_path}/config/AGENTS.md`
+**Read adapter AGENTS.md** at `{cypilot_path}/.gen/AGENTS.md`
 
 **Parse WHEN clauses** matching current context:
 

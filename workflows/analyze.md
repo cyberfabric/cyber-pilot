@@ -9,7 +9,7 @@ purpose: Universal workflow for analysing any Cypilot artifact or code
 
 # Analyze
 
-ALWAYS open and follow `{cypilot_path}/skills/cypilot/SKILL.md` FIRST WHEN {cypilot_mode} is `off`
+ALWAYS open and follow `{cypilot_path}/.core/skills/cypilot/SKILL.md` FIRST WHEN {cypilot_mode} is `off`
 
 **Type**: Analysis
 
@@ -254,13 +254,13 @@ If deterministic gate is **not available** (e.g., unregistered path, RELAXED mod
 ### For Artifacts
 
 ```bash
-python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py validate --artifact {PATH}
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate --artifact {PATH}
 ```
 
 ### For Code
 
 ```bash
-python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py validate --code {PATH} --design {design-path}
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate --code {PATH} --design {design-path}
 ```
 
 ### Evaluate
@@ -327,7 +327,7 @@ Execute phases from rules.md:
 - **Phase 2: Semantic Validation** — checklist-based, from rules.md
 
 Use checklist from Phase 0 dependencies.
-Load adapter specs: `{cypilot_path}/config/AGENTS.md` → follow MANDATORY specs
+Load adapter specs: `{cypilot_path}/.gen/AGENTS.md` → follow MANDATORY specs
 
 Check (from rules.md + standard):
 - [ ] Content quality per checklist
