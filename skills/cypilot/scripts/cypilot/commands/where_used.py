@@ -71,8 +71,13 @@ def cmd_where_used(argv: List[str]) -> int:
                 artifacts_to_scan.append((artifact_path, str(artifact_meta.kind)))
 
     if not artifacts_to_scan:
-        print(json.dumps({"status": "ERROR", "message": "No Cypilot artifacts found in registry"}, indent=None, ensure_ascii=False))
-        return 1
+        print(json.dumps({
+            "id": target_id,
+            "artifacts_scanned": 0,
+            "count": 0,
+            "references": [],
+        }, indent=None, ensure_ascii=False))
+        return 0
 
     # @cpt-begin:cpt-cypilot-flow-traceability-validation-query:p1:inst-if-where-used
     # Search for references

@@ -80,8 +80,8 @@ def cmd_list_ids(argv: List[str]) -> int:
                 artifacts_to_scan.append((artifact_path, str(artifact_meta.kind)))
 
         if not artifacts_to_scan:
-            print(json.dumps({"status": "ERROR", "message": "No Cypilot-format artifacts found in registry."}, indent=None, ensure_ascii=False))
-            return 1
+            print(json.dumps({"count": 0, "artifacts_scanned": 0, "ids": []}, indent=None, ensure_ascii=False))
+            return 0
     # @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-query-load-context
 
     # @cpt-begin:cpt-cypilot-flow-traceability-validation-query:p1:inst-scan-all
