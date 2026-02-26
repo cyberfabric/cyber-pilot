@@ -171,7 +171,7 @@ Agent executes tasks during generation:
 - [ ] Assign priorities based on dependency order
 - [ ] Set initial status to NOT_STARTED
 - [ ] Link to DESIGN elements being implemented
-- [ ] Verify uniqueness with `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py list-ids`
+- [ ] Verify uniqueness with `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py list-ids`
 
 ### Phase 4: Quality Check
 
@@ -199,13 +199,13 @@ Agent executes tasks during generation:
 
 **Feature Completion (Marking Feature Done)**:
 1. Verify ALL referenced IDs within the feature entry have `[x]`
-2. Run `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py validate` to confirm no checkbox inconsistencies
+2. Run `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate` to confirm no checkbox inconsistencies
 3. Change the feature ID line from `[ ]` to `[x]`
 4. Update feature status emoji (e.g., ⏳ → ✅)
 
 **Manifest Completion (Marking Overall Done)**:
 1. Verify ALL feature entries have `[x]`
-2. Run `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py validate` to confirm cascade consistency
+2. Run `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate` to confirm cascade consistency
 3. Change the `status-overall` line from `[ ]` to `[x]`
 
 ---
@@ -216,7 +216,7 @@ Validation workflow applies rules in two phases:
 
 ### Phase 1: Structural Validation (Deterministic)
 
-Run `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py validate --artifact <path>` for:
+Run `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate --artifact <path>` for:
 - [ ] Template structure compliance
 - [ ] ID format validation
 - [ ] Priority markers present

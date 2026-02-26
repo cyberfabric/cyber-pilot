@@ -97,7 +97,7 @@ purpose: Define validation rules for Cypilot adapter files
 
 ### AGENTS.md
 
-**Location**: `{cypilot_path}/config/AGENTS.md`
+**Location**: `{cypilot_path}/.gen/AGENTS.md` (generated) + `{cypilot_path}/config/AGENTS.md` (user-editable)
 
 **WHEN clause format** (mandatory for adapter navigation rules):
 ```

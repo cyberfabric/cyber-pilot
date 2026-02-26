@@ -445,14 +445,21 @@ def _collect_checklist(bp: ParsedBlueprint) -> str:
 
     Per spec (architecture/specs/kit/checklist.md):
     1. Parse @cpt:checklist TOML for domains, severity levels, review priority
-    2. Collect all @cpt:check blocks, group by domain → kind
-    3. For each domain: emit header + standards, MUST HAVE, MUST NOT HAVE
-    4. Checks sorted by severity (CRITICAL first) within each kind
+    2. Use @cpt:checklist markdown_content as preamble
+    3. Collect all @cpt:check blocks, group by domain → kind
+    4. If group_by_kind: emit # MUST HAVE / # MUST NOT HAVE at H1,
+       domains at H2 under MUST HAVE, flat list under MUST NOT HAVE
+    5. If not group_by_kind: domains at H2 directly, checks at H3
+    6. Append postamble from TOML if present
     """
     # Parse @cpt:checklist skeleton
     severity_levels: List[str] = []
     review_priority: List[str] = []
     domains: List[Dict[str, Any]] = []
+    group_by_kind: bool = True
+    preamble: str = ""
+    postamble: str = ""
+    must_not_preamble: str = ""
 
     for mk in bp.markers:
         if mk.marker_type == "checklist":
@@ -460,6 +467,10 @@ def _collect_checklist(bp: ParsedBlueprint) -> str:
             severity_levels = td.get("severity", {}).get("levels", [])
             review_priority = td.get("review", {}).get("priority", [])
             domains = td.get("domain", [])
+            group_by_kind = td.get("group_by_kind", True)
+            postamble = td.get("postamble", "")
+            must_not_preamble = td.get("must_not_preamble", "")
+            preamble = mk.markdown_content or ""
             if isinstance(domains, dict):
                 domains = [domains]
 
@@ -499,73 +510,112 @@ def _collect_checklist(bp: ParsedBlueprint) -> str:
     # Severity sort key
     sev_order = {s: i for i, s in enumerate(severity_levels)} if severity_levels else {}
 
-    # Build output
-    kind_label = bp.artifact_kind.upper() if bp.artifact_kind else "CODEBASE"
-    kit = bp.kit_slug or "sdlc"
     parts: List[str] = []
 
-    # Header
-    parts.append(f"# {kind_label} Quality Checklist")
-    parts.append("")
-    parts.append(f"**Artifact**: {kind_label}")
-    parts.append(f"**Kit**: {kit}")
-    parts.append("")
-    if severity_levels:
-        parts.append(f"**Severity levels**: {' > '.join(severity_levels)}")
-    if review_priority:
-        parts.append(f"**Review priority**: {' → '.join(review_priority)}")
-    parts.append("")
+    # Preamble (from @cpt:checklist markdown_content)
+    if preamble:
+        parts.append(preamble)
+        parts.append("")
 
-    # Domain sections in defined order; append any undeclared domains at end
+    # Domain order: declared first, then any undeclared
     all_domains = list(domain_order)
     for d in checks_by_domain:
         if d not in all_domains:
             all_domains.append(d)
 
-    for abbr in all_domains:
-        domain_checks = checks_by_domain.get(abbr)
-        if not domain_checks:
-            continue
+    if group_by_kind:
+        # --- MUST HAVE at H1 ---
+        has_must_have = any("must_have" in checks_by_domain.get(d, {}) for d in all_domains)
+        has_must_not = any("must_not_have" in checks_by_domain.get(d, {}) for d in all_domains)
 
-        d_info = domain_map.get(abbr, {})
-        d_name = d_info.get("name", abbr)
-        d_standards = d_info.get("standards", [])
-
-        parts.append("---")
-        parts.append("")
-        parts.append(f"## {abbr} — {d_name}")
-        parts.append("")
-        if d_standards:
-            parts.append(f"**Standards**: {', '.join(d_standards)}")
+        if has_must_have:
+            parts.append("# MUST HAVE")
             parts.append("")
 
-        for kind_key, kind_title in [("must_have", "MUST HAVE"), ("must_not_have", "MUST NOT HAVE")]:
-            items = domain_checks.get(kind_key, [])
-            if not items:
+            for abbr in all_domains:
+                items = checks_by_domain.get(abbr, {}).get("must_have", [])
+                if not items:
+                    continue
+                items.sort(key=lambda x: sev_order.get(x["severity"], 99))
+
+                d_info = domain_map.get(abbr, {})
+                header = d_info.get("header", f"{d_info.get('name', abbr)} ({abbr})")
+                d_standards = d_info.get("standards", [])
+
+                parts.append("---")
+                parts.append("")
+                parts.append(f"## {header}")
+                parts.append("")
+                if d_standards:
+                    std_text = ", ".join(d_standards)
+                    parts.append(f"> **Standards**: {std_text}")
+                    parts.append("")
+
+                for item in items:
+                    _emit_check_item(parts, item)
+
+        # --- MUST NOT HAVE at H1 ---
+        if has_must_not:
+            parts.append("---")
+            parts.append("")
+            parts.append("# MUST NOT HAVE")
+            parts.append("")
+            if must_not_preamble:
+                parts.append(must_not_preamble)
+                parts.append("")
+
+            # Flat list — no domain grouping within MUST NOT HAVE
+            must_not_items: List[Dict[str, Any]] = []
+            for abbr in all_domains:
+                items = checks_by_domain.get(abbr, {}).get("must_not_have", [])
+                must_not_items.extend(items)
+
+            for item in must_not_items:
+                _emit_check_item(parts, item)
+    else:
+        # No kind grouping (e.g., CODEBASE) — domains at H2 directly
+        for abbr in all_domains:
+            domain_checks = checks_by_domain.get(abbr)
+            if not domain_checks:
                 continue
 
-            # Sort by severity
-            items.sort(key=lambda x: sev_order.get(x["severity"], 99))
+            d_info = domain_map.get(abbr, {})
+            header = d_info.get("header", f"{d_info.get('name', abbr)} ({abbr})")
+            d_standards = d_info.get("standards", [])
+            d_preamble = d_info.get("preamble", "")
 
-            parts.append(f"### {kind_title}")
+            parts.append("---")
             parts.append("")
+            parts.append(f"## {header}")
+            parts.append("")
+            if d_preamble:
+                parts.append(d_preamble)
+                parts.append("")
 
-            for item in items:
-                check_id = item["id"]
-                title = item["title"]
-                severity = item["severity"]
-                parts.append(f"#### {check_id} — {title} [{severity}]")
-                parts.append("")
-                parts.append(item["content"])
-                parts.append("")
-                if item["ref"]:
-                    parts.append(f"> **Ref**: {item['ref']}")
-                    parts.append("")
-                if item["belongs_to"]:
-                    parts.append(f"> **Belongs to**: {item['belongs_to']}")
-                    parts.append("")
+            for kind_key in ["must_have", "must_not_have"]:
+                items = domain_checks.get(kind_key, [])
+                if items:
+                    items.sort(key=lambda x: sev_order.get(x["severity"], 99))
+                    for item in items:
+                        _emit_check_item(parts, item)
+
+    # Postamble
+    if postamble:
+        parts.append(postamble)
+        parts.append("")
 
     return "\n".join(parts)
+
+
+def _emit_check_item(parts: List[str], item: Dict[str, Any]) -> None:
+    """Emit a single check item in standard format."""
+    parts.append(f"### {item['id']}: {item['title']}")
+    parts.append(f"**Severity**: {item['severity']}")
+    if item["ref"]:
+        parts.append(f"**Ref**: {item['ref']}")
+    parts.append("")
+    parts.append(item["content"])
+    parts.append("")
 
 
 def _collect_template(bp: ParsedBlueprint) -> str:

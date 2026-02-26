@@ -88,7 +88,7 @@ Agent confirms understanding of requirements:
 - `{cypilot_path}/.core/requirements/kit-constraints.md`
 - `{cypilot_path}/.core/schemas/kit-constraints.schema.json`
 
-**Validation Checks** (automated via `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py validate`):
+**Validation Checks** (automated via `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate`):
 - Enforces `identifiers[<kind>].references` rules (required / optional / prohibited)
 - Enforces headings scoping for ID definitions and references when constraints specify `headings` (identifier-level and reference-rule-level)
 - Enforces "checked ref implies checked def" consistency
@@ -125,7 +125,7 @@ Agent executes tasks during generation:
 - [ ] Generate actor IDs: `cpt-{hierarchy-prefix}-actor-{slug}` (e.g., `cpt-myapp-actor-admin-user`)
 - [ ] Generate capability IDs: `cpt-{hierarchy-prefix}-cap-{slug}` (e.g., `cpt-myapp-cap-user-management`)
 - [ ] Assign priorities based on business impact
-- [ ] Verify uniqueness with `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py list-ids`
+- [ ] Verify uniqueness with `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py list-ids`
 
 ### Phase 4: Quality Check
 
@@ -141,7 +141,7 @@ Validation workflow applies rules in two phases:
 
 ### Phase 1: Structural Validation (Deterministic)
 
-Run `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py validate --artifact <path>` for:
+Run `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate --artifact <path>` for:
 - [ ] Template structure compliance
 - [ ] ID format validation
 - [ ] Priority markers present

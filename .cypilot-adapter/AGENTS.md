@@ -29,9 +29,9 @@ Use `{cypilot_adapter_path}` as the base path for all relative Cypilot Adapter f
 
 ### Schema & Registry
 
-ALWAYS open and follow `{cypilot_path}/schemas/artifacts.schema.json` WHEN working with artifacts.json
+ALWAYS open and follow `{cypilot_path}/.core/schemas/artifacts.schema.json` WHEN working with artifacts.toml
 
-ALWAYS open and follow `{cypilot_path}/requirements/artifacts-registry.md` WHEN working with artifacts.json
+ALWAYS open and follow `{cypilot_path}/.core/requirements/artifacts-registry.md` WHEN working with artifacts.toml
 
 ### Project Specs
 
@@ -52,7 +52,9 @@ ALWAYS open and follow `specs/patterns.md` WHEN implementing features, designing
 ## Quick Reference
 
 - **Adapter**: `.cypilot-adapter/`
-- **Kit**: `kits/sdlc/`
-- **Workflows**: `workflows/`
-- **Requirements**: `requirements/`
-- **Schemas**: `schemas/`
+- **Kit**: `.core/kits/sdlc/`
+- **Workflows**: `.core/workflows/`
+- **Requirements**: `.core/requirements/`
+- **Schemas**: `.core/schemas/`
+- **Generated**: `.gen/`
+- **Config**: `config/`

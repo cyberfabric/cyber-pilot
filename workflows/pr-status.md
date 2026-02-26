@@ -9,7 +9,7 @@ purpose: Fetch latest PR data, generate status reports, assess comment severity,
 
 # PR Status Workflow
 
-ALWAYS open and follow `{cypilot_path}/skills/cypilot/SKILL.md` FIRST WHEN {cypilot_mode} is `off`
+ALWAYS open and follow `{cypilot_path}/.core/skills/cypilot/SKILL.md` FIRST WHEN {cypilot_mode} is `off`
 
 **Type**: Analysis
 **Role**: Reviewer
@@ -40,7 +40,7 @@ Previous results are stale the moment a new status request arrives.
 
 ## Paths
 
-- **Script**: `python3 {cypilot_path}/skills/scripts/pr.py`
+- **Script**: `python3 {cypilot_path}/.core/skills/scripts/pr.py`
 - **Config**: `{cypilot_path}/config/pr-review.json`
 - **Templates**: `{cypilot_path}/.core/templates/pr/`
 - **PR data**: `.prs/{ID}/`
@@ -57,7 +57,7 @@ Previous results are stale the moment a new status request arrives.
 
 ## Step 1: List open PRs (when needed)
 // turbo
-Run: `python3 {cypilot_path}/skills/scripts/pr.py list`
+Run: `python3 {cypilot_path}/.core/skills/scripts/pr.py list`
 ALWAYS run this step WHEN target is `ALL` or no PR number was specified.
 Present the list to the user so they can select a PR or confirm ALL.
 This respects the `.prs/config.yaml` exclude list.
@@ -65,7 +65,7 @@ This respects the `.prs/config.yaml` exclude list.
 
 ## Step 2: Generate status reports (MANDATORY — always re-fetch)
 // turbo
-Run: `python3 {cypilot_path}/skills/scripts/pr.py status <ARG>`
+Run: `python3 {cypilot_path}/.core/skills/scripts/pr.py status <ARG>`
 The `status` command auto-fetches the **latest** PR data from GitHub
 before generating each report — no stale data is possible.
 This creates `.prs/{ID}/status.md` for each PR.
@@ -114,7 +114,7 @@ Update the suspicious counts in the header table accordingly.
 
 ## Step 5: Reorder by severity
 // turbo
-For each PR, run: `python3 {cypilot_path}/skills/scripts/pr.py reorder {ID}`
+For each PR, run: `python3 {cypilot_path}/.core/skills/scripts/pr.py reorder {ID}`
 This re-sorts the unreplied comment sections by severity (CRITICAL first).
 
 ## Step 6: Present results

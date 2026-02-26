@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from ..utils.files import core_subpath, find_project_root, _is_cypilot_root
+from ..utils.files import core_subpath, gen_subpath, find_project_root, _is_cypilot_root
 
 
 def _safe_relpath(path: Path, base: Path) -> str:
@@ -63,7 +63,7 @@ def _ensure_cypilot_local(
     """Ensure cypilot files are available inside *project_root*.
 
     If *cypilot_root* is already inside *project_root*, nothing happens.
-    Otherwise the relevant subset is copied into ``project_root/.cypilot/``.
+    Otherwise the relevant subset is copied into ``project_root/cypilot/``.
 
     Returns ``(effective_cypilot_root, copy_report)``.
     """
@@ -74,7 +74,7 @@ def _ensure_cypilot_local(
     except ValueError:
         pass
 
-    local_dot = project_root / ".cypilot"
+    local_dot = project_root / "cypilot"
 
     # 2. Existing submodule
     if (local_dot / ".git").exists():
@@ -94,6 +94,8 @@ def _ensure_cypilot_local(
 
         core_dst = local_dot / _CORE_SUBDIR
         core_dst.mkdir(parents=True, exist_ok=True)
+        gen_dst = local_dot / ".gen"
+        gen_dst.mkdir(parents=True, exist_ok=True)
 
         for dirname in _COPY_DIRS:
             src = cypilot_root / dirname

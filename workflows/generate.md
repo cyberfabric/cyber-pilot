@@ -9,7 +9,7 @@ purpose: Universal workflow for creating or updating any artifact or code
 
 # Generate
 
-ALWAYS open and follow `{cypilot_path}/skills/cypilot/SKILL.md` FIRST WHEN {cypilot_mode} is `off`
+ALWAYS open and follow `{cypilot_path}/.core/skills/cypilot/SKILL.md` FIRST WHEN {cypilot_mode} is `off`
 
 **Type**: Operation
 

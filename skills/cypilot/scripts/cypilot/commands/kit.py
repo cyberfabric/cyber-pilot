@@ -98,6 +98,7 @@ def cmd_kit_install(argv: List[str]) -> int:
 
     cypilot_dir = (project_root / cypilot_rel).resolve()
     config_dir = cypilot_dir / "config"
+    gen_dir = cypilot_dir / ".gen"
     ref_dir = cypilot_dir / "kits" / kit_slug
     user_bp_dir = config_dir / "kits" / kit_slug / "blueprints"
 
@@ -138,9 +139,9 @@ def cmd_kit_install(argv: List[str]) -> int:
     # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-process-blueprints
     from ..utils.blueprint import process_kit
 
-    config_kits_dir = config_dir / "kits"
+    gen_kits_dir = gen_dir / "kits"
     summary, errors = process_kit(
-        kit_slug, user_bp_dir, config_kits_dir, dry_run=False,
+        kit_slug, user_bp_dir, gen_kits_dir, dry_run=False,
     )
     # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-process-blueprints
 
@@ -198,6 +199,7 @@ def cmd_kit_update(argv: List[str]) -> int:
 
     cypilot_dir = (project_root / cypilot_rel).resolve()
     config_dir = cypilot_dir / "config"
+    gen_dir = cypilot_dir / ".gen"
     kits_ref_dir = cypilot_dir / "kits"
 
     if not kits_ref_dir.is_dir():
@@ -257,13 +259,13 @@ def cmd_kit_update(argv: List[str]) -> int:
 
         # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-regenerate
         source_bp_dir = user_bp_dir if user_bp_dir.is_dir() else ref_bp_dir
-        config_kits_dir = config_dir / "kits"
+        gen_kits_dir = gen_dir / "kits"
 
         if args.dry_run:
             results.append({"kit": kit_slug, "action": "dry_run"})
         else:
             summary, errors = process_kit(
-                kit_slug, source_bp_dir, config_kits_dir, dry_run=False,
+                kit_slug, source_bp_dir, gen_kits_dir, dry_run=False,
             )
             results.append({
                 "kit": kit_slug,
@@ -327,7 +329,9 @@ def cmd_generate_resources(argv: List[str]) -> int:
 
     cypilot_dir = (project_root / cypilot_rel).resolve()
     config_dir = cypilot_dir / "config"
+    gen_dir = cypilot_dir / ".gen"
     config_kits_dir = config_dir / "kits"
+    gen_kits_dir = gen_dir / "kits"
 
     # @cpt-begin:cpt-cypilot-flow-blueprint-system-generate-resources:p1:inst-resolve-gen-kits
     if args.kit:
@@ -362,7 +366,7 @@ def cmd_generate_resources(argv: List[str]) -> int:
 
         # @cpt-begin:cpt-cypilot-flow-blueprint-system-generate-resources:p1:inst-gen-process
         summary, errors = process_kit(
-            kit_slug, bp_dir, config_kits_dir, dry_run=args.dry_run,
+            kit_slug, bp_dir, gen_kits_dir, dry_run=args.dry_run,
         )
         results.append({
             "kit": kit_slug,
@@ -582,7 +586,7 @@ def _register_kit_in_core_toml(
     kits = data.setdefault("kits", {})
     kits[kit_slug] = {
         "format": "Cypilot",
-        "path": f"{cypilot_dir.name}/kits/{kit_slug}",
+        "path": f".gen/kits/{kit_slug}",
     }
     if kit_version:
         kits[kit_slug]["version"] = kit_version
