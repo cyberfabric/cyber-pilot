@@ -860,6 +860,5 @@ This methodology feeds into Cypilot workflows:
 
 ## References
 
-- Adapter workflow: `../workflows/adapter.md`
 - Generate workflow: `../workflows/generate.md`
 - Execution protocol: `./execution-protocol.md`

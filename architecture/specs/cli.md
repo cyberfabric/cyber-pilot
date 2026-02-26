@@ -448,7 +448,7 @@ cypilot list-id-kinds [--system SYSTEM]
 
 ### info
 
-Show adapter status and registry information.
+Show cypilot status and registry information.
 
 ```
 cypilot info
@@ -457,8 +457,8 @@ cypilot info
 **Output** (JSON):
 ```json
 {
-  "adapter_path": ".cypilot-adapter",
-  "artifacts_json": ".cypilot-adapter/artifacts.toml",
+  "cypilot_dir": "cypilot",
+  "artifacts_toml": "cypilot/config/artifacts.toml",
   "systems": [
     {
       "name": "Cypilot",

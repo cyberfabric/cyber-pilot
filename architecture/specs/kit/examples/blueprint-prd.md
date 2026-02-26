@@ -168,7 +168,7 @@ examples = ["### 1.1 Purpose"]
 `@cpt:prompt`
 ```markdown
 Write 1-2 paragraphs: what is this system/module and what problem does it solve.
-Reference the system name from adapter config.
+Reference the system name from project config.
 ```
 `@/cpt:prompt`
 

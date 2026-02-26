@@ -102,24 +102,6 @@ Use `{cypilot_path}` as the base path for all relative Cypilot file references.
 
 ## Protocol Guard
 
-ALWAYS FIRST update `{cypilot_path}` WHEN the adapter is connected as a git submodule:
-
-Determine submodule mode (works in any shell):
-```bash
-git -C {cypilot_path} rev-parse --abbrev-ref HEAD
-```
-
-If the command prints `HEAD`, the submodule is in **detached HEAD** (normal “pinned commit” submodule mode). Update it from the superproject:
-```bash
-git submodule update --init --recursive -- {cypilot_path}
-```
-
-If the command prints a branch name (e.g. `main`), the submodule is on a **branch** (you intentionally work on it like a normal repo). Update it by pulling inside the submodule:
-```bash
-git -C {cypilot_path} pull --ff-only
-git -C {cypilot_path} submodule update --init --recursive
-```
-
 ALWAYS FIRST open and remember `{cypilot_path}/.gen/AGENTS.md`
 
 ALWAYS open and follow `{cypilot_path}/config/AGENTS.md` WHEN it exists
@@ -130,14 +112,14 @@ ALWAYS open and follow `{cypilot_path}/config/SKILL.md` WHEN it exists
 
 ALWAYS FIRST run `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py info` BEFORE any Cypilot workflow action
 
-ALWAYS FIRST read `{cypilot_path}/.gen/AGENTS.md` WHEN adapter status is FOUND
+ALWAYS FIRST read `{cypilot_path}/.gen/AGENTS.md` WHEN cypilot status is FOUND
 
 ALWAYS FIRST parse and load ALL matched WHEN clause specs BEFORE proceeding with workflow
 
 ALWAYS include Cypilot Context block WHEN editing code:
 ```
 Cypilot Context:
-- Adapter: {path}
+- Cypilot: {path}
 - Target: {artifact|codebase}
 - Specs loaded: {list paths or "none required"}
 ```
@@ -155,7 +137,7 @@ ALWAYS run `info` WHEN enabling Cypilot mode
 ALWAYS show status after enabling:
 ```
 Cypilot Mode Enabled
-Adapter: {FOUND at path | NOT_FOUND}
+Cypilot: {FOUND at path | NOT_FOUND}
 ```
 ---
 
@@ -270,7 +252,7 @@ python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py where-used --id <
 ```bash
 python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py info
 ```
-Output: status, adapter_dir, project_name, specs, kits
+Output: status, cypilot_dir, project_name, specs, kits
 
 ### init
 ```bash
@@ -294,7 +276,7 @@ python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py agents --openai
 
 Optional `{project-root}/.cypilot-config.json`:
 ```json
-{"cypilotCorePath": "cypilot", "cypilotAdapterPath": ".cypilot-adapter"}
+{"cypilotPath": "cypilot"}
 ```
 
 All commands output JSON. Exit codes: 0=PASS, 1=filesystem error, 2=FAIL.

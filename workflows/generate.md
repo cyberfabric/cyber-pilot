@@ -84,7 +84,7 @@ ALWAYS SKIP this section WHEN GREENFIELD — nothing to reverse-engineer
 
 **BROWNFIELD only** — when existing code needs to inform artifacts:
 
-1. **Check if adapter has project analysis**:
+1. **Check if config has project analysis**:
   - Does `cypilot.py info` report any `specs`?
   - If specs exist, load and follow them before generating.
   - If no specs exist, offer rescan.
@@ -99,7 +99,7 @@ ALWAYS SKIP this section WHEN GREENFIELD — nothing to reverse-engineer
    Skip? Artifacts will be created without codebase context.
    ```
 
-3. **If user confirms**: Run adapter rescan, then continue
+3. **If user confirms**: Run rescan, then continue
 4. **If user skips**: Proceed without codebase analysis
 
 ---
@@ -109,15 +109,13 @@ ALWAYS SKIP this section WHEN GREENFIELD — nothing to reverse-engineer
 Universal generation workflow. Handles three modes:
 - **Artifact mode**: Uses template + checklist + example (PRD, DESIGN, DECOMPOSITION, ADR, SPEC)
 - **Code mode**: Uses checklist only (implementation, fixes, refactoring)
-- **Adapter mode**: Uses adapter.md workflow (create/update adapter, specs, artifacts.toml)
-
-**Adapter mode trigger**: When target is adapter files (AGENTS.md, artifacts.toml, specs/), delegate to `{cypilot_path}/.core/workflows/adapter.md`.
+- **Config mode**: Create/update config files (AGENTS.md, artifacts.toml, specs/)
 
 After executing `execution-protocol.md`, you have: TARGET_TYPE, RULES, KIND, PATH, MODE, and resolved dependencies.
 
 ### Resolved Variables (from `execution-protocol.md` + info)
 
-- `{cypilot_path}/config/` — adapter directory from `cypilot.py info` (contains `artifacts.toml`)
+- `{cypilot_path}/config/` — config directory from `cypilot.py info` (contains `artifacts.toml`)
 - `{ARTIFACTS_REGISTRY}` — `{cypilot_path}/config/artifacts.toml`
 - `{KITS_PATH}` — kit package base directory resolved from registry (registry schema uses `kits`/`kit`)
 - `{PATH}` — target artifact/code path for the current operation
@@ -262,7 +260,7 @@ Where should the result go?
 ### ID Naming
 
 **For new artifacts with IDs**:
-- Use project prefix from adapter
+- Use project prefix from config
 - Follow pattern: `cpt-{system}-{kind}-{slug}`
 - Verify uniqueness with `cypilot list-ids`
 
@@ -527,8 +525,8 @@ What would you like to do next?
 ```
 ⚠️ Tool error: {error message}
 → Check Python environment and dependencies
-→ Verify adapter is correctly configured
-→ Run /cypilot-adapter --rescan to refresh
+→ Verify cypilot is correctly configured
+→ Run /cypilot-adapter to refresh
 ```
 **STOP** — do not continue with incomplete state.
 

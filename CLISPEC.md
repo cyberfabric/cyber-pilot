@@ -430,8 +430,7 @@ Syntax highlighting:
 ## References
 
 - **Cypilot Methodology**: `AGENTS.md`
-- **Adapter Guide**: `guides/ADAPTER.md`
-- **Example Usage**: See `../cypilot-cli-adapter/AGENTS.md` for real-world CLISPEC
+- **Example Usage**: See `../.cypilot-adapter/AGENTS.md` for real-world CLISPEC
 
 ---
 

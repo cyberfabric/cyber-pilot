@@ -102,7 +102,7 @@ python3 cypilot/skills/cypilot/scripts/cypilot.py agents --agent windsurf
 
 To use Cypilot, run your IDE with an AI agent (or run an agent in a terminal), and then start your requests with `cypilot`.
 
-That prefix switches the agent into Cypilot mode: it loads the adapter + required rules, routes the request to the right workflow (analyze vs generate), and gates any file writes behind explicit confirmation.
+That prefix switches the agent into Cypilot mode: it loads the config + required rules, routes the request to the right workflow (analyze vs generate), and gates any file writes behind explicit confirmation.
 
 ### Real Conversation (Prompt Excerpt)
 
@@ -359,19 +359,19 @@ Reply with: `cypilot generate: <your goal>` + which of the three targets.
 
 | Prompt | What the agent does |
 |--------|---------------------|
-| `cypilot on` | Enables Cypilot mode — discovers adapter, loads project context, shows available workflows |
+| `cypilot on` | Enables Cypilot mode — discovers config, loads project context, shows available workflows |
 | `cypilot off` | Disables Cypilot mode — returns to normal assistant behavior |
 
-**Setup & Adapter Configuration**
+**Setup & Configuration**
 
 | Prompt | What the agent does |
 |--------|---------------------|
-| `cypilot configure adapter for Python monorepo with FastAPI` | Generates adapter with tech-stack specs, testing conventions, and codebase mappings |
+| `cypilot init` | Initializes Cypilot for the project — creates config, generates rules, injects root AGENTS.md |
 | `cypilot add src/api/ to tracked codebase` | Updates `artifacts.toml` to include directory in traceability scanning |
 | `cypilot register FEATURE at architecture/features/payments.md` | Adds artifact entry to `artifacts.toml` with kind, path, and system mapping |
 | `cypilot add tech-stack spec for PostgreSQL + Redis` | Creates `specs/tech-stack.md` with database and caching conventions |
 | `cypilot update testing conventions` | Modifies `specs/testing.md` with project-specific test patterns |
-| `cypilot show adapter config` | Displays `artifacts.toml` structure, registered artifacts, and codebase mappings |
+| `cypilot show config` | Displays `artifacts.toml` structure, registered artifacts, and codebase mappings |
 | `cypilot regenerate AGENTS.md` | Rebuilds navigation rules based on current artifact registry |
 
 **Artifact Generation**
@@ -437,7 +437,7 @@ The skill provides:
 - Artifact validation and search capabilities
 - ID lookup and traceability across documents and code
 - Protocol guard for consistent context loading
-- Integration with project adapter
+- Integration with project config
 
 When the skill is loaded, the agent gains access to Cypilot's CLI commands and workflow triggers.
 
@@ -447,10 +447,9 @@ For agents that don't support the Agent Skills specification, Cypilot provides *
 
 | Command | Workflow | Description |
 |---------|----------|-------------|
-| `/cypilot` | — | Enable Cypilot mode, discover adapter, show available workflows |
+| `/cypilot` | — | Enable Cypilot mode, discover config, show available workflows |
 | `/cypilot-generate` | `workflows/generate.md` | Create/update artifacts (PRD, DESIGN, DECOMPOSITION, ADR, FEATURE) or implement code with traceability markers |
 | `/cypilot-analyze` | `workflows/analyze.md` | Validate artifacts against templates or code against design (deterministic + semantic) |
-| `/cypilot-adapter` | `workflows/adapter.md` | Create/update project adapter — scan structure, configure rules, generate `AGENTS.md` and `artifacts.toml` |
 
 Each workflow includes feedback loops, quality gates, and references to relevant checklists and rules.
 

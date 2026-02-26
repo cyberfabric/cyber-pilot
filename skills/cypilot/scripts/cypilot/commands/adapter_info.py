@@ -23,7 +23,7 @@ def _load_json_file(path: Path) -> Optional[dict]:
 
 
 def cmd_adapter_info(argv: list[str]) -> int:
-    """Discover and display Cypilot project information."""
+    """Discover and display Cypilot project configuration."""
     p = argparse.ArgumentParser(prog="info", description="Discover Cypilot project configuration")
     p.add_argument("--root", default=".", help="Project root to search from (default: current directory)")
     p.add_argument("--cypilot-root", default=None, help="Cypilot core location (if agent knows it)")
