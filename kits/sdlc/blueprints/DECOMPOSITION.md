@@ -59,9 +59,15 @@ sections = ["structural", "decomposition_quality", "upstream_traceability", "che
 
 [tasks]
 phases = ["setup", "content_creation", "ids_and_structure", "quality_check", "checkbox_workflow"]
+[tasks.names]
+ids_and_structure = "IDs and Structure"
+checkbox_workflow = "Checkbox Status Workflow"
 
 [validation]
-sections = ["structural", "decomposition_quality"]
+phases = ["structural", "decomposition_quality", "validation_report"]
+[validation.names]
+structural = "Structural Validation (Deterministic)"
+decomposition_quality = "Decomposition Quality Validation (Checklist-based)"
 
 [error_handling]
 sections = ["missing_dependencies", "quality_issues", "escalation"]
@@ -84,7 +90,7 @@ section = "load_dependencies"
 - [ ] Load `examples/example.md` for reference style
 - [ ] Read DESIGN to identify elements to decompose
 - [ ] Read PRD to identify requirements to cover
-- [ ] Read adapter `artifacts.toml` to determine artifact paths
+- [ ] Read `{cypilot_path}/config/artifacts.toml` to determine artifact paths
 - [ ] Load `{cypilot_path}/config/kits/sdlc/constraints.toml` for kit-level constraints
 - [ ] Load `{cypilot_path}/.core/architecture/specs/traceability.md` for ID formats
 ```
@@ -193,7 +199,15 @@ section = "constraints"
   - where IDs are defined
   - where IDs are referenced
   - which cross-artifact references are required / optional / prohibited
-- [ ] Automated validation: `cypilot validate` enforces identifier reference rules
+
+**References**:
+- `{cypilot_path}/.core/requirements/kit-constraints.md`
+- `{cypilot_path}/.core/schemas/kit-constraints.schema.json`
+
+**Validation Checks**:
+- `cypilot validate` enforces `identifiers[<kind>].references` rules (required / optional / prohibited)
+- `cypilot validate` enforces headings scoping for ID definitions and references
+- `cypilot validate` enforces "checked ref implies checked def" consistency
 ```
 `@/cpt:rule`
 
@@ -240,7 +254,7 @@ kind = "tasks"
 section = "ids_and_structure"
 ```
 ```markdown
-- [ ] Generate feature IDs: `cpt-{hierarchy-prefix}-feature-{slug}`
+- [ ] Generate feature IDs: `cpt-{hierarchy-prefix}-feature-{slug}` (e.g., `cpt-myapp-feature-user-auth`)
 - [ ] Assign priorities based on dependency order
 - [ ] Set initial status to NOT_STARTED
 - [ ] Link to DESIGN elements being implemented
@@ -272,13 +286,26 @@ kind = "tasks"
 section = "checkbox_workflow"
 ```
 ```markdown
-**Initial Creation**: Create feature entries with `[ ]` unchecked; overall status `[ ]` unchecked.
+**Initial Creation (New Feature)**:
+1. Create feature entry with `[ ]` unchecked on the feature ID
+2. Add all reference blocks with `[ ]` unchecked on each referenced ID
+3. Overall `status-overall` remains `[ ]` unchecked
 
-**During Implementation**: Mark individual referenced IDs `[x]` as work progresses.
+**During Implementation (Marking Progress)**:
+1. When a specific requirement is implemented: find the referenced ID entry, change `[ ]` to `[x]`
+2. When a component is integrated: find the referenced component entry, change `[ ]` to `[x]`
+3. Continue for all reference types as work progresses
 
-**Feature Completion**: Verify ALL nested references `[x]`, then mark feature ID `[x]`.
+**Feature Completion (Marking Feature Done)**:
+1. Verify ALL referenced IDs within the feature entry have `[x]`
+2. Run `cypilot validate` to confirm no checkbox inconsistencies
+3. Change the feature ID line from `[ ]` to `[x]`
+4. Update feature status emoji (e.g., ⏳ → ✅)
 
-**Manifest Completion**: Verify ALL features `[x]`, then mark `status-overall` `[x]`.
+**Manifest Completion (Marking Overall Done)**:
+1. Verify ALL feature entries have `[x]`
+2. Run `cypilot validate` to confirm cascade consistency
+3. Change the `status-overall` line from `[ ]` to `[x]`
 ```
 `@/cpt:rule`
 
@@ -360,6 +387,27 @@ Apply `checklist.md` systematically:
 ```
 `@/cpt:rule`
 
+#### Validation Report
+
+`@cpt:rule`
+```toml
+kind = "validation"
+section = "validation_report"
+```
+````markdown
+```
+DECOMPOSITION Validation Report
+═════════════════════════════════════
+
+Structural: PASS/FAIL
+Semantic: PASS/FAIL (N issues)
+
+Issues:
+- [SEVERITY] CHECKLIST-ID: Description
+```
+````
+`@/cpt:rule`
+
 ### Next Steps
 
 `@cpt:rule`
@@ -386,68 +434,161 @@ Decomposition quality checks organized by domain.
 
 `@cpt:checklist`
 ```toml
+[sections]
+format_validation = "Format Validation"
+
 [severity]
 levels = ["CRITICAL", "HIGH", "MEDIUM", "LOW"]
 
 [review]
-priority = ["COV", "EXC", "ATTR", "TRC", "DEP"]
+priority = ["COV", "EXC", "ATTR", "LEV", "CFG", "TRC", "DEP", "CHK", "DOC"]
 
 [[domain]]
 abbr = "COV"
-name = "Coverage"
-standards = ["ISO 21511:2018"]
+name = "COVERAGE"
+header = "COVERAGE (COV)"
+standards_text = """> **Standard**: [ISO 21511:2018](https://www.iso.org/standard/69702.html) §4.2 — WBS 100% Rule
+>
+> "The WBS must include 100% of the work defined by the scope and capture all deliverables.""""
 
 [[domain]]
 abbr = "EXC"
-name = "Exclusivity"
-standards = ["ISO 21511:2018"]
+name = "EXCLUSIVITY"
+header = "EXCLUSIVITY (EXC)"
+standards_text = """> **Standard**: [ISO 21511:2018](https://www.iso.org/standard/69702.html) §4.2 — Mutual Exclusivity
+>
+> "Work packages should be mutually exclusive to avoid double-counting and ambiguity.""""
 
 [[domain]]
 abbr = "ATTR"
-name = "Entity Attributes"
-standards = ["IEEE 1016-2009"]
+name = "ENTITY ATTRIBUTES"
+header = "ENTITY ATTRIBUTES (ATTR)"
+standards_text = """> **Standard**: [IEEE 1016-2009](https://standards.ieee.org/ieee/1016/4502/) §5.4.1 — Decomposition Description Attributes
+>
+> "Each design entity in decomposition must have: identification, type, purpose, function, subordinates.""""
 
 [[domain]]
 abbr = "LEV"
-name = "Decomposition Levels"
-standards = ["ISO 21511:2018", "IEEE 1016-2009"]
+name = "DECOMPOSITION LEVELS"
+header = "DECOMPOSITION LEVELS (LEV)"
+standards_text = """> **Standard**: [ISO 21511:2018](https://www.iso.org/standard/69702.html) §5.2 — Levels of Decomposition"""
 
 [[domain]]
 abbr = "CFG"
-name = "Configuration Items"
-standards = ["ISO 10007:2017"]
+name = "CONFIGURATION ITEMS"
+header = "CONFIGURATION ITEMS (CFG)"
+standards_text = """> **Standard**: [ISO 10007:2017](https://www.iso.org/standard/70400.html) §6.2 — Configuration Identification
+>
+> "Configuration items should be selected using established criteria. Their inter-relationships describe the product structure.""""
 
 [[domain]]
 abbr = "TRC"
-name = "Traceability"
-standards = ["ISO/IEC/IEEE 29148:2018", "ISO/IEC/IEEE 42010:2022"]
+name = "TRACEABILITY"
+header = "TRACEABILITY (TRC)"
+standards_text = """> **Standards**: [ISO/IEC/IEEE 29148:2018](https://www.iso.org/standard/72089.html) §6.5, [ISO/IEC/IEEE 42010:2022](https://www.iso.org/standard/74393.html) §5.6"""
 
 [[domain]]
 abbr = "DEP"
-name = "Dependencies"
-standards = ["ISO/IEC 25010:2023"]
+name = "DEPENDENCIES"
+header = "DEPENDENCIES (DEP)"
+standards_text = """> **Standard**: [ISO/IEC 25010:2023](https://www.iso.org/standard/78176.html) §4.2.7.2 — Modularity (loose coupling)"""
 
 [[domain]]
 abbr = "CHK"
-name = "Checkbox Consistency"
+name = "CHECKBOX CONSISTENCY"
+header = "CHECKBOX CONSISTENCY (CHK)"
 standards = []
 
 [[domain]]
 abbr = "DOC"
-name = "Deliberate Omissions"
+name = "DELIBERATE OMISSIONS"
+header = "DELIBERATE OMISSIONS (DOC)"
 standards = []
 
-[[domain]]
-abbr = "FMT"
-name = "Format Validation"
-standards = []
 ```
+````markdown
+# DECOMPOSITION Expert Checklist
+
+**Artifact**: Design Decomposition (DECOMPOSITION)
+**Version**: 2.0
+**Last Updated**: 2025-02-03
+**Purpose**: Validate quality of design decomposition into implementable work packages
+
+---
+
+## Referenced Standards
+
+This checklist validates decomposition quality based on the following international standards:
+
+| Standard | Domain | Description |
+|----------|--------|-------------|
+| [IEEE 1016-2009](https://standards.ieee.org/ieee/1016/4502/) | **Design Decomposition** | Software Design Descriptions — Decomposition Description viewpoint (§5.4) |
+| [ISO 21511:2018](https://www.iso.org/standard/69702.html) | **Work Breakdown Structure** | WBS for project/programme management — scope decomposition, 100% rule |
+| [ISO 10007:2017](https://www.iso.org/standard/70400.html) | **Configuration Management** | Configuration items, product structure, baselines |
+| [ISO/IEC/IEEE 42010:2022](https://www.iso.org/standard/74393.html) | **Architecture Description** | Architecture viewpoints, model correspondences, consistency |
+| [ISO/IEC/IEEE 29148:2018](https://www.iso.org/standard/72089.html) | **Requirements Traceability** | Bidirectional traceability, verification |
+---
+
+## Prerequisites
+
+Before starting the review, confirm:
+
+- [ ] I understand this checklist validates DECOMPOSITION artifacts (design breakdown into features)
+- [ ] I have access to the source DESIGN artifact being decomposed
+- [ ] I will check ALL items in MUST HAVE sections
+- [ ] I will verify ALL items in MUST NOT HAVE sections
+- [ ] I will document any violations found
+- [ ] I will use the [Reporting](#reporting) format for output
+
+---
+
+## Applicability Context
+
+**Purpose of DECOMPOSITION artifact**: Break down the overall DESIGN into implementable work packages (features) that can be assigned, tracked, and implemented independently.
+
+**What this checklist tests**: Quality of the decomposition itself — not the quality of requirements, design decisions, security, performance, or other concerns. Those belong in PRD and DESIGN checklists.
+
+**Key principle**: A perfect decomposition has:
+1. **100% coverage** — every design element appears in at least one feature
+2. **No overlap** — no design element appears in multiple features without clear reason
+3. **Complete attributes** — every feature has identification, purpose, scope, dependencies
+4. **Consistent granularity** — features are at similar abstraction levels
+5. **Bidirectional traceability** — can trace both ways between design and features
+
+---
+
+## Severity Dictionary
+
+- **CRITICAL**: Decomposition is fundamentally broken; cannot proceed to implementation.
+- **HIGH**: Significant decomposition gap; should be fixed before implementation starts.
+- **MEDIUM**: Decomposition improvement needed; fix when feasible.
+- **LOW**: Minor improvement; optional.
+
+---
+
+## Checkpointing (Long Reviews)
+
+### Checkpoint After Each Domain
+
+After completing each expertise domain (COV, EXC, ATTR, etc.), output:
+```
+✓ {DOMAIN} complete: {N} items checked, {M} issues found
+Issues: {list issue IDs}
+Remaining: {list unchecked domains}
+```
+
+### Minimum Viable Review
+
+If full review impossible, prioritize in this order:
+1. **COV-001** (CRITICAL) — WBS 100% Rule
+2. **EXC-001** (CRITICAL) — Mutual Exclusivity
+3. **ATTR-001** (HIGH) — Entity Identification
+4. **TRC-001** (HIGH) — Forward Traceability
+5. **DOC-001** (CRITICAL) — Deliberate Omissions
+
+Mark review as "PARTIAL" if not all domains completed.
+````
 `@/cpt:checklist`
-
-### Coverage Checks (COV)
-
-100% design element coverage — every component, sequence, and data entity
-must be assigned to at least one feature.
 
 `@cpt:check`
 ```toml
@@ -465,6 +606,8 @@ kind = "must_have"
 - [ ] ALL design principles from DESIGN are assigned to at least one feature
 - [ ] ALL design constraints from DESIGN are assigned to at least one feature
 - [ ] No orphaned design elements (elements not in any feature)
+
+**Verification method**: Cross-reference DESIGN IDs with DECOMPOSITION references.
 ```
 `@/cpt:check`
 
@@ -474,13 +617,15 @@ id = "COV-002"
 domain = "COV"
 title = "Requirements Coverage Passthrough"
 severity = "HIGH"
-ref = "ISO/IEC/IEEE 29148:2018 §6.5"
+ref = "ISO/IEC/IEEE 29148:2018 §6.5 (Traceability)"
 kind = "must_have"
 ```
 ```markdown
 - [ ] ALL functional requirements (FR) from PRD are covered by at least one feature
 - [ ] ALL non-functional requirements (NFR) from PRD are covered by at least one feature
 - [ ] No orphaned requirements (requirements not in any feature)
+
+**Note**: This verifies that the decomposition covers requirements transitively through DESIGN.
 ```
 `@/cpt:check`
 
@@ -501,10 +646,6 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-### Exclusivity Checks (EXC)
-
-No scope overlaps between features.
-
 `@cpt:check`
 ```toml
 id = "EXC-001"
@@ -519,6 +660,8 @@ kind = "must_have"
 - [ ] No duplicate coverage of the same design element by multiple features without explicit reason
 - [ ] Responsibility for each deliverable is unambiguous
 - [ ] No "shared" scope that could cause confusion about ownership
+
+**Verification method**: Check if any design element ID appears in multiple features' references.
 ```
 `@/cpt:check`
 
@@ -553,10 +696,6 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-### Attribute Checks (ATTR)
-
-Each feature has all required attributes.
-
 `@cpt:check`
 ```toml
 id = "ATTR-001"
@@ -567,7 +706,7 @@ ref = "IEEE 1016-2009 §5.4.1 (identification attribute)"
 kind = "must_have"
 ```
 ```markdown
-- [ ] Each feature has unique **ID** following naming convention
+- [ ] Each feature has unique **ID** following naming convention (`cpt-{system}-feature-{slug}`)
 - [ ] IDs are stable (won't change during implementation)
 - [ ] IDs are human-readable and meaningful
 - [ ] No duplicate IDs within the decomposition
@@ -584,7 +723,7 @@ ref = "IEEE 1016-2009 §5.4.1 (type attribute)"
 kind = "must_have"
 ```
 ```markdown
-- [ ] Each feature has type classification implied by priority/status
+- [ ] Each feature has **type** classification implied by priority/status (or explicit type field)
 - [ ] Type indicates nature: core, supporting, infrastructure, integration, etc.
 - [ ] Types are consistent across similar features
 ```
@@ -620,7 +759,7 @@ kind = "must_have"
 - [ ] Each feature has concrete **Scope** bullets describing WHAT it does
 - [ ] Scope items are actionable and verifiable
 - [ ] Scope aligns with Purpose
-- [ ] Scope is at appropriate abstraction level
+- [ ] Scope is at appropriate abstraction level (not too detailed, not too vague)
 ```
 `@/cpt:check`
 
@@ -637,12 +776,9 @@ kind = "must_have"
 - [ ] Each feature documents phases/milestones (subordinate decomposition)
 - [ ] Or explicitly states "single phase" / no sub-decomposition needed
 - [ ] Subordinates represent meaningful implementation milestones
+- [ ] Subordinate relationships are hierarchically valid
 ```
 `@/cpt:check`
-
-### Leveling Checks (LEV)
-
-Feature ordering, priority, and implementation sequence.
 
 `@cpt:check`
 ```toml
@@ -650,13 +786,14 @@ id = "LEV-001"
 domain = "LEV"
 title = "Granularity Consistency"
 severity = "MEDIUM"
-ref = "ISO 21511:2018 §5.2"
+ref = "ISO 21511:2018 §5.2 (decomposition levels)"
 kind = "must_have"
 ```
 ```markdown
 - [ ] All features are at similar abstraction level (consistent granularity)
 - [ ] No feature is significantly larger than others (≤3x size difference)
 - [ ] No feature is significantly smaller than others (≥1/3x size difference)
+- [ ] Size is measured by scope items or estimated effort
 ```
 `@/cpt:check`
 
@@ -666,12 +803,12 @@ id = "LEV-002"
 domain = "LEV"
 title = "Decomposition Depth"
 severity = "MEDIUM"
-ref = "IEEE 1016-2009 §5.4.2"
+ref = "IEEE 1016-2009 §5.4.2 (decomposition hierarchy)"
 kind = "must_have"
 ```
 ```markdown
 - [ ] Features are decomposed to implementable units (not too coarse)
-- [ ] Features are not over-decomposed (not too granular)
+- [ ] Features are not over-decomposed (not too granular for this artifact level)
 - [ ] Hierarchy is clear: DESIGN → DECOMPOSITION → FEATURE
 ```
 `@/cpt:check`
@@ -691,15 +828,13 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-### Configuration Checks (CFG)
-
 `@cpt:check`
 ```toml
 id = "CFG-001"
 domain = "CFG"
 title = "Configuration Item Boundaries"
 severity = "MEDIUM"
-ref = "ISO 10007:2017 §6.2"
+ref = "ISO 10007:2017 §6.2 (CI selection)"
 kind = "must_have"
 ```
 ```markdown
@@ -715,7 +850,7 @@ id = "CFG-002"
 domain = "CFG"
 title = "Change Control Readiness"
 severity = "LOW"
-ref = "ISO 10007:2017 §6.3"
+ref = "ISO 10007:2017 §6.3 (change control)"
 kind = "must_have"
 ```
 ```markdown
@@ -725,17 +860,13 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-### Traceability Checks (TRC)
-
-Upstream links to PRD/DESIGN.
-
 `@cpt:check`
 ```toml
 id = "TRC-001"
 domain = "TRC"
 title = "Forward Traceability (Design → Features)"
 severity = "HIGH"
-ref = "ISO/IEC/IEEE 29148:2018 §6.5.2"
+ref = "ISO/IEC/IEEE 29148:2018 §6.5.2 (forward traceability)"
 kind = "must_have"
 ```
 ```markdown
@@ -751,7 +882,7 @@ id = "TRC-002"
 domain = "TRC"
 title = "Backward Traceability (Features → Design)"
 severity = "HIGH"
-ref = "ISO/IEC/IEEE 29148:2018 §6.5.2"
+ref = "ISO/IEC/IEEE 29148:2018 §6.5.2 (backward traceability)"
 kind = "must_have"
 ```
 ```markdown
@@ -767,7 +898,7 @@ id = "TRC-003"
 domain = "TRC"
 title = "Cross-Artifact Consistency"
 severity = "HIGH"
-ref = "ISO/IEC/IEEE 42010:2022 §5.6"
+ref = "ISO/IEC/IEEE 42010:2022 §5.6 (architecture description consistency)"
 kind = "must_have"
 ```
 ```markdown
@@ -783,17 +914,15 @@ id = "TRC-004"
 domain = "TRC"
 title = "Impact Analysis Readiness"
 severity = "MEDIUM"
-ref = "ISO/IEC/IEEE 42010:2022 §5.6"
+ref = "ISO/IEC/IEEE 42010:2022 §5.6 (consistency checking)"
 kind = "must_have"
 ```
 ```markdown
-- [ ] Dependency graph supports impact analysis
-- [ ] Cross-references support reverse lookup
+- [ ] Dependency graph supports impact analysis (what is affected if X changes)
+- [ ] Cross-references support reverse lookup (what depends on X)
 - [ ] Changes to design can be traced to affected features
 ```
 `@/cpt:check`
-
-### Dependency Checks (DEP)
 
 `@cpt:check`
 ```toml
@@ -801,7 +930,7 @@ id = "DEP-001"
 domain = "DEP"
 title = "Dependency Graph Quality"
 severity = "CRITICAL"
-ref = "ISO/IEC 25010:2023 §4.2.7.2"
+ref = "ISO/IEC 25010:2023 §4.2.7.2 (Modularity — loose coupling)"
 kind = "must_have"
 ```
 ```markdown
@@ -843,8 +972,6 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-### Checkbox Checks (CHK)
-
 `@cpt:check`
 ```toml
 id = "CHK-001"
@@ -854,10 +981,10 @@ severity = "HIGH"
 kind = "must_have"
 ```
 ```markdown
-- [ ] Overall status is `[x]` only when ALL feature blocks are `[x]`
-- [ ] Feature is `[x]` only when ALL nested references within that feature are `[x]`
-- [ ] Priority markers are consistent between definitions and references
-- [ ] Status emoji matches checkbox state
+- [ ] Overall status tasks is `[x]` only when ALL `cpt-{system}-*` blocks are `[x]`
+- [ ] `cpt-{system}-*` is `[x]` only when ALL nested `cpt-{system}-*` blocks within that feature are `[x]`
+- [ ] Priority markers (`p1`-`p9`) are consistent between definitions and references
+- [ ] Status emoji matches checkbox state (⏳ for in-progress, ✅ for done)
 ```
 `@/cpt:check`
 
@@ -870,13 +997,11 @@ severity = "HIGH"
 kind = "must_have"
 ```
 ```markdown
-- [ ] All references resolve to valid definitions in source artifacts (DESIGN, PRD)
+- [ ] All `cpt-{system}-*` references resolve to valid definitions in source artifacts (DESIGN, PRD)
 - [ ] No orphaned checked references (reference checked but definition unchecked)
 - [ ] No duplicate checkboxes for the same ID within a feature block
 ```
 `@/cpt:check`
-
-### Documentation Checks (DOC)
 
 `@cpt:check`
 ```toml
@@ -893,7 +1018,61 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-### Format Checks (FMT)
+`@cpt:check`
+```toml
+id = "DECOMP-NO-001"
+domain = "DECOMP"
+title = "No Implementation Details"
+severity = "CRITICAL"
+kind = "must_not_have"
+```
+```markdown
+**What to check**:
+- [ ] No code snippets or algorithms
+- [ ] No detailed technical specifications (belongs in FEATURE artifact)
+- [ ] No user flows or state machines (belongs in FEATURE artifact)
+- [ ] No API request/response schemas (belongs in FEATURE artifact)
+
+**Where it belongs**: FEATURE (feature design) artifact
+```
+`@/cpt:check`
+
+`@cpt:check`
+```toml
+id = "DECOMP-NO-002"
+domain = "DECOMP"
+title = "No Requirements Definitions"
+severity = "HIGH"
+kind = "must_not_have"
+```
+```markdown
+**What to check**:
+- [ ] No functional requirement definitions (FR-xxx) — should reference PRD
+- [ ] No non-functional requirement definitions (NFR-xxx) — should reference PRD
+- [ ] No use case definitions — should reference PRD
+- [ ] No actor definitions — should reference PRD
+
+**Where it belongs**: PRD artifact
+```
+`@/cpt:check`
+
+`@cpt:check`
+```toml
+id = "DECOMP-NO-003"
+domain = "DECOMP"
+title = "No Architecture Decisions"
+severity = "HIGH"
+kind = "must_not_have"
+```
+```markdown
+**What to check**:
+- [ ] No "why we chose X" explanations (should reference ADR)
+- [ ] No technology selection rationales (should reference ADR)
+- [ ] No pros/cons analysis (should reference ADR)
+
+**Where it belongs**: ADR artifact
+```
+`@/cpt:check`
 
 `@cpt:check`
 ```toml
@@ -901,7 +1080,7 @@ id = "FMT-001"
 domain = "FMT"
 title = "Feature Entry Format"
 severity = "HIGH"
-kind = "must_have"
+kind = "format_validation"
 ```
 ```markdown
 - [ ] Each feature entry has unique title
@@ -916,7 +1095,7 @@ id = "FMT-002"
 domain = "FMT"
 title = "Required Fields Present"
 severity = "HIGH"
-kind = "must_have"
+kind = "format_validation"
 ```
 ```markdown
 - [ ] **ID**: Present and follows convention
@@ -935,66 +1114,15 @@ id = "FMT-003"
 domain = "FMT"
 title = "Checkbox Syntax"
 severity = "CRITICAL"
-kind = "must_have"
+kind = "format_validation"
 ```
 ```markdown
 - [ ] All checkboxes use correct syntax: `[ ]` (unchecked) or `[x]` (checked)
-- [ ] Checkbox followed by backtick-enclosed priority
+- [ ] Checkbox followed by backtick-enclosed priority: `[ ] \`p1\``
 - [ ] Priority followed by dash and backtick-enclosed ID
 ```
 `@/cpt:check`
 
-### Anti-Pattern Checks (must_not_have)
-
-`@cpt:check`
-```toml
-id = "DECOMP-NO-001"
-domain = "FMT"
-title = "No Implementation Details"
-severity = "CRITICAL"
-kind = "must_not_have"
-belongs_to = "FEATURE artifact"
-```
-```markdown
-- [ ] No code snippets or algorithms
-- [ ] No detailed technical specifications
-- [ ] No user flows or state machines
-- [ ] No API request/response schemas
-```
-`@/cpt:check`
-
-`@cpt:check`
-```toml
-id = "DECOMP-NO-002"
-domain = "FMT"
-title = "No Requirements Definitions"
-severity = "HIGH"
-kind = "must_not_have"
-belongs_to = "PRD artifact"
-```
-```markdown
-- [ ] No functional requirement definitions — should reference PRD
-- [ ] No non-functional requirement definitions — should reference PRD
-- [ ] No use case definitions — should reference PRD
-- [ ] No actor definitions — should reference PRD
-```
-`@/cpt:check`
-
-`@cpt:check`
-```toml
-id = "DECOMP-NO-003"
-domain = "FMT"
-title = "No Architecture Decisions"
-severity = "HIGH"
-kind = "must_not_have"
-belongs_to = "ADR artifact"
-```
-```markdown
-- [ ] No "why we chose X" explanations — should reference ADR
-- [ ] No technology selection rationales — should reference ADR
-- [ ] No pros/cons analysis — should reference ADR
-```
-`@/cpt:check`
 
 ---
 

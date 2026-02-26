@@ -1,134 +1,122 @@
-# CODE Rules
+# CODEBASE Rules
 
-**Target**: Codebase Implementation
-**Purpose**: Rules for code generation and validation with Cypilot traceability
+**Artifact**: CODEBASE
+**Kit**: sdlc
 
----
+**Dependencies**:
+- `template.md` — structural reference
+- `checklist.md` — semantic quality criteria
+- `examples/example.md` — reference implementation
 
 ## Table of Contents
 
-1. [Requirements](#requirements)
-   - [Structural Requirements](#structural-requirements)
-   - [Traceability Requirements](#traceability-requirements)
-   - [Checkbox Cascade](#checkbox-cascade-code-markers--upstream-artifacts)
-   - [Versioning Requirements](#versioning-requirements)
-   - [Engineering Best Practices](#engineering-best-practices-mandatory)
-   - [Quality Requirements](#quality-requirements)
-2. [Tasks](#tasks)
+1. [Prerequisites](#prerequisites)
+   - [Load Dependencies](#load-dependencies)
+2. [Requirements](#requirements)
+   - [Structural](#structural)
+   - [Traceability](#traceability)
+   - [Checkbox Cascade](#checkbox-cascade)
+   - [Versioning](#versioning)
+   - [Engineering](#engineering)
+   - [Quality](#quality)
+3. [Tasks](#tasks)
    - [Phase 1: Setup](#phase-1-setup)
-   - [Phase 2: Implementation](#phase-2-implementation-work-packages)
-   - [Phase 3: Cypilot Markers](#phase-3-cypilot-markers-traceability-mode-on-only)
-   - [Phase 4: Sync FEATURE](#phase-4-sync-feature-featuremd-traceability-mode-on-only)
+   - [Phase 2: Implementation (Work Packages)](#phase-2-implementation-work-packages)
+   - [Phase 3: Cypilot Markers (Traceability Mode ON only)](#phase-3-cypilot-markers-traceability-mode-on-only)
+   - [Phase 4: Sync FEATURE (Traceability Mode ON only)](#phase-4-sync-feature-traceability-mode-on-only)
    - [Phase 5: Quality Check](#phase-5-quality-check)
-   - [Phase 6: Tag Verification](#phase-6-tag-verification-traceability-mode-on-only)
-3. [Validation](#validation)
+   - [Phase 6: Tag Verification (Traceability Mode ON only)](#phase-6-tag-verification-traceability-mode-on-only)
+4. [Validation](#validation)
    - [Phase 1: Implementation Coverage](#phase-1-implementation-coverage)
-   - [Phase 2: Traceability Validation](#phase-2-traceability-validation-mode-on-only)
+   - [Phase 2: Traceability Validation (Mode ON only)](#phase-2-traceability-validation-mode-on-only)
    - [Phase 3: Test Scenarios Validation](#phase-3-test-scenarios-validation)
    - [Phase 4: Build and Lint Validation](#phase-4-build-and-lint-validation)
    - [Phase 5: Test Execution](#phase-5-test-execution)
    - [Phase 6: Code Quality Validation](#phase-6-code-quality-validation)
-   - [Phase 7: Code Logic Consistency](#phase-7-code-logic-consistency-with-design)
-   - [Phase 8: Semantic Expert Review](#phase-8-semantic-expert-review-always)
-4. [Next Steps](#next-steps)
+   - [Phase 7: Code Logic Consistency with Design](#phase-7-code-logic-consistency-with-design)
+   - [Phase 8: Semantic Expert Review (Always)](#phase-8-semantic-expert-review-always)
+5. [Next Steps](#next-steps)
+   - [After Success](#after-success)
+   - [After Issues](#after-issues)
+   - [No Design](#no-design)
 
 ---
 
-**Dependencies**:
-- `checklist.md` — code quality criteria
-- `{adapter-dir}/AGENTS.md` — project conventions
-- `../constraints.json` — kit-level constraints (primary rules for ID definitions/references)
-- `{cypilot_path}/.core/requirements/kit-constraints.md` — constraints specification
-- `{cypilot_path}/.core/schemas/kit-constraints.schema.json` — constraints JSON Schema
-- **Source** (one of, in priority order):
-  1. FEATURE design — registered artifact with `to_code="true"` IDs
-  2. Other Cypilot artifact — PRD, DESIGN, ADR, DECOMPOSITION
-  3. Similar content — user-provided description, feature, or requirements
-  4. Prompt only — direct user instructions
+## Prerequisites
 
-**ALWAYS open and follow** `{cypilot_path}/.core/requirements/traceability.md` WHEN Traceability Mode is FULL (marker syntax, validation rules, coverage requirements)
+### Load Dependencies
 
-**ALWAYS open and follow** `../constraints.json` (kit root) and treat it as the primary validator for:
-- Allowed ID kinds
-- Required cross-artifact references (`identifiers[<id_kind>].references`)
-- Heading scoping rules (when constraints specify `headings`)
+- [ ] Read adapter `AGENTS.md` for code conventions
+- [ ] Load source artifact/description (FEATURE preferred)
+- [ ] Load `checklist.md` for quality guidance
+- [ ] Load `{cypilot_path}/.core/requirements/code-checklist.md` for generic code quality checks
+- [ ] If FEATURE source: identify all IDs with `to_code="true"` attribute
+- [ ] Determine Traceability Mode (FULL vs DOCS-ONLY)
+- [ ] If Traceability Mode FULL: load `{cypilot_path}/.core/architecture/specs/traceability.md`
+- [ ] Load `{cypilot_path}/config/kits/sdlc/constraints.toml` for kit-level constraints
+
+**Source** (one of, in priority order):
+1. FEATURE design — registered artifact with `to_code="true"` IDs
+2. Other Cypilot artifact — PRD, DESIGN, ADR, DECOMPOSITION
+3. Similar content — user-provided description, feature, or requirements
+4. Prompt only — direct user instructions
 
 **ALWAYS read** the FEATURE artifact being implemented (the source of `to_code="true"` IDs). The FEATURE contains flows, algorithms, states, and definition-of-done tasks that define what code must do.
 
-**ALWAYS read** the system's DESIGN artifact (if registered in `artifacts.toml`) to understand overall architecture, components, principles, and constraints before implementing code. The DESIGN provides essential context for making implementation decisions aligned with system architecture.
+**ALWAYS read** the system's DESIGN artifact (if registered in `artifacts.toml`) to understand overall architecture, components, principles, and constraints before implementing code.
 
 ---
 
 ## Requirements
 
-Agent confirms understanding of requirements:
-
-### Structural Requirements
+### Structural
 
 - [ ] Code implements FEATURE design requirements
 - [ ] Code follows project conventions from adapter
 
-### Traceability Requirements
+### Traceability
 
-**Reference**: `{cypilot_path}/.core/requirements/traceability.md` for full specification
+**Reference**: `{cypilot_path}/.core/architecture/specs/traceability.md` for full specification
 
 - [ ] Traceability Mode determined per feature (FULL vs DOCS-ONLY)
 - [ ] If Mode ON: markers follow feature syntax (`@cpt-*`, `@cpt-begin`/`@cpt-end`)
 - [ ] If Mode ON: all `to_code="true"` IDs have markers
-- [ ] If Mode ON: every implemented CDSL instruction (`[x] ... `inst-*``) has a paired `@cpt-begin/.../@cpt-end` block marker in code
+- [ ] If Mode ON: every implemented CDSL instruction (`[x] ... \`inst-*\``) has a paired `@cpt-begin/.../@cpt-end` block marker in code
 - [ ] If Mode ON: no orphaned/stale markers
 - [ ] If Mode ON: design checkboxes synced with code
 - [ ] If Mode OFF: no Cypilot markers in code
 
-### Checkbox Cascade (Code Markers → Upstream Artifacts)
+### Checkbox Cascade
 
 CODE implementation triggers upstream checkbox updates through markers:
 
 | Code Marker | FEATURE ID | Upstream Effect |
 |-------------|-----------|-----------------|
-| `@cpt-flow:{cpt-id}:p{N}` | kind: `flow` | When all pN markers exist → check the `flow` ID in FEATURE |
-| `@cpt-algo:{cpt-id}:p{N}` | kind: `algo` | When all pN markers exist → check the `algo` ID in FEATURE |
-| `@cpt-state:{cpt-id}:p{N}` | kind: `state` | When all pN markers exist → check the `state` ID in FEATURE |
-| `@cpt-dod:{cpt-id}:p{N}` | kind: `dod` | When all pN markers exist + evidence complete → check the `dod` ID in FEATURE |
+| `@cpt-flow:{cpt-id}:p{N}` | kind: `flow` | When all pN markers exist → check `flow` ID in FEATURE |
+| `@cpt-algo:{cpt-id}:p{N}` | kind: `algo` | When all pN markers exist → check `algo` ID in FEATURE |
+| `@cpt-state:{cpt-id}:p{N}` | kind: `state` | When all pN markers exist → check `state` ID in FEATURE |
+| `@cpt-dod:{cpt-id}:p{N}` | kind: `dod` | When all pN markers exist + evidence complete → check `dod` ID in FEATURE |
 
 **Full Cascade Chain**:
-
 ```
 CODE markers exist
     ↓
 FEATURE: flow/algo/state/dod IDs → [x]
     ↓
-FEATURE: ALL IDs [x] → mark feature entry [x] in DECOMPOSITION
+DECOMPOSITION: feature entry [x]
     ↓
-DECOMPOSITION: feature entry [x] → referenced PRD/DESIGN IDs (fr, principle, component, etc.) → [x]
-    ↓
-PRD: fr/nfr IDs [x] when ALL downstream refs [x]
-DESIGN: principle/constraint/component/seq/dbtable IDs [x] when ALL refs [x]
+PRD/DESIGN: referenced IDs [x] when ALL downstream refs [x]
 ```
 
 **When to Update Upstream Checkboxes**:
+1. **After implementing CDSL instruction**: add block markers, mark step `[x]` in FEATURE
+2. **After completing flow/algo/state/dod**: all steps `[x]` → mark ID `[x]` in FEATURE
+3. **After completing FEATURE**: all IDs `[x]` → mark feature entry `[x]` in DECOMPOSITION
+4. **After DECOMPOSITION updated**: check if all referenced IDs are `[x]` → mark in PRD/DESIGN
 
-1. **After implementing CDSL instruction**:
-   - Add `@cpt-begin:{cpt-id}:p{N}:inst-{slug}` / `@cpt-end:...` markers
-   - Mark corresponding CDSL step `[x]` in FEATURE
-
-**Consistency rule (MANDATORY)**:
-- [ ] Never mark an CDSL instruction `[x]` unless the corresponding code block markers exist and wrap non-empty implementation code
-- [ ] Never add a code block marker pair unless the corresponding CDSL instruction exists in the design source (add it first if missing)
-
-2. **After completing flow/algo/state/dod**:
-   - All CDSL steps marked `[x]` → mark `flow`/`algo`/etc. as `[x]` in FEATURE
-
-3. **After completing FEATURE**:
-   - All defined IDs in FEATURE are `[x]` → mark the feature entry as `[x]` in DECOMPOSITION
-   - Update feature status: `⏳ PLANNED` → `🔄 IN_PROGRESS` → `✅ IMPLEMENTED`
-
-4. **After DECOMPOSITION updated**:
-   - Check if all referenced `cpt-...` IDs in the DECOMPOSITION feature entry are `[x]`
-   - If all refs for a PRD/DESIGN ID are `[x]` → mark that ID as `[x]` in PRD/DESIGN
-
-**Rollup and checkbox consistency (MANDATORY)**:
-
+**Consistency rules (MANDATORY)**:
+- [ ] Never mark CDSL instruction `[x]` unless corresponding code block markers exist and wrap non-empty implementation code
+- [ ] Never add code block marker pair unless corresponding CDSL instruction exists in design (add it first if missing)
 - [ ] Parent ID checkbox state MUST be consistent with all nested task-tracked items within its scope (as determined by heading boundaries)
 - [ ] Task-tracked items include:
   - ID definitions with a task checkbox (e.g. `- [ ] p1 - **ID**: cpt-...`)
@@ -142,14 +130,14 @@ DESIGN: principle/constraint/component/seq/dbtable IDs [x] when ALL refs [x]
 - `cypilot validate` will warn if FEATURE checkbox is `[x]` but code marker is missing
 - `cypilot validate` will report coverage: N% of FEATURE IDs have code markers
 
-### Versioning Requirements
+### Versioning
 
 - [ ] When design ID versioned (`-v2`): update code markers to match
 - [ ] Marker format with version: `@cpt-flow:{cpt-id}-v2:p{N}`
 - [ ] Migration: update all markers when design version increments
 - [ ] Keep old markers commented during transition (optional)
 
-### Engineering Best Practices (MANDATORY)
+### Engineering
 
 - [ ] **TDD**: Write failing test first, implement minimal code to pass, then refactor
 - [ ] **SOLID**:
@@ -166,7 +154,7 @@ DESIGN: principle/constraint/component/seq/dbtable IDs [x] when ALL refs [x]
 - [ ] **Error handling**: Fail explicitly with clear errors; never silently ignore failures
 - [ ] **Observability**: Log meaningful events at integration boundaries (no secrets)
 
-### Quality Requirements
+### Quality
 
 **Reference**: `checklist.md` for detailed criteria
 
@@ -179,206 +167,131 @@ DESIGN: principle/constraint/component/seq/dbtable IDs [x] when ALL refs [x]
 
 ## Tasks
 
-Agent executes tasks during generation:
-
 ### Phase 1: Setup
 
-**1.1 Resolve Source**
+**Resolve Source** (priority order):
+1. FEATURE design (registered) — Traceability FULL possible
+2. Other Cypilot artifact (PRD/DESIGN/ADR) — DOCS-ONLY
+3. User-provided description — DOCS-ONLY
+4. Prompt only — DOCS-ONLY
+5. None — suggest `/cypilot-generate FEATURE` first
 
-Ask user for implementation source (if not provided):
-
-| Source Type | Traceability | Action |
-|-------------|--------------|--------|
-| FEATURE design (registered) | FULL possible | Load artifact, extract `to_code="true"` IDs |
-| Other Cypilot artifact (PRD/DESIGN/ADR) | DOCS-ONLY | Load artifact, extract requirements |
-| User-provided feature/description | DOCS-ONLY | Use as requirements reference |
-| Prompt only | DOCS-ONLY | Implement per user instructions |
-| None | — | Suggest: `/cypilot-generate FEATURE` to create design first |
-
-**1.2 Load Context**
-
+**Load Context**:
 - [ ] Read adapter `AGENTS.md` for code conventions
 - [ ] Load source artifact/description
 - [ ] Load `checklist.md` for quality guidance
-- [ ] If FEATURE source: identify all IDs with `to_code="true"` attribute
-- [ ] Determine Traceability Mode (see Requirements)
-- [ ] Plan implementation order (by requirement, flow, or phase)
+- [ ] Determine Traceability Mode
+- [ ] Plan implementation order
 
 ### Phase 2: Implementation (Work Packages)
 
-Choose implementation order based on feature design:
-- One requirement end-to-end, or
-- One flow/algo/state section end-to-end, or
-- One phase at a time if design defines phases
-
 **For each work package:**
-
 1. Identify exact design items to code (flows/algos/states/requirements/tests)
 2. Implement according to adapter conventions
-3. **If Traceability Mode ON**: Add instruction-level tags while implementing
+3. If Traceability Mode ON: add instruction-level tags while implementing
 4. Run work package validation (tests, build, linters per adapter)
-5. **If Traceability Mode ON**: Update FEATURE.md checkboxes
+5. If Traceability Mode ON: update FEATURE.md checkboxes
 6. Proceed to next work package
-
-**Partial Implementation Handling**:
-
-If implementation cannot be completed in a single session:
-
-1. **Checkpoint progress**:
-   - Note completed work packages with their IDs
-   - Note current work package state (which steps done)
-   - List remaining work packages
-2. **Ensure valid intermediate state**:
-   - All completed work packages must pass validation
-   - Current work package: either complete or revert to last valid state
-   - Do NOT leave partially implemented code without markers
-3. **Document resumption point**:
-   ```
-   Implementation checkpoint:
-   - Completed: {list of IDs}
-   - In progress: {current ID, steps done}
-   - Remaining: {list of IDs}
-   - Resume command: /cypilot-generate CODE --continue {feature-id}
-   ```
-4. **On resume**:
-   - Verify checkpoint state still valid (design unchanged)
-   - Continue from documented resumption point
-   - If design changed: restart affected work packages
 
 ### Phase 3: Cypilot Markers (Traceability Mode ON only)
 
-**Reference**: `{cypilot_path}/.core/requirements/traceability.md` for full marker syntax
+**Traceability Mode ON only.**
 
-**Apply markers per feature:**
+Apply markers per feature:
 - Scope markers: `@cpt-{kind}:{cpt-id}:p{N}` at function/class entry
 - Block markers: `@cpt-begin:{cpt-id}:p{N}:inst-{local}` / `@cpt-end:...` wrapping CDSL steps
 
-**Quick reference:**
-```python
-# @cpt-begin:cpt-myapp-flow-auth-login:p1:inst-validate-creds
-def validate_credentials(username, password):
-    # implementation here
-    pass
-# @cpt-end:cpt-myapp-flow-auth-login:p1:inst-validate-creds
-```
-
 ### Phase 4: Sync FEATURE (Traceability Mode ON only)
 
-**After each work package, sync checkboxes:**
+**Traceability Mode ON only.**
 
-1. For each `...:ph-{N}:inst-{local}` implemented:
-   - Locate owning scope entry in FEATURE.md by base ID
-   - Find matching CDSL step line with `p{N}` and `inst-{local}`
-   - Mark checkbox: `- [ ]` → `- [x]`
-
-2. For each requirement ID implemented:
-   - First work package for requirement: set `**Status**` to `🔄 IN_PROGRESS`
-   - Mark `**Phases**` checkboxes as implemented
-   - All phases complete: set `**Status**` to `✅ IMPLEMENTED`
-
-3. For test scenarios:
-   - Do NOT mark until test exists and passes
-
-**Consistency rule**: Only mark `[x]` if corresponding code exists and is tagged
+After each work package, sync checkboxes:
+1. Mark implemented CDSL steps `[x]` in FEATURE
+2. When all steps done → mark flow/algo/state/dod `[x]` in FEATURE
+3. When all IDs done → mark feature entry `[x]` in DECOMPOSITION
+4. Update feature status: `⏳ PLANNED` → `🔄 IN_PROGRESS` → `✅ IMPLEMENTED`
 
 ### Phase 5: Quality Check
 
 - [ ] Self-review against `checklist.md`
-- [ ] **If Traceability Mode ON**: Verify all `to_code="true"` IDs have markers
-- [ ] **If Traceability Mode ON**: Ensure no orphaned markers
+- [ ] If Traceability Mode ON: verify all `to_code="true"` IDs have markers
+- [ ] If Traceability Mode ON: ensure no orphaned markers
 - [ ] Run tests to verify implementation
 - [ ] Verify engineering best practices followed
 
 ### Phase 6: Tag Verification (Traceability Mode ON only)
 
-**Before finishing implementation:**
+**Traceability Mode ON only.**
+
 - [ ] Search codebase for ALL IDs from FEATURE (flow/algo/state/dod)
 - [ ] Confirm tags exist in files that implement corresponding logic/tests
 - [ ] If any FEATURE ID has no code tag → report as gap and/or add tag
-
-### When Updating Existing Code
-
-- [ ] Preserve existing Cypilot markers
-- [ ] Add markers for new design elements
-- [ ] Remove markers for deleted design elements
-- [ ] Update marker IDs if design IDs changed (with migration)
 
 ---
 
 ## Validation
 
-Validation workflow verifies requirements are met:
-
 ### Phase 1: Implementation Coverage
 
-For each ID/scope marked as implemented:
-
-**Verify code exists:**
 - [ ] Code files exist and contain implementation
 - [ ] Code is not placeholder/stub (no TODO/FIXME/unimplemented!)
-- [ ] No unimplemented!() in business logic
 
 ### Phase 2: Traceability Validation (Mode ON only)
 
-**Reference**: `{cypilot_path}/.core/requirements/traceability.md` for validation rules
+**Mode ON only.** Reference: `{cypilot_path}/.core/architecture/specs/traceability.md`
 
-**Deterministic checks** (per feature):
 - [ ] Marker format valid
 - [ ] All begin/end pairs matched
 - [ ] No empty blocks
-- [ ] Phase postfix present on all markers
-
-**Coverage checks**:
 - [ ] All `to_code="true"` IDs have markers
-- [ ] No orphaned markers (marker ID not in design)
-- [ ] No stale markers (design ID changed/deleted)
+- [ ] No orphaned/stale markers
 - [ ] Design checkboxes synced with code markers
 
 ### Phase 3: Test Scenarios Validation
 
-For each test scenario from design:
-
-- [ ] Test file exists (unit/integration/e2e per adapter)
+- [ ] Test file exists for each test scenario from design
 - [ ] Test contains scenario ID in comment for traceability
 - [ ] Test is NOT ignored without justification
-- [ ] Test actually validates scenario behavior (not placeholder)
-- [ ] Test follows adapter testing conventions
+- [ ] Test actually validates scenario behavior
 
 ### Phase 4: Build and Lint Validation
 
-**Build:**
-- [ ] Build succeeds
-- [ ] No compilation errors
-- [ ] No compiler warnings (or acceptable per adapter)
+- [ ] Build succeeds, no compilation errors
+- [ ] Linter passes, no linter errors
 
-**Lint:**
-- [ ] Linter passes
-- [ ] No linter errors
-- [ ] No linter warnings (or acceptable per adapter)
+**Report format**:
+```
+Code Quality Report
+═══════════════════
+Build: PASS/FAIL
+Lint: PASS/FAIL
+Tests: X/Y passed
+Coverage: N%
+Checklist: PASS/FAIL (N issues)
+Issues:
+- [SEVERITY] CHECKLIST-ID: Description
+Logic Consistency: PASS/FAIL
+- CRITICAL divergences: [...]
+- MINOR divergences: [...]
+```
 
 ### Phase 5: Test Execution
 
 - [ ] All unit tests pass
 - [ ] All integration tests pass
 - [ ] All e2e tests pass (if applicable)
-- [ ] No ignored tests without justification
 - [ ] Coverage meets adapter requirements
 
 ### Phase 6: Code Quality Validation
 
-**Check for incomplete work:**
 - [ ] No TODO/FIXME/XXX/HACK in domain/service layers
 - [ ] No unimplemented!/todo! in business logic
 - [ ] No bare unwrap() or panic in production code
-- [ ] No ignored tests without documented reason
-- [ ] No placeholder tests (assert!(true))
-
-**Engineering best practices:**
 - [ ] TDD: New/changed behavior covered by tests
 - [ ] SOLID: Responsibilities separated; dependencies injectable
-- [ ] DRY: No copy-paste duplication without justification
+- [ ] DRY: No copy-paste duplication
 - [ ] KISS: No unnecessary complexity
-- [ ] YAGNI: No speculative abstractions beyond design scope
+- [ ] YAGNI: No speculative abstractions
 
 ### Phase 7: Code Logic Consistency with Design
 
@@ -396,44 +309,9 @@ For each test scenario from design:
 - [ ] Error paths match design error handling
 
 **For each algorithm marked implemented:**
-- [ ] Algorithm logic matches design specification
 - [ ] Performance characteristics match design (O(n), O(1), etc.)
 - [ ] Edge cases handled as designed
 - [ ] No logic shortcuts that violate design constraints
-
-### Traceability Report
-
-**Format**: See `{cypilot_path}/.core/requirements/traceability.md` → Validation Report
-
-### Quality Report
-
-Output format:
-```
-Code Quality Report
-═══════════════════
-
-Build: PASS/FAIL
-Lint: PASS/FAIL
-Tests: X/Y passed
-Coverage: N%
-
-Checklist: PASS/FAIL (N issues)
-
-Issues:
-- [SEVERITY] CHECKLIST-ID: Description
-
-Logic Consistency: PASS/FAIL
-- CRITICAL divergences: [...]
-- MINOR divergences: [...]
-```
-
-### PASS/FAIL Criteria
-
-**PASS only if:**
-- Build/lint/tests pass per adapter
-- Coverage meets adapter requirements
-- No CRITICAL divergences between code and design
-- If Traceability Mode ON: required tags present and properly paired
 
 ### Phase 8: Semantic Expert Review (Always)
 
@@ -442,94 +320,62 @@ Run expert panel review after producing validation output.
 **Review Scope Selection**:
 
 | Change Size | Review Mode | Experts |
-|-------------|-------------|---------|
+|-------------|-------------|--------|
 | <50 LOC, single concern | Abbreviated | Developer + 1 relevant expert |
 | 50-200 LOC, multiple concerns | Standard | Developer, QA, Security, Architect |
 | >200 LOC or architectural | Full | All 8 experts |
 
 **Abbreviated Review** (for small, focused changes):
 1. Developer reviews code quality and design alignment
-2. Select ONE additional expert based on change type:
-   - Security changes → Security Expert
-   - Performance changes → Performance Engineer
-   - Database changes → Database Architect/Data Engineer
-   - Infrastructure changes → DevOps Engineer
-   - Test changes → QA Engineer
+2. Select ONE additional expert based on change type
 3. Skip remaining experts with note: `Abbreviated review: {N} LOC, single concern`
 
-**Full Expert Panel**:
-- Developer, QA Engineer, Security Expert, Performance Engineer
-- DevOps Engineer, Architect, Monitoring Engineer
-- Database Architect, Data Engineer
+**Full Expert Panel**: Developer, QA Engineer, Security Expert, Performance Engineer, DevOps Engineer, Architect, Monitoring Engineer, Database Architect/Data Engineer
 
 **For EACH expert:**
 1. Adopt role (write: `Role assumed: {expert}`)
 2. Review actual code and tests in validation scope
 3. If design artifact available: evaluate design-to-code alignment
-4. Identify issues:
-   - Contradictions vs design intent
-   - Missing behavior (requirements/tests)
-   - Unclear intent (naming/structure)
-   - Unnecessary complexity (YAGNI, premature abstraction)
-   - Missing non-functional concerns (security/perf/observability)
-5. Provide concrete proposals:
-   - What to remove (dead code, unused abstractions)
-   - What to add (tests, error handling, validation)
-   - What to rewrite (simpler structure, clearer naming)
-6. Propose corrective workflow:
-   - If design must change: `feature` or `design` (UPDATE mode)
-   - If only code must change: `code` (continue implementation)
+4. Identify issues (contradictions, missing behavior, unclear intent, unnecessary complexity, missing non-functional concerns)
+5. Provide concrete proposals (what to remove, add, rewrite)
+6. Propose corrective workflow: `feature`, `design`, or `code`
 
-**Output format:**
+**Expert review output format:**
 ```
-### Semantic Expert Review
-
 **Review status**: COMPLETED
 **Reviewed artifact**: Code ({scope})
-
-#### Expert: {expert}
 - **Role assumed**: {expert}
 - **Checklist completed**: YES
 - **Findings**:
-  - Contradictions: ...
-  - Missing behavior: ...
-  - Unclear intent: ...
-  - Unnecessary complexity: ...
 - **Proposed edits**:
-  - Remove: "..." → Reason: ...
-  - Add: ...
-  - Rewrite: "..." → "..."
-
 **Recommended corrective workflow**: {feature | design | code}
 ```
+
+**PASS only if:**
+- Build/lint/tests pass per adapter
+- Coverage meets adapter requirements
+- No CRITICAL divergences between code and design
+- If Traceability Mode ON: required tags present and properly paired
 
 ---
 
 ## Next Steps
 
-After code generation/validation, offer these options to user:
+### After Success
 
-### After Successful Implementation
+- [ ] Feature complete → update feature status to IMPLEMENTED in DECOMPOSITION
+- [ ] All features done → `/cypilot-analyze DESIGN` — validate overall design completion
+- [ ] New feature needed → `/cypilot-generate FEATURE` — design next feature
+- [ ] Want expert review only → `/cypilot-analyze semantic` — semantic validation
 
-| Condition | Suggested Next Step |
-|-----------|---------------------|
-| Feature complete | Update feature status to IMPLEMENTED in DECOMPOSITION |
-| All features done | `/cypilot-analyze DESIGN` — validate overall design completion |
-| New feature needed | `/cypilot-generate FEATURE` — design next feature |
-| Want expert review only | `/cypilot-analyze semantic` — semantic validation (skip deterministic) |
+### After Issues
 
-### After Validation Issues
+- [ ] Design mismatch → `/cypilot-generate FEATURE` — update feature design
+- [ ] Missing tests → continue `/cypilot-generate CODE` — add tests
+- [ ] Code quality issues → continue `/cypilot-generate CODE` — refactor
 
-| Issue Type | Suggested Next Step |
-|------------|---------------------|
-| Design mismatch | `/cypilot-generate FEATURE` — update feature design |
-| Missing tests | Continue `/cypilot-generate CODE` — add tests |
-| Code quality issues | Continue `/cypilot-generate CODE` — refactor |
+### No Design
 
-### If No Design Exists
-
-| Scenario | Suggested Next Step |
-|----------|---------------------|
-| Implementing new feature | `/cypilot-generate FEATURE` — create feature design first |
-| Implementing from PRD | `/cypilot-generate DESIGN` then `/cypilot-generate DECOMPOSITION` — create design hierarchy |
-| Quick prototype | Proceed without traceability, suggest `/cypilot-generate FEATURE` later |
+- [ ] Implementing new feature → `/cypilot-generate FEATURE` first
+- [ ] Implementing from PRD → `/cypilot-generate DESIGN` then DECOMPOSITION
+- [ ] Quick prototype → proceed without traceability, suggest FEATURE later

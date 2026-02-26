@@ -1,85 +1,123 @@
 # PRD Rules
 
-ALWAYS open and follow `{cypilot_path}/.core/requirements/identifiers.md` FIRST
-
-**Artifact**: PRD (Product Requirements Document)
-**Purpose**: Rules for PRD generation and validation
+**Artifact**: PRD
+**Kit**: sdlc
 
 **Dependencies**:
-- `template.md` — required structure
+- `template.md` — structural reference
 - `checklist.md` — semantic quality criteria
 - `examples/example.md` — reference implementation
-- `{cypilot_path}/.core/requirements/identifiers.md` — ID formats and naming
-- `../../constraints.json` — kit-level constraints (primary rules for ID definitions/references)
-- `{cypilot_path}/.core/requirements/kit-constraints.md` — constraints specification
-- `{cypilot_path}/.core/schemas/kit-constraints.schema.json` — constraints JSON Schema
-
----
 
 ## Table of Contents
 
-1. [Requirements](#requirements)
-2. [Tasks](#tasks)
-3. [Validation](#validation)
-4. [Error Handling](#error-handling)
-5. [Next Steps](#next-steps)
+1. [Prerequisites](#prerequisites)
+   - [Load Dependencies](#load-dependencies)
+2. [Requirements](#requirements)
+   - [Structural](#structural)
+   - [Versioning](#versioning)
+   - [Semantic](#semantic)
+   - [Traceability](#traceability)
+   - [Constraints](#constraints)
+3. [Tasks](#tasks)
+   - [Phase 1: Setup](#phase-1-setup)
+   - [Phase 2: Content Creation](#phase-2-content-creation)
+   - [Phase 3: IDs and Structure](#phase-3-ids-and-structure)
+   - [Phase 4: Quality Check](#phase-4-quality-check)
+4. [Validation](#validation)
+   - [Phase 1: Structural Validation (Deterministic)](#phase-1-structural-validation-deterministic)
+   - [Phase 2: Semantic Validation (Checklist-based)](#phase-2-semantic-validation-checklist-based)
+   - [Phase 3: Validation Report](#phase-3-validation-report)
+5. [Error Handling](#error-handling)
+   - [Missing Dependencies](#missing-dependencies)
+   - [Missing Adapter](#missing-adapter)
+   - [Escalation](#escalation)
+6. [Next Steps](#next-steps)
+   - [Options](#options)
+
+---
+
+## Prerequisites
+
+### Load Dependencies
+
+- [ ] Load `template.md` for structure
+- [ ] Load `checklist.md` for semantic guidance
+- [ ] Load `examples/example.md` for reference style
+- [ ] Read adapter config for project ID prefix
+- [ ] Load `{cypilot_path}/.core/architecture/specs/traceability.md` for ID formats
+- [ ] Load `{cypilot_path}/config/kits/sdlc/constraints.toml` for kit-level constraints
+- [ ] Load `{cypilot_path}/.core/architecture/specs/kit/constraints.md` for constraints specification
 
 ---
 
 ## Requirements
 
-Agent confirms understanding of requirements:
-
-### Structural Requirements
+### Structural
 
 - [ ] PRD follows `template.md` structure
 - [ ] Artifact frontmatter (optional): use `cpt:` format for document metadata
 - [ ] All required sections present and non-empty
-- [ ] All IDs follow `cpt-{hierarchy-prefix}-{kind}-{slug}` convention (see artifacts.toml for hierarchy)
-- [ ] All capabilities have priority markers (`p1`-`p9`)
+- [ ] All IDs follow `cpt-{hierarchy-prefix}-{kind}-{slug}` convention
+- [ ] All capabilities have priority markers (`p1`–`p9`)
 - [ ] No placeholder content (TODO, TBD, FIXME)
 - [ ] No duplicate IDs within document
 
-### Versioning Requirements
+### Versioning
 
 - [ ] When editing existing PRD: increment version in frontmatter
 - [ ] When changing capability definition: add `-v{N}` suffix to ID or increment existing version
-- [ ] Format: `cpt-{hierarchy-prefix}-cap-{slug}-v2`, `cpt-{hierarchy-prefix}-cap-{slug}-v3`, etc.
+  - Format: `cpt-{hierarchy-prefix}-cap-{slug}-v2`, `cpt-{hierarchy-prefix}-cap-{slug}-v3`, etc.
 - [ ] Keep changelog of significant changes
 
-### Semantic Requirements
+### Semantic
 
-**Reference**: `checklist.md` for detailed criteria
+- [ ] Purpose MUST be ≤ 2 paragraphs
+- [ ] Purpose MUST NOT contain implementation details
+- [ ] Vision MUST explain WHY the product exists
+  - VALID: "Enables developers to validate artifacts against templates" (explains purpose)
+  - INVALID: "A tool for Cypilot" (doesn't explain why it matters)
+- [ ] Background MUST describe current state and specific pain points
+- [ ] MUST include target users and key problems solved
+- [ ] All goals MUST be measurable with concrete targets
+  - VALID: "Reduce validation time from 15min to <30s" (quantified with baseline)
+  - INVALID: "Improve validation speed" (no baseline, no target)
+- [ ] Success criteria MUST include baseline, target, and timeframe
+- [ ] All actors MUST be identified with specific roles (not just "users")
+  - VALID: "Framework Developer", "Project Maintainer", "CI Pipeline"
+  - INVALID: "Users", "Developers" (too generic)
+- [ ] Each actor MUST have defined capabilities/needs
+- [ ] Actor IDs follow: `cpt-{system}-actor-{slug}`
+- [ ] Non-goals MUST explicitly state what product does NOT do
+- [ ] Every FR MUST use observable behavior language (MUST, MUST NOT, SHOULD)
+- [ ] Every FR MUST have a unique ID: `cpt-{system}-fr-{slug}`
+- [ ] Every FR MUST have a priority marker (`p1`–`p9`)
+- [ ] Every FR MUST have a rationale explaining business value
+- [ ] Every FR MUST reference at least one actor
+- [ ] Capabilities MUST trace to business problems
+- [ ] No placeholder content (TODO, TBD, FIXME)
+- [ ] No duplicate IDs within document
+- [ ] All requirements verified via automated tests (unit, integration, e2e) targeting 90%+ code coverage unless otherwise specified
+- [ ] Document verification method only for non-test approaches (analysis, inspection, demonstration)
+- [ ] NFRs MUST have measurable thresholds with units and conditions
+- [ ] NFR exclusions MUST have explicit reasoning
+- [ ] Intentional exclusions MUST list N/A checklist categories with reasoning
+- [ ] Use cases MUST cover primary user journeys
+- [ ] Use cases MUST include alternative flows for error scenarios
+- [ ] Use case IDs follow: `cpt-{system}-usecase-{slug}`
+- [ ] Key assumptions MUST be explicitly stated
+- [ ] Open questions MUST have owners and target resolution dates
+- [ ] Risks and uncertainties MUST be documented with impact and mitigation
 
-- [ ] Vision is clear and explains WHY the product exists
-  - ✓ "Enables developers to validate artifacts against templates" (explains purpose)
-  - ✗ "A tool for Cypilot" (doesn't explain why it matters)
-- [ ] All actors are identified with specific roles (not just "users")
-  - ✓ "Framework Developer", "Project Maintainer", "CI Pipeline"
-  - ✗ "Users", "Developers" (too generic)
-- [ ] Each actor has defined capabilities
-- [ ] Capabilities trace to business problems
-- [ ] Success criteria are measurable with concrete targets
-  - ✓ "Reduce validation time from 15min to <30s" (quantified with baseline)
-  - ✗ "Improve validation speed" (no baseline, no target)
-- [ ] Use cases cover primary user journeys
-- [ ] Use cases include alternative flows for error scenarios
-- [ ] Non-goals explicitly state what product does NOT do
-- [ ] Risks and uncertainties are documented
-- [ ] Key assumptions are explicitly stated
-- [ ] Open questions have owners and target resolution dates
-- [ ] Intentional Exclusions list N/A checklist categories with reasoning
+### Traceability
 
-### Downstream Traceability
-
-- [ ] Capabilities are traced through: PRD → DESIGN → DECOMPOSITION → SPEC → CODE
+- [ ] Capabilities traced through: PRD → DESIGN → DECOMPOSITION → FEATURE → CODE
 - [ ] When capability fully implemented (all specs IMPLEMENTED) → mark capability `[x]`
 - [ ] When all capabilities `[x]` → product version complete
 
-### Constraints (`constraints.json`) — Mandatory
+### Constraints
 
-- [ ] ALWAYS open and follow `../../constraints.json` (kit root)
-- [ ] Treat `constraints.json` as primary validator for:
+- [ ] ALWAYS open and follow `{cypilot_path}/config/kits/sdlc/constraints.toml` (kit root)
+- [ ] Treat `constraints.toml` as primary validator for:
   - where IDs are defined
   - where IDs are referenced
   - which cross-artifact references are required / optional / prohibited
@@ -88,44 +126,40 @@ Agent confirms understanding of requirements:
 - `{cypilot_path}/.core/requirements/kit-constraints.md`
 - `{cypilot_path}/.core/schemas/kit-constraints.schema.json`
 
-**Validation Checks** (automated via `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate`):
-- Enforces `identifiers[<kind>].references` rules (required / optional / prohibited)
-- Enforces headings scoping for ID definitions and references when constraints specify `headings` (identifier-level and reference-rule-level)
-- Enforces "checked ref implies checked def" consistency
+**Validation Checks**:
+- `cypilot validate` enforces `identifiers[<kind>].references` rules (required / optional / prohibited)
+- `cypilot validate` enforces headings scoping for ID definitions and references
+- `cypilot validate` enforces "checked ref implies checked def" consistency
 
 ---
 
 ## Tasks
 
-Agent executes tasks during generation:
-
 ### Phase 1: Setup
 
 - [ ] Load `template.md` for structure
 - [ ] Load `checklist.md` for semantic guidance
-- [ ] Load `examples/example.md` for reference style
+- [ ] Load `example.md` for reference style
 - [ ] Read adapter config for project ID prefix
 
 ### Phase 2: Content Creation
 
-**Use example as reference for content style and depth:**
-
-| Section | Example Reference | Checklist Guidance |
-|---------|-------------------|-------------------|
-| Vision | How example explains purpose | BIZ-PRD-001: Vision Clarity |
-| Actors | How example defines actors | BIZ-PRD-002: Stakeholder Coverage |
-| Capabilities | How example structures caps | BIZ-PRD-003: Requirements Completeness |
-| Use Cases | How example documents journeys | BIZ-PRD-004: Use Case Coverage |
-| NFRs + Exclusions | How example handles N/A categories | DOC-PRD-001: Explicit Non-Applicability |
-| Non-Goals & Risks | How example scopes product | BIZ-PRD-008: Risks & Non-Goals |
-| Assumptions | How example states assumptions | BIZ-PRD-007: Assumptions & Open Questions |
+- [ ] Write each section guided by blueprint prompts and examples
+- [ ] Use example as reference for content depth:
+  - Vision → how example explains purpose (BIZ-PRD-001)
+  - Actors → how example defines actors (BIZ-PRD-002)
+  - Capabilities → how example structures caps (BIZ-PRD-003)
+  - Use Cases → how example documents journeys (BIZ-PRD-004)
+  - NFRs + Exclusions → how example handles N/A categories (DOC-PRD-001)
+  - Non-Goals & Risks → how example scopes product (BIZ-PRD-008)
+  - Assumptions → how example states assumptions (BIZ-PRD-007)
 
 ### Phase 3: IDs and Structure
 
 - [ ] Generate actor IDs: `cpt-{hierarchy-prefix}-actor-{slug}` (e.g., `cpt-myapp-actor-admin-user`)
-- [ ] Generate capability IDs: `cpt-{hierarchy-prefix}-cap-{slug}` (e.g., `cpt-myapp-cap-user-management`)
+- [ ] Generate capability IDs: `cpt-{hierarchy-prefix}-fr-{slug}` (e.g., `cpt-myapp-fr-user-management`)
 - [ ] Assign priorities based on business impact
-- [ ] Verify uniqueness with `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py list-ids`
+- [ ] Verify uniqueness with `cypilot list-ids`
 
 ### Phase 4: Quality Check
 
@@ -137,36 +171,27 @@ Agent executes tasks during generation:
 
 ## Validation
 
-Validation workflow applies rules in two phases:
-
 ### Phase 1: Structural Validation (Deterministic)
 
-Run `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate --artifact <path>` for:
-- [ ] Template structure compliance
-- [ ] ID format validation
-- [ ] Priority markers present
-- [ ] No placeholders
+- [ ] Run `cypilot validate --artifact <path>` for:
+  - Template structure compliance
+  - ID format validation
+  - Priority markers present
+  - No placeholders
+  - No duplicate IDs
 
 ### Phase 2: Semantic Validation (Checklist-based)
 
-Apply `checklist.md` systematically:
+- [ ] Read `checklist.md` in full
+- [ ] For each MUST HAVE item: check if requirement is met
+  - If not met: report as violation with severity
+  - If not applicable: verify explicit "N/A" with reasoning
+- [ ] For each MUST NOT HAVE item: scan document for violations
+- [ ] Compare content depth to `examples/example.md`
+  - Flag significant quality gaps
 
-1. **Read checklist.md** in full
-2. **For each MUST HAVE item**:
-   - Check if requirement is met
-   - If not met: report as violation with severity
-   - If not applicable: verify explicit "N/A" with reasoning
-3. **For each MUST NOT HAVE item**:
-   - Scan document for violations
-   - Report any findings
+### Phase 3: Validation Report
 
-**Use example for quality baseline**:
-- Compare content depth to `examples/example.md`
-- Flag significant quality gaps
-
-### Validation Report
-
-Output format:
 ```
 PRD Validation Report
 ═════════════════════
@@ -184,52 +209,29 @@ Issues:
 
 ### Missing Dependencies
 
-**If `template.md` cannot be loaded**:
-```
-⚠ Template not found: kits/sdlc/artifacts/PRD/template.md
-→ Verify Cypilot installation is complete
-→ STOP — cannot proceed without template
-```
+- [ ] If `template.md` cannot be loaded → STOP, cannot proceed without template
+- [ ] If `checklist.md` cannot be loaded → warn user, skip semantic validation
+- [ ] If `examples/example.md` cannot be loaded → warn user, continue with reduced guidance
 
-**If `checklist.md` cannot be loaded**:
-```
-⚠ Checklist not found: kits/sdlc/artifacts/PRD/checklist.md
-→ Structural validation possible, semantic validation skipped
-→ Warn user: "Semantic validation unavailable"
-```
+### Missing Adapter
 
-**If `examples/example.md` cannot be loaded**:
-```
-⚠ Example not found — continuing with reduced guidance
-→ Warn user: "No reference example available for quality comparison"
-```
-
-### Missing Adapter Config
-
-**If adapter config unavailable** (Phase 1 Setup, line 100):
-```
-⚠ No adapter config found
-→ Use default project prefix: "cpt-{dirname}"
-→ Ask user to confirm or provide custom prefix
-```
+- [ ] If adapter config unavailable → use default project prefix `cpt-{dirname}`
+- [ ] Ask user to confirm or provide custom prefix
 
 ### Escalation
 
-**Ask user when**:
-- Cannot determine appropriate actor roles for the domain
-- Business requirements are unclear or contradictory
-- Success criteria cannot be quantified without domain knowledge
-- Uncertain whether a category is truly N/A or just missing
+- [ ] Ask user when cannot determine appropriate actor roles for the domain
+- [ ] Ask user when business requirements are unclear or contradictory
+- [ ] Ask user when success criteria cannot be quantified without domain knowledge
+- [ ] Ask user when uncertain whether a category is truly N/A or just missing
 
 ---
 
 ## Next Steps
 
-After PRD generation/validation, offer these options:
+### Options
 
-| Condition | Suggested Next Step |
-|-----------|---------------------|
-| PRD complete | `/cypilot-generate DESIGN` — create technical design |
-| Need architecture decision | `/cypilot-generate ADR` — document key decision |
-| PRD needs revision | Continue editing PRD |
-| Want checklist review only | `/cypilot-analyze semantic` — semantic validation (skip deterministic) |
+- [ ] PRD complete → `/cypilot-generate DESIGN` — create technical design
+- [ ] Need architecture decision → `/cypilot-generate ADR` — document key decision
+- [ ] PRD needs revision → continue editing PRD
+- [ ] Want checklist review only → `/cypilot-analyze semantic` — semantic validation

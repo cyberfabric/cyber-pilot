@@ -1,50 +1,59 @@
 # ADR Rules
 
-**Artifact**: ADR (Architecture Decision Record)
-**Purpose**: Rules for ADR generation and validation
+**Artifact**: ADR
+**Kit**: sdlc
 
----
+**Dependencies**:
+- `template.md` — structural reference
+- `checklist.md` — semantic quality criteria
+- `examples/example.md` — reference implementation
 
 ## Table of Contents
 
-- [ADR Rules](#adr-rules)
-  - [Table of Contents](#table-of-contents)
-  - [Requirements](#requirements)
-    - [Structural Requirements](#structural-requirements)
-    - [Versioning Requirements](#versioning-requirements)
-    - [Semantic Requirements](#semantic-requirements)
-    - [ADR Scope Guidelines](#adr-scope-guidelines)
-    - [Status Traceability](#status-traceability)
-    - [Constraints (`constraints.json`) — Mandatory](#constraints-constraintsjson--mandatory)
-  - [Tasks](#tasks)
-    - [Phase 1: Setup](#phase-1-setup)
-    - [Phase 2: Content Creation](#phase-2-content-creation)
-    - [Phase 3: IDs and Structure](#phase-3-ids-and-structure)
-    - [Phase 4: Quality Check](#phase-4-quality-check)
-  - [Validation](#validation)
-    - [Phase 1: Structural Validation (Deterministic)](#phase-1-structural-validation-deterministic)
-    - [Phase 2: Semantic Validation (Checklist-based)](#phase-2-semantic-validation-checklist-based)
-    - [Validation Report](#validation-report)
-  - [Next Steps](#next-steps)
+1. [Prerequisites](#prerequisites)
+   - [Load Dependencies](#load-dependencies)
+2. [Requirements](#requirements)
+   - [Structural](#structural)
+   - [Versioning](#versioning)
+   - [Semantic](#semantic)
+   - [Scope](#scope)
+   - [Status Traceability](#status-traceability)
+   - [Constraints](#constraints)
+3. [Tasks](#tasks)
+   - [Phase 1: Setup](#phase-1-setup)
+   - [Phase 2: Content Creation](#phase-2-content-creation)
+   - [Phase 3: IDs and Structure](#phase-3-ids-and-structure)
+   - [Phase 4: Quality Check](#phase-4-quality-check)
+4. [Validation](#validation)
+   - [Phase 1: Structural Validation (Deterministic)](#phase-1-structural-validation-deterministic)
+   - [Phase 2: Semantic Validation (Checklist-based)](#phase-2-semantic-validation-checklist-based)
+   - [Phase 3: Validation Report](#phase-3-validation-report)
+5. [Error Handling](#error-handling)
+   - [Number Conflict](#number-conflict)
+   - [Missing Directory](#missing-directory)
+   - [Escalation](#escalation)
+6. [Next Steps](#next-steps)
+   - [Options](#options)
 
 ---
 
-**Dependencies**:
-- `template.md` — required structure
-- `checklist.md` — semantic quality criteria
-- `examples/example.md` — reference implementation
-- `{cypilot_path}/.core/requirements/identifiers.md` — ID formats and naming
-- `../../constraints.json` — kit-level constraints (primary rules for ID definitions/references)
-- `{cypilot_path}/.core/requirements/kit-constraints.md` — constraints specification
-- `{cypilot_path}/.core/schemas/kit-constraints.schema.json` — constraints JSON Schema
+## Prerequisites
+
+### Load Dependencies
+
+- [ ] Load `template.md` for structure
+- [ ] Load `checklist.md` for semantic guidance
+- [ ] Load `examples/example.md` for reference style
+- [ ] Read `{cypilot_path}/config/artifacts.toml` to determine ADR directory
+- [ ] Load `{cypilot_path}/.core/architecture/specs/traceability.md` for ID formats
+- [ ] Load `{cypilot_path}/config/kits/sdlc/constraints.toml` for kit-level constraints
+- [ ] Load `{cypilot_path}/.core/architecture/specs/kit/constraints.md` for constraints specification
 
 ---
 
 ## Requirements
 
-Agent confirms understanding of requirements:
-
-### Structural Requirements
+### Structural
 
 - [ ] ADR follows `template.md` structure
 - [ ] Artifact frontmatter is required
@@ -53,7 +62,7 @@ Agent confirms understanding of requirements:
 - [ ] No placeholder content (TODO, TBD, FIXME)
 - [ ] No duplicate IDs
 
-### Versioning Requirements
+### Versioning
 
 - [ ] ADR version in filename: `NNNN-{slug}-v{N}.md`
 - [ ] When PROPOSED: minor edits allowed without version change
@@ -61,7 +70,7 @@ Agent confirms understanding of requirements:
 - [ ] To change accepted decision: create NEW ADR with SUPERSEDES reference
 - [ ] Superseding ADR: `cpt-{hierarchy-prefix}-adr-{new-slug}` with status SUPERSEDED on original
 
-### Semantic Requirements
+### Semantic
 
 **Reference**: `checklist.md` for detailed criteria
 
@@ -71,7 +80,7 @@ Agent confirms understanding of requirements:
 - [ ] Consequences documented (pros and cons)
 - [ ] Valid status (PROPOSED, ACCEPTED, REJECTED, DEPRECATED, SUPERSEDED)
 
-### ADR Scope Guidelines
+### Scope
 
 **One ADR per decision**. Avoid bundling multiple decisions.
 
@@ -124,10 +133,10 @@ Use when:
 
 Keep REJECTED ADRs for historical record — do not delete.
 
-### Constraints (`constraints.json`) — Mandatory
+### Constraints
 
-- [ ] ALWAYS open and follow `../../constraints.json` (kit root)
-- [ ] Treat `constraints.json` as primary validator for:
+- [ ] ALWAYS open and follow `{cypilot_path}/config/kits/sdlc/constraints.toml` (kit root)
+- [ ] Treat `constraints.toml` as primary validator for:
   - where IDs are defined
   - where IDs are referenced
   - which cross-artifact references are required / optional / prohibited
@@ -143,14 +152,12 @@ Keep REJECTED ADRs for historical record — do not delete.
 
 ## Tasks
 
-Agent executes tasks during generation:
-
 ### Phase 1: Setup
 
 - [ ] Load `template.md` for structure
 - [ ] Load `checklist.md` for semantic guidance
 - [ ] Load `examples/example.md` for reference style
-- [ ] Read adapter `artifacts.toml` to determine ADR directory
+- [ ] Read `{cypilot_path}/config/artifacts.toml` to determine ADR directory
 - [ ] Determine next ADR number (ADR-NNNN)
 
 **ADR path resolution**:
@@ -166,21 +173,6 @@ Agent executes tasks during generation:
 1. List existing ADRs from `artifacts` array where `kind: "ADR"`
 2. Extract highest number: parse `NNNN` from filenames
 3. Assign next sequential: `NNNN + 1`
-
-**If number conflict detected** (file already exists):
-```
-⚠ ADR number conflict: {NNNN} already exists
-→ Verify existing ADRs: ls architecture/ADR/
-→ Assign next available number: {NNNN + 1}
-→ If duplicate content: consider updating existing ADR instead
-```
-
-**If ADR directory doesn't exist**:
-```
-⚠ ADR directory not found
-→ Create: mkdir -p architecture/ADR
-→ Start numbering at 0001
-```
 
 ### Phase 2: Content Creation
 
@@ -229,7 +221,7 @@ Apply `checklist.md`:
 3. Verify decision has clear rationale
 4. Verify consequences documented
 
-### Validation Report
+### Phase 3: Validation Report
 
 ```
 ADR Validation Report
@@ -244,9 +236,38 @@ Issues:
 
 ---
 
+## Error Handling
+
+### Number Conflict
+
+**If number conflict detected** (file already exists):
+```
+⚠ ADR number conflict: {NNNN} already exists
+→ Verify existing ADRs: ls architecture/ADR/
+→ Assign next available number: {NNNN + 1}
+→ If duplicate content: consider updating existing ADR instead
+```
+
+### Missing Directory
+
+**If ADR directory doesn't exist**:
+```
+⚠ ADR directory not found
+→ Create: mkdir -p architecture/ADR
+→ Start numbering at 0001
+```
+
+### Escalation
+
+- [ ] Ask user when decision significance is unclear
+- [ ] Ask user when options require domain expertise to evaluate
+- [ ] Ask user when compliance or security implications are uncertain
+
+---
+
 ## Next Steps
 
-After ADR generation/validation, offer these options:
+### Options
 
 | Condition | Suggested Next Step |
 |-----------|---------------------|

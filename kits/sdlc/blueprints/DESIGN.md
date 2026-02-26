@@ -59,9 +59,14 @@ sections = ["structural", "versioning", "semantic", "scope", "traceability", "co
 
 [tasks]
 phases = ["setup", "content_creation", "ids_and_references", "quality_check"]
+[tasks.names]
+ids_and_references = "IDs and References"
 
 [validation]
-sections = ["structural", "semantic"]
+phases = ["structural", "semantic", "validation_report"]
+[validation.names]
+structural = "Structural Validation (Deterministic)"
+semantic = "Semantic Validation (Checklist-based)"
 
 [error_handling]
 sections = ["missing_prd", "incomplete_prd", "escalation"]
@@ -207,7 +212,15 @@ section = "constraints"
   - where IDs are defined
   - where IDs are referenced
   - which cross-artifact references are required / optional / prohibited
-- [ ] Automated validation: `cypilot validate` enforces identifier reference rules, headings scoping, and checkbox consistency
+
+**References**:
+- `{cypilot_path}/.core/requirements/kit-constraints.md`
+- `{cypilot_path}/.core/schemas/kit-constraints.schema.json`
+
+**Validation Checks**:
+- `cypilot validate` enforces `identifiers[<kind>].references` rules (required / optional / prohibited)
+- `cypilot validate` enforces headings scoping for ID definitions and references
+- `cypilot validate` enforces "checked ref implies checked def" consistency
 ```
 `@/cpt:rule`
 
@@ -235,7 +248,7 @@ section = "setup"
 kind = "tasks"
 section = "content_creation"
 ```
-```markdown
+````markdown
 **Apply checklist.md semantics during creation:**
 
 | Checklist Section | Generation Task |
@@ -248,11 +261,27 @@ section = "content_creation"
 **Partial Completion Handling**:
 
 If DESIGN cannot be completed in a single session:
-1. **Checkpoint progress**: note completed/in-progress/remaining sections
-2. **Ensure valid intermediate state**: add `status: DRAFT` to frontmatter
-3. **Document resumption point** with checkpoint details
-4. **On resume**: verify PRD unchanged, continue from checkpoint
-```
+1. **Checkpoint progress**:
+   - Note completed sections (Architecture, Domain, Components, etc.)
+   - Note current section being worked on
+   - List remaining sections
+2. **Ensure valid intermediate state**:
+   - All completed sections must be internally consistent
+   - Add `status: DRAFT` to frontmatter
+   - Mark incomplete sections with `<!-- INCOMPLETE: {reason} -->`
+3. **Document resumption point**:
+   ```
+   DESIGN checkpoint:
+   - Completed: Architecture Overview, Domain Model
+   - In progress: Component Design (3/7 components)
+   - Remaining: Sequences, Data Model
+   - Resume: Continue with component cpt-{hierarchy-prefix}-comp-{slug}
+   ```
+4. **On resume**:
+   - Verify PRD unchanged since last session
+   - Continue from documented checkpoint
+   - Remove incomplete markers as sections are finished
+````
 `@/cpt:rule`
 
 #### IDs & References
@@ -263,7 +292,7 @@ kind = "tasks"
 section = "ids_and_references"
 ```
 ```markdown
-- [ ] Generate type IDs: `cpt-{hierarchy-prefix}-type-{slug}`
+- [ ] Generate type IDs: `cpt-{hierarchy-prefix}-type-{slug}` (e.g., `cpt-myapp-type-user-entity`)
 - [ ] Generate component IDs (if needed)
 - [ ] Link to PRD actors/capabilities
 - [ ] Reference relevant ADRs
@@ -298,6 +327,7 @@ section = "missing_prd"
 - [ ] If parent PRD not found:
   - Option 1: Run `/cypilot-generate PRD` first (recommended)
   - Option 2: Continue without PRD (DESIGN will lack traceability)
+  - If Option 2: document "PRD pending" in DESIGN frontmatter, skip PRD reference validation
 ```
 `@/cpt:rule`
 
@@ -310,6 +340,8 @@ section = "incomplete_prd"
 ```
 ```markdown
 - [ ] If PRD exists but is outdated: review PRD before proceeding
+- [ ] If PRD needs updates: `/cypilot-generate PRD UPDATE`
+- [ ] If PRD is current: proceed with DESIGN
 ```
 `@/cpt:rule`
 
@@ -361,6 +393,27 @@ section = "semantic"
 ```
 `@/cpt:rule`
 
+#### Validation Report
+
+`@cpt:rule`
+```toml
+kind = "validation"
+section = "validation_report"
+```
+````markdown
+```
+DESIGN Validation Report
+══════════════════════════
+
+Structural: PASS/FAIL
+Semantic: PASS/FAIL (N issues)
+
+Issues:
+- [SEVERITY] CHECKLIST-ID: Description
+```
+````
+`@/cpt:rule`
+
 ### Next Steps
 
 `@cpt:rule`
@@ -391,83 +444,258 @@ Design quality checks organized by domain.
 levels = ["CRITICAL", "HIGH", "MEDIUM", "LOW"]
 
 [review]
-priority = ["ARCH", "SEC", "REL", "DATA"]
+priority = ["ARCH", "SEM", "PERF", "SEC", "REL", "DATA", "INT", "OPS", "MAINT", "TEST", "COMPL", "UX", "BIZ", "DOC"]
 
 [[domain]]
 abbr = "ARCH"
-name = "Architecture"
-standards = ["IEEE 1016-2009", "ISO/IEC/IEEE 42010:2022"]
-
-[[domain]]
-abbr = "PERF"
-name = "Performance"
-standards = ["ISO/IEC 25010:2011"]
-
-[[domain]]
-abbr = "SEC"
-name = "Security"
-standards = ["ISO/IEC 25010:2011", "OWASP ASVS 5.0", "ISO/IEC 27001:2022"]
-
-[[domain]]
-abbr = "REL"
-name = "Reliability"
-standards = ["ISO/IEC 25010:2011"]
-
-[[domain]]
-abbr = "DATA"
-name = "Data"
-standards = ["IEEE 1016-2009"]
-
-[[domain]]
-abbr = "INT"
-name = "Integration"
-standards = []
-
-[[domain]]
-abbr = "OPS"
-name = "Operations"
-standards = []
-
-[[domain]]
-abbr = "MAINT"
-name = "Maintainability"
-standards = ["ISO/IEC 25010:2011"]
-
-[[domain]]
-abbr = "TEST"
-name = "Testing"
-standards = ["ISO/IEC 25010:2011"]
-
-[[domain]]
-abbr = "COMPL"
-name = "Compliance"
-standards = []
-
-[[domain]]
-abbr = "UX"
-name = "Usability"
-standards = []
-
-[[domain]]
-abbr = "BIZ"
-name = "Business"
-standards = ["ISO/IEC/IEEE 29148:2018"]
+name = "🏗️ ARCHITECTURE Expertise"
+header = "🏗️ ARCHITECTURE Expertise (ARCH)"
+standards_text = """> **Standards**:
+> - [IEEE 1016-2009](https://standards.ieee.org/ieee/1016/4502/) — Context (§5.2), Composition (§5.3), Logical (§5.4), Dependency (§5.5) viewpoints
+> - [ISO/IEC/IEEE 42010:2022](https://www.iso.org/standard/74393.html) — Stakeholders, concerns, architecture viewpoints (§5-6)"""
 
 [[domain]]
 abbr = "SEM"
 name = "Semantic Alignment"
-standards = ["ISO/IEC/IEEE 29148:2018"]
+header = "Semantic Alignment (SEM)"
+standards_text = """> **Standard**: [ISO/IEC/IEEE 29148:2018](https://www.iso.org/standard/72089.html) — Requirements Engineering
+>
+> "Bidirectional traceability between requirements and design" (§6.5)"""
+
+[[domain]]
+abbr = "PERF"
+name = "⚡ PERFORMANCE Expertise"
+header = "⚡ PERFORMANCE Expertise (PERF)"
+standards_text = """> **Standard**: [ISO/IEC 25010:2011](https://www.iso.org/standard/35733.html) — Performance Efficiency
+>
+> Sub-characteristics: time behavior, resource utilization, capacity"""
+
+[[domain]]
+abbr = "SEC"
+name = "🔒 SECURITY Expertise"
+header = "🔒 SECURITY Expertise (SEC)"
+standards_text = """> **Standards**:
+> - [ISO/IEC 25010:2011](https://www.iso.org/standard/35733.html) — Security: confidentiality, integrity, non-repudiation, accountability, authenticity
+> - [OWASP ASVS 5.0](https://owasp.org/www-project-application-security-verification-standard/) — Architecture requirements (V1)
+> - [ISO/IEC 27001:2022](https://www.iso.org/standard/27001) — Information security controls"""
+
+[[domain]]
+abbr = "REL"
+name = "🛡️ RELIABILITY Expertise"
+header = "🛡️ RELIABILITY Expertise (REL)"
+standards_text = """> **Standard**: [ISO/IEC 25010:2011](https://www.iso.org/standard/35733.html) — Reliability
+>
+> Sub-characteristics: maturity, availability, fault tolerance, recoverability"""
+
+[[domain]]
+abbr = "DATA"
+name = "📊 DATA Expertise"
+header = "📊 DATA Expertise (DATA)"
+standards_text = """> **Standard**: [IEEE 1016-2009](https://standards.ieee.org/ieee/1016/4502/) — Information Viewpoint (§5.6)
+>
+> Data entities, persistent data stores, data flow"""
+
+[[domain]]
+abbr = "INT"
+name = "🔌 INTEGRATION Expertise"
+header = "🔌 INTEGRATION Expertise (INT)"
+standards = []
+
+[[domain]]
+abbr = "OPS"
+name = "🖥️ OPERATIONS Expertise"
+header = "🖥️ OPERATIONS Expertise (OPS)"
+standards = []
+
+[[domain]]
+abbr = "MAINT"
+name = "🔧 MAINTAINABILITY Expertise"
+header = "🔧 MAINTAINABILITY Expertise (MAINT)"
+standards_text = """> **Standard**: [ISO/IEC 25010:2011](https://www.iso.org/standard/35733.html) — Maintainability
+>
+> Sub-characteristics: modularity, reusability, analysability, modifiability, testability"""
+
+[[domain]]
+abbr = "TEST"
+name = "🧪 TESTING Expertise"
+header = "🧪 TESTING Expertise (TEST)"
+standards_text = """> **Standard**: [ISO/IEC 25010:2011](https://www.iso.org/standard/35733.html) §4.2.7.5 — Testability"""
+
+[[domain]]
+abbr = "COMPL"
+name = "📜 COMPLIANCE Expertise"
+header = "📜 COMPLIANCE Expertise (COMPL)"
+standards = []
+
+[[domain]]
+abbr = "UX"
+name = "👤 USABILITY Expertise"
+header = "👤 USABILITY Expertise (UX)"
+standards = []
+
+[[domain]]
+abbr = "BIZ"
+name = "🏢 BUSINESS Expertise"
+header = "🏢 BUSINESS Expertise (BIZ)"
+standards_text = """> **Standard**: [ISO/IEC/IEEE 29148:2018](https://www.iso.org/standard/72089.html) — Requirements Engineering
+>
+> Requirements-to-design allocation and traceability (§6.5)"""
 
 [[domain]]
 abbr = "DOC"
-name = "Documentation"
+name = "DOC"
+header = "DOC (DOC)"
 standards = []
+
 ```
+````markdown
+# DESIGN (Overall Design) Expert Checklist
+
+**Artifact**: Overall System Design (DESIGN)
+**Version**: 2.0
+**Last Updated**: 2026-02-03
+**Purpose**: Comprehensive quality checklist for Overall Design artifacts
+
+---
+
+## Referenced Standards
+
+This checklist validates system design artifacts based on the following international standards:
+
+| Standard | Domain | Description |
+|----------|--------|-------------|
+| [IEEE 1016-2009](https://standards.ieee.org/ieee/1016/4502/) | **Design Description** | Software Design Descriptions — context, composition, logical, dependency viewpoints |
+| [ISO/IEC/IEEE 42010:2022](https://www.iso.org/standard/74393.html) | **Architecture Description** | Architecture viewpoints, stakeholders, concerns, model correspondences |
+| [ISO/IEC 25010:2011](https://www.iso.org/standard/35733.html) | **Quality Model** | SQuaRE — 8 quality characteristics: performance, security, reliability, maintainability |
+| [ISO/IEC/IEEE 29148:2018](https://www.iso.org/standard/72089.html) | **Requirements Traceability** | Bidirectional traceability, requirements-to-design mapping |
+| [OWASP ASVS 5.0](https://owasp.org/www-project-application-security-verification-standard/) | **Security Architecture** | Authentication, authorization, cryptography, data protection |
+| [ISO/IEC 27001:2022](https://www.iso.org/standard/27001) | **Information Security** | ISMS controls, security management framework |
+---
+
+## Review Scope Selection
+
+**Choose review mode based on DESIGN scope and change type**:
+
+| Review Mode | When to Use | Domains to Check |
+|-------------|-------------|------------------|
+| **Quick** | Minor updates, <3 sections changed | ARCH (core only) + changed domains |
+| **Standard** | New DESIGN, moderate changes | All applicable domains |
+| **Full** | Major architectural changes, compliance-critical | All 12 domains with evidence |
+
+### Quick Review (ARCH Core Only)
+
+**MUST CHECK** (blocking):
+- [ ] ARCH-DESIGN-001: Architecture Overview Completeness
+- [ ] ARCH-DESIGN-004: Component Model Quality
+- [ ] ARCH-DESIGN-005: Domain Model Authority
+- [ ] DOC-DESIGN-001: Explicit Non-Applicability
+
+**Changed sections** — also check relevant domain items for any sections modified.
+
+### Domain Prioritization by System Type
+
+| System Type | Priority Domains (check first) | Secondary Domains | Often N/A |
+|-------------|-------------------------------|-------------------|-----------|
+| **Web Service** | ARCH, SEC, REL, DATA, INT | PERF, OPS, TEST | UX, COMPL |
+| **CLI Tool** | ARCH, MAINT, TEST | DATA, INT | SEC, PERF, OPS, COMPL, UX |
+| **Data Pipeline** | ARCH, DATA, REL, PERF | INT, OPS | SEC, UX, COMPL |
+| **Methodology/Framework** | ARCH, MAINT | TEST | SEC, PERF, REL, DATA, INT, OPS, COMPL, UX |
+| **Mobile App** | ARCH, UX, SEC, PERF | DATA, TEST | OPS, INT, COMPL |
+
+**Applicability Rule**: Domains in "Often N/A" column still require explicit "Not applicable because..." statement in document if skipped.
+
+---
+
+## Prerequisites
+
+Before starting the review, confirm:
+
+- [ ] I understand this checklist validates DESIGN artifacts
+- [ ] I will follow the Applicability Context rules below
+- [ ] I will check ALL items in MUST HAVE sections
+- [ ] I will verify ALL items in MUST NOT HAVE sections
+- [ ] I will document any violations found
+- [ ] I will provide specific feedback for each failed check
+- [ ] I will complete the Final Checklist and provide a review report
+
+---
+
+## Evidence Requirements (STRICT mode)
+
+**When Rules Mode = STRICT** (per `agent-compliance.md`):
+
+### For Each Checklist Category
+
+Agent MUST output evidence in this format:
+
+| Category ID | Status | Evidence |
+|-------------|--------|----------|
+| ARCH-DESIGN-001 | PASS | Lines 45-67: "System purpose is to provide..." |
+| ARCH-DESIGN-002 | PASS | Section B.1 contains 9 principles with unique IDs |
+| PERF-DESIGN-001 | N/A | Line 698: "Performance architecture not applicable..." |
+
+### Evidence Standards
+
+**For PASS**:
+- Quote 2-5 sentences from document proving requirement is met
+- Include line numbers or section references
+- Evidence must directly demonstrate compliance
+
+**For N/A (Not Applicable)**:
+- Quote the **explicit** "Not applicable because..." statement from document
+- If no explicit statement exists → report as VIOLATION, not N/A
+- Agent CANNOT decide N/A on author's behalf — document must state it
+
+**For FAIL**:
+- State what's missing or incorrect
+- Provide location where it should be
+- Quote surrounding context
+
+### Why Evidence Matters
+
+Without evidence requirements, agents exhibit anti-pattern AP-004 (BULK_PASS):
+- Report "all checks pass" without actually verifying each item
+- Skip tedious checklist review
+- Produce invalid validation that misses real issues
+
+**Real example of this failure**:
+> Agent reported "DESIGN validation PASS" without reading the file, because deterministic gate passed and agent assumed semantic review was optional.
+
+---
+
+## Applicability Context
+
+Before evaluating each checklist item, the expert MUST:
+
+1. **Understand the artifact's domain** — What kind of system/project is this DESIGN for? (e.g., web service, CLI tool, data pipeline, methodology framework)
+
+2. **Determine applicability for each requirement** — Not all checklist items apply to all designs:
+   - A CLI tool design may not need Security Architecture analysis
+   - A methodology framework design may not need Performance Architecture analysis
+   - A local development tool design may not need Operations Architecture analysis
+
+3. **Require explicit handling** — For each checklist item:
+   - If applicable: The document MUST address it (present and complete)
+   - If not applicable: The document MUST explicitly state "Not applicable because..." with reasoning
+   - If missing without explanation: Report as violation
+
+4. **Never skip silently** — The expert MUST NOT skip a requirement just because it's not mentioned. Either:
+   - The requirement is met (document addresses it), OR
+   - The requirement is explicitly marked not applicable (document explains why), OR
+   - The requirement is violated (report it with applicability justification)
+
+**Key principle**: The reviewer must be able to distinguish "author considered and excluded" from "author forgot"
+
+---
+
+## Severity Dictionary
+
+- **CRITICAL**: Unsafe/misleading/unverifiable; blocks downstream work.
+- **HIGH**: Major ambiguity/risk; should be fixed before approval.
+- **MEDIUM**: Meaningful improvement; fix when feasible.
+- **LOW**: Minor improvement; optional.
+````
 `@/cpt:checklist`
-
-### Architecture Checks (ARCH)
-
-Structural and architectural quality.
 
 `@cpt:check`
 ```toml
@@ -475,15 +703,15 @@ id = "ARCH-DESIGN-001"
 domain = "ARCH"
 title = "Architecture Overview Completeness"
 severity = "CRITICAL"
-ref = "ISO/IEC/IEEE 42010:2022 §5.3, IEEE 1016-2009 §5.2"
+ref = "ISO/IEC/IEEE 42010:2022 §5.3 (Stakeholders and concerns), IEEE 1016-2009 §5.2 (Context viewpoint)"
 kind = "must_have"
 ```
 ```markdown
 - [ ] System purpose clearly stated
 - [ ] High-level architecture described
 - [ ] Key architectural decisions summarized
-- [ ] Architecture drivers documented
-- [ ] Key product/business requirements mapped to architectural drivers
+- [ ] Architecture drivers documented (Section A)
+- [ ] Key product/business requirements mapped to architectural drivers (links or references)
 - [ ] System context diagram present or described
 - [ ] External system boundaries identified
 - [ ] ADR references provided for significant constraints
@@ -534,7 +762,7 @@ id = "ARCH-DESIGN-004"
 domain = "ARCH"
 title = "Component Model Quality"
 severity = "CRITICAL"
-ref = "IEEE 1016-2009 §5.3, ISO/IEC/IEEE 42010:2022 §6"
+ref = "IEEE 1016-2009 §5.3 (Composition viewpoint), ISO/IEC/IEEE 42010:2022 §6 (Architecture views)"
 kind = "must_have"
 ```
 ```markdown
@@ -555,7 +783,7 @@ id = "ARCH-DESIGN-005"
 domain = "ARCH"
 title = "Domain Model Authority"
 severity = "CRITICAL"
-ref = "IEEE 1016-2009 §5.4, §5.6"
+ref = "IEEE 1016-2009 §5.4 (Logical viewpoint), §5.6 (Information viewpoint)"
 kind = "must_have"
 ```
 ```markdown
@@ -663,15 +891,13 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-### Semantic Alignment Checks (SEM)
-
 `@cpt:check`
 ```toml
 id = "SEM-DESIGN-001"
 domain = "SEM"
 title = "PRD Intent Preservation"
 severity = "CRITICAL"
-ref = "ISO/IEC/IEEE 29148:2018 §6.5"
+ref = "ISO/IEC/IEEE 29148:2018 §6.5 (Traceability)"
 kind = "must_have"
 ```
 ```markdown
@@ -728,15 +954,13 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-### Performance Checks (PERF)
-
 `@cpt:check`
 ```toml
 id = "PERF-DESIGN-001"
 domain = "PERF"
 title = "Performance Architecture"
 severity = "HIGH"
-ref = "ISO/IEC 25010:2011 §4.2.2"
+ref = "ISO/IEC 25010:2011 §4.2.2 (Performance efficiency)"
 kind = "must_have"
 ```
 ```markdown
@@ -804,15 +1028,13 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-### Security Checks (SEC)
-
 `@cpt:check`
 ```toml
 id = "SEC-DESIGN-001"
 domain = "SEC"
 title = "Authentication Architecture"
 severity = "CRITICAL"
-ref = "OWASP ASVS V1.2, ISO 25010 §4.2.6"
+ref = "OWASP ASVS V1.2 (Authentication Architecture), ISO 25010 §4.2.6"
 kind = "must_have"
 ```
 ```markdown
@@ -919,15 +1141,13 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-### Reliability Checks (REL)
-
 `@cpt:check`
 ```toml
 id = "REL-DESIGN-001"
 domain = "REL"
 title = "Fault Tolerance"
 severity = "HIGH"
-ref = "ISO/IEC 25010:2011 §4.2.5"
+ref = "ISO/IEC 25010:2011 §4.2.5 (Fault tolerance)"
 kind = "must_have"
 ```
 ```markdown
@@ -1013,15 +1233,13 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-### Data Checks (DATA)
-
 `@cpt:check`
 ```toml
 id = "DATA-DESIGN-001"
 domain = "DATA"
 title = "Data Architecture"
 severity = "CRITICAL"
-ref = "IEEE 1016-2009 §5.6"
+ref = "IEEE 1016-2009 §5.6 (Information viewpoint)"
 kind = "must_have"
 ```
 ```markdown
@@ -1075,7 +1293,7 @@ kind = "must_have"
 id = "DATA-DESIGN-004"
 domain = "DATA"
 title = "Database Design Quality"
-severity = "HIGH"
+severity = "HIGH (if database schemas are documented)"
 kind = "must_have"
 ```
 ```markdown
@@ -1087,8 +1305,6 @@ kind = "must_have"
 - [ ] Schema versioning documented
 ```
 `@/cpt:check`
-
-### Integration Checks (INT)
 
 `@cpt:check`
 ```toml
@@ -1131,9 +1347,8 @@ kind = "must_have"
 id = "INT-DESIGN-003"
 domain = "INT"
 title = "Event Architecture"
-severity = "MEDIUM"
+severity = "MEDIUM (if applicable)"
 kind = "must_have"
-applicable_when = "Event-driven or message-based architecture"
 ```
 ```markdown
 - [ ] Event catalog documented
@@ -1161,8 +1376,6 @@ kind = "must_have"
 - [ ] API lifecycle management documented
 ```
 `@/cpt:check`
-
-### Operations Checks (OPS)
 
 `@cpt:check`
 ```toml
@@ -1233,15 +1446,13 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-### Maintainability Checks (MAINT)
-
 `@cpt:check`
 ```toml
 id = "MAINT-DESIGN-001"
 domain = "MAINT"
 title = "Code Organization"
 severity = "HIGH"
-ref = "ISO/IEC 25010:2011 §4.2.7"
+ref = "ISO/IEC 25010:2011 §4.2.7 (Modularity)"
 kind = "must_have"
 ```
 ```markdown
@@ -1286,15 +1497,13 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-### Testing Checks (TEST)
-
 `@cpt:check`
 ```toml
 id = "TEST-DESIGN-001"
 domain = "TEST"
 title = "Testability Architecture"
 severity = "HIGH"
-ref = "ISO/IEC 25010:2011 §4.2.7.5"
+ref = "ISO/IEC 25010:2011 §4.2.7.5 (Testability)"
 kind = "must_have"
 ```
 ```markdown
@@ -1324,16 +1533,13 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-### Compliance Checks (COMPL)
-
 `@cpt:check`
 ```toml
 id = "COMPL-DESIGN-001"
 domain = "COMPL"
 title = "Compliance Architecture"
-severity = "HIGH"
+severity = "HIGH (if applicable)"
 kind = "must_have"
-applicable_when = "Handles PII, financial data, healthcare, or government"
 ```
 ```markdown
 - [ ] Compliance requirements mapped to architecture
@@ -1349,9 +1555,8 @@ applicable_when = "Handles PII, financial data, healthcare, or government"
 id = "COMPL-DESIGN-002"
 domain = "COMPL"
 title = "Privacy Architecture"
-severity = "HIGH"
+severity = "HIGH (if applicable)"
 kind = "must_have"
-applicable_when = "Handles EU personal data, PII"
 ```
 ```markdown
 - [ ] Privacy by design documented
@@ -1362,8 +1567,6 @@ applicable_when = "Handles EU personal data, PII"
 ```
 `@/cpt:check`
 
-### Usability Checks (UX)
-
 `@cpt:check`
 ```toml
 id = "UX-DESIGN-001"
@@ -1371,7 +1574,6 @@ domain = "UX"
 title = "User-Facing Architecture"
 severity = "MEDIUM"
 kind = "must_have"
-applicable_when = "System has user-facing frontend"
 ```
 ```markdown
 - [ ] Frontend architecture documented
@@ -1382,15 +1584,13 @@ applicable_when = "System has user-facing frontend"
 ```
 `@/cpt:check`
 
-### Business Checks (BIZ)
-
 `@cpt:check`
 ```toml
 id = "BIZ-DESIGN-001"
 domain = "BIZ"
 title = "Business Alignment"
 severity = "HIGH"
-ref = "ISO/IEC/IEEE 29148:2018 §6.5"
+ref = "ISO/IEC/IEEE 29148:2018 §6.5 (Requirements-design traceability)"
 kind = "must_have"
 ```
 ```markdown
@@ -1402,8 +1602,6 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-### Documentation Checks (DOC)
-
 `@cpt:check`
 ```toml
 id = "DOC-DESIGN-001"
@@ -1413,15 +1611,11 @@ severity = "CRITICAL"
 kind = "must_have"
 ```
 ```markdown
-- [ ] If a section or requirement is intentionally omitted, it is explicitly stated (e.g., "Not applicable because...")
+- [ ] If a section or requirement is intentionally omitted, it is explicitly stated in the document (e.g., "Not applicable because...")
 - [ ] No silent omissions — every major checklist area is either present or has a documented reason for absence
 - [ ] Reviewer can distinguish "author considered and excluded" from "author forgot"
 ```
 `@/cpt:check`
-
-### Anti-Pattern Checks (must_not_have)
-
-Content that does NOT belong in a DESIGN document.
 
 `@cpt:check`
 ```toml
@@ -1430,14 +1624,16 @@ domain = "ARCH"
 title = "No Spec-Level Details"
 severity = "CRITICAL"
 kind = "must_not_have"
-belongs_to = "Spec DESIGN"
 ```
 ```markdown
+**What to check**:
 - [ ] No spec-specific user flows
 - [ ] No spec-specific algorithms
 - [ ] No spec-specific state machines
 - [ ] No spec-specific error handling details
 - [ ] No feature implementation steps
+
+**Where it belongs**: `Spec DESIGN`
 ```
 `@/cpt:check`
 
@@ -1448,14 +1644,16 @@ domain = "ARCH"
 title = "No Decision Debates"
 severity = "HIGH"
 kind = "must_not_have"
-belongs_to = "ADR"
 ```
 ```markdown
+**What to check**:
 - [ ] No "we considered X vs Y" discussions
 - [ ] No pros/cons analysis of alternatives
 - [ ] No decision justification narratives
 - [ ] No "why we didn't choose X" explanations
 - [ ] No historical context of decisions
+
+**Where it belongs**: `ADR` (Architecture Decision Records)
 ```
 `@/cpt:check`
 
@@ -1466,14 +1664,16 @@ domain = "BIZ"
 title = "No Product Requirements"
 severity = "HIGH"
 kind = "must_not_have"
-belongs_to = "PRD"
 ```
 ```markdown
+**What to check**:
 - [ ] No business vision statements
 - [ ] No actor definitions (reference PRD instead)
 - [ ] No use case definitions (reference PRD instead)
 - [ ] No functional requirement definitions (reference PRD instead)
 - [ ] No success criteria definitions
+
+**Where it belongs**: `PRD`
 ```
 `@/cpt:check`
 
@@ -1484,15 +1684,17 @@ domain = "BIZ"
 title = "No Implementation Tasks"
 severity = "HIGH"
 kind = "must_not_have"
-belongs_to = "Project management tools or Spec DESIGN"
 ```
 ```markdown
+**What to check**:
 - [ ] No sprint/iteration plans
 - [ ] No task breakdowns
 - [ ] No effort estimates
 - [ ] No developer assignments
 - [ ] No implementation timelines
 - [ ] No TODO lists
+
+**Where it belongs**: Project management tools or Spec DESIGN
 ```
 `@/cpt:check`
 
@@ -1503,13 +1705,15 @@ domain = "DATA"
 title = "No Code-Level Schema Definitions"
 severity = "MEDIUM"
 kind = "must_not_have"
-belongs_to = "Source code repository and/or schema repository"
 ```
 ```markdown
+**What to check**:
 - [ ] No inline SQL CREATE TABLE statements
 - [ ] No complete JSON Schema definitions (link to files instead)
 - [ ] No TypeScript interface definitions (link to files instead)
 - [ ] No migration scripts
+
+**Where it belongs**: Source code repository and/or schema repository, referenced from the design documentation
 ```
 `@/cpt:check`
 
@@ -1520,13 +1724,15 @@ domain = "INT"
 title = "No Complete API Specifications"
 severity = "MEDIUM"
 kind = "must_not_have"
-belongs_to = "API contract files (OpenAPI/GraphQL/proto)"
 ```
 ```markdown
+**What to check**:
 - [ ] No complete OpenAPI specifications (link to files instead)
 - [ ] No complete GraphQL schemas (link to files instead)
 - [ ] No request/response JSON examples (keep in API spec files)
 - [ ] No curl examples
+
+**Where it belongs**: API contract files (e.g., OpenAPI/GraphQL/proto), referenced from the design documentation
 ```
 `@/cpt:check`
 
@@ -1537,14 +1743,16 @@ domain = "OPS"
 title = "No Infrastructure Code"
 severity = "MEDIUM"
 kind = "must_not_have"
-belongs_to = "Infrastructure code repository or infra/ directory"
 ```
 ```markdown
+**What to check**:
 - [ ] No Terraform/CloudFormation templates
 - [ ] No Kubernetes manifests
 - [ ] No Docker Compose files
 - [ ] No CI/CD pipeline YAML
 - [ ] No shell scripts
+
+**Where it belongs**: Infrastructure code repository or `infra/` directory
 ```
 `@/cpt:check`
 
@@ -1555,13 +1763,15 @@ domain = "TEST"
 title = "No Test Code"
 severity = "MEDIUM"
 kind = "must_not_have"
-belongs_to = "Test directories in source code"
 ```
 ```markdown
+**What to check**:
 - [ ] No test case implementations
 - [ ] No test data files
 - [ ] No assertion logic
 - [ ] No mock implementations
+
+**Where it belongs**: Test directories in source code
 ```
 `@/cpt:check`
 
@@ -1572,13 +1782,15 @@ domain = "MAINT"
 title = "No Code Snippets"
 severity = "HIGH"
 kind = "must_not_have"
-belongs_to = "Source code, with links from documentation"
 ```
 ```markdown
+**What to check**:
 - [ ] No production code examples
 - [ ] No implementation snippets
 - [ ] No debugging code
 - [ ] No configuration file contents (link instead)
+
+**Where it belongs**: Source code, with links from documentation
 ```
 `@/cpt:check`
 
@@ -1589,17 +1801,20 @@ domain = "SEC"
 title = "No Security Secrets"
 severity = "CRITICAL"
 kind = "must_not_have"
-belongs_to = "Secret management system (Vault, AWS Secrets Manager, etc.)"
 ```
 ```markdown
+**What to check**:
 - [ ] No API keys
 - [ ] No passwords
 - [ ] No certificates
 - [ ] No private keys
 - [ ] No connection strings with credentials
 - [ ] No encryption keys
+
+**Where it belongs**: Secret management system (Vault, AWS Secrets Manager, etc.)
 ```
 `@/cpt:check`
+
 
 ---
 

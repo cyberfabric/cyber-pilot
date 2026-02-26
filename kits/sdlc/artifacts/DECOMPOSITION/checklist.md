@@ -5,6 +5,31 @@
 **Last Updated**: 2026-02-03
 **Purpose**: Validate quality of design decomposition into implementable work packages
 
+## Table of Contents
+
+1. [Referenced Standards](#referenced-standards)
+2. [Prerequisites](#prerequisites)
+3. [Applicability Context](#applicability-context)
+4. [Severity Dictionary](#severity-dictionary)
+5. [Checkpointing (Long Reviews)](#checkpointing-long-reviews)
+6. [MUST HAVE](#must-have)
+   - [COVERAGE (COV)](#coverage-cov)
+   - [EXCLUSIVITY (EXC)](#exclusivity-exc)
+   - [ENTITY ATTRIBUTES (ATTR)](#entity-attributes-attr)
+   - [DECOMPOSITION LEVELS (LEV)](#decomposition-levels-lev)
+   - [CONFIGURATION ITEMS (CFG)](#configuration-items-cfg)
+   - [TRACEABILITY (TRC)](#traceability-trc)
+   - [DEPENDENCIES (DEP)](#dependencies-dep)
+   - [CHECKBOX CONSISTENCY (CHK)](#checkbox-consistency-chk)
+   - [DELIBERATE OMISSIONS (DOC)](#deliberate-omissions-doc)
+7. [MUST NOT HAVE](#must-not-have)
+8. [Format Validation](#format-validation)
+9. [Validation Summary](#validation-summary)
+   - [Final Checklist](#final-checklist)
+   - [Reporting Readiness Checklist](#reporting-readiness-checklist)
+   - [Reporting](#reporting)
+   - [Reporting Commitment](#reporting-commitment)
+
 ---
 
 ## Referenced Standards
@@ -18,35 +43,6 @@ This checklist validates decomposition quality based on the following internatio
 | [ISO 10007:2017](https://www.iso.org/standard/70400.html) | **Configuration Management** | Configuration items, product structure, baselines |
 | [ISO/IEC/IEEE 42010:2022](https://www.iso.org/standard/74393.html) | **Architecture Description** | Architecture viewpoints, model correspondences, consistency |
 | [ISO/IEC/IEEE 29148:2018](https://www.iso.org/standard/72089.html) | **Requirements Traceability** | Bidirectional traceability, verification |
-
----
-
-## Table of Contents
-
-1. [Prerequisites](#prerequisites)
-2. [Applicability Context](#applicability-context)
-3. [Severity Dictionary](#severity-dictionary)
-4. [Checkpointing](#checkpointing-long-reviews) — for long reviews / context limits
-5. **MUST HAVE** (check in priority order):
-   - [COV: Coverage](#coverage-cov) — WBS 100% Rule *(ISO 21511)*
-   - [EXC: Exclusivity](#exclusivity-exc) — Mutual Exclusivity *(ISO 21511)*
-   - [ATTR: Entity Attributes](#entity-attributes-attr) — Design Entity Completeness *(IEEE 1016)*
-   - [LEV: Decomposition Levels](#decomposition-levels-lev) — Granularity Consistency
-   - [CFG: Configuration Items](#configuration-items-cfg) — CI Selection *(ISO 10007)*
-   - [TRC: Traceability](#traceability-trc) — Bidirectional Links *(ISO 29148, ISO 42010)*
-   - [DEP: Dependencies](#dependencies-dep) — Dependency Graph Quality
-   - [CHK: Checkbox Consistency](#checkbox-consistency-chk) — Status Integrity
-   - [DOC: Deliberate Omissions](#deliberate-omissions-doc)
-6. **MUST NOT HAVE**:
-   - [No Implementation Details](#no-implementation-details)
-   - [No Requirements Definitions](#no-requirements-definitions)
-   - [No Architecture Decisions](#no-architecture-decisions)
-7. [Format Validation](#format-validation)
-8. [Validation Summary](#validation-summary)
-9. [Reporting](#reporting)
-
-**Review Priority**: COV → EXC → ATTR → TRC → DEP → (others)
-
 ---
 
 ## Prerequisites
@@ -394,9 +390,7 @@ Mark review as "PARTIAL" if not all domains completed.
 
 # MUST NOT HAVE
 
----
-
-## No Implementation Details
+### DECOMP-NO-001: No Implementation Details
 **Severity**: CRITICAL
 
 **What to check**:
@@ -407,9 +401,7 @@ Mark review as "PARTIAL" if not all domains completed.
 
 **Where it belongs**: FEATURE (feature design) artifact
 
----
-
-## No Requirements Definitions
+### DECOMP-NO-002: No Requirements Definitions
 **Severity**: HIGH
 
 **What to check**:
@@ -420,9 +412,7 @@ Mark review as "PARTIAL" if not all domains completed.
 
 **Where it belongs**: PRD artifact
 
----
-
-## No Architecture Decisions
+### DECOMP-NO-003: No Architecture Decisions
 **Severity**: HIGH
 
 **What to check**:
@@ -436,14 +426,14 @@ Mark review as "PARTIAL" if not all domains completed.
 
 # Format Validation
 
-## FMT-001: Feature Entry Format
+### FMT-001: Feature Entry Format
 **Severity**: HIGH
 
 - [ ] Each feature entry has unique title
 - [ ] Each feature entry has stable identifier
 - [ ] Entries are consistently formatted
 
-## FMT-002: Required Fields Present
+### FMT-002: Required Fields Present
 **Severity**: HIGH
 
 - [ ] **ID**: Present and follows convention
@@ -454,7 +444,7 @@ Mark review as "PARTIAL" if not all domains completed.
 - [ ] **Requirements Covered**: ID references
 - [ ] **Design Components**: ID references
 
-## FMT-003: Checkbox Syntax
+### FMT-003: Checkbox Syntax
 **Severity**: CRITICAL
 
 - [ ] All checkboxes use correct syntax: `[ ]` (unchecked) or `[x]` (checked)
@@ -472,17 +462,31 @@ Confirm before reporting results:
 - [ ] I checked ALL items in MUST HAVE sections
 - [ ] I verified ALL items in MUST NOT HAVE sections
 - [ ] I documented all violations found
+- [ ] I provided specific feedback for each failed check
 - [ ] All critical issues have been reported
 
-## Domain Disposition
+### Explicit Handling Verification
 
-For each major checklist category, confirm:
+For each major checklist category (COV, EXC, ATTR, LEV, CFG, TRC, DEP, CHK, DOC), confirm:
 
-- [ ] COV (Coverage): Addressed or violation reported
-- [ ] EXC (Exclusivity): Addressed or violation reported
-- [ ] ATTR (Attributes): Addressed or violation reported
-- [ ] TRC (Traceability): Addressed or violation reported
-- [ ] DEP (Dependencies): Addressed or violation reported
+- [ ] Category is addressed in the document, OR
+- [ ] Category is explicitly marked "Not applicable" with reasoning in the document, OR
+- [ ] Category absence is reported as a violation (with applicability justification)
+
+**No silent omissions allowed** — every category must have explicit disposition
+
+---
+
+## Reporting Readiness Checklist
+
+- [ ] I will report every identified issue (no omissions)
+- [ ] I will report only issues (no "everything looks good" sections)
+- [ ] I will use the exact report format defined below (no deviations)
+- [ ] Each reported issue will include Why Applicable (applicability justification)
+- [ ] Each reported issue will include Evidence (quote/location)
+- [ ] Each reported issue will include Why it matters (impact)
+- [ ] Each reported issue will include a Proposal (concrete fix + acceptance criteria)
+- [ ] I will avoid vague statements and use precise, verifiable language
 
 ---
 
@@ -492,10 +496,13 @@ Report **only** problems (do not list what is OK).
 
 For each issue include:
 
-- **Issue**: What is wrong
-- **Evidence**: Quote or location in artifact
-- **Why it matters**: Impact on decomposition quality
-- **Proposal**: Concrete fix
+- **Why Applicable**: Explain why this requirement applies to this artifact's context
+- **Issue**: What is wrong (requirement missing or incomplete)
+- **Evidence**: Quote the exact text or describe the exact location in the artifact (or note "No mention found")
+- **Why it matters**: Impact (risk, cost, user harm, compliance)
+- **Proposal**: Concrete fix (what to change/add/remove) with clear acceptance criteria
+
+### Full Report Format (Standard/Full Reviews)
 
 ```markdown
 ## Review Report (Issues Only)
@@ -506,19 +513,55 @@ For each issue include:
 
 **Severity**: CRITICAL|HIGH|MEDIUM|LOW
 
+#### Why Applicable
+
+{Explain why this requirement applies to this artifact's context}
+
 #### Issue
 
-{What is wrong}
+{What is wrong — requirement is missing, incomplete, or not explicitly marked as not applicable}
 
 #### Evidence
 
-{Quote or "No mention found"}
+{Quote the exact text or describe the exact location in the artifact. If requirement is missing entirely, state "No mention of [requirement] found in the document"}
 
 #### Why It Matters
 
-{Impact on decomposition quality}
+{Impact: risk, cost, user harm, compliance}
 
 #### Proposal
 
-{Concrete fix}
+{Concrete fix: what to change/add/remove, with clear acceptance criteria}
+
+---
+
+### 2. {Short issue title}
+...
 ```
+
+### Compact Report Format (Quick Reviews)
+
+For quick reviews, use this condensed table format:
+
+```markdown
+## DECOMPOSITION Review Summary
+
+| ID | Severity | Issue | Proposal |
+|-----|----------|-------|----------|
+| {ID} | HIGH | Missing required element | Add element to Section X |
+
+**Applicability**: checked {N} priority domains, {M} marked N/A
+```
+
+---
+
+## Reporting Commitment
+
+- [ ] I reported all issues I found
+- [ ] I used the exact report format defined in this checklist (no deviations)
+- [ ] I included Why Applicable justification for each issue
+- [ ] I included evidence and impact for each issue
+- [ ] I proposed concrete fixes for each issue
+- [ ] I did not hide or omit known problems
+- [ ] I verified explicit handling for all major checklist categories
+- [ ] I am ready to iterate on the proposals and re-review after changes

@@ -279,6 +279,7 @@ def generate_artifact_outputs(
     # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-gen-rules
     rules_content = _collect_rules(bp)
     if rules_content:
+        rules_content = _insert_toc(rules_content, max_heading_level=3)
         p = target_dir / "rules.md"
         if not dry_run:
             p.write_text(rules_content, encoding="utf-8")
@@ -288,6 +289,7 @@ def generate_artifact_outputs(
     # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-gen-checklist
     checklist_content = _collect_checklist(bp)
     if checklist_content:
+        checklist_content = _insert_toc(checklist_content, max_heading_level=2)
         p = target_dir / "checklist.md"
         if not dry_run:
             p.write_text(checklist_content, encoding="utf-8")
@@ -308,6 +310,7 @@ def generate_artifact_outputs(
         # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-gen-example
         example_content = _collect_example(bp)
         if example_content:
+            example_content = _insert_toc(example_content, max_heading_level=2)
             examples_dir = target_dir / "examples"
             if not dry_run:
                 examples_dir.mkdir(parents=True, exist_ok=True)
@@ -321,6 +324,169 @@ def generate_artifact_outputs(
     # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-return-outputs
     return written, errors
     # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-return-outputs
+
+
+def _github_anchor(text: str) -> str:
+    """Convert heading text to GitHub-compatible markdown anchor."""
+    # Remove markdown formatting (bold, italic, code, strikethrough)
+    text = re.sub(r"\*\*|__|[*_`~]", "", text)
+    text = text.lower().strip()
+    # Keep word chars (letters, digits, underscore), spaces, hyphens
+    text = re.sub(r"[^\w\s-]", "", text)
+    # Collapse whitespace → single hyphen
+    text = re.sub(r"[\s]+", "-", text)
+    return text.strip("-")
+
+
+def _build_toc(content: str, *, max_heading_level: int = 2) -> str:
+    """Build Table of Contents entries from markdown headings.
+
+    Skips the document title (first heading) and any existing ToC heading.
+    Uses a parent-stack approach for correct indentation:
+    - Top-level items are numbered (1. 2. 3.)
+    - Sub-level items are bulleted with indentation
+    """
+    lines = content.split("\n")
+    headings: List[tuple] = []
+    first_heading_skipped = False
+    in_fenced_block = False
+
+    for line in lines:
+        # Track fenced code blocks to skip headings inside them
+        if re.match(r"^(`{3,}|~{3,})", line):
+            in_fenced_block = not in_fenced_block
+            continue
+        if in_fenced_block:
+            continue
+
+        m = re.match(r"^(#{1,6})\s+(.+)$", line)
+        if not m:
+            continue
+        level = len(m.group(1))
+        text = m.group(2).strip()
+
+        if not first_heading_skipped:
+            first_heading_skipped = True
+            continue
+
+        if level > max_heading_level:
+            continue
+
+        # Skip ToC heading itself
+        if text.lower() in ("table of contents", "toc"):
+            continue
+
+        headings.append((level, text))
+
+    if not headings:
+        return ""
+
+    # Build ToC using parent-stack for indentation
+    anchor_counts: Dict[str, int] = {}
+    parent_stack: List[int] = []
+    top_num = 0
+    toc_lines: List[str] = []
+
+    for level, text in headings:
+        anchor = _github_anchor(text)
+        # Handle duplicate anchors (GitHub appends -1, -2, …)
+        if anchor in anchor_counts:
+            suffix = anchor_counts[anchor]
+            anchor_counts[anchor] = suffix + 1
+            anchor = f"{anchor}-{suffix}"
+        else:
+            anchor_counts[anchor] = 1
+
+        # Pop stack entries at same or higher level
+        while parent_stack and parent_stack[-1] >= level:
+            parent_stack.pop()
+
+        depth = len(parent_stack)
+        parent_stack.append(level)
+
+        if depth == 0:
+            top_num += 1
+            toc_lines.append(f"{top_num}. [{text}](#{anchor})")
+        else:
+            indent = "   " * depth
+            toc_lines.append(f"{indent}- [{text}](#{anchor})")
+
+    return "\n".join(toc_lines)
+
+
+def _insert_toc(content: str, *, max_heading_level: int = 2) -> str:
+    """Insert or replace a Table of Contents section in markdown content.
+
+    If an existing ``## Table of Contents`` is found, replaces it.
+    Otherwise inserts after the title metadata block (before the first
+    ``---`` separator that is not part of YAML frontmatter).
+    """
+    toc_body = _build_toc(content, max_heading_level=max_heading_level)
+    if not toc_body:
+        return content
+
+    toc_section = f"## Table of Contents\n\n{toc_body}"
+    lines = content.split("\n")
+
+    # --- Try replacing an existing ToC section ---
+    toc_start = toc_end = None
+    for i, line in enumerate(lines):
+        if re.match(r"^##\s+Table of Contents\s*$", line):
+            toc_start = i
+            # End = next heading or --- separator
+            for j in range(i + 1, len(lines)):
+                if re.match(r"^#{1,6}\s", lines[j]) or lines[j].strip() == "---":
+                    toc_end = j
+                    break
+            else:
+                toc_end = len(lines)
+            break
+
+    if toc_start is not None and toc_end is not None:
+        # Strip blank lines around the replacement region
+        while toc_start > 0 and lines[toc_start - 1].strip() == "":
+            toc_start -= 1
+        while toc_end < len(lines) and lines[toc_end].strip() == "":
+            toc_end += 1
+        before = "\n".join(lines[:toc_start])
+        after = "\n".join(lines[toc_end:])
+        return f"{before}\n\n{toc_section}\n\n{after}"
+
+    # --- No existing ToC: insert before first non-frontmatter --- ---
+    i = 0
+    # Skip YAML frontmatter (starts and ends with ---)
+    if lines and lines[0].strip() == "---":
+        i = 1
+        while i < len(lines) and lines[i].strip() != "---":
+            i += 1
+        if i < len(lines):
+            i += 1  # skip closing ---
+
+    # Find the first --- separator (section break)
+    for j in range(i, len(lines)):
+        if lines[j].strip() == "---":
+            # Insert ToC before this ---
+            before = "\n".join(lines[:j]).rstrip("\n")
+            after = "\n".join(lines[j:])
+            return f"{before}\n\n{toc_section}\n\n{after}"
+
+    # No --- found: insert after first heading + metadata block
+    for j in range(i, len(lines)):
+        if re.match(r"^#{1,6}\s", lines[j]):
+            # Skip past the heading's metadata (bold lines, list items, blanks)
+            k = j + 1
+            while k < len(lines):
+                s = lines[k].strip()
+                if s.startswith("**") or s.startswith("- ") or s == "":
+                    k += 1
+                else:
+                    break
+            before = "\n".join(lines[:k]).rstrip("\n")
+            after = "\n".join(lines[k:])
+            return f"{before}\n\n{toc_section}\n\n{after}"
+
+    # Fallback: prepend
+    return f"{toc_section}\n\n{content}"
 
 
 def _collect_skill_blocks(bp: ParsedBlueprint) -> str:
@@ -367,13 +533,23 @@ def _collect_rules(bp: ParsedBlueprint) -> str:
 
     # Parse @cpt:rules skeleton
     skeleton: Dict[str, List[str]] = {}
+    phase_kinds: set = set()  # kind_keys that use phases (numbered headings)
+    display_names: Dict[str, Dict[str, str]] = {}  # kind → {section_key → title}
     for mk in bp.markers:
         if mk.marker_type == "rules":
             td = mk.toml_data
             for kind_key in SECTION_ORDER:
                 if kind_key in td:
-                    subs = td[kind_key].get("sections", []) or td[kind_key].get("phases", [])
+                    sect_data = td[kind_key]
+                    if sect_data.get("phases"):
+                        subs = sect_data["phases"]
+                        phase_kinds.add(kind_key)
+                    else:
+                        subs = sect_data.get("sections", [])
                     skeleton[kind_key] = subs if isinstance(subs, list) else []
+                    names = sect_data.get("names", {})
+                    if names:
+                        display_names[kind_key] = dict(names)
 
     # Group @cpt:rule entries by kind → section (preserving order)
     from collections import OrderedDict
@@ -427,10 +603,17 @@ def _collect_rules(bp: ParsedBlueprint) -> str:
                 ordered_subs.append(s)
             seen.add(s)
 
-        for sub in ordered_subs:
-            sub_title = sub.replace("_", " ").title()
-            parts.append(f"### {sub_title}")
+        is_phased = kind_key in phase_kinds
+        kind_names = display_names.get(kind_key, {})
+        for phase_num, sub in enumerate(ordered_subs, 1):
+            sub_title = kind_names.get(sub, sub.replace("_", " ").title())
+            if is_phased:
+                parts.append(f"### Phase {phase_num}: {sub_title}")
+            else:
+                parts.append(f"### {sub_title}")
             rule_items = kind_rules.get(sub, [])
+            if rule_items:
+                parts.append("")
             for item in rule_items:
                 parts.append(item)
             parts.append("")
@@ -450,7 +633,8 @@ def _collect_checklist(bp: ParsedBlueprint) -> str:
     4. If group_by_kind: emit # MUST HAVE / # MUST NOT HAVE at H1,
        domains at H2 under MUST HAVE, flat list under MUST NOT HAVE
     5. If not group_by_kind: domains at H2 directly, checks at H3
-    6. Append postamble from TOML if present
+    6. Emit custom sections (from [sections] config) for non-standard kinds
+    7. Append postamble from TOML if present
     """
     # Parse @cpt:checklist skeleton
     severity_levels: List[str] = []
@@ -458,8 +642,9 @@ def _collect_checklist(bp: ParsedBlueprint) -> str:
     domains: List[Dict[str, Any]] = []
     group_by_kind: bool = True
     preamble: str = ""
-    postamble: str = ""
+    epilogue: str = ""
     must_not_preamble: str = ""
+    sections_config: Dict[str, str] = {}  # kind → H1 header
 
     for mk in bp.markers:
         if mk.marker_type == "checklist":
@@ -468,11 +653,13 @@ def _collect_checklist(bp: ParsedBlueprint) -> str:
             review_priority = td.get("review", {}).get("priority", [])
             domains = td.get("domain", [])
             group_by_kind = td.get("group_by_kind", True)
-            postamble = td.get("postamble", "")
             must_not_preamble = td.get("must_not_preamble", "")
+            sections_config = td.get("sections", {})
             preamble = mk.markdown_content or ""
             if isinstance(domains, dict):
                 domains = [domains]
+        elif mk.marker_type == "checklist_epilogue":
+            epilogue = mk.markdown_content or ""
 
     # Build domain lookup: abbr → domain info
     domain_map: Dict[str, Dict[str, Any]] = {}
@@ -483,15 +670,16 @@ def _collect_checklist(bp: ParsedBlueprint) -> str:
             domain_map[abbr] = d
             domain_order.append(abbr)
 
-    # Collect @cpt:check entries grouped by domain → kind
+    # Collect @cpt:check entries grouped by domain → kind AND flat by kind
     checks_by_domain: Dict[str, Dict[str, List[Dict[str, Any]]]] = {}
+    checks_by_kind: Dict[str, List[Dict[str, Any]]] = {}  # flat, preserves order
     for mk in bp.markers:
         if mk.marker_type == "check":
             td = mk.toml_data
             domain = td.get("domain", "")
             kind = td.get("kind", "must_have")
             content = mk.markdown_content
-            if domain and content:
+            if content:
                 entry = {
                     "id": td.get("id", ""),
                     "title": td.get("title", ""),
@@ -502,9 +690,11 @@ def _collect_checklist(bp: ParsedBlueprint) -> str:
                     "not_applicable_when": td.get("not_applicable_when", ""),
                     "content": content,
                 }
-                checks_by_domain.setdefault(domain, {}).setdefault(kind, []).append(entry)
+                if domain:
+                    checks_by_domain.setdefault(domain, {}).setdefault(kind, []).append(entry)
+                checks_by_kind.setdefault(kind, []).append(entry)
 
-    if not checks_by_domain:
+    if not checks_by_kind:
         return ""
 
     # Severity sort key
@@ -525,10 +715,12 @@ def _collect_checklist(bp: ParsedBlueprint) -> str:
 
     if group_by_kind:
         # --- MUST HAVE at H1 ---
-        has_must_have = any("must_have" in checks_by_domain.get(d, {}) for d in all_domains)
-        has_must_not = any("must_not_have" in checks_by_domain.get(d, {}) for d in all_domains)
+        has_must_have = "must_have" in checks_by_kind
+        has_must_not = "must_not_have" in checks_by_kind
 
         if has_must_have:
+            parts.append("---")
+            parts.append("")
             parts.append("# MUST HAVE")
             parts.append("")
 
@@ -536,17 +728,20 @@ def _collect_checklist(bp: ParsedBlueprint) -> str:
                 items = checks_by_domain.get(abbr, {}).get("must_have", [])
                 if not items:
                     continue
-                items.sort(key=lambda x: sev_order.get(x["severity"], 99))
 
                 d_info = domain_map.get(abbr, {})
                 header = d_info.get("header", f"{d_info.get('name', abbr)} ({abbr})")
+                d_standards_text = d_info.get("standards_text", "")
                 d_standards = d_info.get("standards", [])
 
                 parts.append("---")
                 parts.append("")
                 parts.append(f"## {header}")
                 parts.append("")
-                if d_standards:
+                if d_standards_text:
+                    parts.append(d_standards_text)
+                    parts.append("")
+                elif d_standards:
                     std_text = ", ".join(d_standards)
                     parts.append(f"> **Standards**: {std_text}")
                     parts.append("")
@@ -565,12 +760,54 @@ def _collect_checklist(bp: ParsedBlueprint) -> str:
                 parts.append("")
 
             # Flat list — no domain grouping within MUST NOT HAVE
-            must_not_items: List[Dict[str, Any]] = []
-            for abbr in all_domains:
-                items = checks_by_domain.get(abbr, {}).get("must_not_have", [])
-                must_not_items.extend(items)
+            for item in checks_by_kind.get("must_not_have", []):
+                _emit_check_item(parts, item)
 
-            for item in must_not_items:
+        # --- Custom sections (e.g., Format Validation, Quality Checks) ---
+        for section_kind, section_header in sections_config.items():
+            # Partition: only declared domains get domain headers
+            section_domain_items: Dict[str, List[Dict[str, Any]]] = {}
+            for abbr in domain_order:
+                if abbr in domain_map:
+                    items = checks_by_domain.get(abbr, {}).get(section_kind, [])
+                    if items:
+                        section_domain_items[abbr] = items
+            domain_item_ids = {id(it) for items in section_domain_items.values() for it in items}
+            flat_items = [it for it in checks_by_kind.get(section_kind, []) if id(it) not in domain_item_ids]
+
+            if not section_domain_items and not flat_items:
+                continue
+
+            parts.append("---")
+            parts.append("")
+            parts.append(f"# {section_header}")
+            parts.append("")
+
+            # Domain-grouped items (only declared domains)
+            for abbr in domain_order:
+                items = section_domain_items.get(abbr)
+                if not items:
+                    continue
+                d_info = domain_map[abbr]
+                header = d_info.get("header", f"{d_info.get('name', abbr)} ({abbr})")
+                d_standards_text = d_info.get("standards_text", "")
+                d_standards = d_info.get("standards", [])
+                parts.append("---")
+                parts.append("")
+                parts.append(f"## {header}")
+                parts.append("")
+                if d_standards_text:
+                    parts.append(d_standards_text)
+                    parts.append("")
+                elif d_standards:
+                    std_text = ", ".join(d_standards)
+                    parts.append(f"> **Standards**: {std_text}")
+                    parts.append("")
+                for item in items:
+                    _emit_check_item(parts, item)
+
+            # Flat items (no declared domain)
+            for item in flat_items:
                 _emit_check_item(parts, item)
     else:
         # No kind grouping (e.g., CODEBASE) — domains at H2 directly
@@ -599,16 +836,146 @@ def _collect_checklist(bp: ParsedBlueprint) -> str:
                     for item in items:
                         _emit_check_item(parts, item)
 
-    # Postamble
-    if postamble:
-        parts.append(postamble)
+    # Epilogue: standard validation/reporting for group_by_kind checklists,
+    # or custom epilogue from @cpt:checklist_epilogue marker
+    if group_by_kind:
+        _append_validation_epilogue(parts, domain_order, bp.artifact_kind)
+    elif epilogue:
+        parts.append(epilogue)
         parts.append("")
 
     return "\n".join(parts)
 
 
+def _append_validation_epilogue(
+    parts: List[str], domain_abbrs: List[str], artifact_kind: str
+) -> None:
+    """Append the standard Validation Summary / Reporting epilogue.
+
+    Generated deterministically from domain list and artifact kind.
+    """
+    domain_list = ", ".join(domain_abbrs)
+    artifact = artifact_kind.upper()
+
+    parts.append("---")
+    parts.append("")
+    parts.append("# Validation Summary")
+    parts.append("")
+    parts.append("## Final Checklist")
+    parts.append("")
+    parts.append("Confirm before reporting results:")
+    parts.append("")
+    parts.append("- [ ] I checked ALL items in MUST HAVE sections")
+    parts.append("- [ ] I verified ALL items in MUST NOT HAVE sections")
+    parts.append("- [ ] I documented all violations found")
+    parts.append("- [ ] I provided specific feedback for each failed check")
+    parts.append("- [ ] All critical issues have been reported")
+    parts.append("")
+    parts.append("### Explicit Handling Verification")
+    parts.append("")
+    parts.append(f"For each major checklist category ({domain_list}), confirm:")
+    parts.append("")
+    parts.append('- [ ] Category is addressed in the document, OR')
+    parts.append('- [ ] Category is explicitly marked "Not applicable" with reasoning in the document, OR')
+    parts.append('- [ ] Category absence is reported as a violation (with applicability justification)')
+    parts.append("")
+    parts.append("**No silent omissions allowed** \u2014 every category must have explicit disposition")
+    parts.append("")
+    parts.append("---")
+    parts.append("")
+    parts.append("## Reporting Readiness Checklist")
+    parts.append("")
+    parts.append('- [ ] I will report every identified issue (no omissions)')
+    parts.append('- [ ] I will report only issues (no "everything looks good" sections)')
+    parts.append('- [ ] I will use the exact report format defined below (no deviations)')
+    parts.append('- [ ] Each reported issue will include Why Applicable (applicability justification)')
+    parts.append('- [ ] Each reported issue will include Evidence (quote/location)')
+    parts.append('- [ ] Each reported issue will include Why it matters (impact)')
+    parts.append('- [ ] Each reported issue will include a Proposal (concrete fix + acceptance criteria)')
+    parts.append('- [ ] I will avoid vague statements and use precise, verifiable language')
+    parts.append("")
+    parts.append("---")
+    parts.append("")
+    parts.append("## Reporting")
+    parts.append("")
+    parts.append("Report **only** problems (do not list what is OK).")
+    parts.append("")
+    parts.append("For each issue include:")
+    parts.append("")
+    parts.append("- **Why Applicable**: Explain why this requirement applies to this artifact's context")
+    parts.append("- **Issue**: What is wrong (requirement missing or incomplete)")
+    parts.append('- **Evidence**: Quote the exact text or describe the exact location in the artifact (or note "No mention found")')
+    parts.append("- **Why it matters**: Impact (risk, cost, user harm, compliance)")
+    parts.append("- **Proposal**: Concrete fix (what to change/add/remove) with clear acceptance criteria")
+    parts.append("")
+    parts.append("### Full Report Format (Standard/Full Reviews)")
+    parts.append("")
+    parts.append("```markdown")
+    parts.append("## Review Report (Issues Only)")
+    parts.append("")
+    parts.append("### 1. {Short issue title}")
+    parts.append("")
+    parts.append("**Checklist Item**: `{CHECKLIST-ID}` \u2014 {Checklist item title}")
+    parts.append("")
+    parts.append("**Severity**: CRITICAL|HIGH|MEDIUM|LOW")
+    parts.append("")
+    parts.append("#### Why Applicable")
+    parts.append("")
+    parts.append("{Explain why this requirement applies to this artifact's context}")
+    parts.append("")
+    parts.append("#### Issue")
+    parts.append("")
+    parts.append("{What is wrong \u2014 requirement is missing, incomplete, or not explicitly marked as not applicable}")
+    parts.append("")
+    parts.append("#### Evidence")
+    parts.append("")
+    parts.append('{Quote the exact text or describe the exact location in the artifact. If requirement is missing entirely, state "No mention of [requirement] found in the document"}')
+    parts.append("")
+    parts.append("#### Why It Matters")
+    parts.append("")
+    parts.append("{Impact: risk, cost, user harm, compliance}")
+    parts.append("")
+    parts.append("#### Proposal")
+    parts.append("")
+    parts.append("{Concrete fix: what to change/add/remove, with clear acceptance criteria}")
+    parts.append("")
+    parts.append("---")
+    parts.append("")
+    parts.append("### 2. {Short issue title}")
+    parts.append("...")
+    parts.append("```")
+    parts.append("")
+    parts.append("### Compact Report Format (Quick Reviews)")
+    parts.append("")
+    parts.append("For quick reviews, use this condensed table format:")
+    parts.append("")
+    parts.append("```markdown")
+    parts.append(f"## {artifact} Review Summary")
+    parts.append("")
+    parts.append("| ID | Severity | Issue | Proposal |")
+    parts.append("|-----|----------|-------|----------|")
+    parts.append("| {ID} | HIGH | Missing required element | Add element to Section X |")
+    parts.append("")
+    parts.append("**Applicability**: checked {N} priority domains, {M} marked N/A")
+    parts.append("```")
+    parts.append("")
+    parts.append("---")
+    parts.append("")
+    parts.append("## Reporting Commitment")
+    parts.append("")
+    parts.append("- [ ] I reported all issues I found")
+    parts.append("- [ ] I used the exact report format defined in this checklist (no deviations)")
+    parts.append("- [ ] I included Why Applicable justification for each issue")
+    parts.append("- [ ] I included evidence and impact for each issue")
+    parts.append("- [ ] I proposed concrete fixes for each issue")
+    parts.append("- [ ] I did not hide or omit known problems")
+    parts.append("- [ ] I verified explicit handling for all major checklist categories")
+    parts.append("- [ ] I am ready to iterate on the proposals and re-review after changes")
+    parts.append("")
+
+
 def _emit_check_item(parts: List[str], item: Dict[str, Any]) -> None:
-    """Emit a single check item in standard format."""
+    """Emit a single MUST HAVE check item (H3 format with ID prefix)."""
     parts.append(f"### {item['id']}: {item['title']}")
     parts.append(f"**Severity**: {item['severity']}")
     if item["ref"]:

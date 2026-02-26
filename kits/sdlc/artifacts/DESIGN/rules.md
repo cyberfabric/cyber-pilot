@@ -1,45 +1,60 @@
 # DESIGN Rules
 
-**Artifact**: DESIGN (Technical Design Document)
-**Purpose**: Rules for DESIGN generation and validation
+**Artifact**: DESIGN
+**Kit**: sdlc
 
----
+**Dependencies**:
+- `template.md` — structural reference
+- `checklist.md` — semantic quality criteria
+- `examples/example.md` — reference implementation
 
 ## Table of Contents
 
-1. [Requirements](#requirements)
-   - [Structural Requirements](#structural-requirements)
-   - [Versioning Requirements](#versioning-requirements)
-   - [Semantic Requirements](#semantic-requirements)
-   - [DESIGN Scope Guidelines](#design-scope-guidelines)
-   - [Upstream Traceability](#upstream-traceability)
-   - [Checkbox Management](#checkbox-management)
-2. [Tasks](#tasks)
+1. [Prerequisites](#prerequisites)
+   - [Load Dependencies](#load-dependencies)
+2. [Requirements](#requirements)
+   - [Structural](#structural)
+   - [Versioning](#versioning)
+   - [Semantic](#semantic)
+   - [Scope](#scope)
+   - [Traceability](#traceability)
+   - [Constraints](#constraints)
+3. [Tasks](#tasks)
    - [Phase 1: Setup](#phase-1-setup)
    - [Phase 2: Content Creation](#phase-2-content-creation)
    - [Phase 3: IDs and References](#phase-3-ids-and-references)
    - [Phase 4: Quality Check](#phase-4-quality-check)
-3. [Validation](#validation)
-4. [Next Steps](#next-steps)
+4. [Validation](#validation)
+   - [Phase 1: Structural Validation (Deterministic)](#phase-1-structural-validation-deterministic)
+   - [Phase 2: Semantic Validation (Checklist-based)](#phase-2-semantic-validation-checklist-based)
+   - [Phase 3: Validation Report](#phase-3-validation-report)
+5. [Error Handling](#error-handling)
+   - [Missing Prd](#missing-prd)
+   - [Incomplete Prd](#incomplete-prd)
+   - [Escalation](#escalation)
+6. [Next Steps](#next-steps)
+   - [Options](#options)
 
 ---
 
-**Dependencies**:
-- `template.md` — required structure
-- `checklist.md` — semantic quality criteria
-- `examples/example.md` — reference implementation
-- `{cypilot_path}/.core/requirements/identifiers.md` — ID formats and naming
-- `../../constraints.json` — kit-level constraints (primary rules for ID definitions/references)
-- `{cypilot_path}/.core/requirements/kit-constraints.md` — constraints specification
-- `{cypilot_path}/.core/schemas/kit-constraints.schema.json` — constraints JSON Schema
+## Prerequisites
+
+### Load Dependencies
+
+- [ ] Load `template.md` for structure
+- [ ] Load `checklist.md` for semantic guidance
+- [ ] Load `examples/example.md` for reference style
+- [ ] Read parent PRD for context
+- [ ] Load `{cypilot_path}/.core/architecture/specs/traceability.md` for ID formats
+- [ ] Load `{cypilot_path}/config/kits/sdlc/constraints.toml` for kit-level constraints
+- [ ] Load `{cypilot_path}/.core/architecture/specs/kit/constraints.md` for constraints specification
+- [ ] Load `{cypilot_path}/.core/schemas/kit-constraints.schema.json` for constraints JSON Schema
 
 ---
 
 ## Requirements
 
-Agent confirms understanding of requirements:
-
-### Structural Requirements
+### Structural
 
 - [ ] DESIGN follows `template.md` structure
 - [ ] Artifact frontmatter (optional): use `cpt:` format for document metadata
@@ -49,14 +64,14 @@ Agent confirms understanding of requirements:
 - [ ] No placeholder content (TODO, TBD, FIXME)
 - [ ] No duplicate IDs within document
 
-### Versioning Requirements
+### Versioning
 
 - [ ] When editing existing DESIGN: increment version in frontmatter
 - [ ] When changing type/component definition: add `-v{N}` suffix to ID or increment existing version
 - [ ] Format: `cpt-{hierarchy-prefix}-type-{slug}-v2`, `cpt-{hierarchy-prefix}-comp-{slug}-v3`, etc.
 - [ ] Keep changelog of significant changes
 
-### Semantic Requirements
+### Semantic
 
 **Reference**: `checklist.md` for detailed semantic criteria
 
@@ -67,7 +82,7 @@ Agent confirms understanding of requirements:
 - [ ] ADR references provided for key decisions
 - [ ] PRD capabilities traced to components
 
-### DESIGN Scope Guidelines
+### Scope
 
 **One DESIGN per system/subsystem**. Match scope to architectural boundaries.
 
@@ -95,16 +110,16 @@ Agent confirms understanding of requirements:
 - **DESIGN** → DECOMPOSITION: DESIGN defines architecture, DECOMPOSITION lists implementations
 - **DESIGN** → SPEC: DESIGN provides context, SPEC details implementation
 
-### Upstream Traceability
+### Traceability
 
 - [ ] When component fully implemented → mark component `[x]` in DESIGN
 - [ ] When all components for ADR implemented → update ADR status (PROPOSED → ACCEPTED)
 - [ ] When all design elements for PRD capability implemented → mark capability `[x]` in PRD
 
-### Constraints (`constraints.json`) — Mandatory
+### Constraints
 
-- [ ] ALWAYS open and follow `../../constraints.json` (kit root)
-- [ ] Treat `constraints.json` as primary validator for:
+- [ ] ALWAYS open and follow `{cypilot_path}/config/kits/sdlc/constraints.toml` (kit root)
+- [ ] Treat `constraints.toml` as primary validator for:
   - where IDs are defined
   - where IDs are referenced
   - which cross-artifact references are required / optional / prohibited
@@ -115,14 +130,12 @@ Agent confirms understanding of requirements:
 
 **Validation Checks**:
 - `cypilot validate` enforces `identifiers[<kind>].references` rules (required / optional / prohibited)
-- `cypilot validate` enforces headings scoping for ID definitions and references when constraints specify `headings` (identifier-level and reference-rule-level)
+- `cypilot validate` enforces headings scoping for ID definitions and references
 - `cypilot validate` enforces "checked ref implies checked def" consistency
 
 ---
 
 ## Tasks
-
-Agent executes tasks during generation:
 
 ### Phase 1: Setup
 
@@ -130,24 +143,6 @@ Agent executes tasks during generation:
 - [ ] Load `checklist.md` for semantic guidance
 - [ ] Load `examples/example.md` for reference style
 - [ ] Read parent PRD for context
-
-**If PRD not found or incomplete**:
-```
-⚠ Parent PRD not found or incomplete
-→ Option 1: Run /cypilot-generate PRD first (recommended)
-→ Option 2: Continue without PRD (DESIGN will lack traceability)
-   - Document "PRD pending" in DESIGN frontmatter
-   - Skip PRD reference validation
-   - Plan to update DESIGN when PRD available
-```
-
-**If PRD exists but outdated**:
-```
-⚠ PRD may be outdated (last modified: {date})
-→ Review PRD before proceeding
-→ If PRD needs updates: /cypilot-generate PRD UPDATE
-→ If PRD is current: proceed with DESIGN
-```
 
 ### Phase 2: Content Creation
 
@@ -163,7 +158,6 @@ Agent executes tasks during generation:
 **Partial Completion Handling**:
 
 If DESIGN cannot be completed in a single session:
-
 1. **Checkpoint progress**:
    - Note completed sections (Architecture, Domain, Components, etc.)
    - Note current section being worked on
@@ -203,35 +197,27 @@ If DESIGN cannot be completed in a single session:
 
 ## Validation
 
-Validation workflow applies rules in two phases:
-
 ### Phase 1: Structural Validation (Deterministic)
 
-Run `cypilot validate` for:
-- [ ] Template structure compliance
-- [ ] ID format validation
-- [ ] Cross-reference validity
-- [ ] No placeholders
+- [ ] Run `cypilot validate --artifact <path>` for:
+  - Template structure compliance
+  - ID format validation
+  - Cross-reference validity
+  - No placeholders
 
 ### Phase 2: Semantic Validation (Checklist-based)
 
-Apply `checklist.md` systematically:
+- [ ] Read `checklist.md` in full
+- [ ] For each MUST HAVE item: check if requirement is met
+  - If not met: report as violation with severity
+  - If not applicable: verify explicit "N/A" with reasoning
+- [ ] For each MUST NOT HAVE item: scan document for violations
 
-1. **Read checklist.md** in full
-2. **For each MUST HAVE item**:
-   - Check if requirement is met
-   - If not met: report as violation with severity
-   - If not applicable: verify explicit "N/A" with reasoning
-3. **For each MUST NOT HAVE item**:
-   - Scan document for violations
-   - Report any findings
+### Phase 3: Validation Report
 
-### Validation Report
-
-Output format:
 ```
 DESIGN Validation Report
-════════════════════════
+══════════════════════════
 
 Structural: PASS/FAIL
 Semantic: PASS/FAIL (N issues)
@@ -242,14 +228,35 @@ Issues:
 
 ---
 
+## Error Handling
+
+### Missing Prd
+
+- [ ] If parent PRD not found:
+  - Option 1: Run `/cypilot-generate PRD` first (recommended)
+  - Option 2: Continue without PRD (DESIGN will lack traceability)
+  - If Option 2: document "PRD pending" in DESIGN frontmatter, skip PRD reference validation
+
+### Incomplete Prd
+
+- [ ] If PRD exists but is outdated: review PRD before proceeding
+- [ ] If PRD needs updates: `/cypilot-generate PRD UPDATE`
+- [ ] If PRD is current: proceed with DESIGN
+
+### Escalation
+
+- [ ] Ask user when uncertain about component boundaries
+- [ ] Ask user when architecture decisions require ADR but none exists
+- [ ] Ask user when PRD requirements are ambiguous or contradictory
+
+---
+
 ## Next Steps
 
-After DESIGN generation/validation, offer these options:
+### Options
 
-| Condition | Suggested Next Step |
-|-----------|---------------------|
-| DESIGN complete | `/cypilot-generate DECOMPOSITION` — create specs manifest |
-| Need architecture decision | `/cypilot-generate ADR` — document key decision |
-| PRD missing/incomplete | `/cypilot-generate PRD` — create/update PRD first |
-| DESIGN needs revision | Continue editing DESIGN |
-| Want checklist review only | `/cypilot-analyze semantic` — semantic validation (skip deterministic) |
+- [ ] DESIGN complete → `/cypilot-generate DECOMPOSITION` — create specs manifest
+- [ ] Need architecture decision → `/cypilot-generate ADR` — document key decision
+- [ ] PRD missing/incomplete → `/cypilot-generate PRD` — create/update PRD first
+- [ ] DESIGN needs revision → continue editing DESIGN
+- [ ] Want checklist review only → `/cypilot-analyze semantic` — semantic validation

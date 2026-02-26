@@ -70,9 +70,14 @@ sections = ["structural", "versioning", "semantic", "scope", "status_traceabilit
 
 [tasks]
 phases = ["setup", "content_creation", "ids_and_structure", "quality_check"]
+[tasks.names]
+ids_and_structure = "IDs and Structure"
 
 [validation]
-sections = ["structural", "semantic"]
+phases = ["structural", "semantic", "validation_report"]
+[validation.names]
+structural = "Structural Validation (Deterministic)"
+semantic = "Semantic Validation (Checklist-based)"
 
 [error_handling]
 sections = ["number_conflict", "missing_directory", "escalation"]
@@ -95,7 +100,7 @@ section = "load_dependencies"
 - [ ] Load `template.md` for structure
 - [ ] Load `checklist.md` for semantic guidance
 - [ ] Load `examples/example.md` for reference style
-- [ ] Read adapter `artifacts.toml` to determine ADR directory
+- [ ] Read `{cypilot_path}/config/artifacts.toml` to determine ADR directory
 - [ ] Load `{cypilot_path}/.core/architecture/specs/traceability.md` for ID formats
 - [ ] Load `{cypilot_path}/config/kits/sdlc/constraints.toml` for kit-level constraints
 - [ ] Load `{cypilot_path}/.core/architecture/specs/kit/constraints.md` for constraints specification
@@ -116,7 +121,7 @@ section = "structural"
 ```markdown
 - [ ] ADR follows `template.md` structure
 - [ ] Artifact frontmatter is required
-- [ ] ADR has unique ID: `cpt-{hierarchy-prefix}-adr-{slug}`
+- [ ] ADR has unique ID: `cpt-{hierarchy-prefix}-adr-{slug}` (e.g., `cpt-myapp-adr-use-postgresql`)
 - [ ] ID has priority marker (`p1`-`p9`)
 - [ ] No placeholder content (TODO, TBD, FIXME)
 - [ ] No duplicate IDs
@@ -216,11 +221,21 @@ section = "status_traceability"
 | ACCEPTED | SUPERSEDED | Replaced by new ADR | Update status, add `superseded_by` reference |
 
 **Status Change Procedure**:
-1. Locate ADR file
-2. Update frontmatter status
-3. Add status history
-4. For SUPERSEDED: add `superseded_by` reference
-5. For REJECTED: add `rejection_reason`
+
+1. **Locate ADR file**: `architecture/ADR/NNNN-{slug}.md`
+2. **Update frontmatter status**: Change `status: {OLD}` → `status: {NEW}`
+3. **Add status history** (if present): Append `{date}: {OLD} → {NEW} ({reason})`
+4. **For SUPERSEDED**: Add `superseded_by: cpt-{hierarchy-prefix}-adr-{new-slug}`
+5. **For REJECTED**: Add `rejection_reason: {brief explanation}`
+
+**REJECTED Status**:
+
+Use when:
+- Decision was reviewed but not approved
+- Alternative approach was chosen (document which)
+- Requirements changed before acceptance
+
+Keep REJECTED ADRs for historical record — do not delete.
 ```
 `@/cpt:rule`
 
@@ -239,7 +254,13 @@ section = "constraints"
   - where IDs are defined
   - where IDs are referenced
   - which cross-artifact references are required / optional / prohibited
-- [ ] Automated validation: `cypilot validate` enforces ADR coverage in DESIGN
+
+**References**:
+- `{cypilot_path}/.core/requirements/kit-constraints.md`
+- `{cypilot_path}/.core/schemas/kit-constraints.schema.json`
+
+**Validation Checks**:
+- `cypilot validate` enforces `identifiers[<kind>].references` rules for ADR coverage in DESIGN
 ```
 `@/cpt:rule`
 
@@ -258,8 +279,22 @@ section = "setup"
 - [ ] Load `template.md` for structure
 - [ ] Load `checklist.md` for semantic guidance
 - [ ] Load `examples/example.md` for reference style
-- [ ] Read adapter `artifacts.toml` to determine ADR directory
+- [ ] Read `{cypilot_path}/config/artifacts.toml` to determine ADR directory
 - [ ] Determine next ADR number (ADR-NNNN)
+
+**ADR path resolution**:
+1. List existing ADRs from `artifacts` array where `kind: "ADR"`
+2. For new ADR, derive default path:
+   - Read system's `artifacts_dir` from `artifacts.toml` (default: `architecture`)
+   - Use kit's default subdirectory for ADRs: `ADR/`
+   - Create at: `{artifacts_dir}/ADR/{NNNN}-{slug}.md`
+3. Register new ADR in `artifacts.toml` with FULL path
+
+**ADR Number Assignment**:
+
+1. List existing ADRs from `artifacts` array where `kind: "ADR"`
+2. Extract highest number: parse `NNNN` from filenames
+3. Assign next sequential: `NNNN + 1`
 ```
 `@/cpt:rule`
 
@@ -294,7 +329,7 @@ kind = "tasks"
 section = "ids_and_structure"
 ```
 ```markdown
-- [ ] Generate ID: `cpt-{hierarchy-prefix}-adr-{slug}`
+- [ ] Generate ID: `cpt-{hierarchy-prefix}-adr-{slug}` (e.g., `cpt-myapp-adr-use-postgresql`)
 - [ ] Assign priority based on impact
 - [ ] Link to DESIGN if applicable
 - [ ] Verify uniqueness with `cypilot list-ids`
@@ -314,7 +349,10 @@ section = "quality_check"
 - [ ] Compare to `examples/example.md`
 - [ ] Self-review against `checklist.md`
 - [ ] Verify rationale is complete
-- [ ] ADR Immutability Rule: after ACCEPTED, do not modify decision/rationale
+
+**ADR Immutability Rule**:
+- After ACCEPTED: do not modify decision/rationale
+- To change: create new ADR with SUPERSEDES reference
 ```
 `@/cpt:rule`
 
@@ -329,12 +367,15 @@ Recovery procedures for common ADR authoring issues.
 kind = "error_handling"
 section = "number_conflict"
 ```
-```markdown
-- [ ] If ADR number conflict detected (file already exists):
-  - Verify existing ADRs
-  - Assign next available number
-  - If duplicate content: consider updating existing ADR instead
+````markdown
+**If number conflict detected** (file already exists):
 ```
+⚠ ADR number conflict: {NNNN} already exists
+→ Verify existing ADRs: ls architecture/ADR/
+→ Assign next available number: {NNNN + 1}
+→ If duplicate content: consider updating existing ADR instead
+```
+````
 `@/cpt:rule`
 
 #### Missing Directory
@@ -344,11 +385,14 @@ section = "number_conflict"
 kind = "error_handling"
 section = "missing_directory"
 ```
-```markdown
-- [ ] If ADR directory doesn't exist:
-  - Create: `mkdir -p architecture/ADR`
-  - Start numbering at 0001
+````markdown
+**If ADR directory doesn't exist**:
 ```
+⚠ ADR directory not found
+→ Create: mkdir -p architecture/ADR
+→ Start numbering at 0001
+```
+````
 `@/cpt:rule`
 
 #### Escalation
@@ -379,10 +423,10 @@ kind = "validation"
 section = "structural"
 ```
 ```markdown
-- [ ] Run `cypilot validate --artifact <path>` for:
-  - Template structure compliance
-  - ID format validation
-  - No placeholders
+Run `cypilot validate` for:
+- [ ] Template structure compliance
+- [ ] ID format validation
+- [ ] No placeholders
 ```
 `@/cpt:rule`
 
@@ -394,11 +438,33 @@ kind = "validation"
 section = "semantic"
 ```
 ```markdown
-- [ ] Verify context explains why decision needed
-- [ ] Verify options have pros/cons
-- [ ] Verify decision has clear rationale
-- [ ] Verify consequences documented
+Apply `checklist.md`:
+1. Verify context explains why decision needed
+2. Verify options have pros/cons
+3. Verify decision has clear rationale
+4. Verify consequences documented
 ```
+`@/cpt:rule`
+
+#### Validation Report
+
+`@cpt:rule`
+```toml
+kind = "validation"
+section = "validation_report"
+```
+````markdown
+```
+ADR Validation Report
+═════════════════════
+
+Structural: PASS/FAIL
+Semantic: PASS/FAIL (N issues)
+
+Issues:
+- [SEVERITY] CHECKLIST-ID: Description
+```
+````
 `@/cpt:rule`
 
 ### Next Steps
@@ -411,11 +477,13 @@ kind = "next_steps"
 section = "options"
 ```
 ```markdown
-- [ ] ADR PROPOSED → share for review, then update status to ACCEPTED
-- [ ] ADR ACCEPTED → `/cypilot-generate DESIGN` — incorporate decision into design
-- [ ] Related ADR needed → `/cypilot-generate ADR` — create related decision record
-- [ ] ADR supersedes another → update original ADR status to SUPERSEDED
-- [ ] Want checklist review only → `/cypilot-analyze semantic` — semantic validation
+| Condition | Suggested Next Step |
+|-----------|---------------------|
+| ADR PROPOSED | Share for review, then update status to ACCEPTED |
+| ADR ACCEPTED | `/cypilot-generate DESIGN` — incorporate decision into design |
+| Related ADR needed | `/cypilot-generate ADR` — create related decision record |
+| ADR supersedes another | Update original ADR status to SUPERSEDED |
+| Want checklist review only | `/cypilot-analyze semantic` — semantic validation (skip deterministic) |
 ```
 `@/cpt:rule`
 
@@ -433,82 +501,223 @@ Check severity: CRITICAL items block acceptance; HIGH/MEDIUM/LOW are advisory.
 
 `@cpt:checklist`
 ```toml
+[sections]
+adr_specific_quality_checks = "ADR-Specific Quality Checks"
+
 [severity]
 levels = ["CRITICAL", "HIGH", "MEDIUM", "LOW"]
 
 [review]
-priority = ["ARCH", "SEC", "BIZ"]
+priority = ["ARCH", "PERF", "SEC", "REL", "DATA", "INT", "OPS", "MAINT", "TEST", "COMPL", "UX", "BIZ"]
 
 [[domain]]
 abbr = "ARCH"
-name = "Architecture"
-standards = ["Michael Nygard ADR Template (2011)", "ISO/IEC/IEEE 42010:2022"]
+name = "🏗️ ARCHITECTURE Expertise"
+header = "🏗️ ARCHITECTURE Expertise (ARCH)"
+standards_text = """**Standards**: Michael Nygard's ADR Template (2011), ISO/IEC/IEEE 42010:2022 §6.7"""
 
 [[domain]]
 abbr = "PERF"
-name = "Performance"
-standards = ["ISO/IEC 25010:2011"]
+name = "⚡ PERFORMANCE Expertise"
+header = "⚡ PERFORMANCE Expertise (PERF)"
+standards_text = """**Standards**: ISO/IEC 25010:2011 §4.2.2 (Performance Efficiency)"""
 
 [[domain]]
 abbr = "SEC"
-name = "Security"
-standards = ["OWASP ASVS 5.0", "ISO/IEC 27001:2022"]
+name = "🔒 SECURITY Expertise"
+header = "🔒 SECURITY Expertise (SEC)"
+standards_text = """**Standards**: OWASP ASVS 5.0 V1.2 (Architecture), ISO/IEC 27001:2022 (ISMS)"""
 
 [[domain]]
 abbr = "REL"
-name = "Reliability"
-standards = ["ISO/IEC 25010:2011"]
+name = "🛡️ RELIABILITY Expertise"
+header = "🛡️ RELIABILITY Expertise (REL)"
+standards_text = """**Standards**: ISO/IEC 25010:2011 §4.2.5 (Reliability)"""
 
 [[domain]]
 abbr = "DATA"
-name = "Data"
-standards = ["IEEE 1016-2009"]
+name = "📊 DATA Expertise"
+header = "📊 DATA Expertise (DATA)"
+standards_text = """**Standards**: IEEE 1016-2009 §5.6 (Information Viewpoint)"""
 
 [[domain]]
 abbr = "INT"
-name = "Integration"
-standards = ["IEEE 1016-2009"]
+name = "🔌 INTEGRATION Expertise"
+header = "🔌 INTEGRATION Expertise (INT)"
+standards_text = """**Standards**: IEEE 1016-2009 §5.3 (Interface Viewpoint)"""
 
 [[domain]]
 abbr = "OPS"
-name = "Operations"
+name = "🖥️ OPERATIONS Expertise"
+header = "🖥️ OPERATIONS Expertise (OPS)"
 standards = []
 
 [[domain]]
 abbr = "MAINT"
-name = "Maintainability"
-standards = ["ISO/IEC 25010:2011"]
+name = "🔧 MAINTAINABILITY Expertise"
+header = "🔧 MAINTAINABILITY Expertise (MAINT)"
+standards_text = """**Standards**: ISO/IEC 25010:2011 §4.2.7 (Maintainability)"""
 
 [[domain]]
 abbr = "TEST"
-name = "Testing"
-standards = ["ISO/IEC/IEEE 29119-3:2021"]
+name = "🧪 TESTING Expertise"
+header = "🧪 TESTING Expertise (TEST)"
+standards_text = """**Standards**: ISO/IEC/IEEE 29119-3:2021 (Test Documentation)"""
 
 [[domain]]
 abbr = "COMPL"
-name = "Compliance"
-standards = ["ISO/IEC 27001:2022"]
+name = "📜 COMPLIANCE Expertise"
+header = "📜 COMPLIANCE Expertise (COMPL)"
+standards_text = """**Standards**: ISO/IEC 27001:2022 (ISMS), domain-specific regulations (GDPR, HIPAA, SOC 2)"""
 
 [[domain]]
 abbr = "UX"
-name = "Usability"
+name = "👤 USABILITY Expertise"
+header = "👤 USABILITY Expertise (UX)"
 standards = []
 
 [[domain]]
 abbr = "BIZ"
-name = "Business"
-standards = ["ISO/IEC/IEEE 29148:2018"]
+name = "🏢 BUSINESS Expertise"
+header = "🏢 BUSINESS Expertise (BIZ)"
+standards_text = """**Standards**: ISO/IEC/IEEE 29148:2018 §5.2 (Stakeholder requirements)"""
 
-[[domain]]
-abbr = "QUALITY"
-name = "Writing Quality"
-standards = ["Michael Nygard ADR Template"]
 ```
+````markdown
+# ADR (Architecture Decision Record) Expert Checklist
+
+**Artifact**: Architecture Decision Record (ADR)
+**Version**: 2.0
+**Purpose**: Comprehensive quality checklist for ADR artifacts
+
+---
+
+## Referenced Standards
+
+This checklist incorporates requirements and best practices from:
+
+| Standard | Scope | Key Sections Used |
+|----------|-------|-------------------|
+| **Michael Nygard's ADR Template (2011)** | De facto standard for ADR format | Title, Status, Context, Decision, Consequences structure |
+| **ISO/IEC/IEEE 42010:2022** | Architecture Description | §5.7 AD elements, §6.7 Architecture decisions and rationale |
+| **ISO/IEC 25010:2011** | SQuaRE Software Quality Model | §4.2 Quality characteristics (performance, security, reliability, maintainability) |
+| **ISO/IEC/IEEE 29148:2018** | Requirements Engineering | §6.5 Behavioral requirements, traceability |
+| **OWASP ASVS 5.0** | Application Security Verification | V1.2 Architecture, V2 Authentication, V5 Validation |
+| **ISO/IEC 27001:2022** | Information Security Management | Annex A controls, risk assessment |
+| **ISO/IEC/IEEE 29119-3:2021** | Test Documentation | Test specification, acceptance criteria |
+---
+
+## Prerequisites
+
+Before starting the review, confirm:
+
+- [ ] I understand this checklist validates ADR artifacts
+- [ ] I will follow the Applicability Context rules below
+- [ ] I will check ALL items in MUST HAVE sections
+- [ ] I will verify ALL items in MUST NOT HAVE sections
+- [ ] I will document any violations found
+- [ ] I will provide specific feedback for each failed check
+- [ ] I will complete the Final Checklist and provide a review report
+
+---
+
+## Applicability Context
+
+Before evaluating each checklist item, the expert MUST:
+
+1. **Understand the artifact's domain** — What kind of system/project is this ADR for? (e.g., CLI tool, web service, data pipeline, methodology framework)
+
+2. **Determine applicability for each requirement** — Not all checklist items apply to all ADRs:
+   - A CLI tool ADR may not need Security Impact analysis
+   - A methodology framework ADR may not need Performance Impact analysis
+   - A local development tool ADR may not need Operational Readiness analysis
+
+3. **Require explicit handling** — For each checklist item:
+   - If applicable: The document MUST address it (present and complete)
+   - If not applicable: The document MUST explicitly state "Not applicable because..." with reasoning
+   - If missing without explanation: Report as violation
+
+4. **Never skip silently** — The expert MUST NOT skip a requirement just because it's not mentioned. Either:
+   - The requirement is met (document addresses it), OR
+   - The requirement is explicitly marked not applicable (document explains why), OR
+   - The requirement is violated (report it with applicability justification)
+
+**Key principle**: The reviewer must be able to distinguish "author considered and excluded" from "author forgot"
+
+---
+
+## Severity Dictionary
+
+- **CRITICAL**: Unsafe/misleading/unverifiable; blocks downstream work.
+- **HIGH**: Major ambiguity/risk; should be fixed before approval.
+- **MEDIUM**: Meaningful improvement; fix when feasible.
+- **LOW**: Minor improvement; optional.
+
+---
+
+## Review Scope Selection
+
+Select review depth based on ADR complexity and impact:
+
+### Review Modes
+
+| ADR Type | Review Mode | Domains to Check |
+|----------|-------------|------------------|
+| Simple (single component, low risk) | **Quick** | ARCH only |
+| Standard (multi-component, moderate risk) | **Standard** | ARCH + relevant domains |
+| Complex (architectural, high risk) | **Full** | All applicable domains |
+
+### Quick Review (ARCH Only)
+
+For simple, low-risk decisions, check only core architecture items:
+
+**MUST CHECK**:
+- [ ] ARCH-ADR-001: Decision Significance
+- [ ] ARCH-ADR-002: Context Completeness
+- [ ] ARCH-ADR-003: Options Quality
+- [ ] ARCH-ADR-004: Decision Rationale
+- [ ] ARCH-ADR-006: ADR Metadata Quality
+- [ ] QUALITY-002: Clarity
+- [ ] QUALITY-003: Actionability
+
+**SKIP**: All domain-specific sections (PERF, SEC, REL, etc.)
+
+Note: `Quick review: checked ARCH core items only`
+
+### Standard Review (ARCH + Relevant Domains)
+
+Select applicable domains based on ADR subject:
+
+| ADR Subject | Required Domains |
+|-------------|------------------|
+| Technology choice | ARCH, MAINT, OPS |
+| Security mechanism | ARCH, SEC, COMPL |
+| Database/storage | ARCH, DATA, PERF |
+| API/integration | ARCH, INT, SEC |
+| Infrastructure | ARCH, OPS, REL, PERF |
+| User-facing spec | ARCH, UX, BIZ |
+
+### Full Review
+
+For architectural decisions with broad impact, check ALL applicable domains.
+
+### Domain Applicability Quick Reference
+
+| Domain | When Required | When N/A |
+|--------|--------------|----------|
+| **PERF** | Performance-sensitive systems | Methodology, documentation |
+| **SEC** | User data, network, auth | Local-only tools |
+| **REL** | Production systems, SLAs | Dev tools, prototypes |
+| **DATA** | Persistent storage, migrations | Stateless components |
+| **INT** | External APIs, contracts | Self-contained systems |
+| **OPS** | Deployed services | Libraries, frameworks |
+| **MAINT** | Long-lived code | Throwaway prototypes |
+| **TEST** | Quality-critical systems | Exploratory work |
+| **COMPL** | Regulated industries | Internal tools |
+| **UX** | End-user impact | Backend infrastructure |
+| **BIZ** | Business alignment needed | Technical decisions |
+````
 `@/cpt:checklist`
-
-### Architecture Checks (ARCH)
-
-Core ADR quality: decision significance, context, options, rationale, traceability.
 
 `@cpt:check`
 ```toml
@@ -516,7 +725,7 @@ id = "ARCH-ADR-001"
 domain = "ARCH"
 title = "Decision Significance"
 severity = "CRITICAL"
-ref = "ISO 42010 §6.7.1"
+ref = "ISO 42010 §6.7.1 — Architecture decisions shall be documented when they affect the system's fundamental structure"
 kind = "must_have"
 ```
 ```markdown
@@ -535,7 +744,7 @@ id = "ARCH-ADR-002"
 domain = "ARCH"
 title = "Context Completeness"
 severity = "CRITICAL"
-ref = "Michael Nygard ADR Template; ISO 42010 §6.7.2"
+ref = "Michael Nygard ADR Template — \"Context\" section; ISO 42010 §6.7.2 — Decision rationale shall include the context"
 kind = "must_have"
 ```
 ```markdown
@@ -556,7 +765,7 @@ id = "ARCH-ADR-003"
 domain = "ARCH"
 title = "Options Quality"
 severity = "CRITICAL"
-ref = "ISO 42010 §6.7.3"
+ref = "ISO 42010 §6.7.3 — Decision rationale shall document considered alternatives"
 kind = "must_have"
 ```
 ```markdown
@@ -576,7 +785,7 @@ id = "ARCH-ADR-004"
 domain = "ARCH"
 title = "Decision Rationale"
 severity = "CRITICAL"
-ref = "Michael Nygard ADR Template; ISO 42010 §6.7.2"
+ref = "Michael Nygard ADR Template — \"Decision\" & \"Consequences\" sections; ISO 42010 §6.7.2 — rationale documentation"
 kind = "must_have"
 ```
 ```markdown
@@ -596,7 +805,7 @@ id = "ARCH-ADR-005"
 domain = "ARCH"
 title = "Traceability"
 severity = "HIGH"
-ref = "ISO 29148 §5.2.8; ISO 42010 §5.7"
+ref = "ISO 29148 §5.2.8 — Requirements traceability; ISO 42010 §5.7 — AD element relationships"
 kind = "must_have"
 ```
 ```markdown
@@ -614,16 +823,16 @@ id = "ARCH-ADR-006"
 domain = "ARCH"
 title = "ADR Metadata Quality"
 severity = "CRITICAL"
-ref = "Michael Nygard ADR Template"
+ref = "Michael Nygard ADR Template — Title, Status, Date fields"
 kind = "must_have"
 ```
 ```markdown
 - [ ] Title is descriptive and action-oriented
 - [ ] Date is present and unambiguous
-- [ ] Status is present and uses consistent vocabulary (PROPOSED, ACCEPTED, REJECTED, DEPRECATED, SUPERSEDED)
+- [ ] Status is present and uses a consistent vocabulary (e.g., Proposed, Accepted, Rejected, Deprecated, Superseded)
 - [ ] Decision owner/approver is identified (person/team)
 - [ ] Scope / affected systems are stated
-- [ ] If this record supersedes another, the superseded record is linked
+- [ ] If this record supersedes another decision record, the superseded record is linked
 ```
 `@/cpt:check`
 
@@ -631,7 +840,7 @@ kind = "must_have"
 ```toml
 id = "ARCH-ADR-007"
 domain = "ARCH"
-title = "Decision Drivers"
+title = "Decision Drivers (if present)"
 severity = "MEDIUM"
 kind = "must_have"
 ```
@@ -649,9 +858,9 @@ kind = "must_have"
 id = "ARCH-ADR-008"
 domain = "ARCH"
 title = "Supersession Handling"
-severity = "HIGH"
+severity = "HIGH (if applicable)"
+ref = "Michael Nygard ADR Template — Status values include \"Superseded by [ADR-XXX]\""
 kind = "must_have"
-applicable_when = "ADR supersedes another ADR"
 ```
 ```markdown
 - [ ] Superseding ADR referenced
@@ -691,19 +900,14 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-### Performance Checks (PERF)
-
-Applicable when the decision affects performance-sensitive systems.
-
 `@cpt:check`
 ```toml
 id = "PERF-ADR-001"
 domain = "PERF"
 title = "Performance Impact"
-severity = "HIGH"
-ref = "ISO 25010 §4.2.2"
+severity = "HIGH (if applicable)"
+ref = "ISO 25010 §4.2.2 — Time behavior, resource utilization, capacity sub-characteristics"
 kind = "must_have"
-applicable_when = "Performance-sensitive systems"
 ```
 ```markdown
 - [ ] Performance requirements referenced
@@ -721,9 +925,8 @@ applicable_when = "Performance-sensitive systems"
 id = "PERF-ADR-002"
 domain = "PERF"
 title = "Performance Testing"
-severity = "MEDIUM"
+severity = "MEDIUM (if applicable)"
 kind = "must_have"
-applicable_when = "Performance-sensitive systems"
 ```
 ```markdown
 - [ ] How to verify performance claims documented
@@ -733,19 +936,14 @@ applicable_when = "Performance-sensitive systems"
 ```
 `@/cpt:check`
 
-### Security Checks (SEC)
-
-Applicable when the decision involves user data, network, or authentication.
-
 `@cpt:check`
 ```toml
 id = "SEC-ADR-001"
 domain = "SEC"
 title = "Security Impact"
-severity = "CRITICAL"
-ref = "OWASP ASVS V1.2; ISO 27001 Annex A.8"
+severity = "CRITICAL (if applicable)"
+ref = "OWASP ASVS V1.2 — Security architecture requirements; ISO 27001 Annex A.8 — Asset management"
 kind = "must_have"
-applicable_when = "User data, network, auth"
 ```
 ```markdown
 - [ ] Security requirements referenced
@@ -763,10 +961,9 @@ applicable_when = "User data, network, auth"
 id = "SEC-ADR-002"
 domain = "SEC"
 title = "Security Review"
-severity = "HIGH"
-ref = "ISO 27001 §9.2; OWASP ASVS V1.2.4"
+severity = "HIGH (if applicable)"
+ref = "ISO 27001 §9.2 — Internal audit; OWASP ASVS V1.2.4 — Security architecture review"
 kind = "must_have"
-applicable_when = "Security-sensitive decisions"
 ```
 ```markdown
 - [ ] Security review conducted
@@ -782,10 +979,9 @@ applicable_when = "Security-sensitive decisions"
 id = "SEC-ADR-003"
 domain = "SEC"
 title = "Authentication/Authorization Impact"
-severity = "HIGH"
-ref = "OWASP ASVS V2, V4"
+severity = "HIGH (if applicable)"
+ref = "OWASP ASVS V2 — Authentication, V4 — Access Control"
 kind = "must_have"
-applicable_when = "Auth-related decisions"
 ```
 ```markdown
 - [ ] AuthN mechanism changes documented
@@ -796,19 +992,14 @@ applicable_when = "Auth-related decisions"
 ```
 `@/cpt:check`
 
-### Reliability Checks (REL)
-
-Applicable for production systems with SLAs.
-
 `@cpt:check`
 ```toml
 id = "REL-ADR-001"
 domain = "REL"
 title = "Reliability Impact"
-severity = "HIGH"
-ref = "ISO 25010 §4.2.5"
+severity = "HIGH (if applicable)"
+ref = "ISO 25010 §4.2.5 — Maturity, availability, fault tolerance, recoverability"
 kind = "must_have"
-applicable_when = "Production systems, SLAs"
 ```
 ```markdown
 - [ ] Availability impact analyzed
@@ -837,19 +1028,14 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-### Data Checks (DATA)
-
-Applicable when the decision affects persistent storage or data migrations.
-
 `@cpt:check`
 ```toml
 id = "DATA-ADR-001"
 domain = "DATA"
 title = "Data Impact"
-severity = "HIGH"
-ref = "IEEE 1016 §5.6"
+severity = "HIGH (if applicable)"
+ref = "IEEE 1016 §5.6 — Information viewpoint: data entities, relationships, integrity constraints"
 kind = "must_have"
-applicable_when = "Persistent storage, migrations"
 ```
 ```markdown
 - [ ] Data model changes documented
@@ -866,10 +1052,9 @@ applicable_when = "Persistent storage, migrations"
 id = "DATA-ADR-002"
 domain = "DATA"
 title = "Data Governance"
-severity = "MEDIUM"
-ref = "ISO 27001 Annex A.5.9-5.14"
+severity = "MEDIUM (if applicable)"
+ref = "ISO 27001 Annex A.5.9-5.14 — Information classification, handling"
 kind = "must_have"
-applicable_when = "Data classification or privacy impact"
 ```
 ```markdown
 - [ ] Data ownership impact documented
@@ -880,19 +1065,14 @@ applicable_when = "Data classification or privacy impact"
 ```
 `@/cpt:check`
 
-### Integration Checks (INT)
-
-Applicable when the decision affects external APIs or contracts.
-
 `@cpt:check`
 ```toml
 id = "INT-ADR-001"
 domain = "INT"
 title = "Integration Impact"
-severity = "HIGH"
-ref = "IEEE 1016 §5.3"
+severity = "HIGH (if applicable)"
+ref = "IEEE 1016 §5.3 — Interface viewpoint: services, protocols, data formats"
 kind = "must_have"
-applicable_when = "External APIs, contracts"
 ```
 ```markdown
 - [ ] API breaking changes documented
@@ -909,9 +1089,8 @@ applicable_when = "External APIs, contracts"
 id = "INT-ADR-002"
 domain = "INT"
 title = "Contract Changes"
-severity = "HIGH"
+severity = "HIGH (if applicable)"
 kind = "must_have"
-applicable_when = "API contract changes"
 ```
 ```markdown
 - [ ] Contract changes documented
@@ -921,10 +1100,6 @@ applicable_when = "API contract changes"
 ```
 `@/cpt:check`
 
-### Operations Checks (OPS)
-
-Applicable for deployed services.
-
 `@cpt:check`
 ```toml
 id = "OPS-ADR-001"
@@ -932,7 +1107,6 @@ domain = "OPS"
 title = "Operational Impact"
 severity = "HIGH"
 kind = "must_have"
-applicable_when = "Deployed services"
 ```
 ```markdown
 - [ ] Deployment impact analyzed
@@ -961,15 +1135,13 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-### Maintainability Checks (MAINT)
-
 `@cpt:check`
 ```toml
 id = "MAINT-ADR-001"
 domain = "MAINT"
 title = "Maintainability Impact"
 severity = "MEDIUM"
-ref = "ISO 25010 §4.2.7"
+ref = "ISO 25010 §4.2.7 — Modularity, reusability, analysability, modifiability, testability"
 kind = "must_have"
 ```
 ```markdown
@@ -997,15 +1169,13 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-### Testing Checks (TEST)
-
 `@cpt:check`
 ```toml
 id = "TEST-ADR-001"
 domain = "TEST"
 title = "Testing Impact"
 severity = "MEDIUM"
-ref = "ISO 29119-3 §8; ISO 25010 §4.2.7.5"
+ref = "ISO 29119-3 §8 — Test design specification; ISO 25010 §4.2.7.5 — Testability"
 kind = "must_have"
 ```
 ```markdown
@@ -1023,7 +1193,7 @@ id = "TEST-ADR-002"
 domain = "TEST"
 title = "Validation Plan"
 severity = "MEDIUM"
-ref = "ISO 29119-3 §9"
+ref = "ISO 29119-3 §9 — Test case specification; acceptance criteria"
 kind = "must_have"
 ```
 ```markdown
@@ -1034,19 +1204,14 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-### Compliance Checks (COMPL)
-
-Applicable when the decision has regulatory implications.
-
 `@cpt:check`
 ```toml
 id = "COMPL-ADR-001"
 domain = "COMPL"
 title = "Compliance Impact"
-severity = "CRITICAL"
-ref = "ISO 27001 §4.2, §6.1"
+severity = "CRITICAL (if applicable)"
+ref = "ISO 27001 §4.2 — Interested parties; §6.1 — Risk assessment; Annex A — Controls"
 kind = "must_have"
-applicable_when = "Regulated industries"
 ```
 ```markdown
 - [ ] Regulatory impact analyzed
@@ -1057,18 +1222,13 @@ applicable_when = "Regulated industries"
 ```
 `@/cpt:check`
 
-### Usability Checks (UX)
-
-Applicable when the decision impacts user experience.
-
 `@cpt:check`
 ```toml
 id = "UX-ADR-001"
 domain = "UX"
 title = "User Impact"
-severity = "MEDIUM"
+severity = "MEDIUM (if applicable)"
 kind = "must_have"
-applicable_when = "End-user impact"
 ```
 ```markdown
 - [ ] User experience impact documented
@@ -1079,15 +1239,13 @@ applicable_when = "End-user impact"
 ```
 `@/cpt:check`
 
-### Business Checks (BIZ)
-
 `@cpt:check`
 ```toml
 id = "BIZ-ADR-001"
 domain = "BIZ"
 title = "Business Alignment"
 severity = "HIGH"
-ref = "ISO 29148 §5.2"
+ref = "ISO 29148 §5.2 — Stakeholder requirements definition; business value traceability"
 kind = "must_have"
 ```
 ```markdown
@@ -1116,9 +1274,222 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-### Writing Quality Checks (QUALITY)
+`@cpt:check`
+```toml
+id = "ARCH-ADR-NO-001"
+domain = "ARCH"
+title = "No Complete Architecture Description"
+severity = "CRITICAL"
+kind = "must_not_have"
+```
+```markdown
+**What to check**:
+- [ ] No full system architecture restatement
+- [ ] No complete component model
+- [ ] No full domain model
+- [ ] No comprehensive API specification
+- [ ] No full infrastructure description
 
-Document clarity, conciseness, and formatting standards.
+**Where it belongs**: System/Architecture design documentation
+```
+`@/cpt:check`
+
+`@cpt:check`
+```toml
+id = "ARCH-ADR-NO-002"
+domain = "ARCH"
+title = "No Spec Implementation Details"
+severity = "HIGH"
+kind = "must_not_have"
+```
+```markdown
+**What to check**:
+- [ ] No feature user flows
+- [ ] No feature algorithms
+- [ ] No feature state machines
+- [ ] No step-by-step implementation guides
+- [ ] No low-level implementation pseudo-code
+
+**Where it belongs**: Spec specification / implementation design documentation
+```
+`@/cpt:check`
+
+`@cpt:check`
+```toml
+id = "BIZ-ADR-NO-001"
+domain = "BIZ"
+title = "No Product Requirements"
+severity = "HIGH"
+kind = "must_not_have"
+```
+```markdown
+**What to check**:
+- [ ] No business vision statements
+- [ ] No actor definitions
+- [ ] No functional requirement definitions
+- [ ] No use case definitions
+- [ ] No NFR definitions
+
+**Where it belongs**: Requirements / Product specification document
+```
+`@/cpt:check`
+
+`@cpt:check`
+```toml
+id = "BIZ-ADR-NO-002"
+domain = "BIZ"
+title = "No Implementation Tasks"
+severity = "HIGH"
+kind = "must_not_have"
+```
+```markdown
+**What to check**:
+- [ ] No sprint/iteration plans
+- [ ] No detailed task breakdowns
+- [ ] No effort estimates
+- [ ] No developer assignments
+- [ ] No project timelines
+
+**Where it belongs**: Project management tools
+```
+`@/cpt:check`
+
+`@cpt:check`
+```toml
+id = "DATA-ADR-NO-001"
+domain = "DATA"
+title = "No Complete Schema Definitions"
+severity = "MEDIUM"
+kind = "must_not_have"
+```
+```markdown
+**What to check**:
+- [ ] No full database schemas
+- [ ] No complete JSON schemas
+- [ ] No full API specifications
+- [ ] No migration scripts
+
+**Where it belongs**: Source code repository or architecture documentation
+```
+`@/cpt:check`
+
+`@cpt:check`
+```toml
+id = "MAINT-ADR-NO-001"
+domain = "MAINT"
+title = "No Code Implementation"
+severity = "HIGH"
+kind = "must_not_have"
+```
+```markdown
+**What to check**:
+- [ ] No production code
+- [ ] No complete code examples
+- [ ] No library implementations
+- [ ] No configuration files
+- [ ] No infrastructure code
+
+**Where it belongs**: Source code repository
+```
+`@/cpt:check`
+
+`@cpt:check`
+```toml
+id = "SEC-ADR-NO-001"
+domain = "SEC"
+title = "No Security Secrets"
+severity = "CRITICAL"
+kind = "must_not_have"
+```
+```markdown
+**What to check**:
+- [ ] No API keys
+- [ ] No passwords
+- [ ] No certificates
+- [ ] No private keys
+- [ ] No connection strings with credentials
+
+**Where it belongs**: Secret management system
+```
+`@/cpt:check`
+
+`@cpt:check`
+```toml
+id = "TEST-ADR-NO-001"
+domain = "TEST"
+title = "No Test Implementation"
+severity = "MEDIUM"
+kind = "must_not_have"
+```
+```markdown
+**What to check**:
+- [ ] No test case code
+- [ ] No test data
+- [ ] No test scripts
+- [ ] No complete test plans
+
+**Where it belongs**: Test documentation or test code
+```
+`@/cpt:check`
+
+`@cpt:check`
+```toml
+id = "OPS-ADR-NO-001"
+domain = "OPS"
+title = "No Operational Procedures"
+severity = "MEDIUM"
+kind = "must_not_have"
+```
+```markdown
+**What to check**:
+- [ ] No complete runbooks
+- [ ] No incident response procedures
+- [ ] No monitoring configurations
+- [ ] No alerting configurations
+
+**Where it belongs**: Operations documentation or runbooks
+```
+`@/cpt:check`
+
+`@cpt:check`
+```toml
+id = "ARCH-ADR-NO-003"
+domain = "ARCH"
+title = "No Trivial Decisions"
+severity = "MEDIUM"
+kind = "must_not_have"
+```
+```markdown
+**What to check**:
+- [ ] No variable naming decisions
+- [ ] No code formatting decisions
+- [ ] No obvious technology choices (no alternatives)
+- [ ] No easily reversible decisions
+- [ ] No team-local decisions with no broader impact
+
+**Where it belongs**: Team conventions, coding standards, or not documented at all
+```
+`@/cpt:check`
+
+`@cpt:check`
+```toml
+id = "ARCH-ADR-NO-004"
+domain = "ARCH"
+title = "No Incomplete Decisions"
+severity = "HIGH"
+kind = "must_not_have"
+```
+```markdown
+**What to check**:
+- [ ] No "TBD" in critical sections
+- [ ] No missing context
+- [ ] No missing options analysis
+- [ ] No missing rationale
+- [ ] No missing consequences
+
+**Where it belongs**: Complete the ADR before publishing, or use "Proposed" status
+```
+`@/cpt:check`
 
 `@cpt:check`
 ```toml
@@ -1126,8 +1497,8 @@ id = "QUALITY-001"
 domain = "QUALITY"
 title = "Neutrality"
 severity = "MEDIUM"
-ref = "Michael Nygard — options presented neutrally"
-kind = "must_have"
+ref = "Michael Nygard — \"Options should be presented neutrally\""
+kind = "adr_specific_quality_checks"
 ```
 ```markdown
 - [ ] Options described neutrally (no leading language)
@@ -1144,8 +1515,8 @@ id = "QUALITY-002"
 domain = "QUALITY"
 title = "Clarity"
 severity = "HIGH"
-ref = "ISO 29148 §5.2.5; IEEE 1016 §4.2"
-kind = "must_have"
+ref = "ISO 29148 §5.2.5 — Requirements shall be unambiguous; IEEE 1016 §4.2 — SDD comprehensibility"
+kind = "adr_specific_quality_checks"
 ```
 ```markdown
 - [ ] Decision can be understood without insider knowledge
@@ -1162,8 +1533,8 @@ id = "QUALITY-003"
 domain = "QUALITY"
 title = "Actionability"
 severity = "HIGH"
-ref = "Michael Nygard — Decision section specifies what to do"
-kind = "must_have"
+ref = "Michael Nygard — \"Decision\" section specifies what to do"
+kind = "adr_specific_quality_checks"
 ```
 ```markdown
 - [ ] Clear what action to take based on decision
@@ -1180,8 +1551,8 @@ id = "QUALITY-004"
 domain = "QUALITY"
 title = "Reviewability"
 severity = "MEDIUM"
-ref = "ISO 42010 §6.7"
-kind = "must_have"
+ref = "ISO 42010 §6.7 — AD rationale shall be verifiable"
+kind = "adr_specific_quality_checks"
 ```
 ```markdown
 - [ ] Can be reviewed in a reasonable time
@@ -1192,206 +1563,6 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-### Anti-Pattern Checks (must_not_have)
-
-These checks flag content that does NOT belong in an ADR.
-ADRs should be focused on one decision — not restate the full architecture,
-include implementation details, or embed full PRD content.
-
-`@cpt:check`
-```toml
-id = "ARCH-ADR-NO-001"
-domain = "ARCH"
-title = "No Complete Architecture Description"
-severity = "CRITICAL"
-kind = "must_not_have"
-belongs_to = "System/Architecture design documentation"
-```
-```markdown
-- [ ] No full system architecture restatement
-- [ ] No complete component model
-- [ ] No full domain model
-- [ ] No comprehensive API specification
-- [ ] No full infrastructure description
-```
-`@/cpt:check`
-
-`@cpt:check`
-```toml
-id = "ARCH-ADR-NO-002"
-domain = "ARCH"
-title = "No Spec Implementation Details"
-severity = "HIGH"
-kind = "must_not_have"
-belongs_to = "Spec specification / implementation design"
-```
-```markdown
-- [ ] No feature user flows
-- [ ] No feature algorithms
-- [ ] No feature state machines
-- [ ] No step-by-step implementation guides
-- [ ] No low-level implementation pseudo-code
-```
-`@/cpt:check`
-
-`@cpt:check`
-```toml
-id = "BIZ-ADR-NO-001"
-domain = "BIZ"
-title = "No Product Requirements"
-severity = "HIGH"
-kind = "must_not_have"
-belongs_to = "PRD"
-```
-```markdown
-- [ ] No business vision statements
-- [ ] No actor definitions
-- [ ] No functional requirement definitions
-- [ ] No use case definitions
-- [ ] No NFR definitions
-```
-`@/cpt:check`
-
-`@cpt:check`
-```toml
-id = "BIZ-ADR-NO-002"
-domain = "BIZ"
-title = "No Implementation Tasks"
-severity = "HIGH"
-kind = "must_not_have"
-belongs_to = "Project management tools"
-```
-```markdown
-- [ ] No sprint/iteration plans
-- [ ] No detailed task breakdowns
-- [ ] No effort estimates
-- [ ] No developer assignments
-- [ ] No project timelines
-```
-`@/cpt:check`
-
-`@cpt:check`
-```toml
-id = "DATA-ADR-NO-001"
-domain = "DATA"
-title = "No Complete Schema Definitions"
-severity = "MEDIUM"
-kind = "must_not_have"
-belongs_to = "Source code repository or architecture documentation"
-```
-```markdown
-- [ ] No full database schemas
-- [ ] No complete JSON schemas
-- [ ] No full API specifications
-- [ ] No migration scripts
-```
-`@/cpt:check`
-
-`@cpt:check`
-```toml
-id = "MAINT-ADR-NO-001"
-domain = "MAINT"
-title = "No Code Implementation"
-severity = "HIGH"
-kind = "must_not_have"
-belongs_to = "Source code repository"
-```
-```markdown
-- [ ] No production code
-- [ ] No complete code examples
-- [ ] No library implementations
-- [ ] No configuration files
-- [ ] No infrastructure code
-```
-`@/cpt:check`
-
-`@cpt:check`
-```toml
-id = "SEC-ADR-NO-001"
-domain = "SEC"
-title = "No Security Secrets"
-severity = "CRITICAL"
-kind = "must_not_have"
-belongs_to = "Secret management system"
-```
-```markdown
-- [ ] No API keys
-- [ ] No passwords
-- [ ] No certificates
-- [ ] No private keys
-- [ ] No connection strings with credentials
-```
-`@/cpt:check`
-
-`@cpt:check`
-```toml
-id = "TEST-ADR-NO-001"
-domain = "TEST"
-title = "No Test Implementation"
-severity = "MEDIUM"
-kind = "must_not_have"
-belongs_to = "Test documentation or test code"
-```
-```markdown
-- [ ] No test case code
-- [ ] No test data
-- [ ] No test scripts
-- [ ] No complete test plans
-```
-`@/cpt:check`
-
-`@cpt:check`
-```toml
-id = "OPS-ADR-NO-001"
-domain = "OPS"
-title = "No Operational Procedures"
-severity = "MEDIUM"
-kind = "must_not_have"
-belongs_to = "Operations documentation or runbooks"
-```
-```markdown
-- [ ] No complete runbooks
-- [ ] No incident response procedures
-- [ ] No monitoring configurations
-- [ ] No alerting configurations
-```
-`@/cpt:check`
-
-`@cpt:check`
-```toml
-id = "ARCH-ADR-NO-003"
-domain = "ARCH"
-title = "No Trivial Decisions"
-severity = "MEDIUM"
-kind = "must_not_have"
-belongs_to = "Team conventions, coding standards"
-```
-```markdown
-- [ ] No variable naming decisions
-- [ ] No code formatting decisions
-- [ ] No obvious technology choices (no alternatives)
-- [ ] No easily reversible decisions
-- [ ] No team-local decisions with no broader impact
-```
-`@/cpt:check`
-
-`@cpt:check`
-```toml
-id = "ARCH-ADR-NO-004"
-domain = "ARCH"
-title = "No Incomplete Decisions"
-severity = "HIGH"
-kind = "must_not_have"
-belongs_to = "Complete the ADR before publishing, or use PROPOSED status"
-```
-```markdown
-- [ ] No "TBD" in critical sections
-- [ ] No missing context
-- [ ] No missing options analysis
-- [ ] No missing rationale
-- [ ] No missing consequences
-```
-`@/cpt:check`
 
 ---
 
