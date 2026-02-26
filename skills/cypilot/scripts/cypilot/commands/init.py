@@ -236,7 +236,7 @@ def _compute_managed_block(install_dir: str) -> str:
     # @cpt-begin:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-compute-block
     return (
         f"{MARKER_START}\n"
-        f"# Cypilot AI Agent Navigation\n"
+        f"## Cypilot AI Agent Navigation\n"
         f"\n"
         f"**Remember these variables while working in this project:**\n"
         f"\n"
@@ -409,15 +409,15 @@ def cmd_init(argv: List[str]) -> int:
     # @cpt-begin:cpt-cypilot-algo-core-infra-create-config:p1:inst-mkdir-config
     # @cpt-begin:cpt-cypilot-algo-core-infra-create-config-agents:p1:inst-gen-when-rules
     kit_id = "cypilot-sdlc"
-    artifacts_when = f"ALWAYS open and follow `artifacts.toml` WHEN Cypilot uses kit `{kit_id}` for artifact kinds: PRD, DESIGN, DECOMPOSITION, ADR, FEATURE OR codebase"
+    artifacts_when = f"ALWAYS open and follow `{{cypilot_path}}/config/artifacts.toml` WHEN Cypilot uses kit `{kit_id}` for artifact kinds: PRD, DESIGN, DECOMPOSITION, ADR, FEATURE OR codebase"
     gen_agents_content = "\n".join([
         f"# Cypilot: {project_name}",
         "",
         "## Navigation Rules",
         "",
-        "ALWAYS open and follow `.core/schemas/artifacts.schema.json` WHEN working with artifacts.toml",
+        "ALWAYS open and follow `{cypilot_path}/.core/schemas/artifacts.schema.json` WHEN working with artifacts.toml",
         "",
-        "ALWAYS open and follow `.core/architecture/specs/artifacts-registry.md` WHEN working with artifacts.toml",
+        "ALWAYS open and follow `{cypilot_path}/.core/architecture/specs/artifacts-registry.md` WHEN working with artifacts.toml",
         "",
         artifacts_when,
         "",
@@ -462,7 +462,7 @@ def cmd_init(argv: List[str]) -> int:
                     "# Custom Agent Navigation Rules\n"
                     "\n"
                     "Add your project-specific WHEN rules here.\n"
-                    "These rules are loaded alongside the generated rules in `.gen/AGENTS.md`.\n",
+                    "These rules are loaded alongside the generated rules in `{cypilot_path}/.gen/AGENTS.md`.\n",
                     encoding="utf-8",
                 )
             # If force + existed: leave user content untouched
@@ -544,7 +544,7 @@ def cmd_init(argv: List[str]) -> int:
                     encoding="utf-8",
                 )
                 gen_skill_nav_parts.append(
-                    f"ALWAYS open and follow `.gen/kits/{kit_slug}/SKILL.md` "
+                    f"ALWAYS open and follow `{{cypilot_path}}/.gen/kits/{kit_slug}/SKILL.md` "
                     f"WHEN working with kit `{kit_slug}` artifacts"
                 )
                 actions["gen_kit_skill_" + kit_slug] = "created"
@@ -577,7 +577,7 @@ def cmd_init(argv: List[str]) -> int:
                 "# Custom Skill Extensions\n"
                 "\n"
                 "Add your project-specific skill instructions here.\n"
-                "These are loaded alongside the generated skills in `.gen/SKILL.md`.\n",
+                "These are loaded alongside the generated skills in `{cypilot_path}/.gen/SKILL.md`.\n",
                 encoding="utf-8",
             )
             actions["config_skill"] = "created"
