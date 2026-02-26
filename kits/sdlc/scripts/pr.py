@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """PR review helper – fetch PR diffs, metadata, and generate status reports.
 
-Cypilot skill: lives in .cypilot/skills/scripts/pr.py
+Cypilot kit script: lives in kits/sdlc/scripts/pr.py, deployed to .gen/kits/sdlc/scripts/pr.py
 Resolves all paths relative to the project root (detected via git).
 
 All review is done in read-only mode: the script downloads diffs and

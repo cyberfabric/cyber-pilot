@@ -465,29 +465,51 @@ def _render_template(lines: List[str], variables: Dict[str, str]) -> str:
     return _ensure_frontmatter_description_quoted(rendered)
 
 
-def _list_workflow_files(cypilot_root: Path) -> List[str]:
-    workflows_dir = core_subpath(cypilot_root, "workflows").resolve()
-    if not workflows_dir.is_dir():
-        return []
-    out: List[str] = []
-    try:
-        for p in workflows_dir.iterdir():
-            if not p.is_file():
-                continue
-            if p.suffix.lower() != ".md":
-                continue
-            if p.name in {"AGENTS.md", "README.md"}:
-                continue
-            try:
-                head = "\n".join(p.read_text(encoding="utf-8").splitlines()[:30])
-            except Exception:
-                continue
-            if "type: workflow" not in head:
-                continue
-            out.append(p.name)
-    except Exception:
-        return []
-    return sorted(set(out))
+def _list_workflow_files(cypilot_root: Path) -> List[Tuple[str, Path]]:
+    """List workflow files from .core/workflows/ and .gen/kits/*/workflows/.
+
+    Returns list of (filename, full_path) tuples.  Generated workflows
+    from blueprints are discovered alongside core workflows so the agent
+    proxy generator can route to them.
+    """
+    seen_names: set = set()
+    out: List[Tuple[str, Path]] = []
+
+    def _scan_dir(d: Path) -> None:
+        if not d.is_dir():
+            return
+        try:
+            for p in d.iterdir():
+                if not p.is_file() or p.suffix.lower() != ".md":
+                    continue
+                if p.name in {"AGENTS.md", "README.md"}:
+                    continue
+                try:
+                    head = "\n".join(p.read_text(encoding="utf-8").splitlines()[:30])
+                except Exception:
+                    continue
+                if "type: workflow" not in head:
+                    continue
+                if p.name not in seen_names:
+                    seen_names.add(p.name)
+                    out.append((p.name, p.resolve()))
+        except Exception:
+            pass
+
+    # 1. Core workflows
+    _scan_dir(core_subpath(cypilot_root, "workflows"))
+
+    # 2. Generated workflows from blueprints (.gen/kits/*/workflows/)
+    gen_kits = gen_subpath(cypilot_root, "kits")
+    if gen_kits.is_dir():
+        try:
+            for kit_dir in sorted(gen_kits.iterdir()):
+                _scan_dir(kit_dir / "workflows")
+        except Exception:
+            pass
+
+    out.sort(key=lambda t: t[0])
+    return out
 
 
 _ALL_RECOGNIZED_AGENTS = ["windsurf", "cursor", "claude", "copilot", "openai"]
@@ -552,15 +574,15 @@ def _process_single_agent(
             workflows_result["errors"].append("Missing or invalid template in workflows config")
         else:
             workflow_dir = (project_root / workflow_dir_rel).resolve()
-            cypilot_workflow_files = _list_workflow_files(cypilot_root)
-            cypilot_workflow_names = [Path(p).stem for p in cypilot_workflow_files]
+            cypilot_workflow_entries = _list_workflow_files(cypilot_root)
 
             desired: Dict[str, Dict[str, str]] = {}
-            for wf_name in cypilot_workflow_names:
+            for wf_filename, wf_full_path in cypilot_workflow_entries:
+                wf_name = Path(wf_filename).stem
                 command = "cypilot" if wf_name == "cypilot" else f"{prefix}{wf_name}"
                 filename = filename_fmt.format(command=command, workflow_name=wf_name)
                 desired_path = (workflow_dir / filename).resolve()
-                target_workflow_path = core_subpath(cypilot_root, "workflows", f"{wf_name}.md").resolve()
+                target_workflow_path = wf_full_path
 
                 if desired_path.as_posix() in skill_output_paths:
                     continue
@@ -676,10 +698,14 @@ def _process_single_agent(
                     expected = (pth.parent / target_rel).resolve()
                 else:
                     expected = Path(target_rel)
+                # Accept targets in .core/workflows/ or .gen/kits/*/workflows/
                 try:
                     expected.relative_to(core_subpath(cypilot_root, "workflows"))
                 except ValueError:
-                    continue
+                    try:
+                        expected.relative_to(gen_subpath(cypilot_root, "kits"))
+                    except ValueError:
+                        continue
                 if expected.exists():
                     continue
                 workflows_result["deleted"].append(p_str)

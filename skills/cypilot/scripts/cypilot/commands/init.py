@@ -520,6 +520,16 @@ def cmd_init(argv: List[str]) -> int:
             user_bp_dir.parent.mkdir(parents=True, exist_ok=True)
             shutil.copytree(bp_dir, user_bp_dir)
 
+            # Copy kit scripts to .gen/kits/{slug}/scripts/ (executable from generated workflows)
+            kit_scripts_dir = kit_dir / "scripts"
+            if kit_scripts_dir.is_dir():
+                gen_kit_scripts = gen_kits_dir / kit_slug / "scripts"
+                if gen_kit_scripts.exists():
+                    shutil.rmtree(gen_kit_scripts)
+                gen_kit_scripts.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copytree(kit_scripts_dir, gen_kit_scripts)
+                actions[f"gen_kit_scripts_{kit_slug}"] = "copied"
+
             # Generate resources from blueprints into .gen/kits/{slug}/
             summary, kit_errors = process_kit(
                 kit_slug, user_bp_dir, gen_kits_dir, dry_run=False,
@@ -549,6 +559,33 @@ def cmd_init(argv: List[str]) -> int:
                     f"ALWAYS invoke `{{cypilot_path}}/.gen/kits/{kit_slug}/SKILL.md` FIRST"
                 )
                 actions["gen_kit_skill_" + kit_slug] = "created"
+
+            # Write generated workflows into .gen/kits/{slug}/workflows/{name}.md
+            kit_workflows = summary.get("workflows", [])
+            for wf in kit_workflows:
+                wf_name = wf["name"]
+                wf_path = gen_kits_dir / kit_slug / "workflows" / f"{wf_name}.md"
+                wf_path.parent.mkdir(parents=True, exist_ok=True)
+                # Build frontmatter
+                fm_lines = [
+                    "---",
+                    "cypilot: true",
+                    "type: workflow",
+                    f"name: cypilot-{wf_name}",
+                ]
+                if wf.get("description"):
+                    fm_lines.append(f"description: {wf['description']}")
+                if wf.get("version"):
+                    fm_lines.append(f"version: {wf['version']}")
+                if wf.get("purpose"):
+                    fm_lines.append(f"purpose: {wf['purpose']}")
+                fm_lines.append("---")
+                frontmatter = "\n".join(fm_lines)
+                wf_path.write_text(
+                    frontmatter + "\n\n" + wf["content"] + "\n",
+                    encoding="utf-8",
+                )
+                actions[f"gen_workflow_{wf_name}"] = "created"
 
             # Append sysprompt content to .gen/AGENTS.md
             sysprompt_content = summary.get("sysprompt_content", "")

@@ -507,6 +507,34 @@ def _collect_sysprompt_blocks(bp: ParsedBlueprint) -> str:
     return "\n\n".join(parts)
 
 
+def _collect_workflow_blocks(bp: ParsedBlueprint) -> List[Dict[str, str]]:
+    """Extract workflow definitions from @cpt:workflow markers.
+
+    Each marker has TOML metadata (name, description, version, purpose)
+    and markdown content (the full workflow body).
+
+    Returns list of dicts: [{name, description, version, purpose, content}, ...]
+    """
+    workflows: List[Dict[str, str]] = []
+    for mk in bp.markers:
+        if mk.marker_type != "workflow":
+            continue
+        name = mk.toml_data.get("name", "")
+        if not name:
+            continue
+        content = mk.markdown_content.strip()
+        if not content:
+            continue
+        workflows.append({
+            "name": name,
+            "description": mk.toml_data.get("description", ""),
+            "version": mk.toml_data.get("version", "1.0"),
+            "purpose": mk.toml_data.get("purpose", ""),
+            "content": content,
+        })
+    return workflows
+
+
 def _collect_rules(bp: ParsedBlueprint) -> str:
     """Build rules.md from @cpt:rules skeleton + @cpt:rule entries.
 
@@ -1406,9 +1434,10 @@ def process_kit(
     errors.extend(c_errors)
     # @cpt-end:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-gen-constraints
 
-    # Aggregate @cpt:skill and @cpt:sysprompt blocks across all blueprints
+    # Aggregate @cpt:skill, @cpt:sysprompt, and @cpt:workflow blocks across all blueprints
     all_skill_parts: List[str] = []
     all_sysprompt_parts: List[str] = []
+    all_workflows: List[Dict[str, str]] = []
     for bp in all_blueprints:
         kind_label = bp.artifact_kind.upper() or bp.path.stem.upper()
         skill_text = _collect_skill_blocks(bp)
@@ -1417,6 +1446,7 @@ def process_kit(
         sysprompt_text = _collect_sysprompt_blocks(bp)
         if sysprompt_text:
             all_sysprompt_parts.append(sysprompt_text)
+        all_workflows.extend(_collect_workflow_blocks(bp))
 
     # @cpt-begin:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-return-generated
     summary: Dict[str, Any] = {
@@ -1425,6 +1455,7 @@ def process_kit(
         "files": all_written,
         "skill_content": "\n\n".join(all_skill_parts),
         "sysprompt_content": "\n\n".join(all_sysprompt_parts),
+        "workflows": all_workflows,
     }
     return summary, errors
     # @cpt-end:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-return-generated
