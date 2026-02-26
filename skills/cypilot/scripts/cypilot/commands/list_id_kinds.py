@@ -68,8 +68,8 @@ def cmd_list_id_kinds(argv: List[str]) -> int:
                 artifacts_to_scan.append((artifact_path, str(artifact_meta.kind)))
 
         if not artifacts_to_scan:
-            print(json.dumps({"status": "ERROR", "message": "No Cypilot-format artifacts found in registry."}, indent=None, ensure_ascii=False))
-            return 1
+            print(json.dumps({"kinds": [], "kind_counts": {}, "kind_to_templates": {}, "template_to_kinds": {}, "artifacts_scanned": 0}, indent=None, ensure_ascii=False))
+            return 0
 
     # Parse artifacts and collect kinds that have actual IDs
     template_to_kinds: Dict[str, Set[str]] = {}

@@ -3652,9 +3652,10 @@ class TestCLIListIdKindsErrorBranches(unittest.TestCase):
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
                     exit_code = main(["list-id-kinds"])
-                self.assertNotEqual(exit_code, 0)
+                self.assertEqual(exit_code, 0)
                 out = json.loads(stdout.getvalue())
-                self.assertEqual(out.get("status"), "ERROR")
+                self.assertEqual(out.get("kinds"), [])
+                self.assertEqual(out.get("artifacts_scanned"), 0)
             finally:
                 os.chdir(cwd)
 
@@ -4043,9 +4044,11 @@ class TestCLIListIdsErrorBranches(unittest.TestCase):
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
                     exit_code = main(["list-ids"])
-                self.assertNotEqual(exit_code, 0)
+                self.assertEqual(exit_code, 0)
                 out = json.loads(stdout.getvalue())
-                self.assertEqual(out.get("status"), "ERROR")
+                self.assertEqual(out.get("count"), 0)
+                self.assertEqual(out.get("artifacts_scanned"), 0)
+                self.assertEqual(out.get("ids"), [])
             finally:
                 os.chdir(cwd)
 
