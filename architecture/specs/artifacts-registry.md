@@ -81,9 +81,10 @@ Notes:
 
 ## Root Structure
 
+`version` and `project_root` are defined in `config/core.toml` (authoritative source). They may appear in `artifacts.toml` for standalone or legacy use; the tool merges them at load time.
+
 ```toml
-version = "2.0"
-project_root = ".."
+# artifacts.toml — systems and ignore only (version/project_root in core.toml)
 
 [[ignore]]
 reason = "Third-party code"
@@ -96,8 +97,8 @@ patterns = ["vendor/*", "node_modules/*"]
 
 | Key | Type | Required | Description |
 |-----|------|----------|-------------|
-| `version` | string | YES | Schema version (`"2.0"`) |
-| `project_root` | string | NO | Relative path from `artifacts.toml` to project root. Default: `".."` |
+| `version` | string | NO | Schema version. Normally in `core.toml`; may appear here for legacy/standalone use. |
+| `project_root` | string | NO | Relative path to project root. Normally in `core.toml`; may appear here for legacy/standalone use. Default: `".."` |
 | `ignore` | array of tables | NO | Global ignore rules (visibility filter) |
 | `systems` | array of tables | YES | Root-level system nodes |
 
@@ -782,8 +783,7 @@ else:
 ## Example Registry
 
 ```toml
-version = "2.0"
-project_root = ".."
+# version and project_root are in core.toml
 
 [[ignore]]
 reason = "Third-party module"
@@ -963,7 +963,7 @@ extensions = [".ts"]
 |---|-------|----------|---------------|
 | R.1 | `artifacts.toml` exists at `.cypilot/config/` | YES | File exists at `.cypilot/config/artifacts.toml` |
 | R.2 | TOML parses without errors | YES | `tomllib.loads()` succeeds |
-| R.3 | `version` field present and non-empty | YES | Field exists and is string |
+| R.3 | `version` field resolvable (from `core.toml` or `artifacts.toml`) | YES | Field exists in at least one source and is string |
 | R.4 | `systems` array present | YES | Array (may be empty) |
 | R.5 | Each system has `name`, `slug`, and `kit` fields | YES | All three fields exist per system |
 | R.6 | System `kit` references exist in `config/core.toml` | YES | Lookup succeeds |

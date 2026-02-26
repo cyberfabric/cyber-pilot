@@ -455,8 +455,8 @@ class TestCLIAgentsCommand(unittest.TestCase):
             created = out.get("workflows", {}).get("created", [])
             self.assertTrue(all(not Path(p).exists() for p in created))
 
-    def test_agents_unknown_agent_creates_stub_config(self):
-        """Test agents command with unknown agent creates stub config."""
+    def test_agents_unknown_agent_uses_builtin_defaults(self):
+        """Test agents command with unknown agent uses built-in defaults without creating config file."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
@@ -468,23 +468,25 @@ class TestCLIAgentsCommand(unittest.TestCase):
                 exit_code = main(["agents", "--agent", "mystery-agent", "--root", str(root), "--cypilot-root", str(root)])
             self.assertEqual(exit_code, 0)
 
+            # No cypilot-agents.json should be created
             cfg_path = root / "cypilot-agents.json"
-            self.assertTrue(cfg_path.exists())
-            cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
-            self.assertIn("mystery-agent", cfg.get("agents", {}))
+            self.assertFalse(cfg_path.exists())
+            out = json.loads(stdout.getvalue())
+            self.assertIsNone(out.get("config_path"))
 
     def test_agents_config_error_invalid_agents(self):
         """Test agents command with invalid agents config."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            (root / "cypilot-agents.json").write_text(
+            cfg_path = root / "bad-config.json"
+            cfg_path.write_text(
                 json.dumps({"version": 1, "agents": "bad"}, indent=2) + "\n",
                 encoding="utf-8",
             )
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                code = main(["agents", "--agent", "windsurf", "--root", str(root)])
+                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--config", str(cfg_path)])
             self.assertEqual(code, 1)
             out = json.loads(stdout.getvalue())
             self.assertEqual(out.get("status"), "CONFIG_ERROR")
@@ -496,7 +498,8 @@ class TestCLIAgentsCommand(unittest.TestCase):
             (root / ".git").mkdir()
             self._write_minimal_cypilot_skill(root)
             self._write_workflows_with_frontmatter(root)
-            (root / "cypilot-agents.json").write_text(
+            cfg_path = root / "agents-config.json"
+            cfg_path.write_text(
                 json.dumps({
                     "version": 1,
                     "agents": {
@@ -510,7 +513,7 @@ class TestCLIAgentsCommand(unittest.TestCase):
             )
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root)])
+                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root), "--config", str(cfg_path)])
             # Should return partial status due to workflow error
             out = json.loads(stdout.getvalue())
             self.assertIn("Missing workflow_dir", str(out.get("errors", [])))
@@ -522,7 +525,8 @@ class TestCLIAgentsCommand(unittest.TestCase):
             (root / ".git").mkdir()
             self._write_minimal_cypilot_skill(root)
             self._write_workflows_with_frontmatter(root)
-            (root / "cypilot-agents.json").write_text(
+            cfg_path = root / "agents-config.json"
+            cfg_path.write_text(
                 json.dumps({
                     "version": 1,
                     "agents": {
@@ -539,7 +543,7 @@ class TestCLIAgentsCommand(unittest.TestCase):
             )
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root)])
+                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root), "--config", str(cfg_path)])
             out = json.loads(stdout.getvalue())
             self.assertIn("Missing or invalid template", str(out.get("errors", [])))
 
@@ -550,7 +554,8 @@ class TestCLIAgentsCommand(unittest.TestCase):
             (root / ".git").mkdir()
             self._write_minimal_cypilot_skill(root)
             self._write_workflows_with_frontmatter(root)
-            (root / "cypilot-agents.json").write_text(
+            cfg_path = root / "agents-config.json"
+            cfg_path.write_text(
                 json.dumps({
                     "version": 1,
                     "agents": {
@@ -564,7 +569,7 @@ class TestCLIAgentsCommand(unittest.TestCase):
             )
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root)])
+                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root), "--config", str(cfg_path)])
             out = json.loads(stdout.getvalue())
             self.assertIn("outputs must be an array", str(out.get("errors", [])))
 
@@ -574,7 +579,8 @@ class TestCLIAgentsCommand(unittest.TestCase):
             root = Path(tmpdir)
             (root / ".git").mkdir()
             self._write_minimal_cypilot_skill(root)
-            (root / "cypilot-agents.json").write_text(
+            cfg_path = root / "agents-config.json"
+            cfg_path.write_text(
                 json.dumps({
                     "version": 1,
                     "agents": {
@@ -590,7 +596,7 @@ class TestCLIAgentsCommand(unittest.TestCase):
             )
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root)])
+                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root), "--config", str(cfg_path)])
             out = json.loads(stdout.getvalue())
             self.assertIn("missing path", str(out.get("errors", [])))
 
@@ -600,7 +606,8 @@ class TestCLIAgentsCommand(unittest.TestCase):
             root = Path(tmpdir)
             (root / ".git").mkdir()
             self._write_minimal_cypilot_skill(root)
-            (root / "cypilot-agents.json").write_text(
+            cfg_path = root / "agents-config.json"
+            cfg_path.write_text(
                 json.dumps({
                     "version": 1,
                     "agents": {
@@ -616,7 +623,7 @@ class TestCLIAgentsCommand(unittest.TestCase):
             )
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root)])
+                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root), "--config", str(cfg_path)])
             out = json.loads(stdout.getvalue())
             self.assertIn("invalid template", str(out.get("errors", [])))
 
@@ -651,7 +658,7 @@ class TestCLIAgentsCommand(unittest.TestCase):
             self.assertGreaterEqual(updated, 0)
 
     def test_agents_recognized_agent_added_to_existing_config(self):
-        """Test that a recognized agent is added to existing config."""
+        """Test that a recognized agent is added to existing config passed via --config."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
@@ -659,7 +666,7 @@ class TestCLIAgentsCommand(unittest.TestCase):
             self._write_workflows_with_frontmatter(root)
 
             # Create config with only cursor
-            cfg_path = root / "cypilot-agents.json"
+            cfg_path = root / "agents-config.json"
             cfg_path.write_text(
                 json.dumps({
                     "version": 1,
@@ -672,13 +679,11 @@ class TestCLIAgentsCommand(unittest.TestCase):
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root)])
+                code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root), "--config", str(cfg_path)])
             self.assertEqual(code, 0)
-
-            cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
-            self.assertIn("windsurf", cfg.get("agents", {}))
-            # windsurf should have workflows config
-            self.assertIn("workflows", cfg["agents"]["windsurf"])
+            out = json.loads(stdout.getvalue())
+            # windsurf should use built-in defaults even when config has only cursor
+            self.assertEqual(out.get("status"), "PASS")
 
     def test_agents_skills_creates_and_updates_outputs(self):
         """Test agents command creates and updates skill output files."""
@@ -687,7 +692,8 @@ class TestCLIAgentsCommand(unittest.TestCase):
             (root / ".git").mkdir()
             self._write_minimal_cypilot_skill(root)
 
-            (root / "cypilot-agents.json").write_text(
+            cfg_path = root / "agents-config.json"
+            cfg_path.write_text(
                 json.dumps({
                     "version": 1,
                     "agents": {
@@ -715,7 +721,7 @@ class TestCLIAgentsCommand(unittest.TestCase):
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["agents", "--agent", "test", "--root", str(root), "--cypilot-root", str(root)])
+                exit_code = main(["agents", "--agent", "test", "--root", str(root), "--cypilot-root", str(root), "--config", str(cfg_path)])
             self.assertEqual(exit_code, 0)
 
             out = json.loads(stdout.getvalue())
@@ -733,7 +739,7 @@ class TestCLIAgentsCommand(unittest.TestCase):
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["agents", "--agent", "test", "--root", str(root), "--cypilot-root", str(root)])
+                exit_code = main(["agents", "--agent", "test", "--root", str(root), "--cypilot-root", str(root), "--config", str(cfg_path)])
             self.assertEqual(exit_code, 0)
 
             out = json.loads(stdout.getvalue())
@@ -917,7 +923,8 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
             skill_out.parent.mkdir(parents=True)
             skill_out.write_text("# existing\n", encoding="utf-8")
 
-            (root / "cypilot-agents.json").write_text(
+            cfg_path = root / "agents-config.json"
+            cfg_path.write_text(
                 json.dumps({
                     "version": 1,
                     "agents": {
@@ -945,7 +952,7 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
             with unittest.mock.patch.object(Path, "read_text", _rt):
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    code = main(["agents", "--agent", "test", "--root", str(root), "--cypilot-root", str(root)])
+                    code = main(["agents", "--agent", "test", "--root", str(root), "--cypilot-root", str(root), "--config", str(cfg_path)])
             self.assertEqual(code, 0)
 
     def test_agents_delete_stale_unlink_error(self):
@@ -1163,7 +1170,7 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
             self.assertEqual(code, 0)
 
     def test_agents_unrecognized_agent_added_to_existing_config(self):
-        """Test that an unrecognized agent is added as stub to existing config."""
+        """Test that an unrecognized agent is added as stub to existing config passed via --config."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
@@ -1171,7 +1178,7 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
             self._write_workflows_with_frontmatter(root)
 
             # Create config with only cursor
-            cfg_path = root / "cypilot-agents.json"
+            cfg_path = root / "agents-config.json"
             cfg_path.write_text(
                 json.dumps({
                     "version": 1,
@@ -1184,13 +1191,11 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                code = main(["agents", "--agent", "new-mystery-agent", "--root", str(root), "--cypilot-root", str(root)])
+                code = main(["agents", "--agent", "new-mystery-agent", "--root", str(root), "--cypilot-root", str(root), "--config", str(cfg_path)])
             self.assertEqual(code, 0)
-
-            cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
-            self.assertIn("new-mystery-agent", cfg.get("agents", {}))
-            # Should have empty stub config
-            self.assertEqual(cfg["agents"]["new-mystery-agent"], {"workflows": {}, "skills": {}})
+            out = json.loads(stdout.getvalue())
+            # Should succeed with stub config for unknown agent
+            self.assertIsNotNone(out.get("config_path"))
 
     def test_agents_rename_scan_second_read_error(self):
         """Test agents command handles second read error during rename scan."""

@@ -327,7 +327,7 @@ Validation rules cannot be bypassed or weakened in STRICT mode. The deterministi
 **Location**: In-memory models built from filesystem state (no persistent database)
 
 **Machine-Readable Schemas**:
-- **Config schema**: `config/core.toml` structure defined by [core-config.schema.json](.cypilot/schemas/core-config.schema.json) (planned)
+- **Config schema**: `config/core.toml` structure defined by [core-config.schema.json]({cypilot_path}/.core/schemas/core-config.schema.json)
 - **Kit constraints schema**: [kit-constraints.schema.json](.cypilot/schemas/kit-constraints.schema.json)
 - **Artifact registry**: [artifacts.toml](.cypilot/config/artifacts.toml) — system, autodetect, and codebase definitions
 - **Python types**: `skills/cypilot/scripts/cypilot/` — dataclass definitions for in-memory models

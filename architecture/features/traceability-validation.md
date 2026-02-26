@@ -2,19 +2,19 @@
 
 - [ ] `p1` - **ID**: `cpt-cypilot-featstatus-traceability-validation`
 
-## 1. Feature Context
+## Feature Context
 
 - [x] `p1` - `cpt-cypilot-feature-traceability-validation`
 
-### 1.1 Overview
+### 1. Overview
 
 Deterministic quality gate that scans artifacts for ID definitions and references, scans code for `@cpt-*` traceability markers, validates structural contracts and cross-references, and provides query commands for navigating the ID graph. All checks are single-pass, stdlib-only, and produce machine-readable JSON reports with file paths, line numbers, and actionable fixing prompts.
 
-### 1.2 Purpose
+### 2. Purpose
 
 Catches structural and traceability issues that AI agents miss or hallucinate â€” without relying on an LLM. Ensures that every design element has a unique ID, every reference resolves to a definition, every checked reference implies a checked definition, and every `to_code` ID has a matching code marker. Addresses PRD requirements for ID and traceability (`cpt-cypilot-fr-core-traceability`), CDSL instruction tracking (`cpt-cypilot-fr-core-cdsl`), artifact validation (`cpt-cypilot-fr-sdlc-validation`), and cross-artifact consistency (`cpt-cypilot-fr-sdlc-cross-artifact`).
 
-### 1.3 Actors
+### 3. Actors
 
 | Actor | Role in Feature |
 |-------|-----------------|
@@ -22,14 +22,14 @@ Catches structural and traceability issues that AI agents miss or hallucinate â€
 | `cpt-cypilot-actor-ai-agent` | Invokes validation after artifact/code generation; uses query commands for navigation |
 | `cpt-cypilot-actor-ci-pipeline` | Runs validation as a CI gate to enforce quality floor |
 
-### 1.4 References
+### 4. References
 
 - **PRD**: [PRD.md](../PRD.md) â€” `cpt-cypilot-fr-core-traceability`, `cpt-cypilot-fr-core-cdsl`, `cpt-cypilot-fr-sdlc-validation`, `cpt-cypilot-fr-sdlc-cross-artifact`
 - **Design**: [DESIGN.md](../DESIGN.md) â€” `cpt-cypilot-component-validator`, `cpt-cypilot-component-traceability-engine`
 - **Specs**: [traceability.md](../specs/traceability.md), [CDSL.md](../specs/CDSL.md), [constraints.md](../specs/kit/constraints.md)
 - **Dependencies**: `cpt-cypilot-feature-core-infra`
 
-## 2. Actor Flows (CDSL)
+## Actor Flows
 
 ### Validate Artifacts
 
@@ -86,7 +86,7 @@ Catches structural and traceability issues that AI agents miss or hallucinate â€
 7. [x] - `p1` - **IF** `get-content`: locate ID definition, extract content block from heading scope - `inst-if-get-content`
 8. [x] - `p1` - **RETURN** JSON result - `inst-return-query`
 
-## 3. Processes / Business Logic (CDSL)
+## Processes / Business Logic
 
 ### Scan Artifact IDs
 
@@ -203,7 +203,7 @@ Catches structural and traceability issues that AI agents miss or hallucinate â€
    2. [x] - `p1` - **IF** code block has no matching CDSL step in artifact, emit error - `inst-if-inst-orphan`
 7. [x] - `p1` - **RETURN** accumulated errors and warnings - `inst-return-code-cross`
 
-## 4. States (CDSL)
+## States
 
 ### Validation Report Lifecycle
 
@@ -218,7 +218,7 @@ Catches structural and traceability issues that AI agents miss or hallucinate â€
 2. [x] - `p1` - **FROM** NOT_RUN **TO** FAIL **WHEN** validation completes with structural or traceability errors (exit code 2) - `inst-fail`
 3. [x] - `p1` - **FROM** NOT_RUN **TO** ERROR **WHEN** validation cannot run (no adapter, missing config, exit code 1) - `inst-error`
 
-## 5. Definitions of Done
+## Definitions of Done
 
 ### Artifact Structural Validation
 
@@ -307,7 +307,7 @@ The system **MUST** scan CDSL instruction markers (`inst-{slug}` suffixes in num
 - `cpt-cypilot-component-validator`
 - `cpt-cypilot-component-traceability-engine`
 
-## 6. Acceptance Criteria
+## Acceptance Criteria
 
 - [ ] `cypilot validate` validates all registered artifacts and produces JSON report with PASS/FAIL status
 - [ ] `cypilot validate --artifact <path>` validates a single artifact against its constraints

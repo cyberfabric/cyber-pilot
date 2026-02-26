@@ -48,7 +48,7 @@ def _target_path_from_root(target: Path, project_root: Path) -> str:
 
 
 # Directories and files to copy when cypilot is external to the project.
-_COPY_DIRS = ["workflows", "requirements", "schemas", "templates", "prompts", "kits"]
+_COPY_DIRS = ["workflows", "requirements", "schemas", "templates", "prompts", "kits", "architecture"]
 _COPY_ROOT_DIRS = ["skills"]
 _COPY_FILES: list = []
 _CORE_SUBDIR = ".core"
@@ -503,56 +503,19 @@ def _list_workflow_files(cypilot_root: Path) -> List[str]:
     return sorted(set(out))
 
 
-def cmd_agents(argv: List[str]) -> int:
-    """Unified command to register both workflows and skills for an agent."""
-    p = argparse.ArgumentParser(prog="agents", description="Generate/update agent-specific workflow proxies and skill outputs")
-    agent_group = p.add_mutually_exclusive_group(required=True)
-    agent_group.add_argument("--agent", help="Agent/IDE key (e.g., windsurf, cursor, claude, copilot, openai)")
-    agent_group.add_argument("--openai", action="store_true", help="Shortcut for --agent openai (OpenAI Codex)")
-    p.add_argument("--root", default=".", help="Project root directory (default: current directory)")
-    p.add_argument("--cypilot-root", default=None, help="Explicit Cypilot core root (optional override)")
-    p.add_argument("--config", default=None, help="Path to unified agents config JSON (default: cypilot-agents.json in project root)")
-    p.add_argument("--dry-run", action="store_true", help="Compute changes without writing files")
-    args = p.parse_args(argv)
+_ALL_RECOGNIZED_AGENTS = ["windsurf", "cursor", "claude", "copilot", "openai"]
 
-    agent = "openai" if bool(getattr(args, "openai", False)) else str(args.agent).strip()
-    if not agent:
-        raise SystemExit("--agent must be non-empty")
 
-    start_path = Path(args.root).resolve()
-    project_root = find_project_root(start_path)
-    if project_root is None:
-        print(json.dumps({
-            "status": "NOT_FOUND",
-            "message": "No project root found (no AGENTS.md with @cpt:root-agents or .git)",
-            "searched_from": start_path.as_posix(),
-        }, indent=2, ensure_ascii=False))
-        return 1
-
-    cypilot_root = Path(args.cypilot_root).resolve() if args.cypilot_root else None
-    if cypilot_root is None:
-        cypilot_root = (Path(__file__).resolve().parents[5])
-        if not _is_cypilot_root(cypilot_root):
-            cypilot_root = Path(__file__).resolve().parents[7]
-
-    cypilot_root, copy_report = _ensure_cypilot_local(cypilot_root, project_root, args.dry_run)
-    if copy_report.get("action") == "error":
-        print(json.dumps({
-            "status": "COPY_ERROR",
-            "message": f"Failed to copy cypilot into project: {copy_report.get('message', 'unknown')}",
-            "cypilot_root": cypilot_root.as_posix(),
-            "project_root": project_root.as_posix(),
-        }, indent=2, ensure_ascii=False))
-        return 1
-
-    cfg_path = Path(args.config).resolve() if args.config else (project_root / "cypilot-agents.json")
-    cfg = _load_json_file(cfg_path)
-
-    recognized = agent in {"windsurf", "cursor", "claude", "copilot", "openai"}
-    if cfg is None:
-        cfg = _default_agents_config() if recognized else {"version": 1, "agents": {agent: {"workflows": {}, "skills": {}}}}
-        if not args.dry_run:
-            _write_json_file(cfg_path, cfg)
+def _process_single_agent(
+    agent: str,
+    project_root: Path,
+    cypilot_root: Path,
+    cfg: dict,
+    cfg_path: Optional[Path],
+    dry_run: bool,
+) -> Dict[str, Any]:
+    """Process a single agent and return its result dict."""
+    recognized = agent in set(_ALL_RECOGNIZED_AGENTS)
 
     agents_cfg = cfg.get("agents") if isinstance(cfg, dict) else None
     if isinstance(cfg, dict) and isinstance(agents_cfg, dict) and agent not in agents_cfg:
@@ -564,17 +527,14 @@ def cmd_agents(argv: List[str]) -> int:
         else:
             agents_cfg[agent] = {"workflows": {}, "skills": {}}
         cfg["agents"] = agents_cfg
-        if not args.dry_run:
-            _write_json_file(cfg_path, cfg)
 
     if not isinstance(agents_cfg, dict) or agent not in agents_cfg or not isinstance(agents_cfg.get(agent), dict):
-        print(json.dumps({
+        return {
             "status": "CONFIG_ERROR",
             "message": "Agent config missing or invalid",
-            "config_path": cfg_path.as_posix(),
+            "config_path": cfg_path.as_posix() if cfg_path else None,
             "agent": agent,
-        }, indent=2, ensure_ascii=False))
-        return 1
+        }
 
     agent_cfg: dict = agents_cfg[agent]
     workflows_cfg = agent_cfg.get("workflows", {})
@@ -681,7 +641,7 @@ def cmd_agents(argv: List[str]) -> int:
                     continue
                 if Path(dst).exists():
                     continue
-                if not args.dry_run:
+                if not dry_run:
                     workflow_dir.mkdir(parents=True, exist_ok=True)
                     Path(dst).parent.mkdir(parents=True, exist_ok=True)
                     pth.replace(Path(dst))
@@ -693,7 +653,7 @@ def cmd_agents(argv: List[str]) -> int:
                 pth = Path(p_str)
                 if not pth.exists():
                     workflows_result["created"].append(p_str)
-                    if not args.dry_run:
+                    if not dry_run:
                         pth.parent.mkdir(parents=True, exist_ok=True)
                         pth.write_text(meta["content"], encoding="utf-8")
                     continue
@@ -703,7 +663,7 @@ def cmd_agents(argv: List[str]) -> int:
                     old = ""
                 if old != meta["content"]:
                     workflows_result["updated"].append(p_str)
-                    if not args.dry_run:
+                    if not dry_run:
                         pth.write_text(meta["content"], encoding="utf-8")
 
             desired_paths = set(desired.keys())
@@ -736,7 +696,7 @@ def cmd_agents(argv: List[str]) -> int:
                 if expected.exists():
                     continue
                 workflows_result["deleted"].append(p_str)
-                if not args.dry_run:
+                if not dry_run:
                     try:
                         pth.unlink()
                     except (PermissionError, FileNotFoundError, OSError):
@@ -780,7 +740,7 @@ def cmd_agents(argv: List[str]) -> int:
 
                     custom_target = out_cfg.get("target")
                     if custom_target:
-                        target_abs = (cypilot_root / custom_target).resolve()
+                        target_abs = core_subpath(cypilot_root, *Path(custom_target).parts).resolve()
                         target_rel = _target_path_from_root(target_abs, project_root)
                         target_fm = _parse_frontmatter(target_abs)
                         out_name = target_fm.get("name", skill_source_name)
@@ -805,7 +765,7 @@ def cmd_agents(argv: List[str]) -> int:
 
                     if not out_path.exists():
                         skills_result["created"].append(out_path.as_posix())
-                        if not args.dry_run:
+                        if not dry_run:
                             out_path.parent.mkdir(parents=True, exist_ok=True)
                             out_path.write_text(content, encoding="utf-8")
                         skills_result["outputs"].append({"path": _safe_relpath(out_path, project_root), "action": "created"})
@@ -816,23 +776,18 @@ def cmd_agents(argv: List[str]) -> int:
                             old = ""
                         if old != content:
                             skills_result["updated"].append(out_path.as_posix())
-                            if not args.dry_run:
+                            if not dry_run:
                                 out_path.write_text(content, encoding="utf-8")
                             skills_result["outputs"].append({"path": _safe_relpath(out_path, project_root), "action": "updated"})
                         else:
                             skills_result["outputs"].append({"path": _safe_relpath(out_path, project_root), "action": "unchanged"})
 
     all_errors = workflows_result.get("errors", []) + skills_result.get("errors", [])
-    status = "PASS" if not all_errors else "PARTIAL"
+    agent_status = "PASS" if not all_errors else "PARTIAL"
 
-    print(json.dumps({
-        "status": status,
+    return {
+        "status": agent_status,
         "agent": agent,
-        "project_root": project_root.as_posix(),
-        "cypilot_root": cypilot_root.as_posix(),
-        "config_path": cfg_path.as_posix(),
-        "dry_run": bool(args.dry_run),
-        "cypilot_copy": copy_report,
         "workflows": {
             "created": workflows_result["created"],
             "updated": workflows_result["updated"],
@@ -855,6 +810,87 @@ def cmd_agents(argv: List[str]) -> int:
             },
         },
         "errors": all_errors if all_errors else None,
+    }
+
+
+def cmd_agents(argv: List[str]) -> int:
+    """Unified command to register both workflows and skills for an agent."""
+    p = argparse.ArgumentParser(prog="agents", description="Generate/update agent-specific workflow proxies and skill outputs")
+    agent_group = p.add_mutually_exclusive_group(required=False)
+    agent_group.add_argument("--agent", default=None, help="Agent/IDE key (e.g., windsurf, cursor, claude, copilot, openai). Omit to init all supported agents.")
+    agent_group.add_argument("--openai", action="store_true", help="Shortcut for --agent openai (OpenAI Codex)")
+    p.add_argument("--root", default=".", help="Project root directory (default: current directory)")
+    p.add_argument("--cypilot-root", default=None, help="Explicit Cypilot core root (optional override)")
+    p.add_argument("--config", default=None, help="Path to agents config JSON (optional; defaults are built-in)")
+    p.add_argument("--dry-run", action="store_true", help="Compute changes without writing files")
+    args = p.parse_args(argv)
+
+    # Determine agent list
+    if bool(getattr(args, "openai", False)):
+        agents_to_process = ["openai"]
+    elif args.agent is not None:
+        agent = str(args.agent).strip()
+        if not agent:
+            raise SystemExit("--agent must be non-empty")
+        agents_to_process = [agent]
+    else:
+        agents_to_process = list(_ALL_RECOGNIZED_AGENTS)
+
+    start_path = Path(args.root).resolve()
+    project_root = find_project_root(start_path)
+    if project_root is None:
+        print(json.dumps({
+            "status": "NOT_FOUND",
+            "message": "No project root found (no AGENTS.md with @cpt:root-agents or .git)",
+            "searched_from": start_path.as_posix(),
+        }, indent=2, ensure_ascii=False))
+        return 1
+
+    cypilot_root = Path(args.cypilot_root).resolve() if args.cypilot_root else None
+    if cypilot_root is None:
+        cypilot_root = (Path(__file__).resolve().parents[5])
+        if not _is_cypilot_root(cypilot_root):
+            cypilot_root = Path(__file__).resolve().parents[7]
+
+    cypilot_root, copy_report = _ensure_cypilot_local(cypilot_root, project_root, args.dry_run)
+    if copy_report.get("action") == "error":
+        print(json.dumps({
+            "status": "COPY_ERROR",
+            "message": f"Failed to copy cypilot into project: {copy_report.get('message', 'unknown')}",
+            "cypilot_root": cypilot_root.as_posix(),
+            "project_root": project_root.as_posix(),
+        }, indent=2, ensure_ascii=False))
+        return 1
+
+    cfg_path: Optional[Path] = Path(args.config).resolve() if args.config else None
+    cfg: Optional[dict] = _load_json_file(cfg_path) if cfg_path else None
+
+    any_recognized = any(a in set(_ALL_RECOGNIZED_AGENTS) for a in agents_to_process)
+    if cfg is None:
+        if any_recognized:
+            cfg = _default_agents_config()
+        else:
+            cfg = {"version": 1, "agents": {a: {"workflows": {}, "skills": {}} for a in agents_to_process}}
+
+    has_errors = False
+    results: Dict[str, Any] = {}
+    for agent in agents_to_process:
+        result = _process_single_agent(agent, project_root, cypilot_root, cfg, cfg_path, args.dry_run)
+        results[agent] = result
+        if result.get("status") != "PASS":
+            has_errors = True
+
+    overall_status = "PASS" if not has_errors else "PARTIAL"
+
+    print(json.dumps({
+        "status": overall_status,
+        "agents": list(agents_to_process),
+        "project_root": project_root.as_posix(),
+        "cypilot_root": cypilot_root.as_posix(),
+        "config_path": cfg_path.as_posix() if cfg_path else None,
+        "dry_run": bool(args.dry_run),
+        "cypilot_copy": copy_report,
+        "results": results,
     }, indent=2, ensure_ascii=False))
 
-    return 0 if not all_errors else 1
+    return 0 if not has_errors else 1

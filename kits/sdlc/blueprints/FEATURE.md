@@ -87,8 +87,8 @@ section = "load_dependencies"
 - [ ] Read DECOMPOSITION to get feature ID and context
 - [ ] Read DESIGN to understand domain types and components
 - [ ] Read adapter `artifacts.toml` to determine FEATURE artifact path
-- [ ] Load `../../constraints.json` for kit-level constraints
-- [ ] Load `{cypilot_path}/.core/requirements/identifiers.md` for ID formats
+- [ ] Load `{cypilot_path}/config/kits/sdlc/constraints.toml` for kit-level constraints
+- [ ] Load `{cypilot_path}/.core/architecture/specs/traceability.md` for ID formats
 ```
 `@/cpt:rule`
 
@@ -169,8 +169,8 @@ kind = "requirements"
 section = "constraints"
 ```
 ```markdown
-- [ ] ALWAYS open and follow `../../constraints.json` (kit root)
-- [ ] Treat `constraints.json` as primary validator for:
+- [ ] ALWAYS open and follow `{cypilot_path}/config/kits/sdlc/constraints.toml` (kit root)
+- [ ] Treat `constraints.toml` as primary validator for:
   - where IDs are defined
   - where IDs are referenced
   - which cross-artifact references are required / optional / prohibited
@@ -1657,8 +1657,6 @@ headings = ["feature-h1-title"]
 
 `@cpt:example`
 ```markdown
-# Feature: Task CRUD
-
 - [ ] `p1` - **ID**: `cpt-ex-task-flow-featstatus-task-crud`
 
 - [ ] `p2` - `cpt-ex-task-flow-feature-task-crud`
@@ -1676,7 +1674,7 @@ numbered = true
 multiple = false
 pattern = "Feature Context"
 description = "Feature context section."
-examples = ["## 1. Feature Context"]
+examples = ["## Feature Context"]
 ```
 `@/cpt:heading`
 
@@ -1695,7 +1693,7 @@ numbered = true
 multiple = false
 pattern = "Overview"
 description = "Feature overview."
-examples = ["### 1.1 Overview"]
+examples = ["### 1. Overview"]
 ```
 `@/cpt:heading`
 
@@ -1724,7 +1722,7 @@ numbered = true
 multiple = false
 pattern = "Purpose"
 description = "Feature purpose."
-examples = ["### 1.2 Purpose"]
+examples = ["### 2. Purpose"]
 ```
 `@/cpt:heading`
 
@@ -1751,7 +1749,7 @@ numbered = true
 multiple = false
 pattern = "Actors"
 description = "Actors involved in the feature."
-examples = ["### 1.3 Actors"]
+examples = ["### 3. Actors"]
 ```
 `@/cpt:heading`
 
@@ -1779,7 +1777,7 @@ numbered = true
 multiple = false
 pattern = "References"
 description = "References to related artifacts."
-examples = ["### 1.4 References"]
+examples = ["### 4. References"]
 ```
 `@/cpt:heading`
 
@@ -1810,7 +1808,7 @@ numbered = true
 multiple = false
 pattern = "Actor Flows (CDSL)"
 description = "Actor flows section."
-examples = ["## 2. Actor Flows (CDSL)"]
+examples = ["## Actor Flows"]
 ```
 `@/cpt:heading`
 
@@ -1829,7 +1827,7 @@ numbered = false
 multiple = true
 template = "{Flow Name}"
 description = "A single actor flow."
-examples = ["### Create Task"]
+examples = []
 ```
 `@/cpt:heading`
 
@@ -1904,7 +1902,7 @@ numbered = true
 multiple = false
 pattern = "Processes / Business Logic (CDSL)"
 description = "Processes / business logic section."
-examples = ["## 3. Processes / Business Logic (CDSL)"]
+examples = ["## Processes / Business Logic"]
 ```
 `@/cpt:heading`
 
@@ -1923,7 +1921,7 @@ numbered = false
 multiple = true
 template = "{Process Name}"
 description = "A single process/algorithm."
-examples = ["### Validate Task"]
+examples = []
 ```
 `@/cpt:heading`
 
@@ -1990,7 +1988,7 @@ numbered = true
 multiple = false
 pattern = "States (CDSL)"
 description = "States section."
-examples = ["## 4. States (CDSL)"]
+examples = ["## States"]
 ```
 `@/cpt:heading`
 
@@ -2009,7 +2007,7 @@ numbered = false
 multiple = true
 template = "{Entity Name} State Machine"
 description = "A single state machine."
-examples = ["### Task Status"]
+examples = []
 ```
 `@/cpt:heading`
 
@@ -2065,7 +2063,7 @@ numbered = true
 multiple = false
 pattern = "Definitions of Done"
 description = "Definitions of done section."
-examples = ["## 5. Definitions of Done"]
+examples = ["## Definitions of Done"]
 ```
 `@/cpt:heading`
 
@@ -2084,7 +2082,7 @@ numbered = false
 multiple = true
 template = "{Requirement Title}"
 description = "A single definition of done entry."
-examples = ["### Task Creation"]
+examples = []
 ```
 `@/cpt:heading`
 
@@ -2161,7 +2159,7 @@ numbered = true
 multiple = false
 pattern = "Acceptance Criteria"
 description = "Acceptance criteria for the feature."
-examples = ["## 6. Acceptance Criteria"]
+examples = ["## Acceptance Criteria"]
 ```
 `@/cpt:heading`
 
@@ -2177,5 +2175,9 @@ examples = ["## 6. Acceptance Criteria"]
 - [ ] The feature supports task creation and assignment flow end-to-end
 - [ ] Validation rules reject invalid titles, priorities, and past due dates
 - [ ] State transitions follow the Task Status state machine
+
+## Additional Context (optional)
+
+The feature must keep task status transitions consistent with the Task Status state machine in Section D. All state changes should emit events for the notification system.
 ```
 `@/cpt:example`

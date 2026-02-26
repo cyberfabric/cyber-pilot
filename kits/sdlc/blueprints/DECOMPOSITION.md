@@ -85,8 +85,8 @@ section = "load_dependencies"
 - [ ] Read DESIGN to identify elements to decompose
 - [ ] Read PRD to identify requirements to cover
 - [ ] Read adapter `artifacts.toml` to determine artifact paths
-- [ ] Load `../../constraints.json` for kit-level constraints
-- [ ] Load `{cypilot_path}/.core/requirements/identifiers.md` for ID formats
+- [ ] Load `{cypilot_path}/config/kits/sdlc/constraints.toml` for kit-level constraints
+- [ ] Load `{cypilot_path}/.core/architecture/specs/traceability.md` for ID formats
 ```
 `@/cpt:rule`
 
@@ -166,7 +166,7 @@ kind = "requirements"
 section = "checkbox_management"
 ```
 ```markdown
-**Defined IDs (from `constraints.json`)**:
+**Defined IDs (from `constraints.toml`)**:
 - **Kind**: `status` — `[ ] p1 - **ID**: cpt-{hierarchy-prefix}-status-overall` — checked when ALL features checked
 - **Kind**: `feature` — `[ ] p1 - **ID**: cpt-{hierarchy-prefix}-feature-{slug}` — checked when FEATURE spec complete
 
@@ -188,8 +188,8 @@ kind = "requirements"
 section = "constraints"
 ```
 ```markdown
-- [ ] ALWAYS open and follow `../../constraints.json` (kit root)
-- [ ] Treat `constraints.json` as primary validator for:
+- [ ] ALWAYS open and follow `{cypilot_path}/config/kits/sdlc/constraints.toml` (kit root)
+- [ ] Treat `constraints.toml` as primary validator for:
   - where IDs are defined
   - where IDs are referenced
   - which cross-artifact references are required / optional / prohibited
@@ -1100,7 +1100,7 @@ numbered = true
 multiple = true
 template = "[{Feature Title 1}](feature-{slug}/) - HIGH"
 description = "A single feature entry."
-examples = ["### 2.1 [Task CRUD](feature-task-crud/) ⏳ HIGH"]
+examples = []
 ```
 `@/cpt:heading`
 
@@ -1320,6 +1320,10 @@ headings = ["decomposition-entry"]
 
 `@cpt:example`
 ```markdown
+**Overall implementation status:**
+
+- [ ] `p1` - **ID**: `cpt-ex-task-flow-status-overall`
+
 ### 2.1 [Task CRUD](feature-task-crud/) ⏳ HIGH
 
 - [ ] `p1` - **ID**: `cpt-ex-task-flow-feature-task-crud`
@@ -1376,6 +1380,60 @@ headings = ["decomposition-entry"]
 - **Data**:
 
   - [ ] `p1` - `cpt-ex-task-flow-dbtable-tasks`
+
+### 2.2 [Notifications](feature-notifications/) ⏳ MEDIUM
+
+- [ ] `p2` - **ID**: `cpt-ex-task-flow-feature-notifications`
+
+- **Purpose**: Notify users about task assignments, due dates, and status changes.
+
+- **Depends On**: `cpt-ex-task-flow-feature-task-crud`
+
+- **Scope**:
+  - Push notifications for task assignments
+  - Email alerts for overdue tasks
+  - In-app notification center
+
+- **Out of scope**:
+  - SMS notifications
+  - Custom notification templates
+
+- **Requirements Covered**:
+
+  - [ ] `p2` - `cpt-ex-task-flow-fr-notifications`
+
+- **Design Principles Covered**:
+
+  - [ ] `p1` - `cpt-ex-task-flow-principle-realtime-first`
+  - [ ] `p2` - `cpt-ex-task-flow-principle-mobile-first`
+
+- **Design Constraints Covered**:
+
+  - [ ] `p1` - `cpt-ex-task-flow-constraint-supported-platforms`
+
+- **Domain Model Entities**:
+  - Task
+  - User
+  - Notification
+
+- **Design Components**:
+
+  - [ ] `p1` - `cpt-ex-task-flow-component-react-spa`
+  - [ ] `p1` - `cpt-ex-task-flow-component-api-server`
+  - [ ] `p2` - `cpt-ex-task-flow-component-redis-pubsub`
+
+- **API**:
+  - POST /api/notifications
+  - GET /api/notifications
+  - PUT /api/notifications/{id}/read
+
+- **Sequences**:
+
+  - [ ] `p2` - `cpt-ex-task-flow-seq-notification-delivery`
+
+- **Data**:
+
+  - [ ] `p2` - `cpt-ex-task-flow-dbtable-notifications`
 ```
 `@/cpt:example`
 
@@ -1411,14 +1469,6 @@ cpt-{system}-feature-{foundation-slug}
 
 `@cpt:example`
 ```markdown
-```text
-cpt-ex-task-flow-feature-task-crud
-    ↓
-    └─→ cpt-ex-task-flow-feature-notifications
-```
-
-**Dependency Rationale**:
-
-- `cpt-ex-task-flow-feature-notifications` requires `cpt-ex-task-flow-feature-task-crud`: notifications are triggered by task events (create, assign, status change)
+None.
 ```
 `@/cpt:example`

@@ -2,31 +2,31 @@
 
 - [ ] `p1` - **ID**: `cpt-{system}-featstatus-{feature-slug}`
 
-## 1. Feature Context
+## Feature Context
 
 - [ ] `p2` - `cpt-{system}-feature-{slug}`
 
-### 1.1 Overview
+### 1. Overview
 
 {Brief overview of what this feature does — 1-2 sentences.}
 
-### 1.2 Purpose
+### 2. Purpose
 
 {Why this feature exists, what PRD requirements or DESIGN element it addresses.}
 
-### 1.3 Actors
+### 3. Actors
 
 | Actor | Role in Feature |
 |-------|-----------------|
 | `cpt-{system}-actor-{slug}` | {What this actor does in this feature} |
 
-### 1.4 References
+### 4. References
 
 - **PRD**: [PRD.md](../PRD.md)
 - **Design**: [DESIGN.md](../DESIGN.md)
 - **Dependencies**: {List feature dependencies or "None"}
 
-## 2. Actor Flows (CDSL)
+## Actor Flows
 
 User-facing interactions that start with an actor (human or external system) and describe the end-to-end flow of a use case. Each flow has a triggering actor and shows how the system responds to actor actions.
 
@@ -52,7 +52,7 @@ User-facing interactions that start with an actor (human or external system) and
    1. [ ] - `p1` - {Action if false} - `inst-{step-id}`
 6. [ ] - `p1` - **RETURN** {result} - `inst-{step-id}`
 
-## 3. Processes / Business Logic (CDSL)
+## Processes / Business Logic
 
 Internal system functions and procedures that do not interact with actors directly. Examples: database layer operations, authorization logic, middleware, validation routines, library functions, background jobs. These are reusable building blocks called by Actor Flows or other processes.
 
@@ -76,7 +76,7 @@ Internal system functions and procedures that do not interact with actors direct
    1. [ ] - `p1` - {Handle error} - `inst-{step-id}`
 7. [ ] - `p1` - **RETURN** {result} - `inst-{step-id}`
 
-## 4. States (CDSL)
+## States
 
 Optional: Include when entities have explicit lifecycle states.
 
@@ -92,7 +92,7 @@ Optional: Include when entities have explicit lifecycle states.
 1. [ ] - `p1` - **FROM** {State1} **TO** {State2} **WHEN** {condition} - `inst-{step-id}`
 2. [ ] - `p1` - **FROM** {State2} **TO** {State3} **WHEN** {condition} - `inst-{step-id}`
 
-## 5. Definitions of Done
+## Definitions of Done
 
 Specific implementation tasks derived from flows/algorithms above.
 
@@ -110,7 +110,11 @@ The system **MUST** {clear description of what to implement}.
 - DB: `{table}`
 - Entities: `{EntityName}`
 
-## 6. Acceptance Criteria
+## Acceptance Criteria
 
 - [ ] {Testable criterion for this feature}
 - [ ] {Another testable criterion}
+
+## Additional Context (optional)
+
+{Any additional context, notes, or constraints relevant to this feature.}

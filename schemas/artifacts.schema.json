@@ -4,12 +4,10 @@
   "title": "Cypilot Artifact Registry (artifacts.toml)",
   "type": "object",
   "additionalProperties": false,
-  "required": ["version", "systems"],
+  "required": ["systems"],
   "examples": [
     {
-      "_comment": "Kits are defined in core.toml and merged at load time. They may optionally appear here for standalone use.",
-      "version": "1.0",
-      "project_root": "..",
+      "_comment": "version, project_root, and kits are defined in core.toml and merged at load time. They may optionally appear here for standalone or legacy use.",
       "systems": [
         {
           "name": "MyApp",
@@ -50,13 +48,13 @@
     "version": {
       "type": "string",
       "minLength": 1,
-      "description": "Schema version"
+      "description": "Schema version. Normally defined in core.toml; may appear here for standalone or legacy use."
     },
     "project_root": {
       "type": "string",
       "minLength": 1,
       "default": "..",
-      "description": "Relative path from artifacts.toml to the project root directory. All paths in artifacts and codebase are resolved relative to this."
+      "description": "Relative path to the project root. Normally defined in core.toml; may appear here for standalone or legacy use."
     },
     "kits": {
       "$ref": "#/$defs/kits",

@@ -133,7 +133,7 @@ Agent confirms understanding of requirements:
 
 ### Feature Status (`featstatus`)
 
-- [ ] FEATURE defines a `featstatus` ID definition directly under the H1 title (before `## 1. Feature Context`)
+- [ ] FEATURE defines a `featstatus` ID definition directly under the H1 title (before `## Feature Context`)
 - [ ] Template: `cpt-{system}-featstatus-{feature-slug}`
 - [ ] The `featstatus` checkbox MUST be consistent with all task-tracked items within its scope:
   - If `featstatus` is `[x]` then ALL nested task-tracked ID definitions AND ALL task-checkbox references within its content MUST be `[x]`

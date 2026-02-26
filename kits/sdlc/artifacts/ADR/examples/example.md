@@ -18,7 +18,6 @@ The system will handle:
 - Assignment history and audit trail
 - Real-time updates via change notifications
 
-
 ## Decision Drivers
 
 - Strong consistency required for task state transitions
@@ -26,13 +25,11 @@ The system will handle:
 - Team has existing PostgreSQL expertise
 - Operational maturity and hosting options important
 
-
 ## Considered Options
 
 1. **PostgreSQL** — Relational database with strong ACID guarantees, mature ecosystem, team expertise
 2. **MongoDB** — Document store with flexible schema, good for rapid iteration, less suited for relational data
 3. **SQLite** — Embedded database for simpler deployment, limited concurrent access, no built-in replication
-
 
 ## Decision Outcome
 
@@ -53,7 +50,6 @@ Confirmed when:
 - A prototype persists tasks and assignments with required relational queries
 - Migration story is documented and validated on a schema change
 
-
 ## Pros and Cons of the Options
 
 ### PostgreSQL
@@ -71,13 +67,8 @@ Confirmed when:
 - Pros: Simple deployment, minimal ops
 - Cons: Limited concurrent writes and scaling options
 
-
 ## More Information
 
 - [`cpt-ex-task-flow-fr-task-management`](../PRD.md) — Primary requirement for task storage
 - [`cpt-ex-task-flow-feature-task-crud`](../specs/task-crud/DESIGN.md) — Spec implementing task persistence
-
-
-
-
 

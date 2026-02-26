@@ -81,12 +81,24 @@ def cmd_adapter_info(argv: list[str]) -> int:
                 registry = tomllib.load(f)
         except Exception:
             registry = None
+    # Load core.toml for version/project_root/kits (authoritative source)
+    core_data: Optional[dict] = None
+    for cp in [(adapter_dir / "config" / "core.toml"), (adapter_dir / "core.toml")]:
+        if cp.is_file():
+            try:
+                import tomllib as _tl
+                with open(cp, "rb") as f:
+                    core_data = _tl.load(f)
+            except Exception:
+                pass
+            break
+
     if registry is None:
         config["artifacts_registry"] = None
         config["artifacts_registry_error"] = "MISSING_OR_INVALID_JSON" if registry_path.exists() else "MISSING"
         config["autodetect_registry"] = None
     else:
-        def _extract_autodetect_registry(raw: object) -> Optional[dict]:
+        def _extract_autodetect_registry(raw: object, core: Optional[dict]) -> Optional[dict]:
             if not isinstance(raw, dict):
                 return None
             if "systems" not in raw:
@@ -108,15 +120,27 @@ def cmd_adapter_info(argv: list[str]) -> int:
                     out["children"] = []
                 return out
 
+            # version/project_root/kits: prefer core.toml, fallback to registry
+            version = raw.get("version")
+            p_root = raw.get("project_root")
+            kits = raw.get("kits")
+            if isinstance(core, dict):
+                if version is None and isinstance(core.get("version"), str):
+                    version = core["version"]
+                if p_root is None and isinstance(core.get("project_root"), str):
+                    p_root = core["project_root"]
+                if (not kits) and isinstance(core.get("kits"), dict):
+                    kits = core["kits"]
+
             return {
-                "version": raw.get("version"),
-                "project_root": raw.get("project_root"),
-                "kits": raw.get("kits"),
+                "version": version,
+                "project_root": p_root,
+                "kits": kits,
                 "ignore": raw.get("ignore"),
                 "systems": [_extract_system(s) for s in (raw.get("systems") or [])],
             }
 
-        config["autodetect_registry"] = _extract_autodetect_registry(registry)
+        config["autodetect_registry"] = _extract_autodetect_registry(registry, core_data)
 
         expanded: object = registry
         if isinstance(registry, dict) and "systems" in registry:

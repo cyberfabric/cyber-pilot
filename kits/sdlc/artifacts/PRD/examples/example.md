@@ -1,23 +1,14 @@
-
-
 # PRD — TaskFlow
-
 
 ## 1. Overview
 
-
 ### 1.1 Purpose
-
 
 TaskFlow is a lightweight task management system for small teams, enabling task creation, assignment, and progress tracking with real-time notifications.
 
-
 ### 1.2 Background / Problem Statement
 
-
-
 The system focuses on simplicity and speed, allowing teams to manage their daily work without the overhead of complex project management tools. TaskFlow bridges the gap between simple to-do lists and enterprise-grade solutions.
-
 
 **Target Users**:
 
@@ -25,16 +16,13 @@ The system focuses on simplicity and speed, allowing teams to manage their daily
 - Developers tracking daily work
 - Project managers monitoring progress
 
-
 **Key Problems Solved**:
 
 - Scattered task tracking across multiple tools
 - Lack of visibility into team workload
 - Missing deadline notifications
 
-
 ### 1.3 Goals (Business Outcomes)
-
 
 **Success Criteria**:
 
@@ -42,13 +30,11 @@ The system focuses on simplicity and speed, allowing teams to manage their daily
 - Real-time status updates visible to all team members within 2 seconds (Baseline: N/A; Target: v1.0)
 - Overdue task alerts delivered within 1 minute of deadline (Baseline: N/A; Target: v1.0)
 
-
 **Capabilities**:
 
 - Manage team tasks and assignments
 - Track task status and progress in real time
 - Send notifications for deadlines and status changes
-
 
 ### 1.4 Glossary
 
@@ -58,57 +44,35 @@ The system focuses on simplicity and speed, allowing teams to manage their daily
 | Assignment | Mapping a task to an assignee (team member) |
 | Notification | An alert emitted when tasks change or become overdue |
 
-
-
-
 ## 2. Actors
-
 
 ### 2.1 Human Actors
 
-
 #### Team Member
-
 
 **ID**: `cpt-ex-task-flow-actor-member`
 
-
 **Role**: Creates tasks, updates progress, and collaborates on assignments.
-
-
-
-
 
 #### Team Lead
 
-
 **ID**: `cpt-ex-task-flow-actor-lead`
 
-
 **Role**: Assigns tasks, sets priorities, and monitors team workload.
-
-
-
-
-
 
 ### 2.2 System Actors
 
 #### Notification Service
 
-
 **ID**: `cpt-ex-task-flow-actor-notifier`
 
-
 **Role**: Sends alerts for due dates, assignments, and status changes.
-
 
 ## 3. Operational Concept & Environment
 
 ### 3.1 Module-Specific Environment Constraints
 
 None.
-
 
 ## 4. Scope
 
@@ -123,87 +87,52 @@ None.
 - Time tracking, billing, or invoicing
 - Cross-organization collaboration
 
-
 ## 5. Functional Requirements
-
 
 ### FR-001 Task Management
 
-
 - [ ] `p1` - **ID**: `cpt-ex-task-flow-fr-task-management`
 
-
 The system MUST allow creating, editing, and deleting tasks. The system MUST allow assigning tasks to team members. The system MUST allow setting due dates and priorities. Tasks should support rich text descriptions and file attachments.
-
 
 **Actors**:
 
 `cpt-ex-task-flow-actor-member`, `cpt-ex-task-flow-actor-lead`
 
-
-
-
-
 ### FR-002 Notifications
-
 
 - [ ] `p1` - **ID**: `cpt-ex-task-flow-fr-notifications`
 
-
 The system MUST send push notifications for task assignments. The system MUST send alerts for overdue tasks. Notifications should be configurable per user to allow opting out of certain notification types.
-
 
 **Actors**:
 
 `cpt-ex-task-flow-actor-notifier`, `cpt-ex-task-flow-actor-member`
 
-
-
-
-
-
 ## 6. Non-Functional Requirements
 
 ### 6.1 Module-Specific NFRs
 
-
 #### Security
 
-
 - [ ] `p1` - **ID**: `cpt-ex-task-flow-nfr-security`
-
 
 - Authentication MUST be required for all user actions
 - Authorization MUST enforce team role permissions
 - Passwords MUST be stored using secure hashing algorithms
 
-
-
-
-
 #### Performance
 
-
 - [ ] `p2` - **ID**: `cpt-ex-task-flow-nfr-performance`
-
 
 - Task list SHOULD load within 500ms for teams under 100 tasks
 - Real-time updates SHOULD propagate within 2 seconds
 
-
-
-
-
 ### 6.2 NFR Exclusions
-
 
 - **Accessibility** (UX-PRD-002): Not applicable — MVP targets internal teams with standard desktop browsers
 - **Internationalization** (UX-PRD-003): Not applicable — English-only for initial release
 - **Regulatory Compliance** (COMPL-PRD-001/002/003): Not applicable — No PII or regulated data in MVP scope
-
-
-
-
 
 ## 7. Public Library Interfaces
 
@@ -214,7 +143,6 @@ None.
 ### 7.2 External Integration Contracts
 
 None.
-
 
 ## 8. Use Cases
 
@@ -242,13 +170,11 @@ None.
 
 - **Validation fails**: If step 4 fails validation (e.g., no assignee selected), system displays error and returns to step 2
 
-
 ## 9. Acceptance Criteria
 
 - [ ] Tasks can be created/assigned in under 30 seconds
 - [ ] Task updates propagate to all clients within 2 seconds
 - [ ] Overdue alerts are delivered within 1 minute
-
 
 ## 10. Dependencies
 
@@ -256,12 +182,10 @@ None.
 |------------|-------------|-------------|
 | Notification delivery | Push notification channel for deadlines/status changes | p2 |
 
-
 ## 11. Assumptions
 
 - Users have modern browsers and reliable connectivity for real-time updates
 - The initial deployment is cloud-hosted
-
 
 ## 12. Risks
 
@@ -269,7 +193,4 @@ None.
 |------|--------|------------|
 | Adoption risk | Teams may resist switching tools | Focus on migration path and quick wins |
 | Scale risk | Real-time may not scale beyond 50 concurrent users | Load testing before launch |
-
-
-
 

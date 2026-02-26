@@ -88,9 +88,9 @@ section = "load_dependencies"
 - [ ] Load `checklist.md` for semantic guidance
 - [ ] Load `examples/example.md` for reference style
 - [ ] Read adapter config for project ID prefix
-- [ ] Load `{cypilot_path}/.core/requirements/identifiers.md` for ID formats
-- [ ] Load `../../constraints.json` for kit-level constraints
-- [ ] Load `{cypilot_path}/.core/requirements/kit-constraints.md` for constraints specification
+- [ ] Load `{cypilot_path}/.core/architecture/specs/traceability.md` for ID formats
+- [ ] Load `{cypilot_path}/config/kits/sdlc/constraints.toml` for kit-level constraints
+- [ ] Load `{cypilot_path}/.core/architecture/specs/kit/constraints.md` for constraints specification
 ```
 `@/cpt:rule`
 
@@ -151,8 +151,8 @@ kind = "requirements"
 section = "constraints"
 ```
 ```markdown
-- [ ] ALWAYS open and follow `../../constraints.json` (kit root)
-- [ ] Treat `constraints.json` as primary validator for:
+- [ ] ALWAYS open and follow `{cypilot_path}/config/kits/sdlc/constraints.toml` (kit root)
+- [ ] Treat `constraints.toml` as primary validator for:
   - where IDs are defined
   - where IDs are referenced
   - which cross-artifact references are required / optional / prohibited
@@ -1764,19 +1764,15 @@ examples = ["#### Team Member", "#### Team Lead"]
 
 `@cpt:example`
 ```markdown
-#### Team Member
-
 **ID**: `cpt-ex-task-flow-actor-member`
 
 **Role**: Creates tasks, updates progress, and collaborates on assignments.
-**Needs**: Simple task creation, clear status visibility, deadline reminders.
 
 #### Team Lead
 
 **ID**: `cpt-ex-task-flow-actor-lead`
 
 **Role**: Assigns tasks, sets priorities, and monitors team workload.
-**Needs**: Workload overview, bulk assignment, progress dashboards.
 ```
 `@/cpt:example`
 
@@ -1816,8 +1812,6 @@ examples = ["#### Notification Service", "#### External Auth Provider"]
 
 `@cpt:example`
 ```markdown
-#### Notification Service
-
 **ID**: `cpt-ex-task-flow-actor-notifier`
 
 **Role**: Sends alerts for due dates, assignments, and status changes.
@@ -2034,7 +2028,7 @@ numbered = true
 # multiple = true|false  # allowed by default (can repeat)
 template = "{Feature Area / Priority Tier}"
 description = "Feature area or priority tier grouping."
-examples = ["### 5.1 Core Features", "### 5.2 Notifications"]
+examples = []
 ```
 `@/cpt:heading`
 
@@ -2047,7 +2041,7 @@ numbered = false
 # multiple = true|false  # allowed by default (can repeat)
 template = "{Requirement Name}"
 description = "Individual functional requirement entry."
-examples = ["#### Task Management", "#### Notification Delivery"]
+examples = []
 ```
 `@/cpt:heading`
 
@@ -2075,9 +2069,9 @@ The system **MUST** {do something specific and verifiable}.
 
 The system MUST allow creating, editing, and deleting tasks. The system MUST allow assigning tasks to team members. The system MUST allow setting due dates and priorities. Tasks should support rich text descriptions and file attachments.
 
-**Rationale**: Core value proposition — without task CRUD, the product has no purpose.
+**Actors**:
 
-**Actors**: `cpt-ex-task-flow-actor-member`, `cpt-ex-task-flow-actor-lead`
+`cpt-ex-task-flow-actor-member`, `cpt-ex-task-flow-actor-lead`
 
 ### FR-002 Notifications
 
@@ -2085,9 +2079,9 @@ The system MUST allow creating, editing, and deleting tasks. The system MUST all
 
 The system MUST send push notifications for task assignments. The system MUST send alerts for overdue tasks. Notifications should be configurable per user to allow opting out of certain notification types.
 
-**Rationale**: Teams need timely awareness of assignments and deadlines to avoid missed work.
+**Actors**:
 
-**Actors**: `cpt-ex-task-flow-actor-notifier`, `cpt-ex-task-flow-actor-member`
+`cpt-ex-task-flow-actor-notifier`, `cpt-ex-task-flow-actor-member`
 ```
 `@/cpt:example`
 
@@ -2155,7 +2149,7 @@ numbered = true
 multiple = false
 pattern = "NFR Inclusions"
 description = "Non-functional requirements that deviate from or extend project defaults."
-examples = ["### 6.1 NFR Inclusions"]
+examples = ["### 6.1 Module-Specific NFRs"]
 ```
 `@/cpt:heading`
 
@@ -2174,7 +2168,7 @@ numbered = false
 # multiple = true|false  # allowed by default (can repeat)
 template = "{NFR Name}"
 description = "Individual non-functional requirement entry."
-examples = ["#### Response Time", "#### Availability"]
+examples = ["#### Security", "#### Performance"]
 ```
 `@/cpt:heading`
 
@@ -2194,15 +2188,18 @@ The system **MUST** {measurable NFR with specific thresholds, e.g., "respond wit
 
 `@cpt:example`
 ```markdown
-#### Response Time
+- [ ] `p1` - **ID**: `cpt-ex-task-flow-nfr-security`
 
-- [ ] `p2` - **ID**: `cpt-ex-task-flow-nfr-response-time`
+- Authentication MUST be required for all user actions
+- Authorization MUST enforce team role permissions
+- Passwords MUST be stored using secure hashing algorithms
 
-The system MUST respond to user actions within 200ms at p95 under normal load (≤50 concurrent users).
+#### Performance
 
-**Threshold**: p95 latency ≤ 200ms at ≤50 concurrent users.
+- [ ] `p2` - **ID**: `cpt-ex-task-flow-nfr-performance`
 
-**Rationale**: Stricter than project default (500ms) because task management requires snappy interactions.
+- Task list SHOULD load within 500ms for teams under 100 tasks
+- Real-time updates SHOULD propagate within 2 seconds
 ```
 `@/cpt:example`
 
@@ -2328,7 +2325,7 @@ numbered = false
 # multiple = true|false  # allowed by default (can repeat)
 template = "{Interface Name}"
 description = "Individual public interface entry."
-examples = ["#### CLI Interface", "#### REST API"]
+examples = []
 ```
 `@/cpt:heading`
 
@@ -2380,7 +2377,7 @@ numbered = false
 # multiple = true|false  # allowed by default (can repeat)
 template = "{Contract Name}"
 description = "Individual external integration contract entry."
-examples = ["#### Notification Center API", "#### Auth Provider Contract"]
+examples = []
 ```
 `@/cpt:heading`
 
@@ -2455,7 +2452,7 @@ numbered = false
 # multiple = true|false  # allowed by default (can repeat)
 template = "{Use Case Name}"
 description = "Individual use case entry."
-examples = ["#### Create Task", "#### Configure Notifications"]
+examples = []
 ```
 `@/cpt:heading`
 

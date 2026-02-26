@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/cypilot/core-config.schema.json",
+  "title": "Cypilot Project Configuration (core.toml)",
+  "description": "Schema for the project-level configuration file that defines the root system, kit registrations, and optional path overrides. Located at {cypilot_path}/config/core.toml.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "project_root", "system", "kits"],
+  "examples": [
+    {
+      "version": "1.0",
+      "project_root": "..",
+      "system": {
+        "name": "MyApp",
+        "slug": "myapp",
+        "kit": "cypilot-sdlc"
+      },
+      "kits": {
+        "cypilot-sdlc": {
+          "format": "Cypilot",
+          "path": ".core/kits/sdlc"
+        }
+      }
+    }
+  ],
+  "properties": {
+    "version": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Schema version (e.g. '1.0')."
+    },
+    "project_root": {
+      "type": "string",
+      "minLength": 1,
+      "default": "..",
+      "description": "Relative path from the cypilot config directory to the project root. All artifact and codebase paths are resolved relative to this. Default: '..' (one level up from {cypilot_path}/config/)."
+    },
+    "system": {
+      "$ref": "#/$defs/system",
+      "description": "Root system definition for the project."
+    },
+    "kits": {
+      "$ref": "#/$defs/kits",
+      "description": "Map of kit ID to kit configuration. Kits registered here are merged into artifacts.toml at load time."
+    },
+    "paths": {
+      "$ref": "#/$defs/paths",
+      "description": "Optional path overrides for non-standard layouts."
+    }
+  },
+  "$defs": {
+    "system": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "slug", "kit"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable project/system name."
+        },
+        "slug": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+          "description": "Machine-readable identifier. Lowercase letters, numbers, and hyphens only (no leading/trailing hyphens)."
+        },
+        "kit": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Reference to the kit ID used by this system (must match a key in the kits map)."
+        }
+      }
+    },
+    "kits": {
+      "type": "object",
+      "description": "Map of kit ID → kit configuration.",
+      "propertyNames": {
+        "type": "string",
+        "minLength": 1
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/kit_entry"
+      }
+    },
+    "kit_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format", "path"],
+      "properties": {
+        "format": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Kit format identifier. 'Cypilot' enables full tooling support (validation, traceability, code generation)."
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Relative path from the cypilot directory to the kit package root (e.g. '.core/kits/sdlc')."
+        },
+        "version": {
+          "type": "string",
+          "description": "Kit version string, set during kit installation or update."
+        },
+        "artifacts": {
+          "type": "object",
+          "description": "Optional per-kind artifact path overrides.",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/kit_artifact_override"
+          }
+        }
+      }
+    },
+    "kit_artifact_override": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["template", "examples"],
+      "properties": {
+        "template": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Path to the template file for this artifact kind. Supports {project_root} token."
+        },
+        "examples": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Path to the examples directory for this artifact kind. Supports {project_root} token."
+        }
+      }
+    },
+    "paths": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "core": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Relative path to the cypilot core directory. Used when the core is not at the default location."
+        }
+      }
+    }
+  }
+}
