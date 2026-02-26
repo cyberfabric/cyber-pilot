@@ -39,13 +39,13 @@ ALWAYS open and follow `{cypilot_path}/.core/requirements/artifacts-registry.md`
 ```
 Where `{cypilot_path}` is resolved from the adapter's `**Extends**:` declaration.
 
-**ALWAYS use**: `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py adapter-info` to discover adapter location
+**ALWAYS use**: `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py info` to discover adapter location
 
 **ALWAYS use**: `cypilot.py` CLI commands for artifact operations (list-ids, where-defined, where-used, validate)
 
 **Prerequisite**: Agent confirms understanding before proceeding:
 - [ ] Agent has read and understood this requirement
-- [ ] Agent knows where artifacts.toml is located (via adapter-info)
+- [ ] Agent knows where artifacts.toml is located (via info)
 - [ ] Agent will use CLI commands, not direct file manipulation
 
 ---
@@ -649,7 +649,7 @@ Codebase paths are resolved directly: `{project_root}/{codebase.path}`
 
 ```bash
 # Find adapter and registry
-cypilot.py adapter-info --root /project
+cypilot.py info --root /project
 ```
 
 ### Artifact Operations
@@ -683,7 +683,7 @@ cypilot.py validate-kits
 
 ### Finding the Registry
 
-1. Run `adapter-info` to discover project location
+1. Run `info` to discover project location
 2. Registry is at `.cypilot/config/artifacts.toml`
 3. Parse TOML to get registry data
 

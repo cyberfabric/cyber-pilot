@@ -43,7 +43,7 @@ drivers:
     - [where-used](#where-used)
     - [get-content](#get-content)
     - [list-id-kinds](#list-id-kinds)
-    - [adapter-info](#adapter-info)
+    - [info](#info)
     - [agents](#agents)
     - [generate-resources](#generate-resources)
     - [doctor](#doctor)
@@ -446,12 +446,12 @@ cypilot list-id-kinds [--system SYSTEM]
 
 ---
 
-### adapter-info
+### info
 
 Show adapter status and registry information.
 
 ```
-cypilot adapter-info
+cypilot info
 ```
 
 **Output** (JSON):

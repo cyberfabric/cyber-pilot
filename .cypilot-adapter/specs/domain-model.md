@@ -116,7 +116,7 @@ Creates/updates project adapter configuration.
 | Command | Description |
 |---------|-------------|
 | `init` | Initialize Cypilot config and adapter |
-| `adapter-info` | Show adapter discovery information |
+| `info` | Show adapter discovery information |
 | `validate` | Validate artifact against template |
 | `validate-code` | Validate code file traceability |
 | `validate-kits` | Validate kit templates |

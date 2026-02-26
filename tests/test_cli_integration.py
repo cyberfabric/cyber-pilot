@@ -1789,16 +1789,16 @@ Content
 
 class TestCLIAdapterInfo(unittest.TestCase):
     def test_adapter_info_basic(self):
-        """Cover adapter-info command."""
+        """Cover info command."""
         stdout = io.StringIO()
         with redirect_stdout(stdout):
-            exit_code = main(["adapter-info"])
+            exit_code = main(["info"])
         self.assertEqual(exit_code, 0)
         out = json.loads(stdout.getvalue())
         self.assertIn("status", out)
 
     def test_adapter_info_config_error_when_path_invalid(self):
-        """Cover adapter-info CONFIG_ERROR when .cypilot-config.json points to missing adapter directory."""
+        """Cover info CONFIG_ERROR when .cypilot-config.json points to missing adapter directory."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
@@ -1809,7 +1809,7 @@ class TestCLIAdapterInfo(unittest.TestCase):
                 os.chdir(str(root))
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["adapter-info"])
+                    exit_code = main(["info"])
                 self.assertEqual(exit_code, 1)
                 out = json.loads(stdout.getvalue())
                 self.assertEqual(out.get("status"), "CONFIG_ERROR")
@@ -1864,7 +1864,7 @@ class TestCLIAdapterInfo(unittest.TestCase):
                 os.chdir(cwd)
 
     def test_adapter_info_relative_path_outside_project_root(self):
-        """Cover adapter-info relative_to() ValueError branch when adapter is outside project root."""
+        """Cover info relative_to() ValueError branch when adapter is outside project root."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir) / "project"
             root.mkdir(parents=True)
@@ -1879,7 +1879,7 @@ class TestCLIAdapterInfo(unittest.TestCase):
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                exit_code = main(["adapter-info", "--root", str(root)])
+                exit_code = main(["info", "--root", str(root)])
 
             self.assertEqual(exit_code, 0)
             out = json.loads(stdout.getvalue())
@@ -4401,10 +4401,10 @@ class TestCLIGetContentBranches(unittest.TestCase):
 
 
 class TestCLIAdapterInfoCommand(unittest.TestCase):
-    """Tests for adapter-info command."""
+    """Tests for info command."""
 
     def test_adapter_info_no_adapter(self):
-        """Test adapter-info when no adapter found."""
+        """Test info when no adapter found."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
@@ -4414,13 +4414,13 @@ class TestCLIAdapterInfoCommand(unittest.TestCase):
                 os.chdir(str(root))
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["adapter-info"])
+                    exit_code = main(["info"])
                 self.assertNotEqual(exit_code, 0)
             finally:
                 os.chdir(cwd)
 
     def test_adapter_info_success(self):
-        """Test adapter-info with valid adapter."""
+        """Test info with valid adapter."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             _setup_cypilot_project(root)
@@ -4430,7 +4430,7 @@ class TestCLIAdapterInfoCommand(unittest.TestCase):
                 os.chdir(str(root))
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
-                    exit_code = main(["adapter-info"])
+                    exit_code = main(["info"])
                 self.assertIn(exit_code, [0, 1])  # May succeed or fail
             finally:
                 os.chdir(cwd)

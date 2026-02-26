@@ -41,7 +41,7 @@ Common steps shared by `generate.md` and `analyze.md`. Both workflows MUST execu
 
 **Common violations**:
 1. ❌ Not reading this protocol first
-2. ❌ Not running `cypilot adapter-info`
+2. ❌ Not running `cypilot info`
 3. ❌ Not following invoked workflow rules (`generate.md` / `analyze.md`)
 
 **Recovery**:
@@ -66,7 +66,7 @@ Common steps shared by `generate.md` and `analyze.md`. Both workflows MUST execu
 **Recovery protocol**:
 
 1. Detect compaction from conversation summary signals
-2. Re-run: `cypilot adapter-info` + load required specs from `{cypilot_path}/.gen/AGENTS.md`
+2. Re-run: `cypilot info` + load required specs from `{cypilot_path}/.gen/AGENTS.md`
 3. Announce restored context (workflow, target, loaded specs), then continue
 
 **Agent MUST NOT**:
@@ -188,7 +188,7 @@ ALWAYS proceed as normal coding assistant WHEN user declines initialization
 ## Discover Adapter
 
 ```bash
-python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py adapter-info --root {PROJECT_ROOT} --cypilot-root {cypilot_path}
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py info --root {PROJECT_ROOT} --cypilot-root {cypilot_path}
 ```
 
 **Parse output**: `status`, `adapter_dir`, `project_root`, `specs`, `rules`
@@ -463,7 +463,7 @@ For each line matching: ALWAYS open and follow `{spec}` WHEN Cypilot follows rul
 
 ### Discovery (DI)
 
-- DI.1 (YES): Adapter discovery executed (`cypilot adapter-info`)
+- DI.1 (YES): Adapter discovery executed (`cypilot info`)
 - DI.2 (YES): `artifacts.toml` read/understood (agent lists systems/rules)
 - DI.3 (YES): Rules directories explored (agent lists artifact kinds)
 

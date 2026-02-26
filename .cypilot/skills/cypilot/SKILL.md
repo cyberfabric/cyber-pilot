@@ -1,6 +1,6 @@
 ---
 name: cypilot
-description: Artifacts (PRD/DESIGN/ADR/DECOMPOSITION/FEATURE) + checklists; deterministic validation & consistency analysis (structure, cross-refs, cross-artifact consistency, tasks, covered-by, ID/CDSL extraction from artifact text); code↔artifact traceability with `@cpt-*`; ID search/navigation (list-ids, where-defined/used, get-content); coding support via generate workflow; reverse-engineering guidance for brownfield codebases; prompt-engineering methodology for improving agent instructions; adapter + registry discovery (adapter-info, artifacts.json, kits/rules); init/bootstrap; workflow router (analyze/generate); agent integrations (agents: workflow proxies + SKILL outputs for windsurf/cursor/claude/copilot/openai).
+description: Artifacts (PRD/DESIGN/ADR/DECOMPOSITION/FEATURE) + checklists; deterministic validation & consistency analysis (structure, cross-refs, cross-artifact consistency, tasks, covered-by, ID/CDSL extraction from artifact text); code↔artifact traceability with `@cpt-*`; ID search/navigation (list-ids, where-defined/used, get-content); coding support via generate workflow; reverse-engineering guidance for brownfield codebases; prompt-engineering methodology for improving agent instructions; adapter + registry discovery (info, artifacts.json, kits/rules); init/bootstrap; workflow router (analyze/generate); agent integrations (agents: workflow proxies + SKILL outputs for windsurf/cursor/claude/copilot/openai).
 ---
 
 # Cypilot Unified Tool
@@ -122,7 +122,7 @@ git -C {cypilot_path} submodule update --init --recursive
 
 ALWAYS FIRST open and remember `{cypilot_path}/AGENTS.md`
 
-ALWAYS FIRST run `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py adapter-info` BEFORE any Cypilot workflow action
+ALWAYS FIRST run `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py info` BEFORE any Cypilot workflow action
 
 ALWAYS FIRST read `{cypilot_adapter_path}/AGENTS.md` WHEN adapter status is FOUND
 
@@ -144,7 +144,7 @@ ALWAYS STOP and re-run Protocol Guard WHEN specs should be loaded but weren't li
 
 ALWAYS set `{cypilot_mode}` = `on` FIRST WHEN user invokes `cypilot {prompt}`
 
-ALWAYS run `adapter-info` WHEN enabling Cypilot mode
+ALWAYS run `info` WHEN enabling Cypilot mode
 
 ALWAYS show status after enabling:
 ```
@@ -260,9 +260,9 @@ python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py where-defined --id <id>
 python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py where-used --id <id>
 ```
 
-### adapter-info
+### info
 ```bash
-python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py adapter-info
+python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py info
 ```
 Output: status, adapter_dir, project_name, specs, kits
 
