@@ -22,6 +22,7 @@
    - [Upstream Traceability](#upstream-traceability)
    - [Featstatus](#featstatus)
    - [Checkbox Management](#checkbox-management)
+   - [Deliberate Omissions (MUST NOT HAVE)](#deliberate-omissions-must-not-have)
 3. [Tasks](#tasks)
    - [Phase 1: Setup](#phase-1-setup)
    - [Phase 2: Content Creation](#phase-2-content-creation)
@@ -32,6 +33,9 @@
    - [Phase 2: Semantic Validation (Checklist-based)](#phase-2-semantic-validation-checklist-based)
    - [Phase 3: Traceability Validation (if FULL mode)](#phase-3-traceability-validation-if-full-mode)
    - [Phase 4: Validation Report](#phase-4-validation-report)
+   - [Phase 5: Applicability Context](#phase-5-applicability-context)
+   - [Phase 6: Report Format](#phase-6-report-format)
+   - [Phase 7: Reporting Commitment](#phase-7-reporting-commitment)
 5. [Error Handling](#error-handling)
    - [Missing Decomposition](#missing-decomposition)
    - [Missing Design](#missing-design)
@@ -216,6 +220,20 @@
 | Sequence ID (`cpt-{system}-seq-{slug}`) | DESIGN | Implements sequence diagram |
 | Data ID (`cpt-{system}-dbtable-{slug}`) | DESIGN | Uses database table |
 
+### Deliberate Omissions (MUST NOT HAVE)
+
+FEATURE documents must NOT contain the following — report as violation if found:
+
+- **ARCH-FDESIGN-NO-001**: No System-Level Type Redefinitions (CRITICAL) — system types belong in DESIGN
+- **ARCH-FDESIGN-NO-002**: No New API Endpoints (CRITICAL) — API surface belongs in DESIGN
+- **ARCH-FDESIGN-NO-003**: No Architectural Decisions (HIGH) — decisions belong in ADR
+- **BIZ-FDESIGN-NO-001**: No Product Requirements (HIGH) — requirements belong in PRD
+- **BIZ-FDESIGN-NO-002**: No Sprint/Task Breakdowns (HIGH) — tasks belong in DECOMPOSITION
+- **MAINT-FDESIGN-NO-001**: No Code Snippets (HIGH) — code belongs in implementation
+- **TEST-FDESIGN-NO-001**: No Test Implementation (MEDIUM) — test code belongs in implementation
+- **SEC-FDESIGN-NO-001**: No Security Secrets (CRITICAL) — secrets must never appear in documentation
+- **OPS-FDESIGN-NO-001**: No Infrastructure Code (MEDIUM) — infra code belongs in implementation
+
 ---
 
 ## Tasks
@@ -298,6 +316,84 @@ Semantic: PASS/FAIL (N issues)
 Issues:
 - [SEVERITY] CHECKLIST-ID: Description
 ```
+
+### Phase 5: Applicability Context
+
+Before evaluating each checklist item, the expert MUST:
+
+1. **Understand the feature's domain** — What kind of feature is this? (e.g., user-facing UI feature, backend API feature, data processing pipeline, CLI command)
+
+2. **Determine applicability for each requirement** — Not all checklist items apply to all features:
+   - A simple CRUD feature may not need complex State Management analysis
+   - A read-only feature may not need Data Integrity analysis
+   - A CLI feature may not need UI/UX analysis
+
+3. **Require explicit handling** — For each checklist item:
+   - If applicable: The document MUST address it (present and complete)
+   - If not applicable: The document MUST explicitly state "Not applicable because..." with reasoning
+   - If missing without explanation: Report as violation
+
+4. **Never skip silently** — Either:
+   - The requirement is met (document addresses it), OR
+   - The requirement is explicitly marked not applicable (document explains why), OR
+   - The requirement is violated (report it with applicability justification)
+
+**Key principle**: The reviewer must be able to distinguish "author considered and excluded" from "author forgot"
+
+### Phase 6: Report Format
+
+Report **only** problems (do not list what is OK).
+
+For each issue include:
+
+- **Why Applicable**: Explain why this requirement applies to this specific feature's context (e.g., "This feature handles user authentication, therefore security analysis is required")
+- **Checklist Item**: `{CHECKLIST-ID}` — {Checklist item title}
+- **Severity**: CRITICAL|HIGH|MEDIUM|LOW
+- **Issue**: What is wrong (requirement missing or incomplete)
+- **Evidence**: Quote the exact text or "No mention found"
+- **Why it matters**: Impact (risk, cost, user harm, compliance)
+- **Proposal**: Concrete fix with clear acceptance criteria
+
+```markdown
+## Review Report (Issues Only)
+
+### 1. {Short issue title}
+
+**Checklist Item**: `{CHECKLIST-ID}` — {Checklist item title}
+
+**Severity**: CRITICAL|HIGH|MEDIUM|LOW
+
+#### Why Applicable
+
+{Explain why this requirement applies to this feature's context}
+
+#### Issue
+
+{What is wrong}
+
+#### Evidence
+
+{Quote or "No mention found"}
+
+#### Why It Matters
+
+{Impact}
+
+#### Proposal
+
+{Concrete fix}
+```
+
+### Phase 7: Reporting Commitment
+
+- [ ] I reported all issues I found
+- [ ] I used the exact report format defined in this checklist (no deviations)
+- [ ] I included Why Applicable justification for each issue
+- [ ] I included evidence and impact for each issue
+- [ ] I proposed concrete fixes for each issue
+- [ ] I did not hide or omit known problems
+- [ ] I verified explicit handling for all major checklist categories
+- [ ] I am ready to iterate on the proposals and re-review after changes
 
 ---
 

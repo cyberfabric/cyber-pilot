@@ -55,7 +55,10 @@ codebase = false
 sections = ["load_dependencies"]
 
 [requirements]
-sections = ["structural", "versioning", "semantic", "scope", "traceability", "constraints"]
+sections = ["structural", "versioning", "semantic", "scope", "traceability", "constraints", "deliberate_omissions", "technology_stack"]
+[requirements.names]
+deliberate_omissions = "Deliberate Omissions (MUST NOT HAVE)"
+technology_stack = "Technology Stack & Capacity"
 
 [tasks]
 phases = ["setup", "content_creation", "ids_and_references", "quality_check"]
@@ -63,10 +66,14 @@ phases = ["setup", "content_creation", "ids_and_references", "quality_check"]
 ids_and_references = "IDs and References"
 
 [validation]
-phases = ["structural", "semantic", "validation_report"]
+phases = ["structural", "semantic", "validation_report", "applicability", "report_format", "reporting", "pr_review"]
 [validation.names]
 structural = "Structural Validation (Deterministic)"
 semantic = "Semantic Validation (Checklist-based)"
+applicability = "Applicability Context"
+report_format = "Report Format"
+reporting = "Reporting Commitment"
+pr_review = "PR Review Focus (Design)"
 
 [error_handling]
 sections = ["missing_prd", "incomplete_prd", "escalation"]
@@ -221,6 +228,53 @@ section = "constraints"
 - `cypilot validate` enforces `identifiers[<kind>].references` rules (required / optional / prohibited)
 - `cypilot validate` enforces headings scoping for ID definitions and references
 - `cypilot validate` enforces "checked ref implies checked def" consistency
+```
+`@/cpt:rule`
+
+#### Deliberate Omissions (MUST NOT HAVE)
+
+`@cpt:rule`
+```toml
+kind = "requirements"
+section = "deliberate_omissions"
+```
+```markdown
+DESIGN documents must NOT contain the following — report as violation if found:
+
+- **ARCH-DESIGN-NO-001**: No Spec-Level Details (CRITICAL) — DESIGN captures architecture, not feature specs
+- **ARCH-DESIGN-NO-002**: No Decision Debates (HIGH) — debates belong in ADR
+- **BIZ-DESIGN-NO-003**: No Product Requirements (HIGH) — requirements belong in PRD
+- **BIZ-DESIGN-NO-004**: No Implementation Tasks (HIGH) — tasks belong in DECOMPOSITION
+- **DATA-DESIGN-NO-001**: No Code-Level Schema Definitions (MEDIUM) — code schemas belong in implementation
+- **INT-DESIGN-NO-001**: No Complete API Specifications (MEDIUM) — full API specs belong in FEATURE
+- **OPS-DESIGN-NO-001**: No Infrastructure Code (MEDIUM) — infra code belongs in implementation
+- **TEST-DESIGN-NO-001**: No Test Code (MEDIUM) — test code belongs in implementation
+- **MAINT-DESIGN-NO-001**: No Code Snippets (HIGH) — code belongs in implementation
+- **SEC-DESIGN-NO-001**: No Security Secrets (CRITICAL) — secrets must never appear in documentation
+```
+`@/cpt:rule`
+
+#### Technology Stack & Capacity
+
+`@cpt:rule`
+```toml
+kind = "requirements"
+section = "technology_stack"
+```
+```markdown
+**ARCH-DESIGN-009: Technology Stack Alignment** (MEDIUM):
+- [ ] Technology choices documented (if applicable)
+- [ ] Choices align with constraints
+- [ ] Choices align with team capabilities
+- [ ] Choices support NFRs
+- [ ] Choices are maintainable long-term
+- [ ] Technology risks identified
+
+**ARCH-DESIGN-010: Capacity and Cost Budgets** (HIGH):
+- [ ] Capacity planning approach documented
+- [ ] Cost estimation approach documented
+- [ ] Budget allocation strategy documented
+- [ ] Cost optimization patterns documented
 ```
 `@/cpt:rule`
 
@@ -412,6 +466,116 @@ Issues:
 - [SEVERITY] CHECKLIST-ID: Description
 ```
 ````
+`@/cpt:rule`
+
+#### Applicability Context
+
+`@cpt:rule`
+```toml
+kind = "validation"
+section = "applicability"
+```
+```markdown
+Before evaluating each checklist item, the expert MUST:
+
+1. **Understand the artifact's domain** — What kind of system/project is this DESIGN for? (e.g., web service, CLI tool, data pipeline, methodology framework)
+
+2. **Determine applicability for each requirement** — Not all checklist items apply to all designs:
+   - A CLI tool design may not need Security Architecture analysis
+   - A methodology framework design may not need Performance Architecture analysis
+   - A local development tool design may not need Operations Architecture analysis
+
+3. **Require explicit handling** — For each checklist item:
+   - If applicable: The document MUST address it (present and complete)
+   - If not applicable: The document MUST explicitly state "Not applicable because..." with reasoning
+   - If missing without explanation: Report as violation
+
+4. **Never skip silently** — Either:
+   - The requirement is met (document addresses it), OR
+   - The requirement is explicitly marked not applicable (document explains why), OR
+   - The requirement is violated (report it with applicability justification)
+
+**Key principle**: The reviewer must be able to distinguish "author considered and excluded" from "author forgot"
+```
+`@/cpt:rule`
+
+#### Report Format
+
+`@cpt:rule`
+```toml
+kind = "validation"
+section = "report_format"
+```
+````markdown
+Report **only** problems (do not list what is OK).
+
+For each issue include:
+
+- **Why Applicable**: Explain why this requirement applies to this specific DESIGN's context
+- **Checklist Item**: `{CHECKLIST-ID}` — {Checklist item title}
+- **Severity**: CRITICAL|HIGH|MEDIUM|LOW
+- **Issue**: What is wrong (requirement missing or incomplete)
+- **Evidence**: Quote the exact text or "No mention found"
+- **Why it matters**: Impact (risk, cost, user harm, compliance)
+- **Proposal**: Concrete fix with clear acceptance criteria
+
+### Compact Report Format (Quick Reviews)
+
+For quick reviews, use this condensed table format:
+
+```markdown
+## DESIGN Review Summary
+
+| ID | Severity | Issue | Proposal |
+|----|----------|-------|----------|
+| ARCH-DESIGN-001 | HIGH | Missing context diagram | Add system context diagram to Section A |
+| ARCH-DESIGN-005 | MEDIUM | No schema location | Add path to domain types in Section C.1 |
+
+**Applicability**: {System type} — checked {N} priority domains, {M} marked N/A
+```
+````
+`@/cpt:rule`
+
+#### Reporting Commitment
+
+`@cpt:rule`
+```toml
+kind = "validation"
+section = "reporting"
+```
+```markdown
+- [ ] I reported all issues I found
+- [ ] I used the exact report format defined in this checklist (no deviations)
+- [ ] I included Why Applicable justification for each issue
+- [ ] I included evidence and impact for each issue
+- [ ] I proposed concrete fixes for each issue
+- [ ] I did not hide or omit known problems
+- [ ] I verified explicit handling for all major checklist categories
+- [ ] I am ready to iterate on the proposals and re-review after changes
+```
+`@/cpt:rule`
+
+#### PR Review Focus (Design)
+
+`@cpt:rule`
+```toml
+kind = "validation"
+section = "pr_review"
+```
+```markdown
+When reviewing PRs that add or change design documents, additionally focus on:
+
+- [ ] Alignment with existing architecture (see project DESIGN artifacts)
+- [ ] Trade-off analysis — are alternatives considered and justified?
+- [ ] API contract consistency with existing endpoints and conventions
+- [ ] Security considerations — authentication, authorization, data protection
+- [ ] Compliance with `template.md` structure (generated from blueprint)
+- [ ] Identify antipatterns — god objects, leaky abstractions, tight coupling
+- [ ] Compare proposed design with existing industry patterns in SaaS platforms
+- [ ] Compare proposed design with IEEE, ISO, and other industry standards where applicable
+- [ ] Critical assessment of design decisions — challenge assumptions and gaps
+- [ ] Split findings by checklist category and rate each 1-10
+```
 `@/cpt:rule`
 
 ### Next Steps

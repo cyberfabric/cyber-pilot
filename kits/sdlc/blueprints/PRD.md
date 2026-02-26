@@ -58,7 +58,9 @@ Rules are organized into sections that map to the generated `rules.md`.
 sections = ["load_dependencies"]
 
 [requirements]
-sections = ["structural", "versioning", "semantic", "traceability", "constraints"]
+sections = ["structural", "versioning", "semantic", "traceability", "constraints", "deliberate_omissions"]
+[requirements.names]
+deliberate_omissions = "Deliberate Omissions (MUST NOT HAVE)"
 
 [tasks]
 phases = ["setup", "content_creation", "ids_and_structure", "quality_check"]
@@ -66,10 +68,13 @@ phases = ["setup", "content_creation", "ids_and_structure", "quality_check"]
 ids_and_structure = "IDs and Structure"
 
 [validation]
-phases = ["structural", "semantic", "validation_report", "reporting", "pr_review"]
+phases = ["structural", "semantic", "validation_report", "applicability", "review_priority", "report_format", "reporting", "pr_review"]
 [validation.names]
 structural = "Structural Validation (Deterministic)"
 semantic = "Semantic Validation (Checklist-based)"
+applicability = "Applicability Context"
+review_priority = "Review Priority"
+report_format = "Report Format"
 reporting = "Reporting Commitment"
 pr_review = "PR Review Focus (Requirements)"
 
@@ -172,6 +177,29 @@ section = "constraints"
 - `cypilot validate` enforces `identifiers[<kind>].references` rules (required / optional / prohibited)
 - `cypilot validate` enforces headings scoping for ID definitions and references
 - `cypilot validate` enforces "checked ref implies checked def" consistency
+```
+`@/cpt:rule`
+
+#### Deliberate Omissions (MUST NOT HAVE)
+
+`@cpt:rule`
+```toml
+kind = "requirements"
+section = "deliberate_omissions"
+```
+```markdown
+PRDs must NOT contain the following — report as violation if found:
+
+- **ARCH-PRD-NO-001**: No Technical Implementation Details (CRITICAL) — PRD captures *what*, not *how*
+- **ARCH-PRD-NO-002**: No Architectural Decisions (CRITICAL) — decisions belong in ADR
+- **BIZ-PRD-NO-001**: No Implementation Tasks (HIGH) — tasks belong in DECOMPOSITION
+- **BIZ-PRD-NO-002**: No Spec-Level Design (HIGH) — specs belong in FEATURE
+- **DATA-PRD-NO-001**: No Data Schema Definitions (HIGH) — schemas belong in DESIGN
+- **INT-PRD-NO-001**: No API Specifications (HIGH) — API specs belong in DESIGN/FEATURE
+- **TEST-PRD-NO-001**: No Test Cases (MEDIUM) — tests belong in FEATURE/code
+- **OPS-PRD-NO-001**: No Infrastructure Specifications (MEDIUM) — infra belongs in DESIGN
+- **SEC-PRD-NO-001**: No Security Implementation Details (HIGH) — implementation belongs in DESIGN/code
+- **MAINT-PRD-NO-001**: No Code-Level Documentation (MEDIUM) — code docs belong in code
 ```
 `@/cpt:rule`
 
@@ -299,6 +327,109 @@ Issues:
 ````
 `@/cpt:rule`
 
+#### Applicability Context
+
+`@cpt:rule`
+```toml
+kind = "validation"
+section = "applicability"
+```
+```markdown
+Before evaluating each checklist item, the expert MUST:
+
+1. **Understand the product's domain** — What kind of product is this PRD for? (e.g., consumer app, enterprise platform, developer tool, internal system)
+
+2. **Determine applicability for each requirement** — Not all checklist items apply to all PRDs:
+   - An internal tool PRD may not need market positioning analysis
+   - A developer framework PRD may not need end-user personas
+   - A methodology PRD may not need regulatory compliance analysis
+
+3. **Require explicit handling** — For each checklist item:
+   - If applicable: The document MUST address it (present and complete)
+   - If not applicable: The document MUST explicitly state "Not applicable because..." with reasoning
+   - If missing without explanation: Report as violation
+
+4. **Never skip silently** — Either:
+   - The requirement is met (document addresses it), OR
+   - The requirement is explicitly marked not applicable (document explains why), OR
+   - The requirement is violated (report it with applicability justification)
+
+**Key principle**: The reviewer must be able to distinguish "author considered and excluded" from "author forgot"
+
+For each major checklist category (BIZ, ARCH, SEC, TEST, MAINT), confirm:
+
+- [ ] Category is addressed in the document, OR
+- [ ] Category is explicitly marked "Not applicable" with reasoning, OR
+- [ ] Category absence is reported as a violation (with applicability justification)
+```
+`@/cpt:rule`
+
+#### Review Priority
+
+`@cpt:rule`
+```toml
+kind = "validation"
+section = "review_priority"
+```
+```markdown
+**Review Priority**: BIZ → ARCH → SEC → TEST → (others as applicable)
+
+> **New in v1.2**: Safety was added as a distinct quality characteristic in ISO/IEC 25010:2023. Applicable for systems that could cause harm to people, property, or the environment.
+```
+`@/cpt:rule`
+
+#### Report Format
+
+`@cpt:rule`
+```toml
+kind = "validation"
+section = "report_format"
+```
+````markdown
+Report **only** problems (do not list what is OK).
+
+For each issue include:
+
+- **Why Applicable**: Explain why this requirement applies to this specific PRD's context
+- **Checklist Item**: `{CHECKLIST-ID}` — {Checklist item title}
+- **Severity**: CRITICAL|HIGH|MEDIUM|LOW
+- **Issue**: What is wrong (requirement missing or incomplete)
+- **Evidence**: Quote the exact text or "No mention found"
+- **Why it matters**: Impact (risk, cost, user harm, compliance)
+- **Proposal**: Concrete fix with clear acceptance criteria
+
+```markdown
+## Review Report (Issues Only)
+
+### 1. {Short issue title}
+
+**Checklist Item**: `{CHECKLIST-ID}` — {Checklist item title}
+
+**Severity**: CRITICAL|HIGH|MEDIUM|LOW
+
+#### Why Applicable
+
+{Explain why this requirement applies to this PRD's context}
+
+#### Issue
+
+{What is wrong}
+
+#### Evidence
+
+{Quote or "No mention found"}
+
+#### Why It Matters
+
+{Impact}
+
+#### Proposal
+
+{Concrete fix}
+```
+````
+`@/cpt:rule`
+
 #### Reporting Commitment
 
 `@cpt:rule`
@@ -331,11 +462,11 @@ When reviewing PRs that add or change PRD/requirements documents, additionally f
 - [ ] Completeness and clarity of requirements
 - [ ] Testability and acceptance criteria for every requirement
 - [ ] Traceability to business goals and stated problems
-- [ ] Compliance with `docs/spec-templates/PRD.md` template structure
+- [ ] Compliance with `template.md` structure (generated from blueprint)
 - [ ] Alignment with best industry standard practices for large SaaS systems and platforms
 - [ ] Critical assessment of requirements quality — challenge vague, overlapping, or untestable items
 - [ ] Split findings by checklist category and rate each 1-10
-- [ ] Ensure requirements are aligned with the project's existing architecture (`docs/ARCHITECTURE_MANIFEST.md`)
+- [ ] Ensure requirements are aligned with the project's existing architecture (see DESIGN artifacts)
 ```
 `@/cpt:rule`
 

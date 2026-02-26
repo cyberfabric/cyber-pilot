@@ -15,8 +15,11 @@ import subprocess
 import sys
 
 
+_CPT_MARKER = "@cpt:root-agents"
+
+
 def _find_project_root():
-    """Find project root via git rev-parse."""
+    """Find project root via git rev-parse, then AGENTS.md marker."""
     try:
         result = subprocess.run(
             ["git", "rev-parse", "--show-toplevel"],
@@ -28,14 +31,18 @@ def _find_project_root():
         pass
     # Fallback: walk up from this script until a repo marker is found
     current = os.path.dirname(os.path.abspath(__file__))
-    while True:
+    for _ in range(25):
         if os.path.isdir(os.path.join(current, ".git")):
             return current
-        cfg = os.path.join(
-            current, ".cypilot", ".cypilot-config.json",
-        )
-        if os.path.isfile(cfg):
-            return current
+        agents = os.path.join(current, "AGENTS.md")
+        if os.path.isfile(agents):
+            try:
+                with open(agents, encoding="utf-8") as f:
+                    head = f.read(512)
+                if _CPT_MARKER in head:
+                    return current
+            except OSError:
+                pass
         parent = os.path.dirname(current)
         if parent == current:
             break
@@ -54,29 +61,63 @@ def _find_project_root():
 
 ROOT = _find_project_root()
 
-# Resolve cypilot path from core config, then load PR config
-_CYPILOT_CONFIG_PATH = os.path.join(
-    ROOT, ".cypilot", ".cypilot-config.json",
-)
+
+def _read_cypilot_path(project_root):
+    """Read cypilot_path variable from AGENTS.md TOML block.
+
+    Parses the ```toml block inside the @cpt:root-agents section.
+    Returns the value (e.g. '.cypilot', 'cypilot', 'cpt') or None.
+    """
+    agents = os.path.join(project_root, "AGENTS.md")
+    if not os.path.isfile(agents):
+        return None
+    try:
+        with open(agents, encoding="utf-8") as f:
+            content = f.read()
+    except OSError:
+        return None
+    if _CPT_MARKER not in content:
+        return None
+    # Extract cypilot_path from TOML block
+    m = re.search(
+        r'cypilot_path\s*=\s*"([^"]+)"', content,
+    )
+    if not m:
+        m = re.search(
+            r"cypilot_path\s*=\s*'([^']+)'", content,
+        )
+    return m.group(1).strip() if m else None
+
+
+# Resolve cypilot path from AGENTS.md, fallback to common names
+_CYPILOT_REL = _read_cypilot_path(ROOT)
+if _CYPILOT_REL is None:
+    # Auto-detect: check common directory names
+    for _candidate in (".cypilot", "cypilot", "cpt"):
+        if os.path.isdir(os.path.join(ROOT, _candidate)):
+            _CYPILOT_REL = _candidate
+            break
+    if _CYPILOT_REL is None:
+        _CYPILOT_REL = ".cypilot"
+
+CYPILOT_PATH = os.path.join(ROOT, _CYPILOT_REL)
 
 
 def _load_pr_config():
-    """Load PR review config from config's pr-review.json.
+    """Load PR review config from {cypilot_path}/config/pr-review.json.
 
     Resolution order:
-    1. {project_root}/{cypilotPath}/config/pr-review.json
-    2. {project_root}/.cypilot-adapter/pr-review.json (default)
+    1. {project_root}/{cypilot_path}/config/pr-review.json
+    2. Legacy: {project_root}/.cypilot-adapter/pr-review.json
     """
-    adapter_path = ".cypilot-adapter"
-    if os.path.exists(_CYPILOT_CONFIG_PATH):
-        with open(_CYPILOT_CONFIG_PATH) as f:
-            core = json.load(f)
-        adapter_path = core.get(
-            "cypilotAdapterPath", adapter_path,
-        )
     pr_cfg_path = os.path.join(
-        ROOT, adapter_path, "pr-review.json",
+        CYPILOT_PATH, "config", "pr-review.json",
     )
+    if not os.path.exists(pr_cfg_path):
+        # Legacy fallback
+        pr_cfg_path = os.path.join(
+            ROOT, ".cypilot-adapter", "pr-review.json",
+        )
     if not os.path.exists(pr_cfg_path):
         return {}
     with open(pr_cfg_path) as f:
@@ -88,12 +129,6 @@ _PR_CFG = _load_pr_config()
 # PR data directory (default .prs/, overridable in pr-review.json)
 PRS_DIR = os.path.join(
     ROOT, _PR_CFG.get("dataDir", ".prs"),
-)
-TEMPLATES_DIR = os.path.join(
-    ROOT,
-    _PR_CFG.get(
-        "templatesDir", ".cypilot/templates/pr",
-    ),
 )
 # Local config path (exclude list, etc.)
 CONFIG_PATH = os.path.join(PRS_DIR, "config.yaml")
