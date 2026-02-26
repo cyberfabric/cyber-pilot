@@ -48,7 +48,7 @@ When routed to PR review:
 4. When target is `ALL` or no PR number given, run `pr.py list` first to show available PRs
 5. Select prompt and checklist from `{cypilot_path}/config/pr-review.json` → `prompts`
 6. Load prompt from `promptFile` and checklist from `checklist` in matched entry
-7. Use templates from `{cypilot_path}/.core/templates/pr/`
+7. Use templates from `{cypilot_path}/.gen/kits/sdlc/artifacts/PR-CODE-REVIEW-TEMPLATE/template.md` and `{cypilot_path}/.gen/kits/sdlc/artifacts/PR-STATUS-REPORT-TEMPLATE/template.md`
 
 ### PR Status Workflow
 
@@ -113,7 +113,8 @@ Previous results are stale the moment a new review request arrives.
 
 - **Script**: `python3 {cypilot_path}/.gen/kits/sdlc/scripts/pr.py`
 - **Config**: `{cypilot_path}/config/pr-review.json`
-- **Templates**: `{cypilot_path}/.core/templates/pr/`
+- **Code review template**: `{cypilot_path}/.gen/kits/sdlc/artifacts/PR-CODE-REVIEW-TEMPLATE/template.md`
+- **Status report template**: `{cypilot_path}/.gen/kits/sdlc/artifacts/PR-STATUS-REPORT-TEMPLATE/template.md`
 - **Checklists**: `docs/checklists/` (PRD.md, DESIGN.md, ADR.md, etc.)
 - **Prompts**: `{cypilot_path}/.core/prompts/pr/`
 - **PR data**: `.prs/{ID}/`
@@ -188,7 +189,7 @@ Prioritise files with the largest delta first. Produce a thorough
 review covering the areas specified in the prompt and checklist.
 
 d. **Write review output**
-Read the template at `{cypilot_path}/.core/templates/pr/code-review.md` and
+Read the template at `{cypilot_path}/.gen/kits/sdlc/artifacts/PR-CODE-REVIEW-TEMPLATE/template.md` and
 use it to structure the review. Save the review to
 `.prs/{ID}/review.md`.
 The review must follow the template format, including the mandatory
@@ -279,7 +280,7 @@ Previous results are stale the moment a new status request arrives.
 
 - **Script**: `python3 {cypilot_path}/.gen/kits/sdlc/scripts/pr.py`
 - **Config**: `{cypilot_path}/config/pr-review.json`
-- **Templates**: `{cypilot_path}/.core/templates/pr/`
+- **Status report template**: `{cypilot_path}/.gen/kits/sdlc/artifacts/PR-STATUS-REPORT-TEMPLATE/template.md`
 - **PR data**: `.prs/{ID}/`
 - **Exclude list**: `.prs/config.yaml` → `exclude_prs`
 
