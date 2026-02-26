@@ -66,10 +66,12 @@ phases = ["setup", "content_creation", "ids_and_structure", "quality_check"]
 ids_and_structure = "IDs and Structure"
 
 [validation]
-phases = ["structural", "semantic", "validation_report"]
+phases = ["structural", "semantic", "validation_report", "reporting", "pr_review"]
 [validation.names]
 structural = "Structural Validation (Deterministic)"
 semantic = "Semantic Validation (Checklist-based)"
+reporting = "Reporting Commitment"
+pr_review = "PR Review Focus (Requirements)"
 
 [error_handling]
 sections = ["missing_dependencies", "missing_adapter", "escalation"]
@@ -92,7 +94,7 @@ section = "load_dependencies"
 - [ ] Load `template.md` for structure
 - [ ] Load `checklist.md` for semantic guidance
 - [ ] Load `examples/example.md` for reference style
-- [ ] Read adapter config for project ID prefix
+- [ ] Read project config for ID prefix
 - [ ] Load `{cypilot_path}/.core/architecture/specs/traceability.md` for ID formats
 - [ ] Load `{cypilot_path}/config/kits/sdlc/constraints.toml` for kit-level constraints
 - [ ] Load `{cypilot_path}/.core/architecture/specs/kit/constraints.md` for constraints specification
@@ -186,7 +188,7 @@ section = "setup"
 - [ ] Load `template.md` for structure
 - [ ] Load `checklist.md` for semantic guidance
 - [ ] Load `example.md` for reference style
-- [ ] Read adapter config for project ID prefix
+- [ ] Read project config for ID prefix
 ```
 `@/cpt:rule`
 
@@ -297,6 +299,46 @@ Issues:
 ````
 `@/cpt:rule`
 
+#### Reporting Commitment
+
+`@cpt:rule`
+```toml
+kind = "validation"
+section = "reporting"
+```
+```markdown
+- [ ] I reported all issues I found
+- [ ] I used the exact report format defined in this checklist (no deviations)
+- [ ] I included Why Applicable justification for each issue
+- [ ] I included evidence and impact for each issue
+- [ ] I proposed concrete fixes for each issue
+- [ ] I did not hide or omit known problems
+- [ ] I verified explicit handling for all major checklist categories
+- [ ] I am ready to iterate on the proposals and re-review after changes
+```
+`@/cpt:rule`
+
+#### PR Review Focus (Requirements)
+
+`@cpt:rule`
+```toml
+kind = "validation"
+section = "pr_review"
+```
+```markdown
+When reviewing PRs that add or change PRD/requirements documents, additionally focus on:
+
+- [ ] Completeness and clarity of requirements
+- [ ] Testability and acceptance criteria for every requirement
+- [ ] Traceability to business goals and stated problems
+- [ ] Compliance with `docs/spec-templates/PRD.md` template structure
+- [ ] Alignment with best industry standard practices for large SaaS systems and platforms
+- [ ] Critical assessment of requirements quality — challenge vague, overlapping, or untestable items
+- [ ] Split findings by checklist category and rate each 1-10
+- [ ] Ensure requirements are aligned with the project's existing architecture (`docs/ARCHITECTURE_MANIFEST.md`)
+```
+`@/cpt:rule`
+
 ### Error Handling
 
 #### Missing Dependencies
@@ -313,15 +355,15 @@ section = "missing_dependencies"
 ```
 `@/cpt:rule`
 
-#### Missing Adapter
+#### Missing Config
 
 `@cpt:rule`
 ```toml
 kind = "error_handling"
-section = "missing_adapter"
+section = "missing_config"
 ```
 ```markdown
-- [ ] If adapter config unavailable → use default project prefix `cpt-{dirname}`
+- [ ] If project config unavailable → use default project prefix `cpt-{dirname}`
 - [ ] Ask user to confirm or provide custom prefix
 ```
 `@/cpt:rule`

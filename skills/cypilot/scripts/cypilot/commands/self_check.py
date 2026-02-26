@@ -27,7 +27,7 @@ def run_self_check_from_meta(
     """Run self-check using already-loaded registry metadata.
 
     This is used by both the CLI `self-check` command and by `validate` to fail-fast.
-    It does NOT do adapter/project discovery.
+    It does NOT do cypilot/project discovery.
     """
     from ..utils.constraints import load_constraints_json
 

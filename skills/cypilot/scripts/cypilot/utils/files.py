@@ -1,7 +1,7 @@
 """
 Cypilot Validator - File System Operations
 
-File I/O, project root discovery, adapter detection, path resolution.
+File I/O, project root discovery, cypilot detection, path resolution.
 """
 
 import json
@@ -113,7 +113,7 @@ def load_project_config(project_root: Path) -> Optional[dict]:
 
 
 def cypilot_root_from_project_config() -> Optional[Path]:
-    """Get Cypilot core path from adapter core.toml [paths] section."""
+    """Get Cypilot core path from config core.toml [paths] section."""
     project_root = find_project_root(Path.cwd())
     if project_root is None:
         return None
@@ -136,7 +136,7 @@ def cypilot_root_from_project_config() -> Optional[Path]:
 
 def find_cypilot_directory(start: Path, cypilot_root: Optional[Path] = None) -> Optional[Path]:
     """
-    Find adapter directory starting from project root.
+    Find cypilot directory starting from project root.
 
     Resolution order:
     1. Read ``cypilot`` variable from root AGENTS.md TOML block
@@ -166,7 +166,7 @@ def find_cypilot_directory(start: Path, cypilot_root: Optional[Path] = None) -> 
     }
     
     def is_adapter_directory(path: Path) -> bool:
-        """Check if directory looks like .cypilot-adapter."""
+        """Check if directory looks like a cypilot config directory."""
         agents_file = path / "AGENTS.md"
         if not agents_file.exists():
             return False
@@ -184,7 +184,7 @@ def find_cypilot_directory(start: Path, cypilot_root: Optional[Path] = None) -> 
                     extends_match = re.search(r'\*\*Extends\*\*:\s*`([^`]+)`', content)
                     if extends_match:
                         extends_path = extends_match.group(1)
-                        # Resolve relative to adapter directory
+                        # Resolve relative to cypilot directory
                         resolved = (path / extends_path).resolve()
                         # Check if it points to cypilot_root
                         if resolved.parent == cypilot_root or (cypilot_root / "AGENTS.md") == resolved:
@@ -192,7 +192,7 @@ def find_cypilot_directory(start: Path, cypilot_root: Optional[Path] = None) -> 
                 # Even without cypilot_root validation, Extends is strong signal
                 return True
             
-            # Look for adapter-specific markers in content
+            # Look for cypilot-specific markers in content
             adapter_markers = [
                 "# Cypilot Adapter:",
                 ".cypilot-adapter",
@@ -220,7 +220,7 @@ def find_cypilot_directory(start: Path, cypilot_root: Optional[Path] = None) -> 
         return False
     
     def search_recursive(root: Path, max_depth: int = 5, current_depth: int = 0) -> Optional[Path]:
-        """Recursively search for adapter directory."""
+        """Recursively search for cypilot directory."""
         if current_depth > max_depth:
             return None
         

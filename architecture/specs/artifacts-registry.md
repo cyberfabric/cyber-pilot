@@ -33,13 +33,12 @@ purpose: Define structure and usage of artifacts.toml for agent operations
 
 ## Agent Instructions
 
-**Add to adapter AGENTS.md** (path relative to adapter directory):
+**Add to config AGENTS.md**:
 ```
 ALWAYS open and follow `{cypilot_path}/.core/requirements/artifacts-registry.md` WHEN working with artifacts.toml
 ```
-Where `{cypilot_path}` is resolved from the adapter's `**Extends**:` declaration.
 
-**ALWAYS use**: `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py info` to discover adapter location
+**ALWAYS use**: `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py info` to discover cypilot location
 
 **ALWAYS use**: `cypilot.py` CLI commands for artifact operations (list-ids, where-defined, where-used, validate)
 
@@ -648,7 +647,7 @@ Codebase paths are resolved directly: `{project_root}/{codebase.path}`
 ### Discovery
 
 ```bash
-# Find adapter and registry
+# Find cypilot config and registry
 cypilot.py info --root /project
 ```
 

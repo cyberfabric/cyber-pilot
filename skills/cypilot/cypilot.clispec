@@ -1,15 +1,13 @@
 COMMAND init
 SYNOPSIS: python3 scripts/cypilot.py init [options]
-DESCRIPTION: Initialize Cypilot config and minimal adapter for a project
-WORKFLOW: adapter
+DESCRIPTION: Initialize Cypilot config for a project
 
 ARGUMENTS:
 
 OPTIONS:
   --project-root  <path>  Project root directory to create .cypilot-config.json in (default: parent of Cypilot core)
   --cypilot-root  <path>  Explicit Cypilot core root (optional override)
-  --adapter-path  <path>  Adapter directory path relative to project root (default: .cypilot-adapter)
-  --project-name  <string>  Project name used in adapter AGENTS.md (default: project root folder name)
+  --project-name  <string>  Project name used in AGENTS.md (default: project root folder name)
   --yes  <boolean>  Do not prompt; accept defaults
   --dry-run  <boolean>  Compute changes without writing files
   --force  <boolean>  Overwrite existing files
@@ -21,14 +19,13 @@ EXIT CODES:
 EXAMPLE:
   $ python3 scripts/cypilot.py init
   $ python3 scripts/cypilot.py init --yes
-  $ python3 scripts/cypilot.py init --project-root . --adapter-path .cypilot-adapter --yes
+  $ python3 scripts/cypilot.py init --project-root . --yes
   $ python3 scripts/cypilot.py init --dry-run
   $ python3 scripts/cypilot.py init --force
 
 RELATED:
   - @CLI.info
   - @CLI.agents
-  - @Workflow.adapter
 ---
 
 COMMAND validate
@@ -46,7 +43,7 @@ OPTIONS:
 
 EXIT CODES:
   0  Validation passed
-  1  File system error or no adapter found
+  1  File system error or no cypilot found
   2  Validation failed
 
 OUTPUT:
@@ -91,7 +88,7 @@ OPTIONS:
 
 EXIT CODES:
   0  Validation passed
-  1  File system error or no adapter found
+  1  File system error or no cypilot found
   2  Validation failed
 
 OUTPUT:
@@ -115,7 +112,7 @@ RELATED:
 
 COMMAND list-ids
 SYNOPSIS: python3 scripts/cypilot.py list-ids [--artifact <path>] [options]
-DESCRIPTION: List all Cypilot IDs from artifacts using template-based parsing. If no artifact is specified, scans all Cypilot-format artifacts registered in the adapter. Use --include-code to also scan code files for Cypilot marker references.
+DESCRIPTION: List all Cypilot IDs from artifacts using template-based parsing. If no artifact is specified, scans all Cypilot-format artifacts registered in the config. Use --include-code to also scan code files for Cypilot marker references.
 
 ARGUMENTS:
 
@@ -129,7 +126,7 @@ OPTIONS:
 
 EXIT CODES:
   0  Success
-  1  File system error, artifact not found, or no adapter found
+  1  File system error, artifact not found, or no cypilot found
 
 OUTPUT:
   JSON object with:
@@ -163,7 +160,7 @@ OPTIONS:
 
 EXIT CODES:
   0  Success
-  1  File system error, no adapter found, or artifact not in registry
+  1  File system error, no cypilot found, or artifact not in registry
 
 OUTPUT:
   JSON object with:
@@ -211,7 +208,7 @@ RELATED:
 
 COMMAND info
 SYNOPSIS: python3 scripts/cypilot.py info [options]
-DESCRIPTION: Discover Cypilot adapter configuration and location in a project
+DESCRIPTION: Discover Cypilot configuration and location in a project
 
 ARGUMENTS:
 
@@ -220,9 +217,9 @@ OPTIONS:
   --cypilot-root  <path>  Known Cypilot core location for enhanced validation
 
 EXIT CODES:
-  0  Adapter found
+  0  Cypilot found
   1  File system error
-  2  Adapter not found
+  2  Cypilot not found
 
 EXAMPLE:
   $ python3 scripts/cypilot.py info
@@ -230,7 +227,6 @@ EXAMPLE:
   $ python3 scripts/cypilot.py info --root . --cypilot-root ../Cypilot
 
 RELATED:
-  - @Workflow.adapter
 ---
 
 COMMAND where-defined
@@ -245,7 +241,7 @@ OPTIONS:
 
 EXIT CODES:
   0  Exactly one definition found
-  1  File system error or no adapter found
+  1  File system error or no cypilot found
   2  ID not found or ambiguous (multiple definitions)
 
 EXAMPLE:
@@ -272,7 +268,7 @@ OPTIONS:
 
 EXIT CODES:
   0  Success (references found or not found)
-  1  File system error or no adapter found
+  1  File system error or no cypilot found
 
 EXAMPLE:
   $ python3 scripts/cypilot.py where-used --id cpt-myapp-actor-admin
@@ -287,9 +283,7 @@ RELATED:
 
 COMMAND agents
 SYNOPSIS: python3 scripts/cypilot.py agents --agent <name> [options]
-DESCRIPTION: Generate/update agent-specific workflow proxies and skill outputs. Creates unified proxy files for workflows (cypilot-generate, cypilot-analyze, cypilot-adapter, cypilot-rules) and the cypilot skill entry point. Supports windsurf, cursor, claude, copilot.
-WORKFLOW: adapter
-
+DESCRIPTION: Generate/update agent-specific workflow proxies and skill outputs. Creates unified proxy files for workflows (cypilot-generate, cypilot-analyze) and the cypilot skill entry point. Supports windsurf, cursor, claude, copilot.
 ARGUMENTS:
 
 OPTIONS:
@@ -319,8 +313,6 @@ EXAMPLE:
 RELATED:
   - @CLI.init
   - @CLI.info
-  - @Workflow.adapter
-
 ---
 
 COMMAND self-check
@@ -336,7 +328,7 @@ OPTIONS:
 
 EXIT CODES:
   0  All examples pass validation
-  1  File system error or no adapter found
+  1  File system error or no cypilot found
   2  One or more examples failed validation
 
 OUTPUT:

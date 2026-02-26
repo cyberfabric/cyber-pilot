@@ -2,7 +2,7 @@
 Cypilot Context - Global context for Cypilot tooling.
 
 Loads and caches:
-- Adapter directory and project root
+- Cypilot directory and project root
 - ArtifactsMeta from artifacts.toml
 - All templates for each kit
 - Registered system names
@@ -39,13 +39,13 @@ class CypilotContext:
 
     @classmethod
     def load(cls, start_path: Optional[Path] = None) -> Optional["CypilotContext"]:
-        """Load Cypilot context from adapter directory.
+        """Load Cypilot context from cypilot directory.
 
         Args:
-            start_path: Starting path to search for adapter (default: cwd)
+            start_path: Starting path to search for cypilot (default: cwd)
 
         Returns:
-            CypilotContext or None if adapter not found or load failed
+            CypilotContext or None if cypilot not found or load failed
         """
         from .files import find_cypilot_directory
 

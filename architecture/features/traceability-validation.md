@@ -49,7 +49,7 @@ Catches structural and traceability issues that AI agents miss or hallucinate â€
 
 **Steps**:
 1. [x] - `p1` - User invokes `cypilot validate [--artifact <path>] [--skip-code] [--verbose]` - `inst-user-validate`
-2. [x] - `p1` - Load project context: adapter, registry, systems, kits, constraints - `inst-load-context`
+2. [x] - `p1` - Load project context: cypilot config, registry, systems, kits, constraints - `inst-load-context`
 3. [x] - `p1` - Resolve artifacts to validate: if `--artifact` specified resolve single artifact from registry, otherwise collect all registered Cypilot-format artifacts - `inst-resolve-artifacts`
 4. [x] - `p1` - Run self-check: validate kit examples against templates to ensure kit integrity - `inst-self-check`
 5. [x] - `p1` - **FOR EACH** artifact to validate - `inst-foreach-artifact`
@@ -216,7 +216,7 @@ Catches structural and traceability issues that AI agents miss or hallucinate â€
 **Transitions**:
 1. [x] - `p1` - **FROM** NOT_RUN **TO** PASS **WHEN** validation completes with zero errors (exit code 0) - `inst-pass`
 2. [x] - `p1` - **FROM** NOT_RUN **TO** FAIL **WHEN** validation completes with structural or traceability errors (exit code 2) - `inst-fail`
-3. [x] - `p1` - **FROM** NOT_RUN **TO** ERROR **WHEN** validation cannot run (no adapter, missing config, exit code 1) - `inst-error`
+3. [x] - `p1` - **FROM** NOT_RUN **TO** ERROR **WHEN** validation cannot run (no cypilot, missing config, exit code 1) - `inst-error`
 
 ## Definitions of Done
 

@@ -57,7 +57,7 @@ kind = "prerequisites"
 section = "load_dependencies"
 ```
 ```markdown
-- [ ] Read adapter `AGENTS.md` for code conventions
+- [ ] Read project `AGENTS.md` for code conventions
 - [ ] Load source artifact/description (FEATURE preferred)
 - [ ] Load `checklist.md` for quality guidance
 - [ ] Load `{cypilot_path}/.core/requirements/code-checklist.md` for generic code quality checks
@@ -85,7 +85,7 @@ section = "structural"
 ```
 ```markdown
 - [ ] Code implements FEATURE design requirements
-- [ ] Code follows project conventions from adapter
+- [ ] Code follows project conventions from config
 ```
 `@/cpt:rule`
 
@@ -184,7 +184,7 @@ section = "engineering"
   - Interface Segregation: Prefer small, purpose-driven interfaces over broad ones
   - Dependency Inversion: Depend on abstractions; inject dependencies for testability
 - [ ] **DRY**: Remove duplication by extracting shared logic with clear ownership
-- [ ] **KISS**: Prefer simplest correct solution matching design and adapter conventions
+- [ ] **KISS**: Prefer simplest correct solution matching design and project conventions
 - [ ] **YAGNI**: No specs/abstractions not required by current design scope
 - [ ] **Refactoring discipline**: Refactor only after tests pass; keep behavior unchanged
 - [ ] **Testability**: Structure code so core logic is testable without heavy integration
@@ -222,7 +222,7 @@ section = "setup"
 5. None — suggest `/cypilot-generate FEATURE` first
 
 **Load Context**:
-- [ ] Read adapter `AGENTS.md` for code conventions
+- [ ] Read project `AGENTS.md` for code conventions
 - [ ] Load source artifact/description
 - [ ] Load `checklist.md` for quality guidance
 - [ ] Determine Traceability Mode
@@ -238,9 +238,9 @@ section = "implementation"
 ```markdown
 **For each work package:**
 1. Identify exact design items to code (flows/algos/states/requirements/tests)
-2. Implement according to adapter conventions
+2. Implement according to project conventions
 3. If Traceability Mode ON: add instruction-level tags while implementing
-4. Run work package validation (tests, build, linters per adapter)
+4. Run work package validation (tests, build, linters per project config)
 5. If Traceability Mode ON: update FEATURE.md checkboxes
 6. Proceed to next work package
 ```
@@ -381,7 +381,7 @@ section = "test_execution"
 - [ ] All unit tests pass
 - [ ] All integration tests pass
 - [ ] All e2e tests pass (if applicable)
-- [ ] Coverage meets adapter requirements
+- [ ] Coverage meets project requirements
 ```
 `@/cpt:rule`
 
@@ -471,8 +471,8 @@ Run expert panel review after producing validation output.
 ```
 
 **PASS only if:**
-- Build/lint/tests pass per adapter
-- Coverage meets adapter requirements
+- Build/lint/tests pass per project config
+- Coverage meets project requirements
 - No CRITICAL divergences between code and design
 - If Traceability Mode ON: required tags present and properly paired
 ````

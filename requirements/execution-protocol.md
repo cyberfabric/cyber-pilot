@@ -19,7 +19,7 @@ purpose: Common protocol executed by generate.md and analyze.md workflows
 - [Compaction Recovery](#-compaction-recovery)
 - [Cypilot Mode Detection](#cypilot-mode-detection)
 - [Rules Mode Detection](#rules-mode-detection)
-- [Discover Adapter](#discover-adapter)
+- [Discover Cypilot](#discover-cypilot)
 - [Understand Registry](#understand-registry)
 - [Clarify Intent](#clarify-intent)
 - [Load Rules](#load-rules)
@@ -93,7 +93,7 @@ Cypilot mode: ENABLED. To disable: /cypilot off
 
 ## Rules Mode Detection
 
-After adapter discovery, determine **Rules Mode**:
+After cypilot discovery, determine **Rules Mode**:
 
 ### Rules Mode: STRICT (Cypilot rules enabled)
 
@@ -114,7 +114,7 @@ Rules Mode: STRICT (cypilot-sdlc rules loaded)
 
 ### Rules Mode: BOOTSTRAP (new project)
 
-ALWAYS detect BOOTSTRAP mode WHEN adapter found AND `artifacts.toml` has empty `systems[].artifacts` array
+ALWAYS detect BOOTSTRAP mode WHEN cypilot found AND `artifacts.toml` has empty `systems[].artifacts` array
 
 ALWAYS read `kits` section from `artifacts.toml` WHEN BOOTSTRAP mode detected
 
@@ -143,21 +143,21 @@ ALWAYS proceed with generate workflow without blocking WHEN user requests artifa
 
 NEVER trigger reverse-engineering WHEN GREENFIELD — there is no code to analyze
 
-ALWAYS offer reverse-engineering WHEN BROWNFIELD AND adapter has no specs — existing code should inform design artifacts
+ALWAYS offer reverse-engineering WHEN BROWNFIELD AND config has no specs — existing code should inform design artifacts
 
-NEVER offer reverse-engineering WHEN adapter already has specs — project analysis already done
+NEVER offer reverse-engineering WHEN config already has specs — project analysis already done
 
 NEVER show warnings or "reduced rigor" messages WHEN in BOOTSTRAP mode
 
 ---
 
-### Rules Mode: RELAXED (no adapter)
+### Rules Mode: RELAXED (no cypilot)
 
-ALWAYS detect RELAXED mode WHEN no adapter found OR no `kits` in artifacts.toml
+ALWAYS detect RELAXED mode WHEN no cypilot found OR no `kits` in artifacts.toml
 
 ALWAYS propose initialization WHEN RELAXED mode:
 ```
-Cypilot adapter not configured
+Cypilot not configured
 
 → `cypilot init` to initialize for this project
 ```
@@ -168,7 +168,7 @@ ALWAYS proceed as normal coding assistant WHEN user declines initialization
 
 | Aspect | STRICT | BOOTSTRAP | RELAXED |
 |--------|--------|-----------|---------|
-| Condition | Artifacts registered | Adapter found, no artifacts | No adapter |
+| Condition | Artifacts registered | Cypilot found, no artifacts | No cypilot |
 | Behavior | Full enforcement | Welcome + propose SDLC | Suggest init |
 | Template enforcement | ✓ Required | ✓ Required | ✗ None |
 | Checklist validation | ✓ Mandatory | ✓ Mandatory | ✗ Skipped |
@@ -185,17 +185,17 @@ ALWAYS proceed as normal coding assistant WHEN user declines initialization
 
 ---
 
-## Discover Adapter
+## Discover Cypilot
 
 ```bash
 python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py info --root {PROJECT_ROOT} --cypilot-root {cypilot_path}
 ```
 
-**Parse output**: `status`, `adapter_dir`, `project_root`, `specs`, `rules`
+**Parse output**: `status`, `cypilot_dir`, `project_root`, `specs`, `rules`
 
 **If FOUND**: Load `{cypilot_path}/.gen/AGENTS.md` for navigation rules
 
-**If NOT_FOUND**: Suggest running `/cypilot-adapter` to bootstrap
+**If NOT_FOUND**: Suggest running `cypilot init` to bootstrap
 
 ---
 
@@ -323,11 +323,11 @@ I understand the following requirements for {ARTIFACT_TYPE}:
 - `EXAMPLE` — loaded example content
 - `REQUIREMENTS` — parsed requirements from rules
 
-### 6. Load Adapter Specs
+### 6. Load Config Specs
 
-**After rules loaded and target type determined**, load applicable adapter specs:
+**After rules loaded and target type determined**, load applicable config specs:
 
-**Read adapter AGENTS.md** at `{cypilot_path}/.gen/AGENTS.md`
+**Read AGENTS.md** at `{cypilot_path}/.gen/AGENTS.md`
 
 **Parse WHEN clauses** matching current context:
 
@@ -347,11 +347,11 @@ For each line matching: ALWAYS open and follow `{spec}` WHEN Cypilot follows rul
 - Match WHEN clauses for that ruleset/target
 - Open matched specs (e.g. `specs/tech-stack.md`, `specs/domain-model.md`)
 
-**Store loaded adapter specs**:
-- `ADAPTER_DECOMPOSITION` — list of loaded spec paths
+**Store loaded config specs**:
+- `CONFIG_SPECS` — list of loaded spec paths
 - Specs content available for workflow guidance
 
-**Backward compatibility**: If adapter uses legacy format (`WHEN executing workflows: ...`), map workflow names to artifact kinds internally.
+**Backward compatibility**: If config uses legacy format (`WHEN executing workflows: ...`), map workflow names to artifact kinds internally.
 
 ---
 
@@ -383,12 +383,12 @@ For each line matching: ALWAYS open and follow `{spec}` WHEN Cypilot follows rul
 
 ## Error Handling
 
-### Adapter Not Found
+### Cypilot Not Found
 
-**If adapter not found**:
+**If cypilot not found**:
 ```
-⚠️ Adapter not found
-→ Run /cypilot-adapter to bootstrap
+⚠️ Cypilot not configured
+→ Run `cypilot init` to initialize
 ```
 **Action**: STOP.
 
@@ -409,7 +409,7 @@ For each line matching: ALWAYS open and follow `{spec}` WHEN Cypilot follows rul
 ⚠️ Rules file not found: {KITS_PATH}
 → Verify kit package exists at {KIT_BASE}
 → Check artifacts.toml kits section has correct path
-→ Run /cypilot-adapter --rescan to regenerate
+→ Run `cypilot init --force` to regenerate
 ```
 **Action**: STOP.
 
@@ -431,7 +431,7 @@ For each line matching: ALWAYS open and follow `{spec}` WHEN Cypilot follows rul
 ⚠️ System not found: {system_name}
 → Registered systems: {list from artifacts.toml}
 → Options:
-  1. Register system via /cypilot-adapter
+  1. Register system via `cypilot init`
   2. Use existing system
   3. Continue in RELAXED mode (no rules enforcement)
 ```
@@ -463,7 +463,7 @@ For each line matching: ALWAYS open and follow `{spec}` WHEN Cypilot follows rul
 
 ### Discovery (DI)
 
-- DI.1 (YES): Adapter discovery executed (`cypilot info`)
+- DI.1 (YES): Cypilot discovery executed (`cypilot info`)
 - DI.2 (YES): `artifacts.toml` read/understood (agent lists systems/rules)
 - DI.3 (YES): Rules directories explored (agent lists artifact kinds)
 
@@ -479,7 +479,7 @@ For each line matching: ALWAYS open and follow `{spec}` WHEN Cypilot follows rul
 - L.1 (YES): `KITS_PATH` resolved (correct `RULES.md`)
 - L.2 (YES): Dependencies loaded (template/checklist/example)
 - L.3 (YES): Requirements confirmed (agent enumerates requirements)
-- L.4 (CONDITIONAL): Adapter specs loaded (matched WHEN clauses)
+- L.4 (CONDITIONAL): Config specs loaded (matched WHEN clauses)
 
 ### Context (C)
 

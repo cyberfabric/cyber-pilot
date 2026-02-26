@@ -27,10 +27,13 @@
    - [Phase 1: Structural Validation (Deterministic)](#phase-1-structural-validation-deterministic)
    - [Phase 2: Semantic Validation (Checklist-based)](#phase-2-semantic-validation-checklist-based)
    - [Phase 3: Validation Report](#phase-3-validation-report)
+   - [Phase 4: Reporting Commitment](#phase-4-reporting-commitment)
+   - [Phase 5: PR Review Focus (Requirements)](#phase-5-pr-review-focus-requirements)
 5. [Error Handling](#error-handling)
    - [Missing Dependencies](#missing-dependencies)
    - [Missing Adapter](#missing-adapter)
    - [Escalation](#escalation)
+   - [Missing Config](#missing-config)
 6. [Next Steps](#next-steps)
    - [Options](#options)
 
@@ -43,7 +46,7 @@
 - [ ] Load `template.md` for structure
 - [ ] Load `checklist.md` for semantic guidance
 - [ ] Load `examples/example.md` for reference style
-- [ ] Read adapter config for project ID prefix
+- [ ] Read project config for ID prefix
 - [ ] Load `{cypilot_path}/.core/architecture/specs/traceability.md` for ID formats
 - [ ] Load `{cypilot_path}/config/kits/sdlc/constraints.toml` for kit-level constraints
 - [ ] Load `{cypilot_path}/.core/architecture/specs/kit/constraints.md` for constraints specification
@@ -140,7 +143,7 @@
 - [ ] Load `template.md` for structure
 - [ ] Load `checklist.md` for semantic guidance
 - [ ] Load `example.md` for reference style
-- [ ] Read adapter config for project ID prefix
+- [ ] Read project config for ID prefix
 
 ### Phase 2: Content Creation
 
@@ -203,6 +206,30 @@ Issues:
 - [SEVERITY] CHECKLIST-ID: Description
 ```
 
+### Phase 4: Reporting Commitment
+
+- [ ] I reported all issues I found
+- [ ] I used the exact report format defined in this checklist (no deviations)
+- [ ] I included Why Applicable justification for each issue
+- [ ] I included evidence and impact for each issue
+- [ ] I proposed concrete fixes for each issue
+- [ ] I did not hide or omit known problems
+- [ ] I verified explicit handling for all major checklist categories
+- [ ] I am ready to iterate on the proposals and re-review after changes
+
+### Phase 5: PR Review Focus (Requirements)
+
+When reviewing PRs that add or change PRD/requirements documents, additionally focus on:
+
+- [ ] Completeness and clarity of requirements
+- [ ] Testability and acceptance criteria for every requirement
+- [ ] Traceability to business goals and stated problems
+- [ ] Compliance with `docs/spec-templates/PRD.md` template structure
+- [ ] Alignment with best industry standard practices for large SaaS systems and platforms
+- [ ] Critical assessment of requirements quality — challenge vague, overlapping, or untestable items
+- [ ] Split findings by checklist category and rate each 1-10
+- [ ] Ensure requirements are aligned with the project's existing architecture (`docs/ARCHITECTURE_MANIFEST.md`)
+
 ---
 
 ## Error Handling
@@ -215,15 +242,17 @@ Issues:
 
 ### Missing Adapter
 
-- [ ] If adapter config unavailable → use default project prefix `cpt-{dirname}`
-- [ ] Ask user to confirm or provide custom prefix
-
 ### Escalation
 
 - [ ] Ask user when cannot determine appropriate actor roles for the domain
 - [ ] Ask user when business requirements are unclear or contradictory
 - [ ] Ask user when success criteria cannot be quantified without domain knowledge
 - [ ] Ask user when uncertain whether a category is truly N/A or just missing
+
+### Missing Config
+
+- [ ] If project config unavailable → use default project prefix `cpt-{dirname}`
+- [ ] Ask user to confirm or provide custom prefix
 
 ---
 

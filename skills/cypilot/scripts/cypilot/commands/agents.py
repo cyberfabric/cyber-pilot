@@ -268,21 +268,6 @@ def _default_agents_config() -> dict:
                             ],
                         },
                         {
-                            "path": ".claude/skills/cypilot-adapter/SKILL.md",
-                            "target": "workflows/adapter.md",
-                            "template": [
-                                "---",
-                                "name: cypilot-adapter",
-                                "description: {description}",
-                                "disable-model-invocation: false",
-                                "user-invocable: true",
-                                "allowed-tools: Bash, Read, Write, Edit, Glob, Grep",
-                                "---",
-                                "",
-                                "ALWAYS open and follow `{target_path}`",
-                            ],
-                        },
-                        {
                             "path": ".claude/skills/cypilot-generate/SKILL.md",
                             "target": "workflows/generate.md",
                             "template": [

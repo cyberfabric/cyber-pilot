@@ -577,11 +577,21 @@ def _collect_rules(bp: ParsedBlueprint) -> str:
     parts.append(f"**Artifact**: {kind_label}")
     parts.append(f"**Kit**: {kit}")
     parts.append("")
-    parts.append("**Dependencies**:")
-    parts.append("- `template.md` — structural reference")
-    parts.append("- `checklist.md` — semantic quality criteria")
-    parts.append("- `examples/example.md` — reference implementation")
-    parts.append("")
+    # Dynamically determine dependencies based on what this blueprint generates
+    has_template = any(m.marker_type in ("heading", "prompt") for m in bp.markers) and bp.artifact_kind
+    has_checklist = any(m.marker_type in ("checklist", "check") for m in bp.markers)
+    has_example = any(m.marker_type == "example" for m in bp.markers) and bp.artifact_kind
+    deps: List[str] = []
+    if has_template:
+        deps.append("- `template.md` — structural reference")
+    if has_checklist:
+        deps.append("- `checklist.md` — semantic quality criteria")
+    if has_example:
+        deps.append("- `examples/example.md` — reference implementation")
+    if deps:
+        parts.append("**Dependencies**:")
+        parts.extend(deps)
+        parts.append("")
 
     # Sections in fixed order
     for kind_key in SECTION_ORDER:

@@ -54,17 +54,17 @@ def _find_project_root():
 
 ROOT = _find_project_root()
 
-# Resolve adapter path from cypilot core config, then load PR config
+# Resolve cypilot path from core config, then load PR config
 _CYPILOT_CONFIG_PATH = os.path.join(
     ROOT, ".cypilot", ".cypilot-config.json",
 )
 
 
 def _load_pr_config():
-    """Load PR review config from adapter's pr-review.json.
+    """Load PR review config from config's pr-review.json.
 
     Resolution order:
-    1. {project_root}/{cypilotAdapterPath}/pr-review.json
+    1. {project_root}/{cypilotPath}/config/pr-review.json
     2. {project_root}/.cypilot-adapter/pr-review.json (default)
     """
     adapter_path = ".cypilot-adapter"

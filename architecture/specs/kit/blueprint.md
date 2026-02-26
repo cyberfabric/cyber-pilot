@@ -326,7 +326,7 @@ phases = ["setup", "content_creation", "ids_and_structure", "quality_check"]
 sections = ["structural", "semantic"]
 
 [error_handling]
-sections = ["missing_dependencies", "missing_adapter", "escalation"]
+sections = ["missing_dependencies", "missing_config", "escalation"]
 
 [next_steps]
 sections = ["options"]
@@ -627,7 +627,7 @@ Contains a single ` ```markdown ` block with a writing instruction for the neare
 `@cpt:prompt`
 ```markdown
 Write 1-2 paragraphs: what is this system/module and what problem does it solve.
-Reference the system name from adapter config.
+Reference the system name from project config.
 Do NOT include implementation details.
 ```
 `@/cpt:prompt`
