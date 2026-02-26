@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from ..utils.files import core_subpath, gen_subpath, find_project_root, _is_cypilot_root
+from ..utils.files import core_subpath, gen_subpath, find_project_root, _is_cypilot_root, _read_cypilot_var
 
 
 def _safe_relpath(path: Path, base: Path) -> str:
@@ -74,7 +74,9 @@ def _ensure_cypilot_local(
     except ValueError:
         pass
 
-    local_dot = project_root / "cypilot"
+    # Read actual cypilot directory name from AGENTS.md (e.g. .cypilot, cpt, cypilot)
+    configured_name = _read_cypilot_var(project_root)
+    local_dot = project_root / (configured_name if configured_name else "cypilot")
 
     # 2. Existing submodule
     if (local_dot / ".git").exists():
