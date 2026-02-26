@@ -549,7 +549,18 @@ def cmd_init(argv: List[str]) -> int:
             if skill_content:
                 gen_kit_skill_path = gen_kits_dir / kit_slug / "SKILL.md"
                 gen_kit_skill_path.parent.mkdir(parents=True, exist_ok=True)
+                # Build description from artifact kinds and workflows
+                art_kinds = [k.upper() for k in summary.get("artifact_kinds", []) if k]
+                wf_names = [w["name"] for w in summary.get("workflows", []) if w.get("name")]
+                desc_parts: list[str] = []
+                if art_kinds:
+                    desc_parts.append(f"Artifacts: {', '.join(art_kinds)}")
+                if wf_names:
+                    desc_parts.append(f"Workflows: {', '.join(wf_names)}")
+                kit_description = "; ".join(desc_parts) if desc_parts else f"Kit {kit_slug}"
                 gen_kit_skill_path.write_text(
+                    f"---\nname: cypilot-{kit_slug}\n"
+                    f"description: \"{kit_description}\"\n---\n\n"
                     f"# Cypilot Skill — Kit `{kit_slug}`\n\n"
                     f"Generated from kit `{kit_slug}` blueprints.\n\n"
                     + skill_content + "\n",

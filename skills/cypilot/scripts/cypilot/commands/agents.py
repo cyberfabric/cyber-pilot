@@ -736,6 +736,23 @@ def _process_single_agent(
                 skill_source_name = skill_fm.get("name", skill_name)
                 skill_source_description = skill_fm.get("description", "Proxy to Cypilot core skill instructions")
 
+                # Enrich description with per-kit skill descriptions from .gen/kits/*/SKILL.md
+                gen_kits = gen_subpath(cypilot_root, "kits")
+                if gen_kits.is_dir():
+                    kit_descs: List[str] = []
+                    try:
+                        for kit_dir in sorted(gen_kits.iterdir()):
+                            kit_skill = kit_dir / "SKILL.md"
+                            if kit_skill.is_file():
+                                kit_fm = _parse_frontmatter(kit_skill)
+                                kit_desc = kit_fm.get("description", "")
+                                if kit_desc:
+                                    kit_descs.append(f"Kit {kit_dir.name}: {kit_desc}")
+                    except Exception:
+                        pass
+                    if kit_descs:
+                        skill_source_description = skill_source_description.rstrip(".") + ". " + ". ".join(kit_descs) + "."
+
                 custom_content = skills_cfg.get("custom_content", "")
 
                 for idx, out_cfg in enumerate(outputs):
