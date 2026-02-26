@@ -1,5 +1,5 @@
 <!-- @cpt:root-agents -->
-# Cypilot AI Agent Navigation
+## Cypilot AI Agent Navigation
 
 **Remember these variables while working in this project:**
 
@@ -13,7 +13,7 @@ ALWAYS open and follow `{cypilot_path}/config/AGENTS.md` FIRST
 
 <!-- /@cpt:root-agents -->
 
-# Cypilot AI Agent Navigation
+## Cypilot AI Agent Navigation
 
 **Version**: 1.1
 
