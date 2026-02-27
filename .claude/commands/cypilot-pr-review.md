@@ -3,4 +3,4 @@ description: "Review GitHub PRs using LLM-powered analysis with configurable pro
 ---
 
 
-ALWAYS open and follow `@/cypilot/.gen/kits/sdlc/workflows/pr-review.md`
+ALWAYS open and follow `@/.bootstrap/.gen/kits/sdlc/workflows/pr-review.md`
