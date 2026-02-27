@@ -1631,9 +1631,9 @@ id = "decomposition-h1-title"
 level = 1
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = false
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Suggested heading text template for authors
 template = "Decomposition: {PROJECT_NAME}"
@@ -1658,9 +1658,9 @@ id = "decomposition-overview"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Overview"
@@ -1705,9 +1705,9 @@ id = "decomposition-entries"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Entries"
@@ -1755,9 +1755,9 @@ id = "decomposition-entry"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = true
 # Suggested heading text template for authors
 template = "[{Feature Title 1}](feature-{slug}/) - HIGH"
@@ -2123,9 +2123,9 @@ id = "decomposition-feature-deps"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Feature Dependencies"

@@ -54,16 +54,12 @@
           "items": { "type": "string", "minLength": 1 }
         },
         "task": {
-          "oneOf": [
-            { "type": "string", "enum": ["required", "allowed", "prohibited"] },
-            { "type": "boolean" }
-          ]
+          "type": ["boolean", "null"],
+          "description": "Whether task checkbox is required (true), prohibited (false), or allowed (null/omitted)."
         },
         "priority": {
-          "oneOf": [
-            { "type": "string", "enum": ["required", "allowed", "prohibited"] },
-            { "type": "boolean" }
-          ]
+          "type": ["boolean", "null"],
+          "description": "Whether priority marker is required (true), prohibited (false), or allowed (null/omitted)."
         },
         "to_code": { "type": "boolean" },
         "references": {
@@ -77,19 +73,18 @@
     "reference_rule": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["coverage"],
       "properties": {
         "coverage": {
-          "type": "string",
-          "enum": ["required", "optional", "prohibited"]
+          "type": ["boolean", "null"],
+          "description": "Whether reference is required (true), prohibited (false), or optional (null/omitted)."
         },
         "task": {
-          "$ref": "#/$defs/tri_state",
-          "description": "Whether task checkbox is allowed/required/prohibited for references. Default: allowed."
+          "type": ["boolean", "null"],
+          "description": "Whether task checkbox is required (true), prohibited (false), or allowed (null/omitted)."
         },
         "priority": {
-          "$ref": "#/$defs/tri_state",
-          "description": "Whether priority marker is allowed/required/prohibited for references. Default: allowed."
+          "type": ["boolean", "null"],
+          "description": "Whether priority marker is required (true), prohibited (false), or allowed (null/omitted)."
         },
         "headings": {
           "type": "array",
@@ -111,8 +106,14 @@
         "description": { "type": "string" },
         "level": { "type": "integer", "minimum": 1, "maximum": 6 },
         "required": { "type": "boolean" },
-        "multiple": { "type": "string", "enum": ["allow", "prohibited", "required"] },
-        "numbered": { "type": "string", "enum": ["allow", "prohibited", "required"] }
+        "multiple": {
+          "type": ["boolean", "null"],
+          "description": "Whether multiple occurrences are required (true), prohibited (false), or allowed (null/omitted)."
+        },
+        "numbered": {
+          "type": ["boolean", "null"],
+          "description": "Whether numbered headings are required (true), prohibited (false), or allowed (null/omitted)."
+        }
       }
     }
   }

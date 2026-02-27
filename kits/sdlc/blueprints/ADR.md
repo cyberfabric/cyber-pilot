@@ -2290,9 +2290,9 @@ id = "adr-h1-title"
 level = 1
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = false
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Suggested heading text template for authors
 template = "{Short title describing problem and chosen solution}"
@@ -2358,9 +2358,9 @@ id = "adr-context"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = false
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Context and Problem Statement"
@@ -2406,9 +2406,9 @@ id = "adr-decision-drivers"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = false
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Decision Drivers"
@@ -2451,9 +2451,9 @@ id = "adr-considered-options"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = false
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Considered Options"
@@ -2496,9 +2496,9 @@ id = "adr-decision-outcome"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = false
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Decision Outcome"
@@ -2537,9 +2537,9 @@ id = "adr-decision-outcome-consequences"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = false
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Consequences"
@@ -2585,9 +2585,9 @@ id = "adr-decision-outcome-confirmation"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = false
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Confirmation"
@@ -2631,9 +2631,9 @@ id = "adr-pros-cons"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = false
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Pros and Cons of the Options"
@@ -2654,9 +2654,9 @@ id = "adr-pros-cons-entry"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = false
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = true
 # Suggested heading text template for authors
 template = "{Title of option 1}"
@@ -2716,9 +2716,9 @@ id = "adr-more-info"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = false
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = false
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "More Information"
@@ -2756,9 +2756,9 @@ id = "adr-traceability"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = false
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = false
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Traceability"

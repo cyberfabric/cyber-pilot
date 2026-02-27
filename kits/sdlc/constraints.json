@@ -9,8 +9,8 @@
         "pattern": null,
         "description": "PRD document title (H1).",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "prd-overview",
@@ -18,8 +18,8 @@
         "pattern": "Overview",
         "description": "High-level overview of the product and problem.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "prd-overview-purpose",
@@ -27,8 +27,8 @@
         "pattern": "Purpose",
         "description": "Purpose of the PRD and the product.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "prd-overview-background",
@@ -36,8 +36,8 @@
         "pattern": "Background / Problem Statement",
         "description": "Background and problem statement.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "prd-overview-goals",
@@ -45,8 +45,8 @@
         "pattern": "Goals \\(Business Outcomes\\)",
         "description": "Business outcomes and goals.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "prd-overview-glossary",
@@ -54,8 +54,8 @@
         "pattern": "Glossary",
         "description": "Definitions of key terms.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "prd-actors",
@@ -63,8 +63,8 @@
         "pattern": "Actors",
         "description": "Actors (human and system) that interact with the product.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "prd-actors-human",
@@ -72,8 +72,8 @@
         "pattern": "Human Actors",
         "description": "Human actors",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "prd-actors-system",
@@ -81,8 +81,8 @@
         "pattern": "System Actors",
         "description": "System and external actors.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "prd-operational-concept",
@@ -90,8 +90,8 @@
         "pattern": "Operational Concept \u0026 Environment",
         "description": "Operational concept and environment constraints.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "prd-scope",
@@ -99,8 +99,8 @@
         "pattern": "Scope",
         "description": "Scope of the product and release.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "prd-scope-in",
@@ -108,8 +108,8 @@
         "pattern": "In Scope",
         "description": "In-scope items.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "prd-scope-out",
@@ -117,8 +117,8 @@
         "pattern": "Out of Scope",
         "description": "Out-of-scope items.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "prd-fr",
@@ -126,8 +126,8 @@
         "pattern": "Functional Requirements",
         "description": "Functional requirements section.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "prd-fr-entry",
@@ -135,8 +135,8 @@
         "pattern": null,
         "description": "Functional requirement entry heading.",
         "required": true,
-        "multiple": "allow",
-        "numbered": "allow"
+        "multiple": null,
+        "numbered": null
       },
       {
         "id": "prd-nfr",
@@ -144,8 +144,8 @@
         "pattern": "Non-Functional Requirements",
         "description": "Non-functional requirements section.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "prd-nfr-exclusions",
@@ -153,8 +153,8 @@
         "pattern": "NFR Exclusions",
         "description": "Explicit non-functional requirement exclusions.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "prd-public-interfaces",
@@ -162,8 +162,8 @@
         "pattern": "Public Library Interfaces",
         "description": "Public library interfaces and integration contracts.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "prd-public-interfaces-api",
@@ -171,8 +171,8 @@
         "pattern": "Public API Surface",
         "description": "Public API surface.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "prd-public-interfaces-external-contracts",
@@ -180,8 +180,8 @@
         "pattern": "External Integration Contracts",
         "description": "External integration contracts.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "prd-use-cases",
@@ -189,8 +189,8 @@
         "pattern": "Use Cases",
         "description": "Use cases section.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "prd-acceptance-criteria",
@@ -198,8 +198,8 @@
         "pattern": "Acceptance Criteria",
         "description": "Acceptance criteria for delivery.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "prd-dependencies",
@@ -207,8 +207,8 @@
         "pattern": "Dependencies",
         "description": "Dependencies required to deliver the PRD.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "prd-assumptions",
@@ -216,8 +216,8 @@
         "pattern": "Assumptions",
         "description": "Assumptions that must hold.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "prd-risks",
@@ -225,8 +225,8 @@
         "pattern": "Risks",
         "description": "Risks and mitigations.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       }
     ],
     "identifiers": {
@@ -241,8 +241,8 @@
           "cpt-ex-ovwa-actor-macos"
         ],
         "required": false,
-        "task": "prohibited",
-        "priority": "prohibited",
+        "task": false,
+        "priority": false,
         "to_code": false,
         "headings": ["prd-actors"],
         "references": {}
@@ -258,27 +258,27 @@
           "cpt-ex-ovwa-fr-cli-controls"
         ],
         "required": true,
-        "task": "allowed",
-        "priority": "required",
+        "task": null,
+        "priority": true,
         "to_code": false,
         "headings": ["prd-fr"],
         "references": {
           "DESIGN": {
-            "coverage": "required",
-            "task": "allowed",
-            "priority": "allowed",
+            "coverage": true,
+            "task": null,
+            "priority": null,
             "headings": ["design-arch-overview-drivers"]
           },
           "DECOMPOSITION": {
-            "coverage": "optional",
-            "task": "allowed",
-            "priority": "allowed",
+            "coverage": null,
+            "task": null,
+            "priority": null,
             "headings": ["decomposition-entry"]
           },
           "FEATURE": {
-            "coverage": "optional",
-            "task": "allowed",
-            "priority": "allowed",
+            "coverage": null,
+            "task": null,
+            "priority": null,
             "headings": ["feature-context-purpose"]
           }
         }
@@ -294,27 +294,27 @@
           "cpt-ex-ovwa-nfr-low-overhead"
         ],
         "required": true,
-        "task": "allowed",
-        "priority": "required",
+        "task": null,
+        "priority": true,
         "to_code": false,
         "headings": ["prd-nfr"],
         "references": {
           "DESIGN": {
-            "coverage": "required",
-            "task": "allowed",
-            "priority": "allowed",
+            "coverage": true,
+            "task": null,
+            "priority": null,
             "headings": ["design-arch-overview-drivers"]
           },
           "DECOMPOSITION": {
-            "coverage": "optional",
-            "task": "allowed",
-            "priority": "allowed",
+            "coverage": null,
+            "task": null,
+            "priority": null,
             "headings": ["decomposition-entry"]
           },
           "FEATURE": {
-            "coverage": "optional",
-            "task": "allowed",
-            "priority": "allowed",
+            "coverage": null,
+            "task": null,
+            "priority": null,
             "headings": ["feature-context-purpose"]
           }
         }
@@ -330,21 +330,21 @@
           "cpt-ex-ovwa-usecase-control-session"
         ],
         "required": true,
-        "task": "allowed",
-        "priority": "allowed",
+        "task": null,
+        "priority": null,
         "to_code": false,
         "headings": ["prd-use-cases"],
         "references": {
           "DESIGN": {
-            "coverage": "optional",
-            "task": "allowed",
-            "priority": "allowed",
+            "coverage": null,
+            "task": null,
+            "priority": null,
             "headings": ["design-tech-arch-seq"]
           },
           "FEATURE": {
-            "coverage": "optional",
-            "task": "allowed",
-            "priority": "allowed",
+            "coverage": null,
+            "task": null,
+            "priority": null,
             "headings": ["feature-actor-flow"]
           }
         }
@@ -360,15 +360,15 @@
           "cpt-ex-ovwa-interface-ipc-protocol"
         ],
         "required": false,
-        "task": "allowed",
-        "priority": "allowed",
+        "task": null,
+        "priority": null,
         "to_code": false,
         "headings": ["prd-public-interfaces"],
         "references": {
           "DESIGN": {
-            "coverage": "required",
-            "task": "allowed",
-            "priority": "allowed",
+            "coverage": true,
+            "task": null,
+            "priority": null,
             "headings": ["design-tech-arch-api-contracts"]
           }
         }
@@ -384,15 +384,15 @@
           "cpt-cypilot-contract-openai-api"
         ],
         "required": false,
-        "task": "allowed",
-        "priority": "allowed",
+        "task": null,
+        "priority": null,
         "to_code": false,
         "headings": ["prd-public-interfaces"],
         "references": {
           "DESIGN": {
-            "coverage": "required",
-            "task": "allowed",
-            "priority": "allowed",
+            "coverage": true,
+            "task": null,
+            "priority": null,
             "headings": ["design-tech-arch-api-contracts"]
           }
         }
@@ -409,8 +409,8 @@
         "pattern": null,
         "description": "ADR document title (H1).",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "adr-context",
@@ -418,8 +418,8 @@
         "pattern": "Context and Problem Statement",
         "description": "Problem context and motivating forces.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "adr-decision-drivers",
@@ -427,8 +427,8 @@
         "pattern": "Decision Drivers",
         "description": "Key decision drivers and constraints.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "adr-considered-options",
@@ -436,8 +436,8 @@
         "pattern": "Considered Options",
         "description": "Options that were considered.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "adr-decision-outcome",
@@ -445,8 +445,8 @@
         "pattern": "Decision Outcome",
         "description": "Selected decision and outcome.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "adr-decision-outcome-consequences",
@@ -454,8 +454,8 @@
         "pattern": "Consequences",
         "description": "Consequences of the decision.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "adr-decision-outcome-confirmation",
@@ -463,8 +463,8 @@
         "pattern": "Confirmation",
         "description": "How/when the decision will be confirmed.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "adr-pros-cons",
@@ -472,8 +472,8 @@
         "pattern": "Pros and Cons of the Options",
         "description": "Pros and cons analysis for the options.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "adr-pros-cons-entry",
@@ -481,8 +481,8 @@
         "pattern": null,
         "description": "A single option evaluation entry (pros/cons).",
         "required": true,
-        "multiple": "required",
-        "numbered": "allow"
+        "multiple": true,
+        "numbered": null
       },
       {
         "id": "adr-more-info",
@@ -490,8 +490,8 @@
         "pattern": "More Information",
         "description": "Optional additional information and links.",
         "required": false,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "adr-traceability",
@@ -499,8 +499,8 @@
         "pattern": "Traceability",
         "description": "Optional traceability links back to requirements/decisions.",
         "required": false,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       }
     ],
     "identifiers": {
@@ -515,18 +515,18 @@
           "cpt-cypilot-adr-markdown-contract"
         ],
         "required": true,
-        "task": "prohibited",
-        "priority": "prohibited",
+        "task": false,
+        "priority": false,
         "to_code": false,
         "headings": ["adr-h1-title"],
         "references": {
           "PRD": {
-            "coverage": "prohibited"
+            "coverage": false
           },
           "DESIGN": {
-            "coverage": "required",
-            "task": "allowed",
-            "priority": "allowed",
+            "coverage": true,
+            "task": null,
+            "priority": null,
             "headings": ["design-arch-overview-drivers"]
           }
         }
@@ -543,8 +543,8 @@
         "pattern": null,
         "description": "DESIGN document title (H1).",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "design-arch-overview",
@@ -552,8 +552,8 @@
         "pattern": "Architecture Overview",
         "description": "Architecture overview section.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "design-arch-overview-vision",
@@ -561,8 +561,8 @@
         "pattern": "Architectural Vision",
         "description": "High-level architectural vision.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "design-arch-overview-drivers",
@@ -570,8 +570,8 @@
         "pattern": "Architecture Drivers",
         "description": "Architecture drivers: requirements, constraints, and ADR links.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "design-arch-overview-layers",
@@ -579,8 +579,8 @@
         "pattern": "Architecture Layers",
         "description": "Architecture layering and responsibilities.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "design-principles-constraints",
@@ -588,8 +588,8 @@
         "pattern": "Principles \u0026 Constraints",
         "description": "Principles and constraints section.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "design-principles",
@@ -597,8 +597,8 @@
         "pattern": "Design Principles",
         "description": "Design principles list.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "design-constraints",
@@ -606,8 +606,8 @@
         "pattern": "Constraints",
         "description": "Design constraints list.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "design-tech-arch",
@@ -615,8 +615,8 @@
         "pattern": "Technical Architecture",
         "description": "Technical architecture section.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "design-tech-arch-domain",
@@ -624,8 +624,8 @@
         "pattern": "Domain Model",
         "description": "Domain model.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "design-tech-arch-component-model",
@@ -633,8 +633,8 @@
         "pattern": "Component Model",
         "description": "Component model and responsibilities.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "design-tech-arch-api-contracts",
@@ -642,8 +642,8 @@
         "pattern": "API Contracts",
         "description": "API contracts and external interfaces.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "design-tech-arch-internal-deps",
@@ -651,8 +651,8 @@
         "pattern": "Internal Dependencies",
         "description": "Internal dependencies.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "design-tech-arch-external-deps",
@@ -660,8 +660,8 @@
         "pattern": "External Dependencies",
         "description": "External dependencies.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "design-tech-arch-seq",
@@ -669,8 +669,8 @@
         "pattern": "Interactions \u0026 Sequences",
         "description": "Interactions and sequences.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "design-tech-arch-db",
@@ -678,8 +678,8 @@
         "pattern": "Database schemas \u0026 tables",
         "description": "Database schemas and tables.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "design-additional-context",
@@ -687,8 +687,8 @@
         "pattern": "Additional context",
         "description": "Optional additional context.",
         "required": false,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "design-traceability",
@@ -696,8 +696,8 @@
         "pattern": "Traceability",
         "description": "Optional traceability links.",
         "required": false,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       }
     ],
     "identifiers": {
@@ -712,13 +712,13 @@
           "cpt-ex-ovwa-design-cli-daemon"
         ],
         "required": false,
-        "task": "allowed",
-        "priority": "allowed",
+        "task": null,
+        "priority": null,
         "to_code": false,
         "headings": ["design-h1-title"],
         "references": {
           "PRD": {
-            "coverage": "prohibited"
+            "coverage": false
           }
         }
       },
@@ -733,24 +733,24 @@
           "cpt-cypilot-principle-machine-readable"
         ],
         "required": true,
-        "task": "allowed",
-        "priority": "allowed",
+        "task": null,
+        "priority": null,
         "to_code": false,
         "headings": ["design-principles"],
         "references": {
           "PRD": {
-            "coverage": "prohibited"
+            "coverage": false
           },
           "DECOMPOSITION": {
-            "coverage": "required",
-            "task": "allowed",
-            "priority": "allowed",
+            "coverage": true,
+            "task": null,
+            "priority": null,
             "headings": ["decomposition-entry"]
           },
           "FEATURE": {
-            "coverage": "optional",
-            "task": "allowed",
-            "priority": "allowed",
+            "coverage": null,
+            "task": null,
+            "priority": null,
             "headings": ["feature-context-purpose"]
           }
         }
@@ -766,24 +766,24 @@
           "cpt-cypilot-constraint-no-weakening-rules"
         ],
         "required": true,
-        "task": "allowed",
-        "priority": "allowed",
+        "task": null,
+        "priority": null,
         "to_code": false,
         "headings": ["design-constraints"],
         "references": {
           "PRD": {
-            "coverage": "prohibited"
+            "coverage": false
           },
           "DECOMPOSITION": {
-            "coverage": "required",
-            "task": "allowed",
-            "priority": "allowed",
+            "coverage": true,
+            "task": null,
+            "priority": null,
             "headings": ["decomposition-entry"]
           },
           "FEATURE": {
-            "coverage": "optional",
-            "task": "allowed",
-            "priority": "allowed",
+            "coverage": null,
+            "task": null,
+            "priority": null,
             "headings": ["feature-dod-entry"]
           }
         }
@@ -799,19 +799,19 @@
           "cpt-ex-ovwa-component-daemon"
         ],
         "required": true,
-        "task": "allowed",
-        "priority": "allowed",
+        "task": null,
+        "priority": null,
         "to_code": false,
         "headings": ["design-tech-arch-component-model"],
         "references": {
           "DECOMPOSITION": {
-            "coverage": "required",
-            "task": "allowed",
-            "priority": "allowed",
+            "coverage": true,
+            "task": null,
+            "priority": null,
             "headings": ["decomposition-entry"]
           },
           "PRD": {
-            "coverage": "prohibited"
+            "coverage": false
           }
         }
       },
@@ -826,13 +826,13 @@
           "cpt-ex-ovwa-interface-ipc-protocol"
         ],
         "required": false,
-        "task": "allowed",
-        "priority": "allowed",
+        "task": null,
+        "priority": null,
         "to_code": false,
         "headings": ["design-tech-arch-api-contracts"],
         "references": {
           "PRD": {
-            "coverage": "prohibited"
+            "coverage": false
           }
         }
       },
@@ -847,13 +847,13 @@
           "cpt-ex-ovwa-seq-cli-to-daemon"
         ],
         "required": true,
-        "task": "allowed",
-        "priority": "allowed",
+        "task": null,
+        "priority": null,
         "to_code": false,
         "headings": ["design-tech-arch-seq"],
         "references": {
           "PRD": {
-            "coverage": "prohibited"
+            "coverage": false
           }
         }
       },
@@ -868,18 +868,18 @@
           "cpt-ex-ovwa-db-local"
         ],
         "required": false,
-        "task": "allowed",
-        "priority": "allowed",
+        "task": null,
+        "priority": null,
         "to_code": false,
         "headings": ["design-tech-arch-db"],
         "references": {
           "PRD": {
-            "coverage": "prohibited"
+            "coverage": false
           },
           "DECOMPOSITION": {
-            "coverage": "optional",
-            "task": "allowed",
-            "priority": "allowed",
+            "coverage": null,
+            "task": null,
+            "priority": null,
             "headings": ["decomposition-entry"]
           }
         }
@@ -896,18 +896,18 @@
           "cpt-ex-ovwa-dbtable-config"
         ],
         "required": false,
-        "task": "allowed",
-        "priority": "allowed",
+        "task": null,
+        "priority": null,
         "to_code": false,
         "headings": ["design-tech-arch-db"],
         "references": {
           "PRD": {
-            "coverage": "prohibited"
+            "coverage": false
           },
           "DECOMPOSITION": {
-            "coverage": "required",
-            "task": "allowed",
-            "priority": "allowed",
+            "coverage": true,
+            "task": null,
+            "priority": null,
             "headings": ["decomposition-entry"]
           }
         }
@@ -923,13 +923,13 @@
           "cpt-ex-ovwa-topology-launchagent"
         ],
         "required": false,
-        "task": "allowed",
-        "priority": "allowed",
+        "task": null,
+        "priority": null,
         "to_code": false,
         "headings": ["design-tech-arch"],
         "references": {
           "PRD": {
-            "coverage": "prohibited"
+            "coverage": false
           }
         }
       },
@@ -944,13 +944,13 @@
           "cpt-cypilot-tech-json"
         ],
         "required": false,
-        "task": "allowed",
-        "priority": "allowed",
+        "task": null,
+        "priority": null,
         "to_code": false,
         "headings": ["design-arch-overview-layers"],
         "references": {
           "PRD": {
-            "coverage": "prohibited"
+            "coverage": false
           }
         }
       }
@@ -966,8 +966,8 @@
         "pattern": null,
         "description": "DECOMPOSITION document title (H1).",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "decomposition-overview",
@@ -975,8 +975,8 @@
         "pattern": "Overview",
         "description": "Overview of decomposition strategy.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "decomposition-entries",
@@ -984,8 +984,8 @@
         "pattern": "Entries",
         "description": "List of feature entries.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "decomposition-entry",
@@ -993,8 +993,8 @@
         "pattern": null,
         "description": "A single feature entry.",
         "required": true,
-        "multiple": "allow",
-        "numbered": "allow"
+        "multiple": null,
+        "numbered": null
       },
       {
         "id": "decomposition-feature-deps",
@@ -1002,8 +1002,8 @@
         "pattern": "Feature Dependencies",
         "description": "Cross-feature dependency overview.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       }
     ],
     "identifiers": {
@@ -1018,8 +1018,8 @@
           "cpt-cypilot-status-overall"
         ],
         "required": false,
-        "task": "allowed",
-        "priority": "allowed",
+        "task": null,
+        "priority": null,
         "to_code": false,
         "headings": ["decomposition-entries"],
         "references": {}
@@ -1035,15 +1035,15 @@
           "cpt-ex-ovwa-feature-tracker-core"
         ],
         "required": true,
-        "task": "allowed",
-        "priority": "allowed",
+        "task": null,
+        "priority": null,
         "to_code": false,
         "headings": ["decomposition-entry"],
         "references": {
           "FEATURE": {
-            "coverage": "required",
-            "task": "allowed",
-            "priority": "allowed",
+            "coverage": true,
+            "task": null,
+            "priority": null,
             "headings": ["feature-h1-title"]
           }
         }
@@ -1060,8 +1060,8 @@
         "pattern": null,
         "description": "FEATURE document title (H1).",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "feature-context",
@@ -1069,8 +1069,8 @@
         "pattern": "Feature Context",
         "description": "Feature context section.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "feature-context-overview",
@@ -1078,8 +1078,8 @@
         "pattern": "Overview",
         "description": "Feature overview.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "feature-context-purpose",
@@ -1087,8 +1087,8 @@
         "pattern": "Purpose",
         "description": "Feature purpose.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "feature-context-actors",
@@ -1096,8 +1096,8 @@
         "pattern": "Actors",
         "description": "Actors involved in the feature.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "feature-context-references",
@@ -1105,8 +1105,8 @@
         "pattern": "References",
         "description": "References to related artifacts.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "feature-actor-flows",
@@ -1114,8 +1114,8 @@
         "pattern": "Actor Flows*",
         "description": "Actor flows section.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "feature-actor-flow",
@@ -1123,8 +1123,8 @@
         "pattern": null,
         "description": "A single actor flow.",
         "required": true,
-        "multiple": "allow",
-        "numbered": "allow"
+        "multiple": null,
+        "numbered": null
       },
       {
         "id": "feature-processes",
@@ -1132,8 +1132,8 @@
         "pattern": "Processes / Business Logic*",
         "description": "Processes / business logic section.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "feature-process",
@@ -1141,8 +1141,8 @@
         "pattern": null,
         "description": "A single process/algorithm.",
         "required": true,
-        "multiple": "allow",
-        "numbered": "allow"
+        "multiple": null,
+        "numbered": null
       },
       {
         "id": "feature-states",
@@ -1150,8 +1150,8 @@
         "pattern": "States*",
         "description": "States section.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "feature-state",
@@ -1159,8 +1159,8 @@
         "pattern": null,
         "description": "A single state machine.",
         "required": true,
-        "multiple": "allow",
-        "numbered": "allow"
+        "multiple": null,
+        "numbered": null
       },
       {
         "id": "feature-dod",
@@ -1168,8 +1168,8 @@
         "pattern": "Definitions of Done",
         "description": "Definitions of done section.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       },
       {
         "id": "feature-dod-entry",
@@ -1177,8 +1177,8 @@
         "pattern": null,
         "description": "A single definition of done entry.",
         "required": true,
-        "multiple": "allow",
-        "numbered": "allow"
+        "multiple": null,
+        "numbered": null
       },
       {
         "id": "feature-acceptance-criteria",
@@ -1186,8 +1186,8 @@
         "pattern": "Acceptance Criteria",
         "description": "Acceptance criteria for the feature.",
         "required": true,
-        "multiple": "prohibited",
-        "numbered": "allow"
+        "multiple": false,
+        "numbered": null
       }
     ],
     "identifiers": {
@@ -1202,16 +1202,16 @@
           "cpt-todo-app-featstatus-task-storage-foundation"
         ],
         "required": true,
-        "task": "required",
-        "priority": "allowed",
+        "task": true,
+        "priority": null,
         "to_code": false,
         "headings": ["feature-h1-title"],
         "references": {
           "PRD": {
-            "coverage": "prohibited"
+            "coverage": false
           },
           "DESIGN": {
-            "coverage": "prohibited"
+            "coverage": false
           }
         }
       },
@@ -1226,13 +1226,13 @@
           "cpt-ex-ovwa-flow-run-tracker"
         ],
         "required": false,
-        "task": "allowed",
-        "priority": "allowed",
+        "task": null,
+        "priority": null,
         "to_code": true,
         "headings": ["feature-actor-flow"],
         "references": {
           "PRD": {
-            "coverage": "prohibited"
+            "coverage": false
           }
         }
       },
@@ -1247,13 +1247,13 @@
           "cpt-ex-ovwa-algo-track-active-time"
         ],
         "required": false,
-        "task": "allowed",
-        "priority": "allowed",
+        "task": null,
+        "priority": null,
         "to_code": true,
         "headings": ["feature-processes"],
         "references": {
           "PRD": {
-            "coverage": "prohibited"
+            "coverage": false
           }
         }
       },
@@ -1268,13 +1268,13 @@
           "cpt-ex-ovwa-state-daemon-lifecycle"
         ],
         "required": false,
-        "task": "allowed",
-        "priority": "allowed",
+        "task": null,
+        "priority": null,
         "to_code": true,
         "headings": ["feature-state"],
         "references": {
           "PRD": {
-            "coverage": "prohibited"
+            "coverage": false
           }
         }
       },
@@ -1289,13 +1289,13 @@
           "cpt-ex-ovwa-dod-launchagent-autostart"
         ],
         "required": true,
-        "task": "required",
-        "priority": "required",
+        "task": true,
+        "priority": true,
         "to_code": true,
         "headings": ["feature-dod-entry"],
         "references": {
           "PRD": {
-            "coverage": "prohibited"
+            "coverage": false
           }
         }
       }

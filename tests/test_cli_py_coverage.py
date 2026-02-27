@@ -334,7 +334,7 @@ class TestCLIPyCoverageSelfCheckMoreBranches(unittest.TestCase):
                             "x": {
                                 "required": False,
                                 "template": "cpt-{system}-x-{slug}",
-                                "references": {"REQ": {"coverage": "required"}},
+                                "references": {"REQ": {"coverage": True}},
                             }
                         }
                     },
@@ -369,7 +369,7 @@ class TestCLIPyCoverageSelfCheckMoreBranches(unittest.TestCase):
                                 "x": {
                                     "required": False,
                                     "template": "cpt-{system}-x-{slug}",
-                                    "references": {"REQ": {"coverage": "required", "headings": ["allowed"]}},
+                                    "references": {"REQ": {"coverage": True, "headings": ["allowed"]}},
                                 }
                             }
                         },
@@ -528,7 +528,7 @@ class TestCLIPyCoverageSelfCheckReverseAndOptional(unittest.TestCase):
             tmpl = "---\ncypilot-template:\n  version:\n    major: 1\n    minor: 0\n  kind: DESIGN\n---\n# T\n"
             constraints = {
                 "PRD": {"identifiers": {"fr": {"required": False, "template": "cpt-{system}-fr-{slug}", "references": {
-                    "DESIGN": {"coverage": "optional"}
+                    "DESIGN": {}
                 }}}},
                 "DESIGN": {"identifiers": {"design": {"required": False, "template": "cpt-{system}-design-{slug}"}}},
             }

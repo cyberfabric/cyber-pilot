@@ -2347,9 +2347,9 @@ id = "prd-h1-title"
 level = 1
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = false
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "PRD\\s*[—–-]\\s*.+"
@@ -2376,9 +2376,9 @@ id = "prd-overview"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Overview"
@@ -2399,9 +2399,9 @@ id = "prd-overview-purpose"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Purpose"
@@ -2456,9 +2456,9 @@ id = "prd-overview-background"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Background / Problem Statement"
@@ -2522,9 +2522,9 @@ id = "prd-overview-goals"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Goals (Business Outcomes)"
@@ -2589,9 +2589,9 @@ id = "prd-overview-glossary"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Glossary"
@@ -2638,9 +2638,9 @@ id = "prd-actors"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Actors"
@@ -2704,9 +2704,9 @@ id = "prd-actors-human"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Human Actors"
@@ -2725,7 +2725,7 @@ id = "prd-actor-entry"
 level = 4
 required = true
 numbered = false
-# multiple = true|false  # allowed by default (can repeat)
+# multiple: omitted = allowed (can repeat)
 template = "{Actor Name}"
 description = "Individual human actor entry."
 examples = ["#### Team Member", "#### Team Lead"]
@@ -2769,9 +2769,9 @@ id = "prd-actors-system"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "System Actors"
@@ -2790,7 +2790,7 @@ id = "prd-actor-system-entry"
 level = 4
 required = true
 numbered = false
-# multiple = true|false  # allowed by default (can repeat)
+# multiple: omitted = allowed (can repeat)
 template = "{System Actor Name}"
 description = "Individual system actor entry."
 examples = ["#### Notification Service", "#### External Auth Provider"]
@@ -2829,9 +2829,9 @@ id = "prd-operational-concept"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Operational Concept & Environment"
@@ -2860,9 +2860,9 @@ id = "prd-operational-concept-constraints"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Module-Specific Environment Constraints"
@@ -2907,9 +2907,9 @@ id = "prd-scope"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Scope"
@@ -2930,9 +2930,9 @@ id = "prd-scope-in"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "In Scope"
@@ -2972,9 +2972,9 @@ id = "prd-scope-out"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Out of Scope"
@@ -3029,9 +3029,9 @@ id = "prd-fr"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Functional Requirements"
@@ -3116,7 +3116,7 @@ id = "prd-fr-group"
 level = 3
 required = true
 numbered = true
-# multiple = true|false  # allowed by default (can repeat)
+# multiple: omitted = allowed (can repeat)
 template = "{Feature Area / Priority Tier}"
 description = "Feature area or priority tier grouping."
 examples = []
@@ -3131,7 +3131,7 @@ id = "prd-fr-entry"
 level = 4
 required = true
 numbered = false
-# multiple = true|false  # allowed by default (can repeat)
+# multiple: omitted = allowed (can repeat)
 template = "{Requirement Name}"
 description = "Individual functional requirement entry."
 examples = []
@@ -3194,9 +3194,9 @@ id = "prd-nfr"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Non-Functional Requirements"
@@ -3267,9 +3267,9 @@ id = "prd-nfr-inclusions"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = false
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "NFR Inclusions"
@@ -3296,7 +3296,7 @@ id = "prd-nfr-entry"
 level = 4
 required = false
 numbered = false
-# multiple = true|false  # allowed by default (can repeat)
+# multiple: omitted = allowed (can repeat)
 template = "{NFR Name}"
 description = "Individual non-functional requirement entry."
 examples = ["#### Security", "#### Performance"]
@@ -3348,9 +3348,9 @@ id = "prd-nfr-exclusions"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "NFR Exclusions"
@@ -3409,9 +3409,9 @@ id = "prd-public-interfaces"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Public Library Interfaces"
@@ -3486,9 +3486,9 @@ id = "prd-public-interfaces-api"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Public API Surface"
@@ -3507,7 +3507,7 @@ id = "prd-interface-entry"
 level = 4
 required = false
 numbered = false
-# multiple = true|false  # allowed by default (can repeat)
+# multiple: omitted = allowed (can repeat)
 template = "{Interface Name}"
 description = "Individual public interface entry."
 examples = []
@@ -3548,9 +3548,9 @@ id = "prd-public-interfaces-external-contracts"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "External Integration Contracts"
@@ -3577,7 +3577,7 @@ id = "prd-contract-entry"
 level = 4
 required = false
 numbered = false
-# multiple = true|false  # allowed by default (can repeat)
+# multiple: omitted = allowed (can repeat)
 template = "{Contract Name}"
 description = "Individual external integration contract entry."
 examples = []
@@ -3618,9 +3618,9 @@ id = "prd-use-cases"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Use Cases"
@@ -3675,7 +3675,7 @@ id = "prd-usecase-entry"
 level = 4
 required = false
 numbered = false
-# multiple = true|false  # allowed by default (can repeat)
+# multiple: omitted = allowed (can repeat)
 template = "{Use Case Name}"
 description = "Individual use case entry."
 examples = []
@@ -3763,9 +3763,9 @@ id = "prd-acceptance-criteria"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Acceptance Criteria"
@@ -3807,9 +3807,9 @@ id = "prd-dependencies"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Dependencies"
@@ -3850,9 +3850,9 @@ id = "prd-assumptions"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Assumptions"
@@ -3905,9 +3905,9 @@ id = "prd-risks"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Risks"
