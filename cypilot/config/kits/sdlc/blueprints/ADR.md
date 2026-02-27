@@ -47,8 +47,8 @@ Commands and workflows exposed to AI agents for ADR operations.
 ### ADR Commands
 - `cypilot validate --artifact <ADR.md>` — validate ADR structure and IDs
 - `cypilot list-ids --kind adr` — list all ADRs
-- `cypilot where-defined <id>` — find where an ADR ID is defined
-- `cypilot where-used <id>` — find where an ADR ID is referenced in DESIGN
+- `cypilot where-defined --id <id>` — find where an ADR ID is defined
+- `cypilot where-used --id <id>` — find where an ADR ID is referenced in DESIGN
 ### ADR Workflows
 - **Generate ADR**: create a new ADR from template with guided prompts per section
 - **Analyze ADR**: validate structure (deterministic) then semantic quality (checklist-based)

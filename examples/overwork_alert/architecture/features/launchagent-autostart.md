@@ -1,10 +1,32 @@
 # Feature: LaunchAgent Autostart
 
+
+<!-- toc -->
+
+- [1. Feature Context](#1-feature-context)
+  - [1. Overview](#1-overview)
+  - [2. Purpose](#2-purpose)
+  - [3. Actors](#3-actors)
+  - [4. References](#4-references)
+- [2. Actor Flows (CDSL)](#2-actor-flows-cdsl)
+  - [Install autostart](#install-autostart)
+  - [Uninstall autostart](#uninstall-autostart)
+- [3. Processes / Business Logic (CDSL)](#3-processes-business-logic-cdsl)
+  - [Build LaunchAgent plist](#build-launchagent-plist)
+- [4. States (CDSL)](#4-states-cdsl)
+  - [LaunchAgent installation state](#launchagent-installation-state)
+- [5. Definitions of Done](#5-definitions-of-done)
+  - [Login autostart via user LaunchAgent](#login-autostart-via-user-launchagent)
+- [6. Acceptance Criteria](#6-acceptance-criteria)
+- [7. Additional Context (optional)](#7-additional-context-optional)
+
+<!-- /toc -->
+
 - [x] `p1` - **ID**: `cpt-ex-ovwa-featstatus-launchagent-autostart`
 
 - [x] - `cpt-ex-ovwa-feature-launchagent-autostart`
 
-## Feature Context
+## 1. Feature Context
 
 ### 1. Overview
 This feature defines how the tool is started automatically on user login using a macOS user LaunchAgent, and how the CLI installs and uninstalls that LaunchAgent.
@@ -30,7 +52,7 @@ Allow the user to opt into login-time autostart so tracking can run continuously
 - Overall Design: [DESIGN.md](../DESIGN.md)
 - ADRs: `cpt-ex-ovwa-adr-cli-daemon-launchagent-no-menubar`
 
-## Actor Flows
+## 2. Actor Flows (CDSL)
 
 ### Install autostart
 
@@ -62,7 +84,7 @@ Allow the user to opt into login-time autostart so tracking can run continuously
 6. [x] - `p1` - **IF** plist cannot be deleted: **RETURN** error - `inst-delete-plist-error`
 
 
-## Processes / Business Logic
+## 3. Processes / Business Logic (CDSL)
 
 ### Build LaunchAgent plist
 
@@ -75,7 +97,7 @@ Allow the user to opt into login-time autostart so tracking can run continuously
 5. [x] - `p1` - **RETURN** plist text content - `inst-return-plist`
 
 
-## States
+## 4. States (CDSL)
 
 ### LaunchAgent installation state
 
@@ -85,7 +107,7 @@ Allow the user to opt into login-time autostart so tracking can run continuously
 2. [x] - `p1` - **FROM** INSTALLED **TO** NOT_INSTALLED **WHEN** launchctl unload succeeds and plist is removed - `inst-transition-removed`
 
 
-## Definitions of Done
+## 5. Definitions of Done
 
 ### Login autostart via user LaunchAgent
 
@@ -123,13 +145,13 @@ The user can install a LaunchAgent that starts the daemon at login. The user can
 
 
 
-## Acceptance Criteria
+## 6. Acceptance Criteria
 
 - [ ] Installing autostart is idempotent.
 - [ ] Uninstalling autostart is idempotent.
 - [ ] After successful install, the daemon starts automatically at next user login.
 
-## Additional Context (optional)
+## 7. Additional Context (optional)
 
 The exact LaunchAgent label and ProgramArguments are implementation details; they must remain stable so install/uninstall behaves predictably.
 

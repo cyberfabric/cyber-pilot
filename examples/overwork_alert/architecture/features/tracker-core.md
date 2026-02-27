@@ -1,10 +1,32 @@
 # Feature: Tracker Core
 
+
+<!-- toc -->
+
+- [1. Feature Context](#1-feature-context)
+  - [1. Overview](#1-overview)
+  - [2. Purpose](#2-purpose)
+  - [3. Actors](#3-actors)
+  - [4. References](#4-references)
+- [2. Actor Flows (CDSL)](#2-actor-flows-cdsl)
+  - [Run tracking tick loop](#run-tracking-tick-loop)
+- [3. Processes / Business Logic (CDSL)](#3-processes-business-logic-cdsl)
+  - [Accumulate active time](#accumulate-active-time)
+- [4. States (CDSL)](#4-states-cdsl)
+  - [Tracker runtime status](#tracker-runtime-status)
+- [5. Definitions of Done](#5-definitions-of-done)
+  - [Idle-aware active-time accumulation](#idle-aware-active-time-accumulation)
+  - [Configuration defaults and validation](#configuration-defaults-and-validation)
+- [6. Acceptance Criteria](#6-acceptance-criteria)
+- [Additional Context (optional)](#additional-context-optional)
+
+<!-- /toc -->
+
 - [x] `p1` - **ID**: `cpt-ex-ovwa-featstatus-tracker-core`
 
 - [x] - `cpt-ex-ovwa-feature-tracker-core`
 
-## Feature Context
+## 1. Feature Context
 
 ### 1. Overview
 This feature defines the core background tracking loop: how the daemon measures “active work time” using macOS idle time, how it applies configuration defaults, and how it maintains session-scoped in-memory tracker state.
@@ -42,7 +64,7 @@ Provide deterministic, low-overhead, idle-aware active-time accumulation that do
 - ADRs: `cpt-ex-ovwa-adr-cli-daemon-launchagent-no-menubar`
 - Related feature: notifications.md
 
-## Actor Flows
+## 2. Actor Flows (CDSL)
 
 ### Run tracking tick loop
 
@@ -61,7 +83,7 @@ Provide deterministic, low-overhead, idle-aware active-time accumulation that do
 8. [x] - `p1` - **RETURN** updated TrackerState - `inst-return-state`
 
 
-## Processes / Business Logic
+## 3. Processes / Business Logic (CDSL)
 
 ### Accumulate active time
 
@@ -76,7 +98,7 @@ Provide deterministic, low-overhead, idle-aware active-time accumulation that do
 7. [x] - `p1` - **RETURN** updated TrackerState - `inst-return-updated-state`
 
 
-## States
+## 4. States (CDSL)
 
 ### Tracker runtime status
 
@@ -86,7 +108,7 @@ Provide deterministic, low-overhead, idle-aware active-time accumulation that do
 2. [x] - `p1` - **FROM** PAUSED **TO** RUNNING **WHEN** user sends resume command - `inst-transition-resume`
 
 
-## Definitions of Done
+## 5. Definitions of Done
 
 ### Idle-aware active-time accumulation
 
@@ -160,7 +182,7 @@ If no configuration is present or some configuration values are invalid, the dae
 
 
 
-## Acceptance Criteria
+## 6. Acceptance Criteria
 
 - [ ] When idle exceeds idle_threshold_seconds, accumulation stops within 10 seconds.
 - [ ] When active work resumes (idle below threshold) and status is RUNNING, accumulation resumes on the next tick.

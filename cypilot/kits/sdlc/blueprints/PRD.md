@@ -41,8 +41,8 @@ Commands and workflows exposed to AI agents for PRD operations.
 - `cypilot validate --artifact <PRD.md>` — validate PRD structure and IDs
 - `cypilot list-ids --kind fr` — list all functional requirements
 - `cypilot list-ids --kind actor` — list all actors
-- `cypilot where-defined <id>` — find where a PRD ID is defined
-- `cypilot where-used <id>` — find where a PRD ID is referenced downstream
+- `cypilot where-defined --id <id>` — find where a PRD ID is defined
+- `cypilot where-used --id <id>` — find where a PRD ID is referenced downstream
 ### PRD Workflows
 - **Generate PRD**: create a new PRD from template with guided prompts per section
 - **Analyze PRD**: validate structure (deterministic) then semantic quality (checklist-based)

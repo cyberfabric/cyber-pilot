@@ -352,7 +352,7 @@ cypilot list-ids [--kind KIND] [--pattern PATTERN] [--system SYSTEM] [--format F
 Find where an ID is defined.
 
 ```
-cypilot where-defined <id>
+cypilot where-defined --id <id>
 ```
 
 **Output** (JSON):
@@ -378,7 +378,7 @@ cypilot where-defined <id>
 Find where an ID is referenced.
 
 ```
-cypilot where-used <id>
+cypilot where-used --id <id>
 ```
 
 **Output** (JSON):
@@ -405,7 +405,7 @@ cypilot where-used <id>
 Get content block for an ID definition.
 
 ```
-cypilot get-content <id>
+cypilot get-content --id <id>
 ```
 
 **Output** (JSON):

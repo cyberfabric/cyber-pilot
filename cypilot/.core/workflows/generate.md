@@ -504,12 +504,12 @@ Output:
 
 For artifacts:
 ```bash
-python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate --root {PROJECT_ROOT} --cypilot-root {cypilot_path}
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate
 ```
 
-For code:
+For specific artifact:
 ```bash
-python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate --root {PROJECT_ROOT} --cypilot-root {cypilot_path}
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate --artifact {PATH}
 ```
 
 **Rules**:

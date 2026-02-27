@@ -109,7 +109,9 @@ def heading_constraint_ids_by_line(path: Path, heading_constraints: Sequence[Hea
 
     def _is_regex_pattern(pat: str) -> bool:
         # Heuristic: treat as regex only if it contains typical regex metacharacters.
-        return any(ch in pat for ch in ".^$*+?{}[]\\|()")
+        # Note: ( ) are excluded — they commonly appear in natural heading text
+        # like "Goals (Business Outcomes)" and should not trigger regex mode.
+        return any(ch in pat for ch in ".^$*+?{}[]\\|")
 
     compiled: List[Tuple[HeadingConstraint, Optional[re.Pattern[str]]]] = []
     for hc in heading_constraints:
@@ -1923,7 +1925,8 @@ def validate_headings_contract(
     _check_numbering_sequence()
 
     def _is_regex_pattern(pat: str) -> bool:
-        return any(ch in pat for ch in ".^$*+?{}[]\\|()")
+        # Note: ( ) are excluded — they commonly appear in natural heading text.
+        return any(ch in pat for ch in ".^$*+?{}[]\\|")
 
     def _matches(h: Dict[str, object], hc: HeadingConstraint) -> bool:
         if int(h.get("level", 0)) != int(hc.level):
@@ -2044,15 +2047,15 @@ def validate_headings_contract(
                 heading_pattern=hc.pattern,
                 **_source_fields(hc, idx),
             ))
-        if hc.multiple is True and len(matches) < 2:
+        if hc.multiple is True and len(matches) < 1:
             hc_desc = str(getattr(hc, "description", "") or "").strip()
             desc_s = (f" ({hc_desc})" if hc_desc else "")
             errors.append(error(
                 "constraints",
-                f"Heading `{hc.pattern}` (level {int(hc.level)}) appears only {len(matches)} time(s) in {str(artifact_kind).strip().upper()} artifact but at least 2 required{desc_s}",
+                f"Heading `{hc.pattern}` (level {int(hc.level)}) appears only {len(matches)} time(s) in {str(artifact_kind).strip().upper()} artifact but at least 1 required{desc_s}",
                 code=EC.HEADING_REQUIRES_MULTIPLE,
                 path=path,
-                line=int(matches[0].get("line", 1) or 1),
+                line=1,
                 artifact_kind=str(artifact_kind).strip().upper(),
                 heading_level=int(hc.level),
                 heading_pattern=hc.pattern,

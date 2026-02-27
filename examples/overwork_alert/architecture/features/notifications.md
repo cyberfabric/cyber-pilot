@@ -1,10 +1,32 @@
 # Feature: Notifications
 
+
+<!-- toc -->
+
+- [1. Feature Context](#1-feature-context)
+  - [1. Overview](#1-overview)
+  - [2. Purpose](#2-purpose)
+  - [3. Actors](#3-actors)
+  - [4. References](#4-references)
+- [2. Actor Flows (CDSL)](#2-actor-flows-cdsl)
+  - [Send first over-limit alert](#send-first-over-limit-alert)
+  - [Send repeat reminder while still over limit](#send-repeat-reminder-while-still-over-limit)
+- [3. Processes / Business Logic (CDSL)](#3-processes-business-logic-cdsl)
+  - [Determine whether to send a notification](#determine-whether-to-send-a-notification)
+- [4. States (CDSL)](#4-states-cdsl)
+  - [Over-limit notification state](#over-limit-notification-state)
+- [5. Definitions of Done](#5-definitions-of-done)
+  - [Over-limit notifications and repeat reminders](#over-limit-notifications-and-repeat-reminders)
+- [6. Acceptance Criteria](#6-acceptance-criteria)
+- [7. Additional Context (optional)](#7-additional-context-optional)
+
+<!-- /toc -->
+
 - [x] `p1` - **ID**: `cpt-ex-ovwa-featstatus-notifications`
 
 - [x] - `cpt-ex-ovwa-feature-notifications`
 
-## Feature Context
+## 1. Feature Context
 
 ### 1. Overview
 This feature defines when and how the daemon notifies the user after exceeding the configured active-time limit. It covers the first alert and repeat reminders while the user remains active and tracking is running.
@@ -33,7 +55,7 @@ Ensure the user receives timely, repeatable overwork alerts once the active-time
 - Overall Design: [DESIGN.md](../DESIGN.md)
 - Related feature: tracker-core.md
 
-## Actor Flows
+## 2. Actor Flows (CDSL)
 
 ### Send first over-limit alert
 
@@ -64,7 +86,7 @@ Ensure the user receives timely, repeatable overwork alerts once the active-time
 6. [x] - `p1` - Daemon updates last_reminder_at - `inst-update-last-reminder`
 
 
-## Processes / Business Logic
+## 3. Processes / Business Logic (CDSL)
 
 ### Determine whether to send a notification
 
@@ -78,7 +100,7 @@ Ensure the user receives timely, repeatable overwork alerts once the active-time
 6. [x] - `p1` - **RETURN** do_not_notify - `inst-default-no`
 
 
-## States
+## 4. States (CDSL)
 
 ### Over-limit notification state
 
@@ -89,7 +111,7 @@ Ensure the user receives timely, repeatable overwork alerts once the active-time
 3. [x] - `p1` - **FROM** OVER_LIMIT_REMINDING **TO** UNDER_LIMIT **WHEN** session is reset - `inst-transition-reset`
 
 
-## Definitions of Done
+## 5. Definitions of Done
 
 ### Over-limit notifications and repeat reminders
 
@@ -126,12 +148,12 @@ When active time exceeds the configured limit while tracking is RUNNING and the 
 
 
 
-## Acceptance Criteria
+## 6. Acceptance Criteria
 
 - [ ] Notifications are delivered for first over-limit event within 5 seconds when tracker is RUNNING and user is active.
 - [ ] Repeat reminders are not delivered more frequently than repeat_interval_seconds.
 
-## Additional Context (optional)
+## 7. Additional Context (optional)
 
 If notifications cannot be delivered (suppressed by system settings or subprocess failures), tracking continues and the user can still query status via the CLI.
 

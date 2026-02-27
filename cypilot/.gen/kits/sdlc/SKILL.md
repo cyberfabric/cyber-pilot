@@ -12,8 +12,8 @@ Generated from kit `sdlc` blueprints.
 ### ADR Commands
 - `cypilot validate --artifact <ADR.md>` — validate ADR structure and IDs
 - `cypilot list-ids --kind adr` — list all ADRs
-- `cypilot where-defined <id>` — find where an ADR ID is defined
-- `cypilot where-used <id>` — find where an ADR ID is referenced in DESIGN
+- `cypilot where-defined --id <id>` — find where an ADR ID is defined
+- `cypilot where-used --id <id>` — find where an ADR ID is referenced in DESIGN
 ### ADR Workflows
 - **Generate ADR**: create a new ADR from template with guided prompts per section
 - **Analyze ADR**: validate structure (deterministic) then semantic quality (checklist-based)
@@ -22,8 +22,8 @@ Generated from kit `sdlc` blueprints.
 
 ### CODE Commands
 - `cypilot validate --artifact <code-path>` — validate code traceability and quality
-- `cypilot where-defined <id>` — find where an ID is defined in artifacts
-- `cypilot where-used <id>` — find where an ID is referenced in code via `@cpt-*` markers
+- `cypilot where-defined --id <id>` — find where an ID is defined in artifacts
+- `cypilot where-used --id <id>` — find where an ID is referenced in code via `@cpt-*` markers
 ### CODE Workflows
 - **Generate CODE**: implement FEATURE design with optional `@cpt-*` traceability markers
 - **Analyze CODE**: validate implementation coverage, traceability, tests, and quality
@@ -34,8 +34,8 @@ Generated from kit `sdlc` blueprints.
 - `cypilot validate --artifact <DECOMPOSITION.md>` — validate DECOMPOSITION structure and IDs
 - `cypilot list-ids --kind feature` — list all features
 - `cypilot list-ids --kind status` — list status indicators
-- `cypilot where-defined <id>` — find where a feature ID is defined
-- `cypilot where-used <id>` — find where a feature ID is referenced in FEATURE artifacts
+- `cypilot where-defined --id <id>` — find where a feature ID is defined
+- `cypilot where-used --id <id>` — find where a feature ID is referenced in FEATURE artifacts
 ### DECOMPOSITION Workflows
 - **Generate DECOMPOSITION**: create feature manifest from DESIGN with guided prompts
 - **Analyze DECOMPOSITION**: validate structure (deterministic) then decomposition quality (checklist-based)
@@ -46,8 +46,8 @@ Generated from kit `sdlc` blueprints.
 - `cypilot validate --artifact <DESIGN.md>` — validate DESIGN structure and IDs
 - `cypilot list-ids --kind component` — list all components
 - `cypilot list-ids --kind principle` — list all design principles
-- `cypilot where-defined <id>` — find where a DESIGN ID is defined
-- `cypilot where-used <id>` — find where a DESIGN ID is referenced downstream
+- `cypilot where-defined --id <id>` — find where a DESIGN ID is defined
+- `cypilot where-used --id <id>` — find where a DESIGN ID is referenced downstream
 ### DESIGN Workflows
 - **Generate DESIGN**: create a new DESIGN from template with guided prompts per section
 - **Analyze DESIGN**: validate structure (deterministic) then semantic quality (checklist-based)
@@ -60,8 +60,8 @@ Generated from kit `sdlc` blueprints.
 - `cypilot list-ids --kind algo` — list all algorithms
 - `cypilot list-ids --kind state` — list all state machines
 - `cypilot list-ids --kind dod` — list all definitions of done
-- `cypilot where-defined <id>` — find where a FEATURE ID is defined
-- `cypilot where-used <id>` — find where a FEATURE ID is referenced in code
+- `cypilot where-defined --id <id>` — find where a FEATURE ID is defined
+- `cypilot where-used --id <id>` — find where a FEATURE ID is referenced in code
 ### FEATURE Workflows
 - **Generate FEATURE**: create a new FEATURE from template with guided CDSL prompts
 - **Analyze FEATURE**: validate structure (deterministic) then semantic quality (checklist-based)
@@ -120,8 +120,8 @@ When routed to PR status:
 - `cypilot validate --artifact <PRD.md>` — validate PRD structure and IDs
 - `cypilot list-ids --kind fr` — list all functional requirements
 - `cypilot list-ids --kind actor` — list all actors
-- `cypilot where-defined <id>` — find where a PRD ID is defined
-- `cypilot where-used <id>` — find where a PRD ID is referenced downstream
+- `cypilot where-defined --id <id>` — find where a PRD ID is defined
+- `cypilot where-used --id <id>` — find where a PRD ID is referenced downstream
 ### PRD Workflows
 - **Generate PRD**: create a new PRD from template with guided prompts per section
 - **Analyze PRD**: validate structure (deterministic) then semantic quality (checklist-based)

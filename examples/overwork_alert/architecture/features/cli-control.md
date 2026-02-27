@@ -1,10 +1,35 @@
 # Feature: CLI Control
 
+
+<!-- toc -->
+
+- [1. Feature Context](#1-feature-context)
+  - [1. Overview](#1-overview)
+  - [2. Purpose](#2-purpose)
+  - [3. Actors](#3-actors)
+  - [4. References](#4-references)
+- [2. Actor Flows (CDSL)](#2-actor-flows-cdsl)
+  - [View status](#view-status)
+  - [Reset session](#reset-session)
+  - [Pause tracking](#pause-tracking)
+  - [Resume tracking](#resume-tracking)
+  - [Stop daemon](#stop-daemon)
+- [3. Processes / Business Logic (CDSL)](#3-processes-business-logic-cdsl)
+  - [Handle control command](#handle-control-command)
+- [4. States (CDSL)](#4-states-cdsl)
+  - [Control channel request lifecycle](#control-channel-request-lifecycle)
+- [5. Definitions of Done](#5-definitions-of-done)
+  - [Manual reset and CLI control semantics](#manual-reset-and-cli-control-semantics)
+- [6. Acceptance Criteria](#6-acceptance-criteria)
+- [7. Additional Context (optional)](#7-additional-context-optional)
+
+<!-- /toc -->
+
 - [x] `p1` - **ID**: `cpt-ex-ovwa-featstatus-cli-control`
 
 - [x] - `cpt-ex-ovwa-feature-cli-control`
 
-## Feature Context
+## 1. Feature Context
 
 ### 1. Overview
 This feature defines user-facing CLI controls and the local-only control channel contract between the CLI and the daemon. It covers status reporting, pause/resume, manual reset, and stop.
@@ -37,7 +62,7 @@ Allow the user to inspect and control the tracker in a predictable, explicit man
 - Overall Design: [DESIGN.md](../DESIGN.md)
 - Related feature: tracker-core.md
 
-## Actor Flows
+## 2. Actor Flows (CDSL)
 
 ### View status
 
@@ -106,7 +131,7 @@ Allow the user to inspect and control the tracker in a predictable, explicit man
 5. [x] - `p1` - CLI prints confirmation - `inst-print-stop-confirm`
 
 
-## Processes / Business Logic
+## 3. Processes / Business Logic (CDSL)
 
 ### Handle control command
 
@@ -121,7 +146,7 @@ Allow the user to inspect and control the tracker in a predictable, explicit man
 7. [x] - `p1` - **IF** cmd="stop" request daemon shutdown and **RETURN** ok - `inst-handle-stop`
 
 
-## States
+## 4. States (CDSL)
 
 ### Control channel request lifecycle
 
@@ -131,7 +156,7 @@ Allow the user to inspect and control the tracker in a predictable, explicit man
 2. [x] - `p1` - **FROM** VALIDATED **TO** RESPONDED **WHEN** daemon sends response - `inst-transition-responded`
 
 
-## Definitions of Done
+## 5. Definitions of Done
 
 ### Manual reset and CLI control semantics
 
@@ -174,13 +199,13 @@ The CLI must provide status, pause, resume, reset, and stop commands. Reset clea
 
 
 
-## Acceptance Criteria
+## 6. Acceptance Criteria
 
 - [ ] `status` returns within 2 seconds when the daemon is healthy.
 - [ ] `reset` completes within 2 seconds when the daemon is healthy.
 - [ ] CLI returns clear non-zero exit codes when daemon is unreachable or response is invalid.
 
-## Additional Context (optional)
+## 7. Additional Context (optional)
 
 Pause/resume flows follow the same control channel pattern as reset/status and are handled by the same command handler algorithm.
 

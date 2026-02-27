@@ -318,8 +318,8 @@ _Thought for 14s_
 - [3) Deterministic gate (when available)]
   - For artifacts:
     - `python3 skills/cypilot/scripts/cypilot.py validate --artifact <PATH>`
-  - For code (needs the design path):
-    - `python3 skills/cypilot/scripts/cypilot.py validate --code <PATH> --design <DESIGN_PATH>`
+  - For code (validates all registered artifacts including code traceability):
+    - `python3 skills/cypilot/scripts/cypilot.py validate`
   - If the gate FAILS: I stop (no semantic review after a hard fail).
 - [4) Semantic review (evidence-based in STRICT mode)]
   - I read the entire target and check each checklist category individually

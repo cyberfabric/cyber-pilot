@@ -40,8 +40,8 @@ codebase = false
 - `cypilot validate --artifact <DESIGN.md>` — validate DESIGN structure and IDs
 - `cypilot list-ids --kind component` — list all components
 - `cypilot list-ids --kind principle` — list all design principles
-- `cypilot where-defined <id>` — find where a DESIGN ID is defined
-- `cypilot where-used <id>` — find where a DESIGN ID is referenced downstream
+- `cypilot where-defined --id <id>` — find where a DESIGN ID is defined
+- `cypilot where-used --id <id>` — find where a DESIGN ID is referenced downstream
 ### DESIGN Workflows
 - **Generate DESIGN**: create a new DESIGN from template with guided prompts per section
 - **Analyze DESIGN**: validate structure (deterministic) then semantic quality (checklist-based)

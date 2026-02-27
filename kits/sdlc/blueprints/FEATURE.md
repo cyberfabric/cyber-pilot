@@ -42,8 +42,8 @@ codebase = false
 - `cypilot list-ids --kind algo` — list all algorithms
 - `cypilot list-ids --kind state` — list all state machines
 - `cypilot list-ids --kind dod` — list all definitions of done
-- `cypilot where-defined <id>` — find where a FEATURE ID is defined
-- `cypilot where-used <id>` — find where a FEATURE ID is referenced in code
+- `cypilot where-defined --id <id>` — find where a FEATURE ID is defined
+- `cypilot where-used --id <id>` — find where a FEATURE ID is referenced in code
 ### FEATURE Workflows
 - **Generate FEATURE**: create a new FEATURE from template with guided CDSL prompts
 - **Analyze FEATURE**: validate structure (deterministic) then semantic quality (checklist-based)
