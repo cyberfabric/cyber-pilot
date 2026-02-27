@@ -19,6 +19,12 @@
   - [Inject Root AGENTS.md](#inject-root-agentsmd)
   - [Cache Skill from GitHub](#cache-skill-from-github)
   - [Create Config AGENTS.md](#create-config-agentsmd)
+  - [Display Project Info](#display-project-info)
+  - [Project Root Detection](#project-root-detection)
+  - [Config Management](#config-management)
+  - [TOML Utilities](#toml-utilities)
+  - [Registry Parsing](#registry-parsing)
+  - [Context Loading](#context-loading)
 - [4. States (CDSL)](#4-states-cdsl)
   - [Project Installation State](#project-installation-state)
 - [5. Definitions of Done](#5-definitions-of-done)
@@ -27,7 +33,8 @@
   - [Skill Cache Downloads from GitHub](#skill-cache-downloads-from-github)
   - [Init Creates Full Config](#init-creates-full-config)
   - [Root AGENTS.md Integrity](#root-agentsmd-integrity)
-- [6. Acceptance Criteria](#6-acceptance-criteria)
+- [6. Implementation Modules](#6-implementation-modules)
+- [7. Acceptance Criteria](#7-acceptance-criteria)
 
 <!-- /toc -->
 
@@ -256,6 +263,87 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 2. [x] - `p1` - Write `{cypilot_path}/config/AGENTS.md` with navigation header and WHEN rules - `inst-write-config-agents`
 3. [x] - `p1` - **RETURN** path to created file - `inst-return-config-agents-path`
 
+### Display Project Info
+
+- [x] `p1` - **ID**: `cpt-cypilot-algo-core-infra-display-info`
+
+**Input**: Start path (default: current directory), optional cypilot-root override
+
+**Output**: JSON with project root, cypilot directory, config, and registry details
+
+**Steps**:
+1. [x] - `p1` - Parse arguments: `--root`, `--cypilot-root` - `inst-info-parse-args`
+2. [x] - `p1` - Find project root from start path - `inst-info-find-root`
+3. [x] - `p1` - **IF** project root not found - `inst-info-if-no-root`
+   1. - `p1` - **RETURN** JSON: `{status: NOT_FOUND, hint}` (exit 1) - `inst-info-return-no-root`
+4. [x] - `p1` - Find cypilot directory - `inst-info-find-cypilot`
+5. [x] - `p1` - **IF** cypilot directory not found - `inst-info-if-no-cypilot`
+   1. - `p1` - **RETURN** JSON: `{status: NOT_FOUND, hint}` (exit 1) - `inst-info-return-no-cypilot`
+6. [x] - `p1` - Load cypilot config from directory - `inst-info-load-config`
+7. [x] - `p1` - Locate artifacts registry (config/artifacts.toml, fallback to legacy paths) - `inst-info-locate-registry`
+8. [x] - `p1` - **IF** registry found — load and expand with autodetect data - `inst-info-expand-registry`
+9. [x] - `p1` - **ELSE** — set registry to null with error code - `inst-info-registry-missing`
+10. [x] - `p1` - Compute relative path and config presence - `inst-info-compute-metadata`
+11. [x] - `p1` - **RETURN** JSON: `{status: FOUND, project_root, config, registry}` (exit 0) - `inst-info-return-ok`
+
+
+### Project Root Detection
+
+- [x] `p1` - **ID**: `cpt-cypilot-algo-core-infra-project-root-detection`
+
+**Input**: Start path (directory to begin searching from)
+
+1. - `p1` - Resolve start path to absolute - `inst-root-resolve-start`
+2. [x] - `p1` - Walk up directory hierarchy (max 25 levels) looking for AGENTS.md with `@cpt:root-agents` marker or `.git` directory - `inst-root-walk-up`
+3. - `p1` - **IF** found AGENTS.md with marker **RETURN** that directory as project root - `inst-root-found-agents`
+4. - `p1` - **IF** found `.git` **RETURN** that directory as project root - `inst-root-found-git`
+5. - `p1` - **ELSE RETURN** None - `inst-root-not-found`
+
+### Config Management
+
+- [x] `p1` - **ID**: `cpt-cypilot-algo-core-infra-config-management`
+
+**Input**: Adapter directory path, project root
+
+1. [x] - `p1` - Read `cypilot_path` variable from root AGENTS.md TOML block - `inst-cfg-read-var`
+2. [x] - `p1` - Load project config from `config/core.toml` (with fallback to flat layout) - `inst-cfg-load-core`
+3. [x] - `p1` - Find cypilot directory: priority 1 = TOML variable, priority 2 = recursive search - `inst-cfg-find-dir`
+4. [x] - `p1` - Load cypilot config from AGENTS.md and rules directory - `inst-cfg-load-config`
+5. [x] - `p1` - Load artifacts registry from `artifacts.toml` (with fallback chain) - `inst-cfg-load-registry`
+
+### TOML Utilities
+
+- [x] `p1` - **ID**: `cpt-cypilot-algo-core-infra-toml-utils`
+
+**Input**: TOML text or file path, or markdown text with embedded TOML blocks
+
+1. [x] - `p1` - Parse TOML string or file using stdlib `tomllib` - `inst-toml-parse`
+2. [x] - `p1` - Extract and merge TOML fenced code blocks from markdown text - `inst-toml-from-markdown`
+3. [x] - `p1` - Serialize nested dict to TOML format (tables, arrays of tables, scalars) - `inst-toml-serialize`
+
+### Registry Parsing
+
+- [x] `p1` - **ID**: `cpt-cypilot-algo-core-infra-registry-parsing`
+
+**Input**: Path to adapter directory containing artifacts.toml and core.toml
+
+1. [x] - `p1` - Locate artifacts registry file (config/artifacts.toml, fallback to legacy paths) - `inst-reg-locate`
+2. [x] - `p1` - Parse registry data and merge fields from core.toml (version, project_root, kits) - `inst-reg-parse-merge`
+3. [x] - `p1` - Build ArtifactsMeta from parsed dict: parse kits, systems hierarchy, ignore rules - `inst-reg-build-meta`
+4. [x] - `p1` - Expand autodetect rules into concrete artifact/codebase entries via glob matching - `inst-reg-expand-autodetect`
+5. - `p1` - **RETURN** ArtifactsMeta with indexed artifacts and system tree - `inst-reg-return`
+
+### Context Loading
+
+- [x] `p1` - **ID**: `cpt-cypilot-algo-core-infra-context-loading`
+
+**Input**: Optional start path
+
+1. [x] - `p1` - Find cypilot directory and load artifacts registry - `inst-ctx-find-and-load`
+2. [x] - `p1` - **FOR EACH** registered kit, load constraints and templates - `inst-ctx-load-kits`
+3. [x] - `p1` - Expand autodetect rules into concrete artifact/codebase entries - `inst-ctx-expand-autodetect`
+4. - `p1` - Collect registered system prefixes - `inst-ctx-collect-systems`
+5. [x] - `p1` - **RETURN** CypilotContext with all loaded metadata - `inst-ctx-return`
 
 ## 4. States (CDSL)
 
@@ -374,7 +462,23 @@ The system **MUST** verify the root `AGENTS.md` managed block on every CLI invoc
 - `cpt-cypilot-principle-zero-harm`
 - `cpt-cypilot-component-skill-engine`
 
-## 6. Acceptance Criteria
+## 6. Implementation Modules
+
+| Module | Path | Responsibility |
+|--------|------|----------------|
+| CLI Proxy | `src/cypilot_proxy/cli.py` | Global CLI entry point, command routing, version check |
+| Skill Resolver | `src/cypilot_proxy/resolve.py` | Project root detection, skill target resolution |
+| Cache Manager | `src/cypilot_proxy/cache.py` | GitHub download, local copy, archive extraction |
+| Skill Engine CLI | `skills/.../cli.py` | Skill engine command dispatch |
+| Init Command | `skills/.../commands/init.py` | Project initialization, directory creation |
+| Adapter Info | `skills/.../commands/adapter_info.py` | `info` command — display project config |
+| File Utilities | `skills/.../utils/files.py` | Project root discovery, config loading, path resolution |
+| Context | `skills/.../utils/context.py` | Global context management, registry loading |
+| Constants | `skills/.../constants.py` | Regex patterns, config filenames |
+| TOML Utilities | `skills/.../utils/toml_utils.py` | TOML reading/writing, markdown TOML extraction |
+| Artifacts Meta | `skills/.../utils/artifacts_meta.py` | Artifacts registry parsing, autodetect expansion |
+
+## 7. Acceptance Criteria
 
 - [x] `cypilot init` creates `.cypilot/core.toml` and `.cypilot/artifacts.toml` with correct root system definition
 - [x] `cypilot init` in an already-initialized project returns exit code 2 with helpful message

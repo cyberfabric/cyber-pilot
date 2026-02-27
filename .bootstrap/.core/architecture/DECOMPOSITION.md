@@ -10,7 +10,7 @@
   - [2.2 Blueprint System ⏳ HIGH](#22-blueprint-system-high)
   - [2.3 Traceability & Validation ⏳ HIGH](#23-traceability-validation-high)
   - [2.4 SDLC Kit & Artifact Pipeline ⏳ HIGH](#24-sdlc-kit-artifact-pipeline-high)
-  - [2.5 Agent Integration & Workflows ⏳ MEDIUM](#25-agent-integration-workflows-medium)
+  - [2.5 Agent Integration & Workflows ✅ DONE](#25-agent-integration-workflows-done)
   - [2.6 PR Workflows ⏳ MEDIUM](#26-pr-workflows-medium)
   - [2.7 Version & Config Management ⏳ MEDIUM](#27-version-config-management-medium)
   - [2.8 Developer Experience ⏳ LOW](#28-developer-experience-low)
@@ -37,7 +37,7 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
 
 - [ ] `p1` - **ID**: `cpt-cypilot-status-overall`
 
-### 2.1 [Core Infrastructure](feature-core-infra/) ⏳ HIGH
+### 2.1 [Core Infrastructure](features/core-infra.md) ⏳ HIGH
 
 - [ ] `p1` - **ID**: `cpt-cypilot-feature-core-infra`
 
@@ -102,7 +102,7 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
   - `{cypilot_path}/config/artifacts.toml` — artifact registry with autodetect rules
 
 
-### 2.2 [Blueprint System](feature-blueprint-system/) ⏳ HIGH
+### 2.2 [Blueprint System](features/blueprint-system.md) ⏳ HIGH
 
 - [ ] `p1` - **ID**: `cpt-cypilot-feature-blueprint-system`
 
@@ -168,7 +168,7 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
   - `{cypilot_path}/config/kits/{slug}/workflows/` — generated workflow files
 
 
-### 2.3 [Traceability & Validation](feature-traceability-validation/) ⏳ HIGH
+### 2.3 [Traceability & Validation](features/traceability-validation.md) ⏳ HIGH
 
 - [x] `p1` - **ID**: `cpt-cypilot-feature-traceability-validation`
 
@@ -234,7 +234,7 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
   - In-memory ID index (definitions + references, built from filesystem scan)
 
 
-### 2.4 [SDLC Kit & Artifact Pipeline](feature-sdlc-kit/) ⏳ HIGH
+### 2.4 [SDLC Kit & Artifact Pipeline](features/sdlc-kit.md) ⏳ HIGH
 
 - [ ] `p1` - **ID**: `cpt-cypilot-feature-sdlc-kit`
 
@@ -289,7 +289,7 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
   - `{cypilot_path}/config/kits/sdlc/` — installed kit config and generated outputs
 
 
-### 2.5 [Agent Integration & Workflows](feature-agent-integration/) ⏳ MEDIUM
+### 2.5 [Agent Integration & Workflows](features/agent-integration.md) ✅ DONE
 
 - [ ] `p1` - **ID**: `cpt-cypilot-feature-agent-integration`
 
@@ -328,7 +328,7 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
 
 - **Design Components**:
 
-  - [ ] `p2` - `cpt-cypilot-component-agent-generator`
+  - [x] `p1` - `cpt-cypilot-component-agent-generator`
 
 - **API**:
   - `cypilot agents [--agent A]`
@@ -340,7 +340,7 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
   - `.windsurf/workflows/`, `.cursor/rules/`, `.claude/commands/`, `.github/prompts/`
 
 
-### 2.6 [PR Workflows](feature-pr-workflows/) ⏳ MEDIUM
+### 2.6 [PR Workflows](features/pr-workflows.md) ⏳ MEDIUM
 
 - [ ] `p1` - **ID**: `cpt-cypilot-feature-pr-workflows`
 
@@ -394,7 +394,7 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
   - [ ] `p2` - `cpt-cypilot-interface-github-gh-cli`
 
 
-### 2.7 [Version & Config Management](feature-version-config/) ⏳ MEDIUM
+### 2.7 [Version & Config Management](features/version-config.md) ⏳ MEDIUM
 
 - [ ] `p2` - **ID**: `cpt-cypilot-feature-version-config`
 
@@ -449,7 +449,7 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
   - `{cypilot_path}/config/core.toml` — migrated config with version field
 
 
-### 2.8 [Developer Experience](feature-developer-experience/) ⏳ LOW
+### 2.8 [Developer Experience](features/developer-experience.md) ⏳ LOW
 
 - [ ] `p2` - **ID**: `cpt-cypilot-feature-developer-experience`
 
@@ -508,7 +508,7 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
   None
 
 
-### 2.9 [Advanced SDLC Workflows](feature-advanced-sdlc/) ⏳ LOW
+### 2.9 [Advanced SDLC Workflows](features/advanced-sdlc.md) ⏳ LOW
 
 - [ ] `p2` - **ID**: `cpt-cypilot-feature-advanced-sdlc`
 
@@ -565,7 +565,7 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
   - `{cypilot_path}/config/kits/sdlc/` — PR config, autodetect rules
 
 
-### 2.10 [V2 → V3 Migration](feature-v2-v3-migration/) ⏳ HIGH
+### 2.10 [V2 → V3 Migration](features/v2-v3-migration.md) ⏳ HIGH
 
 - [ ] `p1` - **ID**: `cpt-cypilot-feature-v2-v3-migration`
 

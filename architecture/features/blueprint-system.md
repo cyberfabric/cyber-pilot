@@ -31,7 +31,8 @@
   - [Kit Update](#kit-update-1)
   - [Kit Structural Validation](#kit-structural-validation-1)
   - [Resource Regeneration](#resource-regeneration)
-- [6. Acceptance Criteria](#6-acceptance-criteria)
+- [6. Implementation Modules](#6-implementation-modules)
+- [7. Acceptance Criteria](#7-acceptance-criteria)
 
 <!-- /toc -->
 
@@ -154,11 +155,11 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
 1. [x] - `p1` - User invokes `cypilot validate-kits` - `inst-user-validate-kits`
 2. [x] - `p1` - Load all registered kits from `{cypilot_path}/config/core.toml` - `inst-load-registered-kits`
 3. [x] - `p1` - **FOR EACH** kit - `inst-foreach-validate-kit`
-   1. [x] - `p1` - Verify `blueprints/` directory exists in user-editable path - `inst-verify-blueprints-dir`
-   2. [x] - `p1` - **FOR EACH** blueprint file in `blueprints/` - `inst-foreach-blueprint`
-      1. [x] - `p1` - Parse blueprint and validate marker syntax - `inst-validate-markers`
-      2. [x] - `p1` - Verify `@cpt:blueprint` identity marker present - `inst-verify-identity`
-      3. [x] - `p1` - Verify at least one `@cpt:heading` or output marker present - `inst-verify-content`
+   1. - `p1` - Verify `blueprints/` directory exists in user-editable path - `inst-verify-blueprints-dir`
+   2. - `p1` - **FOR EACH** blueprint file in `blueprints/` - `inst-foreach-blueprint`
+      1. - `p1` - Parse blueprint and validate marker syntax - `inst-validate-markers`
+      2. - `p1` - Verify `@cpt:blueprint` identity marker present - `inst-verify-identity`
+      3. - `p1` - Verify at least one `@cpt:heading` or output marker present - `inst-verify-content`
 4. [x] - `p1` - **RETURN** validation result (PASS/FAIL, per-kit details) - `inst-return-validate-ok`
 
 ## 3. Processes / Business Logic (CDSL)
@@ -249,17 +250,17 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
 **Output**: Merged blueprint content, or list of conflicts
 
 **Steps**:
-1. [ ] - `p2` - Parse all three versions into marker lists - `inst-parse-three`
-2. [ ] - `p2` - Identify marker-level changes: added markers (in new, not in reference), removed markers (in reference, not in new), modified markers (in both, content differs) - `inst-identify-changes`
-3. [ ] - `p2` - Identify user modifications: markers where user blueprint differs from reference - `inst-identify-user-mods`
-4. [ ] - `p2` - Apply merge rules - `inst-apply-merge`
-   1. [ ] - `p2` - Insert new markers (added by kit, not present in user) at appropriate positions - `inst-insert-new`
-   2. [ ] - `p2` - Preserve user-modified markers unchanged - `inst-preserve-user`
-   3. [ ] - `p2` - Update unmodified markers to new version - `inst-update-unmodified`
-   4. [ ] - `p2` - Respect user deletions: markers removed by user stay removed - `inst-respect-deletions`
-5. [ ] - `p2` - **IF** both user and kit modified the same marker - `inst-if-conflict`
-   1. [ ] - `p2` - Flag as conflict, include both versions - `inst-flag-conflict`
-6. [ ] - `p2` - **RETURN** merged content or conflict list - `inst-return-merge`
+1. - `p2` - Parse all three versions into marker lists - `inst-parse-three`
+2. - `p2` - Identify marker-level changes: added markers (in new, not in reference), removed markers (in reference, not in new), modified markers (in both, content differs) - `inst-identify-changes`
+3. - `p2` - Identify user modifications: markers where user blueprint differs from reference - `inst-identify-user-mods`
+4. - `p2` - Apply merge rules - `inst-apply-merge`
+   1. - `p2` - Insert new markers (added by kit, not present in user) at appropriate positions - `inst-insert-new`
+   2. - `p2` - Preserve user-modified markers unchanged - `inst-preserve-user`
+   3. - `p2` - Update unmodified markers to new version - `inst-update-unmodified`
+   4. - `p2` - Respect user deletions: markers removed by user stay removed - `inst-respect-deletions`
+5. - `p2` - **IF** both user and kit modified the same marker - `inst-if-conflict`
+   1. - `p2` - Flag as conflict, include both versions - `inst-flag-conflict`
+6. - `p2` - **RETURN** merged content or conflict list - `inst-return-merge`
 
 ### Collect SKILL Extensions
 
@@ -270,10 +271,10 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
 **Output**: Aggregated SKILL extension content for SKILL.md composition
 
 **Steps**:
-1. [ ] - `p2` - **FOR EACH** parsed blueprint - `inst-foreach-skill-bp`
-   1. [ ] - `p2` - Extract all `@cpt:skill` marker content - `inst-extract-skill`
-2. [ ] - `p2` - Concatenate sections in blueprint order - `inst-concat-skill`
-3. [ ] - `p2` - **RETURN** aggregated SKILL content - `inst-return-skill`
+1. - `p2` - **FOR EACH** parsed blueprint - `inst-foreach-skill-bp`
+   1. - `p2` - Extract all `@cpt:skill` marker content - `inst-extract-skill`
+2. - `p2` - Concatenate sections in blueprint order - `inst-concat-skill`
+3. - `p2` - **RETURN** aggregated SKILL content - `inst-return-skill`
 
 ### Generate Workflows
 
@@ -284,12 +285,12 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
 **Output**: Generated workflow `.md` files
 
 **Steps**:
-1. [ ] - `p2` - **FOR EACH** parsed blueprint - `inst-foreach-wf-bp`
-   1. [ ] - `p2` - Extract all `@cpt:workflow` markers - `inst-extract-workflow`
-   2. [ ] - `p2` - **FOR EACH** workflow marker - `inst-foreach-workflow`
-      1. [ ] - `p2` - Parse TOML header (name, description) and Markdown body (steps) - `inst-parse-workflow`
-      2. [ ] - `p2` - Write to `{cypilot_path}/config/kits/{slug}/workflows/{name}.md` - `inst-write-workflow`
-2. [ ] - `p2` - **RETURN** list of generated workflow paths - `inst-return-workflows`
+1. - `p2` - **FOR EACH** parsed blueprint - `inst-foreach-wf-bp`
+   1. - `p2` - Extract all `@cpt:workflow` markers - `inst-extract-workflow`
+   2. - `p2` - **FOR EACH** workflow marker - `inst-foreach-workflow`
+      1. - `p2` - Parse TOML header (name, description) and Markdown body (steps) - `inst-parse-workflow`
+      2. - `p2` - Write to `{cypilot_path}/config/kits/{slug}/workflows/{name}.md` - `inst-write-workflow`
+2. - `p2` - **RETURN** list of generated workflow paths - `inst-return-workflows`
 
 ## 4. States (CDSL)
 
@@ -420,7 +421,16 @@ The system **MUST** provide `cypilot generate-resources [--kit SLUG]` that re-pr
 - `cpt-cypilot-component-blueprint-processor`
 - `cpt-cypilot-principle-plugin-extensibility`
 
-## 6. Acceptance Criteria
+## 6. Implementation Modules
+
+| Module | Path | Responsibility |
+|--------|------|----------------|
+| Kit Command | `skills/.../commands/kit.py` | Kit install, update, generate-resources CLI handlers |
+| Validate Kits | `skills/.../commands/validate_kits.py` | Kit structural validation command |
+| Blueprint Utils | `skills/.../utils/blueprint.py` | Blueprint parsing, `@cpt:` marker extraction, resource generation |
+| Constraints Utils | `skills/.../utils/constraints.py` | Constraint loading and validation (shared with F-03) |
+
+## 7. Acceptance Criteria
 
 - [ ] `cypilot kit install <path>` installs a kit, generates all outputs, and registers in `{cypilot_path}/config/core.toml`
 - [ ] `cypilot kit update --force` overwrites user blueprints and regenerates all outputs

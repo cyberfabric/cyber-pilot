@@ -1,3 +1,12 @@
+"""
+Adapter Info Command — discover and display Cypilot project configuration.
+
+Shows project root, cypilot directory, rules, systems, and registry status.
+
+@cpt-flow:cpt-cypilot-flow-core-infra-cli-invocation:p1
+@cpt-dod:cpt-cypilot-dod-core-infra-init-config:p1
+"""
+
 import argparse
 import json
 import os
@@ -24,6 +33,7 @@ def _load_json_file(path: Path) -> Optional[dict]:
 
 def cmd_adapter_info(argv: list[str]) -> int:
     """Discover and display Cypilot project configuration."""
+    # @cpt-begin:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-parse-args
     p = argparse.ArgumentParser(prog="info", description="Discover Cypilot project configuration")
     p.add_argument("--root", default=".", help="Project root to search from (default: current directory)")
     p.add_argument("--cypilot-root", default=None, help="Cypilot core location (if agent knows it)")
@@ -31,8 +41,12 @@ def cmd_adapter_info(argv: list[str]) -> int:
 
     start_path = Path(args.root).resolve()
     cypilot_root_path = Path(args.cypilot_root).resolve() if args.cypilot_root else None
+    # @cpt-end:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-parse-args
 
+    # @cpt-begin:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-find-root
     project_root = find_project_root(start_path)
+    # @cpt-end:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-find-root
+    # @cpt-begin:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-if-no-root
     if project_root is None:
         print(json.dumps(
             {
@@ -45,8 +59,12 @@ def cmd_adapter_info(argv: list[str]) -> int:
             ensure_ascii=False,
         ))
         return 1
+    # @cpt-end:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-if-no-root
 
+    # @cpt-begin:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-find-cypilot
     adapter_dir = find_cypilot_directory(start_path, cypilot_root=cypilot_root_path)
+    # @cpt-end:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-find-cypilot
+    # @cpt-begin:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-if-no-cypilot
     if adapter_dir is None:
         print(json.dumps(
             {
@@ -59,11 +77,15 @@ def cmd_adapter_info(argv: list[str]) -> int:
             ensure_ascii=False,
         ))
         return 1
+    # @cpt-end:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-if-no-cypilot
 
+    # @cpt-begin:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-load-config
     config = load_cypilot_config(adapter_dir)
+    # @cpt-end:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-load-config
     config["status"] = "FOUND"
     config["project_root"] = project_root.as_posix()
 
+    # @cpt-begin:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-locate-registry
     registry_path = (adapter_dir / "config" / "artifacts.toml").resolve()
     # Fallback: legacy flat layout
     if not registry_path.is_file():
@@ -93,10 +115,14 @@ def cmd_adapter_info(argv: list[str]) -> int:
                 pass
             break
 
+    # @cpt-end:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-locate-registry
+    # @cpt-begin:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-registry-missing
     if registry is None:
         config["artifacts_registry"] = None
         config["artifacts_registry_error"] = "MISSING_OR_INVALID_JSON" if registry_path.exists() else "MISSING"
         config["autodetect_registry"] = None
+    # @cpt-end:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-registry-missing
+    # @cpt-begin:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-expand-registry
     else:
         def _extract_autodetect_registry(raw: object, core: Optional[dict]) -> Optional[dict]:
             if not isinstance(raw, dict):
@@ -212,7 +238,9 @@ def cmd_adapter_info(argv: list[str]) -> int:
 
         config["artifacts_registry"] = expanded
         config["artifacts_registry_error"] = None
+    # @cpt-end:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-expand-registry
 
+    # @cpt-begin:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-compute-metadata
     try:
         relative_path = adapter_dir.relative_to(project_root).as_posix()
     except ValueError:
@@ -223,6 +251,9 @@ def cmd_adapter_info(argv: list[str]) -> int:
     if not core_toml.is_file():
         core_toml = adapter_dir / "core.toml"
     config["has_config"] = core_toml.exists()
+    # @cpt-end:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-compute-metadata
 
+    # @cpt-begin:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-return-ok
     print(json.dumps(config, indent=2, ensure_ascii=False))
     return 0
+    # @cpt-end:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-return-ok

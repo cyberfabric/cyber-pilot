@@ -2,6 +2,9 @@
 Cypilot Validator - Markdown Parsing Utilities
 
 Functions for parsing markdown structure, extracting sections, and analyzing content.
+
+@cpt-algo:cpt-cypilot-algo-traceability-validation-scan-ids:p1
+@cpt-algo:cpt-cypilot-algo-traceability-validation-validate-structure:p1
 """
 
 import re
@@ -15,6 +18,7 @@ from ..constants import (
 )
 
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-parsing-utils:p1:inst-parse-required-sections
 def parse_required_sections(requirements_path: Path) -> Dict[str, str]:
     """
     Parse required sections from requirements file.
@@ -30,8 +34,10 @@ def parse_required_sections(requirements_path: Path) -> Dict[str, str]:
         section_title = m.group(2)
         sections[section_id] = section_title
     return sections
+# @cpt-end:cpt-cypilot-algo-traceability-validation-parsing-utils:p1:inst-parse-required-sections
 
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-parsing-utils:p1:inst-parse-find-sections
 def find_present_section_ids(artifact_text: str) -> List[str]:
     """
     Find section letter IDs present in artifact (e.g., A, B, C).
@@ -44,8 +50,10 @@ def find_present_section_ids(artifact_text: str) -> List[str]:
         if m:
             present.append(m.group(1))
     return present
+# @cpt-end:cpt-cypilot-algo-traceability-validation-parsing-utils:p1:inst-parse-find-sections
 
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-parsing-utils:p1:inst-parse-split-sections
 def split_by_section_letter(text: str, section_re: re.Pattern) -> Tuple[List[str], Dict[str, List[str]]]:
     """
     Split text by lettered sections using provided regex pattern.
@@ -98,6 +106,7 @@ def split_by_section_letter_with_offsets(
             sections[current].append(line)
 
     return found_order, sections, offsets
+# @cpt-end:cpt-cypilot-algo-traceability-validation-parsing-utils:p1:inst-parse-split-sections
 
 
 def _is_field_header_terminator(line: str) -> bool:
@@ -137,6 +146,7 @@ def _is_field_header_terminator(line: str) -> bool:
     return True
 
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-parsing-utils:p1:inst-parse-field-block
 def field_block(lines: List[str], field_name: str) -> Optional[Dict[str, object]]:
     """
     Extract field block from list of lines.
@@ -160,6 +170,7 @@ def field_block(lines: List[str], field_name: str) -> Optional[Dict[str, object]
             tail.append(lines[j])
         return {"index": idx, "value": value, "tail": tail}
     return None
+# @cpt-end:cpt-cypilot-algo-traceability-validation-parsing-utils:p1:inst-parse-field-block
 
 
 def has_list_item(lines: List[str]) -> bool:
@@ -167,6 +178,7 @@ def has_list_item(lines: List[str]) -> bool:
     return any(re.match(r"^\s*[-*]\s+\S+", l) for l in lines)
 
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-parsing-utils:p1:inst-parse-extract-ids
 def extract_backticked_ids(line: str, pattern: re.Pattern) -> List[str]:
     """
     Extract IDs from backticked tokens that match pattern.
@@ -178,3 +190,4 @@ def extract_backticked_ids(line: str, pattern: re.Pattern) -> List[str]:
         if pattern.fullmatch(tok.strip()):
             ids.append(tok.strip())
     return ids
+# @cpt-end:cpt-cypilot-algo-traceability-validation-parsing-utils:p1:inst-parse-extract-ids

@@ -1,3 +1,10 @@
+"""
+Validate Kits Command — validate kit structural correctness.
+
+@cpt-flow:cpt-cypilot-flow-blueprint-system-validate-kits:p1
+@cpt-dod:cpt-cypilot-dod-blueprint-system-validate-kits:p1
+"""
+
 import argparse
 import json
 from pathlib import Path
@@ -13,11 +20,14 @@ def cmd_validate_kits(argv: List[str]) -> int:
     - kits referenced in artifacts.toml are accessible
     - constraints.toml (if present) parses and matches the expected schema
     """
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-user-validate-kits
     p = argparse.ArgumentParser(prog="validate-kits", description="Validate Cypilot kit packages")
     p.add_argument("--kit", "--rule", dest="kit", default=None, help="Kit ID to validate (if omitted, validates all kits)")
     p.add_argument("--verbose", action="store_true", help="Print full validation report")
     args = p.parse_args(argv)
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-user-validate-kits
 
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-load-registered-kits
     from ..utils.context import get_context
     from ..utils.constraints import load_constraints_toml
 
@@ -27,10 +37,12 @@ def cmd_validate_kits(argv: List[str]) -> int:
         return 1
 
     project_root = ctx.project_root
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-load-registered-kits
 
     kit_reports: List[Dict[str, object]] = []
     all_errors: List[Dict[str, object]] = []
 
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-foreach-validate-kit
     for kit_id, kit in (ctx.meta.kits or {}).items():
         if args.kit and str(kit_id) != str(args.kit):
             continue
@@ -56,7 +68,9 @@ def cmd_validate_kits(argv: List[str]) -> int:
                 rep["kinds"] = sorted(_kc.by_kind.keys())
 
         kit_reports.append(rep)
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-foreach-validate-kit
 
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-return-validate-ok
     overall_status = "PASS" if not all_errors else "FAIL"
     result: Dict[str, object] = {
         "status": overall_status,
@@ -81,4 +95,5 @@ def cmd_validate_kits(argv: List[str]) -> int:
     if args.verbose:
         out += "\n"
     print(out)
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-return-validate-ok
     return 0 if overall_status == "PASS" else 2

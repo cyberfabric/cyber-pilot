@@ -4,6 +4,8 @@ TOML utilities for Cypilot config files.
 - Reading: stdlib ``tomllib`` (Python 3.11+)
 - Writing: minimal serializer for the subset Cypilot uses
 - Markdown: extract ``toml`` fenced code blocks from AGENTS.md
+
+@cpt-algo:cpt-cypilot-algo-core-infra-config-management:p1
 """
 
 import re
@@ -24,6 +26,7 @@ _TOML_FENCE_RE = re.compile(
 # Reading
 # ---------------------------------------------------------------------------
 
+# @cpt-begin:cpt-cypilot-algo-core-infra-toml-utils:p1:inst-toml-parse
 def loads(text: str) -> TomlData:
     """Parse a TOML string using stdlib tomllib."""
     return tomllib.loads(text)
@@ -33,8 +36,10 @@ def load(path: Path) -> TomlData:
     """Read and parse a TOML file."""
     with open(path, "rb") as f:
         return tomllib.load(f)
+# @cpt-end:cpt-cypilot-algo-core-infra-toml-utils:p1:inst-toml-parse
 
 
+# @cpt-begin:cpt-cypilot-algo-core-infra-toml-utils:p1:inst-toml-from-markdown
 def parse_toml_from_markdown(text: str) -> TomlData:
     """
     Extract and merge all ``toml`` fenced code blocks from markdown text.
@@ -56,6 +61,7 @@ def parse_toml_from_markdown(text: str) -> TomlData:
         except tomllib.TOMLDecodeError:
             continue
     return merged
+# @cpt-end:cpt-cypilot-algo-core-infra-toml-utils:p1:inst-toml-from-markdown
 
 
 def _deep_merge(base: TomlData, override: TomlData) -> None:
@@ -71,6 +77,7 @@ def _deep_merge(base: TomlData, override: TomlData) -> None:
 # Writing
 # ---------------------------------------------------------------------------
 
+# @cpt-begin:cpt-cypilot-algo-core-infra-toml-utils:p1:inst-toml-serialize
 def dumps(data: TomlData, header_comment: Optional[str] = None) -> str:
     """Serialize a nested dict to TOML format.
 
@@ -157,3 +164,4 @@ def _format_value(value: Any) -> str:
         items = ", ".join(_format_value(v) for v in value)
         return f"[{items}]"
     raise TypeError(f"Unsupported TOML value type: {type(value).__name__}")
+# @cpt-end:cpt-cypilot-algo-core-infra-toml-utils:p1:inst-toml-serialize

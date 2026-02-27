@@ -2,8 +2,12 @@
 
 Every validation error/warning carries a ``code`` field from this module.
 Fixing prompts and downstream consumers match on codes, not messages.
+
+@cpt-algo:cpt-cypilot-algo-traceability-validation-validate-structure:p1
+@cpt-dod:cpt-cypilot-dod-traceability-validation-structure:p1
 """
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-check-headings
 # ---------------------------------------------------------------------------
 # Structure — task / checkbox consistency
 # ---------------------------------------------------------------------------
@@ -106,3 +110,4 @@ TOC_STALE = "toc-stale"
 # ---------------------------------------------------------------------------
 FILE_READ_ERROR = "file-read-error"
 FILE_LOAD_ERROR = "file-load-error"
+# @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-check-headings
