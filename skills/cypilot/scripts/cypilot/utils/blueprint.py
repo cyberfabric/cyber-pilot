@@ -1142,11 +1142,13 @@ def generate_constraints(
                     entry["multiple"] = td["multiple"]
                 if "numbered" in td:
                     entry["numbered"] = td["numbered"]
+                # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-add-heading-pattern
                 if td.get("pattern"):
                     entry["pattern"] = td["pattern"]
                 if td.get("description"):
                     entry["description"] = td["description"]
                 art["headings"].append(entry)
+                # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-add-heading-pattern
             # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-foreach-heading
 
             # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-foreach-id
@@ -1155,6 +1157,7 @@ def generate_constraints(
                 id_kind = td.get("kind", "")
                 if not id_kind:
                     continue
+                # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-extract-id-kind
                 id_entry: Dict[str, Any] = {}
                 for key in ("name", "description", "template"):
                     if td.get(key):
@@ -1164,6 +1167,7 @@ def generate_constraints(
                         id_entry[bool_key] = td[bool_key]
                 if td.get("headings"):
                     id_entry["headings"] = td["headings"]
+                # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-extract-id-kind
                 # Collect [references.ARTIFACT] sub-tables
                 refs: Dict[str, Dict[str, Any]] = {}
                 if "references" in td and isinstance(td["references"], dict):
@@ -1176,9 +1180,11 @@ def generate_constraints(
                             if ref_data.get("headings"):
                                 ref_entry["headings"] = ref_data["headings"]
                         refs[target] = ref_entry
+                # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-add-id-kind
                 if refs:
                     id_entry["references"] = refs
                 art["identifiers"][id_kind] = id_entry
+                # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-add-id-kind
             # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-foreach-id
     # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-foreach-bp-constraints
 

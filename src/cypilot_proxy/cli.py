@@ -125,7 +125,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         update_args = ["update"]
         if "--dry-run" in args:
             update_args.append("--dry-run")
+        # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-return-cache-update
         return _forward_to_skill(skill_path, update_args)
+        # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-return-cache-update
     # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-update-cache
 
     # Re-add --force to args for init (skill needs it for config overwrite)
