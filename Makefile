@@ -3,6 +3,7 @@
 
 PYTHON ?= python3
 PIPX ?= pipx
+CPT ?= cpt
 PYTEST_PIPX ?= $(PIPX) run --spec pytest pytest
 PYTEST_PIPX_COV ?= $(PIPX) run --spec pytest-cov pytest
 VULTURE_PIPX ?= $(PIPX) run --spec vulture vulture
@@ -113,10 +114,10 @@ vulture-ci: check-vulture
 
 # Validate core methodology spec
 validate:
-	$(PYTHON) -m skills.cypilot.scripts.cypilot.cli validate
+	$(CPT) validate
 
 validate-code:
-	$(PYTHON) -m skills.cypilot.scripts.cypilot.cli validate-code
+	$(CPT) validate-code
 
 # Validate specific feature
 validate-feature:
@@ -126,7 +127,7 @@ validate-feature:
 		exit 1; \
 	fi
 	@echo "Validating feature: $(FEATURE)..."
-	@$(PYTHON) -m skills.cypilot.scripts.cypilot.cli validate \
+	@$(CPT) validate \
 		--artifact architecture/features/$(FEATURE)/DESIGN.md
 
 # Validate code traceability for specific feature
@@ -137,12 +138,12 @@ validate-code-feature:
 		exit 1; \
 	fi
 	@echo "Validating code traceability for feature: $(FEATURE)..."
-	@$(PYTHON) -m skills.cypilot.scripts.cypilot.cli validate --artifact architecture/features/$(FEATURE)
+	@$(CPT) validate --artifact architecture/features/$(FEATURE)
 
 # Validate SDLC examples against templates
 self-check:
 	@echo "Running self-check: validating SDLC examples against templates..."
-	$(PYTHON) -m skills.cypilot.scripts.cypilot.cli self-check
+	$(CPT) self-check
 
 # Install Python dependencies
 install-pipx: check-pipx
