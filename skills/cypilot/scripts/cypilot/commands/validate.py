@@ -26,6 +26,7 @@ def cmd_validate(argv: List[str]) -> int:
     p.add_argument("--skip-code", action="store_true", help="Skip code traceability validation")
     p.add_argument("--verbose", action="store_true", help="Print full validation report")
     p.add_argument("--output", default=None, help="Write report to file instead of stdout")
+    p.add_argument("--local-only", action="store_true", help="Skip cross-repo workspace validation (validate local repo only)")
     args = p.parse_args(argv)
 
     # Use pre-loaded context (templates already loaded on startup)
@@ -358,6 +359,24 @@ def cmd_validate(argv: List[str]) -> int:
                                 else:
                                     to_code_ids.add(did)
                                 break
+
+    # Workspace: expand artifact_ids with IDs from remote sources for cross-repo resolution
+    if not args.local_only:
+        from ..utils.context import WorkspaceContext
+        if isinstance(ctx, WorkspaceContext) and ctx.sources:
+            for sc in ctx.sources.values():
+                if not sc.reachable or sc.meta is None:
+                    continue
+                for art, _sys in sc.meta.iter_all_artifacts():
+                    art_path = (sc.path / art.path).resolve()
+                    if not art_path.exists():
+                        continue
+                    try:
+                        for h in scan_cpt_ids(art_path):
+                            if h.get("type") == "definition" and h.get("id"):
+                                artifact_ids.add(str(h["id"]))
+                    except Exception:
+                        continue
 
     if should_scan_code:
         # Scan code files from all systems

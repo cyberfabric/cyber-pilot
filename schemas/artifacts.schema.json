@@ -241,6 +241,11 @@
           "additionalProperties": {
             "$ref": "#/$defs/kit_artifact_paths"
           }
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Workspace source name (v1.2+). When present, kit path is resolved relative to the named source's root instead of the local project root."
         }
       }
     },
@@ -342,6 +347,11 @@
           "enum": ["FULL", "DOCS-ONLY"],
           "default": "FULL",
           "description": "FULL = traceability to codebase (default); DOCS-ONLY = documentation-only tracing"
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Workspace source name (v1.2+). When present, path is resolved relative to the named source's root instead of the local project root. When absent, path resolves locally (backward compatible)."
         }
       }
     },
@@ -383,6 +393,11 @@
             "$ref": "#/$defs/multiline_comment"
           },
           "description": "Multi-line comment delimiters. If omitted, defaults based on file extension."
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Workspace source name (v1.2+). When present, path is resolved relative to the named source's root instead of the local project root."
         }
       }
     },

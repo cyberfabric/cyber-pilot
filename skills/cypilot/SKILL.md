@@ -174,15 +174,25 @@ ALWAYS run `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py agents --ag
 
 ALWAYS run `python3 {cypilot_path}/skills/scripts/pr.py list` directly WHEN user invokes `cypilot list PRs` or any PR listing intent — NEVER use `gh pr list`
 
+ALWAYS run `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py workspace-init` directly WHEN user invokes `cypilot workspace init`
+
+ALWAYS run `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py workspace-add --name <name> --path <path>` directly WHEN user invokes `cypilot workspace add <name> <path>`
+
+ALWAYS run `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py workspace-add-inline --name <name> --path <path>` directly WHEN user invokes `cypilot workspace add-inline <name> <path>`
+
+ALWAYS run `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py workspace-info` directly WHEN user invokes `cypilot workspace info`
+
 ---
 
 ## Workflow Routing
 
-Cypilot has exactly **TWO** workflows. No exceptions.
+Cypilot has exactly **TWO** core workflows plus specialized sub-workflows. No exceptions.
 
 ALWAYS open and follow `{cypilot_path}/workflows/generate.md` WHEN user intent is WRITE: create, edit, fix, update, implement, refactor, delete, add, setup, configure, build, code
 
 ALWAYS open and follow `{cypilot_path}/workflows/analyze.md` WHEN user intent is READ: analyze, validate, review, analyze, check, inspect, audit, compare, list, show, find
+
+ALWAYS open and follow `{cypilot_path}/workflows/workspace.md` WHEN user intent is WORKSPACE: workspace, multi-repo, add source, add repo, cross-reference, cross-repo
 
 ALWAYS ask user "analyze (read-only) or generate (modify)?" WHEN intent is UNCLEAR: help, look at, work with, handle and STOP WHEN user user cancel or exit
 
@@ -281,6 +291,30 @@ Shortcut:
 ```bash
 python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py agents --openai
 ```
+
+### workspace-init
+```bash
+python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py workspace-init [--root <dir>] [--inline] [--dry-run]
+```
+Initialize a multi-repo workspace by scanning sibling directories for repos with adapters.
+
+### workspace-add
+```bash
+python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py workspace-add --name <name> --path <path> [--role <role>] [--adapter <path>]
+```
+Add a source to an existing `.cypilot-workspace.json`.
+
+### workspace-add-inline
+```bash
+python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py workspace-add-inline --name <name> --path <path> [--role <role>]
+```
+Add a source inline to the current repo's `.cypilot-config.json`.
+
+### workspace-info
+```bash
+python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py workspace-info
+```
+Display workspace config, list sources, show per-source status (adapter found, artifact count, reachability).
 
 ---
 

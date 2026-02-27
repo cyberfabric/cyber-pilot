@@ -6,13 +6,14 @@ Loads and caches:
 - ArtifactsMeta from artifacts.json
 - All templates for each kit
 - Registered system names
+- Workspace configuration (multi-repo federation)
 
 Use CypilotContext.load() to initialize on CLI startup.
 """
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set, Union
 
 from .artifacts_meta import ArtifactsMeta, Kit, load_artifacts_meta
 from .constraints import KitConstraints, error, load_constraints_json
@@ -170,33 +171,202 @@ class CypilotContext:
         return kinds
 
 
+@dataclass
+class SourceContext:
+    """Context for a single source in a workspace."""
+
+    name: str
+    path: Path  # Absolute path to source root
+    role: str  # "artifacts" | "codebase" | "kits" | "full"
+    adapter_dir: Optional[Path] = None
+    meta: Optional[ArtifactsMeta] = None
+    kits: Dict[str, LoadedKit] = field(default_factory=dict)
+    registered_systems: Set[str] = field(default_factory=set)
+    reachable: bool = True
+    error: Optional[str] = None
+
+
+@dataclass
+class WorkspaceContext:
+    """Multi-repo workspace context wrapping a primary CypilotContext and remote sources."""
+
+    primary: CypilotContext
+    sources: Dict[str, SourceContext] = field(default_factory=dict)
+    workspace_file: Optional[Path] = None
+
+    @property
+    def adapter_dir(self) -> Path:
+        return self.primary.adapter_dir
+
+    @property
+    def project_root(self) -> Path:
+        return self.primary.project_root
+
+    @property
+    def meta(self) -> ArtifactsMeta:
+        return self.primary.meta
+
+    @property
+    def kits(self) -> Dict[str, LoadedKit]:
+        return self.primary.kits
+
+    @property
+    def registered_systems(self) -> Set[str]:
+        return self.primary.registered_systems
+
+    def get_known_id_kinds(self) -> Set[str]:
+        return self.primary.get_known_id_kinds()
+
+    def get_all_registered_systems(self) -> Set[str]:
+        """Get registered systems from primary and all reachable sources."""
+        systems = set(self.primary.registered_systems)
+        for sc in self.sources.values():
+            if sc.reachable and sc.registered_systems:
+                systems.update(sc.registered_systems)
+        return systems
+
+    def get_all_artifact_ids(self) -> Set[str]:
+        """Collect artifact IDs from all workspace sources (for cross-repo resolution)."""
+        from .document import scan_cpt_ids
+
+        ids: Set[str] = set()
+        # Primary source
+        for art, _sys in self.primary.meta.iter_all_artifacts():
+            art_path = (self.primary.project_root / art.path).resolve()
+            if art_path.exists():
+                try:
+                    for h in scan_cpt_ids(art_path):
+                        if h.get("type") == "definition" and h.get("id"):
+                            ids.add(str(h["id"]))
+                except Exception:
+                    continue
+        # Remote sources
+        for sc in self.sources.values():
+            if not sc.reachable or sc.meta is None:
+                continue
+            for art, _sys in sc.meta.iter_all_artifacts():
+                art_path = (sc.path / art.path).resolve()
+                if art_path.exists():
+                    try:
+                        for h in scan_cpt_ids(art_path):
+                            if h.get("type") == "definition" and h.get("id"):
+                                ids.add(str(h["id"]))
+                    except Exception:
+                        continue
+        return ids
+
+    @classmethod
+    def load(cls, primary_ctx: CypilotContext) -> Optional["WorkspaceContext"]:
+        """Try to load workspace context from workspace config.
+
+        Returns WorkspaceContext if workspace found, None otherwise.
+        """
+        from .workspace import find_workspace_config
+
+        ws_cfg, ws_err = find_workspace_config(primary_ctx.project_root)
+        if ws_cfg is None:
+            return None
+
+        sources: Dict[str, SourceContext] = {}
+        for name, src_entry in ws_cfg.sources.items():
+            resolved_path = ws_cfg.resolve_source_path(name)
+            if resolved_path is None or not resolved_path.is_dir():
+                sources[name] = SourceContext(
+                    name=name,
+                    path=resolved_path or Path(src_entry.path),
+                    role=src_entry.role,
+                    reachable=False,
+                    error=f"Source directory not found: {src_entry.path}",
+                )
+                continue
+
+            # Try to load adapter and meta for this source
+            adapter_dir = None
+            meta = None
+            source_kits: Dict[str, LoadedKit] = {}
+            reg_systems: Set[str] = set()
+            src_error = None
+
+            if src_entry.adapter is not None:
+                adapter_path = (resolved_path / src_entry.adapter).resolve()
+                if adapter_path.is_dir() and (adapter_path / "AGENTS.md").exists():
+                    adapter_dir = adapter_path
+                    m, err = load_artifacts_meta(adapter_dir)
+                    if m and not err:
+                        meta = m
+                        # Resolve project_root relative to adapter_dir for the source
+                        source_project_root = (adapter_dir / m.project_root).resolve()
+                        reg_systems = m.get_all_system_prefixes()
+                else:
+                    src_error = f"Adapter not found at {adapter_path}"
+
+            sources[name] = SourceContext(
+                name=name,
+                path=resolved_path,
+                role=src_entry.role,
+                adapter_dir=adapter_dir,
+                meta=meta,
+                kits=source_kits,
+                registered_systems=reg_systems,
+                reachable=True,
+                error=src_error,
+            )
+
+        return cls(
+            primary=primary_ctx,
+            sources=sources,
+            workspace_file=ws_cfg.workspace_file,
+        )
+
+
 # Global context instance (set by CLI on startup)
-_global_context: Optional[CypilotContext] = None
+_global_context: Optional[Union[CypilotContext, WorkspaceContext]] = None
 
 
-def get_context() -> Optional[CypilotContext]:
-    """Get the global Cypilot context."""
+def get_context() -> Optional[Union[CypilotContext, WorkspaceContext]]:
+    """Get the global Cypilot context (may be CypilotContext or WorkspaceContext)."""
     return _global_context
 
 
-def set_context(ctx: Optional[CypilotContext]) -> None:
+def set_context(ctx: Optional[Union[CypilotContext, WorkspaceContext]]) -> None:
     """Set the global Cypilot context."""
     global _global_context
     _global_context = ctx
 
 
-def ensure_context(start_path: Optional[Path] = None) -> Optional[CypilotContext]:
+def ensure_context(start_path: Optional[Path] = None) -> Optional[Union[CypilotContext, WorkspaceContext]]:
     """Ensure context is loaded, loading if necessary."""
     global _global_context
     if _global_context is None:
-        _global_context = CypilotContext.load(start_path)
+        base_ctx = CypilotContext.load(start_path)
+        if base_ctx is not None:
+            ws_ctx = WorkspaceContext.load(base_ctx)
+            _global_context = ws_ctx if ws_ctx is not None else base_ctx
+        else:
+            _global_context = None
+    return _global_context
+
+
+def is_workspace() -> bool:
+    """Check if the global context is a WorkspaceContext."""
+    return isinstance(_global_context, WorkspaceContext)
+
+
+def get_primary_context() -> Optional[CypilotContext]:
+    """Get the primary CypilotContext regardless of workspace mode."""
+    if isinstance(_global_context, WorkspaceContext):
+        return _global_context.primary
     return _global_context
 
 
 __all__ = [
     "CypilotContext",
     "LoadedKit",
+    "SourceContext",
+    "WorkspaceContext",
     "get_context",
+    "get_primary_context",
     "set_context",
     "ensure_context",
+    "is_workspace",
 ]

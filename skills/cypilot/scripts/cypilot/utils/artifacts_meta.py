@@ -26,6 +26,7 @@ class Kit:
     format: str
     path: str  # Path to kit package (e.g., "kits/sdlc")
     artifacts: Dict[str, Dict[str, str]] = field(default_factory=dict)
+    source: Optional[str] = None  # Workspace source name (v1.2+)
 
     @classmethod
     def from_dict(cls, kit_id: str, data: dict) -> "Kit":
@@ -47,11 +48,15 @@ class Kit:
                 ex = spec.get("examples")
                 if isinstance(tpl, str) and tpl.strip() and isinstance(ex, str) and ex.strip():
                     artifacts[kind.strip().upper()] = {"template": tpl.strip(), "examples": ex.strip()}
+
+        raw_source = (data or {}).get("source", None)
+        source = str(raw_source).strip() if isinstance(raw_source, str) and str(raw_source).strip() else None
         return cls(
             kit_id=kit_id,
             format=fmt,
             path=path,
             artifacts=artifacts,
+            source=source,
         )
 
     def is_cypilot_format(self) -> bool:
@@ -98,6 +103,7 @@ class Artifact:
     kind: str  # Artifact kind (e.g., PRD, DESIGN, ADR)
     traceability: str  # "FULL" | "DOCS-ONLY"
     name: Optional[str] = None  # Human-readable name (optional)
+    source: Optional[str] = None  # Workspace source name (v1.2+)
 
     # Backward compatibility property
     @property
@@ -109,11 +115,14 @@ class Artifact:
         # Support both "kind" (new) and "type" (old) keys
         kind = str(data.get("kind", data.get("type", "")))
         name = data.get("name")
+        raw_source = (data or {}).get("source", None)
+        source = str(raw_source).strip() if isinstance(raw_source, str) and str(raw_source).strip() else None
         return cls(
             path=str(data.get("path", "")),
             kind=kind,
             traceability=str(data.get("traceability", "DOCS-ONLY")),
             name=str(name) if name else None,
+            source=source,
         )
 
 
@@ -124,6 +133,7 @@ class CodebaseEntry:
     path: str
     extensions: List[str] = field(default_factory=list)
     name: Optional[str] = None  # Human-readable name (optional)
+    source: Optional[str] = None  # Workspace source name (v1.2+)
 
     @classmethod
     def from_dict(cls, data: dict) -> "CodebaseEntry":
@@ -131,10 +141,13 @@ class CodebaseEntry:
         if not isinstance(exts, list):
             exts = []
         name = data.get("name")
+        raw_source = (data or {}).get("source", None)
+        source = str(raw_source).strip() if isinstance(raw_source, str) and str(raw_source).strip() else None
         return cls(
             path=str(data.get("path", "")),
             extensions=[str(e) for e in exts if isinstance(e, str)],
             name=str(name) if name else None,
+            source=source,
         )
 
 

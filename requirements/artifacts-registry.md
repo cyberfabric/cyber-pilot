@@ -1003,6 +1003,15 @@ else:
 | C.3 | Each extension starts with `.` | YES | Regex: `^\.[a-zA-Z0-9]+$` |
 | C.4 | Comment syntax format valid (if specified) | CONDITIONAL | Arrays of strings, multi-line has start/end |
 
+### Cross-Repo Source References (S)
+
+| # | Check | Required | How to Verify |
+|---|-------|----------|---------------|
+| S.1 | `source` field (if present) is non-empty string | CONDITIONAL | v1.2+: artifact/codebase/kit `source` is valid string |
+| S.2 | `source` references a name in workspace config | CONDITIONAL | Named source exists in `.cypilot-workspace.json` or inline workspace |
+| S.3 | Source repo path is reachable | CONDITIONAL | Directory exists at resolved path |
+| S.4 | `version` is "1.2" when `source` fields are used | CONDITIONAL | If any entry has `source`, version must be ≥ 1.2 |
+
 ### Final (F)
 
 | # | Check | Required | How to Verify |
@@ -1010,3 +1019,4 @@ else:
 | F.1 | All Registry Structure checks pass | YES | R.1-R.11 verified |
 | F.2 | All Artifact Entries checks pass | YES | A.1-A.4 verified |
 | F.3 | All Codebase Entries checks pass | YES | C.1-C.4 verified |
+| F.4 | All Cross-Repo Source checks pass (if applicable) | CONDITIONAL | S.1-S.4 verified when workspace active |

@@ -199,5 +199,32 @@ def cmd_adapter_info(argv: list[str]) -> int:
     if not config_file.exists():
         config["config_hint"] = f"Create .cypilot-config.json with: {{\"cypilotAdapterPath\": \"{relative_path}\"}}"
 
+    # Add workspace section when workspace detected
+    try:
+        from ..utils.workspace import find_workspace_config
+
+        ws_cfg, _ws_err = find_workspace_config(project_root)
+        if ws_cfg is not None:
+            ws_info: dict = {
+                "active": True,
+                "version": ws_cfg.version,
+                "is_inline": ws_cfg.is_inline,
+                "location": "inline (.cypilot-config.json)" if ws_cfg.is_inline else str(ws_cfg.workspace_file),
+                "sources_count": len(ws_cfg.sources),
+                "sources": {},
+            }
+            for name, src in ws_cfg.sources.items():
+                resolved = ws_cfg.resolve_source_path(name)
+                ws_info["sources"][name] = {
+                    "path": src.path,
+                    "role": src.role,
+                    "reachable": resolved is not None and resolved.is_dir(),
+                }
+            config["workspace"] = ws_info
+        else:
+            config["workspace"] = {"active": False}
+    except Exception:
+        config["workspace"] = {"active": False}
+
     print(json.dumps(config, indent=2, ensure_ascii=False))
     return 0

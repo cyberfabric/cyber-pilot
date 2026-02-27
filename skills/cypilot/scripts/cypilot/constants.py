@@ -11,6 +11,7 @@ import re
 
 PROJECT_CONFIG_FILENAME = ".cypilot-config.json"
 ARTIFACTS_REGISTRY_FILENAME = "artifacts.json"
+WORKSPACE_CONFIG_FILENAME = ".cypilot-workspace.json"
 
 # === ARTIFACT STRUCTURE PATTERNS ===
 
