@@ -19,8 +19,8 @@ from cypilot.cli import main
 from cypilot.utils.files import (
     find_project_root,
     load_project_config,
-    find_adapter_directory,
-    load_adapter_config,
+    find_cypilot_directory as find_adapter_directory,
+    load_cypilot_config as load_adapter_config,
 )
 
 
@@ -36,8 +36,8 @@ class TestAdapterInfoCommand(unittest.TestCase):
             
             adapter_dir = project_root / ".cypilot-adapter"
             adapter_dir.mkdir()
-            specs_dir = adapter_dir / "specs"
-            specs_dir.mkdir()
+            rules_dir = adapter_dir / "config" / "rules"
+            rules_dir.mkdir(parents=True)
             
             # Create .cypilot-config.json
             config_file = project_root / ".cypilot-config.json"
@@ -54,9 +54,9 @@ class TestAdapterInfoCommand(unittest.TestCase):
 **Version**: 1.0
 """)
             
-            # Create some spec files
-            (specs_dir / "tech-stack.md").write_text("# Tech Stack\n")
-            (specs_dir / "domain-model.md").write_text("# Domain Model\n")
+            # Create some rule files
+            (rules_dir / "tech-stack.md").write_text("# Tech Stack\n")
+            (rules_dir / "domain-model.md").write_text("# Domain Model\n")
 
             # Create artifacts.json in adapter (legacy format)
             (adapter_dir / "artifacts.json").write_text(
@@ -75,8 +75,8 @@ class TestAdapterInfoCommand(unittest.TestCase):
             self.assertEqual(exit_code, 0)
             self.assertEqual(output["status"], "FOUND")
             self.assertEqual(output["project_name"], "TestProject")
-            self.assertIn("domain-model", output["specs"])
-            self.assertIn("tech-stack", output["specs"])
+            self.assertIn("domain-model", output["rules"])
+            self.assertIn("tech-stack", output["rules"])
             self.assertTrue(output["has_config"])
             self.assertIn(".cypilot-adapter", output["adapter_dir"])
             self.assertIn("artifacts_registry_path", output)
@@ -417,7 +417,7 @@ class TestAdapterHelperFunctions(unittest.TestCase):
             # Create adapter in nested location
             adapter_dir = project_root / "docs" / ".cypilot-adapter"
             adapter_dir.mkdir(parents=True)
-            (adapter_dir / "specs").mkdir()
+            (adapter_dir / "config" / "rules").mkdir(parents=True)
             agents_file = adapter_dir / "AGENTS.md"
             agents_file.write_text("""# Cypilot Adapter: Test
 
@@ -441,18 +441,18 @@ class TestAdapterHelperFunctions(unittest.TestCase):
 **Version**: 2.0
 """)
             
-            # Create specs
-            specs_dir = adapter_dir / "specs"
-            specs_dir.mkdir()
-            (specs_dir / "tech-stack.md").write_text("# Tech Stack")
-            (specs_dir / "api-contracts.md").write_text("# API Contracts")
+            # Create rules
+            rules_dir = adapter_dir / "config" / "rules"
+            rules_dir.mkdir(parents=True)
+            (rules_dir / "tech-stack.md").write_text("# Tech Stack")
+            (rules_dir / "api-contracts.md").write_text("# API Contracts")
             
             config = load_adapter_config(adapter_dir)
             
             self.assertEqual(config["project_name"], "MyProject")
-            self.assertIn("tech-stack", config["specs"])
-            self.assertIn("api-contracts", config["specs"])
-            self.assertEqual(len(config["specs"]), 2)
+            self.assertIn("tech-stack", config["rules"])
+            self.assertIn("api-contracts", config["rules"])
+            self.assertEqual(len(config["rules"]), 2)
 
 
 if __name__ == "__main__":

@@ -11,12 +11,12 @@ from tempfile import TemporaryDirectory
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "cypilot" / "scripts"))
 
-from cypilot.utils.files import load_text, find_adapter_directory
+from cypilot.utils.files import load_text, find_cypilot_directory as find_adapter_directory
 from cypilot.utils.files import (
     cfg_get_str,
     cypilot_root_from_project_config,
     iter_registry_entries,
-    load_adapter_config,
+    load_cypilot_config as load_adapter_config,
     load_artifacts_registry,
     load_project_config,
 )
@@ -264,27 +264,28 @@ class TestConfigHelpers(unittest.TestCase):
 
 
 class TestLoadAdapterConfig(unittest.TestCase):
-    def test_load_adapter_config_reads_project_and_specs(self):
+    def test_load_adapter_config_reads_project_and_rules(self):
         with TemporaryDirectory() as tmpdir:
             ad = Path(tmpdir) / "adapter"
             ad.mkdir()
             (ad / "AGENTS.md").write_text("# Cypilot Adapter: MyProj\n", encoding="utf-8")
-            (ad / "specs").mkdir()
-            (ad / "specs" / "a.md").write_text("# A\n", encoding="utf-8")
-            (ad / "specs" / "b.md").write_text("# B\n", encoding="utf-8")
+            (ad / "config").mkdir()
+            (ad / "config" / "rules").mkdir()
+            (ad / "config" / "rules" / "a.md").write_text("# A\n", encoding="utf-8")
+            (ad / "config" / "rules" / "b.md").write_text("# B\n", encoding="utf-8")
 
             cfg = load_adapter_config(ad)
             self.assertEqual(cfg.get("project_name"), "MyProj")
-            self.assertEqual(cfg.get("specs"), ["a", "b"])
+            self.assertEqual(cfg.get("rules"), ["a", "b"])
 
-    def test_load_adapter_config_without_specs_dir(self):
+    def test_load_adapter_config_without_rules_dir(self):
         with TemporaryDirectory() as tmpdir:
             ad = Path(tmpdir) / "adapter"
             ad.mkdir()
             (ad / "AGENTS.md").write_text("# Cypilot Adapter: MyProj\n", encoding="utf-8")
             cfg = load_adapter_config(ad)
             self.assertEqual(cfg.get("project_name"), "MyProj")
-            self.assertEqual(cfg.get("specs"), [])
+            self.assertEqual(cfg.get("rules"), [])
 
     def test_find_adapter_no_adapter(self):
         """Test when no adapter directory exists."""
@@ -298,8 +299,8 @@ class TestLoadAdapterConfig(unittest.TestCase):
             
             self.assertIsNone(result)
 
-    def test_find_adapter_with_specs_only(self):
-        """Test finding adapter with specs/ directory only."""
+    def test_find_adapter_with_rules_only(self):
+        """Test finding adapter with rules/ directory only."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             
@@ -312,10 +313,10 @@ class TestLoadAdapterConfig(unittest.TestCase):
             # Create AGENTS.md (required)
             (adapter_dir / "AGENTS.md").write_text("# Navigation\n\nAdapter navigation.")
             
-            # Create specs directory (validates as adapter)
-            specs_dir = adapter_dir / "specs"
-            specs_dir.mkdir()
-            (specs_dir / "api.md").write_text("# API")
+            # Create rules directory (validates as adapter)
+            rules_dir = adapter_dir / "config" / "rules"
+            rules_dir.mkdir(parents=True)
+            (rules_dir / "api.md").write_text("# API")
             
             result = find_adapter_directory(root)
             

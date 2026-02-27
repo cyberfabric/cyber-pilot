@@ -1,4 +1,24 @@
+---
+cypilot: true
+type: project-rule
+topic: build-deploy
+generated-by: auto-config
+version: 1.0
+---
+
 # Build & Deploy
+
+
+<!-- toc -->
+
+- [Build \& Deploy](#build--deploy)
+  - [Build System](#build-system)
+  - [Available Commands](#available-commands)
+  - [Dependencies](#dependencies)
+  - [Coverage Requirements](#coverage-requirements)
+  - [CI/CD](#cicd)
+
+<!-- /toc -->
 
 ## Build System
 
@@ -50,8 +70,3 @@ No automated CI/CD pipeline configured. Tests run locally via Makefile.
 1. `make test` - Run all tests before committing
 2. `make test-coverage` - Verify coverage threshold
 3. `make self-check` - Validate examples
-
----
-
-**Source**: Makefile analysis
-**Last Updated**: 2026-02-03

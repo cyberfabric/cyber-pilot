@@ -1,4 +1,23 @@
+---
+cypilot: true
+type: project-rule
+topic: tech-stack
+generated-by: auto-config
+version: 1.0
+---
+
 # Tech Stack
+
+
+<!-- toc -->
+
+- [Languages](#languages)
+- [Frameworks & Libraries](#frameworks-libraries)
+- [Testing](#testing)
+- [Build & Development](#build-development)
+- [Code Quality](#code-quality)
+
+<!-- /toc -->
 
 ## Languages
 
@@ -11,6 +30,7 @@
 - **pathlib** - File system operations
 - **json** - Configuration and data serialization
 - **re** - Regex-based parsing
+- **tomllib** - TOML configuration parsing (stdlib, Python 3.11+)
 
 ## Testing
 
@@ -21,15 +41,10 @@
 ## Build & Development
 
 - **Makefile** - Build automation
-- **pip** - Package management
+- **pipx** - Isolated tool execution
 - **.venv** - Virtual environment
 
 ## Code Quality
 
 - **Coverage threshold**: 90% per file
 - **Type hints**: Used throughout codebase
-
----
-
-**Source**: Auto-detected from project scan
-**Last Updated**: 2026-02-03

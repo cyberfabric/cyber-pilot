@@ -1,4 +1,30 @@
+---
+cypilot: true
+type: project-rule
+topic: testing
+generated-by: auto-config
+version: 1.0
+---
+
 # Testing Guidelines
+
+
+<!-- toc -->
+
+- [Test Framework](#test-framework)
+- [Running Tests](#running-tests)
+- [Test File Organization](#test-file-organization)
+- [Test Patterns](#test-patterns)
+  - [1. Temporary Directory Tests](#1-temporary-directory-tests)
+  - [2. CLI Command Tests](#2-cli-command-tests)
+  - [3. Mocking Tests](#3-mocking-tests)
+  - [4. Bootstrap Helpers](#4-bootstrap-helpers)
+- [Test Naming Conventions](#test-naming-conventions)
+- [Coverage Requirements](#coverage-requirements)
+  - [Per-File Threshold: 90%](#per-file-threshold-90)
+  - [Checking Coverage](#checking-coverage)
+
+<!-- /toc -->
 
 ## Test Framework
 
@@ -22,17 +48,15 @@ pytest tests/test_cli_integration.py -v
 pytest tests/test_cli_integration.py::TestValidateCommand -v
 ```
 
----
-
 ## Test File Organization
 
 | File | Coverage Area |
 |------|---------------|
-| `test_cli_integration.py` | CLI command integration (156KB) |
+| `test_cli_integration.py` | CLI command integration |
 | `test_template_utils.py` | Template parsing and validation |
 | `test_codebase.py` | Code file parsing, markers |
 | `test_parse_sid.py` | Cypilot ID parsing |
-| `test_artifacts_meta.py` | artifacts.json parsing |
+| `test_artifacts_meta.py` | artifacts.toml parsing |
 | `test_files_utils.py` | File operations |
 | `test_cli_helpers.py` | CLI helper functions |
 | `test_context.py` | CypilotContext, LoadedKit |
@@ -45,8 +69,6 @@ pytest tests/test_cli_integration.py::TestValidateCommand -v
 | `test_workflow_parsing.py` | Workflow file parsing |
 | `test_design_validation.py` | DESIGN.md validation |
 | `test_ai_navigate_when.py` | WHEN clause parsing |
-
----
 
 ## Test Patterns
 
@@ -111,20 +133,32 @@ def test_with_mock():
 ### 4. Bootstrap Helpers
 
 ```python
-def _bootstrap_project_root(root: Path, adapter_rel: str = "adapter") -> Path:
+def _bootstrap_project_root(root: Path, adapter_rel: str = "cypilot") -> Path:
     """Create minimal project structure for tests."""
     (root / ".git").mkdir()
-    (root / ".cypilot-config.json").write_text(
-        json.dumps({"cypilotAdapterPath": adapter_rel}),
-        encoding="utf-8",
-    )
+    agents = root / "AGENTS.md"
+    agents.write_text("<!-- @cpt:root-agents -->\n```toml\ncypilot_path = \"" + adapter_rel + "\"\n```\n")
     adapter = root / adapter_rel
     adapter.mkdir(parents=True, exist_ok=True)
-    (adapter / "AGENTS.md").write_text("# Test adapter\n")
+    (adapter / "config").mkdir(exist_ok=True)
+    (adapter / "config" / "AGENTS.md").write_text("# Cypilot Adapter: Test\n")
     return adapter
 ```
 
----
+## Test Naming Conventions
+
+```python
+class TestClassName:
+    def test_method_behavior_when_condition(self):
+        """Description of what is being tested."""
+        pass
+
+# Examples:
+def test_validate_returns_pass_for_valid_artifact(self):
+def test_scan_ids_finds_all_defined_ids(self):
+def test_init_creates_adapter_directory(self):
+def test_context_load_returns_none_when_no_adapter(self):
+```
 
 ## Coverage Requirements
 
@@ -144,92 +178,3 @@ make test-coverage
 # View HTML report
 open htmlcov/index.html
 ```
-
-### Coverage Exclusions
-
-```ini
-# .coveragerc
-[run]
-omit =
-    */cypilot/__main__.py
-    */__main__.py
-```
-
----
-
-## Test Naming Conventions
-
-```python
-class TestClassName:
-    def test_method_behavior_when_condition(self):
-        """Description of what is being tested."""
-        pass
-
-# Examples:
-def test_validate_returns_pass_for_valid_artifact(self):
-def test_scan_ids_finds_all_defined_ids(self):
-def test_init_creates_adapter_directory(self):
-def test_context_load_returns_none_when_no_adapter(self):
-```
-
----
-
-## Common Test Fixtures
-
-### Valid Template
-
-```python
-VALID_TEMPLATE = '''---
-cypilot-template:
-  kind: req
-  version:
-    major: 1
-    minor: 0
----
-
-'''
-```
-
-### Valid artifacts.json
-
-```python
-VALID_REGISTRY = {
-    "version": "1.1",
-    "project_root": "..",
-    "kits": {
-        "cypilot-sdlc": {
-            "format": "Cypilot",
-            "path": "kits/sdlc"
-        }
-    },
-    "systems": [
-        {
-            "name": "Test",
-            "slug": "test",
-            "kit": "cypilot-sdlc",
-            "autodetect": [],
-        }
-    ],
-}
-```
-
----
-
-## CI Integration
-
-Tests run on every commit via Makefile:
-
-```makefile
-test:
-    pytest tests/ -v
-
-test-coverage:
-    pytest tests/ -v --cov=skills/cypilot/scripts/cypilot \
-        --cov-report=html --cov-report=json --cov-report=term
-    python scripts/check_coverage.py
-```
-
----
-
-**Source**: Test suite analysis
-**Last Updated**: 2026-02-03
