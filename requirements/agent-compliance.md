@@ -9,7 +9,7 @@ purpose: Enforcement protocol for AI agents executing Cypilot workflows (STRICT 
 # Agent Compliance Protocol
 
 **Type**: Requirement
-**Applies**: Only when Rules Mode = STRICT (see `execution-protocol.md`)
+**Applies**: Only when Rules Mode = STRICT (see `{cypilot_path}/.core/requirements/execution-protocol.md`)
 
 ---
 

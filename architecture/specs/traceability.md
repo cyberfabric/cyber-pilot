@@ -15,23 +15,25 @@ drivers:
 
 ## Table of Contents
 
-- [Quick Reference](#quick-reference)
-- [Part I — Identifiers](#part-i--identifiers)
-  - [ID Format](#id-format)
-  - [ID Naming Convention](#id-naming-convention)
-  - [ID Definition](#id-definition)
-  - [ID Reference](#id-reference)
-  - [Task Marker Semantics](#task-marker-semantics)
-- [Part II — Code Traceability](#part-ii--code-traceability)
-  - [Code Traceability Overview](#code-traceability-overview)
-  - [Scope Markers](#scope-markers)
-  - [Block Markers](#block-markers)
-  - [Language-Specific Syntax](#language-specific-syntax)
-  - [Traceability Mode](#traceability-mode)
-  - [Code Validation Rules](#code-validation-rules)
-  - [Versioning](#versioning)
-  - [Common Errors](#common-errors)
-- [References](#references)
+- [Identifiers \& Traceability Specification](#identifiers--traceability-specification)
+  - [Table of Contents](#table-of-contents)
+  - [Quick Reference](#quick-reference)
+  - [Part I — Identifiers](#part-i--identifiers)
+    - [ID Format](#id-format)
+    - [ID Naming Convention](#id-naming-convention)
+    - [ID Definition](#id-definition)
+    - [ID Reference](#id-reference)
+    - [Task Marker Semantics](#task-marker-semantics)
+  - [Part II — Code Traceability](#part-ii--code-traceability)
+    - [Code Traceability Overview](#code-traceability-overview)
+    - [Scope Markers](#scope-markers)
+    - [Block Markers](#block-markers)
+    - [Language-Specific Syntax](#language-specific-syntax)
+    - [Traceability Mode](#traceability-mode)
+    - [Code Validation Rules](#code-validation-rules)
+    - [Versioning](#versioning)
+    - [Common Errors](#common-errors)
+  - [References](#references)
 
 ---
 
@@ -350,6 +352,6 @@ def validate_credentials(user, password):
 ## References
 
 - **Kit specification**: `specs/kit/` — blueprint format, constraint definitions, validation semantics
-- **CDSL**: `specs/CDSL.md` — behavioral specification language
+- **CDSL**: `{cypilot_path}/.core/architecture/specs/CDSL.md` — behavioral specification language
 - **Artifacts registry**: `.cypilot/config/artifacts.toml` — system, artifact, codebase definitions
-- **CLI**: `specs/cli.md` — `validate`, `validate-code`, `list-ids`, `where-defined`, `where-used` commands
+- **CLI**: `{cypilot_path}/.core/architecture/specs/cli.md` — `validate`, `validate-code`, `list-ids`, `where-defined`, `where-used` commands
