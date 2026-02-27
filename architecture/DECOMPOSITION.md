@@ -1,6 +1,25 @@
 # Decomposition: Cypilot
 
 
+
+<!-- toc -->
+
+- [1. Overview](#1-overview)
+- [2. Entries](#2-entries)
+  - [2.1 Core Infrastructure ⏳ HIGH](#21-core-infrastructure-high)
+  - [2.2 Blueprint System ⏳ HIGH](#22-blueprint-system-high)
+  - [2.3 Traceability & Validation ⏳ HIGH](#23-traceability-validation-high)
+  - [2.4 SDLC Kit & Artifact Pipeline ⏳ HIGH](#24-sdlc-kit-artifact-pipeline-high)
+  - [2.5 Agent Integration & Workflows ⏳ MEDIUM](#25-agent-integration-workflows-medium)
+  - [2.6 PR Workflows ⏳ MEDIUM](#26-pr-workflows-medium)
+  - [2.7 Version & Config Management ⏳ MEDIUM](#27-version-config-management-medium)
+  - [2.8 Developer Experience ⏳ LOW](#28-developer-experience-low)
+  - [2.9 Advanced SDLC Workflows ⏳ LOW](#29-advanced-sdlc-workflows-low)
+  - [2.10 V2 → V3 Migration ⏳ HIGH](#210-v2-v3-migration-high)
+- [3. Feature Dependencies](#3-feature-dependencies)
+
+<!-- /toc -->
+
 ## 1. Overview
 
 Cypilot DESIGN is decomposed into 10 features organized around architectural layers and functional cohesion. The decomposition follows a dependency order where core infrastructure enables the blueprint system and validation, which in turn enable the SDLC kit, agent integration, and advanced workflows.
@@ -203,9 +222,9 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
   - `cypilot validate --artifact <path>`
   - `cypilot validate`
   - `cypilot list-ids [--kind K] [--pattern P]`
-  - `cypilot where-defined <id>`
-  - `cypilot where-used <id>`
-  - `cypilot get-content <id>`
+  - `cypilot where-defined --id <id>`
+  - `cypilot where-used --id <id>`
+  - `cypilot get-content --id <id>`
 
 - **Sequences**:
   - `cpt-cypilot-seq-validate`

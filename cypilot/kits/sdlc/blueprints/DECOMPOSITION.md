@@ -40,8 +40,8 @@ codebase = false
 - `cypilot validate --artifact <DECOMPOSITION.md>` — validate DECOMPOSITION structure and IDs
 - `cypilot list-ids --kind feature` — list all features
 - `cypilot list-ids --kind status` — list status indicators
-- `cypilot where-defined <id>` — find where a feature ID is defined
-- `cypilot where-used <id>` — find where a feature ID is referenced in FEATURE artifacts
+- `cypilot where-defined --id <id>` — find where a feature ID is defined
+- `cypilot where-used --id <id>` — find where a feature ID is referenced in FEATURE artifacts
 ### DECOMPOSITION Workflows
 - **Generate DECOMPOSITION**: create feature manifest from DESIGN with guided prompts
 - **Analyze DECOMPOSITION**: validate structure (deterministic) then decomposition quality (checklist-based)

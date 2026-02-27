@@ -16,8 +16,8 @@ codebase = true
 ```markdown
 ### CODE Commands
 - `cypilot validate --artifact <code-path>` — validate code traceability and quality
-- `cypilot where-defined <id>` — find where an ID is defined in artifacts
-- `cypilot where-used <id>` — find where an ID is referenced in code via `@cpt-*` markers
+- `cypilot where-defined --id <id>` — find where an ID is defined in artifacts
+- `cypilot where-used --id <id>` — find where an ID is referenced in code via `@cpt-*` markers
 ### CODE Workflows
 - **Generate CODE**: implement FEATURE design with optional `@cpt-*` traceability markers
 - **Analyze CODE**: validate implementation coverage, traceability, tests, and quality

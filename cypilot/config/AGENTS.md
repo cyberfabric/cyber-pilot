@@ -40,6 +40,12 @@ ALWAYS open and follow `{cypilot_path}/config/rules/anti-patterns.md` WHEN revie
 
 ---
 
+## Development Rules
+
+NEVER edit files inside `{cypilot_path}/.core/` or `{cypilot_path}/.gen/` directly — they are read-only copies. ALWAYS edit the canonical source files under project root (`skills/`, `kits/`, `schemas/`, etc.) and then run `cpt update --source . --force` to sync changes into `{cypilot_path}/`.
+
+---
+
 ## Project Documentation (auto-configured)
 
 <!-- auto-config:docs:start -->

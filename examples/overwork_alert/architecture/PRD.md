@@ -1,4 +1,61 @@
-# PRD
+# PRD — Overwork Alert
+
+
+<!-- toc -->
+
+- [1. Overview](#1-overview)
+  - [1.1 Purpose](#11-purpose)
+  - [1.2 Background / Problem Statement](#12-background-problem-statement)
+  - [1.3 Goals (Business Outcomes)](#13-goals-business-outcomes)
+  - [1.4 Glossary](#14-glossary)
+- [2. Actors](#2-actors)
+  - [2.1 Human Actors](#21-human-actors)
+    - [User](#user)
+  - [2.2 System Actors](#22-system-actors)
+    - [macOS System](#macos-system)
+    - [Login Background Runner](#login-background-runner)
+- [3. Operational Concept & Environment](#3-operational-concept-environment)
+  - [3.1 Module-Specific Environment Constraints](#31-module-specific-environment-constraints)
+- [4. Scope](#4-scope)
+  - [4.1 In Scope](#41-in-scope)
+  - [4.2 Out of Scope](#42-out-of-scope)
+- [5. Functional Requirements](#5-functional-requirements)
+  - [1. Core Tracking & Notifications](#1-core-tracking-notifications)
+    - [FR-001 Track active work time (idle-aware)](#fr-001-track-active-work-time-idle-aware)
+    - [FR-002 Configure limit and idle threshold](#fr-002-configure-limit-and-idle-threshold)
+    - [FR-003 Notify when limit is exceeded and repeat reminders](#fr-003-notify-when-limit-is-exceeded-and-repeat-reminders)
+  - [2. Control & Automation](#2-control-automation)
+    - [FR-004 Manual reset (no automatic reset)](#fr-004-manual-reset-no-automatic-reset)
+    - [FR-005 Run continuously in background and support autostart](#fr-005-run-continuously-in-background-and-support-autostart)
+    - [FR-006 Provide CLI controls (status/pause/resume/reset)](#fr-006-provide-cli-controls-statuspauseresumereset)
+- [6. Non-Functional Requirements](#6-non-functional-requirements)
+  - [6.1 NFR Inclusions](#61-nfr-inclusions)
+    - [Privacy & Data Handling](#privacy-data-handling)
+    - [Reliability](#reliability)
+    - [Performance & Resource Usage](#performance-resource-usage)
+  - [6.2 NFR Exclusions](#62-nfr-exclusions)
+- [7. Public Library Interfaces](#7-public-library-interfaces)
+  - [7.1 Public API Surface](#71-public-api-surface)
+  - [7.2 External Integration Contracts](#72-external-integration-contracts)
+- [8. Use Cases](#8-use-cases)
+  - [UC-001 Run tracker and receive an overwork alert](#uc-001-run-tracker-and-receive-an-overwork-alert)
+  - [UC-002 Configure the limit](#uc-002-configure-the-limit)
+  - [UC-003 Pause, resume, and reset a session](#uc-003-pause-resume-and-reset-a-session)
+- [9. Acceptance Criteria](#9-acceptance-criteria)
+- [10. Dependencies](#10-dependencies)
+- [11. Assumptions](#11-assumptions)
+- [12. Risks](#12-risks)
+  - [Intentional Exclusions](#intentional-exclusions)
+- [13. Non-Goals & Risks](#13-non-goals-risks)
+  - [Non-Goals](#non-goals)
+  - [Risks](#risks)
+- [14. Assumptions & Open Questions](#14-assumptions-open-questions)
+  - [Assumptions](#assumptions)
+  - [Open Questions](#open-questions)
+- [15. Additional context](#15-additional-context)
+  - [Example Scope Notes](#example-scope-notes)
+
+<!-- /toc -->
 
 ## 1. Overview
 
@@ -49,7 +106,7 @@ It measures “work time” as **active time**: when you are idle longer than a 
 
 ### 2.1 Human Actors
 
-### User
+#### User
 
 **ID**: `cpt-ex-ovwa-actor-user`
 
@@ -57,13 +114,13 @@ It measures “work time” as **active time**: when you are idle longer than a 
 
 ### 2.2 System Actors
 
-### macOS System
+#### macOS System
 
 **ID**: `cpt-ex-ovwa-actor-macos`
 
 **Role**: Provides the runtime environment, surfaces user notifications, and exposes signals needed to estimate user idleness.
 
-### Login Background Runner
+#### Login Background Runner
 
 **ID**: `cpt-ex-ovwa-actor-login-runner`
 
@@ -94,7 +151,9 @@ It measures “work time” as **active time**: when you are idle longer than a 
 
 ## 5. Functional Requirements
 
-### FR-001 Track active work time (idle-aware)
+### 1. Core Tracking & Notifications
+
+#### FR-001 Track active work time (idle-aware)
 
 - [x] `p1` - **ID**: `cpt-ex-ovwa-fr-track-active-time`
 
@@ -106,7 +165,7 @@ Active work time MUST pause when the user has been idle longer than the configur
 `cpt-ex-ovwa-actor-user`
 `cpt-ex-ovwa-actor-macos`
 
-### FR-002 Configure limit and idle threshold
+#### FR-002 Configure limit and idle threshold
 
 - [x] `p1` - **ID**: `cpt-ex-ovwa-fr-configurable-limit`
 
@@ -121,7 +180,7 @@ Configuration MUST have safe defaults if no configuration is present.
 **Actors**:
 `cpt-ex-ovwa-actor-user`
 
-### FR-003 Notify when limit is exceeded and repeat reminders
+#### FR-003 Notify when limit is exceeded and repeat reminders
 
 - [x] `p1` - **ID**: `cpt-ex-ovwa-fr-notify-on-limit`
 
@@ -133,7 +192,9 @@ If the user continues working while over the limit, the system MUST repeat notif
 `cpt-ex-ovwa-actor-user`
 `cpt-ex-ovwa-actor-macos`
 
-### FR-004 Manual reset (no automatic reset)
+### 2. Control & Automation
+
+#### FR-004 Manual reset (no automatic reset)
 
 - [x] `p2` - **ID**: `cpt-ex-ovwa-fr-manual-reset`
 
@@ -144,7 +205,7 @@ The system MUST NOT automatically reset accumulated work time based on time-of-d
 **Actors**:
 `cpt-ex-ovwa-actor-user`
 
-### FR-005 Run continuously in background and support autostart
+#### FR-005 Run continuously in background and support autostart
 
 - [x] `p2` - **ID**: `cpt-ex-ovwa-fr-autostart`
 
@@ -156,7 +217,7 @@ The system SHOULD support starting automatically at user login.
 `cpt-ex-ovwa-actor-user`
 `cpt-ex-ovwa-actor-login-runner`
 
-### FR-006 Provide CLI controls (status/pause/resume/reset)
+#### FR-006 Provide CLI controls (status/pause/resume/reset)
 
 - [x] `p2` - **ID**: `cpt-ex-ovwa-fr-cli-controls`
 
@@ -173,22 +234,22 @@ The system MUST provide a CLI interface that allows the user to:
 
 ## 6. Non-Functional Requirements
 
-### 6.1 Module-Specific NFRs
+### 6.1 NFR Inclusions
 
-### Privacy & Data Handling
+#### Privacy & Data Handling
 
 - [x] `p1` - **ID**: `cpt-ex-ovwa-nfr-privacy-local-only`
 
 - The system MUST be local-first and MUST NOT send tracking data over the network by default.
 - The system MUST store only minimal local state required to implement tracking and alerting.
 
-### Reliability
+#### Reliability
 
 - [x] `p2` - **ID**: `cpt-ex-ovwa-nfr-reliability`
 
 - The system SHOULD degrade gracefully if notifications cannot be delivered (tracking continues, CLI status remains available).
 
-### Performance & Resource Usage
+#### Performance & Resource Usage
 
 - [x] `p2` - **ID**: `cpt-ex-ovwa-nfr-low-overhead`
 

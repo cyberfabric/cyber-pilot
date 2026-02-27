@@ -1,8 +1,66 @@
 # Technical Design — Overwork Alert
 
+
+<!-- toc -->
+
+- [1. Architecture Overview](#1-architecture-overview)
+  - [1.1 Architectural Vision](#11-architectural-vision)
+  - [1.2 Architecture Drivers](#12-architecture-drivers)
+    - [Functional Drivers](#functional-drivers)
+      - [Track active work time (idle-aware)](#track-active-work-time-idle-aware)
+      - [Configure limit and idle threshold](#configure-limit-and-idle-threshold)
+      - [Notify when limit is exceeded and repeat reminders](#notify-when-limit-is-exceeded-and-repeat-reminders)
+      - [Manual reset (no automatic reset)](#manual-reset-no-automatic-reset)
+      - [Run continuously in background and support autostart](#run-continuously-in-background-and-support-autostart)
+      - [Provide CLI controls (status/pause/resume/reset)](#provide-cli-controls-statuspauseresumereset)
+    - [NFR Allocation](#nfr-allocation)
+      - [Privacy & Data Handling](#privacy-data-handling)
+      - [Reliability](#reliability)
+      - [Performance & Resource Usage](#performance-resource-usage)
+    - [Architecture Decisions Records](#architecture-decisions-records)
+      - [Use CLI daemon + LaunchAgent (no menubar UI)](#use-cli-daemon-launchagent-no-menubar-ui)
+  - [1.3 Architecture Layers](#13-architecture-layers)
+- [2. Principles & Constraints](#2-principles-constraints)
+  - [2.1 Design Principles](#21-design-principles)
+    - [Local-only and minimal state](#local-only-and-minimal-state)
+    - [Predictable, explicit user control](#predictable-explicit-user-control)
+    - [Low overhead background behavior](#low-overhead-background-behavior)
+  - [2.2 Constraints](#22-constraints)
+    - [macOS-only, no custom UI surface](#macos-only-no-custom-ui-surface)
+    - [No automatic reset and no persistence of accumulated time](#no-automatic-reset-and-no-persistence-of-accumulated-time)
+- [3. Technical Architecture](#3-technical-architecture)
+  - [3.1 Domain Model](#31-domain-model)
+  - [3.2 Component Model](#32-component-model)
+    - [CLI](#cli)
+      - [Why this component exists](#why-this-component-exists)
+      - [Responsibility scope](#responsibility-scope)
+      - [Responsibility boundaries](#responsibility-boundaries)
+      - [Related components (by ID)](#related-components-by-id)
+    - [Daemon / Tracker Loop](#daemon-tracker-loop)
+    - [Local Control Channel](#local-control-channel)
+    - [Idle Detector](#idle-detector)
+    - [Notification Sender](#notification-sender)
+    - [Config Loader](#config-loader)
+    - [LaunchAgent Manager](#launchagent-manager)
+  - [3.3 API Contracts](#33-api-contracts)
+  - [3.4 Internal Dependencies](#34-internal-dependencies)
+  - [3.5 External Dependencies](#35-external-dependencies)
+  - [3.6 Interactions & Sequences](#36-interactions-sequences)
+    - [Run tracker and receive an overwork alert](#run-tracker-and-receive-an-overwork-alert)
+    - [Reset a session via CLI](#reset-a-session-via-cli)
+  - [3.7 Database schemas & tables](#37-database-schemas-tables)
+    - [Table tracker_state (conceptual; in-memory only)](#table-trackerstate-conceptual-in-memory-only)
+    - [Table config (conceptual; file-backed)](#table-config-conceptual-file-backed)
+  - [3.8 Topology](#38-topology)
+  - [3.9 Tech stack](#39-tech-stack)
+- [4. Additional Context](#4-additional-context)
+- [5. Traceability](#5-traceability)
+
+<!-- /toc -->
+
 ## 1. Architecture Overview
 
-### Architectural Vision
+### 1.1 Architectural Vision
 
 Overwork Alert is a single-user, local-only macOS tool implemented as a background daemon with a companion CLI. The daemon continuously estimates “active work time” using an idle-aware clock and emits macOS notifications when a configurable limit is exceeded.
 
@@ -10,7 +68,7 @@ The system boundary is the user’s macOS session: the tool does not depend on r
 
 ### 1.2 Architecture Drivers
 
-#### Product requirements
+#### Functional Drivers
 
 ##### Track active work time (idle-aware)
 
@@ -47,6 +105,8 @@ The system boundary is the user’s macOS session: the tool does not depend on r
 - [x] `p2` - `cpt-ex-ovwa-fr-cli-controls`
 
 **Solution**: A CLI provides user-facing commands and communicates with the daemon via a local-only control interface to query status and issue commands.
+
+#### NFR Allocation
 
 ##### Privacy & Data Handling
 
@@ -157,10 +217,26 @@ graph LR
 
 - [x] `p1` - **ID**: `cpt-ex-ovwa-component-cli`
 
-- **Responsibilities**: Parse user commands; display status; send control commands to daemon; manage LaunchAgent installation.
-- **Boundaries**: No tracking logic; no accumulation; no background loop.
-- **Dependencies**: Control Channel; LaunchAgent Manager.
-- **Key interfaces**: `overwork-alert status|pause|resume|reset|start|stop|install-autostart|uninstall-autostart`.
+##### Why this component exists
+
+The CLI is the sole user-facing entry point. It translates human commands into control messages and presents daemon state as readable output.
+
+##### Responsibility scope
+
+- Parse user commands (`status`, `pause`, `resume`, `reset`, `start`, `stop`, `install-autostart`, `uninstall-autostart`)
+- Display formatted status output
+- Send control commands to the daemon via the control channel
+- Manage LaunchAgent installation/uninstallation
+
+##### Responsibility boundaries
+
+- No tracking logic; no accumulation; no background loop
+- Does not read idle time or send notifications
+
+##### Related components (by ID)
+
+- `cpt-ex-ovwa-component-control-channel`
+- `cpt-ex-ovwa-component-launchagent-manager`
 
 #### Daemon / Tracker Loop
 

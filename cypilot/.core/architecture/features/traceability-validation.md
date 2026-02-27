@@ -1,8 +1,38 @@
 # Feature: Traceability & Validation
 
+
+<!-- toc -->
+
+- [1. Feature Context](#1-feature-context)
+  - [1. Overview](#1-overview)
+  - [2. Purpose](#2-purpose)
+  - [3. Actors](#3-actors)
+  - [4. References](#4-references)
+- [2. Actor Flows (CDSL)](#2-actor-flows-cdsl)
+  - [Validate Artifacts](#validate-artifacts)
+  - [Query Traceability](#query-traceability)
+- [3. Processes / Business Logic (CDSL)](#3-processes-business-logic-cdsl)
+  - [Scan Artifact IDs](#scan-artifact-ids)
+  - [Scan CDSL Instructions](#scan-cdsl-instructions)
+  - [Validate Artifact Structure](#validate-artifact-structure)
+  - [Cross-Validate Artifacts](#cross-validate-artifacts)
+  - [Scan Code Markers](#scan-code-markers)
+  - [Cross-Validate Code](#cross-validate-code)
+- [4. States (CDSL)](#4-states-cdsl)
+  - [Validation Report Lifecycle](#validation-report-lifecycle)
+- [5. Definitions of Done](#5-definitions-of-done)
+  - [Artifact Structural Validation](#artifact-structural-validation)
+  - [Cross-Artifact Reference Validation](#cross-artifact-reference-validation)
+  - [Code Traceability Validation](#code-traceability-validation)
+  - [Traceability Query Commands](#traceability-query-commands)
+  - [CDSL Instruction Tracking](#cdsl-instruction-tracking)
+- [6. Acceptance Criteria](#6-acceptance-criteria)
+
+<!-- /toc -->
+
 - [ ] `p1` - **ID**: `cpt-cypilot-featstatus-traceability-validation`
 
-## Feature Context
+## 1. Feature Context
 
 - [x] `p1` - `cpt-cypilot-feature-traceability-validation`
 
@@ -29,7 +59,7 @@ Catches structural and traceability issues that AI agents miss or hallucinate â€
 - **Specs**: [traceability.md](../specs/traceability.md), [CDSL.md](../specs/CDSL.md), [constraints.md](../specs/kit/constraints.md)
 - **Dependencies**: `cpt-cypilot-feature-core-infra`
 
-## Actor Flows
+## 2. Actor Flows (CDSL)
 
 ### Validate Artifacts
 
@@ -86,7 +116,7 @@ Catches structural and traceability issues that AI agents miss or hallucinate â€
 7. [x] - `p1` - **IF** `get-content`: locate ID definition, extract content block from heading scope - `inst-if-get-content`
 8. [x] - `p1` - **RETURN** JSON result - `inst-return-query`
 
-## Processes / Business Logic
+## 3. Processes / Business Logic (CDSL)
 
 ### Scan Artifact IDs
 
@@ -203,7 +233,7 @@ Catches structural and traceability issues that AI agents miss or hallucinate â€
    2. [x] - `p1` - **IF** code block has no matching CDSL step in artifact, emit error - `inst-if-inst-orphan`
 7. [x] - `p1` - **RETURN** accumulated errors and warnings - `inst-return-code-cross`
 
-## States
+## 4. States (CDSL)
 
 ### Validation Report Lifecycle
 
@@ -218,7 +248,7 @@ Catches structural and traceability issues that AI agents miss or hallucinate â€
 2. [x] - `p1` - **FROM** NOT_RUN **TO** FAIL **WHEN** validation completes with structural or traceability errors (exit code 2) - `inst-fail`
 3. [x] - `p1` - **FROM** NOT_RUN **TO** ERROR **WHEN** validation cannot run (no cypilot, missing config, exit code 1) - `inst-error`
 
-## Definitions of Done
+## 5. Definitions of Done
 
 ### Artifact Structural Validation
 
@@ -307,7 +337,7 @@ The system **MUST** scan CDSL instruction markers (`inst-{slug}` suffixes in num
 - `cpt-cypilot-component-validator`
 - `cpt-cypilot-component-traceability-engine`
 
-## Acceptance Criteria
+## 6. Acceptance Criteria
 
 - [ ] `cypilot validate` validates all registered artifacts and produces JSON report with PASS/FAIL status
 - [ ] `cypilot validate --artifact <path>` validates a single artifact against its constraints

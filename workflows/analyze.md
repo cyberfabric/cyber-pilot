@@ -264,7 +264,7 @@ python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate --artifa
 ### For Code
 
 ```bash
-python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate --code {PATH} --design {design-path}
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate
 ```
 
 ### Deterministic Gate Rules

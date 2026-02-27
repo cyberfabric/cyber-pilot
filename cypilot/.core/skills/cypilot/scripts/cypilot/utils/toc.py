@@ -145,6 +145,11 @@ def build_toc(
     slug_counts: Dict[str, int] = {}
     toc_lines: List[str] = []
 
+    def _display(raw: str) -> str:
+        # Strip markdown links [text](url) → text so TOC entries
+        # don't contain nested brackets that break anchor parsing.
+        return re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", raw)
+
     if numbered:
         # Parent-stack approach: numbered top-level, bulleted sub-items
         parent_stack: List[int] = []
@@ -152,6 +157,7 @@ def build_toc(
 
         for level, text in headings:
             slug = _unique_slug(text, slug_counts)
+            disp = _display(text)
 
             # Pop stack entries at same or higher level
             while parent_stack and parent_stack[-1] >= level:
@@ -162,16 +168,17 @@ def build_toc(
 
             if depth == 0:
                 top_num += 1
-                toc_lines.append(f"{top_num}. [{text}](#{slug})")
+                toc_lines.append(f"{top_num}. [{disp}](#{slug})")
             else:
                 indent = " " * indent_size * depth
-                toc_lines.append(f"{indent}- [{text}](#{slug})")
+                toc_lines.append(f"{indent}- [{disp}](#{slug})")
     else:
         # Flat bullet approach: all items bulleted
         for level, text in headings:
             slug = _unique_slug(text, slug_counts)
+            disp = _display(text)
             indent = " " * indent_size * (level - min_level)
-            toc_lines.append(f"{indent}- [{text}](#{slug})")
+            toc_lines.append(f"{indent}- [{disp}](#{slug})")
 
     return "\n".join(toc_lines)
 

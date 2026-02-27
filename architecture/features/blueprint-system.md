@@ -1,8 +1,43 @@
 # Feature: Blueprint System
 
+
+<!-- toc -->
+
+- [1. Feature Context](#1-feature-context)
+  - [1. Overview](#1-overview)
+  - [2. Purpose](#2-purpose)
+  - [3. Actors](#3-actors)
+  - [4. References](#4-references)
+- [2. Actor Flows (CDSL)](#2-actor-flows-cdsl)
+  - [Kit Installation](#kit-installation)
+  - [Kit Update](#kit-update)
+  - [Resource Generation](#resource-generation)
+  - [Kit Structural Validation](#kit-structural-validation)
+- [3. Processes / Business Logic (CDSL)](#3-processes-business-logic-cdsl)
+  - [Parse Blueprint](#parse-blueprint)
+  - [Process Kit](#process-kit)
+  - [Generate Per-Artifact Outputs](#generate-per-artifact-outputs)
+  - [Generate Kit-Wide Constraints](#generate-kit-wide-constraints)
+  - [Three-Way Merge](#three-way-merge)
+  - [Collect SKILL Extensions](#collect-skill-extensions)
+  - [Generate Workflows](#generate-workflows)
+- [4. States (CDSL)](#4-states-cdsl)
+  - [Kit Installation State](#kit-installation-state)
+- [5. Definitions of Done](#5-definitions-of-done)
+  - [Blueprint Parsing](#blueprint-parsing)
+  - [Per-Artifact Resource Generation](#per-artifact-resource-generation)
+  - [Kit-Wide Constraints Generation](#kit-wide-constraints-generation)
+  - [Kit Installation and Registration](#kit-installation-and-registration)
+  - [Kit Update](#kit-update-1)
+  - [Kit Structural Validation](#kit-structural-validation-1)
+  - [Resource Regeneration](#resource-regeneration)
+- [6. Acceptance Criteria](#6-acceptance-criteria)
+
+<!-- /toc -->
+
 - [ ] `p1` - **ID**: `cpt-cypilot-featstatus-blueprint-system`
 
-## Feature Context
+## 1. Feature Context
 
 - [ ] `p1` - `cpt-cypilot-feature-blueprint-system`
 
@@ -27,7 +62,7 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
 - **Design**: [DESIGN.md](../DESIGN.md) — `cpt-cypilot-component-blueprint-processor`, `cpt-cypilot-component-kit-manager`
 - **Dependencies**: `cpt-cypilot-feature-core-infra`
 
-## Actor Flows
+## 2. Actor Flows (CDSL)
 
 ### Kit Installation
 
@@ -126,7 +161,7 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
       3. [x] - `p1` - Verify at least one `@cpt:heading` or output marker present - `inst-verify-content`
 4. [x] - `p1` - **RETURN** validation result (PASS/FAIL, per-kit details) - `inst-return-validate-ok`
 
-## Processes / Business Logic
+## 3. Processes / Business Logic (CDSL)
 
 ### Parse Blueprint
 
@@ -256,7 +291,7 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
       2. [ ] - `p2` - Write to `{cypilot_path}/config/kits/{slug}/workflows/{name}.md` - `inst-write-workflow`
 2. [ ] - `p2` - **RETURN** list of generated workflow paths - `inst-return-workflows`
 
-## States
+## 4. States (CDSL)
 
 ### Kit Installation State
 
@@ -271,7 +306,7 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
 2. [x] - `p1` - **FROM** INSTALLED **TO** OUTDATED **WHEN** cached kit version differs from installed version - `inst-version-drift`
 3. [x] - `p1` - **FROM** OUTDATED **TO** INSTALLED **WHEN** `cypilot kit update` completes successfully - `inst-update-complete`
 
-## Definitions of Done
+## 5. Definitions of Done
 
 ### Blueprint Parsing
 
@@ -385,7 +420,7 @@ The system **MUST** provide `cypilot generate-resources [--kit SLUG]` that re-pr
 - `cpt-cypilot-component-blueprint-processor`
 - `cpt-cypilot-principle-plugin-extensibility`
 
-## Acceptance Criteria
+## 6. Acceptance Criteria
 
 - [ ] `cypilot kit install <path>` installs a kit, generates all outputs, and registers in `{cypilot_path}/config/core.toml`
 - [ ] `cypilot kit update --force` overwrites user blueprints and regenerates all outputs
