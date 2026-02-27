@@ -713,6 +713,43 @@ class TestBlueprintTocFlag:
         content = out_path.read_text(encoding="utf-8")
         assert "toc = false" in content
 
+    def test_constraints_emit_references(self, tmp_path: Path):
+        content = textwrap.dedent("""\
+            `@cpt:blueprint`
+            ```toml
+            artifact = "PRD"
+            kit = "sdlc"
+            ```
+            `@/cpt:blueprint`
+
+            `@cpt:id`
+            ```toml
+            kind = "fr"
+            name = "Functional Requirement"
+            required = true
+            template = "cpt-{system}-fr-{slug}"
+            headings = ["prd-fr"]
+
+            [references.DECOMPOSITION]
+            headings = ["decomposition-entry"]
+
+            [references.DESIGN]
+            coverage = true
+            headings = ["design-drivers"]
+            ```
+            `@/cpt:id`
+        """)
+        f = tmp_path / "PRD.md"
+        f.write_text(content, encoding="utf-8")
+        bp = parse_blueprint(f)
+        out_path = tmp_path / "constraints.toml"
+        generate_constraints([bp], out_path)
+        toml_content = out_path.read_text(encoding="utf-8")
+        assert "[artifacts.PRD.identifiers.fr.references.DECOMPOSITION]" in toml_content
+        assert "[artifacts.PRD.identifiers.fr.references.DESIGN]" in toml_content
+        assert 'headings = ["decomposition-entry"]' in toml_content
+        assert "coverage = true" in toml_content
+
     def _make_blueprint_with_example(self, tmp_path: Path, toc: bool) -> Path:
         toc_str = "true" if toc else "false"
         content = textwrap.dedent(f"""\

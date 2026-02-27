@@ -1164,10 +1164,10 @@ def generate_constraints(
                         id_entry[bool_key] = td[bool_key]
                 if td.get("headings"):
                     id_entry["headings"] = td["headings"]
-                # Collect [ref.ARTIFACT] sub-tables
+                # Collect [references.ARTIFACT] sub-tables
                 refs: Dict[str, Dict[str, Any]] = {}
-                if "ref" in td and isinstance(td["ref"], dict):
-                    for target, ref_data in td["ref"].items():
+                if "references" in td and isinstance(td["references"], dict):
+                    for target, ref_data in td["references"].items():
                         ref_entry: Dict[str, Any] = {}
                         if isinstance(ref_data, dict):
                             for rk in ("coverage", "task", "priority"):
@@ -1177,7 +1177,7 @@ def generate_constraints(
                                 ref_entry["headings"] = ref_data["headings"]
                         refs[target] = ref_entry
                 if refs:
-                    id_entry["ref"] = refs
+                    id_entry["references"] = refs
                 art["identifiers"][id_kind] = id_entry
             # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-foreach-id
     # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-foreach-bp-constraints
@@ -1235,7 +1235,7 @@ def generate_constraints(
             lines.append("")
             for id_kind in sorted(art["identifiers"].keys()):
                 id_data = art["identifiers"][id_kind]
-                refs = id_data.pop("ref", {})
+                refs = id_data.pop("references", {})
                 lines.append(f"[artifacts.{art_kind}.identifiers.{id_kind}]")
                 for ik in ("name", "description", "required", "task", "priority", "to_code", "template", "headings"):
                     if ik in id_data:
@@ -1244,7 +1244,7 @@ def generate_constraints(
                 # Reference sub-tables
                 for target in sorted(refs.keys()):
                     ref_data = refs[target]
-                    lines.append(f"[artifacts.{art_kind}.identifiers.{id_kind}.ref.{target}]")
+                    lines.append(f"[artifacts.{art_kind}.identifiers.{id_kind}.references.{target}]")
                     for rk in ("coverage", "task", "priority", "headings"):
                         if rk in ref_data:
                             lines.append(f"{rk} = {_toml_val(ref_data[rk])}")
