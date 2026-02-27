@@ -30,6 +30,11 @@ def _cmd_init(argv: List[str]) -> int:
     return cmd_init(argv)
 
 
+def _cmd_update(argv: List[str]) -> int:
+    from .commands.update import cmd_update
+    return cmd_update(argv)
+
+
 # =============================================================================
 def _cmd_validate(argv: List[str]) -> int:
     from .commands.validate import cmd_validate
@@ -131,7 +136,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     kit_commands = ["kit", "generate-resources"]
     utility_commands = ["toc"]
     search_commands = [
-        "init",
+        "init", "update",
         "list-ids", "list-id-kinds",
         "get-content",
         "where-defined", "where-used",
@@ -220,6 +225,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         return _cmd_validate_kits(rest)
     elif cmd == "init":
         return _cmd_init(rest)
+    elif cmd == "update":
+        return _cmd_update(rest)
     elif cmd == "list-ids":
         return _cmd_list_ids(rest)
     elif cmd == "list-id-kinds":

@@ -348,6 +348,62 @@ def insert_toc_heading(
 # File-level processing (for CLI command)
 # ---------------------------------------------------------------------------
 
+def _strip_manual_toc(content: str) -> Tuple[str, bool]:
+    """Remove a standalone ``## Table of Contents`` section not inside markers.
+
+    Returns ``(cleaned_content, was_removed)``.
+    Detects manual TOC sections that duplicate the marker-based TOC.
+    """
+    lines = content.split("\n")
+
+    # Check if markers already exist — only strip manual TOC if markers present
+    # or will be inserted (i.e., always strip manual TOC for marker-based flow).
+    toc_heading_start = None
+    toc_heading_end = None
+    in_fence = False
+
+    for i, line in enumerate(lines):
+        if _FENCE_RE.match(line.strip()):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+
+        # Skip lines inside <!-- toc --> markers — those are ours
+        stripped = line.strip()
+        if stripped == TOC_MARKER_START:
+            # Fast-forward past marker block
+            for j in range(i + 1, len(lines)):
+                if lines[j].strip() == TOC_MARKER_END:
+                    break
+            continue
+
+        if re.match(r"^##\s+Table of Contents\s*$", line):
+            toc_heading_start = i
+            # Find end: next heading or --- separator
+            for j in range(i + 1, len(lines)):
+                if re.match(r"^#{1,6}\s", lines[j]) or lines[j].strip() == "---":
+                    toc_heading_end = j
+                    break
+            else:
+                toc_heading_end = len(lines)
+            break
+
+    if toc_heading_start is None:
+        return content, False
+
+    # Strip blank lines around the section
+    start = toc_heading_start
+    end = toc_heading_end
+    while start > 0 and lines[start - 1].strip() == "":
+        start -= 1
+    while end < len(lines) and lines[end].strip() == "":
+        end += 1
+
+    new_lines = lines[:start] + lines[end:]
+    return "\n".join(new_lines), True
+
+
 def process_file(
     filepath: Path,
     *,
@@ -357,12 +413,19 @@ def process_file(
 ) -> dict:
     """Generate/update TOC in a single markdown file using HTML markers.
 
+    Detects and removes standalone ``## Table of Contents`` sections
+    (manual TOCs) before inserting/updating the marker-based TOC.
+
     Returns a result dict with status info.
     """
     if not filepath.is_file():
         return {"file": str(filepath), "status": "ERROR", "message": "File not found"}
 
     content = filepath.read_text(encoding="utf-8")
+
+    # Strip any manual ## Table of Contents section (duplicates marker-based TOC)
+    content, manual_removed = _strip_manual_toc(content)
+
     new_content = insert_toc_markers(content, max_level=max_level, indent_size=indent_size)
 
     lines = content.split("\n")
@@ -371,14 +434,19 @@ def process_file(
     if heading_count == 0:
         return {"file": str(filepath), "status": "SKIP", "message": "No headings found"}
 
-    if new_content == content:
+    # If only manual TOC was removed but markers unchanged, still write
+    original = filepath.read_text(encoding="utf-8")
+    if new_content == original:
         return {"file": str(filepath), "status": "UNCHANGED", "heading_count": heading_count}
 
     if not dry_run:
         filepath.write_text(new_content, encoding="utf-8")
 
     action = "WOULD_UPDATE" if dry_run else "UPDATED"
-    return {"file": str(filepath), "status": action, "heading_count": heading_count}
+    result: dict = {"file": str(filepath), "status": action, "heading_count": heading_count}
+    if manual_removed:
+        result["manual_toc_removed"] = True
+    return result
 
 
 # ---------------------------------------------------------------------------
