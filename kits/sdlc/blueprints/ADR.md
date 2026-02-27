@@ -2271,7 +2271,7 @@ kind = "adr_specific_quality_checks"
 ## Template Structure
 
 Headings, prompts, IDs, and examples that define the generated `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/template.md`
-and `example.md` files.
+and `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/examples/example.md` files.
 
 Each `@cpt:heading` defines a section in the template with its level, numbering,
 and pattern for validation. `@cpt:prompt` provides the placeholder content that

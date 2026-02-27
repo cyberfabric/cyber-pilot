@@ -906,7 +906,7 @@ Before starting the review, confirm:
 
 ## Evidence Requirements (STRICT mode)
 
-**When Rules Mode = STRICT** (per `agent-compliance.md`):
+**When Rules Mode = STRICT** (per `{cypilot_path}/.core/requirements/agent-compliance.md`):
 
 ### For Each Checklist Category
 
@@ -2543,7 +2543,7 @@ kind = "must_not_have"
 ## Template Structure
 
 Headings, prompts, IDs, and examples that define the generated `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`
-and `example.md` files. The DESIGN template covers: architecture overview,
+and `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/examples/example.md` files. The DESIGN template covers: architecture overview,
 domain model, components, design drivers, principles, constraints,
 dependencies, sequences, database design, and traceability.
 
