@@ -286,19 +286,19 @@ def run_self_check_from_meta(
                     if rule is None:
                         continue
 
-                    cov = str(getattr(rule, "coverage", "") or "").strip().lower()
-                    if cov == "prohibited":
+                    cov = getattr(rule, "coverage", None)  # True=required, False=prohibited, None=optional
+                    if cov is False:
                         continue
 
                     allowed = [str(h).strip() for h in (getattr(rule, "headings", None) or []) if str(h).strip()]
                     key = (id_kind, tpl)
                     if key not in expectations:
                         expectations[key] = {
-                            "required": cov == "required",
+                            "required": cov is True,
                             "allowed": set(h.lower() for h in allowed),
                         }
                     else:
-                        expectations[key]["required"] = bool(expectations[key]["required"]) or (cov == "required")
+                        expectations[key]["required"] = bool(expectations[key]["required"]) or (cov is True)
                         expectations[key]["allowed"].update(h.lower() for h in allowed)
 
         for (id_kind, tpl), ex in expectations.items():

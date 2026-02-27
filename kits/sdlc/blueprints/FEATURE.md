@@ -2656,9 +2656,9 @@ id = "feature-h1-title"
 level = 1
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = false
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Suggested heading text template for authors
 template = "Feature: {Feature Name}"
@@ -2723,9 +2723,9 @@ id = "feature-context"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Feature Context"
@@ -2754,9 +2754,9 @@ id = "feature-context-overview"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Overview"
@@ -2797,9 +2797,9 @@ id = "feature-context-purpose"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Purpose"
@@ -2838,9 +2838,9 @@ id = "feature-context-actors"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Actors"
@@ -2880,9 +2880,9 @@ id = "feature-context-references"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "References"
@@ -2925,9 +2925,9 @@ id = "feature-actor-flows"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Actor Flows (CDSL)"
@@ -2956,9 +2956,9 @@ id = "feature-actor-flow"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = false
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = true
 # Suggested heading text template for authors
 template = "{Flow Name}"
@@ -3050,9 +3050,9 @@ id = "feature-processes"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Processes / Business Logic (CDSL)"
@@ -3081,9 +3081,9 @@ id = "feature-process"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = false
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = true
 # Suggested heading text template for authors
 template = "{Process Name}"
@@ -3167,9 +3167,9 @@ id = "feature-states"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "States (CDSL)"
@@ -3198,9 +3198,9 @@ id = "feature-state"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = false
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = true
 # Suggested heading text template for authors
 template = "{Entity Name} State Machine"
@@ -3273,9 +3273,9 @@ id = "feature-dod"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Definitions of Done"
@@ -3304,9 +3304,9 @@ id = "feature-dod-entry"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = false
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = true
 # Suggested heading text template for authors
 template = "{Requirement Title}"
@@ -3400,9 +3400,9 @@ id = "feature-acceptance-criteria"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Acceptance Criteria"

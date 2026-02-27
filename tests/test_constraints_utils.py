@@ -54,8 +54,8 @@ def test_parse_kit_constraints_valid_happy_path_and_normalizations():
                     "to_code": True,
                     "headings": ["  H1 ", "", "H2"],
                     "references": {
-                        "DESIGN": {"coverage": "required"},
-                        "SPEC": {"coverage": "required"},
+                        "DESIGN": {"coverage": True},
+                        "SPEC": {"coverage": True},
                     },
                 }
             },
@@ -75,13 +75,13 @@ def test_parse_kit_constraints_valid_happy_path_and_normalizations():
     assert d0.name == "Item"
     assert d0.description == "An item"
     assert d0.examples == ["cpt-test-item-1"]
-    assert d0.task == "required"
-    assert d0.priority == "prohibited"
+    assert d0.task is True
+    assert d0.priority is False
     assert d0.to_code is True
     assert d0.headings == ["H1", "H2"]
     assert d0.references is not None
     assert set(d0.references.keys()) == {"DESIGN", "SPEC"}
-    assert d0.references["DESIGN"].coverage == "required"
+    assert d0.references["DESIGN"].coverage is True
 
 
 def test_parse_kit_constraints_duplicate_kind_detection():
@@ -150,7 +150,7 @@ def test_parse_kit_constraints_tri_state_requires_string_or_bool():
         }
     })
     assert kc is None
-    assert any("field 'task'" in e and "must be string" in e for e in errs)
+    assert any("field 'task'" in e and "must be boolean" in e for e in errs)
 
 
 def test_heading_constraint_ids_by_line_read_failure_returns_empty(tmp_path: Path):
@@ -267,7 +267,7 @@ def test_parse_references_must_be_object_and_keys_strings():
     kc2, errs2 = parse_kit_constraints({
         "PRD": {
             "identifiers": {
-                "item": {"references": {1: {"coverage": "required"}}},
+                "item": {"references": {1: {"coverage": True}}},
             },
         }
     })
@@ -287,7 +287,7 @@ def test_parse_reference_rule_validation_errors():
     assert kc is None
     assert any("Reference rule must be an object" in e for e in errs)
 
-    # invalid coverage
+    # invalid coverage (string not accepted)
     kc2, errs2 = parse_kit_constraints({
         "PRD": {
             "identifiers": {
@@ -296,35 +296,67 @@ def test_parse_reference_rule_validation_errors():
         }
     })
     assert kc2 is None
-    assert any("coverage" in e and "must be one of" in e for e in errs2)
+    assert any("coverage" in e and "must be boolean" in e for e in errs2)
 
-    # task must be tri-state string (required|allowed|prohibited) (legacy booleans allowed)
+    # boolean coverage: true → True (required), false → False (prohibited)
+    kc_bool, errs_bool = parse_kit_constraints({
+        "PRD": {
+            "identifiers": {
+                "item": {"references": {"DESIGN": {"coverage": True}}},
+            },
+        }
+    })
+    assert errs_bool == []
+    assert kc_bool.by_kind["PRD"].defined_id[0].references["DESIGN"].coverage is True
+
+    kc_bool2, errs_bool2 = parse_kit_constraints({
+        "PRD": {
+            "identifiers": {
+                "item": {"references": {"DESIGN": {"coverage": False}}},
+            },
+        }
+    })
+    assert errs_bool2 == []
+    assert kc_bool2.by_kind["PRD"].defined_id[0].references["DESIGN"].coverage is False
+
+    # omitted coverage → None (optional)
+    kc_omit, errs_omit = parse_kit_constraints({
+        "PRD": {
+            "identifiers": {
+                "item": {"references": {"DESIGN": {}}},
+            },
+        }
+    })
+    assert errs_omit == []
+    assert kc_omit.by_kind["PRD"].defined_id[0].references["DESIGN"].coverage is None
+
+    # task must be boolean
     kc3, errs3 = parse_kit_constraints({
         "PRD": {
             "identifiers": {
-                "item": {"references": {"DESIGN": {"coverage": "required", "task": "x"}}},
+                "item": {"references": {"DESIGN": {"coverage": True, "task": "x"}}},
             },
         }
     })
     assert kc3 is None
-    assert any("references.task" in e and "must be one of" in e for e in errs3)
+    assert any("references.task" in e and "must be boolean" in e for e in errs3)
 
-    # priority must be tri-state string (required|allowed|prohibited) (legacy booleans allowed)
+    # priority must be boolean
     kc4, errs4 = parse_kit_constraints({
         "PRD": {
             "identifiers": {
-                "item": {"references": {"DESIGN": {"coverage": "required", "priority": "x"}}},
+                "item": {"references": {"DESIGN": {"coverage": True, "priority": "x"}}},
             },
         }
     })
     assert kc4 is None
-    assert any("references.priority" in e and "must be one of" in e for e in errs4)
+    assert any("references.priority" in e and "must be boolean" in e for e in errs4)
 
     # headings must be list[str]
     kc5, errs5 = parse_kit_constraints({
         "PRD": {
             "identifiers": {
-                "item": {"references": {"DESIGN": {"coverage": "required", "headings": "H"}}},
+                "item": {"references": {"DESIGN": {"coverage": True, "headings": "H"}}},
             },
         }
     })
@@ -404,8 +436,8 @@ def test_validate_artifact_file_enforces_constraints_and_required_kinds(tmp_path
             "identifiers": {
                 "flow": {
                     "required": True,
-                    "task": "required",
-                    "priority": "required",
+                    "task": True,
+                    "priority": True,
                     "headings": ["Allowed"],
                 },
                 "req": {"required": True},
@@ -438,7 +470,7 @@ def test_validate_artifact_file_prohibited_task_and_priority(tmp_path: Path):
     kc, errs = parse_kit_constraints({
         "PRD": {
             "identifiers": {
-                "flow": {"task": "prohibited", "priority": "prohibited"}
+                "flow": {"task": False, "priority": False}
             }
         }
     })
@@ -464,18 +496,18 @@ def test_cross_validate_artifacts_structure_and_reference_rules(tmp_path: Path):
             "identifiers": {
                 "flow": {
                     "required": False,
-                    "task": "required",
+                    "task": True,
                     "headings": ["Allowed"],
                     "references": {
-                        "DESIGN": {"coverage": "required", "task": "required", "priority": "required", "headings": ["Design Heading"]},
-                        "SPEC": {"coverage": "required"},
-                        "ADR": {"coverage": "prohibited"},
+                        "DESIGN": {"coverage": True, "task": True, "priority": True, "headings": ["Design Heading"]},
+                        "SPEC": {"coverage": True},
+                        "ADR": {"coverage": False},
                     },
                 },
                 "note": {
                     "required": False,
                     "references": {
-                        "DESIGN": {"coverage": "optional", "task": "prohibited", "priority": "prohibited"},
+                        "DESIGN": {"task": False, "priority": False},
                     },
                 },
                 "req": {"required": True},
@@ -606,7 +638,7 @@ def test_cross_validate_no_registered_systems_compound_system(tmp_path: Path):
     kc, errs = parse_kit_constraints({
         "PRD": {
             "identifiers": {
-                "fr": {"required": False, "references": {"DESIGN": {"coverage": "required"}}},
+                "fr": {"required": False, "references": {"DESIGN": {"coverage": True}}},
             }
         },
         "DESIGN": {"identifiers": {"component": {"required": False}}},

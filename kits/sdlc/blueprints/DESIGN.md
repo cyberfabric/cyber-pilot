@@ -2559,9 +2559,9 @@ id = "design-h1-title"
 level = 1
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = false
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Suggested heading text template for authors
 template = "Technical Design — {Module Name}"
@@ -2586,9 +2586,9 @@ id = "design-arch-overview"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Architecture Overview"
@@ -2609,9 +2609,9 @@ id = "design-arch-overview-vision"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Architectural Vision"
@@ -2650,9 +2650,9 @@ id = "design-arch-overview-drivers"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Architecture Drivers"
@@ -2683,9 +2683,9 @@ id = "design-arch-overview-drivers-functional"
 level = 4
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = false
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Functional Drivers"
@@ -2716,9 +2716,9 @@ id = "design-arch-overview-drivers-nfr"
 level = 4
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = false
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "NFR Allocation"
@@ -2793,9 +2793,9 @@ id = "design-arch-overview-layers"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Architecture Layers"
@@ -2868,9 +2868,9 @@ id = "design-principles-constraints"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Principles & Constraints"
@@ -2891,9 +2891,9 @@ id = "design-principles"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Design Principles"
@@ -2942,7 +2942,7 @@ id = "design-principle-entry"
 level = 4
 required = true
 numbered = false
-# multiple = true|false  # allowed by default (can repeat)
+# multiple: omitted = allowed (can repeat)
 template = "{Principle Name}"
 description = "Individual design principle entry."
 examples = []
@@ -2989,9 +2989,9 @@ id = "design-constraints"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Constraints"
@@ -3040,7 +3040,7 @@ id = "design-constraint-entry"
 level = 4
 required = true
 numbered = false
-# multiple = true|false  # allowed by default (can repeat)
+# multiple: omitted = allowed (can repeat)
 template = "{Constraint Name}"
 description = "Individual design constraint entry."
 examples = []
@@ -3085,9 +3085,9 @@ id = "design-tech-arch"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Technical Architecture"
@@ -3128,9 +3128,9 @@ id = "design-tech-arch-domain"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Domain Model"
@@ -3178,9 +3178,9 @@ id = "design-tech-arch-component-model"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Component Model"
@@ -3246,7 +3246,7 @@ id = "design-component-entry"
 level = 4
 required = true
 numbered = false
-# multiple = true|false  # allowed by default (can repeat)
+# multiple: omitted = allowed (can repeat)
 template = "{Component Name}"
 description = "Individual component entry."
 examples = []
@@ -3271,9 +3271,9 @@ id = "design-component-why"
 level = 5
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = false
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Why this component exists"
@@ -3302,9 +3302,9 @@ id = "design-component-scope"
 level = 5
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = false
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Responsibility scope"
@@ -3333,9 +3333,9 @@ id = "design-component-boundaries"
 level = 5
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = false
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Responsibility boundaries"
@@ -3364,9 +3364,9 @@ id = "design-component-related"
 level = 5
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = false
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Related components (by ID)"
@@ -3412,9 +3412,9 @@ id = "design-tech-arch-api-contracts"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "API Contracts"
@@ -3483,9 +3483,9 @@ id = "design-tech-arch-internal-deps"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Internal Dependencies"
@@ -3533,9 +3533,9 @@ id = "design-tech-arch-external-deps"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "External Dependencies"
@@ -3570,7 +3570,7 @@ id = "design-external-dep-entry"
 level = 4
 required = false
 numbered = false
-# multiple = true|false  # allowed by default (can repeat)
+# multiple: omitted = allowed (can repeat)
 template = "{External System / Database / Service Name}"
 description = "Individual external dependency entry."
 examples = []
@@ -3604,9 +3604,9 @@ id = "design-tech-arch-seq"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Interactions & Sequences"
@@ -3653,7 +3653,7 @@ id = "design-seq-entry"
 level = 4
 required = true
 numbered = false
-# multiple = true|false  # allowed by default (can repeat)
+# multiple: omitted = allowed (can repeat)
 template = "{Sequence Name}"
 description = "Individual sequence diagram entry."
 examples = []
@@ -3714,9 +3714,9 @@ id = "design-tech-arch-db"
 level = 3
 # true = heading MUST appear in artifact | false = optional
 required = true
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Database schemas & tables"
@@ -3793,7 +3793,7 @@ id = "design-dbtable-entry"
 level = 4
 required = false
 numbered = false
-# multiple = true|false  # allowed by default (can repeat)
+# multiple: omitted = allowed (can repeat)
 template = "Table: {table_name}"
 description = "Individual database table entry."
 examples = []
@@ -3880,9 +3880,9 @@ id = "design-additional-context"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = false
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Additional context"
@@ -3911,9 +3911,9 @@ id = "design-traceability"
 level = 2
 # true = heading MUST appear in artifact | false = optional
 required = false
-# true = may have number prefix (e.g. "1. Overview") | false = no numbering
+# numbered: true = required | false = prohibited | omit = allowed
 numbered = true
-# true = multiple instances allowed | false = exactly one | "required" = must have 2+
+# multiple: true = required (2+) | false = prohibited (exactly one) | omit = allowed
 multiple = false
 # Regex the heading text must match (omit or null = any text)
 pattern = "Traceability"

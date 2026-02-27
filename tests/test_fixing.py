@@ -405,7 +405,7 @@ class TestConstraintPrompts:
         assert "at least 2" in issues[0]["fixing_prompt"]
 
     def test_heading_numbering_mismatch(self):
-        issues = [_make_issue("Heading numbering does not match constraint", code=EC.HEADING_NUMBERING_MISMATCH, numbered="required")]
+        issues = [_make_issue("Heading numbering does not match constraint", code=EC.HEADING_NUMBERING_MISMATCH, numbered=True)]
         enrich_issues(issues, project_root=PROJECT_ROOT)
         assert "required but missing" in issues[0]["fixing_prompt"]
 

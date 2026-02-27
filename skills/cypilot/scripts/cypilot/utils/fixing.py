@@ -514,7 +514,7 @@ def _build_fixing_prompt(issue: Dict[str, object], project_root: Optional[Path] 
 
     if code == EC.HEADING_NUMBERING_MISMATCH:
         numbered = issue.get("numbered")
-        verb = "is required but missing" if numbered == "required" else "is prohibited but present"
+        verb = "is required but missing" if numbered is True else "is prohibited but present"
         return f"Open `{loc}`: heading numbering {verb}."
 
     # ------------------------------------------------------------------

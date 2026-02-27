@@ -11,9 +11,9 @@ from . import error_codes as EC
 
 @dataclass(frozen=True)
 class ReferenceRule:
-    coverage: str  # required|optional|prohibited
-    task: Optional[str] = None  # required|allowed|prohibited
-    priority: Optional[str] = None  # required|allowed|prohibited
+    coverage: Optional[bool] = None  # True=required, False=prohibited, None=optional
+    task: Optional[bool] = None  # True=required, False=prohibited, None=allowed
+    priority: Optional[bool] = None  # True=required, False=prohibited, None=allowed
     headings: Optional[List[str]] = None
 
 
@@ -23,8 +23,8 @@ class HeadingConstraint:
     pattern: Optional[str] = None
     description: Optional[str] = None
     required: bool = True
-    multiple: str = "allow"  # allow|prohibited|required
-    numbered: str = "allow"  # allow|prohibited|required
+    multiple: Optional[bool] = None  # True=required, False=prohibited, None=allowed
+    numbered: Optional[bool] = None  # True=required, False=prohibited, None=allowed
     id: Optional[str] = None
     prev: Optional[str] = None
     next: Optional[str] = None
@@ -39,24 +39,28 @@ class IdConstraint:
     description: Optional[str] = None
     template: Optional[str] = None
     examples: Optional[List[object]] = None
-    task: Optional[str] = None  # required|allowed|prohibited
-    priority: Optional[str] = None  # required|allowed|prohibited
+    task: Optional[bool] = None  # True=required, False=prohibited, None=allowed
+    priority: Optional[bool] = None  # True=required, False=prohibited, None=allowed
     to_code: Optional[bool] = None
     headings: Optional[List[str]] = None
     references: Optional[Dict[str, ReferenceRule]] = None
 
 
-def _parse_tri_state(v: object, field: str) -> Tuple[Optional[str], Optional[str]]:
+def _parse_optional_bool(
+    v: object, field: str,
+) -> Tuple[Optional[bool], Optional[str]]:
+    """Parse a boolean | None constraint field.
+
+    Unified convention:
+        true  → True  (required)
+        false → False (prohibited)
+        None  → None  (allowed / optional)
+    """
     if v is None:
         return None, None
     if isinstance(v, bool):
-        return ("required" if v else "prohibited"), None
-    if isinstance(v, str):
-        vv = v.strip().lower()
-        if vv in {"required", "allowed", "prohibited"}:
-            return vv, None
-        return None, f"Constraint field '{field}' must be one of: required, allowed, prohibited"
-    return None, f"Constraint field '{field}' must be string (required|allowed|prohibited)"
+        return v, None
+    return None, f"Constraint field '{field}' must be boolean, got {type(v).__name__}"
 
 
 @dataclass(frozen=True)
@@ -651,13 +655,13 @@ def validate_artifact_file(
         id_kind_name = str(getattr(c, "name", "") or "").strip() or None
         id_kind_description = str(getattr(c, "description", "") or "").strip() or None
         id_kind_template = str(getattr(c, "template", "") or "").strip() or None
-        tk = str(getattr(c, "task", "allowed") or "allowed").strip().lower()
-        pr = str(getattr(c, "priority", "allowed") or "allowed").strip().lower()
+        tk = getattr(c, "task", None)  # True=required, False=prohibited, None=allowed
+        pr = getattr(c, "priority", None)  # True=required, False=prohibited, None=allowed
 
         has_task = bool(h.get("has_task", False))
         has_priority = bool(h.get("has_priority", False))
 
-        if tk == "required" and not has_task:
+        if tk is True and not has_task:
             errors.append(error(
                 "constraints",
                 f"`{hid}` (kind `{id_kind}`) in {kind} artifact is missing required task checkbox `- [ ]`{_id_kind_hint(c)}",
@@ -672,7 +676,7 @@ def validate_artifact_file(
                 id_kind_description=id_kind_description,
                 id_kind_template=id_kind_template,
             ))
-        if tk == "prohibited" and has_task:
+        if tk is False and has_task:
             errors.append(error(
                 "constraints",
                 f"`{hid}` (kind `{id_kind}`) in {kind} artifact has task checkbox but kind `{id_kind}` prohibits task tracking{_id_kind_hint(c)}",
@@ -688,7 +692,7 @@ def validate_artifact_file(
                 id_kind_template=id_kind_template,
             ))
 
-        if pr == "required" and not has_priority:
+        if pr is True and not has_priority:
             errors.append(error(
                 "constraints",
                 f"`{hid}` (kind `{id_kind}`) in {kind} artifact is missing required priority marker{_id_kind_hint(c)}",
@@ -703,7 +707,7 @@ def validate_artifact_file(
                 id_kind_description=id_kind_description,
                 id_kind_template=id_kind_template,
             ))
-        if pr == "prohibited" and has_priority:
+        if pr is False and has_priority:
             errors.append(error(
                 "constraints",
                 f"`{hid}` (kind `{id_kind}`) in {kind} artifact has priority marker but kind `{id_kind}` prohibits priority{_id_kind_hint(c)}",
@@ -1186,19 +1190,18 @@ def cross_validate_artifacts(
 
                     for target_kind, rule in refs_rules.items():
                         tk = str(target_kind).strip().upper()
-                        cov = str(getattr(rule, "coverage", "optional")).strip().lower()
+                        cov = getattr(rule, "coverage", None)  # True=required, False=prohibited, None=optional
                         def_has_task = bool(drow.get("has_task", False))
                         def_checked = bool(drow.get("checked", False))
-                        effective_cov = cov
-                        task_rule = str(getattr(rule, "task", "allowed") or "allowed").strip().lower()
-                        prio_rule = str(getattr(rule, "priority", "allowed") or "allowed").strip().lower()
+                        task_rule = getattr(rule, "task", None)  # True=required, False=prohibited, None=allowed
+                        prio_rule = getattr(rule, "priority", None)  # True=required, False=prohibited, None=allowed
                         allowed_headings = set([h.strip() for h in (getattr(rule, "headings", None) or []) if isinstance(h, str) and h.strip()])
                         allowed_headings_sorted = sorted(allowed_headings)
                         allowed_headings_info = headings_info_for_kind(tk, allowed_headings_sorted)
 
                         refs_in_kind = [r for r in system_refs_by_kind.get(tk, []) if str(r.get("id")) == did]
 
-                        if effective_cov == "required":
+                        if cov is True:
                             if def_has_task and (not def_checked):
                                 continue
                             if tk not in system_present_kinds:
@@ -1256,7 +1259,7 @@ def cross_validate_artifacts(
                                         id_kind_template=id_kind_template,
                                     ))
 
-                        if effective_cov == "prohibited" and refs_in_kind:
+                        if cov is False and refs_in_kind:
                             first = refs_in_kind[0]
                             errors.append(error(
                                 "constraints",
@@ -1275,7 +1278,7 @@ def cross_validate_artifacts(
                             continue
 
                         if refs_in_kind:
-                            if task_rule == "required":
+                            if task_rule is True:
                                 for rr in refs_in_kind:
                                     if bool(rr.get("has_task", False)):
                                         continue
@@ -1294,7 +1297,7 @@ def cross_validate_artifacts(
                                         id_kind_template=id_kind_template,
                                     ))
                                     break
-                            elif task_rule == "prohibited":
+                            elif task_rule is False:
                                 for rr in refs_in_kind:
                                     if not bool(rr.get("has_task", False)):
                                         continue
@@ -1314,7 +1317,7 @@ def cross_validate_artifacts(
                                     ))
                                     break
 
-                            if prio_rule == "required":
+                            if prio_rule is True:
                                 for rr in refs_in_kind:
                                     if bool(rr.get("has_priority", False)):
                                         continue
@@ -1333,7 +1336,7 @@ def cross_validate_artifacts(
                                         id_kind_template=id_kind_template,
                                     ))
                                     break
-                            elif prio_rule == "prohibited":
+                            elif prio_rule is False:
                                 for rr in refs_in_kind:
                                     if not bool(rr.get("has_priority", False)):
                                         continue
@@ -1370,15 +1373,15 @@ def _parse_examples(v: object) -> Tuple[Optional[List[object]], Optional[str]]:
 def _parse_reference_rule(obj: object) -> Tuple[Optional[ReferenceRule], Optional[str]]:
     if not isinstance(obj, dict):
         return None, "Reference rule must be an object"
-    coverage = obj.get("coverage")
-    if not isinstance(coverage, str) or coverage.strip() not in {"required", "optional", "prohibited"}:
-        return None, "Reference rule field 'coverage' must be one of: required, optional, prohibited"
+    coverage, cov_err = _parse_optional_bool(obj.get("coverage"), "references.coverage")
+    if cov_err:
+        return None, cov_err
 
-    task, task_err = _parse_tri_state(obj.get("task"), "references.task")
+    task, task_err = _parse_optional_bool(obj.get("task"), "references.task")
     if task_err:
         return None, task_err
 
-    priority, pr_err = _parse_tri_state(obj.get("priority"), "references.priority")
+    priority, pr_err = _parse_optional_bool(obj.get("priority"), "references.priority")
     if pr_err:
         return None, pr_err
 
@@ -1390,7 +1393,7 @@ def _parse_reference_rule(obj: object) -> Tuple[Optional[ReferenceRule], Optiona
         headings = [h for h in (x.strip() for x in headings_raw) if h]
 
     return ReferenceRule(
-        coverage=coverage.strip(),
+        coverage=coverage,
         task=task,
         priority=priority,
         headings=headings,
@@ -1437,21 +1440,13 @@ def _parse_heading_constraint(obj: object, *, pointer: Optional[str] = None) -> 
     else:
         return None, "Heading constraint field 'required' must be boolean"
 
-    multiple = obj.get("multiple")
-    if multiple is None:
-        multiple_s = "allow"
-    elif isinstance(multiple, str) and multiple.strip() in {"allow", "prohibited", "required"}:
-        multiple_s = multiple.strip()
-    else:
-        return None, "Heading constraint field 'multiple' must be one of: allow, prohibited, required"
+    multiple, mult_err = _parse_optional_bool(obj.get("multiple"), "multiple")
+    if mult_err:
+        return None, f"Heading constraint: {mult_err}"
 
-    numbered = obj.get("numbered")
-    if numbered is None:
-        numbered_s = "allow"
-    elif isinstance(numbered, str) and numbered.strip() in {"allow", "prohibited", "required"}:
-        numbered_s = numbered.strip()
-    else:
-        return None, "Heading constraint field 'numbered' must be one of: allow, prohibited, required"
+    numbered, num_err = _parse_optional_bool(obj.get("numbered"), "numbered")
+    if num_err:
+        return None, f"Heading constraint: {num_err}"
 
     # Validate regex early for better errors.
     if pattern is not None and pattern.strip():
@@ -1466,8 +1461,8 @@ def _parse_heading_constraint(obj: object, *, pointer: Optional[str] = None) -> 
         pattern=(pattern.strip() if isinstance(pattern, str) and pattern.strip() else None),
         description=desc_s,
         required=bool(required_bool),
-        multiple=multiple_s,
-        numbered=numbered_s,
+        multiple=multiple,
+        numbered=numbered,
         prev=prev_s,
         next=next_s,
         pointer=(pointer.strip() if isinstance(pointer, str) and pointer.strip() else None),
@@ -1530,11 +1525,11 @@ def _parse_id_constraint(obj: object) -> Tuple[Optional[IdConstraint], Optional[
     if ex_err:
         return None, ex_err
 
-    task, task_err = _parse_tri_state(obj.get("task"), "task")
+    task, task_err = _parse_optional_bool(obj.get("task"), "task")
     if task_err:
         return None, task_err
 
-    priority, pr_err = _parse_tri_state(obj.get("priority"), "priority")
+    priority, pr_err = _parse_optional_bool(obj.get("priority"), "priority")
     if pr_err:
         return None, pr_err
 
@@ -2012,8 +2007,8 @@ def validate_headings_contract(
         # Always include the first match
         matches.append(headings[j])
 
-        # Consume further matches for allow/required, but only within the same scope
-        if hc.multiple in {"allow", "required"}:
+        # Consume further matches when multiple is allowed (None) or required (True)
+        if hc.multiple is not False:
             k = j + 1
             while k < scope_end and _matches(headings[k], hc):
                 matches.append(headings[k])
@@ -2033,7 +2028,7 @@ def validate_headings_contract(
         matched_by_idx[idx] = matches
 
         # multiple enforcement
-        if hc.multiple == "prohibited" and len(matches) > 1:
+        if hc.multiple is False and len(matches) > 1:
             hc_desc = str(getattr(hc, "description", "") or "").strip()
             desc_s = (f" ({hc_desc})" if hc_desc else "")
             errors.append(error(
@@ -2047,7 +2042,7 @@ def validate_headings_contract(
                 heading_pattern=hc.pattern,
                 **_source_fields(hc, idx),
             ))
-        if hc.multiple == "required" and len(matches) < 2:
+        if hc.multiple is True and len(matches) < 2:
             hc_desc = str(getattr(hc, "description", "") or "").strip()
             desc_s = (f" ({hc_desc})" if hc_desc else "")
             errors.append(error(
@@ -2063,8 +2058,8 @@ def validate_headings_contract(
             ))
 
         # numbered enforcement
-        if hc.numbered in {"required", "prohibited"}:
-            want_numbered = hc.numbered == "required"
+        if hc.numbered is not None:
+            want_numbered = hc.numbered is True
             for mh in matches:
                 is_numbered = bool(mh.get("numbered", False))
                 if is_numbered == want_numbered:
@@ -2073,7 +2068,7 @@ def validate_headings_contract(
                 desc_s = (f" ({hc_desc})" if hc_desc else "")
                 errors.append(error(
                     "constraints",
-                    f"Heading `{hc.pattern}` (level {int(hc.level)}) in {str(artifact_kind).strip().upper()} artifact: numbering {'is required but missing' if hc.numbered == 'required' else 'is prohibited but present'}{desc_s}",
+                    f"Heading `{hc.pattern}` (level {int(hc.level)}) in {str(artifact_kind).strip().upper()} artifact: numbering {'is required but missing' if hc.numbered is True else 'is prohibited but present'}{desc_s}",
                     code=EC.HEADING_NUMBERING_MISMATCH,
                     path=path,
                     line=int(mh.get("line", 1) or 1),
