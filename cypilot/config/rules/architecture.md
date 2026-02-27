@@ -16,6 +16,10 @@ version: 1.0
 - [Context Singleton](#context-singleton)
 - [Path Resolution](#path-resolution)
 - [Registry as Source of Truth](#registry-as-source-of-truth)
+- [Architecture Patterns](#architecture-patterns)
+  - [Template-Centric Architecture](#template-centric-architecture)
+  - [Adaptive Workflow Model](#adaptive-workflow-model)
+  - [Kit Package Pattern](#kit-package-pattern)
 - [Critical Files](#critical-files)
 
 <!-- /toc -->
@@ -56,6 +60,17 @@ Two path-resolution systems exist:
 ## Registry as Source of Truth
 
 `artifacts.toml` declares systems, artifacts, codebases, and kit references. The `ArtifactsMeta` dataclass parses it and provides lookups. The `autodetect` sections in the registry drive artifact discovery during `cpt init`.
+
+## Architecture Patterns
+
+### Template-Centric Architecture
+Templates are the foundation — each artifact type is a self-contained package (`kits/sdlc/artifacts/{KIND}/`) with `template.md`, `rules.md`, `checklist.md`, and `examples/`.
+
+### Adaptive Workflow Model
+"Start anywhere" adoption — users begin from any point (design, implementation, or validation). The `artifacts.toml` registry drives artifact discovery, with per-artifact traceability configuration (FULL vs DOCS-ONLY).
+
+### Kit Package Pattern
+Validation rules and templates are packaged as "kits" (`kits/{kit-id}/`) reusable across projects. Single source of truth for artifact validation.
 
 ## Critical Files
 

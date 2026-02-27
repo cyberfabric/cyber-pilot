@@ -140,7 +140,7 @@ def find_cypilot_directory(start: Path, cypilot_root: Optional[Path] = None) -> 
 
     Resolution order:
     1. Read ``cypilot`` variable from root AGENTS.md TOML block
-    2. Recursively search for directories with AGENTS.md + specs/
+    2. Recursively search for directories with AGENTS.md + rules/ (or legacy specs/)
 
     Args:
         start: Starting path for search
@@ -204,17 +204,17 @@ def find_cypilot_directory(start: Path, cypilot_root: Optional[Path] = None) -> 
             content_lower = content.lower()
             for marker in adapter_markers:
                 if marker.lower() in content_lower:
-                    # Double-check with specs/ directory if possible
-                    if (path / "specs").is_dir():
+                    # Double-check with rules/ or specs/ directory if possible
+                    if (path / "config" / "rules").is_dir() or (path / "rules").is_dir() or (path / "specs").is_dir():
                         return True
-                    # Or check for spec references in content
-                    if "spec" in content_lower or "specifications" in content_lower:
+                    # Or check for rule/spec references in content
+                    if "rule" in content_lower or "spec" in content_lower:
                         return True
         except Exception:
             pass  # Expected: search continues if file read fails
 
-        # Fallback: verify it has specs/ directory (strong structural indicator)
-        if (path / "specs").is_dir():
+        # Fallback: verify it has rules/ or specs/ directory (strong structural indicator)
+        if (path / "config" / "rules").is_dir() or (path / "rules").is_dir() or (path / "specs").is_dir():
             return True
         
         return False
@@ -251,12 +251,12 @@ def find_cypilot_directory(start: Path, cypilot_root: Optional[Path] = None) -> 
 
 def load_cypilot_config(adapter_dir: Path) -> Dict[str, object]:
     """
-    Load Cypilot configuration from AGENTS.md and specs/
-    Returns dict with Cypilot metadata and available specs
+    Load Cypilot configuration from AGENTS.md and rules/
+    Returns dict with Cypilot metadata and available rules
     """
     config: Dict[str, object] = {
         "cypilot_dir": adapter_dir.as_posix(),
-        "specs": [],
+        "rules": [],
     }
     
     agents_file = adapter_dir / "AGENTS.md"
@@ -271,13 +271,15 @@ def load_cypilot_config(adapter_dir: Path) -> Dict[str, object]:
         except Exception:
             pass  # Expected: project_name is optional metadata
 
-    # List available specs
-    specs_dir = adapter_dir / "specs"
-    if specs_dir.is_dir():
-        spec_files = []
-        for spec_file in specs_dir.glob("*.md"):
-            spec_files.append(spec_file.stem)
-        config["specs"] = sorted(spec_files)
+    # List available rules (config/ layout, fallback to flat)
+    rules_dir = adapter_dir / "config" / "rules"
+    if not rules_dir.is_dir():
+        rules_dir = adapter_dir / "rules"
+    if rules_dir.is_dir():
+        rule_files = []
+        for rule_file in rules_dir.glob("*.md"):
+            rule_files.append(rule_file.stem)
+        config["rules"] = sorted(rule_files)
     
     return config
 
