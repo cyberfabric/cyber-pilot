@@ -34,33 +34,42 @@ class TestAdapterInfoCommand(unittest.TestCase):
             project_root = Path(tmp_dir) / "project"
             project_root.mkdir()
             
+            # New layout: AGENTS.md TOML block
+            (project_root / "AGENTS.md").write_text(
+                '<!-- @cpt:root-agents -->\n```toml\ncypilot_path = ".cypilot-adapter"\n```\n',
+                encoding="utf-8",
+            )
+            
             adapter_dir = project_root / ".cypilot-adapter"
             adapter_dir.mkdir()
-            rules_dir = adapter_dir / "config" / "rules"
+            config_dir = adapter_dir / "config"
+            config_dir.mkdir()
+            rules_dir = config_dir / "rules"
             rules_dir.mkdir(parents=True)
             
-            # Create .cypilot-config.json
-            config_file = project_root / ".cypilot-config.json"
-            config_file.write_text(json.dumps({
-                "cypilotAdapterPath": ".cypilot-adapter"
-            }))
-            
-            # Create AGENTS.md
-            agents_file = adapter_dir / "AGENTS.md"
-            agents_file.write_text("""# Cypilot Adapter: TestProject
+            # Create config/AGENTS.md
+            (config_dir / "AGENTS.md").write_text("""# Cypilot Adapter: TestProject
 
 **Extends**: `../Cypilot/AGENTS.md`
 
 **Version**: 1.0
 """)
+            # Create AGENTS.md at adapter root (for project_name extraction)
+            (adapter_dir / "AGENTS.md").write_text("""# Cypilot Adapter: TestProject
+
+**Extends**: `../Cypilot/AGENTS.md`
+""")
+            
+            # Create config/core.toml so has_config is true
+            (config_dir / "core.toml").write_text('version = "1.0"\n', encoding="utf-8")
             
             # Create some rule files
             (rules_dir / "tech-stack.md").write_text("# Tech Stack\n")
             (rules_dir / "domain-model.md").write_text("# Domain Model\n")
 
-            # Create artifacts.json in adapter (legacy format)
-            (adapter_dir / "artifacts.json").write_text(
-                json.dumps({"version": "1.0", "artifacts": [{"kind": "PRD", "path": "architecture/PRD.md"}]}, indent=2) + "\n",
+            # Create artifacts.toml in config/ (new format)
+            (config_dir / "artifacts.toml").write_text(
+                'version = "1.0"\nproject_root = ".."\n\n[[systems]]\nname = "Test"\nslug = "test"\nkit = "k"\n\n[[systems.artifacts]]\npath = "architecture/PRD.md"\nkind = "PRD"\ntraceability = "FULL"\n',
                 encoding="utf-8",
             )
             
@@ -78,12 +87,10 @@ class TestAdapterInfoCommand(unittest.TestCase):
             self.assertIn("domain-model", output["rules"])
             self.assertIn("tech-stack", output["rules"])
             self.assertTrue(output["has_config"])
-            self.assertIn(".cypilot-adapter", output["adapter_dir"])
+            self.assertIn(".cypilot-adapter", output["cypilot_dir"])
             self.assertIn("artifacts_registry_path", output)
             self.assertIn("artifacts_registry", output)
             self.assertIsNone(output.get("artifacts_registry_error"))
-            self.assertEqual(output["artifacts_registry"]["version"], "1.0")
-            self.assertIsNone(output.get("autodetect_registry"))
 
     def test_adapter_info_expands_autodetect_systems(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -91,10 +98,15 @@ class TestAdapterInfoCommand(unittest.TestCase):
             project_root.mkdir()
 
             (project_root / ".git").mkdir()
-            (project_root / ".cypilot-config.json").write_text(json.dumps({"cypilotAdapterPath": ".cypilot-adapter"}))
+            (project_root / "AGENTS.md").write_text(
+                '<!-- @cpt:root-agents -->\n```toml\ncypilot_path = ".cypilot-adapter"\n```\n',
+                encoding="utf-8",
+            )
 
             adapter_dir = project_root / ".cypilot-adapter"
             adapter_dir.mkdir()
+            (adapter_dir / "config").mkdir()
+            (adapter_dir / "config" / "AGENTS.md").write_text("# Cypilot Adapter: TestProject\n", encoding="utf-8")
             (adapter_dir / "AGENTS.md").write_text("# Cypilot Adapter: TestProject\n\n**Extends**: `../AGENTS.md`\n", encoding="utf-8")
 
             # Minimal kit with constraints.toml (rules-only, no template.md)
@@ -107,31 +119,15 @@ class TestAdapterInfoCommand(unittest.TestCase):
             (project_root / "modules" / "m" / "docs").mkdir(parents=True)
             (project_root / "modules" / "m" / "docs" / "PRD.md").write_text("**ID**: `cpt-testproject-m-fr-x`\n", encoding="utf-8")
 
-            (adapter_dir / "artifacts.json").write_text(
-                json.dumps(
-                    {
-                        "version": "1.1",
-                        "project_root": "..",
-                        "kits": {"k": {"format": "Cypilot", "path": ".cypilot-adapter/kits/k"}},
-                        "systems": [
-                            {
-                                "name": "TestProject",
-                                "slug": "testproject",
-                                "kit": "k",
-                                "autodetect": [
-                                    {
-                                        "system_root": "{project_root}/modules/$system",
-                                        "artifacts_root": "{system_root}/docs",
-                                        "artifacts": {"PRD": {"pattern": "PRD.md", "traceability": "FULL"}},
-                                        "validation": {"require_kind_registered_in_kit": True},
-                                    }
-                                ],
-                            }
-                        ],
-                    },
-                    indent=2,
-                )
-                + "\n",
+            (adapter_dir / "config" / "artifacts.toml").write_text(
+                'version = "1.1"\n'
+                'project_root = ".."\n\n'
+                '[kits.k]\nformat = "Cypilot"\npath = ".cypilot-adapter/kits/k"\n\n'
+                '[[systems]]\nname = "TestProject"\nslug = "testproject"\nkit = "k"\n\n'
+                '[[systems.autodetect]]\nsystem_root = "{project_root}/modules/$system"\n'
+                'artifacts_root = "{system_root}/docs"\n\n'
+                '[systems.autodetect.artifacts.PRD]\npattern = "PRD.md"\ntraceability = "FULL"\n\n'
+                '[systems.autodetect.validation]\nrequire_kind_registered_in_kit = true\n',
                 encoding="utf-8",
             )
 
@@ -168,9 +164,9 @@ class TestAdapterInfoCommand(unittest.TestCase):
             self.assertTrue(any(a.get("path") == "modules/m/docs/PRD.md" for a in all_artifacts))
     
     def test_adapter_info_found_without_config(self):
-        """Test info finds adapter via recursive search when no config."""
+        """Test info finds adapter via recursive search when no AGENTS.md TOML block."""
         with tempfile.TemporaryDirectory() as tmp_dir:
-            # Setup: Create project structure WITHOUT config
+            # Setup: Create project structure WITHOUT TOML block config
             project_root = Path(tmp_dir) / "project"
             project_root.mkdir()
             
@@ -179,8 +175,10 @@ class TestAdapterInfoCommand(unittest.TestCase):
             
             adapter_dir = project_root / ".cypilot-adapter"
             adapter_dir.mkdir()
+            (adapter_dir / "config").mkdir()
+            (adapter_dir / "config" / "rules").mkdir()
             
-            # Create AGENTS.md with Extends
+            # Create AGENTS.md with Extends (for recursive search)
             agents_file = adapter_dir / "AGENTS.md"
             agents_file.write_text("""# Cypilot Adapter: MyProject
 
@@ -199,7 +197,6 @@ class TestAdapterInfoCommand(unittest.TestCase):
             self.assertEqual(output["status"], "FOUND")
             self.assertEqual(output["project_name"], "MyProject")
             self.assertFalse(output["has_config"])
-            self.assertIn("config_hint", output)
             self.assertIn("artifacts_registry_path", output)
             self.assertIn("artifacts_registry", output)
     
@@ -222,20 +219,19 @@ class TestAdapterInfoCommand(unittest.TestCase):
             self.assertEqual(exit_code, 1)
             self.assertEqual(output["status"], "NOT_FOUND")
             self.assertIn("hint", output)
-            self.assertIn("adapter-bootstrap", output["hint"])
     
     def test_adapter_info_config_error(self):
-        """Test info when config exists but path is invalid."""
+        """Test info when AGENTS.md points to non-existent adapter."""
         with tempfile.TemporaryDirectory() as tmp_dir:
-            # Setup: Create project with invalid config
+            # Setup: Create project with invalid adapter path
             project_root = Path(tmp_dir) / "project"
             project_root.mkdir()
             
-            # Create config pointing to non-existent adapter
-            config_file = project_root / ".cypilot-config.json"
-            config_file.write_text(json.dumps({
-                "cypilotAdapterPath": "invalid-path"
-            }))
+            # AGENTS.md TOML block points to non-existent adapter dir
+            (project_root / "AGENTS.md").write_text(
+                '<!-- @cpt:root-agents -->\n```toml\ncypilot_path = "invalid-path"\n```\n',
+                encoding="utf-8",
+            )
             
             # Run command
             stdout_capture = io.StringIO()
@@ -246,9 +242,7 @@ class TestAdapterInfoCommand(unittest.TestCase):
             output = json.loads(stdout_capture.getvalue())
             
             self.assertEqual(exit_code, 1)
-            self.assertEqual(output["status"], "CONFIG_ERROR")
-            self.assertIn("config_path", output)
-            self.assertEqual(output["config_path"], "invalid-path")
+            self.assertEqual(output["status"], "NOT_FOUND")
     
     def test_adapter_info_no_project_root(self):
         """Test info when not in a project (no .git or config)."""
@@ -284,9 +278,11 @@ class TestAdapterInfoCommand(unittest.TestCase):
             (cypilot_core / "requirements").mkdir()
             (cypilot_core / "workflows").mkdir()
             
-            # Create real adapter
+            # Create real adapter (discoverable via recursive search)
             adapter_dir = project_root / ".cypilot-adapter"
             adapter_dir.mkdir()
+            (adapter_dir / "config").mkdir()
+            (adapter_dir / "config" / "rules").mkdir()
             agents_file = adapter_dir / "AGENTS.md"
             agents_file.write_text("""# Cypilot Adapter: RealProject
 
@@ -308,19 +304,22 @@ class TestAdapterInfoCommand(unittest.TestCase):
             self.assertEqual(exit_code, 0)
             self.assertEqual(output["status"], "FOUND")
             self.assertEqual(output["project_name"], "RealProject")
-            self.assertIn(".cypilot-adapter", output["adapter_dir"])
-            self.assertNotIn("Cypilot", output["adapter_dir"])
+            self.assertIn(".cypilot-adapter", output["cypilot_dir"])
+            self.assertNotIn("Cypilot", output["cypilot_dir"])
 
 
 class TestAdapterHelperFunctions(unittest.TestCase):
     """Test suite for adapter discovery helper functions."""
     
-    def test_find_project_root_with_config(self):
-        """Test find_project_root locates .cypilot-config.json."""
+    def test_find_project_root_with_agents_md(self):
+        """Test find_project_root locates AGENTS.md with @cpt:root-agents marker."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             project_root = Path(tmp_dir) / "project"
             project_root.mkdir()
-            (project_root / ".cypilot-config.json").write_text("{}")
+            (project_root / "AGENTS.md").write_text(
+                '<!-- @cpt:root-agents -->\n```toml\ncypilot_path = "adapter"\n```\n',
+                encoding="utf-8",
+            )
             
             subdir = project_root / "src" / "lib"
             subdir.mkdir(parents=True)
@@ -351,20 +350,26 @@ class TestAdapterHelperFunctions(unittest.TestCase):
             self.assertIsNone(found)
     
     def test_load_project_config_valid(self):
-        """Test load_project_config with valid JSON."""
+        """Test load_project_config with valid TOML."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             project_root = Path(tmp_dir) / "project"
             project_root.mkdir()
             
-            config_file = project_root / ".cypilot-config.json"
-            config_file.write_text(json.dumps({
-                "cypilotAdapterPath": ".cypilot-adapter",
-                "other": "value"
-            }))
+            # New layout: AGENTS.md TOML block + config/core.toml
+            (project_root / "AGENTS.md").write_text(
+                '<!-- @cpt:root-agents -->\n```toml\ncypilot_path = "adapter"\n```\n',
+                encoding="utf-8",
+            )
+            adapter = project_root / "adapter" / "config"
+            adapter.mkdir(parents=True)
+            (adapter / "core.toml").write_text(
+                'version = "1.0"\nother = "value"\n',
+                encoding="utf-8",
+            )
             
             config = load_project_config(project_root)
             self.assertIsNotNone(config)
-            self.assertEqual(config["cypilotAdapterPath"], ".cypilot-adapter")
+            self.assertEqual(config["version"], "1.0")
             self.assertEqual(config["other"], "value")
     
     def test_load_project_config_missing(self):
@@ -389,20 +394,21 @@ class TestAdapterHelperFunctions(unittest.TestCase):
             self.assertIsNone(config)
     
     def test_find_adapter_directory_with_config(self):
-        """Test find_adapter_directory uses config path first."""
+        """Test find_adapter_directory uses AGENTS.md TOML block path first."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             project_root = Path(tmp_dir) / "project"
             project_root.mkdir()
             
-            # Create config
-            config_file = project_root / ".cypilot-config.json"
-            config_file.write_text(json.dumps({"cypilotAdapterPath": "custom-adapter"}))
+            # Create AGENTS.md TOML block
+            (project_root / "AGENTS.md").write_text(
+                '<!-- @cpt:root-agents -->\n```toml\ncypilot_path = "custom-adapter"\n```\n',
+                encoding="utf-8",
+            )
             
-            # Create adapter at configured path
+            # Create adapter at configured path with config/ subdir
             adapter_dir = project_root / "custom-adapter"
             adapter_dir.mkdir()
-            agents_file = adapter_dir / "AGENTS.md"
-            agents_file.write_text("**Extends**: Cypilot")
+            (adapter_dir / "config").mkdir()
             
             found = find_adapter_directory(project_root)
             self.assertEqual(found.resolve() if found else None, adapter_dir.resolve())

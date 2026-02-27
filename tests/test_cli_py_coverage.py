@@ -19,20 +19,21 @@ def _write_json(path: Path, data: dict) -> None:
 
 def _bootstrap_project_root(root: Path, adapter_rel: str = "adapter") -> Path:
     (root / ".git").mkdir()
-    (root / ".cypilot-config.json").write_text(
-        json.dumps({"cypilotAdapterPath": adapter_rel}, ensure_ascii=False),
+    (root / "AGENTS.md").write_text(
+        f'<!-- @cpt:root-agents -->\n```toml\ncypilot_path = "{adapter_rel}"\n```\n',
         encoding="utf-8",
     )
     adapter = root / adapter_rel
     adapter.mkdir(parents=True, exist_ok=True)
-    (adapter / "AGENTS.md").write_text("# Test adapter\n", encoding="utf-8")
+    (adapter / "config").mkdir(exist_ok=True)
+    (adapter / "config" / "AGENTS.md").write_text("# Test adapter\n", encoding="utf-8")
     return adapter
 
 
 def _bootstrap_self_check_kits(root: Path, adapter: Path, *, with_example: bool = True, bad_example: bool = False) -> None:
     # Minimal artifacts registry that passes `load_artifacts_registry` and contains kits.
-    _write_json(
-        adapter / "artifacts.json",
+    from cypilot.utils import toml_utils
+    toml_utils.dump(
         {
             "project_root": "..",
             "systems": [],
@@ -40,6 +41,7 @@ def _bootstrap_self_check_kits(root: Path, adapter: Path, *, with_example: bool 
                 "cypilot-sdlc": {"format": "Cypilot", "path": "kits/cypilot-sdlc"},
             },
         },
+        adapter / "config" / "artifacts.toml",
     )
 
     kit_root = root / "kits" / "cypilot-sdlc"

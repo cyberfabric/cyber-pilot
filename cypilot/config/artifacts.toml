@@ -48,16 +48,22 @@ required = false
 name = "Cypilot Proxy"
 path = "src/cypilot_proxy"
 extensions = [".py"]
+singleLineComments = ["#"]
+multiLineComments = [{start = '"""', end = '"""'}]
 
 [[systems.autodetect.codebase]]
 name = "Cypilot CLI"
 path = "skills/cypilot/scripts/cypilot"
 extensions = [".py"]
+singleLineComments = ["#"]
+multiLineComments = [{start = '"""', end = '"""'}]
 
 [[systems.autodetect.codebase]]
 name = "Cypilot Tests"
 path = "tests"
 extensions = [".py"]
+singleLineComments = ["#"]
+multiLineComments = [{start = '"""', end = '"""'}]
 
 [[systems]]
 name = "Examples"
@@ -99,8 +105,12 @@ required = false
 name = "Overwork Alert"
 path = "{system_root}/src"
 extensions = [".py"]
+singleLineComments = ["#"]
+multiLineComments = [{start = '"""', end = '"""'}]
 
 [[systems.autodetect.codebase]]
 name = "Tests"
 path = "{project_root}/tests"
 extensions = [".py"]
+singleLineComments = ["#"]
+multiLineComments = [{start = '"""', end = '"""'}]
