@@ -2640,7 +2640,7 @@ kind = "must_not_have"
 ## Template Structure
 
 Headings, prompts, IDs, and examples that define the generated `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`
-and `example.md` files. The FEATURE template covers: context (overview,
+and `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/examples/example.md` files. The FEATURE template covers: context (overview,
 purpose, actors, references), actor flows with CDSL instructions, processes/
 algorithms, state machines, definitions of done, and acceptance criteria.
 

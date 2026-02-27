@@ -1616,7 +1616,7 @@ kind = "format_validation"
 ## Template Structure
 
 Headings, prompts, IDs, and examples that define the generated `{cypilot_path}/.gen/kits/sdlc/artifacts/DECOMPOSITION/template.md`
-and `example.md` files. The DECOMPOSITION template covers: overview, feature
+and `{cypilot_path}/.gen/kits/sdlc/artifacts/DECOMPOSITION/examples/example.md` files. The DECOMPOSITION template covers: overview, feature
 entries with status/priority/scope/dependencies/traceability.
 
 ### Title (H1)

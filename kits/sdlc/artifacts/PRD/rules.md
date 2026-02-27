@@ -161,7 +161,7 @@ PRDs must NOT contain the following — report as violation if found:
 
 - [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md` for structure
 - [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md` for semantic guidance
-- [ ] Load `example.md` for reference style
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/examples/example.md` for reference style
 - [ ] Read project config for ID prefix
 
 ### Phase 2: Content Creation

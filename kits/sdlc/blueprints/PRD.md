@@ -265,7 +265,7 @@ section = "setup"
 ```markdown
 - [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md` for structure
 - [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md` for semantic guidance
-- [ ] Load `example.md` for reference style
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/examples/example.md` for reference style
 - [ ] Read project config for ID prefix
 ```
 `@/cpt:rule`
@@ -2331,7 +2331,7 @@ kind = "must_not_have"
 ## Template Structure
 
 Headings, prompts, IDs, and examples that define the generated `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`
-and `example.md` files. The PRD template covers: overview, actors, operational
+and `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/examples/example.md` files. The PRD template covers: overview, actors, operational
 context, scope, functional/non-functional requirements, interfaces, use cases,
 acceptance criteria, dependencies, assumptions, and risks.
 
