@@ -24,7 +24,7 @@ codebase = true
 ```
 `@/cpt:skill`
 
-> **`@cpt:rules`** — Rules skeleton. Defines section structure (prerequisites, requirements, tasks, validation, etc.) for `rules.md`.
+> **`@cpt:rules`** — Rules skeleton. Defines section structure (prerequisites, requirements, tasks, validation, etc.) for `{cypilot_path}/.gen/kits/sdlc/codebase/rules.md`.
 
 `@cpt:rules`
 ```toml
@@ -71,7 +71,7 @@ sections = ["after_success", "after_issues", "no_design"]
 ```
 `@/cpt:rules`
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/codebase/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -83,7 +83,7 @@ section = "load_dependencies"
 ```markdown
 - [ ] Read project `AGENTS.md` for code conventions
 - [ ] Load source artifact/description (FEATURE preferred)
-- [ ] Load `checklist.md` for quality guidance
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/codebase/checklist.md` for quality guidance
 - [ ] Load `{cypilot_path}/.core/requirements/code-checklist.md` for generic code quality checks
 - [ ] If FEATURE source: identify all IDs with `to_code="true"` attribute
 - [ ] Determine Traceability Mode (FULL vs DOCS-ONLY)
@@ -102,7 +102,7 @@ section = "load_dependencies"
 ```
 `@/cpt:rule`
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/codebase/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -117,7 +117,7 @@ section = "structural"
 ```
 `@/cpt:rule`
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/codebase/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -139,7 +139,7 @@ section = "traceability"
 ```
 `@/cpt:rule`
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/codebase/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -193,7 +193,7 @@ PRD/DESIGN: referenced IDs [x] when ALL downstream refs [x]
 ````
 `@/cpt:rule`
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/codebase/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -210,7 +210,7 @@ section = "versioning"
 ```
 `@/cpt:rule`
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/codebase/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -237,7 +237,7 @@ section = "engineering"
 ```
 `@/cpt:rule`
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/codebase/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -247,7 +247,7 @@ kind = "requirements"
 section = "quality"
 ```
 ```markdown
-**Reference**: `checklist.md` for detailed criteria
+**Reference**: `{cypilot_path}/.gen/kits/sdlc/codebase/checklist.md` for detailed criteria
 
 - [ ] Code passes quality checklist
 - [ ] Functions/methods are appropriately sized
@@ -256,7 +256,7 @@ section = "quality"
 ```
 `@/cpt:rule`
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/codebase/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -276,13 +276,13 @@ section = "setup"
 **Load Context**:
 - [ ] Read project `AGENTS.md` for code conventions
 - [ ] Load source artifact/description
-- [ ] Load `checklist.md` for quality guidance
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/codebase/checklist.md` for quality guidance
 - [ ] Determine Traceability Mode
 - [ ] Plan implementation order
 ```
 `@/cpt:rule`
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/codebase/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -302,7 +302,7 @@ section = "implementation"
 ```
 `@/cpt:rule`
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/codebase/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -320,7 +320,7 @@ Apply markers per feature:
 ```
 `@/cpt:rule`
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/codebase/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -340,7 +340,7 @@ After each work package, sync checkboxes:
 ```
 `@/cpt:rule`
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/codebase/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -350,7 +350,7 @@ kind = "tasks"
 section = "quality_check"
 ```
 ```markdown
-- [ ] Self-review against `checklist.md`
+- [ ] Self-review against `{cypilot_path}/.gen/kits/sdlc/codebase/checklist.md`
 - [ ] If Traceability Mode ON: verify all `to_code="true"` IDs have markers
 - [ ] If Traceability Mode ON: ensure no orphaned markers
 - [ ] Run tests to verify implementation
@@ -358,7 +358,7 @@ section = "quality_check"
 ```
 `@/cpt:rule`
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/codebase/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -376,7 +376,7 @@ section = "tag_verification"
 ```
 `@/cpt:rule`
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/codebase/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -391,7 +391,7 @@ section = "coverage"
 ```
 `@/cpt:rule`
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/codebase/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -412,7 +412,7 @@ section = "traceability"
 ```
 `@/cpt:rule`
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/codebase/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -429,7 +429,7 @@ section = "tests"
 ```
 `@/cpt:rule`
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/codebase/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -460,7 +460,7 @@ Logic Consistency: PASS/FAIL
 ````
 `@/cpt:rule`
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/codebase/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -477,7 +477,7 @@ section = "test_execution"
 ```
 `@/cpt:rule`
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/codebase/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -498,7 +498,7 @@ section = "code_quality"
 ```
 `@/cpt:rule`
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/codebase/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -528,7 +528,7 @@ section = "logic_consistency"
 ```
 `@/cpt:rule`
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/codebase/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -582,7 +582,7 @@ Run expert panel review after producing validation output.
 ````
 `@/cpt:rule`
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/codebase/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -599,7 +599,7 @@ section = "after_success"
 ```
 `@/cpt:rule`
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/codebase/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -615,7 +615,7 @@ section = "after_issues"
 ```
 `@/cpt:rule`
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/codebase/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -631,7 +631,7 @@ section = "no_design"
 ```
 `@/cpt:rule`
 
-> **`@cpt:checklist`** — Checklist preamble. Static markdown placed at the top of `checklist.md` (standards, prerequisites, severity dictionary).
+> **`@cpt:checklist`** — Checklist preamble. Static markdown placed at the top of `{cypilot_path}/.gen/kits/sdlc/codebase/checklist.md` (standards, prerequisites, severity dictionary).
 
 `@cpt:checklist`
 ```toml
@@ -678,7 +678,7 @@ Before running the SDLC-specific checks:
 ````
 `@/cpt:checklist`
 
-> **`@cpt:checklist_epilogue`** — Checklist epilogue. Static markdown appended at the end of `checklist.md`.
+> **`@cpt:checklist_epilogue`** — Checklist epilogue. Static markdown appended at the end of `{cypilot_path}/.gen/kits/sdlc/codebase/checklist.md`.
 
 `@cpt:checklist_epilogue`
 ````markdown
@@ -688,7 +688,7 @@ Use `{cypilot_path}/.core/requirements/code-checklist.md` for all generic code q
 ````
 `@/cpt:checklist_epilogue`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/codebase/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -711,7 +711,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/codebase/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -733,7 +733,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/codebase/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -755,7 +755,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/codebase/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -777,7 +777,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/codebase/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -799,7 +799,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/codebase/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -823,7 +823,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/codebase/checklist.md`.
 
 `@cpt:check`
 ```toml

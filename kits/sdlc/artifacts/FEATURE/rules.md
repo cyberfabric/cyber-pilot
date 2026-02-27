@@ -50,9 +50,9 @@
 
 ### Load Dependencies
 
-- [ ] Load `template.md` for structure
-- [ ] Load `checklist.md` for semantic guidance
-- [ ] Load `examples/task-crud.md` for reference style
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md` for structure
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md` for semantic guidance
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/examples/task-crud.md` for reference style
 - [ ] Read DECOMPOSITION to get feature ID and context
 - [ ] Read DESIGN to understand domain types and components
 - [ ] Read `{cypilot_path}/config/artifacts.toml` to determine FEATURE artifact path
@@ -65,7 +65,7 @@
 
 ### Structural
 
-- [ ] FEATURE follows `template.md` structure
+- [ ] FEATURE follows `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md` structure
 - [ ] Artifact frontmatter (optional): use `cpt:` format for document metadata
 - [ ] References parent feature from DECOMPOSITION manifest
 - [ ] All flows, algorithms, states, DoD items have unique IDs
@@ -85,7 +85,7 @@
 
 ### Semantic
 
-**Reference**: `checklist.md` for detailed criteria
+**Reference**: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md` for detailed criteria
 
 - [ ] Actor flows define complete user journeys
 - [ ] Algorithms specify processing logic clearly
@@ -240,9 +240,9 @@ FEATURE documents must NOT contain the following — report as violation if foun
 
 ### Phase 1: Setup
 
-- [ ] Load `template.md` for structure
-- [ ] Load `checklist.md` for semantic guidance
-- [ ] Load `examples/task-crud.md` for reference style
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md` for structure
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md` for semantic guidance
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/examples/task-crud.md` for reference style
 - [ ] Read DECOMPOSITION to get feature ID and context
 - [ ] Read DESIGN to understand domain types and components
 - [ ] Read `{cypilot_path}/config/artifacts.toml` to determine FEATURE artifact path
@@ -271,8 +271,8 @@ FEATURE documents must NOT contain the following — report as violation if foun
 
 ### Phase 4: Quality Check
 
-- [ ] Compare CDSL style to `examples/task-crud.md`
-- [ ] Self-review against `checklist.md` MUST HAVE items
+- [ ] Compare CDSL style to `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/examples/task-crud.md`
+- [ ] Self-review against `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md` MUST HAVE items
 - [ ] Ensure no MUST NOT HAVE violations
 - [ ] Verify parent feature reference exists
 
@@ -292,7 +292,7 @@ FEATURE documents must NOT contain the following — report as violation if foun
 
 ### Phase 2: Semantic Validation (Checklist-based)
 
-Apply `checklist.md` systematically:
+Apply `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md` systematically:
 1. For each MUST HAVE item: check if requirement is met
 2. For each MUST NOT HAVE item: scan document for violations
 3. Use example for quality baseline

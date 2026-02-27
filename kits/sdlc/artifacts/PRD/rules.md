@@ -47,9 +47,9 @@
 
 ### Load Dependencies
 
-- [ ] Load `template.md` for structure
-- [ ] Load `checklist.md` for semantic guidance
-- [ ] Load `examples/example.md` for reference style
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md` for structure
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md` for semantic guidance
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/examples/example.md` for reference style
 - [ ] Read project config for ID prefix
 - [ ] Load `{cypilot_path}/.core/architecture/specs/traceability.md` for ID formats
 - [ ] Load `{cypilot_path}/.gen/kits/sdlc/constraints.toml` for kit-level constraints
@@ -61,7 +61,7 @@
 
 ### Structural
 
-- [ ] PRD follows `template.md` structure
+- [ ] PRD follows `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md` structure
 - [ ] Artifact frontmatter (optional): use `cpt:` format for document metadata
 - [ ] All required sections present and non-empty
 - [ ] All IDs follow `cpt-{hierarchy-prefix}-{kind}-{slug}` convention
@@ -159,8 +159,8 @@ PRDs must NOT contain the following — report as violation if found:
 
 ### Phase 1: Setup
 
-- [ ] Load `template.md` for structure
-- [ ] Load `checklist.md` for semantic guidance
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md` for structure
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md` for semantic guidance
 - [ ] Load `example.md` for reference style
 - [ ] Read project config for ID prefix
 
@@ -185,8 +185,8 @@ PRDs must NOT contain the following — report as violation if found:
 
 ### Phase 4: Quality Check
 
-- [ ] Compare output quality to `examples/example.md`
-- [ ] Self-review against `checklist.md` MUST HAVE items
+- [ ] Compare output quality to `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/examples/example.md`
+- [ ] Self-review against `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md` MUST HAVE items
 - [ ] Ensure no MUST NOT HAVE violations
 
 ---
@@ -204,12 +204,12 @@ PRDs must NOT contain the following — report as violation if found:
 
 ### Phase 2: Semantic Validation (Checklist-based)
 
-- [ ] Read `checklist.md` in full
+- [ ] Read `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md` in full
 - [ ] For each MUST HAVE item: check if requirement is met
   - If not met: report as violation with severity
   - If not applicable: verify explicit "N/A" with reasoning
 - [ ] For each MUST NOT HAVE item: scan document for violations
-- [ ] Compare content depth to `examples/example.md`
+- [ ] Compare content depth to `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/examples/example.md`
   - Flag significant quality gaps
 
 ### Phase 3: Validation Report
@@ -322,7 +322,7 @@ When reviewing PRs that add or change PRD/requirements documents, additionally f
 - [ ] Completeness and clarity of requirements
 - [ ] Testability and acceptance criteria for every requirement
 - [ ] Traceability to business goals and stated problems
-- [ ] Compliance with `template.md` structure (generated from blueprint)
+- [ ] Compliance with `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md` structure (generated from blueprint)
 - [ ] Alignment with best industry standard practices for large SaaS systems and platforms
 - [ ] Critical assessment of requirements quality — challenge vague, overlapping, or untestable items
 - [ ] Split findings by checklist category and rate each 1-10
@@ -334,9 +334,9 @@ When reviewing PRs that add or change PRD/requirements documents, additionally f
 
 ### Missing Dependencies
 
-- [ ] If `template.md` cannot be loaded → STOP, cannot proceed without template
-- [ ] If `checklist.md` cannot be loaded → warn user, skip semantic validation
-- [ ] If `examples/example.md` cannot be loaded → warn user, continue with reduced guidance
+- [ ] If `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md` cannot be loaded → STOP, cannot proceed without template
+- [ ] If `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md` cannot be loaded → warn user, skip semantic validation
+- [ ] If `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/examples/example.md` cannot be loaded → warn user, continue with reduced guidance
 
 ### Missing Adapter
 
