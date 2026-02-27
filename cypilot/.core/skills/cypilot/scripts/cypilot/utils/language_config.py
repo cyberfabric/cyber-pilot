@@ -21,6 +21,59 @@ DEFAULT_MULTI_LINE_COMMENTS = [
 ]
 DEFAULT_BLOCK_COMMENT_PREFIXES = ["*"]
 
+# Extension-based comment format defaults.
+# Each entry: (single_line_comments, multi_line_comments, block_comment_prefixes)
+EXTENSION_COMMENT_DEFAULTS: Dict[str, Tuple[List[str], List[Dict[str, str]], List[str]]] = {
+    ".py":   (["#"],        [{'start': '"""', 'end': '"""'}], []),
+    ".pyi":  (["#"],        [{'start': '"""', 'end': '"""'}], []),
+    ".rb":   (["#"],        [{'start': '=begin', 'end': '=end'}], []),
+    ".sh":   (["#"],        [],                               []),
+    ".bash": (["#"],        [],                               []),
+    ".zsh":  (["#"],        [],                               []),
+    ".yml":  (["#"],        [],                               []),
+    ".yaml": (["#"],        [],                               []),
+    ".toml": (["#"],        [],                               []),
+    ".r":    (["#"],        [],                               []),
+    ".pl":   (["#"],        [{'start': '=pod', 'end': '=cut'}], []),
+    ".js":   (["//"],       [{'start': '/*', 'end': '*/'}],  ["*"]),
+    ".jsx":  (["//"],       [{'start': '/*', 'end': '*/'}],  ["*"]),
+    ".ts":   (["//"],       [{'start': '/*', 'end': '*/'}],  ["*"]),
+    ".tsx":  (["//"],       [{'start': '/*', 'end': '*/'}],  ["*"]),
+    ".mjs":  (["//"],       [{'start': '/*', 'end': '*/'}],  ["*"]),
+    ".mts":  (["//"],       [{'start': '/*', 'end': '*/'}],  ["*"]),
+    ".go":   (["//"],       [{'start': '/*', 'end': '*/'}],  ["*"]),
+    ".rs":   (["//"],       [{'start': '/*', 'end': '*/'}],  ["*"]),
+    ".java": (["//"],       [{'start': '/*', 'end': '*/'}],  ["*"]),
+    ".kt":   (["//"],       [{'start': '/*', 'end': '*/'}],  ["*"]),
+    ".kts":  (["//"],       [{'start': '/*', 'end': '*/'}],  ["*"]),
+    ".scala":(["//"],       [{'start': '/*', 'end': '*/'}],  ["*"]),
+    ".c":    (["//"],       [{'start': '/*', 'end': '*/'}],  ["*"]),
+    ".h":    (["//"],       [{'start': '/*', 'end': '*/'}],  ["*"]),
+    ".cpp":  (["//"],       [{'start': '/*', 'end': '*/'}],  ["*"]),
+    ".hpp":  (["//"],       [{'start': '/*', 'end': '*/'}],  ["*"]),
+    ".cs":   (["//"],       [{'start': '/*', 'end': '*/'}],  ["*"]),
+    ".swift":(["//"],       [{'start': '/*', 'end': '*/'}],  ["*"]),
+    ".dart": (["//"],       [{'start': '/*', 'end': '*/'}],  ["*"]),
+    ".php":  (["//", "#"],  [{'start': '/*', 'end': '*/'}],  ["*"]),
+    ".sql":  (["--"],       [{'start': '/*', 'end': '*/'}],  ["*"]),
+    ".lua":  (["--"],       [{'start': '--[[', 'end': ']]'}], []),
+    ".hs":   (["--"],       [{'start': '{-', 'end': '-}'}],  []),
+    ".md":   ([],           [{'start': '<!--', 'end': '-->'}], []),
+    ".html": ([],           [{'start': '<!--', 'end': '-->'}], []),
+    ".xml":  ([],           [{'start': '<!--', 'end': '-->'}], []),
+    ".svg":  ([],           [{'start': '<!--', 'end': '-->'}], []),
+    ".vue":  (["//"],       [{'start': '/*', 'end': '*/'}, {'start': '<!--', 'end': '-->'}], ["*"]),
+    ".svelte":(["//"],      [{'start': '/*', 'end': '*/'}, {'start': '<!--', 'end': '-->'}], ["*"]),
+    ".css":  ([],           [{'start': '/*', 'end': '*/'}],  ["*"]),
+    ".scss": (["//"],       [{'start': '/*', 'end': '*/'}],  ["*"]),
+    ".less": (["//"],       [{'start': '/*', 'end': '*/'}],  ["*"]),
+    ".ex":   (["#"],        [],                               []),
+    ".exs":  (["#"],        [],                               []),
+    ".erl":  (["%"],        [],                               []),
+    ".clj":  ([";"],        [],                               []),
+    ".lisp": ([";"],        [{'start': '#|', 'end': '|#'}],  []),
+}
+
 
 class LanguageConfig:
     """Language configuration for code scanning."""
@@ -36,6 +89,61 @@ class LanguageConfig:
         self.single_line_comments = single_line_comments
         self.multi_line_comments = multi_line_comments
         self.block_comment_prefixes = block_comment_prefixes
+
+    @classmethod
+    def from_codebase_entry(cls, entry: object) -> "LanguageConfig":
+        """Build a LanguageConfig from a CodebaseEntry.
+
+        Uses explicit comment fields from the registry when present,
+        otherwise falls back to extension-based defaults.
+        """
+        extensions = set(getattr(entry, "extensions", None) or [])
+        slc = getattr(entry, "single_line_comments", None)
+        mlc = getattr(entry, "multi_line_comments", None)
+
+        if slc is not None or mlc is not None:
+            return cls(
+                file_extensions=extensions,
+                single_line_comments=list(slc) if slc else [],
+                multi_line_comments=list(mlc) if mlc else [],
+                block_comment_prefixes=_infer_block_prefixes(mlc),
+            )
+
+        # Fall back to extension-based defaults
+        merged_slc: List[str] = []
+        merged_mlc: List[Dict[str, str]] = []
+        merged_bp: List[str] = []
+        seen_slc: Set[str] = set()
+        seen_mlc: Set[str] = set()
+        seen_bp: Set[str] = set()
+        for ext in sorted(extensions):
+            defaults = EXTENSION_COMMENT_DEFAULTS.get(ext.lower())
+            if not defaults:
+                continue
+            d_slc, d_mlc, d_bp = defaults
+            for s in d_slc:
+                if s not in seen_slc:
+                    seen_slc.add(s)
+                    merged_slc.append(s)
+            for m in d_mlc:
+                key = m["start"] + m["end"]
+                if key not in seen_mlc:
+                    seen_mlc.add(key)
+                    merged_mlc.append(m)
+            for b in d_bp:
+                if b not in seen_bp:
+                    seen_bp.add(b)
+                    merged_bp.append(b)
+
+        if not merged_slc and not merged_mlc:
+            return _default_language_config()
+
+        return cls(
+            file_extensions=extensions,
+            single_line_comments=merged_slc,
+            multi_line_comments=merged_mlc,
+            block_comment_prefixes=merged_bp,
+        )
     
     def build_comment_pattern(self) -> str:
         r"""
@@ -125,6 +233,43 @@ def _default_language_config() -> LanguageConfig:
     )
 
 
+def _infer_block_prefixes(mlc: Optional[List[Dict[str, str]]]) -> List[str]:
+    """Infer block comment prefixes from multi-line comment delimiters."""
+    if not mlc:
+        return []
+    for m in mlc:
+        if m.get("start") == "/*":
+            return ["*"]
+    return []
+
+
+def comment_defaults_for_extensions(extensions: List[str]) -> Tuple[List[str], List[Dict[str, str]]]:
+    """Return (single_line_comments, multi_line_comments) defaults for a list of file extensions.
+
+    Merges defaults from all given extensions, deduplicating.
+    Returns ([], []) if no extensions match.
+    """
+    merged_slc: List[str] = []
+    merged_mlc: List[Dict[str, str]] = []
+    seen_slc: Set[str] = set()
+    seen_mlc: Set[str] = set()
+    for ext in extensions:
+        defaults = EXTENSION_COMMENT_DEFAULTS.get(ext.lower())
+        if not defaults:
+            continue
+        d_slc, d_mlc, _ = defaults
+        for s in d_slc:
+            if s not in seen_slc:
+                seen_slc.add(s)
+                merged_slc.append(s)
+        for m in d_mlc:
+            key = m["start"] + m["end"]
+            if key not in seen_mlc:
+                seen_mlc.add(key)
+                merged_mlc.append(m)
+    return merged_slc, merged_mlc
+
+
 def build_cypilot_begin_regex(lang_config: LanguageConfig) -> re.Pattern:
     """Build cpt-begin regex pattern using language config."""
     comment_pattern = lang_config.build_comment_pattern()
@@ -158,4 +303,6 @@ __all__ = [
     "build_no_cypilot_end_regex",
     "DEFAULT_FILE_EXTENSIONS",
     "DEFAULT_SINGLE_LINE_COMMENTS",
+    "EXTENSION_COMMENT_DEFAULTS",
+    "comment_defaults_for_extensions",
 ]

@@ -387,9 +387,9 @@ def cmd_validate(argv: List[str]) -> int:
         def resolve_code_path(pth: str) -> Path:
             return (project_root / pth).resolve()
 
-        def scan_codebase_entry(entry: dict, traceability: str) -> None:
-            code_path = resolve_code_path(entry.get("path", ""))
-            extensions = entry.get("extensions", [".py"])
+        def scan_codebase_entry(entry: object, traceability: str) -> None:
+            code_path = resolve_code_path(getattr(entry, "path", "") if not isinstance(entry, dict) else entry.get("path", ""))
+            extensions = (getattr(entry, "extensions", None) if not isinstance(entry, dict) else entry.get("extensions", None)) or [".py"]
 
             if not code_path.exists():
                 return
@@ -445,10 +445,7 @@ def cmd_validate(argv: List[str]) -> int:
                     if art.traceability == "DOCS-ONLY":
                         traceability = "DOCS-ONLY"
                         break
-                scan_codebase_entry({
-                    "path": cb_entry.path,
-                    "extensions": cb_entry.extensions,
-                }, traceability)
+                scan_codebase_entry(cb_entry, traceability)
             for child in system_node.children:
                 scan_system_codebase(child)
 
