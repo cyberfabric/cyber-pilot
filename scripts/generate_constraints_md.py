@@ -1,6 +1,6 @@
 """Generate a Markdown table view of SDLC constraints.
 
-Reads `kits/sdlc/constraints.toml` and produces `kits/sdlc/guides/constraints.md`.
+Reads `kits/sdlc/example/constraints.toml` and produces `kits/sdlc/guides/constraints.md`.
 """
 
 from __future__ import annotations
@@ -59,7 +59,7 @@ def render_constraints_md(data: dict[str, Any]) -> str:
 
     lines.append("# Constraints (cypilot-sdlc)")
     lines.append("")
-    lines.append("Source: `kits/sdlc/constraints.toml`")
+    lines.append("Source: `kits/sdlc/example/constraints.toml`")
     lines.append("")
     lines.append("## Legend")
     lines.append("")
@@ -151,8 +151,8 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Generate kits/sdlc/guides/constraints.md from constraints.toml")
     parser.add_argument(
         "--input",
-        default="kits/sdlc/constraints.toml",
-        help="Path to constraints.toml (default: kits/sdlc/constraints.toml)",
+        default="kits/sdlc/example/constraints.toml",
+        help="Path to constraints.toml (default: kits/sdlc/example/constraints.toml)",
     )
     parser.add_argument(
         "--output",
