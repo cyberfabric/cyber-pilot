@@ -62,12 +62,14 @@ OPEN and follow `{cypilot_path}/.core/requirements/prompt-engineering.md` WHEN u
 | MEMORY_VALIDATION | "I already read it" without Read tool | Context may be stale, compacted, or incomplete |
 | ASSUMED_NA | "Security not applicable for this project" | Document must have explicit N/A statement, agent can't decide |
 | BULK_PASS | "All checklist items pass" | No evidence = no proof of actual verification |
+| SIMULATED_VALIDATION | Produce "✅ PASS" table without running `cpt validate` | Semantic review cannot catch structural errors (IDs, headings, cross-refs) that only the deterministic tool detects |
 
 **Self-check before outputting analysis**:
 - Am I reporting PASS without semantic review? → AP-001 SKIP_SEMANTIC
 - Did I use Read tool for the target artifact THIS turn? → AP-002 MEMORY_VALIDATION
 - Am I marking categories N/A without document quotes? → AP-003 ASSUMED_NA
 - Am I claiming "all pass" without per-category evidence? → AP-004 BULK_PASS
+- Did I produce a validation summary without running `cpt validate` first? → AP-005 SIMULATED_VALIDATION
 
 **If any self-check fails → STOP and restart with compliance**
 
@@ -240,6 +242,8 @@ STOP analysis.
 
 **If `SEMANTIC_ONLY=true`**: Skip this phase, go to Phase 3.
 
+> **⛔ CRITICAL**: The agent's own checklist walkthrough is **NOT** a substitute for `cpt validate`. A manual "✅ PASS" table in chat is semantic review, not deterministic validation — these are **separate steps**. See anti-pattern `SIMULATED_VALIDATION`.
+
 **MUST run first when available** (when not semantic-only).
 
 Deterministic gate is considered **available** when:
@@ -263,6 +267,13 @@ python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate --artifa
 python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate --code {PATH} --design {design-path}
 ```
 
+### Deterministic Gate Rules
+
+1. **Tool-first**: The agent MUST execute the `cpt validate` command as an actual terminal command BEFORE any semantic review. No exceptions.
+2. **Output evidence**: The agent MUST include the validator's exit code and `status`/`error_count`/`warning_count` from the JSON output in its response so the user can verify the tool was actually invoked.
+3. **Gate**: The agent MUST NOT proceed to Phase 3 (Semantic Review) until `cpt validate` returns `"status": "PASS"`. If it returns FAIL, report issues and STOP.
+4. **Anti-pattern**: The agent MUST NOT produce a validation summary without first showing the actual output of `cpt validate`. Doing so is `SIMULATED_VALIDATION`.
+
 ### Evaluate
 
 **If FAIL**:
@@ -271,6 +282,8 @@ python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate --code {
 Analysis: {TARGET_TYPE}
 ───────────────────────────────────────────────
 Status: FAIL
+Exit code: 2
+Errors: {N}, Warnings: {N}
 ───────────────────────────────────────────────
 Blocking issues:
 {list from validator}
@@ -278,9 +291,13 @@ Blocking issues:
 
 → Fix issues and re-run analysis
 ```
-**STOP** - do not proceed to semantic review.
+**STOP** — do not proceed to semantic review.
 
-**If PASS**: Continue to conditional semantic review.
+**If PASS**:
+```
+Deterministic gate: PASS (exit code: 0, errors: 0, warnings: {N})
+```
+Continue to Phase 3 (Semantic Review).
 
 ---
 

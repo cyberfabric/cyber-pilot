@@ -64,6 +64,9 @@ For context compaction recovery during multi-phase workflows, follow `{cypilot_p
   - [Phase 3: Summary](#phase-3-summary)
   - [Phase 4: Write](#phase-4-write)
   - [Phase 5: Analyze](#phase-5-analyze)
+    - [Step 1: Deterministic Validation (tool-based)](#step-1-deterministic-validation-tool-based)
+    - [Step 2: Semantic Review (LLM-based)](#step-2-semantic-review-llm-based)
+    - [Step 3: Report Both Results](#step-3-report-both-results)
   - [Phase 6: Offer Next Steps](#phase-6-offer-next-steps)
   - [Error Handling](#error-handling)
     - [Tool Failures](#tool-failures)
@@ -149,6 +152,7 @@ This workflow can require loading multiple long templates/checklists/examples an
 | SKIP_CHECKLIST | Generate without self-review against checklist | Quality issues will pass to validation |
 | PLACEHOLDER_SHIP | Write file with TODO/TBD markers | Incomplete artifact breaks downstream |
 | NO_CONFIRMATION | Write files without user "yes" | User loses control over changes |
+| SIMULATED_VALIDATION | Produce "✅ PASS" table without running `cpt validate` | Semantic review cannot catch structural errors (IDs, headings, cross-refs) that only the deterministic tool detects |
 
 **Self-check before writing files** (MANDATORY in STRICT mode):
 
@@ -477,29 +481,62 @@ Output:
 
 ## Phase 5: Analyze
 
-**Automatic**: Run validation after generation (do not list in Next Steps):
-```
-/cypilot-analyze --artifact {PATH}
+**Automatic**: Run validation after generation (do not list in Next Steps).
+
+> **⛔ CRITICAL**: The agent's own checklist walkthrough is **NOT** a substitute for `cpt validate`. A manual "✅ PASS" table in chat is semantic review, not deterministic validation — these are **separate steps**. See anti-pattern `SIMULATED_VALIDATION`.
+
+### Step 1: Deterministic Validation (tool-based)
+
+**MUST** run `cpt validate` as an actual terminal command:
+
+For artifacts:
+```bash
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate --root {PROJECT_ROOT} --cypilot-root {cypilot_path}
 ```
 
-For code generation, use:
-```
-/cypilot-analyze --code {PATH} --design {design-path}
+For code:
+```bash
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate --root {PROJECT_ROOT} --cypilot-root {cypilot_path}
 ```
 
-**If PASS**:
-```
-✓ Validation: PASS
-```
-→ Read `Next Steps` section from loaded rules.md
-→ Offer options to user based on current state
+**Rules**:
 
-**If FAIL**:
+1. **Tool-first**: The agent MUST execute the validator command BEFORE any semantic review. No exceptions.
+2. **Output evidence**: The agent MUST include the validator's exit code and `status`/`error_count`/`warning_count` from the JSON output in its response so the user can verify the tool was actually invoked.
+3. **Gate**: The agent MUST NOT proceed to Step 2 or Phase 6 until `cpt validate` returns `"status": "PASS"`. If it returns FAIL, fix the errors and re-run until PASS.
+4. **Anti-pattern**: The agent MUST NOT produce a validation summary without first showing the actual output of `cpt validate`. Doing so is `SIMULATED_VALIDATION`.
+
+**If FAIL** → fix errors in the artifact → re-run `cpt validate` → repeat until PASS.
+
+**If PASS** → proceed to Step 2.
+
+### Step 2: Semantic Review (LLM-based)
+
+**Only after `cpt validate` returns PASS**:
+
+- Self-review generated content against checklist.md
+- Verify no placeholders (TODO, TBD, FIXME)
+- Verify cross-references are meaningful (not just structurally valid)
+- Verify content quality and completeness
+
+### Step 3: Report Both Results
+
+```markdown
+## Validation Results
+
+### Deterministic (`cpt validate`)
+- Exit code: {0|2}
+- Status: {PASS|FAIL}
+- Errors: {N}, Warnings: {N}
+
+### Semantic Review
+- Checklist coverage: {summary}
+- Content quality: {summary}
+- Issues found: {list or "none"}
 ```
-✗ Validation: FAIL
-{issues}
-→ Fix issues and re-run validation
-```
+
+→ If both pass: proceed to Phase 6
+→ If semantic issues found: fix and re-validate (return to Step 1)
 
 ---
 
