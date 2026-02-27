@@ -78,6 +78,19 @@ def install_kit(
             shutil.copytree(src, dst)
             actions[f"ref_{subdir_name}"] = "copied"
 
+    # Copy conf.toml to reference and config/kits/{slug}/
+    conf_src = kit_source / "conf.toml"
+    if conf_src.is_file():
+        ref_dir.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(conf_src, ref_dir / "conf.toml")
+        user_kit_dir = config_dir / "kits" / kit_slug
+        user_kit_dir.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(conf_src, user_kit_dir / "conf.toml")
+        actions["conf_toml"] = "copied"
+        # Read kit version from conf.toml if not provided
+        if not kit_version:
+            kit_version = _read_kit_version(conf_src)
+
     # Copy blueprints to config/kits/{slug}/blueprints/ (user-editable)
     if user_bp_dir.exists():
         shutil.rmtree(user_bp_dir)
@@ -690,6 +703,20 @@ def cmd_kit(argv: List[str]) -> int:
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
+def _read_kit_version(conf_path: Path) -> str:
+    """Read kit version from conf.toml."""
+    try:
+        import tomllib
+        with open(conf_path, "rb") as f:
+            data = tomllib.load(f)
+        ver = data.get("version")
+        if ver is not None:
+            return str(ver)
+    except Exception:
+        pass
+    return ""
+
 
 def _register_kit_in_core_toml(
     config_dir: Path,

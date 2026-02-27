@@ -1,0 +1,20 @@
+# SDLC Kit Configuration
+# This file tracks kit version and component versions for update/migration.
+
+version = 1
+slug = "sdlc"
+name = "Cypilot SDLC Kit"
+
+[blueprints]
+ADR = 1
+CODEBASE = 1
+DECOMPOSITION = 1
+DESIGN = 1
+FEATURE = 1
+PR-CODE-REVIEW-TEMPLATE = 1
+PR-REVIEW = 1
+PR-STATUS-REPORT-TEMPLATE = 1
+PRD = 1
+
+[scripts]
+pr = 1

@@ -127,11 +127,16 @@ def cmd_update(argv: List[str]) -> int:
                         shutil.rmtree(dst)
                     dst.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copytree(src, dst)
+            # Copy conf.toml to reference
+            conf_src = kit_src / "conf.toml"
+            if conf_src.is_file():
+                ref_dst.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(conf_src, ref_dst / "conf.toml")
             sys.stderr.write(f"  kits/{kit_slug}: reference updated\n")
     actions["kit_references"] = "updated"
 
-    # ── Step 3: Compare blueprint versions (cache vs user) ───────────────
-    sys.stderr.write("Step 3: Checking blueprint versions...\n")
+    # ── Step 3: Compare kit versions via conf.toml ───────────────────────
+    sys.stderr.write("Step 3: Checking kit versions...\n")
     kit_version_report: Dict[str, Any] = {}
 
     if kits_cache_dir.is_dir():
@@ -139,37 +144,55 @@ def cmd_update(argv: List[str]) -> int:
             if not kit_src.is_dir() or not (kit_src / "blueprints").is_dir():
                 continue
             kit_slug = kit_src.name
-            user_bp_dir = config_dir / "kits" / kit_slug / "blueprints"
+            user_kit_dir = config_dir / "kits" / kit_slug
+            user_bp_dir = user_kit_dir / "blueprints"
+            user_conf = user_kit_dir / "conf.toml"
+            cache_conf = kit_src / "conf.toml"
 
             if not user_bp_dir.is_dir():
                 # User blueprints don't exist yet — copy from cache (first install)
                 if not args.dry_run:
                     user_bp_dir.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copytree(kit_src / "blueprints", user_bp_dir)
-                kit_version_report[kit_slug] = "created"
+                    # Copy conf.toml on first install
+                    if cache_conf.is_file():
+                        shutil.copy2(cache_conf, user_kit_dir / "conf.toml")
+                kit_version_report[kit_slug] = {"status": "created"}
                 sys.stderr.write(f"  {kit_slug}: blueprints created (first install)\n")
             else:
-                # Compare versions
-                cache_versions = _read_blueprint_versions(kit_src / "blueprints")
-                user_versions = _read_blueprint_versions(user_bp_dir)
-                drift = _compare_versions(cache_versions, user_versions)
+                # Compare versions via conf.toml
+                cache_ver = _read_conf_version(cache_conf)
+                user_ver = _read_conf_version(user_conf)
+                cache_bp_versions = _read_conf_section(cache_conf, "blueprints")
+                user_bp_versions = _read_conf_section(user_conf, "blueprints")
+                cache_script_versions = _read_conf_section(cache_conf, "scripts")
+                user_script_versions = _read_conf_section(user_conf, "scripts")
+
+                drift = _compare_conf_versions(
+                    cache_ver, user_ver,
+                    cache_bp_versions, user_bp_versions,
+                    cache_script_versions, user_script_versions,
+                )
                 kit_version_report[kit_slug] = drift
 
                 if drift["status"] == "current":
-                    sys.stderr.write(f"  {kit_slug}: blueprints up to date\n")
+                    sys.stderr.write(f"  {kit_slug}: v{user_ver} — up to date\n")
                 elif drift["status"] == "migration_needed":
-                    msg = (
-                        f"  {kit_slug}: MIGRATION NEEDED — "
-                        f"cache has newer blueprint versions: {drift['newer']}\n"
-                        f"    Reference copies updated in kits/{kit_slug}/blueprints/.\n"
-                        f"    User blueprints in config/kits/{kit_slug}/blueprints/ NOT touched.\n"
-                        f"    Manually review and merge changes, then run 'cpt generate-resources'.\n"
+                    details: List[str] = []
+                    if drift.get("kit_version_drift"):
+                        details.append(f"kit v{user_ver} → v{cache_ver}")
+                    for bp, d in drift.get("blueprint_drift", {}).items():
+                        details.append(f"{bp} v{d['user']} → v{d['cache']}")
+                    for sc, d in drift.get("script_drift", {}).items():
+                        details.append(f"script/{sc} v{d['user']} → v{d['cache']}")
+                    sys.stderr.write(
+                        f"  {kit_slug}: MIGRATION NEEDED — {', '.join(details)}\n"
+                        f"    Reference updated in kits/{kit_slug}/.\n"
+                        f"    User config in config/kits/{kit_slug}/ NOT touched.\n"
+                        f"    Review kits/{kit_slug}/ vs config/kits/{kit_slug}/, "
+                        f"then run 'cpt generate-resources'.\n"
                     )
-                    sys.stderr.write(msg)
-                    warnings.append(
-                        f"Kit '{kit_slug}': blueprint migration needed for: "
-                        + ", ".join(f"{k} (user={v['user']} → cache={v['cache']})" for k, v in drift["newer"].items())
-                    )
+                    warnings.append(f"Kit '{kit_slug}': migration needed — {', '.join(details)}")
 
             # Copy scripts to .gen/kits/{slug}/scripts/ (always ok, generated)
             scripts_src = kit_src / "scripts"
@@ -180,7 +203,7 @@ def cmd_update(argv: List[str]) -> int:
                 gen_kit_scripts.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copytree(scripts_src, gen_kit_scripts)
 
-    actions["blueprint_versions"] = kit_version_report
+    actions["kit_versions"] = kit_version_report
 
     # ── Step 4: Regenerate .gen/ from USER's blueprints ──────────────────
     sys.stderr.write("Step 4: Regenerating .gen/ from user blueprints...\n")
@@ -401,45 +424,73 @@ def _read_project_name(config_dir: Path) -> Optional[str]:
     return None
 
 
-def _read_blueprint_versions(bp_dir: Path) -> Dict[str, int]:
-    """Read version from each blueprint's @cpt:blueprint TOML block.
-
-    Returns {artifact_kind_or_filename: version_int}.
-    """
-    from ..utils.blueprint import parse_blueprint
-
-    versions: Dict[str, int] = {}
-    if not bp_dir.is_dir():
-        return versions
-    for bp_file in sorted(bp_dir.glob("*.md")):
-        bp = parse_blueprint(bp_file)
-        key = bp.artifact_kind or bp_file.stem
-        try:
-            ver = int(bp.version) if bp.version else 0
-        except (ValueError, TypeError):
-            ver = 0
-        versions[key] = ver
-    return versions
+def _read_conf_version(conf_path: Path) -> int:
+    """Read top-level 'version' from conf.toml. Returns 0 if missing."""
+    if not conf_path.is_file():
+        return 0
+    try:
+        import tomllib
+        with open(conf_path, "rb") as f:
+            data = tomllib.load(f)
+        ver = data.get("version")
+        return int(ver) if ver is not None else 0
+    except Exception:
+        return 0
 
 
-def _compare_versions(
-    cache_versions: Dict[str, int],
-    user_versions: Dict[str, int],
+def _read_conf_section(conf_path: Path, section: str) -> Dict[str, int]:
+    """Read a [section] from conf.toml as {name: version_int}."""
+    if not conf_path.is_file():
+        return {}
+    try:
+        import tomllib
+        with open(conf_path, "rb") as f:
+            data = tomllib.load(f)
+        raw = data.get(section, {})
+        if not isinstance(raw, dict):
+            return {}
+        return {str(k): int(v) for k, v in raw.items()}
+    except Exception:
+        return {}
+
+
+def _compare_conf_versions(
+    cache_ver: int,
+    user_ver: int,
+    cache_bp: Dict[str, int],
+    user_bp: Dict[str, int],
+    cache_scripts: Dict[str, int],
+    user_scripts: Dict[str, int],
 ) -> Dict[str, Any]:
-    """Compare cache blueprint versions against user blueprint versions.
+    """Compare kit versions from conf.toml (cache vs user).
 
-    Returns:
-        {
-            "status": "current" | "migration_needed",
-            "newer": {kind: {"cache": v, "user": v}, ...}  # only if migration_needed
-        }
+    Returns dict with status 'current' or 'migration_needed' plus drift details.
     """
-    newer: Dict[str, Dict[str, int]] = {}
-    for kind, cache_ver in cache_versions.items():
-        user_ver = user_versions.get(kind, 0)
-        if cache_ver > user_ver:
-            newer[kind] = {"cache": cache_ver, "user": user_ver}
+    result: Dict[str, Any] = {"status": "current"}
 
-    if newer:
-        return {"status": "migration_needed", "newer": newer}
-    return {"status": "current"}
+    # Kit-level version drift
+    if cache_ver > user_ver:
+        result["kit_version_drift"] = {"cache": cache_ver, "user": user_ver}
+
+    # Per-blueprint drift
+    bp_drift: Dict[str, Dict[str, int]] = {}
+    for name, cver in cache_bp.items():
+        uver = user_bp.get(name, 0)
+        if cver > uver:
+            bp_drift[name] = {"cache": cver, "user": uver}
+    if bp_drift:
+        result["blueprint_drift"] = bp_drift
+
+    # Per-script drift
+    sc_drift: Dict[str, Dict[str, int]] = {}
+    for name, cver in cache_scripts.items():
+        uver = user_scripts.get(name, 0)
+        if cver > uver:
+            sc_drift[name] = {"cache": cver, "user": uver}
+    if sc_drift:
+        result["script_drift"] = sc_drift
+
+    if result.get("kit_version_drift") or bp_drift or sc_drift:
+        result["status"] = "migration_needed"
+
+    return result
