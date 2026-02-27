@@ -94,27 +94,38 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-update-cache
     if args and args[0] == "update":
-        # --source: copy from local directory instead of downloading
+        # Step 1: Update cache
         if source_dir is not None:
             from cypilot_proxy.cache import copy_from_local
 
             success, message = copy_from_local(source_dir=source_dir, force=force_update)
-            sys.stderr.write(f"{message}\n")
-            return 0 if success else 1
+        else:
+            from cypilot_proxy.cache import download_and_cache
 
-        from cypilot_proxy.cache import download_and_cache
+            # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-explicit-cache-update
+            explicit = target_version or (args[1] if len(args) > 1 else None)
+            success, message = download_and_cache(version=explicit, force=force_update, url=custom_url)
+            # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-explicit-cache-update
 
-        # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-explicit-cache-update
-        # 'cpt update v3' — version can also be positional arg
-        explicit = target_version or (args[1] if len(args) > 1 else None)
-        success, message = download_and_cache(version=explicit, force=force_update, url=custom_url)
-        # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-explicit-cache-update
-        # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-return-cache-update
         sys.stderr.write(f"{message}\n")
-        # @cpt-begin:cpt-cypilot-state-core-infra-project-install:p1:inst-update-complete
-        return 0 if success else 1
-        # @cpt-end:cpt-cypilot-state-core-infra-project-install:p1:inst-update-complete
-        # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-return-cache-update
+        if not success:
+            return 1
+
+        # Step 2: Forward to skill engine for .core/ + kits + .gen/ update
+        # Use cached skill (freshly updated) to avoid stale code
+        skill_path = find_cached_skill()
+        if skill_path is None:
+            sys.stderr.write("Cache updated but skill entry point not found.\n")
+            # @cpt-begin:cpt-cypilot-state-core-infra-project-install:p1:inst-update-complete
+            return 1
+            # @cpt-end:cpt-cypilot-state-core-infra-project-install:p1:inst-update-complete
+
+        sys.stderr.write("Updating project...\n")
+        # Forward only 'update' + any remaining flags (strip version positional arg)
+        update_args = ["update"]
+        if "--dry-run" in args:
+            update_args.append("--dry-run")
+        return _forward_to_skill(skill_path, update_args)
     # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-update-cache
 
     # Re-add --force to args for init (skill needs it for config overwrite)

@@ -8,25 +8,53 @@ purpose: Common protocol executed by generate.md and analyze.md workflows
 
 # Execution Protocol
 
-**Type**: Protocol (embedded in other workflows)
 
----
-
-## Table of Contents
+<!-- toc -->
 
 - [Overview](#overview)
-- [Execution Protocol Violations](#-execution-protocol-violations)
-- [Compaction Recovery](#-compaction-recovery)
+- [⚠️ Execution Protocol Violations](#execution-protocol-violations)
+- [🔄 Compaction Recovery](#compaction-recovery)
+- [Deterministic Operations (cannot be overridden)](#deterministic-operations-cannot-be-overridden)
 - [Cypilot Mode Detection](#cypilot-mode-detection)
 - [Rules Mode Detection](#rules-mode-detection)
+  - [Rules Mode: STRICT (Cypilot rules enabled)](#rules-mode-strict-cypilot-rules-enabled)
+  - [Rules Mode: BOOTSTRAP (new project)](#rules-mode-bootstrap-new-project)
+  - [Rules Mode: RELAXED (no cypilot)](#rules-mode-relaxed-no-cypilot)
+  - [Rules Mode Summary](#rules-mode-summary)
+  - [Project Type (BOOTSTRAP mode)](#project-type-bootstrap-mode)
 - [Discover Cypilot](#discover-cypilot)
 - [Understand Registry](#understand-registry)
 - [Clarify Intent](#clarify-intent)
-- [Load Rules](#load-rules)
+  - [1. Kit Context](#1-kit-context)
+  - [2. Target Type](#2-target-type)
+  - [3. Specific System (if using kit)](#3-specific-system-if-using-kit)
+- [Load Kits](#load-kits)
+  - [1. Resolve Kit Package](#1-resolve-kit-package)
+  - [2. Determine Artifact Type](#2-determine-artifact-type)
+  - [3. Load Rules.md](#3-load-rulesmd)
+  - [4. Load Dependencies from Rules](#4-load-dependencies-from-rules)
+  - [5. Confirm Requirements](#5-confirm-requirements)
+  - [6. Load Config Specs](#6-load-config-specs)
 - [Cross-Reference Awareness](#cross-reference-awareness)
 - [Context Usage](#context-usage)
 - [Error Handling](#error-handling)
+  - [Cypilot Not Found](#cypilot-not-found)
+  - [artifacts.toml Parse Error](#artifactstoml-parse-error)
+  - [Rules.md Not Found](#rulesmd-not-found)
+  - [Template/Checklist Not Found](#templatechecklist-not-found)
+  - [System Not Registered](#system-not-registered)
+  - [Artifact Kind Not Supported](#artifact-kind-not-supported)
 - [Consolidated Validation Checklist](#consolidated-validation-checklist)
+  - [Detection (D)](#detection-d)
+  - [Discovery (DI)](#discovery-di)
+  - [Clarification (CL)](#clarification-cl)
+  - [Loading (L)](#loading-l)
+  - [Context (C)](#context-c)
+  - [Final (F)](#final-f)
+
+<!-- /toc -->
+
+**Type**: Protocol (embedded in other workflows)
 
 ---
 
@@ -73,6 +101,12 @@ Common steps shared by `{cypilot_path}/.core/workflows/generate.md` and `{cypilo
 - Continue Cypilot work without re-loading specs after compaction
 - Assume specs are "still loaded" from before compaction
 - Skip protocol because "it was already done"
+
+---
+
+## Deterministic Operations (cannot be overridden)
+
+**ALWAYS** run `cypilot toc <file>` for ANY Table of Contents generation or update in Markdown files. **NEVER** write TOC manually — agent-generated anchors are unreliable. Manually written TOC = **INVALID output**.
 
 ---
 
