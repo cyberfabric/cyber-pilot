@@ -67,6 +67,7 @@ def install_kit(
             "errors": [f"Kit source missing blueprints/: {kit_source}"],
         }
 
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-save-reference
     # Save reference (only blueprints + scripts)
     for subdir_name in KIT_COPY_SUBDIRS:
         src = kit_source / subdir_name
@@ -77,6 +78,7 @@ def install_kit(
             dst.parent.mkdir(parents=True, exist_ok=True)
             shutil.copytree(src, dst)
             actions[f"ref_{subdir_name}"] = "copied"
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-save-reference
 
     # Copy conf.toml to reference and config/kits/{slug}/
     conf_src = kit_source / "conf.toml"
@@ -91,12 +93,14 @@ def install_kit(
         if not kit_version:
             kit_version = _read_kit_version(conf_src)
 
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-copy-blueprints
     # Copy blueprints to config/kits/{slug}/blueprints/ (user-editable)
     if user_bp_dir.exists():
         shutil.rmtree(user_bp_dir)
     user_bp_dir.parent.mkdir(parents=True, exist_ok=True)
     shutil.copytree(blueprints_dir, user_bp_dir)
     actions["user_blueprints"] = "copied"
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-copy-blueprints
 
     # Copy scripts to .gen/kits/{slug}/scripts/
     if scripts_dir.is_dir():
@@ -107,6 +111,7 @@ def install_kit(
         shutil.copytree(scripts_dir, gen_kit_scripts)
         actions["gen_scripts"] = "copied"
 
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-process-blueprints
     # Process blueprints → generate resources into .gen/kits/{slug}/
     from ..utils.blueprint import process_kit
 
@@ -114,6 +119,7 @@ def install_kit(
         kit_slug, user_bp_dir, gen_kits_dir, dry_run=False,
     )
     errors.extend(kit_errors)
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-process-blueprints
 
     # Write per-kit SKILL.md into .gen/kits/{slug}/SKILL.md
     skill_nav = ""
@@ -166,8 +172,10 @@ def install_kit(
         )
         actions[f"gen_workflow_{wf_name}"] = "created"
 
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-register-kit
     # Register in core.toml
     _register_kit_in_core_toml(config_dir, kit_slug, kit_version, cypilot_dir)
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-register-kit
 
     return {
         "status": "PASS" if not errors else "WARN",
@@ -284,9 +292,7 @@ def cmd_kit_install(argv: List[str]) -> int:
         }, indent=2, ensure_ascii=False))
         return 0
 
-    # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-install-kit
     result = install_kit(kit_source, cypilot_dir, kit_slug, kit_version)
-    # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-install-kit
 
     # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-return-install-ok
     # @cpt-begin:cpt-cypilot-state-blueprint-system-kit-install:p1:inst-install-complete
