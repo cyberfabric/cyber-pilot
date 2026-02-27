@@ -461,5 +461,99 @@ class TestAdapterHelperFunctions(unittest.TestCase):
             self.assertEqual(len(config["rules"]), 2)
 
 
+class TestLoadJsonFile(unittest.TestCase):
+    """Unit tests for adapter_info._load_json_file edge cases."""
+
+    def test_returns_none_for_missing_file(self):
+        from cypilot.commands.adapter_info import _load_json_file
+        self.assertIsNone(_load_json_file(Path("/tmp/nonexistent_abc.json")))
+
+    def test_returns_none_for_non_dict(self):
+        from cypilot.commands.adapter_info import _load_json_file
+        with tempfile.TemporaryDirectory() as td:
+            p = Path(td) / "arr.json"
+            p.write_text("[1,2,3]", encoding="utf-8")
+            self.assertIsNone(_load_json_file(p))
+
+    def test_returns_none_for_bad_json(self):
+        from cypilot.commands.adapter_info import _load_json_file
+        with tempfile.TemporaryDirectory() as td:
+            p = Path(td) / "bad.json"
+            p.write_text("{not json", encoding="utf-8")
+            self.assertIsNone(_load_json_file(p))
+
+    def test_returns_dict_for_valid(self):
+        from cypilot.commands.adapter_info import _load_json_file
+        with tempfile.TemporaryDirectory() as td:
+            p = Path(td) / "ok.json"
+            p.write_text('{"key": 1}', encoding="utf-8")
+            self.assertEqual(_load_json_file(p), {"key": 1})
+
+
+class TestAdapterInfoRegistryEdgeCases(unittest.TestCase):
+    """Cover legacy JSON fallback, tomllib exception, and autodetect branches."""
+
+    def _bootstrap(self, root):
+        (root / ".git").mkdir()
+        (root / "AGENTS.md").write_text(
+            '<!-- @cpt:root-agents -->\n```toml\ncypilot_path = "adapter"\n```\n<!-- /@cpt:root-agents -->\n',
+            encoding="utf-8",
+        )
+        adapter = root / "adapter"
+        adapter.mkdir()
+        (adapter / "config").mkdir()
+        (adapter / "config" / "AGENTS.md").write_text("# Test\n", encoding="utf-8")
+        return adapter
+
+    def test_legacy_json_fallback(self):
+        """When only artifacts.json exists, info command uses it."""
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            adapter = self._bootstrap(root)
+            import json as _json
+            (adapter / "artifacts.json").write_text(
+                _json.dumps({"version": "1.0", "project_root": "..", "systems": [], "kits": {}}),
+                encoding="utf-8",
+            )
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                rc = main(["info", "--root", str(root)])
+            self.assertEqual(rc, 0)
+            out = json.loads(buf.getvalue())
+            self.assertEqual(out["status"], "FOUND")
+            self.assertIn("artifacts_registry", out)
+
+    def test_corrupt_toml_registry(self):
+        """When artifacts.toml is corrupt, info reports an error in registry."""
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            adapter = self._bootstrap(root)
+            (adapter / "config" / "artifacts.toml").write_text("not valid toml {{{", encoding="utf-8")
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                rc = main(["info", "--root", str(root)])
+            self.assertEqual(rc, 0)
+            out = json.loads(buf.getvalue())
+            # Registry should be None or have an error
+            self.assertIn(out.get("artifacts_registry_error", ""), ["MISSING_OR_INVALID_JSON", "MISSING", None])
+
+    def test_no_systems_key_in_registry(self):
+        """Registry without 'systems' key: autodetect_registry returns None."""
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            adapter = self._bootstrap(root)
+            import json as _json
+            (adapter / "artifacts.json").write_text(
+                _json.dumps({"version": "1.0", "kits": {}}),
+                encoding="utf-8",
+            )
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                rc = main(["info", "--root", str(root)])
+            self.assertEqual(rc, 0)
+            out = json.loads(buf.getvalue())
+            self.assertIsNone(out.get("autodetect_registry"))
+
+
 if __name__ == "__main__":
     unittest.main()

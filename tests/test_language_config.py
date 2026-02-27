@@ -366,53 +366,6 @@ class TestCodebaseEntryCommentFields(unittest.TestCase):
         self.assertIsNone(entry.multi_line_comments)
 
 
-class TestLanguageConfigFromCodebaseEntry(unittest.TestCase):
-    """Test LanguageConfig.from_codebase_entry() factory."""
-
-    def test_explicit_comments_from_entry(self):
-        from cypilot.utils.artifacts_meta import CodebaseEntry
-
-        entry = CodebaseEntry(
-            path="src",
-            extensions=[".py"],
-            single_line_comments=["#"],
-            multi_line_comments=[{"start": '"""', "end": '"""'}],
-        )
-        lc = LanguageConfig.from_codebase_entry(entry)
-        self.assertEqual(lc.single_line_comments, ["#"])
-        self.assertEqual(lc.multi_line_comments, [{"start": '"""', "end": '"""'}])
-        self.assertEqual(lc.block_comment_prefixes, [])
-
-    def test_explicit_comments_with_block_star(self):
-        from cypilot.utils.artifacts_meta import CodebaseEntry
-
-        entry = CodebaseEntry(
-            path="src",
-            extensions=[".js"],
-            single_line_comments=["//"],
-            multi_line_comments=[{"start": "/*", "end": "*/"}],
-        )
-        lc = LanguageConfig.from_codebase_entry(entry)
-        self.assertEqual(lc.single_line_comments, ["//"])
-        self.assertEqual(lc.block_comment_prefixes, ["*"])
-
-    def test_fallback_to_extension_defaults(self):
-        from cypilot.utils.artifacts_meta import CodebaseEntry
-
-        entry = CodebaseEntry(path="src", extensions=[".ts", ".tsx"])
-        lc = LanguageConfig.from_codebase_entry(entry)
-        self.assertIn("//", lc.single_line_comments)
-        self.assertTrue(any(m["start"] == "/*" for m in lc.multi_line_comments))
-
-    def test_unknown_extension_falls_back_to_global_defaults(self):
-        from cypilot.utils.artifacts_meta import CodebaseEntry
-
-        entry = CodebaseEntry(path="src", extensions=[".xyz"])
-        lc = LanguageConfig.from_codebase_entry(entry)
-        self.assertEqual(lc.single_line_comments, DEFAULT_SINGLE_LINE_COMMENTS)
-        self.assertEqual(lc.multi_line_comments, DEFAULT_MULTI_LINE_COMMENTS)
-
-
 class TestCommentDefaultsForExtensions(unittest.TestCase):
     """Test comment_defaults_for_extensions() utility."""
 

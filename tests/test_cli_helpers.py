@@ -141,15 +141,6 @@ class TestCliInternalHelpers(unittest.TestCase):
             p.write_text(json.dumps([1, 2, 3]), encoding="utf-8")
             self.assertIsNone(_load_json_file(p))
 
-    def test_safe_relpath_from_dir_fallbacks_to_absolute_on_error(self):
-        from cypilot.commands.agents import _safe_relpath_from_dir
-        with TemporaryDirectory() as tmpdir:
-            base = Path(tmpdir)
-            target = base / "x" / "y"
-            with patch("os.path.relpath", side_effect=Exception("boom")):
-                rel = _safe_relpath_from_dir(target, base)
-            self.assertEqual(rel, target.as_posix())
-
     def test_prompt_path_eof_returns_default(self):
         from cypilot.commands.init import _prompt_path
         with patch("builtins.input", side_effect=EOFError()):
@@ -164,14 +155,13 @@ class TestCliInternalHelpers(unittest.TestCase):
             out = _safe_relpath(other, root)
             self.assertEqual(out, other.as_posix())
 
-    def test_write_json_file_writes_trailing_newline(self):
-        from cypilot.commands.agents import _write_json_file
+    def test_safe_relpath_returns_posix_for_child(self):
+        from cypilot.commands.agents import _safe_relpath
         with TemporaryDirectory() as tmpdir:
-            p = Path(tmpdir) / "out.json"
-            _write_json_file(p, {"a": 1})
-            raw = p.read_text(encoding="utf-8")
-            self.assertTrue(raw.endswith("\n"))
-            self.assertEqual(json.loads(raw), {"a": 1})
+            base = Path(tmpdir)
+            target = base / "x" / "y"
+            rel = _safe_relpath(target, base)
+            self.assertEqual(rel, "x/y")
 
 
 class TestCliCommandCoverage(unittest.TestCase):

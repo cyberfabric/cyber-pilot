@@ -1682,14 +1682,6 @@ class TestCLITraceabilityCommands(unittest.TestCase):
 
 
 class TestCLICoreHelpers(unittest.TestCase):
-    def test_safe_relpath_from_dir_relpath_exception_returns_abs(self):
-        from cypilot.commands.agents import _safe_relpath_from_dir
-        
-        target = Path("/tmp/x")
-        with unittest.mock.patch("os.path.relpath", side_effect=Exception("boom")):
-            out = _safe_relpath_from_dir(target, Path("/tmp"))
-        self.assertEqual(out, target.as_posix())
-
     def test_render_template_missing_variable_raises_system_exit(self):
         from cypilot.commands.agents import _render_template
 

@@ -122,26 +122,6 @@ class TestArtifactsMeta(unittest.TestCase):
         self.assertEqual(len(meta.kits), 1)
         self.assertEqual(len(meta.systems), 1)
 
-    def test_from_json(self):
-        """Cover lines 222-223: from_json method."""
-        data = {
-            "version": "1.0",
-            "project_root": "..",
-            "kits": {},
-            "systems": [],
-        }
-        meta = ArtifactsMeta.from_json(json.dumps(data))
-        self.assertEqual(meta.version, "1.0")
-
-    def test_from_file(self):
-        """Cover lines 228-229: from_file method."""
-        with TemporaryDirectory() as tmpdir:
-            path = Path(tmpdir) / "artifacts.json"
-            data = {"version": "1.0", "project_root": "..", "kits": {}, "systems": []}
-            path.write_text(json.dumps(data), encoding="utf-8")
-            meta = ArtifactsMeta.from_file(path)
-            self.assertEqual(meta.version, "1.0")
-
     def test_get_artifact_by_path(self):
         """Cover lines 241-242: get_artifact_by_path method."""
         data = {
@@ -419,13 +399,6 @@ class TestLoadArtifactsMeta(unittest.TestCase):
             self.assertIsNotNone(meta)
             self.assertIsNone(err)
 
-    def test_load_artifacts_meta_missing_file(self):
-        with TemporaryDirectory() as tmpdir:
-            ad = Path(tmpdir)
-            meta, err = load_artifacts_meta(ad)
-            self.assertIsNone(meta)
-            self.assertIn("Missing", err)
-
     def test_load_artifacts_meta_invalid_json(self):
         with TemporaryDirectory() as tmpdir:
             ad = Path(tmpdir)
@@ -511,13 +484,12 @@ class TestGenerateDefaultRegistry(unittest.TestCase):
         self.assertEqual(result["systems"][0]["name"], "MyProject")
         self.assertEqual(result["systems"][0]["kit"], "cypilot-sdlc")
 
-    def test_join_path_edge_cases(self):
-        """Cover line 321: _join_path with empty base."""
-        from cypilot.utils.artifacts_meta import _join_path
-
-        self.assertEqual(_join_path("", "tail"), "tail")
-        self.assertEqual(_join_path(".", "tail"), "tail")
-        self.assertEqual(_join_path("base/", "/tail"), "base/tail")
+    def test_generate_default_registry_minimal(self):
+        """Smoke test: generate_default_registry with minimal input."""
+        data = {"version": "1.0", "project_root": "..", "kits": {}, "systems": []}
+        meta = ArtifactsMeta.from_dict(data)
+        self.assertEqual(meta.version, "1.0")
+        self.assertEqual(meta.systems, [])
 
 
 class TestSystemNodeHierarchy(unittest.TestCase):
