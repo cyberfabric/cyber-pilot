@@ -455,7 +455,25 @@ def _render_template(lines: List[str], variables: Dict[str, str]) -> str:
     return _ensure_frontmatter_description_quoted(rendered)
 
 
-def _list_workflow_files(cypilot_root: Path) -> List[Tuple[str, Path]]:
+def _resolve_gen_kits(cypilot_root: Path, project_root: Optional[Path] = None) -> Path:
+    """Resolve .gen/kits/ directory, with fallback to adapter dir for source repos.
+
+    In self-hosted / source-repo mode, cypilot_root == project_root and
+    .gen/ lives inside the adapter directory (e.g. .bootstrap/.gen/).
+    """
+    gen_kits = gen_subpath(cypilot_root, "kits")
+    if gen_kits.is_dir():
+        return gen_kits
+    if project_root is not None:
+        adapter_name = _read_cypilot_var(project_root)
+        if adapter_name:
+            adapter_gen_kits = project_root / adapter_name / ".gen" / "kits"
+            if adapter_gen_kits.is_dir():
+                return adapter_gen_kits
+    return gen_kits
+
+
+def _list_workflow_files(cypilot_root: Path, project_root: Optional[Path] = None) -> List[Tuple[str, Path]]:
     """List workflow files from .core/workflows/ and .gen/kits/*/workflows/.
 
     Returns list of (filename, full_path) tuples.  Generated workflows
@@ -490,7 +508,7 @@ def _list_workflow_files(cypilot_root: Path) -> List[Tuple[str, Path]]:
     _scan_dir(core_subpath(cypilot_root, "workflows"))
 
     # 2. Generated workflows from blueprints (.gen/kits/*/workflows/)
-    gen_kits = gen_subpath(cypilot_root, "kits")
+    gen_kits = _resolve_gen_kits(cypilot_root, project_root)
     if gen_kits.is_dir():
         try:
             for kit_dir in sorted(gen_kits.iterdir()):
@@ -564,7 +582,7 @@ def _process_single_agent(
             workflows_result["errors"].append("Missing or invalid template in workflows config")
         else:
             workflow_dir = (project_root / workflow_dir_rel).resolve()
-            cypilot_workflow_entries = _list_workflow_files(cypilot_root)
+            cypilot_workflow_entries = _list_workflow_files(cypilot_root, project_root)
 
             desired: Dict[str, Dict[str, str]] = {}
             for wf_filename, wf_full_path in cypilot_workflow_entries:
@@ -693,7 +711,7 @@ def _process_single_agent(
                     expected.relative_to(core_subpath(cypilot_root, "workflows"))
                 except ValueError:
                     try:
-                        expected.relative_to(gen_subpath(cypilot_root, "kits"))
+                        expected.relative_to(_resolve_gen_kits(cypilot_root, project_root))
                     except ValueError:
                         continue
                 if expected.exists():
@@ -727,7 +745,7 @@ def _process_single_agent(
                 skill_source_description = skill_fm.get("description", "Proxy to Cypilot core skill instructions")
 
                 # Enrich description with per-kit skill descriptions from .gen/kits/*/SKILL.md
-                gen_kits = gen_subpath(cypilot_root, "kits")
+                gen_kits = _resolve_gen_kits(cypilot_root, project_root)
                 if gen_kits.is_dir():
                     kit_descs: List[str] = []
                     try:

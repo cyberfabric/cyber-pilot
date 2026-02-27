@@ -6,4 +6,4 @@ user-invocable: true
 allowed-tools: Bash, Read, Glob, Grep
 ---
 
-ALWAYS open and follow `@/cypilot/.core/workflows/analyze.md`
+ALWAYS open and follow `@/workflows/analyze.md`

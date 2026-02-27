@@ -1,4 +1,4 @@
 # /cypilot-analyze
 
 
-ALWAYS open and follow `@/cypilot/.core/workflows/analyze.md`
+ALWAYS open and follow `@/workflows/analyze.md`

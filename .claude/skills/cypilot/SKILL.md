@@ -7,4 +7,4 @@ allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Task, WebFetch
 ---
 
 
-ALWAYS open and follow `@/cypilot/.core/skills/cypilot/SKILL.md`
+ALWAYS open and follow `@/skills/cypilot/SKILL.md`
