@@ -48,9 +48,9 @@
 
 ### Load Dependencies
 
-- [ ] Load `template.md` for structure
-- [ ] Load `checklist.md` for semantic guidance
-- [ ] Load `examples/example.md` for reference style
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md` for structure
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md` for semantic guidance
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/examples/example.md` for reference style
 - [ ] Read parent PRD for context
 - [ ] Load `{cypilot_path}/.core/architecture/specs/traceability.md` for ID formats
 - [ ] Load `{cypilot_path}/.gen/kits/sdlc/constraints.toml` for kit-level constraints
@@ -63,7 +63,7 @@
 
 ### Structural
 
-- [ ] DESIGN follows `template.md` structure
+- [ ] DESIGN follows `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md` structure
 - [ ] Artifact frontmatter (optional): use `cpt:` format for document metadata
 - [ ] All required sections present and non-empty
 - [ ] All IDs follow `cpt-{hierarchy-prefix}-{kind}-{slug}` convention (see artifacts.toml for hierarchy)
@@ -80,7 +80,7 @@
 
 ### Semantic
 
-**Reference**: `checklist.md` for detailed semantic criteria
+**Reference**: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md` for detailed semantic criteria
 
 - [ ] Architecture overview is complete and clear
 - [ ] Domain model defines all core types
@@ -177,9 +177,9 @@ DESIGN documents must NOT contain the following — report as violation if found
 
 ### Phase 1: Setup
 
-- [ ] Load `template.md` for structure
-- [ ] Load `checklist.md` for semantic guidance
-- [ ] Load `examples/example.md` for reference style
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md` for structure
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md` for semantic guidance
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/examples/example.md` for reference style
 - [ ] Read parent PRD for context
 
 ### Phase 2: Content Creation
@@ -227,7 +227,7 @@ If DESIGN cannot be completed in a single session:
 
 ### Phase 4: Quality Check
 
-- [ ] Self-review against `checklist.md` MUST HAVE items
+- [ ] Self-review against `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md` MUST HAVE items
 - [ ] Ensure no MUST NOT HAVE violations
 - [ ] Verify PRD traceability
 
@@ -245,7 +245,7 @@ If DESIGN cannot be completed in a single session:
 
 ### Phase 2: Semantic Validation (Checklist-based)
 
-- [ ] Read `checklist.md` in full
+- [ ] Read `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md` in full
 - [ ] For each MUST HAVE item: check if requirement is met
   - If not met: report as violation with severity
   - If not applicable: verify explicit "N/A" with reasoning
@@ -335,7 +335,7 @@ When reviewing PRs that add or change design documents, additionally focus on:
 - [ ] Trade-off analysis — are alternatives considered and justified?
 - [ ] API contract consistency with existing endpoints and conventions
 - [ ] Security considerations — authentication, authorization, data protection
-- [ ] Compliance with `template.md` structure (generated from blueprint)
+- [ ] Compliance with `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md` structure (generated from blueprint)
 - [ ] Identify antipatterns — god objects, leaky abstractions, tight coupling
 - [ ] Compare proposed design with existing industry patterns in SaaS platforms
 - [ ] Compare proposed design with IEEE, ISO, and other industry standards where applicable

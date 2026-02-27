@@ -54,7 +54,7 @@ codebase = false
 
 ### Rules Skeleton
 
-> **`@cpt:rules`** — Rules skeleton. Defines section structure (prerequisites, requirements, tasks, validation, etc.) for `rules.md`.
+> **`@cpt:rules`** — Rules skeleton. Defines section structure (prerequisites, requirements, tasks, validation, etc.) for `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/rules.md`.
 
 `@cpt:rules`
 ```toml
@@ -107,7 +107,7 @@ sections = ["options"]
 
 ### Prerequisites
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -117,9 +117,9 @@ kind = "prerequisites"
 section = "load_dependencies"
 ```
 ```markdown
-- [ ] Load `template.md` for structure
-- [ ] Load `checklist.md` for semantic guidance
-- [ ] Load `examples/example.md` for reference style
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md` for structure
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md` for semantic guidance
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/examples/example.md` for reference style
 - [ ] Read parent PRD for context
 - [ ] Load `{cypilot_path}/.core/architecture/specs/traceability.md` for ID formats
 - [ ] Load `{cypilot_path}/.gen/kits/sdlc/constraints.toml` for kit-level constraints
@@ -132,7 +132,7 @@ section = "load_dependencies"
 
 #### Structural
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -142,7 +142,7 @@ kind = "requirements"
 section = "structural"
 ```
 ```markdown
-- [ ] DESIGN follows `template.md` structure
+- [ ] DESIGN follows `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md` structure
 - [ ] Artifact frontmatter (optional): use `cpt:` format for document metadata
 - [ ] All required sections present and non-empty
 - [ ] All IDs follow `cpt-{hierarchy-prefix}-{kind}-{slug}` convention (see artifacts.toml for hierarchy)
@@ -154,7 +154,7 @@ section = "structural"
 
 #### Versioning
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -173,7 +173,7 @@ section = "versioning"
 
 #### Semantic
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -183,7 +183,7 @@ kind = "requirements"
 section = "semantic"
 ```
 ```markdown
-**Reference**: `checklist.md` for detailed semantic criteria
+**Reference**: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md` for detailed semantic criteria
 
 - [ ] Architecture overview is complete and clear
 - [ ] Domain model defines all core types
@@ -196,7 +196,7 @@ section = "semantic"
 
 #### Scope
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -236,7 +236,7 @@ section = "scope"
 
 #### Traceability
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -254,7 +254,7 @@ section = "traceability"
 
 #### Constraints
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -283,7 +283,7 @@ section = "constraints"
 
 #### Deliberate Omissions (MUST NOT HAVE)
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -310,7 +310,7 @@ DESIGN documents must NOT contain the following — report as violation if found
 
 #### Technology Stack & Capacity
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -340,7 +340,7 @@ section = "technology_stack"
 
 #### Setup
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -350,16 +350,16 @@ kind = "tasks"
 section = "setup"
 ```
 ```markdown
-- [ ] Load `template.md` for structure
-- [ ] Load `checklist.md` for semantic guidance
-- [ ] Load `examples/example.md` for reference style
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md` for structure
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md` for semantic guidance
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/examples/example.md` for reference style
 - [ ] Read parent PRD for context
 ```
 `@/cpt:rule`
 
 #### Content Creation
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -406,7 +406,7 @@ If DESIGN cannot be completed in a single session:
 
 #### IDs & References
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -426,7 +426,7 @@ section = "ids_and_references"
 
 #### Quality Check
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -436,7 +436,7 @@ kind = "tasks"
 section = "quality_check"
 ```
 ```markdown
-- [ ] Self-review against `checklist.md` MUST HAVE items
+- [ ] Self-review against `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md` MUST HAVE items
 - [ ] Ensure no MUST NOT HAVE violations
 - [ ] Verify PRD traceability
 ```
@@ -446,7 +446,7 @@ section = "quality_check"
 
 #### Missing PRD
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -465,7 +465,7 @@ section = "missing_prd"
 
 #### Incomplete PRD
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -483,7 +483,7 @@ section = "incomplete_prd"
 
 #### Escalation
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -503,7 +503,7 @@ section = "escalation"
 
 #### Structural
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -523,7 +523,7 @@ section = "structural"
 
 #### Semantic
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -533,7 +533,7 @@ kind = "validation"
 section = "semantic"
 ```
 ```markdown
-- [ ] Read `checklist.md` in full
+- [ ] Read `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md` in full
 - [ ] For each MUST HAVE item: check if requirement is met
   - If not met: report as violation with severity
   - If not applicable: verify explicit "N/A" with reasoning
@@ -543,7 +543,7 @@ section = "semantic"
 
 #### Validation Report
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -568,7 +568,7 @@ Issues:
 
 #### Applicability Context
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -603,7 +603,7 @@ Before evaluating each checklist item, the expert MUST:
 
 #### Report Format
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -644,7 +644,7 @@ For quick reviews, use this condensed table format:
 
 #### Reporting Commitment
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -667,7 +667,7 @@ section = "reporting"
 
 #### PR Review Focus (Design)
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -683,7 +683,7 @@ When reviewing PRs that add or change design documents, additionally focus on:
 - [ ] Trade-off analysis — are alternatives considered and justified?
 - [ ] API contract consistency with existing endpoints and conventions
 - [ ] Security considerations — authentication, authorization, data protection
-- [ ] Compliance with `template.md` structure (generated from blueprint)
+- [ ] Compliance with `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md` structure (generated from blueprint)
 - [ ] Identify antipatterns — god objects, leaky abstractions, tight coupling
 - [ ] Compare proposed design with existing industry patterns in SaaS platforms
 - [ ] Compare proposed design with IEEE, ISO, and other industry standards where applicable
@@ -694,7 +694,7 @@ When reviewing PRs that add or change design documents, additionally focus on:
 
 ### Next Steps
 
-> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/rules.md`.
 
 `@cpt:rule`
 ```toml
@@ -720,7 +720,7 @@ Design quality checks organized by domain.
 
 ### Checklist Skeleton
 
-> **`@cpt:checklist`** — Checklist preamble. Static markdown placed at the top of `checklist.md` (standards, prerequisites, severity dictionary).
+> **`@cpt:checklist`** — Checklist preamble. Static markdown placed at the top of `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md` (standards, prerequisites, severity dictionary).
 
 `@cpt:checklist`
 ```toml
@@ -981,7 +981,7 @@ Before evaluating each checklist item, the expert MUST:
 ````
 `@/cpt:checklist`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1010,7 +1010,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1035,7 +1035,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1062,7 +1062,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1091,7 +1091,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1120,7 +1120,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1149,7 +1149,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1175,7 +1175,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1200,7 +1200,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1225,7 +1225,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1248,7 +1248,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1273,7 +1273,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1295,7 +1295,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1318,7 +1318,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1340,7 +1340,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1368,7 +1368,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1394,7 +1394,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1419,7 +1419,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1443,7 +1443,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1471,7 +1471,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1497,7 +1497,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1523,7 +1523,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1549,7 +1549,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1574,7 +1574,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1599,7 +1599,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1627,7 +1627,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1652,7 +1652,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1677,7 +1677,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1702,7 +1702,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1727,7 +1727,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1754,7 +1754,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1779,7 +1779,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1804,7 +1804,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1829,7 +1829,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1854,7 +1854,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1879,7 +1879,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1904,7 +1904,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1928,7 +1928,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1953,7 +1953,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -1979,7 +1979,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -2003,7 +2003,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -2025,7 +2025,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -2051,7 +2051,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -2074,7 +2074,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -2098,7 +2098,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -2124,7 +2124,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -2149,7 +2149,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -2173,7 +2173,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -2197,7 +2197,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -2221,7 +2221,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -2247,7 +2247,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -2269,7 +2269,7 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -2296,7 +2296,7 @@ kind = "must_not_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -2323,7 +2323,7 @@ kind = "must_not_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -2350,7 +2350,7 @@ kind = "must_not_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -2378,7 +2378,7 @@ kind = "must_not_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -2404,7 +2404,7 @@ kind = "must_not_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -2430,7 +2430,7 @@ kind = "must_not_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -2457,7 +2457,7 @@ kind = "must_not_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -2483,7 +2483,7 @@ kind = "must_not_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -2509,7 +2509,7 @@ kind = "must_not_have"
 ```
 `@/cpt:check`
 
-> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md`.
 
 `@cpt:check`
 ```toml
@@ -2542,14 +2542,14 @@ kind = "must_not_have"
 
 ## Template Structure
 
-Headings, prompts, IDs, and examples that define the generated `template.md`
+Headings, prompts, IDs, and examples that define the generated `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`
 and `example.md` files. The DESIGN template covers: architecture overview,
 domain model, components, design drivers, principles, constraints,
 dependencies, sequences, database design, and traceability.
 
 ### Title (H1)
 
-> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:heading`
 ```toml
@@ -2576,7 +2576,7 @@ examples = ["# Technical Design: TaskFlow"]
 
 ### Architecture Overview
 
-> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:heading`
 ```toml
@@ -2599,7 +2599,7 @@ examples = ["## 1. Architecture Overview"]
 ```
 `@/cpt:heading`
 
-> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:heading`
 ```toml
@@ -2622,7 +2622,7 @@ examples = ["### Architectural Vision"]
 ```
 `@/cpt:heading`
 
-> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -2630,7 +2630,7 @@ examples = ["### Architectural Vision"]
 ```
 `@/cpt:prompt`
 
-> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/examples/example.md`.
 
 `@cpt:example`
 ```markdown
@@ -2640,7 +2640,7 @@ The architecture prioritizes simplicity and developer productivity while support
 ```
 `@/cpt:example`
 
-> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:heading`
 ```toml
@@ -2663,7 +2663,7 @@ examples = []
 ```
 `@/cpt:heading`
 
-> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -2673,7 +2673,7 @@ Requirements that significantly influence architecture decisions.
 ```
 `@/cpt:prompt`
 
-> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:heading`
 ```toml
@@ -2696,7 +2696,7 @@ examples = []
 ```
 `@/cpt:heading`
 
-> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -2706,7 +2706,7 @@ examples = []
 ```
 `@/cpt:prompt`
 
-> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:heading`
 ```toml
@@ -2729,7 +2729,7 @@ examples = []
 ```
 `@/cpt:heading`
 
-> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -2741,7 +2741,7 @@ This table maps non-functional requirements from PRD to specific design/architec
 ```
 `@/cpt:prompt`
 
-> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/examples/example.md`.
 
 `@cpt:example`
 ```markdown
@@ -2783,7 +2783,7 @@ Use PostgreSQL for durable task storage. Chosen for strong ACID guarantees, rela
 ```
 `@/cpt:example`
 
-> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:heading`
 ```toml
@@ -2826,7 +2826,7 @@ coverage = false           # true = must reference | false = referencing prohibi
 ```
 `@/cpt:id`
 
-> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -2843,7 +2843,7 @@ coverage = false           # true = must reference | false = referencing prohibi
 ```
 `@/cpt:prompt`
 
-> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/examples/example.md`.
 
 `@cpt:example`
 ```markdown
@@ -2858,7 +2858,7 @@ coverage = false           # true = must reference | false = referencing prohibi
 
 ### Principles & Constraints
 
-> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:heading`
 ```toml
@@ -2881,7 +2881,7 @@ examples = ["## 2. Principles & Constraints"]
 ```
 `@/cpt:heading`
 
-> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:heading`
 ```toml
@@ -2934,7 +2934,7 @@ coverage = false           # true = must reference | false = referencing prohibi
 ```
 `@/cpt:id`
 
-> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:heading`
 ```toml
@@ -2949,7 +2949,7 @@ examples = []
 ```
 `@/cpt:heading`
 
-> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -2961,7 +2961,7 @@ examples = []
 ```
 `@/cpt:prompt`
 
-> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/examples/example.md`.
 
 `@cpt:example`
 ```markdown
@@ -2979,7 +2979,7 @@ Choose simpler solutions over spec-rich ones. Avoid premature optimization and u
 ```
 `@/cpt:example`
 
-> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:heading`
 ```toml
@@ -3032,7 +3032,7 @@ coverage = false           # true = must reference | false = referencing prohibi
 ```
 `@/cpt:id`
 
-> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:heading`
 ```toml
@@ -3047,7 +3047,7 @@ examples = []
 ```
 `@/cpt:heading`
 
-> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -3059,7 +3059,7 @@ examples = []
 ```
 `@/cpt:prompt`
 
-> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/examples/example.md`.
 
 `@cpt:example`
 ```markdown
@@ -3075,7 +3075,7 @@ Must run on Node.js 18+. PostgreSQL 14+ required for JSONB support. Browser supp
 
 Domain model, components, API contracts, dependencies, sequences, and database.
 
-> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:heading`
 ```toml
@@ -3118,7 +3118,7 @@ coverage = false           # true = must reference | false = referencing prohibi
 ```
 `@/cpt:id`
 
-> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:heading`
 ```toml
@@ -3141,7 +3141,7 @@ examples = ["### 3.1 Domain Model"]
 ```
 `@/cpt:heading`
 
-> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -3160,7 +3160,7 @@ examples = ["### 3.1 Domain Model"]
 ```
 `@/cpt:prompt`
 
-> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/examples/example.md`.
 
 `@cpt:example`
 ```markdown
@@ -3168,7 +3168,7 @@ Core entities: **Task** (id, title, description, status, priority, dueDate, assi
 ```
 `@/cpt:example`
 
-> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:heading`
 ```toml
@@ -3216,7 +3216,7 @@ coverage = false           # true = must reference | false = referencing prohibi
 ```
 `@/cpt:id`
 
-> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -3224,7 +3224,7 @@ coverage = false           # true = must reference | false = referencing prohibi
 ```
 `@/cpt:prompt`
 
-> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/examples/example.md`.
 
 `@cpt:example`
 ````markdown
@@ -3238,7 +3238,7 @@ graph LR
 ````
 `@/cpt:example`
 
-> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:heading`
 ```toml
@@ -3253,7 +3253,7 @@ examples = []
 ```
 `@/cpt:heading`
 
-> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -3261,7 +3261,7 @@ examples = []
 ```
 `@/cpt:prompt`
 
-> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:heading`
 ```toml
@@ -3284,7 +3284,7 @@ examples = []
 ```
 `@/cpt:heading`
 
-> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -3292,7 +3292,7 @@ examples = []
 ```
 `@/cpt:prompt`
 
-> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:heading`
 ```toml
@@ -3315,7 +3315,7 @@ examples = []
 ```
 `@/cpt:heading`
 
-> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -3323,7 +3323,7 @@ examples = []
 ```
 `@/cpt:prompt`
 
-> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:heading`
 ```toml
@@ -3346,7 +3346,7 @@ examples = []
 ```
 `@/cpt:heading`
 
-> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -3354,7 +3354,7 @@ examples = []
 ```
 `@/cpt:prompt`
 
-> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:heading`
 ```toml
@@ -3377,7 +3377,7 @@ examples = []
 ```
 `@/cpt:heading`
 
-> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -3387,7 +3387,7 @@ examples = []
 ```
 `@/cpt:prompt`
 
-> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/examples/example.md`.
 
 `@cpt:example`
 ```markdown
@@ -3402,7 +3402,7 @@ examples = []
 ```
 `@/cpt:example`
 
-> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:heading`
 ```toml
@@ -3445,7 +3445,7 @@ coverage = false           # true = must reference | false = referencing prohibi
 ```
 `@/cpt:id`
 
-> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -3465,7 +3465,7 @@ coverage = false           # true = must reference | false = referencing prohibi
 ```
 `@/cpt:prompt`
 
-> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/examples/example.md`.
 
 `@cpt:example`
 ```markdown
@@ -3473,7 +3473,7 @@ REST API at `/api/v1/` with JSON request/response. Authentication via Bearer JWT
 ```
 `@/cpt:example`
 
-> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:heading`
 ```toml
@@ -3496,7 +3496,7 @@ examples = ["### 3.4 Internal Dependencies"]
 ```
 `@/cpt:heading`
 
-> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -3515,7 +3515,7 @@ examples = ["### 3.4 Internal Dependencies"]
 ```
 `@/cpt:prompt`
 
-> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/examples/example.md`.
 
 `@cpt:example`
 ```markdown
@@ -3523,7 +3523,7 @@ None.
 ```
 `@/cpt:example`
 
-> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:heading`
 ```toml
@@ -3546,7 +3546,7 @@ examples = ["### 3.5 External Dependencies"]
 ```
 `@/cpt:heading`
 
-> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -3554,7 +3554,7 @@ External systems, databases, and third-party services this module interacts with
 ```
 `@/cpt:prompt`
 
-> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/examples/example.md`.
 
 `@cpt:example`
 ```markdown
@@ -3562,7 +3562,7 @@ None.
 ```
 `@/cpt:example`
 
-> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:heading`
 ```toml
@@ -3577,7 +3577,7 @@ examples = []
 ```
 `@/cpt:heading`
 
-> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -3594,7 +3594,7 @@ examples = []
 ```
 `@/cpt:prompt`
 
-> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:heading`
 ```toml
@@ -3637,7 +3637,7 @@ coverage = false           # true = must reference | false = referencing prohibi
 ```
 `@/cpt:id`
 
-> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -3645,7 +3645,7 @@ coverage = false           # true = must reference | false = referencing prohibi
 ```
 `@/cpt:prompt`
 
-> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:heading`
 ```toml
@@ -3660,7 +3660,7 @@ examples = []
 ```
 `@/cpt:heading`
 
-> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:prompt`
 ````markdown
@@ -3683,7 +3683,7 @@ sequenceDiagram
 ````
 `@/cpt:prompt`
 
-> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/examples/example.md`.
 
 `@cpt:example`
 ````markdown
@@ -3704,7 +3704,7 @@ Lead or member creates task via REST API. Server validates input, inserts into d
 ````
 `@/cpt:example`
 
-> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:heading`
 ```toml
@@ -3777,7 +3777,7 @@ coverage = false           # true = must reference | false = referencing prohibi
 ```
 `@/cpt:id`
 
-> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -3785,7 +3785,7 @@ coverage = false           # true = must reference | false = referencing prohibi
 ```
 `@/cpt:prompt`
 
-> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:heading`
 ```toml
@@ -3800,7 +3800,7 @@ examples = []
 ```
 `@/cpt:heading`
 
-> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -3826,7 +3826,7 @@ examples = []
 ```
 `@/cpt:prompt`
 
-> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/examples/example.md`.
 
 `@cpt:example`
 ```markdown
@@ -3870,7 +3870,7 @@ Backend: Node.js 18 LTS, TypeScript 5.x, Express 4.x, pg-pool for PostgreSQL, io
 
 ### Additional Context & Traceability
 
-> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:heading`
 ```toml
@@ -3893,7 +3893,7 @@ examples = ["## 4. Additional Context"]
 ```
 `@/cpt:heading`
 
-> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -3901,7 +3901,7 @@ examples = ["## 4. Additional Context"]
 ```
 `@/cpt:prompt`
 
-> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:heading`
 ```toml
@@ -3924,7 +3924,7 @@ examples = []
 ```
 `@/cpt:heading`
 
-> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -3934,7 +3934,7 @@ examples = []
 ```
 `@/cpt:prompt`
 
-> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/examples/example.md`.
 
 `@cpt:example`
 ```markdown

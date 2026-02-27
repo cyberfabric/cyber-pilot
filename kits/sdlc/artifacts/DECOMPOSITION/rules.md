@@ -45,9 +45,9 @@
 
 ### Load Dependencies
 
-- [ ] Load `template.md` for structure
-- [ ] Load `checklist.md` for decomposition quality guidance
-- [ ] Load `examples/example.md` for reference style
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/DECOMPOSITION/template.md` for structure
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/DECOMPOSITION/checklist.md` for decomposition quality guidance
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/DECOMPOSITION/examples/example.md` for reference style
 - [ ] Read DESIGN to identify elements to decompose
 - [ ] Read PRD to identify requirements to cover
 - [ ] Read `{cypilot_path}/config/artifacts.toml` to determine artifact paths
@@ -60,7 +60,7 @@
 
 ### Structural
 
-- [ ] DECOMPOSITION follows `template.md` structure
+- [ ] DECOMPOSITION follows `{cypilot_path}/.gen/kits/sdlc/artifacts/DECOMPOSITION/template.md` structure
 - [ ] All required sections present and non-empty
 - [ ] Each feature has unique ID: `cpt-{hierarchy-prefix}-feature-{slug}`
 - [ ] Each feature has priority marker (`p1`-`p9`)
@@ -70,7 +70,7 @@
 
 ### Decomposition Quality
 
-**Reference**: `checklist.md` for detailed criteria based on IEEE 1016 and ISO 21511
+**Reference**: `{cypilot_path}/.gen/kits/sdlc/artifacts/DECOMPOSITION/checklist.md` for detailed criteria based on IEEE 1016 and ISO 21511
 
 **Coverage (100% Rule)**:
 - [ ] ALL components from DESIGN are assigned to at least one feature
@@ -137,9 +137,9 @@
 
 ### Phase 1: Setup
 
-- [ ] Load `template.md` for structure
-- [ ] Load `checklist.md` for decomposition quality guidance
-- [ ] Load `examples/example.md` for reference style
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/DECOMPOSITION/template.md` for structure
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/DECOMPOSITION/checklist.md` for decomposition quality guidance
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/DECOMPOSITION/examples/example.md` for reference style
 - [ ] Read DESIGN to identify elements to decompose
 - [ ] Read PRD to identify requirements to cover
 
@@ -162,8 +162,8 @@
 
 ### Phase 4: Quality Check
 
-- [ ] Compare output to `examples/example.md`
-- [ ] Self-review against `checklist.md` COV, EXC, ATTR, TRC, DEP sections
+- [ ] Compare output to `{cypilot_path}/.gen/kits/sdlc/artifacts/DECOMPOSITION/examples/example.md`
+- [ ] Self-review against `{cypilot_path}/.gen/kits/sdlc/artifacts/DECOMPOSITION/checklist.md` COV, EXC, ATTR, TRC, DEP sections
 - [ ] Verify 100% design element coverage
 - [ ] Verify no scope overlaps between features
 - [ ] Verify dependency graph is valid DAG
@@ -206,7 +206,7 @@
 
 ### Phase 2: Decomposition Quality Validation (Checklist-based)
 
-Apply `checklist.md` systematically:
+Apply `{cypilot_path}/.gen/kits/sdlc/artifacts/DECOMPOSITION/checklist.md` systematically:
 1. **COV (Coverage)**: Verify 100% design element coverage
 2. **EXC (Exclusivity)**: Verify no scope overlaps
 3. **ATTR (Attributes)**: Verify each feature has all required attributes
