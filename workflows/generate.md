@@ -87,23 +87,36 @@ ALWAYS SKIP this section WHEN GREENFIELD — nothing to reverse-engineer
 
 **BROWNFIELD only** — when existing code needs to inform artifacts:
 
-1. **Check if config has project analysis**:
-  - Does `cypilot.py info` report any `specs`?
-  - If specs exist, load and follow them before generating.
-  - If no specs exist, offer rescan.
+1. **Check if config has project rules or specs**:
+   - Does `{cypilot_path}/config/rules/` contain any `.md` files?
+   - Does `cypilot.py info` report any `specs`?
+   - If rules or specs exist, load and follow them before generating.
+   - If **neither** rules nor specs exist → offer auto-config (step 2).
 
-2. **Offer reverse-engineering scan**:
+2. **Offer auto-config** (no rules AND no specs):
+
+   ALWAYS open and follow `{cypilot_path}/.core/requirements/auto-config.md` WHEN user accepts auto-config
+
    ```
-   BROWNFIELD project detected — existing code found.
+   Brownfield project detected — existing code found but no project-specific rules configured.
 
-   To generate artifacts informed by your codebase:
-   → `cypilot init --rescan` — analyze codebase structure and patterns
+   Auto-config can scan your project and generate rules that teach Cypilot your conventions.
+   This produces:
+   • Per-system rule files in config/rules/ (with TOC)
+   • Heading-level WHEN rules in config/AGENTS.md
+   • Doc navigation rules for existing project guides
+   • System entries in config/artifacts.toml
 
-   Skip? Artifacts will be created without codebase context.
+   → Run auto-config now? [yes/no/skip]
+
+   "yes"  → Run auto-config methodology (recommended for first-time setup)
+   "no"   → Cancel generation
+   "skip" → Continue without project rules (reduced quality)
    ```
 
-3. **If user confirms**: Run rescan, then continue
-4. **If user skips**: Proceed without codebase analysis
+3. **If user confirms "yes"**: Execute auto-config methodology (Phases 1→6), then return to generate
+4. **If user says "skip"**: Proceed without project-specific rules
+5. **If user says "no"**: Cancel
 
 ---
 

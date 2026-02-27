@@ -1,6 +1,6 @@
 ---
 name: cypilot
-description: "Invoke when user asks to do something with Cypilot, or wants to analyze/validate artifacts, or create/generate/implement anything using Cypilot workflows. Core capabilities: workflow routing (analyze/generate); deterministic validation (structure, cross-refs, traceability); code\u2194artifact traceability with @cpt-* markers; ID search/navigation; init/bootstrap; agent integrations."
+description: "Invoke when user asks to do something with Cypilot, or wants to analyze/validate artifacts, or create/generate/implement anything using Cypilot workflows. Core capabilities: workflow routing (analyze/generate/auto-config); deterministic validation (structure, cross-refs, traceability); code\u2194artifact traceability with @cpt-* markers; ID search/navigation; init/bootstrap; adapter + registry discovery; auto-configuration of brownfield projects (scan conventions, generate rules); agent integrations."
 ---
 
 # Cypilot Unified Tool
@@ -160,6 +160,8 @@ ALWAYS run `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py init 
 
 ALWAYS run `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py agents --agent <name>` directly WHEN user invokes `cypilot agents <name>`
 
+ALWAYS open and follow `{cypilot_path}/.core/workflows/generate.md` directly WHEN user invokes `cypilot auto-config` or `cypilot configure` — generate.md will trigger the auto-config methodology
+
 ---
 
 ## Workflow Routing
@@ -170,7 +172,9 @@ ALWAYS open and follow `{cypilot_path}/.core/workflows/generate.md` WHEN user in
 
 ALWAYS open and follow `{cypilot_path}/.core/workflows/analyze.md` WHEN user intent is READ: analyze, validate, review, analyze, check, inspect, audit, compare, list, show, find
 
-ALWAYS ask user "analyze (read-only) or generate (modify)?" WHEN intent is UNCLEAR: help, look at, work with, handle and STOP WHEN user user cancel or exit
+ALWAYS ask user "analyze (read-only) or generate (modify)?" WHEN intent is UNCLEAR: help, look at, work with, handle and STOP WHEN user cancel or exit
+
+> **Note**: `generate.md` auto-triggers the auto-config methodology (`requirements/auto-config.md`) when it detects a brownfield project with no project-specific rules. "configure" intent routes through generate.md.
 
 ## Command Reference
 
@@ -219,6 +223,28 @@ Shortcut:
 ```bash
 python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py agents --openai
 ```
+
+---
+
+## Auto-Configuration
+
+Cypilot can scan a brownfield project and generate project-specific rules automatically.
+
+**What it does**:
+- Scans project structure, entry points, conventions, patterns
+- Generates per-system rule files → `{cypilot_path}/config/rules/{slug}.md`
+- Adds WHEN rules to `{cypilot_path}/config/AGENTS.md`
+- Registers detected systems in `{cypilot_path}/config/artifacts.toml`
+
+**When to use**:
+- After `cypilot init` on an existing (brownfield) project
+- When Cypilot doesn't know your project conventions yet
+- When you want to reconfigure after major project changes
+
+**How to invoke**:
+- `cypilot auto-config` — run auto-config workflow
+- `cypilot configure` — alias
+- Automatic — `generate.md` offers auto-config when brownfield + no rules detected
 
 ---
 
