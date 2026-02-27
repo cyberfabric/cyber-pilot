@@ -286,13 +286,17 @@ def load_cypilot_config(adapter_dir: Path) -> Dict[str, object]:
 
 def load_artifacts_registry(adapter_dir: Path) -> Tuple[Optional[dict], Optional[str]]:
     path = adapter_dir / ARTIFACTS_REGISTRY_FILENAME
-    # Fallback: try legacy artifacts.json if artifacts.toml not found
+    # Fallback chain: config/artifacts.toml -> artifacts.json (legacy)
     if not path.is_file():
-        legacy = adapter_dir / "artifacts.json"
-        if legacy.is_file():
-            path = legacy
+        config_path = adapter_dir / "config" / ARTIFACTS_REGISTRY_FILENAME
+        if config_path.is_file():
+            path = config_path
         else:
-            return None, f"Missing artifacts registry: {path}"
+            legacy = adapter_dir / "artifacts.json"
+            if legacy.is_file():
+                path = legacy
+            else:
+                return None, f"Missing artifacts registry: {path}"
     try:
         if path.suffix == ".toml":
             cfg = toml_utils.load(path)
