@@ -89,6 +89,20 @@ def _cmd_generate_resources(argv: List[str]) -> int:
 
 
 # =============================================================================
+# TOC COMMANDS
+# =============================================================================
+
+def _cmd_toc(argv: List[str]) -> int:
+    from .commands.toc import cmd_toc
+    return cmd_toc(argv)
+
+
+def _cmd_validate_toc(argv: List[str]) -> int:
+    from .commands.validate_toc import cmd_validate_toc
+    return cmd_validate_toc(argv)
+
+
+# =============================================================================
 # ADAPTER COMMAND
 # =============================================================================
 
@@ -112,9 +126,10 @@ def main(argv: Optional[List[str]] = None) -> int:
     # Context may be None if Cypilot not initialized - that's OK for some commands like init
 
     # Define all available commands
-    analysis_commands = ["validate", "validate-kits"]
+    analysis_commands = ["validate", "validate-kits", "validate-toc"]
     legacy_aliases = ["validate-code", "validate-rules"]
     kit_commands = ["kit", "generate-resources"]
+    utility_commands = ["toc"]
     search_commands = [
         "init",
         "list-ids", "list-id-kinds",
@@ -124,7 +139,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         "self-check",
         "agents",
     ]
-    all_commands = analysis_commands + kit_commands + search_commands + legacy_aliases
+    all_commands = analysis_commands + kit_commands + search_commands + utility_commands + legacy_aliases
 
     # Handle --help / -h at top level
     if argv_list and argv_list[0] in ("-h", "--help"):
@@ -142,6 +157,10 @@ def main(argv: Optional[List[str]] = None) -> int:
         print()
         print("Search and utility commands:")
         for c in search_commands:
+            print(f"  {c}")
+        print()
+        print("Utility commands:")
+        for c in utility_commands:
             print(f"  {c}")
         print()
         print("Legacy aliases:")
@@ -221,6 +240,10 @@ def main(argv: Optional[List[str]] = None) -> int:
         return _cmd_kit(rest)
     elif cmd == "generate-resources":
         return _cmd_generate_resources(rest)
+    elif cmd == "toc":
+        return _cmd_toc(rest)
+    elif cmd == "validate-toc":
+        return _cmd_validate_toc(rest)
     else:
         # @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-if-no-handler
         # @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-return-unknown

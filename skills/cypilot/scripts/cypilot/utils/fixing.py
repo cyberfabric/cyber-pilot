@@ -215,6 +215,24 @@ _REASONS: Dict[str, List[str]] = {
         "Instruction slug `{inst}` has a typo in the artifact CDSL step",
     ],
 
+    # TOC (Table of Contents) validation
+    EC.TOC_MISSING: [
+        "Document was created or regenerated without a Table of Contents section",
+        "TOC section was accidentally deleted during editing",
+    ],
+    EC.TOC_ANCHOR_BROKEN: [
+        "Heading was renamed or removed but the TOC entry was not updated",
+        "TOC was manually edited and an anchor slug was mistyped",
+    ],
+    EC.TOC_HEADING_NOT_IN_TOC: [
+        "A new heading was added to the document but the TOC was not regenerated",
+        "TOC was generated with a `--max-level` that excludes this heading",
+    ],
+    EC.TOC_STALE: [
+        "Headings were added, removed, reordered, or renamed since the TOC was last generated",
+        "TOC was manually edited instead of being regenerated with `cypilot toc`",
+    ],
+
     # File errors
     EC.FILE_READ_ERROR: [
         "File could not be read — check encoding (must be UTF-8) or file permissions",
@@ -636,6 +654,39 @@ def _build_fixing_prompt(issue: Dict[str, object], project_root: Optional[Path] 
         return (
             f"Open `{loc}`: the code block `inst-{inst}` of `{cpt_id}` has no matching CDSL step in the artifact. "
             f"Add the CDSL step in the artifact, or rename/remove the code marker if the instruction was renamed."
+        )
+
+    # ------------------------------------------------------------------
+    # TOC (Table of Contents) validation
+    # ------------------------------------------------------------------
+    if code == EC.TOC_MISSING:
+        path_s = loc.rsplit(':', 1)[0] if ':' in loc else loc
+        return (
+            f"Add a Table of Contents to `{path_s}`. "
+            f"Run `cypilot toc {path_s}` to generate one automatically."
+        )
+
+    if code == EC.TOC_ANCHOR_BROKEN:
+        display = str(issue.get("toc_display") or "")
+        anchor = str(issue.get("toc_anchor") or "")
+        return (
+            f"Open `{loc}`: TOC entry `[{display}](#{anchor})` has a broken anchor. "
+            f"Regenerate with `cypilot toc` or fix the anchor manually."
+        )
+
+    if code == EC.TOC_HEADING_NOT_IN_TOC:
+        heading = str(issue.get("heading_text") or "")
+        path_s = loc.rsplit(':', 1)[0] if ':' in loc else loc
+        return (
+            f"Open `{loc}`: heading `{heading}` is missing from the Table of Contents. "
+            f"Run `cypilot toc {path_s}` to regenerate."
+        )
+
+    if code == EC.TOC_STALE:
+        path_s = loc.rsplit(':', 1)[0] if ':' in loc else loc
+        return (
+            f"Table of Contents in `{path_s}` is outdated. "
+            f"Run `cypilot toc {path_s}` to regenerate."
         )
 
     # ------------------------------------------------------------------

@@ -62,7 +62,7 @@ ALWAYS open and follow `{cypilot_path}/.core/requirements/artifacts-registry.md`
 - Defines global ignore rules for scanning
 - Enables CLI tools to discover and process artifacts automatically
 
-**Not in this file**: kit definitions (format, path, template locations) live in `config/core.toml`. Systems reference kits by ID; the tool resolves kit details from `core.toml`.
+**Not in this file**: kit definitions (format, path, template locations) live in `{cypilot_path}/config/core.toml`. Systems reference kits by ID; the tool resolves kit details from `core.toml`.
 
 ---
 
@@ -80,7 +80,7 @@ Notes:
 
 ## Root Structure
 
-`version` and `project_root` are defined in `config/core.toml` (authoritative source). They may appear in `artifacts.toml` for standalone or legacy use; the tool merges them at load time.
+`version` and `project_root` are defined in `{cypilot_path}/config/core.toml` (authoritative source). They may appear in `artifacts.toml` for standalone or legacy use; the tool merges them at load time.
 
 ```toml
 # artifacts.toml — systems and ignore only (version/project_root in core.toml)
@@ -141,7 +141,7 @@ artifacts_dir = "architecture"
 |-----|------|----------|-------------|
 | `name` | string | YES | Human-readable system/subsystem/component name |
 | `slug` | string | YES | Machine-readable identifier (lowercase, no spaces, hyphen-separated). Used for hierarchical ID generation. Pattern: `^[a-z0-9]+(-[a-z0-9]+)*$` |
-| `kit` | string | YES | Reference to kit ID registered in `config/core.toml` |
+| `kit` | string | YES | Reference to kit ID registered in `{cypilot_path}/config/core.toml` |
 | `artifacts_dir` | string | NO | Default base directory for NEW artifacts (default: `architecture`). Subdirectories defined by kit. |
 | `artifacts` | array of tables | NO | Artifacts belonging to this node. Paths are FULL paths relative to `project_root`. |
 | `codebase` | array of tables | NO | Source code directories for this node |
@@ -925,7 +925,7 @@ path = "src/modules/auth"
 extensions = [".ts"]
 ```
 
-**Note**: Artifact paths are FULL paths relative to `project_root`. The `artifacts_dir` defines the default base directory for NEW artifacts — subdirectories for specific kinds (`features/`, `ADR/`) are defined by the kit. Kit definitions (format, path, templates) are resolved from `config/core.toml`.
+**Note**: Artifact paths are FULL paths relative to `project_root`. The `artifacts_dir` defines the default base directory for NEW artifacts — subdirectories for specific kinds (`features/`, `ADR/`) are defined by the kit. Kit definitions (format, path, templates) are resolved from `{cypilot_path}/config/core.toml`.
 
 ---
 
@@ -935,7 +935,7 @@ extensions = [".ts"]
 |-------|-------|-----|
 | "Artifact not in Cypilot registry" | Path not registered | Add artifact to system's `artifacts` array |
 | "Could not find template" | Missing template file | Create template at `{kit.path}/artifacts/{KIND}/template.md` |
-| "Invalid kit reference" | System references kit not in `core.toml` | Register kit in `config/core.toml` or fix `kit` field |
+| "Invalid kit reference" | System references kit not in `core.toml` | Register kit in `{cypilot_path}/config/core.toml` or fix `kit` field |
 | "Path is a directory" | Artifact path ends with `/` or has no extension | Change to specific file path |
 
 ---
@@ -965,7 +965,7 @@ extensions = [".ts"]
 | R.3 | `version` field resolvable (from `core.toml` or `artifacts.toml`) | YES | Field exists in at least one source and is string |
 | R.4 | `systems` array present | YES | Array (may be empty) |
 | R.5 | Each system has `name`, `slug`, and `kit` fields | YES | All three fields exist per system |
-| R.6 | System `kit` references exist in `config/core.toml` | YES | Lookup succeeds |
+| R.6 | System `kit` references exist in `{cypilot_path}/config/core.toml` | YES | Lookup succeeds |
 | R.7 | `artifacts_dir` is valid path (if specified) | CONDITIONAL | Non-empty string |
 | R.8 | `slug` matches pattern `^[a-z0-9]+(-[a-z0-9]+)*$` | YES | Lowercase, no spaces, hyphen-separated |
 | R.9 | `slug` is unique among siblings | YES | No duplicate slugs at same level |

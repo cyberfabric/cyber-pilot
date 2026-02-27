@@ -9,11 +9,11 @@
 
 | Kind | Description | Template | Checklist | Example |
 | --- | --- | --- | --- | --- |
-| PRD | Product Requirements Document | `artifacts/PRD/template.md` | `artifacts/PRD/checklist.md` | `artifacts/PRD/examples/example.md` |
-| DESIGN | Overall System Design | `artifacts/DESIGN/template.md` | `artifacts/DESIGN/checklist.md` | `artifacts/DESIGN/examples/example.md` |
-| ADR | Architecture Decision Record | `artifacts/ADR/template.md` | `artifacts/ADR/checklist.md` | `artifacts/ADR/examples/example.md` |
-| DECOMPOSITION | Design Decomposition | `artifacts/DECOMPOSITION/template.md` | `artifacts/DECOMPOSITION/checklist.md` | `artifacts/DECOMPOSITION/examples/example.md` |
-| FEATURE | Feature Design | `artifacts/FEATURE/template.md` | `artifacts/FEATURE/checklist.md` | `artifacts/FEATURE/examples/task-crud.md` |
+| PRD | Product Requirements Document | `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md` | `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md` | `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/examples/example.md` |
+| DESIGN | Overall System Design | `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md` | `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/checklist.md` | `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/examples/example.md` |
+| ADR | Architecture Decision Record | `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/template.md` | `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md` | `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/examples/example.md` |
+| DECOMPOSITION | Design Decomposition | `{cypilot_path}/.gen/kits/sdlc/artifacts/DECOMPOSITION/template.md` | `{cypilot_path}/.gen/kits/sdlc/artifacts/DECOMPOSITION/checklist.md` | `{cypilot_path}/.gen/kits/sdlc/artifacts/DECOMPOSITION/examples/example.md` |
+| FEATURE | Feature Design | `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md` | `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md` | `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/examples/task-crud.md` |
 
 ---
 
@@ -62,9 +62,9 @@ kits/sdlc/
 Dependencies resolved as:
 
 ```text
-template:  kits/sdlc/artifacts/{KIND}/template.md
-checklist: kits/sdlc/artifacts/{KIND}/checklist.md
-example:   kits/sdlc/artifacts/{KIND}/examples/example.md
+template:  {cypilot_path}/.gen/kits/sdlc/artifacts/{KIND}/template.md
+checklist: {cypilot_path}/.gen/kits/sdlc/artifacts/{KIND}/checklist.md
+example:   {cypilot_path}/.gen/kits/sdlc/artifacts/{KIND}/examples/example.md
 ```
 
 ### In artifacts.toml

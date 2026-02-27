@@ -4,9 +4,9 @@
 **Kit**: sdlc
 
 **Dependencies**:
-- `template.md` — structural reference
-- `checklist.md` — semantic quality criteria
-- `examples/example.md` — reference implementation
+- `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/template.md` — structural reference
+- `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md` — semantic quality criteria
+- `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/examples/example.md` — reference implementation
 
 ## Table of Contents
 

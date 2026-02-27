@@ -266,7 +266,7 @@ This is a simple linear weighting system for the matrix. "Out of scope" receives
 ## Primary sources consulted
 
 ### Cypilot
-- `README.md`, `skills/cypilot/README.md`, `kits/sdlc/guides/QUICKSTART.md`
+- `README.md`, `{cypilot_path}/.core/skills/cypilot/README.md`, `{cypilot_path}/.core/kits/sdlc/guides/QUICKSTART.md`
 - Cypilot workflow execution requirements and protocols in `requirements/` and `workflows/`
 
 ### OpenSpec

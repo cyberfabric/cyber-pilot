@@ -100,7 +100,7 @@ ALWAYS open @/.cypilot/config/AGENTS.md FIRST
 **Behavior**:
 - Inserted at the **beginning** of the root `AGENTS.md` file
 - If the file does not exist, it is created
-- The path reflects the actual install directory (e.g., `@/.cypilot/config/AGENTS.md`)
+- The path reflects the actual install directory (e.g., `@/{cypilot_path}/config/AGENTS.md`)
 - Content between the `<!-- @cpt:root-agents -->` and `<!-- @/cpt:root-agents -->` markers is **fully managed** by Cypilot — overwritten on every check
 - Manual edits inside the block are discarded
 

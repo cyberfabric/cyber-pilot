@@ -174,16 +174,16 @@ cypilot init [--dir DIR] [--agents AGENTS]
 2. If interactive terminal → prompt for installation directory and agent selection.
 3. Copy skill bundle from cache into the install directory.
 4. Define the **root system** — derive name and slug from the project directory name (e.g., directory `my-app/` → `name = "MyApp"`, `slug = "my-app"`).
-5. Create `config/core.toml` with project root, root system definition, and kit registrations.
-6. Create `config/artifacts.toml` with a fully populated root system entry including default SDLC autodetect rules:
+5. Create `{cypilot_path}/config/core.toml` with project root, root system definition, and kit registrations.
+6. Create `{cypilot_path}/config/artifacts.toml` with a fully populated root system entry including default SDLC autodetect rules:
    - `artifacts_dir = "architecture"` (default artifact directory)
    - Autodetect rules for standard artifact kinds: `PRD.md`, `DESIGN.md`, `ADR/*.md`, `DECOMPOSITION.md`, `features/*.md` — all with default traceability levels and glob patterns
    - Default codebase entry: `path = "src"`, common extensions
    - Default ignore patterns: `vendor/*`, `node_modules/*`, `.git/*`
-7. Install all available kits. Each kit generates its config in `config/kits/<slug>/` — blueprints, constraints, artifacts, workflows.
+7. Install all available kits. Each kit generates its config in `{cypilot_path}/config/kits/<slug>/` — blueprints, constraints, artifacts, workflows.
 8. Generate agent entry points for selected agents.
 9. Inject root `AGENTS.md` entry: insert managed `<!-- @cpt:root-agents -->` block at the beginning of `{project_root}/AGENTS.md` (create file if absent).
-10. Create `config/AGENTS.md` with default WHEN rules for standard system prompts.
+10. Create `{cypilot_path}/config/AGENTS.md` with default WHEN rules for standard system prompts.
 11. Output prompt suggestion: `cypilot on` or `cypilot help`.
 
 **Root AGENTS.md integrity**: every CLI invocation (not just `init`) verifies the `<!-- @cpt:root-agents -->` block in root `AGENTS.md` exists and contains the correct path. If missing or stale, the block is silently re-injected. See [sysprompts.md](./sysprompts.md) for full format.
@@ -220,7 +220,7 @@ cypilot update [--check] [--force]
 1. If `--check` → compare versions, output diff, exit.
 2. If cache is outdated → download latest release from GitHub first.
 3. Copy cached skill into project install directory.
-4. Migrate `config/core.toml` to new schema version (preserve all user settings).
+4. Migrate `{cypilot_path}/config/core.toml` to new schema version (preserve all user settings).
 5. Invoke each kit's migration script for kit config files.
 6. Update blueprints via reference-based three-way diff.
 7. Regenerate all resources from updated blueprints.
@@ -275,7 +275,7 @@ cypilot validate [--artifact PATH] [--system SYSTEM] [--kind KIND] [--strict] [-
 4. Output score breakdown with actionable issues (file path, line number, severity).
 
 **Behavior (blueprint validation, `--blueprints`)**:
-1. Discover all blueprint files in `config/kits/<slug>/blueprints/*.md` across installed kits.
+1. Discover all blueprint files in `{cypilot_path}/config/kits/<slug>/blueprints/*.md` across installed kits.
 2. For each blueprint:
    a. **Header check** — `cpt:blueprint` marker present and is the first marker.
    b. **Block closure** — all block markers (`cpt:skill`, `cpt:check`, `cpt:prompt`, `cpt:rule`, etc.) have matching `@/cpt:...` close tags.
@@ -565,10 +565,10 @@ cypilot doctor
 | git available | `git --version` succeeds (optional, not required) |
 | gh CLI | `gh auth status` succeeds (required only for PR commands) |
 | Agent detection | at least one supported agent directory found |
-| Config integrity | `config/core.toml` exists and parses, schema valid |
+| Config integrity | `{cypilot_path}/config/core.toml` exists and parses, schema valid |
 | Skill version | project skill matches or is newer than cache |
 | Kit structure | all registered kits have valid entry points |
-| Blueprint integrity | all blueprints in `config/kits/<slug>/blueprints/` parse successfully, reference kits in `{cypilot_path}/.core/kits/` present |
+| Blueprint integrity | all blueprints in `{cypilot_path}/config/kits/<slug>/blueprints/` parse successfully, reference kits in `{cypilot_path}/.core/kits/` present |
 
 **Output** (JSON):
 ```json
@@ -625,7 +625,7 @@ Display current core configuration. Optional `--section` to show only a part (sy
 cypilot config system add --name NAME --slug SLUG --kit KIT
 ```
 
-Add a system definition to `config/core.toml`.
+Add a system definition to `{cypilot_path}/config/core.toml`.
 
 #### config system remove
 
@@ -870,7 +870,7 @@ config/
 | Error Code | Cause | Resolution |
 |------------|-------|------------|
 | `NOT_INITIALIZED` | Command run outside a Cypilot project | Run `cypilot init` |
-| `CONFIG_NOT_FOUND` | `config/core.toml` missing or corrupt | Run `cypilot init` or `cypilot doctor` |
+| `CONFIG_NOT_FOUND` | `{cypilot_path}/config/core.toml` missing or corrupt | Run `cypilot init` or `cypilot doctor` |
 | `KIT_NOT_REGISTERED` | Referenced kit not in config | Run `cypilot config kit install` |
 | `ARTIFACT_NOT_FOUND` | Specified artifact path does not exist | Check path |
 | `SCHEMA_VALIDATION` | Config file does not match schema | Run `cypilot doctor` for details |

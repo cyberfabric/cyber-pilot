@@ -36,7 +36,7 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
 **Actor**: `cpt-cypilot-actor-user`
 
 **Success Scenarios**:
-- User installs a kit from a local path → kit source saved to reference directory, blueprints copied to user-editable location, all resources generated, kit registered in `config/core.toml`
+- User installs a kit from a local path → kit source saved to reference directory, blueprints copied to user-editable location, all resources generated, kit registered in `{cypilot_path}/config/core.toml`
 - User installs a kit during `cypilot init` → same as above, triggered automatically for bundled kits
 
 **Error Scenarios**:
@@ -51,9 +51,9 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
 4. [x] - `p1` - Extract kit metadata: read `@cpt:blueprint` marker from first blueprint to get kit slug and version - `inst-extract-metadata`
 5. [x] - `p1` - **IF** kit slug already registered AND `--force` not set **RETURN** error with hint - `inst-if-already-registered`
 6. [x] - `p1` - Save kit source to `{cypilot_path}/.core/kits/{slug}/` (reference copy) - `inst-save-reference`
-7. [x] - `p1` - Copy blueprints to `config/kits/{slug}/blueprints/` (user-editable) - `inst-copy-blueprints`
+7. [x] - `p1` - Copy blueprints to `{cypilot_path}/config/kits/{slug}/blueprints/` (user-editable) - `inst-copy-blueprints`
 8. [x] - `p1` - Process all blueprints using `cpt-cypilot-algo-blueprint-system-process-kit` - `inst-process-blueprints`
-9. [x] - `p1` - Register kit in `config/core.toml` with slug, format, path, and artifact templates - `inst-register-kit`
+9. [x] - `p1` - Register kit in `{cypilot_path}/config/core.toml` with slug, format, path, and artifact templates - `inst-register-kit`
 10. [x] - `p1` - **RETURN** installation summary (kit slug, generated files count, registered artifact kinds) - `inst-return-install-ok`
 
 ### Kit Update
@@ -76,11 +76,11 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
 3. [x] - `p1` - **FOR EACH** kit in target kits - `inst-foreach-kit`
    1. [x] - `p1` - Load new kit source from cache at `{cypilot_path}/.core/kits/{slug}/` - `inst-load-new-source`
    2. [x] - `p1` - **IF** `--force` - `inst-if-force`
-      1. [x] - `p1` - Overwrite user blueprints in `config/kits/{slug}/blueprints/` with new source - `inst-force-overwrite`
+      1. [x] - `p1` - Overwrite user blueprints in `{cypilot_path}/config/kits/{slug}/blueprints/` with new source - `inst-force-overwrite`
    3. [x] - `p1` - Regenerate all outputs using `cpt-cypilot-algo-blueprint-system-process-kit` - `inst-regenerate`
 
 > **p2**: ELSE apply three-way merge using `cpt-cypilot-algo-blueprint-system-three-way-merge` (additive mode with conflict detection)
-   5. [x] - `p1` - Update kit version in `config/core.toml` - `inst-update-version`
+   5. [x] - `p1` - Update kit version in `{cypilot_path}/config/core.toml` - `inst-update-version`
 4. [x] - `p1` - **RETURN** update summary (kits updated, files regenerated, conflicts if any) - `inst-return-update-ok`
 
 ### Resource Generation
@@ -97,7 +97,7 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
 
 **Steps**:
 1. [x] - `p1` - User invokes `cypilot generate-resources [--kit SLUG]` - `inst-user-generate`
-2. [x] - `p1` - Resolve target kits from `config/core.toml` - `inst-resolve-gen-kits`
+2. [x] - `p1` - Resolve target kits from `{cypilot_path}/config/core.toml` - `inst-resolve-gen-kits`
 3. [x] - `p1` - **FOR EACH** kit in target kits - `inst-foreach-gen-kit`
    1. [x] - `p1` - Process all blueprints using `cpt-cypilot-algo-blueprint-system-process-kit` - `inst-gen-process`
 4. [x] - `p1` - **RETURN** generation summary (files written, artifact kinds processed) - `inst-return-gen-ok`
@@ -117,7 +117,7 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
 
 **Steps**:
 1. [x] - `p1` - User invokes `cypilot validate-kits` - `inst-user-validate-kits`
-2. [x] - `p1` - Load all registered kits from `config/core.toml` - `inst-load-registered-kits`
+2. [x] - `p1` - Load all registered kits from `{cypilot_path}/config/core.toml` - `inst-load-registered-kits`
 3. [x] - `p1` - **FOR EACH** kit - `inst-foreach-validate-kit`
    1. [x] - `p1` - Verify `blueprints/` directory exists in user-editable path - `inst-verify-blueprints-dir`
    2. [x] - `p1` - **FOR EACH** blueprint file in `blueprints/` - `inst-foreach-blueprint`
@@ -153,7 +153,7 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
 
 **Input**: Kit slug, path to kit's `blueprints/` directory
 
-**Output**: Generated output files in `config/kits/{slug}/`
+**Output**: Generated output files in `{cypilot_path}/config/kits/{slug}/`
 
 **Steps**:
 1. [x] - `p1` - List all `.md` files in `blueprints/` directory - `inst-list-blueprints`
@@ -170,7 +170,7 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
 
 - [x] `p1` - **ID**: `cpt-cypilot-algo-blueprint-system-generate-artifact-outputs`
 
-**Input**: Parsed blueprint, artifact kind, output directory (`config/kits/{slug}/artifacts/{KIND}/`)
+**Input**: Parsed blueprint, artifact kind, output directory (`{cypilot_path}/config/kits/{slug}/artifacts/{KIND}/`)
 
 **Output**: Generated files: `rules.md`, `checklist.md`, `template.md`, `example.md`
 
@@ -191,7 +191,7 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
 
 **Input**: List of parsed blueprints for a kit
 
-**Output**: `config/kits/{slug}/constraints.toml`
+**Output**: `{cypilot_path}/config/kits/{slug}/constraints.toml`
 
 **Steps**:
 1. [x] - `p1` - Initialize empty constraints structure with `version` and `id_kinds` sections - `inst-init-constraints`
@@ -202,14 +202,14 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
    3. [x] - `p1` - **FOR EACH** `@cpt:id` marker - `inst-foreach-id`
       1. [x] - `p1` - Extract ID kind definition (name, `to_code`, `defined_in`, `referenced_in`) - `inst-extract-id-kind`
       2. [x] - `p1` - Add to `id_kinds` section - `inst-add-id-kind`
-3. [x] - `p1` - Write constraints to `config/kits/{slug}/constraints.toml` using deterministic TOML serialization - `inst-write-constraints`
+3. [x] - `p1` - Write constraints to `{cypilot_path}/config/kits/{slug}/constraints.toml` using deterministic TOML serialization - `inst-write-constraints`
 4. [x] - `p1` - **RETURN** path to written constraints file - `inst-return-constraints`
 
 ### Three-Way Merge
 
 - [ ] `p2` - **ID**: `cpt-cypilot-algo-blueprint-system-three-way-merge`
 
-**Input**: Reference blueprint (old version in `{cypilot_path}/.core/kits/{slug}/`), user blueprint (`config/kits/{slug}/blueprints/`), new blueprint (from updated kit source)
+**Input**: Reference blueprint (old version in `{cypilot_path}/.core/kits/{slug}/`), user blueprint (`{cypilot_path}/config/kits/{slug}/blueprints/`), new blueprint (from updated kit source)
 
 **Output**: Merged blueprint content, or list of conflicts
 
@@ -244,7 +244,7 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
 
 - [ ] `p2` - **ID**: `cpt-cypilot-algo-blueprint-system-generate-workflows`
 
-**Input**: List of parsed blueprints, output directory (`config/kits/{slug}/workflows/`)
+**Input**: List of parsed blueprints, output directory (`{cypilot_path}/config/kits/{slug}/workflows/`)
 
 **Output**: Generated workflow `.md` files
 
@@ -253,7 +253,7 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
    1. [ ] - `p2` - Extract all `@cpt:workflow` markers - `inst-extract-workflow`
    2. [ ] - `p2` - **FOR EACH** workflow marker - `inst-foreach-workflow`
       1. [ ] - `p2` - Parse TOML header (name, description) and Markdown body (steps) - `inst-parse-workflow`
-      2. [ ] - `p2` - Write to `config/kits/{slug}/workflows/{name}.md` - `inst-write-workflow`
+      2. [ ] - `p2` - Write to `{cypilot_path}/config/kits/{slug}/workflows/{name}.md` - `inst-write-workflow`
 2. [ ] - `p2` - **RETURN** list of generated workflow paths - `inst-return-workflows`
 
 ## States
@@ -308,7 +308,7 @@ The system **MUST** generate four output files per artifact blueprint: `rules.md
 
 - [x] `p1` - **ID**: `cpt-cypilot-dod-blueprint-system-constraints-gen`
 
-The system **MUST** aggregate `@cpt:heading` and `@cpt:id` markers from all blueprints in a kit into a single `constraints.toml` at `config/kits/{slug}/constraints.toml`. The constraints file **MUST** define ID kinds with their `to_code`, `defined_in`, and `referenced_in` attributes, using deterministic TOML serialization.
+The system **MUST** aggregate `@cpt:heading` and `@cpt:id` markers from all blueprints in a kit into a single `constraints.toml` at `{cypilot_path}/config/kits/{slug}/constraints.toml`. The constraints file **MUST** define ID kinds with their `to_code`, `defined_in`, and `referenced_in` attributes, using deterministic TOML serialization.
 
 **Implements**:
 - `cpt-cypilot-algo-blueprint-system-generate-constraints`
@@ -324,7 +324,7 @@ The system **MUST** aggregate `@cpt:heading` and `@cpt:id` markers from all blue
 
 - [x] `p1` - **ID**: `cpt-cypilot-dod-blueprint-system-kit-install`
 
-The system **MUST** provide `cypilot kit install <path>` that saves kit source to `{cypilot_path}/.core/kits/{slug}/` (reference), copies blueprints to `config/kits/{slug}/blueprints/` (user-editable), processes all blueprints to generate outputs, and registers the kit in `config/core.toml`. Installation of an already-registered kit without `--force` **MUST** produce exit code 2 with a helpful message.
+The system **MUST** provide `cypilot kit install <path>` that saves kit source to `{cypilot_path}/.core/kits/{slug}/` (reference), copies blueprints to `{cypilot_path}/config/kits/{slug}/blueprints/` (user-editable), processes all blueprints to generate outputs, and registers the kit in `{cypilot_path}/config/core.toml`. Installation of an already-registered kit without `--force` **MUST** produce exit code 2 with a helpful message.
 
 **Implements**:
 - `cpt-cypilot-flow-blueprint-system-kit-install`
@@ -387,7 +387,7 @@ The system **MUST** provide `cypilot generate-resources [--kit SLUG]` that re-pr
 
 ## Acceptance Criteria
 
-- [ ] `cypilot kit install <path>` installs a kit, generates all outputs, and registers in `config/core.toml`
+- [ ] `cypilot kit install <path>` installs a kit, generates all outputs, and registers in `{cypilot_path}/config/core.toml`
 - [ ] `cypilot kit update --force` overwrites user blueprints and regenerates all outputs
 - [ ] `cypilot generate-resources` re-processes all blueprints and regenerates outputs from user-edited blueprints
 - [ ] `cypilot validate-kits` reports PASS for structurally valid kits and FAIL with details for invalid ones

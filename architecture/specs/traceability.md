@@ -193,7 +193,7 @@ Code traceability links IDs defined in artifacts to implementation code through 
 
 This specification is **kit-agnostic**:
 - Defines the **generic marker format** and validation expectations
-- The active kit (registered in `config/core.toml`) defines which `{kind}` values are meaningful and which IDs require code traceability
+- The active kit (registered in `{cypilot_path}/config/core.toml`) defines which `{kind}` values are meaningful and which IDs require code traceability
 
 ### Scope Markers
 
