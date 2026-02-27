@@ -40,7 +40,7 @@ def cmd_validate(argv: List[str]) -> int:
         return 1
         # @cpt-end:cpt-cypilot-state-traceability-validation-report:p1:inst-error
 
-    # Surface context-level load errors (e.g., invalid constraints.json) as validation errors.
+    # Surface context-level load errors (e.g., invalid constraints.toml) as validation errors.
     ctx_errors = list(getattr(ctx, "_errors", []) or [])
 
     meta = ctx.meta
@@ -194,7 +194,7 @@ def cmd_validate(argv: List[str]) -> int:
         constraints_path = None
         if loaded_kit:
             try:
-                constraints_path = (project_root / str(loaded_kit.kit.path or "").strip().strip("/") / "constraints.json").resolve()
+                constraints_path = (project_root / str(loaded_kit.kit.path or "").strip().strip("/") / "constraints.toml").resolve()
             except Exception:
                 constraints_path = None
 

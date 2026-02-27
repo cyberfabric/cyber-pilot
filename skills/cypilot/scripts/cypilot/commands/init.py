@@ -12,7 +12,7 @@ from ..utils.files import find_project_root
 from ..utils import toml_utils
 
 # Directories to copy from cache into project cypilot/.core/ dir
-COPY_DIRS = ["kits", "architecture", "requirements", "schemas", "workflows", "skills"]
+COPY_DIRS = ["architecture", "requirements", "schemas", "workflows", "skills"]
 COPY_ROOT_DIRS: list[str] = []
 CACHE_DIR = Path.home() / ".cypilot" / "cache"
 CORE_SUBDIR = ".core"
@@ -496,110 +496,38 @@ def cmd_init(argv: List[str]) -> int:
     # @cpt-end:cpt-cypilot-algo-core-infra-create-config:p1:inst-write-artifacts-toml
 
     # @cpt-begin:cpt-cypilot-flow-core-infra-project-init:p1:inst-delegate-kits
-    kit_results: Dict[str, Any] = {}
-    kits_ref_dir = cypilot_dir / CORE_SUBDIR / "kits"
-    config_kits_dir = config_dir / "kits"
-    gen_kits_dir = gen_dir / "kits"
-    gen_skill_nav_parts: List[str] = []
-    if kits_ref_dir.is_dir() and not args.dry_run:
-        from ..utils.blueprint import process_kit
+    from .kit import install_kit
 
-        for kit_dir in sorted(kits_ref_dir.iterdir()):
+    kit_results: Dict[str, Any] = {}
+    gen_skill_nav_parts: List[str] = []
+    kits_cache_dir = CACHE_DIR / "kits"
+
+    if not args.dry_run and kits_cache_dir.is_dir():
+        for kit_dir in sorted(kits_cache_dir.iterdir()):
             if not kit_dir.is_dir():
                 continue
-            bp_dir = kit_dir / "blueprints"
-            if not bp_dir.is_dir():
+            if not (kit_dir / "blueprints").is_dir():
                 continue
 
             kit_slug = kit_dir.name
-            user_bp_dir = config_kits_dir / kit_slug / "blueprints"
+            kit_result = install_kit(kit_dir, cypilot_dir, kit_slug)
 
-            # Copy blueprints to config/kits/{slug}/blueprints/ (user-editable)
-            if user_bp_dir.exists():
-                shutil.rmtree(user_bp_dir)
-            user_bp_dir.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copytree(bp_dir, user_bp_dir)
-
-            # Copy kit scripts to .gen/kits/{slug}/scripts/ (executable from generated workflows)
-            kit_scripts_dir = kit_dir / "scripts"
-            if kit_scripts_dir.is_dir():
-                gen_kit_scripts = gen_kits_dir / kit_slug / "scripts"
-                if gen_kit_scripts.exists():
-                    shutil.rmtree(gen_kit_scripts)
-                gen_kit_scripts.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copytree(kit_scripts_dir, gen_kit_scripts)
-                actions[f"gen_kit_scripts_{kit_slug}"] = "copied"
-
-            # Generate resources from blueprints into .gen/kits/{slug}/
-            summary, kit_errors = process_kit(
-                kit_slug, user_bp_dir, gen_kits_dir, dry_run=False,
-            )
             kit_results[kit_slug] = {
-                "files_written": summary.get("files_written", 0),
-                "artifact_kinds": summary.get("artifact_kinds", []),
-                "errors": kit_errors,
+                "files_written": kit_result.get("files_written", 0),
+                "artifact_kinds": kit_result.get("artifact_kinds", []),
+                "errors": kit_result.get("errors", []),
             }
-            if kit_errors:
+            if kit_result.get("errors"):
                 errors.extend(
-                    {"path": kit_slug, "error": e} for e in kit_errors
+                    {"path": kit_slug, "error": e} for e in kit_result["errors"]
                 )
-
-            # Write per-kit SKILL.md into .gen/kits/{slug}/SKILL.md
-            skill_content = summary.get("skill_content", "")
-            if skill_content:
-                gen_kit_skill_path = gen_kits_dir / kit_slug / "SKILL.md"
-                gen_kit_skill_path.parent.mkdir(parents=True, exist_ok=True)
-                # Build description from artifact kinds and workflows
-                art_kinds = [k.upper() for k in summary.get("artifact_kinds", []) if k]
-                wf_names = [w["name"] for w in summary.get("workflows", []) if w.get("name")]
-                desc_parts: list[str] = []
-                if art_kinds:
-                    desc_parts.append(f"Artifacts: {', '.join(art_kinds)}")
-                if wf_names:
-                    desc_parts.append(f"Workflows: {', '.join(wf_names)}")
-                kit_description = "; ".join(desc_parts) if desc_parts else f"Kit {kit_slug}"
-                gen_kit_skill_path.write_text(
-                    f"---\nname: cypilot-{kit_slug}\n"
-                    f"description: \"{kit_description}\"\n---\n\n"
-                    f"# Cypilot Skill — Kit `{kit_slug}`\n\n"
-                    f"Generated from kit `{kit_slug}` blueprints.\n\n"
-                    + skill_content + "\n",
-                    encoding="utf-8",
-                )
-                gen_skill_nav_parts.append(
-                    f"ALWAYS invoke `{{cypilot_path}}/.gen/kits/{kit_slug}/SKILL.md` FIRST"
-                )
-                actions["gen_kit_skill_" + kit_slug] = "created"
-
-            # Write generated workflows into .gen/kits/{slug}/workflows/{name}.md
-            kit_workflows = summary.get("workflows", [])
-            for wf in kit_workflows:
-                wf_name = wf["name"]
-                wf_path = gen_kits_dir / kit_slug / "workflows" / f"{wf_name}.md"
-                wf_path.parent.mkdir(parents=True, exist_ok=True)
-                # Build frontmatter
-                fm_lines = [
-                    "---",
-                    "cypilot: true",
-                    "type: workflow",
-                    f"name: cypilot-{wf_name}",
-                ]
-                if wf.get("description"):
-                    fm_lines.append(f"description: {wf['description']}")
-                if wf.get("version"):
-                    fm_lines.append(f"version: {wf['version']}")
-                if wf.get("purpose"):
-                    fm_lines.append(f"purpose: {wf['purpose']}")
-                fm_lines.append("---")
-                frontmatter = "\n".join(fm_lines)
-                wf_path.write_text(
-                    frontmatter + "\n\n" + wf["content"] + "\n",
-                    encoding="utf-8",
-                )
-                actions[f"gen_workflow_{wf_name}"] = "created"
+            if kit_result.get("skill_nav"):
+                gen_skill_nav_parts.append(kit_result["skill_nav"])
+            for key, val in kit_result.get("actions", {}).items():
+                actions[f"kit_{kit_slug}_{key}"] = val
 
             # Append sysprompt content to .gen/AGENTS.md
-            sysprompt_content = summary.get("sysprompt_content", "")
+            sysprompt_content = kit_result.get("sysprompt_content", "")
             if sysprompt_content:
                 gen_agents_text = gen_agents_path.read_text(encoding="utf-8")
                 gen_agents_text = gen_agents_text.rstrip() + "\n\n" + sysprompt_content + "\n"

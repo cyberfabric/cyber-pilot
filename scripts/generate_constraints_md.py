@@ -1,12 +1,12 @@
 """Generate a Markdown table view of SDLC constraints.
 
-Reads `kits/sdlc/constraints.json` and produces `kits/sdlc/guides/constraints.md`.
+Reads `kits/sdlc/constraints.toml` and produces `kits/sdlc/guides/constraints.md`.
 """
 
 from __future__ import annotations
 
 import argparse
-import json
+import tomllib
 from pathlib import Path
 from typing import Any
 
@@ -59,7 +59,7 @@ def render_constraints_md(data: dict[str, Any]) -> str:
 
     lines.append("# Constraints (cypilot-sdlc)")
     lines.append("")
-    lines.append("Source: `kits/sdlc/constraints.json`")
+    lines.append("Source: `kits/sdlc/constraints.toml`")
     lines.append("")
     lines.append("## Legend")
     lines.append("")
@@ -148,11 +148,11 @@ def render_constraints_md(data: dict[str, Any]) -> str:
 
 
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Generate kits/sdlc/guides/constraints.md from constraints.json")
+    parser = argparse.ArgumentParser(description="Generate kits/sdlc/guides/constraints.md from constraints.toml")
     parser.add_argument(
         "--input",
-        default="kits/sdlc/constraints.json",
-        help="Path to constraints.json (default: kits/sdlc/constraints.json)",
+        default="kits/sdlc/constraints.toml",
+        help="Path to constraints.toml (default: kits/sdlc/constraints.toml)",
     )
     parser.add_argument(
         "--output",
@@ -173,7 +173,9 @@ def main(argv: list[str] | None = None) -> int:
     input_path = Path(args.input)
     output_path = Path(args.output)
 
-    data = json.loads(input_path.read_text(encoding="utf-8"))
+    with open(input_path, "rb") as f:
+        raw = tomllib.load(f)
+    data = raw.get("artifacts", raw)
     markdown = render_constraints_md(data)
 
     if output_path.exists() and not args.force:

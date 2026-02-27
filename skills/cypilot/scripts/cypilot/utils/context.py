@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set
 
 from .artifacts_meta import ArtifactsMeta, Kit, load_artifacts_meta
-from .constraints import KitConstraints, error, load_constraints_json
+from .constraints import KitConstraints, error, load_constraints_toml
 
 
 @dataclass
@@ -74,12 +74,12 @@ class CypilotContext:
             kit_constraints: Optional[KitConstraints] = None
             constraints_errs: List[str] = []
             if kit_root.is_dir():
-                kit_constraints, constraints_errs = load_constraints_json(kit_root)
+                kit_constraints, constraints_errs = load_constraints_toml(kit_root)
             if constraints_errs:
-                constraints_path = (kit_root / "constraints.json").resolve()
+                constraints_path = (kit_root / "constraints.toml").resolve()
                 errors.append(error(
                     "constraints",
-                    "Invalid constraints.json",
+                    "Invalid constraints.toml",
                     path=constraints_path,
                     line=1,
                     errors=list(constraints_errs),

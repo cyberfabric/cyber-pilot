@@ -20,8 +20,158 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 
+# Subdirectories to copy from kit source (reference + install)
+KIT_COPY_SUBDIRS = ["blueprints", "scripts"]
+
+
 # ---------------------------------------------------------------------------
-# Kit Install
+# Core kit installation logic (used by both cmd_kit_install and init)
+# ---------------------------------------------------------------------------
+
+def install_kit(
+    kit_source: Path,
+    cypilot_dir: Path,
+    kit_slug: str,
+    kit_version: str = "",
+) -> Dict[str, Any]:
+    """Install a kit: copy blueprints+scripts, process, generate outputs.
+
+    Copies only blueprints/ and scripts/ from kit_source.
+    Caller is responsible for validation and dry-run checks.
+
+    Args:
+        kit_source: Kit source directory (must contain blueprints/).
+        cypilot_dir: Resolved project cypilot directory.
+        kit_slug: Kit identifier.
+        kit_version: Kit version string.
+
+    Returns:
+        Dict with: status, kit, version, files_written, artifact_kinds,
+        errors, actions, skill_nav, sysprompt_content.
+    """
+    config_dir = cypilot_dir / "config"
+    gen_dir = cypilot_dir / ".gen"
+    ref_dir = cypilot_dir / "kits" / kit_slug
+    user_bp_dir = config_dir / "kits" / kit_slug / "blueprints"
+    gen_kits_dir = gen_dir / "kits"
+    blueprints_dir = kit_source / "blueprints"
+    scripts_dir = kit_source / "scripts"
+
+    actions: Dict[str, str] = {}
+    errors: List[str] = []
+
+    if not blueprints_dir.is_dir():
+        return {
+            "status": "FAIL",
+            "kit": kit_slug,
+            "errors": [f"Kit source missing blueprints/: {kit_source}"],
+        }
+
+    # Save reference (only blueprints + scripts)
+    for subdir_name in KIT_COPY_SUBDIRS:
+        src = kit_source / subdir_name
+        dst = ref_dir / subdir_name
+        if src.is_dir():
+            if dst.exists():
+                shutil.rmtree(dst)
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copytree(src, dst)
+            actions[f"ref_{subdir_name}"] = "copied"
+
+    # Copy blueprints to config/kits/{slug}/blueprints/ (user-editable)
+    if user_bp_dir.exists():
+        shutil.rmtree(user_bp_dir)
+    user_bp_dir.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(blueprints_dir, user_bp_dir)
+    actions["user_blueprints"] = "copied"
+
+    # Copy scripts to .gen/kits/{slug}/scripts/
+    if scripts_dir.is_dir():
+        gen_kit_scripts = gen_kits_dir / kit_slug / "scripts"
+        if gen_kit_scripts.exists():
+            shutil.rmtree(gen_kit_scripts)
+        gen_kit_scripts.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(scripts_dir, gen_kit_scripts)
+        actions["gen_scripts"] = "copied"
+
+    # Process blueprints → generate resources into .gen/kits/{slug}/
+    from ..utils.blueprint import process_kit
+
+    summary, kit_errors = process_kit(
+        kit_slug, user_bp_dir, gen_kits_dir, dry_run=False,
+    )
+    errors.extend(kit_errors)
+
+    # Write per-kit SKILL.md into .gen/kits/{slug}/SKILL.md
+    skill_nav = ""
+    skill_content = summary.get("skill_content", "")
+    if skill_content:
+        gen_kit_skill_path = gen_kits_dir / kit_slug / "SKILL.md"
+        gen_kit_skill_path.parent.mkdir(parents=True, exist_ok=True)
+        art_kinds = [k.upper() for k in summary.get("artifact_kinds", []) if k]
+        wf_names = [w["name"] for w in summary.get("workflows", []) if w.get("name")]
+        desc_parts: list[str] = []
+        if art_kinds:
+            desc_parts.append(f"Artifacts: {', '.join(art_kinds)}")
+        if wf_names:
+            desc_parts.append(f"Workflows: {', '.join(wf_names)}")
+        kit_description = "; ".join(desc_parts) if desc_parts else f"Kit {kit_slug}"
+        gen_kit_skill_path.write_text(
+            f"---\nname: cypilot-{kit_slug}\n"
+            f"description: \"{kit_description}\"\n---\n\n"
+            f"# Cypilot Skill — Kit `{kit_slug}`\n\n"
+            f"Generated from kit `{kit_slug}` blueprints.\n\n"
+            + skill_content + "\n",
+            encoding="utf-8",
+        )
+        skill_nav = f"ALWAYS invoke `{{cypilot_path}}/.gen/kits/{kit_slug}/SKILL.md` FIRST"
+        actions["gen_kit_skill"] = "created"
+
+    # Write generated workflows into .gen/kits/{slug}/workflows/{name}.md
+    kit_workflows = summary.get("workflows", [])
+    for wf in kit_workflows:
+        wf_name = wf["name"]
+        wf_path = gen_kits_dir / kit_slug / "workflows" / f"{wf_name}.md"
+        wf_path.parent.mkdir(parents=True, exist_ok=True)
+        fm_lines = [
+            "---",
+            "cypilot: true",
+            "type: workflow",
+            f"name: cypilot-{wf_name}",
+        ]
+        if wf.get("description"):
+            fm_lines.append(f"description: {wf['description']}")
+        if wf.get("version"):
+            fm_lines.append(f"version: {wf['version']}")
+        if wf.get("purpose"):
+            fm_lines.append(f"purpose: {wf['purpose']}")
+        fm_lines.append("---")
+        frontmatter = "\n".join(fm_lines)
+        wf_path.write_text(
+            frontmatter + "\n\n" + wf["content"] + "\n",
+            encoding="utf-8",
+        )
+        actions[f"gen_workflow_{wf_name}"] = "created"
+
+    # Register in core.toml
+    _register_kit_in_core_toml(config_dir, kit_slug, kit_version, cypilot_dir)
+
+    return {
+        "status": "PASS" if not errors else "WARN",
+        "action": "installed",
+        "kit": kit_slug,
+        "version": kit_version,
+        "files_written": summary.get("files_written", 0),
+        "artifact_kinds": summary.get("artifact_kinds", []),
+        "errors": errors,
+        "skill_nav": skill_nav,
+        "sysprompt_content": summary.get("sysprompt_content", ""),
+        "actions": actions,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Kit Install CLI
 # ---------------------------------------------------------------------------
 
 def cmd_kit_install(argv: List[str]) -> int:
@@ -97,10 +247,7 @@ def cmd_kit_install(argv: List[str]) -> int:
         return 1
 
     cypilot_dir = (project_root / cypilot_rel).resolve()
-    config_dir = cypilot_dir / "config"
-    gen_dir = cypilot_dir / ".gen"
     ref_dir = cypilot_dir / "kits" / kit_slug
-    user_bp_dir = config_dir / "kits" / kit_slug / "blueprints"
 
     # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-if-already-registered
     if ref_dir.exists() and not args.force:
@@ -113,6 +260,7 @@ def cmd_kit_install(argv: List[str]) -> int:
     # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-if-already-registered
 
     if args.dry_run:
+        user_bp_dir = cypilot_dir / "config" / "kits" / kit_slug / "blueprints"
         print(json.dumps({
             "status": "DRY_RUN",
             "kit": kit_slug,
@@ -123,46 +271,24 @@ def cmd_kit_install(argv: List[str]) -> int:
         }, indent=2, ensure_ascii=False))
         return 0
 
-    # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-save-reference
-    if ref_dir.exists():
-        shutil.rmtree(ref_dir)
-    shutil.copytree(kit_source, ref_dir)
-    # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-save-reference
-
-    # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-copy-blueprints
-    if user_bp_dir.exists():
-        shutil.rmtree(user_bp_dir)
-    user_bp_dir.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copytree(blueprints_dir, user_bp_dir)
-    # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-copy-blueprints
-
-    # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-process-blueprints
-    from ..utils.blueprint import process_kit
-
-    gen_kits_dir = gen_dir / "kits"
-    summary, errors = process_kit(
-        kit_slug, user_bp_dir, gen_kits_dir, dry_run=False,
-    )
-    # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-process-blueprints
-
-    # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-register-kit
-    _register_kit_in_core_toml(config_dir, kit_slug, kit_version, cypilot_dir)
-    # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-register-kit
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-install-kit
+    result = install_kit(kit_source, cypilot_dir, kit_slug, kit_version)
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-install-kit
 
     # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-return-install-ok
     # @cpt-begin:cpt-cypilot-state-blueprint-system-kit-install:p1:inst-install-complete
-    result: Dict[str, Any] = {
-        "status": "PASS" if not errors else "WARN",
-        "action": "installed",
+    output: Dict[str, Any] = {
+        "status": result["status"],
+        "action": result.get("action", "installed"),
         "kit": kit_slug,
         "version": kit_version,
-        "files_written": summary.get("files_written", 0),
-        "artifact_kinds": summary.get("artifact_kinds", []),
+        "files_written": result.get("files_written", 0),
+        "artifact_kinds": result.get("artifact_kinds", []),
     }
-    if errors:
-        result["errors"] = errors
+    if result.get("errors"):
+        output["errors"] = result["errors"]
 
-    print(json.dumps(result, indent=2, ensure_ascii=False))
+    print(json.dumps(output, indent=2, ensure_ascii=False))
     return 0
     # @cpt-end:cpt-cypilot-state-blueprint-system-kit-install:p1:inst-install-complete
     # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-return-install-ok

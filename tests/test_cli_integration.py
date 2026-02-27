@@ -157,8 +157,9 @@ class TestCLIValidateCommand(unittest.TestCase):
 
             # Minimal SDLC kit with constraints
             (root / "kits" / "sdlc").mkdir(parents=True)
-            src_constraints = Path(__file__).parent.parent / "kits" / "sdlc" / "constraints.json"
-            (root / "kits" / "sdlc" / "constraints.json").write_text(src_constraints.read_text(encoding="utf-8"), encoding="utf-8")
+            import shutil
+            src_constraints = Path(__file__).parent.parent / "kits" / "sdlc" / "constraints.toml"
+            shutil.copy2(src_constraints, root / "kits" / "sdlc" / "constraints.toml")
 
             # Create markerless DESIGN artifact defining a principle (DESIGN/principle prohibits PRD/ADR refs)
             (root / "architecture").mkdir(parents=True)
@@ -206,13 +207,11 @@ class TestCLICommandsRulesOnlyKit(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
 
-            # Create kit structure with constraints.json but no template.md (rules-only kit)
+            # Create kit structure with constraints.toml but no template.md (rules-only kit)
             kit_root = root / "kits" / "cypilot-sdlc"
             (kit_root / "artifacts" / "PRD").mkdir(parents=True)
-            (kit_root / "constraints.json").write_text(
-                json.dumps({"PRD": {"identifiers": {"fr": {"required": False}}}}, indent=2) + "\n",
-                encoding="utf-8",
-            )
+            from _test_helpers import write_constraints_toml
+            write_constraints_toml(kit_root, {"PRD": {"identifiers": {"fr": {"required": False}}}})
 
             # Create an artifact that includes an ID line; include markers to emulate real artifacts.
             (root / "modules" / "a" / "docs").mkdir(parents=True)
@@ -2041,14 +2040,12 @@ class TestCLIValidateKitsCommand(unittest.TestCase):
             root = Path(tmpdir)
 
             (root / "kits" / "sdlc").mkdir(parents=True)
-            (root / "kits" / "sdlc" / "constraints.json").write_text(
-                json.dumps({"PRD": {"identifiers": {"flow": {"to_code": True}}}}, indent=2) + "\n",
-                encoding="utf-8",
-            )
+            from _test_helpers import write_constraints_toml
+            write_constraints_toml(root / "kits" / "sdlc", {"PRD": {"identifiers": {"flow": {"to_code": True}}}})
 
             _bootstrap_registry_new_format(
                 root,
-                kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
+                kits={"cypilot-sdlc": {"format": "Cypilot", "path": "kits/sdlc"}},
                 systems=[],
             )
 
@@ -2072,7 +2069,7 @@ class TestCLIValidateKitsCommand(unittest.TestCase):
             root = Path(tmpdir)
 
             (root / "kits" / "sdlc").mkdir(parents=True)
-            (root / "kits" / "sdlc" / "constraints.json").write_text("not-json", encoding="utf-8")
+            (root / "kits" / "sdlc" / "constraints.toml").write_text("not valid toml [[", encoding="utf-8")
 
             _bootstrap_registry_new_format(
                 root,
@@ -2099,10 +2096,9 @@ class TestCLIValidateKitsCommand(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / "kits" / "sdlc").mkdir(parents=True)
-            (root / "kits" / "sdlc" / "constraints.json").write_text(
-                json.dumps({"PRD": {"identifiers": {"flow": {"to_code": True}}}}, indent=2) + "\n",
-                encoding="utf-8",
-            )
+            from _test_helpers import write_constraints_toml
+            write_constraints_toml(root / "kits" / "sdlc", {"PRD": {"identifiers": {"flow": {"to_code": True}}}})
+
             _bootstrap_registry_new_format(
                 root,
                 kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
@@ -2129,10 +2125,8 @@ class TestCLIValidateKitsCommand(unittest.TestCase):
             root = Path(tmpdir)
 
             (root / "kits" / "sdlc").mkdir(parents=True)
-            (root / "kits" / "sdlc" / "constraints.json").write_text(
-                json.dumps({"PRD": {"identifiers": {"flow": {"to_code": True}}}}, indent=2) + "\n",
-                encoding="utf-8",
-            )
+            from _test_helpers import write_constraints_toml
+            write_constraints_toml(root / "kits" / "sdlc", {"PRD": {"identifiers": {"flow": {"to_code": True}}}})
             _bootstrap_registry_new_format(
                 root,
                 kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
@@ -2914,10 +2908,8 @@ cypilot-template:
         "- [x] `p1` - **ID**: `cpt-ex-item-1`\n",
         encoding="utf-8",
     )
-    (root / "kits" / "sdlc" / "constraints.json").write_text(
-        json.dumps({"PRD": {"identifiers": {"item": {"template": "cpt-{system}-item-{slug}"}}}}, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    from _test_helpers import write_constraints_toml
+    write_constraints_toml(root / "kits" / "sdlc", {"PRD": {"identifiers": {"item": {"template": "cpt-{system}-item-{slug}"}}}})
 
     # Create artifact
     art_dir = root / "architecture"
@@ -4460,10 +4452,8 @@ cypilot-template:
         "- [x] `p1` - **ID**: `cpt-ex-item-1`\n",
         encoding="utf-8",
     )
-    (root / "kits" / "sdlc" / "constraints.json").write_text(
-        json.dumps({"PRD": {"identifiers": {"item": {"template": "cpt-{system}-item-{slug}"}}}}, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    from _test_helpers import write_constraints_toml
+    write_constraints_toml(root / "kits" / "sdlc", {"PRD": {"identifiers": {"item": {"template": "cpt-{system}-item-{slug}"}}}})
 
     # Create artifact
     art_dir = root / "architecture"
@@ -4495,10 +4485,8 @@ cypilot-template:
 
 def _setup_cypilot_project_with_markerless_cdsl_missing_block(root: Path) -> None:
     (root / "kits" / "sdlc").mkdir(parents=True)
-    (root / "kits" / "sdlc" / "constraints.json").write_text(
-        json.dumps({"PRD": {"identifiers": {"flow": {"to_code": True}}}}, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    from _test_helpers import write_constraints_toml
+    write_constraints_toml(root / "kits" / "sdlc", {"PRD": {"identifiers": {"flow": {"to_code": True}}}})
 
     art_dir = root / "architecture"
     art_dir.mkdir(parents=True)
@@ -4524,10 +4512,8 @@ def _setup_cypilot_project_with_markerless_cdsl_missing_block(root: Path) -> Non
 
 def _setup_cypilot_project_with_cdsl_to_code_missing_block(root: Path) -> None:
     (root / "kits" / "sdlc").mkdir(parents=True)
-    (root / "kits" / "sdlc" / "constraints.json").write_text(
-        json.dumps({"PRD": {"identifiers": {"flow": {"to_code": True}}}}, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    from _test_helpers import write_constraints_toml
+    write_constraints_toml(root / "kits" / "sdlc", {"PRD": {"identifiers": {"flow": {"to_code": True}}}})
 
     art_dir = root / "architecture"
     art_dir.mkdir(parents=True)

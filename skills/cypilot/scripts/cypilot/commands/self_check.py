@@ -29,7 +29,7 @@ def run_self_check_from_meta(
     This is used by both the CLI `self-check` command and by `validate` to fail-fast.
     It does NOT do cypilot/project discovery.
     """
-    from ..utils.constraints import load_constraints_json
+    from ..utils.constraints import load_constraints_toml
 
     def _check_template_constraints_consistency(
         *,
@@ -46,8 +46,8 @@ def run_self_check_from_meta(
         if kit_constraints is None:
             errs.append({
                 "type": "constraints",
-                "message": "constraints.json not found (template consistency checks skipped)",
-                "path": str(kit_base / "constraints.json"),
+                "message": "constraints.toml not found (template consistency checks skipped)",
+                "path": str(kit_base / "constraints.toml"),
             })
             return {"errors": errs, "warnings": warns}
 
@@ -59,7 +59,7 @@ def run_self_check_from_meta(
         if constraints_for_kind is None:
             errs.append(constraints_error(
                 "template",
-                "Template kind not found in constraints.json",
+                "Template kind not found in constraints.toml",
                 path=template_path,
                 line=1,
                 kit_id=str(kit_id),
@@ -69,7 +69,7 @@ def run_self_check_from_meta(
 
         constraints_path = None
         try:
-            constraints_path = (kit_base / "constraints.json").resolve()
+            constraints_path = (kit_base / "constraints.toml").resolve()
         except Exception:
             constraints_path = None
 
@@ -137,7 +137,7 @@ def run_self_check_from_meta(
             if not tpl:
                 errs.append(constraints_error(
                     "template",
-                    "ID kind has no template in constraints.json",
+                    "ID kind has no template in constraints.toml",
                     path=template_path,
                     line=1,
                     kit_id=str(kit_id),
@@ -387,14 +387,14 @@ def run_self_check_from_meta(
         artifacts_dir = kit_base / "artifacts"
         # NOTE: With explicit kit.artifacts mapping, artifacts_dir may be absent.
 
-        kit_constraints, kit_constraint_errs = load_constraints_json(kit_base)
+        kit_constraints, kit_constraint_errs = load_constraints_toml(kit_base)
         if kit_constraint_errs:
             results.append({
                 "kit": kit_id,
                 "kind": None,
                 "status": "FAIL",
                 "error_count": len(kit_constraint_errs),
-                "errors": [constraints_error("constraints", "Invalid constraints.json", path=(kit_base / "constraints.json"), line=1, errors=list(kit_constraint_errs))],
+                "errors": [constraints_error("constraints", "Invalid constraints.toml", path=(kit_base / "constraints.toml"), line=1, errors=list(kit_constraint_errs))],
             })
             overall_status = "FAIL"
             kits_checked += 1
@@ -484,7 +484,7 @@ def run_self_check_from_meta(
                     constraints_for_kind = kit_constraints.by_kind[str(kind).upper()]
                 constraints_path = None
                 try:
-                    constraints_path = (kit_base / "constraints.json").resolve()
+                    constraints_path = (kit_base / "constraints.toml").resolve()
                 except Exception:
                     constraints_path = None
                 rep = validate_artifact_file(

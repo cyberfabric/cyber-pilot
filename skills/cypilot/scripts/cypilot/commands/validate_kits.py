@@ -11,7 +11,7 @@ def cmd_validate_kits(argv: List[str]) -> int:
 
     Checks that:
     - kits referenced in artifacts.toml are accessible
-    - constraints.json (if present) parses and matches the expected schema
+    - constraints.toml (if present) parses and matches the expected schema
     """
     p = argparse.ArgumentParser(prog="validate-kits", description="Validate Cypilot kit packages")
     p.add_argument("--kit", "--rule", dest="kit", default=None, help="Kit ID to validate (if omitted, validates all kits)")
@@ -19,7 +19,7 @@ def cmd_validate_kits(argv: List[str]) -> int:
     args = p.parse_args(argv)
 
     from ..utils.context import get_context
-    from ..utils.constraints import load_constraints_json
+    from ..utils.constraints import load_constraints_toml
 
     ctx = get_context()
     if not ctx:
@@ -38,7 +38,7 @@ def cmd_validate_kits(argv: List[str]) -> int:
             continue
 
         kit_root = (project_root / str(kit.path or "").strip().strip("/")).resolve()
-        _kc, kc_errs = load_constraints_json(kit_root)
+        _kc, kc_errs = load_constraints_toml(kit_root)
 
         rep: Dict[str, object] = {
             "kit": str(kit_id),
@@ -47,7 +47,7 @@ def cmd_validate_kits(argv: List[str]) -> int:
             "error_count": len(kc_errs),
         }
         if kc_errs:
-            errs = [constraints_error("constraints", "Invalid constraints.json", path=(kit_root / "constraints.json"), line=1, errors=list(kc_errs), kit=str(kit_id))]
+            errs = [constraints_error("constraints", "Invalid constraints.toml", path=(kit_root / "constraints.toml"), line=1, errors=list(kc_errs), kit=str(kit_id))]
             if args.verbose:
                 rep["errors"] = errs
             all_errors.extend(errs)

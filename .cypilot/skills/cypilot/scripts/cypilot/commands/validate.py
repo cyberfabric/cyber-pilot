@@ -10,6 +10,7 @@ from ..utils.document import scan_cdsl_instructions, scan_cpt_ids
 from ..utils.fixing import enrich_issues
 
 
+# @cpt-flow:cpt-cypilot-flow-traceability-validation-validate:p1
 def cmd_validate(argv: List[str]) -> int:
     """Validate Cypilot artifacts and code traceability.
 
@@ -18,6 +19,7 @@ def cmd_validate(argv: List[str]) -> int:
     """
     from ..utils.context import get_context
 
+    # @cpt-begin:cpt-cypilot-flow-traceability-validation-validate:p1:inst-user-validate
     p = argparse.ArgumentParser(
         prog="validate",
         description="Validate Cypilot artifacts and code traceability (structure + cross-refs + traceability)",
@@ -27,14 +29,18 @@ def cmd_validate(argv: List[str]) -> int:
     p.add_argument("--verbose", action="store_true", help="Print full validation report")
     p.add_argument("--output", default=None, help="Write report to file instead of stdout")
     args = p.parse_args(argv)
+    # @cpt-end:cpt-cypilot-flow-traceability-validation-validate:p1:inst-user-validate
 
+    # @cpt-begin:cpt-cypilot-flow-traceability-validation-validate:p1:inst-load-context
     # Use pre-loaded context (templates already loaded on startup)
     ctx = get_context()
     if not ctx:
-        print(json.dumps({"status": "ERROR", "message": "No adapter found. Run 'init' first."}, indent=None, ensure_ascii=False))
+        # @cpt-begin:cpt-cypilot-state-traceability-validation-report:p1:inst-error
+        print(json.dumps({"status": "ERROR", "message": "Cypilot not initialized. Run 'cypilot init' first."}, indent=None, ensure_ascii=False))
         return 1
+        # @cpt-end:cpt-cypilot-state-traceability-validation-report:p1:inst-error
 
-    # Surface context-level load errors (e.g., invalid constraints.json) as validation errors.
+    # Surface context-level load errors (e.g., invalid constraints.toml) as validation errors.
     ctx_errors = list(getattr(ctx, "_errors", []) or [])
 
     meta = ctx.meta
@@ -42,6 +48,7 @@ def cmd_validate(argv: List[str]) -> int:
     registered_systems = ctx.registered_systems
     known_kinds = ctx.get_known_id_kinds()
 
+    # @cpt-begin:cpt-cypilot-flow-traceability-validation-validate:p1:inst-self-check
     if getattr(meta, "kits", None):
         try:
             from .self_check import run_self_check_from_meta
@@ -69,6 +76,7 @@ def cmd_validate(argv: List[str]) -> int:
             }
             print(json.dumps(out, indent=2, ensure_ascii=False))
             return 1
+    # @cpt-end:cpt-cypilot-flow-traceability-validation-validate:p1:inst-self-check
     
     for loaded_kit in (ctx.kits or {}).values():
         kit_constraints = getattr(loaded_kit, "constraints", None)
@@ -79,6 +87,9 @@ def cmd_validate(argv: List[str]) -> int:
                 if c and getattr(c, "kind", None):
                     known_kinds.add(str(c.kind).strip().lower())
 
+    # @cpt-end:cpt-cypilot-flow-traceability-validation-validate:p1:inst-load-context
+
+    # @cpt-begin:cpt-cypilot-flow-traceability-validation-validate:p1:inst-resolve-artifacts
     # Collect artifacts to validate: (artifact_path, template_path, artifact_type, traceability, kit_id)
     artifacts_to_validate: List[Tuple[Path, Path, str, str, str]] = []
 
@@ -93,7 +104,7 @@ def cmd_validate(argv: List[str]) -> int:
 
         ctx = CypilotContext.load(artifact_path.parent)
         if not ctx:
-            print(json.dumps({"status": "ERROR", "message": "No adapter found"}, indent=None, ensure_ascii=False))
+            print(json.dumps({"status": "ERROR", "message": "Cypilot not initialized"}, indent=None, ensure_ascii=False))
             return 1
 
         # Refresh context-level errors for this context.
@@ -140,8 +151,9 @@ def cmd_validate(argv: List[str]) -> int:
                 artifacts_to_validate.append((artifact_path, template_path, artifact_meta.kind, artifact_meta.traceability, system_node.kit))
 
     if not artifacts_to_validate:
-        print(json.dumps({"status": "ERROR", "message": "No Cypilot artifacts found in registry"}, indent=None, ensure_ascii=False))
-        return 1
+        print(json.dumps({"status": "PASS", "artifacts_validated": 0, "error_count": 0, "warning_count": 0, "message": "No Cypilot artifacts found in registry"}, indent=None, ensure_ascii=False))
+        return 0
+    # @cpt-end:cpt-cypilot-flow-traceability-validation-validate:p1:inst-resolve-artifacts
 
     # Validate each artifact
     all_errors: List[Dict[str, object]] = []
@@ -153,7 +165,27 @@ def cmd_validate(argv: List[str]) -> int:
     if ctx_errors:
         all_errors.extend(ctx_errors)
 
+    # Registry-level errors make further checks unreliable — stop early.
+    has_registry_errors = any(str(e.get("type", "")) == "registry" for e in all_errors)
+    if has_registry_errors:
+        enrich_issues(all_errors, project_root=project_root)
+        out = {
+            "status": "FAIL",
+            "project_root": project_root.as_posix(),
+            "artifact_count": len(artifacts_to_validate),
+            "error_count": len(all_errors),
+            "warning_count": 0,
+            "errors": all_errors,
+        }
+        if args.output:
+            Path(args.output).write_text(json.dumps(out, indent=2, ensure_ascii=False), encoding="utf-8")
+        else:
+            print(json.dumps(out, indent=2, ensure_ascii=False))
+        return 2
+
+    # @cpt-begin:cpt-cypilot-flow-traceability-validation-validate:p1:inst-foreach-artifact
     for artifact_path, _template_path, artifact_type, traceability, kit_id in artifacts_to_validate:
+        # @cpt-begin:cpt-cypilot-flow-traceability-validation-validate:p1:inst-load-constraints
         constraints_for_kind = None
         loaded_kit = (ctx.kits or {}).get(str(kit_id))
         if loaded_kit and loaded_kit.constraints and str(artifact_type) in loaded_kit.constraints.by_kind:
@@ -162,12 +194,14 @@ def cmd_validate(argv: List[str]) -> int:
         constraints_path = None
         if loaded_kit:
             try:
-                constraints_path = (project_root / str(loaded_kit.kit.path or "").strip().strip("/") / "constraints.json").resolve()
+                constraints_path = (project_root / str(loaded_kit.kit.path or "").strip().strip("/") / "constraints.toml").resolve()
             except Exception:
                 constraints_path = None
 
         artifact_records.append(ArtifactRecord(path=artifact_path, artifact_kind=str(artifact_type), constraints=constraints_for_kind))
+        # @cpt-end:cpt-cypilot-flow-traceability-validation-validate:p1:inst-load-constraints
 
+        # @cpt-begin:cpt-cypilot-flow-traceability-validation-validate:p1:inst-validate-structure
         result = validate_artifact_file(
             artifact_path=artifact_path,
             artifact_kind=str(artifact_type),
@@ -178,6 +212,7 @@ def cmd_validate(argv: List[str]) -> int:
         )
         errors = result.get("errors", [])
         warnings = result.get("warnings", [])
+        # @cpt-end:cpt-cypilot-flow-traceability-validation-validate:p1:inst-validate-structure
 
         artifact_report: Dict[str, object] = {
             "artifact": str(artifact_path),
@@ -206,6 +241,7 @@ def cmd_validate(argv: List[str]) -> int:
         artifact_report_by_path[str(artifact_path)] = artifact_report
         all_errors.extend(errors)
         all_warnings.extend(warnings)
+    # @cpt-end:cpt-cypilot-flow-traceability-validation-validate:p1:inst-foreach-artifact
 
     def _attach_issue_to_artifact_report(issue: Dict[str, object], *, is_error: bool) -> None:
         ipath = str(issue.get("path", "") or "")
@@ -223,6 +259,7 @@ def cmd_validate(argv: List[str]) -> int:
             if args.verbose and isinstance(rep.get("warnings"), list):
                 rep["warnings"].append(issue)
 
+    # @cpt-begin:cpt-cypilot-flow-traceability-validation-validate:p1:inst-if-structure-fail
     # Stop early: cross-artifact reference checks and code traceability checks are run only
     # after per-artifact structure/content checks pass.
     if all_errors:
@@ -243,7 +280,9 @@ def cmd_validate(argv: List[str]) -> int:
         else:
             print(json.dumps(out, indent=2, ensure_ascii=False))
         return 2
+    # @cpt-end:cpt-cypilot-flow-traceability-validation-validate:p1:inst-if-structure-fail
 
+    # @cpt-begin:cpt-cypilot-flow-traceability-validation-validate:p1:inst-cross-validate
     # Cross-reference validation - load ALL Cypilot artifacts for context
     # When validating a single artifact, we still need all artifacts to check references
     all_artifacts_for_cross: List[ArtifactRecord] = list(artifact_records)
@@ -280,7 +319,9 @@ def cmd_validate(argv: List[str]) -> int:
             if warn_path in validated_paths:
                 all_warnings.append(warn)
                 _attach_issue_to_artifact_report(warn, is_error=False)
+    # @cpt-end:cpt-cypilot-flow-traceability-validation-validate:p1:inst-cross-validate
 
+    # @cpt-begin:cpt-cypilot-flow-traceability-validation-validate:p1:inst-if-code
     # Code traceability validation (unless skipped)
     code_files_scanned: List[Dict[str, object]] = []
     parsed_code_files_full: List[CodeFile] = []
@@ -520,14 +561,18 @@ def cmd_validate(argv: List[str]) -> int:
                 )
                 all_errors.append(err)
                 _attach_issue_to_artifact_report(err, is_error=True)
+    # @cpt-end:cpt-cypilot-flow-traceability-validation-validate:p1:inst-if-code
 
     # Resolve target artifact paths for cross-ref errors (before enrich_issues strips 'path')
     _enrich_target_artifact_paths(all_errors, meta=meta, project_root=project_root)
 
+    # @cpt-begin:cpt-cypilot-flow-traceability-validation-validate:p1:inst-enrich-errors
     # Enrich errors/warnings with fixing prompts for LLM agents
     enrich_issues(all_errors, project_root=project_root)
     enrich_issues(all_warnings, project_root=project_root)
+    # @cpt-end:cpt-cypilot-flow-traceability-validation-validate:p1:inst-enrich-errors
 
+    # @cpt-begin:cpt-cypilot-flow-traceability-validation-validate:p1:inst-return-report
     # Build final report
     overall_status = "PASS" if not all_errors else "FAIL"
 
@@ -577,7 +622,14 @@ def cmd_validate(argv: List[str]) -> int:
     else:
         print(out)
 
-    return 0 if overall_status == "PASS" else 2
+    if overall_status == "PASS":
+        # @cpt-begin:cpt-cypilot-state-traceability-validation-report:p1:inst-pass
+        return 0
+        # @cpt-end:cpt-cypilot-state-traceability-validation-report:p1:inst-pass
+    # @cpt-begin:cpt-cypilot-state-traceability-validation-report:p1:inst-fail
+    return 2
+    # @cpt-end:cpt-cypilot-state-traceability-validation-report:p1:inst-fail
+    # @cpt-end:cpt-cypilot-flow-traceability-validation-validate:p1:inst-return-report
 
 
 def _enrich_target_artifact_paths(

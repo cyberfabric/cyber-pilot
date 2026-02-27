@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import re
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -11,9 +10,9 @@ from . import error_codes as EC
 
 @dataclass(frozen=True)
 class ReferenceRule:
-    coverage: str  # required|optional|prohibited
-    task: Optional[str] = None  # required|allowed|prohibited
-    priority: Optional[str] = None  # required|allowed|prohibited
+    coverage: Optional[bool] = None  # True=required, False=prohibited, None=optional
+    task: Optional[bool] = None  # True=required, False=prohibited, None=allowed
+    priority: Optional[bool] = None  # True=required, False=prohibited, None=allowed
     headings: Optional[List[str]] = None
 
 
@@ -23,8 +22,8 @@ class HeadingConstraint:
     pattern: Optional[str] = None
     description: Optional[str] = None
     required: bool = True
-    multiple: str = "allow"  # allow|prohibited|required
-    numbered: str = "allow"  # allow|prohibited|required
+    multiple: Optional[bool] = None  # True=required, False=prohibited, None=allowed
+    numbered: Optional[bool] = None  # True=required, False=prohibited, None=allowed
     id: Optional[str] = None
     prev: Optional[str] = None
     next: Optional[str] = None
@@ -39,24 +38,28 @@ class IdConstraint:
     description: Optional[str] = None
     template: Optional[str] = None
     examples: Optional[List[object]] = None
-    task: Optional[str] = None  # required|allowed|prohibited
-    priority: Optional[str] = None  # required|allowed|prohibited
+    task: Optional[bool] = None  # True=required, False=prohibited, None=allowed
+    priority: Optional[bool] = None  # True=required, False=prohibited, None=allowed
     to_code: Optional[bool] = None
     headings: Optional[List[str]] = None
     references: Optional[Dict[str, ReferenceRule]] = None
 
 
-def _parse_tri_state(v: object, field: str) -> Tuple[Optional[str], Optional[str]]:
+def _parse_optional_bool(
+    v: object, field: str,
+) -> Tuple[Optional[bool], Optional[str]]:
+    """Parse a boolean | None constraint field.
+
+    Unified convention:
+        true  → True  (required)
+        false → False (prohibited)
+        None  → None  (allowed / optional)
+    """
     if v is None:
         return None, None
     if isinstance(v, bool):
-        return ("required" if v else "prohibited"), None
-    if isinstance(v, str):
-        vv = v.strip().lower()
-        if vv in {"required", "allowed", "prohibited"}:
-            return vv, None
-        return None, f"Constraint field '{field}' must be one of: required, allowed, prohibited"
-    return None, f"Constraint field '{field}' must be string (required|allowed|prohibited)"
+        return v, None
+    return None, f"Constraint field '{field}' must be boolean, got {type(v).__name__}"
 
 
 @dataclass(frozen=True)
@@ -65,6 +68,7 @@ class ArtifactKindConstraints:
     description: Optional[str]
     defined_id: List[IdConstraint]
     headings: Optional[List[HeadingConstraint]] = None
+    toc: bool = True
 
 
 @dataclass(frozen=True)
@@ -298,6 +302,7 @@ class ArtifactRecord:
     constraints: Optional[ArtifactKindConstraints] = None
 
 
+# @cpt-algo:cpt-cypilot-algo-traceability-validation-validate-structure:p1
 def validate_artifact_file(
     *,
     artifact_path: Path,
@@ -317,6 +322,7 @@ def validate_artifact_file(
     if constraints is None:
         return {"errors": errors, "warnings": warnings}
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-check-headings
     # Phase 1: headings contract
     if getattr(constraints, "headings", None):
         rep = validate_headings_contract(
@@ -330,14 +336,38 @@ def validate_artifact_file(
         errors.extend(rep.get("errors", []))
         warnings.extend(rep.get("warnings", []))
 
+        # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-if-headings-fail
         # Stop here: IDs are validated only after outline contract is satisfied.
         if rep.get("errors"):
             return {"errors": errors, "warnings": warnings}
+        # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-if-headings-fail
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-check-headings
 
+    # Phase 1b: TOC validation (only when toc=true in constraints)
+    if getattr(constraints, "toc", True):
+        from .toc import validate_toc as _validate_toc
+        from .document import read_text_safe as _read_text_safe
+
+        _toc_lines = _read_text_safe(artifact_path)
+        if _toc_lines is not None:
+            _toc_content = "\n".join(_toc_lines)
+            _max_hl = 6
+            if getattr(constraints, "headings", None):
+                _max_hl = max((h.level for h in constraints.headings), default=6)
+            _toc_result = _validate_toc(
+                _toc_content,
+                artifact_path=artifact_path,
+                max_heading_level=_max_hl,
+            )
+            errors.extend(_toc_result.get("errors", []))
+            warnings.extend(_toc_result.get("warnings", []))
+
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-scan-ids
     # Phase 2: identifier/content validation
     hits = scan_cpt_ids(artifact_path)
     defs = [h for h in hits if str(h.get("type")) == "definition"]
     refs = [h for h in hits if str(h.get("type")) == "reference"]
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-scan-ids
 
     defs_by_id: Dict[str, Dict[str, object]] = {}
     for d in defs:
@@ -345,7 +375,10 @@ def validate_artifact_file(
         if did and did not in defs_by_id:
             defs_by_id[did] = d
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-scan-cdsl
     cdsl_hits = scan_cdsl_instructions(artifact_path)
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-scan-cdsl
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-foreach-cdsl-mismatch
     for ch in cdsl_hits:
         if bool(ch.get("checked", False)):
             continue
@@ -360,6 +393,7 @@ def validate_artifact_file(
         if not bool(parent_def.get("checked", False)):
             continue
         inst_s = str(ch.get("inst") or "").strip()
+        # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-emit-cdsl-error
         errors.append(error(
             "structure",
             f"CDSL step `{pid}`{(' inst ' + inst_s) if inst_s else ''} is unchecked but parent ID is already checked in {kind} artifact",
@@ -369,6 +403,8 @@ def validate_artifact_file(
             id=pid,
             inst=inst_s or None,
         ))
+        # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-emit-cdsl-error
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-foreach-cdsl-mismatch
 
     headings_scanned = _scan_headings(artifact_path)
 
@@ -394,6 +430,7 @@ def validate_artifact_file(
                 return int(headings_scanned[j].get("line", 1) or 1) - 1
         return 10**9
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-foreach-parent-child
     defs_sorted = sorted(defs, key=lambda d: int(d.get("line", 0) or 0))
     refs_task_sorted = sorted(
         [r for r in refs if bool(r.get("has_task", False))],
@@ -442,6 +479,7 @@ def validate_artifact_file(
         all_ref_children_checked = all(bool(r.get("checked", False)) for r in ref_children)
         any_ref_child_unchecked = any(not bool(r.get("checked", False)) for r in ref_children)
 
+        # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-if-all-done-parent-not
         if all_children_checked and all_ref_children_checked and (not parent_checked):
             errors.append(error(
                 "structure",
@@ -451,7 +489,9 @@ def validate_artifact_file(
                 line=parent_line,
                 id=parent_id,
             ))
+        # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-if-all-done-parent-not
 
+        # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-if-parent-done-child-not
         if parent_checked and (any_child_unchecked or any_ref_child_unchecked):
             first_unchecked = next((c for c in children if not bool(c.get("checked", False))), None)
             first_ref_unchecked = next((r for r in ref_children if not bool(r.get("checked", False))), None)
@@ -466,9 +506,14 @@ def validate_artifact_file(
                 id=first_id,
                 parent_id=parent_id,
             ))
+        # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-if-parent-done-child-not
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-foreach-parent-child
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-validate-id-format
     allowed_defs = {c.kind.strip().lower() for c in (constraints.defined_id or [])}
     constraint_by_kind = {c.kind.strip().lower(): c for c in (constraints.defined_id or []) if isinstance(getattr(c, "kind", None), str)}
+    # All known kind tokens for system boundary detection.
+    _all_kind_tokens: set[str] = set(allowed_defs)
 
     def _id_kind_hint(c: Optional[IdConstraint]) -> str:
         if c is None:
@@ -517,8 +562,23 @@ def validate_artifact_file(
                     matched = sys
         if matched is not None:
             return matched
-        parts = cpt.split("-")
-        return parts[1].lower() if len(parts) >= 3 else None
+        if not systems_set:
+            # No registered systems (kit examples) — use kind tokens to
+            # find the system boundary.  Prefer the RIGHTMOST kind-token
+            # split (longest system) so that system names containing kind
+            # tokens (e.g. "task-flow" with kind "flow") are not truncated.
+            remainder = cpt[4:]  # strip "cpt-"
+            best_pos: Optional[int] = None
+            for kt in _all_kind_tokens:
+                marker = f"-{kt}-"
+                idx = remainder.find(marker)
+                if idx > 0 and (best_pos is None or idx > best_pos):
+                    best_pos = idx
+            if best_pos is not None:
+                return remainder[:best_pos].lower()
+            parts = cpt.split("-")
+            return parts[1].lower() if len(parts) >= 3 else None
+        return None
 
     composite_nested_by_base: Dict[str, set[str]] = {}
     base_kind = kind.strip().lower()
@@ -556,6 +616,18 @@ def validate_artifact_file(
             continue
         line = int(h.get("line", 1) or 1)
         system = match_system(hid)
+        if system is None and systems_set and hid.lower().startswith("cpt-"):
+            errors.append(error(
+                "constraints",
+                f"`{hid}` has unrecognized system prefix (registered: {sorted(systems_set)})",
+                code=EC.ID_SYSTEM_UNRECOGNIZED,
+                path=artifact_path,
+                line=line,
+                artifact_kind=kind,
+                id=hid,
+                registered_systems=sorted(systems_set),
+            ))
+            continue
         id_kind = extract_kind_from_id(hid, system)
         if not id_kind:
             continue
@@ -582,13 +654,13 @@ def validate_artifact_file(
         id_kind_name = str(getattr(c, "name", "") or "").strip() or None
         id_kind_description = str(getattr(c, "description", "") or "").strip() or None
         id_kind_template = str(getattr(c, "template", "") or "").strip() or None
-        tk = str(getattr(c, "task", "allowed") or "allowed").strip().lower()
-        pr = str(getattr(c, "priority", "allowed") or "allowed").strip().lower()
+        tk = getattr(c, "task", None)  # True=required, False=prohibited, None=allowed
+        pr = getattr(c, "priority", None)  # True=required, False=prohibited, None=allowed
 
         has_task = bool(h.get("has_task", False))
         has_priority = bool(h.get("has_priority", False))
 
-        if tk == "required" and not has_task:
+        if tk is True and not has_task:
             errors.append(error(
                 "constraints",
                 f"`{hid}` (kind `{id_kind}`) in {kind} artifact is missing required task checkbox `- [ ]`{_id_kind_hint(c)}",
@@ -603,7 +675,7 @@ def validate_artifact_file(
                 id_kind_description=id_kind_description,
                 id_kind_template=id_kind_template,
             ))
-        if tk == "prohibited" and has_task:
+        if tk is False and has_task:
             errors.append(error(
                 "constraints",
                 f"`{hid}` (kind `{id_kind}`) in {kind} artifact has task checkbox but kind `{id_kind}` prohibits task tracking{_id_kind_hint(c)}",
@@ -619,7 +691,7 @@ def validate_artifact_file(
                 id_kind_template=id_kind_template,
             ))
 
-        if pr == "required" and not has_priority:
+        if pr is True and not has_priority:
             errors.append(error(
                 "constraints",
                 f"`{hid}` (kind `{id_kind}`) in {kind} artifact is missing required priority marker{_id_kind_hint(c)}",
@@ -634,7 +706,7 @@ def validate_artifact_file(
                 id_kind_description=id_kind_description,
                 id_kind_template=id_kind_template,
             ))
-        if pr == "prohibited" and has_priority:
+        if pr is False and has_priority:
             errors.append(error(
                 "constraints",
                 f"`{hid}` (kind `{id_kind}`) in {kind} artifact has priority marker but kind `{id_kind}` prohibits priority{_id_kind_hint(c)}",
@@ -709,10 +781,14 @@ def validate_artifact_file(
             target_headings=id_headings if id_headings else None,
             target_headings_info=id_headings_info,
         ))
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-validate-id-format
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-return-structure
     return {"errors": errors, "warnings": warnings}
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-return-structure
 
 
+# @cpt-algo:cpt-cypilot-algo-traceability-validation-cross-validate:p1
 def cross_validate_artifacts(
     artifacts: Sequence[ArtifactRecord],
     registered_systems: Optional[Iterable[str]] = None,
@@ -763,9 +839,9 @@ def cross_validate_artifacts(
     if missing_constraints_kinds:
         errors.append(error(
             "constraints",
-            f"No constraints defined for artifact kinds: {sorted(missing_constraints_kinds)} — add them to constraints.json",
+            f"No constraints defined for artifact kinds: {sorted(missing_constraints_kinds)} — add them to constraints.toml",
             code=EC.MISSING_CONSTRAINTS,
-            path=Path("<constraints.json>"),
+            path=Path("<constraints.toml>"),
             line=1,
             kinds=sorted(missing_constraints_kinds),
         ))
@@ -774,10 +850,34 @@ def cross_validate_artifacts(
     if registered_systems is not None:
         systems_set = {str(s).lower() for s in registered_systems}
 
+    # Collect ALL known kind tokens across all artifact constraints for
+    # system boundary detection when no registered systems are available.
+    _cross_all_kind_tokens: set[str] = set()
+    for _c in constraints_by_artifact_kind.values():
+        for _ic in (getattr(_c, "defined_id", None) or []):
+            _k = str(getattr(_ic, "kind", "") or "").strip().lower()
+            if _k:
+                _cross_all_kind_tokens.add(_k)
+        for _ic in (getattr(_c, "referenced_id", None) or []):
+            _k = str(getattr(_ic, "kind", "") or "").strip().lower()
+            if _k:
+                _cross_all_kind_tokens.add(_k)
+
     def match_system_from_id(cpt: str) -> Optional[str]:
         if not cpt.lower().startswith("cpt-"):
             return None
         if not systems_set:
+            # No registered systems — use rightmost kind-token split
+            # (longest system) to handle system names containing kind tokens.
+            remainder = cpt[4:]  # strip "cpt-"
+            best_pos: Optional[int] = None
+            for kt in _cross_all_kind_tokens:
+                marker = f"-{kt}-"
+                idx = remainder.find(marker)
+                if idx > 0 and (best_pos is None or idx > best_pos):
+                    best_pos = idx
+            if best_pos is not None:
+                return remainder[:best_pos].lower()
             parts = cpt.split("-")
             return parts[1].lower() if len(parts) >= 3 else None
         matched: Optional[str] = None
@@ -833,6 +933,7 @@ def cross_validate_artifacts(
             out.append({"id": hs, "description": km.get(hs)})
         return out
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-build-index
     # Index scan results
     defs_by_id: Dict[str, List[Dict[str, object]]] = {}
     refs_by_id: Dict[str, List[Dict[str, object]]] = {}
@@ -886,7 +987,9 @@ def cross_validate_artifacts(
                 if system:
                     present_kinds_by_system.setdefault(system, set()).add(ak)
                     refs_by_system_kind.setdefault(system, {}).setdefault(ak, []).append(row)
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-build-index
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-foreach-ref
     # Definition existence for internal systems
     for rid, rows in refs_by_id.items():
         if is_external_system_ref(rid):
@@ -894,6 +997,7 @@ def cross_validate_artifacts(
         if rid in defs_by_id:
             continue
         for r in rows:
+            # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-if-no-def
             errors.append(error(
                 "structure",
                 f"Reference to `{rid}` has no matching definition in any artifact",
@@ -902,7 +1006,10 @@ def cross_validate_artifacts(
                 line=int(r.get("line", 1) or 1),
                 id=rid,
             ))
+            # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-if-no-def
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-foreach-ref
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-foreach-checked-ref
     # Done status consistency
     for rid, rrows in refs_by_id.items():
         for r in rrows:
@@ -916,6 +1023,7 @@ def cross_validate_artifacts(
                     continue
                 if bool(d.get("checked", False)):
                     continue
+                # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-if-ref-done-def-not
                 errors.append(error(
                     "structure",
                     f"Reference to `{rid}` is checked [x] but its definition is still unchecked",
@@ -924,7 +1032,10 @@ def cross_validate_artifacts(
                     line=int(r.get("line", 1) or 1),
                     id=rid,
                 ))
+                # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-if-ref-done-def-not
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-foreach-checked-ref
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-foreach-checked-def
     # Reverse: definition checked but reference unchecked
     for rid, rrows in refs_by_id.items():
         defs = defs_by_id.get(rid, [])
@@ -951,6 +1062,9 @@ def cross_validate_artifacts(
                 id=rid,
                 def_artifact_kind=defs_with_task[0].get("artifact_kind"),
             ))
+            # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-if-def-done-ref-not
+            # (error emitted above)
+            # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-if-def-done-ref-not
 
     for rid, rrows in refs_by_id.items():
         defs = defs_by_id.get(rid, [])
@@ -969,7 +1083,9 @@ def cross_validate_artifacts(
                 line=int(r.get("line", 1) or 1),
                 id=rid,
             ))
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-foreach-checked-def
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-enforce-coverage
     # Per-artifact kind required ID kind presence and headings
     for art in artifacts:
         ak = str(art.artifact_kind).strip().upper()
@@ -1073,19 +1189,18 @@ def cross_validate_artifacts(
 
                     for target_kind, rule in refs_rules.items():
                         tk = str(target_kind).strip().upper()
-                        cov = str(getattr(rule, "coverage", "optional")).strip().lower()
+                        cov = getattr(rule, "coverage", None)  # True=required, False=prohibited, None=optional
                         def_has_task = bool(drow.get("has_task", False))
                         def_checked = bool(drow.get("checked", False))
-                        effective_cov = cov
-                        task_rule = str(getattr(rule, "task", "allowed") or "allowed").strip().lower()
-                        prio_rule = str(getattr(rule, "priority", "allowed") or "allowed").strip().lower()
+                        task_rule = getattr(rule, "task", None)  # True=required, False=prohibited, None=allowed
+                        prio_rule = getattr(rule, "priority", None)  # True=required, False=prohibited, None=allowed
                         allowed_headings = set([h.strip() for h in (getattr(rule, "headings", None) or []) if isinstance(h, str) and h.strip()])
                         allowed_headings_sorted = sorted(allowed_headings)
                         allowed_headings_info = headings_info_for_kind(tk, allowed_headings_sorted)
 
                         refs_in_kind = [r for r in system_refs_by_kind.get(tk, []) if str(r.get("id")) == did]
 
-                        if effective_cov == "required":
+                        if cov is True:
                             if def_has_task and (not def_checked):
                                 continue
                             if tk not in system_present_kinds:
@@ -1143,7 +1258,7 @@ def cross_validate_artifacts(
                                         id_kind_template=id_kind_template,
                                     ))
 
-                        if effective_cov == "prohibited" and refs_in_kind:
+                        if cov is False and refs_in_kind:
                             first = refs_in_kind[0]
                             errors.append(error(
                                 "constraints",
@@ -1162,7 +1277,7 @@ def cross_validate_artifacts(
                             continue
 
                         if refs_in_kind:
-                            if task_rule == "required":
+                            if task_rule is True:
                                 for rr in refs_in_kind:
                                     if bool(rr.get("has_task", False)):
                                         continue
@@ -1181,7 +1296,7 @@ def cross_validate_artifacts(
                                         id_kind_template=id_kind_template,
                                     ))
                                     break
-                            elif task_rule == "prohibited":
+                            elif task_rule is False:
                                 for rr in refs_in_kind:
                                     if not bool(rr.get("has_task", False)):
                                         continue
@@ -1201,7 +1316,7 @@ def cross_validate_artifacts(
                                     ))
                                     break
 
-                            if prio_rule == "required":
+                            if prio_rule is True:
                                 for rr in refs_in_kind:
                                     if bool(rr.get("has_priority", False)):
                                         continue
@@ -1220,7 +1335,7 @@ def cross_validate_artifacts(
                                         id_kind_template=id_kind_template,
                                     ))
                                     break
-                            elif prio_rule == "prohibited":
+                            elif prio_rule is False:
                                 for rr in refs_in_kind:
                                     if not bool(rr.get("has_priority", False)):
                                         continue
@@ -1239,8 +1354,11 @@ def cross_validate_artifacts(
                                         id_kind_template=id_kind_template,
                                     ))
                                     break
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-enforce-coverage
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-return-cross
     return {"errors": errors, "warnings": warnings}
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-return-cross
 
 
 def _parse_examples(v: object) -> Tuple[Optional[List[object]], Optional[str]]:
@@ -1254,15 +1372,15 @@ def _parse_examples(v: object) -> Tuple[Optional[List[object]], Optional[str]]:
 def _parse_reference_rule(obj: object) -> Tuple[Optional[ReferenceRule], Optional[str]]:
     if not isinstance(obj, dict):
         return None, "Reference rule must be an object"
-    coverage = obj.get("coverage")
-    if not isinstance(coverage, str) or coverage.strip() not in {"required", "optional", "prohibited"}:
-        return None, "Reference rule field 'coverage' must be one of: required, optional, prohibited"
+    coverage, cov_err = _parse_optional_bool(obj.get("coverage"), "references.coverage")
+    if cov_err:
+        return None, cov_err
 
-    task, task_err = _parse_tri_state(obj.get("task"), "references.task")
+    task, task_err = _parse_optional_bool(obj.get("task"), "references.task")
     if task_err:
         return None, task_err
 
-    priority, pr_err = _parse_tri_state(obj.get("priority"), "references.priority")
+    priority, pr_err = _parse_optional_bool(obj.get("priority"), "references.priority")
     if pr_err:
         return None, pr_err
 
@@ -1274,7 +1392,7 @@ def _parse_reference_rule(obj: object) -> Tuple[Optional[ReferenceRule], Optiona
         headings = [h for h in (x.strip() for x in headings_raw) if h]
 
     return ReferenceRule(
-        coverage=coverage.strip(),
+        coverage=coverage,
         task=task,
         priority=priority,
         headings=headings,
@@ -1321,21 +1439,13 @@ def _parse_heading_constraint(obj: object, *, pointer: Optional[str] = None) -> 
     else:
         return None, "Heading constraint field 'required' must be boolean"
 
-    multiple = obj.get("multiple")
-    if multiple is None:
-        multiple_s = "allow"
-    elif isinstance(multiple, str) and multiple.strip() in {"allow", "prohibited", "required"}:
-        multiple_s = multiple.strip()
-    else:
-        return None, "Heading constraint field 'multiple' must be one of: allow, prohibited, required"
+    multiple, mult_err = _parse_optional_bool(obj.get("multiple"), "multiple")
+    if mult_err:
+        return None, f"Heading constraint: {mult_err}"
 
-    numbered = obj.get("numbered")
-    if numbered is None:
-        numbered_s = "allow"
-    elif isinstance(numbered, str) and numbered.strip() in {"allow", "prohibited", "required"}:
-        numbered_s = numbered.strip()
-    else:
-        return None, "Heading constraint field 'numbered' must be one of: allow, prohibited, required"
+    numbered, num_err = _parse_optional_bool(obj.get("numbered"), "numbered")
+    if num_err:
+        return None, f"Heading constraint: {num_err}"
 
     # Validate regex early for better errors.
     if pattern is not None and pattern.strip():
@@ -1350,8 +1460,8 @@ def _parse_heading_constraint(obj: object, *, pointer: Optional[str] = None) -> 
         pattern=(pattern.strip() if isinstance(pattern, str) and pattern.strip() else None),
         description=desc_s,
         required=bool(required_bool),
-        multiple=multiple_s,
-        numbered=numbered_s,
+        multiple=multiple,
+        numbered=numbered,
         prev=prev_s,
         next=next_s,
         pointer=(pointer.strip() if isinstance(pointer, str) and pointer.strip() else None),
@@ -1414,11 +1524,11 @@ def _parse_id_constraint(obj: object) -> Tuple[Optional[IdConstraint], Optional[
     if ex_err:
         return None, ex_err
 
-    task, task_err = _parse_tri_state(obj.get("task"), "task")
+    task, task_err = _parse_optional_bool(obj.get("task"), "task")
     if task_err:
         return None, task_err
 
-    priority, pr_err = _parse_tri_state(obj.get("priority"), "priority")
+    priority, pr_err = _parse_optional_bool(obj.get("priority"), "priority")
     if pr_err:
         return None, pr_err
 
@@ -1460,7 +1570,7 @@ def parse_kit_constraints(data: object) -> Tuple[Optional[KitConstraints], List[
     if data is None:
         return None, []
     if not isinstance(data, dict):
-        return None, ["constraints.json root must be an object mapping artifact kinds to constraints"]
+        return None, ["constraints root must be an object mapping artifact kinds to constraints"]
 
     out: Dict[str, ArtifactKindConstraints] = {}
     errors: List[str] = []
@@ -1471,7 +1581,7 @@ def parse_kit_constraints(data: object) -> Tuple[Optional[KitConstraints], List[
         if isinstance(kind, str) and kind.strip().startswith("$"):
             continue
         if not isinstance(kind, str) or not kind.strip():
-            errors.append("constraints.json has non-string kind key")
+            errors.append("constraints has non-string kind key")
             continue
         if not isinstance(raw, dict):
             errors.append(f"constraints for {kind} must be an object")
@@ -1594,11 +1704,21 @@ def parse_kit_constraints(data: object) -> Tuple[Optional[KitConstraints], List[
                 seen_defined.add(kk)
                 defined_id.append(c)
 
+        # TOC flag (default true when absent)
+        toc_raw = raw.get("toc")
+        toc_val = True
+        if toc_raw is not None:
+            if not isinstance(toc_raw, bool):
+                errors.append(f"constraints for {kind} field 'toc' must be boolean")
+                continue
+            toc_val = toc_raw
+
         out[kind.strip().upper()] = ArtifactKindConstraints(
             name=name,
             description=description,
             defined_id=defined_id,
             headings=headings,
+            toc=toc_val,
         )
 
     if errors:
@@ -1606,16 +1726,19 @@ def parse_kit_constraints(data: object) -> Tuple[Optional[KitConstraints], List[
     return KitConstraints(by_kind=out), []
 
 
-def load_constraints_json(kit_root: Path) -> Tuple[Optional[KitConstraints], List[str]]:
-    path = (kit_root / "constraints.json").resolve()
+def load_constraints_toml(kit_root: Path) -> Tuple[Optional[KitConstraints], List[str]]:
+    path = (kit_root / "constraints.toml").resolve()
     if not path.is_file():
         return None, []
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
+        from . import toml_utils
+        data = toml_utils.load(path)
     except Exception as e:
-        return None, [f"Failed to parse constraints.json: {e}"]
+        return None, [f"Failed to parse constraints.toml: {e}"]
 
-    constraints, errs = parse_kit_constraints(data)
+    # TOML wraps kinds under "artifacts" key
+    artifacts_data = data.get("artifacts", data)
+    constraints, errs = parse_kit_constraints(artifacts_data)
     if errs:
         return None, errs
     return constraints, []
@@ -1631,7 +1754,7 @@ __all__ = [
     "ParsedCypilotId",
     "cross_validate_artifacts",
     "error",
-    "load_constraints_json",
+    "load_constraints_toml",
     "parse_cpt",
     "parse_kit_constraints",
     "validate_artifact_file",
@@ -1886,8 +2009,8 @@ def validate_headings_contract(
         # Always include the first match
         matches.append(headings[j])
 
-        # Consume further matches for allow/required, but only within the same scope
-        if hc.multiple in {"allow", "required"}:
+        # Consume further matches when multiple is allowed (None) or required (True)
+        if hc.multiple is not False:
             k = j + 1
             while k < scope_end and _matches(headings[k], hc):
                 matches.append(headings[k])
@@ -1907,7 +2030,7 @@ def validate_headings_contract(
         matched_by_idx[idx] = matches
 
         # multiple enforcement
-        if hc.multiple == "prohibited" and len(matches) > 1:
+        if hc.multiple is False and len(matches) > 1:
             hc_desc = str(getattr(hc, "description", "") or "").strip()
             desc_s = (f" ({hc_desc})" if hc_desc else "")
             errors.append(error(
@@ -1921,7 +2044,7 @@ def validate_headings_contract(
                 heading_pattern=hc.pattern,
                 **_source_fields(hc, idx),
             ))
-        if hc.multiple == "required" and len(matches) < 2:
+        if hc.multiple is True and len(matches) < 2:
             hc_desc = str(getattr(hc, "description", "") or "").strip()
             desc_s = (f" ({hc_desc})" if hc_desc else "")
             errors.append(error(
@@ -1937,8 +2060,8 @@ def validate_headings_contract(
             ))
 
         # numbered enforcement
-        if hc.numbered in {"required", "prohibited"}:
-            want_numbered = hc.numbered == "required"
+        if hc.numbered is not None:
+            want_numbered = hc.numbered is True
             for mh in matches:
                 is_numbered = bool(mh.get("numbered", False))
                 if is_numbered == want_numbered:
@@ -1947,7 +2070,7 @@ def validate_headings_contract(
                 desc_s = (f" ({hc_desc})" if hc_desc else "")
                 errors.append(error(
                     "constraints",
-                    f"Heading `{hc.pattern}` (level {int(hc.level)}) in {str(artifact_kind).strip().upper()} artifact: numbering {'is required but missing' if hc.numbered == 'required' else 'is prohibited but present'}{desc_s}",
+                    f"Heading `{hc.pattern}` (level {int(hc.level)}) in {str(artifact_kind).strip().upper()} artifact: numbering {'is required but missing' if hc.numbered is True else 'is prohibited but present'}{desc_s}",
                     code=EC.HEADING_NUMBERING_MISMATCH,
                     path=path,
                     line=int(mh.get("line", 1) or 1),

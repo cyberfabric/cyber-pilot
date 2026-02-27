@@ -50,21 +50,8 @@ def _bootstrap_self_check_kits(root: Path, adapter: Path, *, with_example: bool 
         "- [x] `p1` - **ID**: `cpt-{system}-req-{slug}`\n",
         encoding="utf-8",
     )
-    (kit_root / "constraints.json").write_text(
-        json.dumps(
-            {
-                "REQ": {
-                    "identifiers": {
-                        "req": {"required": True, "template": "cpt-{system}-req-{slug}"},
-                    }
-                }
-            },
-            indent=2,
-            ensure_ascii=False,
-        )
-        + "\n",
-        encoding="utf-8",
-    )
+    from _test_helpers import write_constraints_toml
+    write_constraints_toml(kit_root, {"REQ": {"identifiers": {"req": {"required": True, "template": "cpt-{system}-req-{slug}"}}}})
 
     if with_example:
         ex_dir = kit_root / "artifacts" / "REQ" / "examples"
@@ -134,7 +121,8 @@ class TestCLIPyCoverageSelfCheckMoreBranches(unittest.TestCase):
                         }
                     }
                 }
-            (kit_root / "constraints.json").write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+            from _test_helpers import write_constraints_toml
+            write_constraints_toml(kit_root, payload)
 
         reg = {
             "version": "1.1",
@@ -272,25 +260,19 @@ class TestCLIPyCoverageSelfCheckMoreBranches(unittest.TestCase):
                 "- [x] `p1` - **ID**: `cpt-myapp-req-login`\n",
                 encoding="utf-8",
             )
-            (root / "kits" / "k" / "constraints.json").write_text(
-                json.dumps(
-                    {
-                        "REQ": {
-                            "headings": [{"level": 1, "pattern": "^T$"}],
-                            "identifiers": {
-                                "req": {
-                                    "required": True,
-                                    "template": "cpt-{system}-req-{slug}",
-                                    "headings": ["allowed"],
-                                }
-                            },
+            from _test_helpers import write_constraints_toml
+            write_constraints_toml(root / "kits" / "k", {
+                "REQ": {
+                    "headings": [{"level": 1, "pattern": "^T$"}],
+                    "identifiers": {
+                        "req": {
+                            "required": True,
+                            "template": "cpt-{system}-req-{slug}",
+                            "headings": ["allowed"],
                         }
                     },
-                    indent=2,
-                )
-                + "\n",
-                encoding="utf-8",
-            )
+                }
+            })
             from cypilot.utils.artifacts_meta import ArtifactsMeta
 
             meta = ArtifactsMeta.from_dict(
@@ -361,30 +343,24 @@ class TestCLIPyCoverageSelfCheckMoreBranches(unittest.TestCase):
                 "- [x] `p1` - **ID**: `cpt-myapp-req-login`\n",
                 encoding="utf-8",
             )
-            (root / "kits" / "k" / "constraints.json").write_text(
-                json.dumps(
-                    {
-                        "SRC": {
-                            "identifiers": {
-                                "x": {
-                                    "required": False,
-                                    "template": "cpt-{system}-x-{slug}",
-                                    "references": {"REQ": {"coverage": True, "headings": ["allowed"]}},
-                                }
-                            }
-                        },
-                        "REQ": {
-                            "headings": [{"level": 1, "pattern": "^T$"}],
-                            "identifiers": {
-                                "req": {"required": False, "template": "cpt-{system}-req-{slug}"}
-                            },
-                        },
+            from _test_helpers import write_constraints_toml
+            write_constraints_toml(root / "kits" / "k", {
+                "SRC": {
+                    "identifiers": {
+                        "x": {
+                            "required": False,
+                            "template": "cpt-{system}-x-{slug}",
+                            "references": {"REQ": {"coverage": True, "headings": ["allowed"]}},
+                        }
+                    }
+                },
+                "REQ": {
+                    "headings": [{"level": 1, "pattern": "^T$"}],
+                    "identifiers": {
+                        "req": {"required": False, "template": "cpt-{system}-req-{slug}"}
                     },
-                    indent=2,
-                )
-                + "\n",
-                encoding="utf-8",
-            )
+                },
+            })
             from cypilot.utils.artifacts_meta import ArtifactsMeta
 
             meta = ArtifactsMeta.from_dict(
@@ -448,9 +424,8 @@ class TestCLIPyCoverageSelfCheckReverseAndOptional(unittest.TestCase):
             "- [x] `p1` - **ID**: `cpt-myapp-req-login`\n", encoding="utf-8",
         )
         if constraints_payload is not None:
-            (kit_root / "constraints.json").write_text(
-                json.dumps(constraints_payload, indent=2) + "\n", encoding="utf-8",
-            )
+            from _test_helpers import write_constraints_toml
+            write_constraints_toml(kit_root, constraints_payload)
         reg = {
             "version": "1.1", "project_root": "..", "systems": [],
             "kits": {"k": {"format": "Cypilot", "path": "kits/k", "artifacts": {
@@ -1310,7 +1285,7 @@ class TestCLIPyCoverageListIdKindsBranches(unittest.TestCase):
                 }],
             }) + "\n", encoding="utf-8")
 
-            # No constraints.json → covers line 85 (kit_constraints falsy)
+            # No constraints.toml → covers line 85 (kit_constraints falsy)
             buf = io.StringIO()
             cwd = os.getcwd()
             try:
@@ -1452,10 +1427,8 @@ class TestCLIPyCoverageValidateCode(unittest.TestCase):
                 "- [x] `p1` - **ID**: `cpt-ex-item-1`\n",
                 encoding="utf-8",
             )
-            (root / "kits" / "cypilot-sdlc" / "constraints.json").write_text(
-                json.dumps({"req": {"identifiers": {"item": {"required": False, "to_code": True, "template": "cpt-{system}-item-{slug}"}}}}, indent=2) + "\n",
-                encoding="utf-8",
-            )
+            from _test_helpers import write_constraints_toml
+            write_constraints_toml(root / "kits" / "cypilot-sdlc", {"req": {"identifiers": {"item": {"required": False, "to_code": True, "template": "cpt-{system}-item-{slug}"}}}})
 
             # Artifact defining ID with to_code=true
             art_dir = root / "artifacts"
@@ -1620,7 +1593,7 @@ class TestCLIPyCoverageValidateRules(unittest.TestCase):
     """Tests for validate-kits command (kit constraints validation)."""
 
     def test_validate_rules_single_template(self):
-        """validate-kits validates constraints.json for kits."""
+        """validate-kits validates constraints.toml for kits."""
         from cypilot.cli import main
 
         with TemporaryDirectory() as tmpdir:
@@ -1637,14 +1610,12 @@ class TestCLIPyCoverageValidateRules(unittest.TestCase):
             )
             kit_root = root / "kits" / "cypilot-sdlc"
             kit_root.mkdir(parents=True, exist_ok=True)
-            (kit_root / "constraints.json").write_text(
-                json.dumps({"REQ": {"identifiers": {"req": {"required": True}}}}, indent=2) + "\n",
-                encoding="utf-8",
-            )
+            from _test_helpers import write_constraints_toml
+            write_constraints_toml(kit_root, {"REQ": {"identifiers": {"req": {"required": True}}}})
 
             cwd = os.getcwd()
             try:
-                os.chdir(root)
+                os.chdir(str(root))
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
                     exit_code = main(["validate-kits"])
@@ -1673,7 +1644,7 @@ class TestCLIPyCoverageValidateRules(unittest.TestCase):
             )
             kit_root = root / "kits" / "cypilot-sdlc"
             kit_root.mkdir(parents=True, exist_ok=True)
-            (kit_root / "constraints.json").write_text("not-json", encoding="utf-8")
+            (kit_root / "constraints.toml").write_text("not valid toml [[", encoding="utf-8")
 
             cwd = os.getcwd()
             try:
@@ -1698,10 +1669,8 @@ class TestCLIPyCoverageValidateRules(unittest.TestCase):
 
             kit_root = root / "kits" / "cypilot-sdlc"
             kit_root.mkdir(parents=True, exist_ok=True)
-            (kit_root / "constraints.json").write_text(
-                json.dumps({"REQ": {"identifiers": {"req": {"required": True}}}}, indent=2) + "\n",
-                encoding="utf-8",
-            )
+            from _test_helpers import write_constraints_toml
+            write_constraints_toml(kit_root, {"REQ": {"identifiers": {"req": {"required": True}}}})
 
             _write_json(
                 adapter / "artifacts.json",

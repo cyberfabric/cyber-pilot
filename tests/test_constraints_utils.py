@@ -8,7 +8,7 @@ from skills.cypilot.scripts.cypilot.utils.constraints import (
     HeadingConstraint,
     cross_validate_artifacts,
     heading_constraint_ids_by_line,
-    load_constraints_json,
+    load_constraints_toml,
     parse_kit_constraints,
     validate_artifact_file,
     validate_headings_contract,
@@ -387,44 +387,40 @@ def test_parse_kind_constraints_type_errors_for_kind_object():
     assert any("field 'identifiers' must be an object" in e for e in errs3)
 
 
-def test_load_constraints_json_missing_ok(tmp_path: Path):
-    kc, errs = load_constraints_json(tmp_path)
+def test_load_constraints_toml_missing_ok(tmp_path: Path):
+    kc, errs = load_constraints_toml(tmp_path)
     assert kc is None
     assert errs == []
 
 
-def test_load_constraints_json_invalid_json(tmp_path: Path):
-    (tmp_path / "constraints.json").write_text("{", encoding="utf-8")
-    kc, errs = load_constraints_json(tmp_path)
+def test_load_constraints_toml_invalid_toml(tmp_path: Path):
+    (tmp_path / "constraints.toml").write_text("not valid toml [[", encoding="utf-8")
+    kc, errs = load_constraints_toml(tmp_path)
     assert kc is None
     assert errs
-    assert any("Failed to parse constraints.json" in e for e in errs)
+    assert any("Failed to parse constraints.toml" in e for e in errs)
 
 
-def test_load_constraints_json_invalid_schema(tmp_path: Path):
-    (tmp_path / "constraints.json").write_text("[]", encoding="utf-8")
-    kc, errs = load_constraints_json(tmp_path)
+def test_load_constraints_toml_invalid_schema(tmp_path: Path):
+    (tmp_path / "constraints.toml").write_text('artifacts = "not-a-dict"', encoding="utf-8")
+    kc, errs = load_constraints_toml(tmp_path)
     assert kc is None
     assert errs
 
 
-def test_load_constraints_json_valid(tmp_path: Path):
-    (tmp_path / "constraints.json").write_text(
-        '{"PRD": {"identifiers": {"item": {}}}}',
-        encoding="utf-8",
-    )
-    kc, errs = load_constraints_json(tmp_path)
+def test_load_constraints_toml_valid(tmp_path: Path):
+    from _test_helpers import write_constraints_toml
+    write_constraints_toml(tmp_path, {"PRD": {"identifiers": {"item": {}}}})
+    kc, errs = load_constraints_toml(tmp_path)
     assert errs == []
     assert kc is not None
     assert "PRD" in kc.by_kind
 
 
-def test_load_constraints_json_parses_valid_constraints(tmp_path: Path):
-    (tmp_path / "constraints.json").write_text(
-        '{"PRD": {"identifiers": {"item": {}}}}',
-        encoding="utf-8",
-    )
-    kc, errs = load_constraints_json(tmp_path)
+def test_load_constraints_toml_parses_valid_constraints(tmp_path: Path):
+    from _test_helpers import write_constraints_toml
+    write_constraints_toml(tmp_path, {"PRD": {"identifiers": {"item": {}}}})
+    kc, errs = load_constraints_toml(tmp_path)
     assert errs == []
     assert kc is not None
     assert "PRD" in kc.by_kind

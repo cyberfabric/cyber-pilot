@@ -122,15 +122,15 @@ class TestRelativePaths:
         assert "/other/place/file.md:10" in prompt
 
     def test_pseudo_path_no_crash(self):
-        """Paths like <constraints.json> should not crash."""
+        """Paths like <constraints.toml> should not crash."""
         issues = [_make_issue(
             "Missing constraints for artifact kinds",
             code=EC.MISSING_CONSTRAINTS,
-            path="<constraints.json>",
+            path="<constraints.toml>",
             line=1,
             kinds=["FOO"],
         )]
-        issues[0]["location"] = "<constraints.json>"
+        issues[0]["location"] = "<constraints.toml>"
         enrich_issues(issues, project_root=PROJECT_ROOT)
         assert "fixing_prompt" in issues[0]
 

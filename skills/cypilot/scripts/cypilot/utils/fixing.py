@@ -74,12 +74,12 @@ _REASONS: Dict[str, List[str]] = {
 
     # Constraints — ID kind presence
     EC.MISSING_CONSTRAINTS: [
-        "Artifact kinds {kinds} were added to the registry but constraints.json was not updated",
+        "Artifact kinds {kinds} were added to the registry but constraints.toml was not updated",
     ],
     EC.ID_KIND_NOT_ALLOWED: [
         "`{id}` uses kind `{id_kind}` not listed in allowed set {allowed} for {artifact_kind}",
         "Typo in the kind segment of `{id}` (e.g. `feat` instead of `fr`)",
-        "constraints.json was not updated after introducing kind `{id_kind}`",
+        "constraints.toml was not updated after introducing kind `{id_kind}",
     ],
     EC.REQUIRED_ID_KIND_MISSING: [
         "{artifact_kind} artifact was generated without any `{id_kind}` IDs",
@@ -436,14 +436,14 @@ def _build_fixing_prompt(issue: Dict[str, object], project_root: Optional[Path] 
     # ------------------------------------------------------------------
     if code == EC.MISSING_CONSTRAINTS:
         return (
-            f"Add constraint definitions for kinds {issue.get('kinds')} in `constraints.json`."
+            f"Add constraint definitions for kinds {issue.get('kinds')} in `constraints.toml`."
         )
 
     if code == EC.ID_KIND_NOT_ALLOWED:
         return (
             f"Open `{loc}`: ID `{cpt_id}` uses kind `{id_kind}` "
             f"not in allowed set {issue.get('allowed')}. "
-            f"Change the ID or update `constraints.json` to allow `{id_kind}`."
+            f"Change the ID or update `constraints.toml` to allow `{id_kind}`."
         )
 
     if code == EC.REQUIRED_ID_KIND_MISSING:
