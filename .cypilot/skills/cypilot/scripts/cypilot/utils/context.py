@@ -70,7 +70,10 @@ class CypilotContext:
 
             templates: Dict[str, object] = {}
 
-            kit_root = (project_root / str(kit.path or "").strip().strip("/")).resolve()
+            kit_path_str = str(kit.path or "").strip().strip("/")
+            kit_root = (adapter_dir / kit_path_str).resolve()
+            if not kit_root.is_dir():
+                kit_root = (project_root / kit_path_str).resolve()
             kit_constraints: Optional[KitConstraints] = None
             constraints_errs: List[str] = []
             if kit_root.is_dir():
