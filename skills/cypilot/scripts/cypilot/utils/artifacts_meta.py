@@ -2,6 +2,9 @@
 Cypilot Validator - Artifacts Metadata Registry
 
 Parses and provides access to artifacts.toml with the hierarchical system structure.
+
+@cpt-flow:cpt-cypilot-flow-core-infra-cli-invocation:p1
+@cpt-algo:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1
 """
 
 import fnmatch
@@ -452,6 +455,7 @@ class ArtifactsMeta:
         """Get a kit definition by ID."""
         return (self.kits or {}).get(str(kit_id))
 
+    # @cpt-begin:cpt-cypilot-algo-core-infra-registry-parsing:p1:inst-reg-expand-autodetect
     def expand_autodetect(
         self,
         *,
@@ -865,6 +869,7 @@ class ArtifactsMeta:
 
         self.rebuild_indices()
         return errors
+    # @cpt-end:cpt-cypilot-algo-core-infra-registry-parsing:p1:inst-reg-expand-autodetect
 
     # === Kit Methods ===
 
@@ -943,6 +948,7 @@ class ArtifactsMeta:
         return errors
 
 
+# @cpt-begin:cpt-cypilot-algo-core-infra-registry-parsing:p1:inst-reg-locate
 def load_artifacts_meta(adapter_dir: Path) -> Tuple[Optional[ArtifactsMeta], Optional[str]]:
     """
     Load ArtifactsMeta from cypilot directory.
@@ -967,6 +973,9 @@ def load_artifacts_meta(adapter_dir: Path) -> Tuple[Optional[ArtifactsMeta], Opt
             path = legacy
         else:
             return None, f"Missing artifacts registry: {config_dir / ARTIFACTS_REGISTRY_FILENAME}"
+    # @cpt-end:cpt-cypilot-algo-core-infra-registry-parsing:p1:inst-reg-locate
+
+    # @cpt-begin:cpt-cypilot-algo-core-infra-registry-parsing:p1:inst-reg-parse-merge
     try:
         if path.suffix == ".toml":
             import tomllib
@@ -992,7 +1001,11 @@ def load_artifacts_meta(adapter_dir: Path) -> Tuple[Optional[ArtifactsMeta], Opt
             if ("kits" not in data or not data["kits"]) and isinstance(core.get("kits"), dict):
                 data["kits"] = core["kits"]
 
+        # @cpt-end:cpt-cypilot-algo-core-infra-registry-parsing:p1:inst-reg-parse-merge
+
+        # @cpt-begin:cpt-cypilot-algo-core-infra-registry-parsing:p1:inst-reg-build-meta
         meta = ArtifactsMeta.from_dict(data)
+        # @cpt-end:cpt-cypilot-algo-core-infra-registry-parsing:p1:inst-reg-build-meta
         return meta, None
     except Exception as e:
         return None, f"Failed to load artifacts registry {path}: {e}"

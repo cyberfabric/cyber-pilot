@@ -15,6 +15,11 @@ Pipeline:
 3. Compare blueprint versions: skip same, warn if migration needed
 4. Regenerate .gen/ from user's blueprints
 5. Ensure config/ scaffold files exist (create only if missing)
+
+@cpt-flow:cpt-cypilot-flow-version-config-update:p1
+@cpt-algo:cpt-cypilot-algo-version-config-update-pipeline:p1
+@cpt-algo:cpt-cypilot-algo-version-config-compare-versions:p1
+@cpt-dod:cpt-cypilot-dod-version-config-update:p1
 """
 
 import argparse
@@ -42,6 +47,7 @@ def cmd_update(argv: List[str]) -> int:
     Refreshes .core/ from cache, regenerates .gen/ from user blueprints.
     Never overwrites user config files.
     """
+    # @cpt-begin:cpt-cypilot-flow-version-config-update:p1:inst-user-update
     p = argparse.ArgumentParser(
         prog="update",
         description="Update Cypilot installation (refresh .core, regenerate .gen)",
@@ -49,7 +55,9 @@ def cmd_update(argv: List[str]) -> int:
     p.add_argument("--project-root", default=None, help="Project root directory")
     p.add_argument("--dry-run", action="store_true", help="Show what would be done")
     args = p.parse_args(argv)
+    # @cpt-end:cpt-cypilot-flow-version-config-update:p1:inst-user-update
 
+    # @cpt-begin:cpt-cypilot-flow-version-config-update:p1:inst-resolve-project
     from ..utils.files import find_project_root, _read_cypilot_var
 
     cwd = Path.cwd().resolve()
@@ -86,6 +94,7 @@ def cmd_update(argv: List[str]) -> int:
             "message": f"Cache not found at {CACHE_DIR}. Run 'cpt update' (proxy downloads first).",
         }, indent=2, ensure_ascii=False))
         return 1
+    # @cpt-end:cpt-cypilot-flow-version-config-update:p1:inst-resolve-project
 
     actions: Dict[str, Any] = {}
     errors: List[Dict[str, str]] = []
@@ -95,6 +104,7 @@ def cmd_update(argv: List[str]) -> int:
     gen_dir = cypilot_dir / GEN_SUBDIR
     config_dir = cypilot_dir / "config"
 
+    # @cpt-begin:cpt-cypilot-flow-version-config-update:p1:inst-replace-core
     # ── Step 1: Replace .core/ from cache (always force) ─────────────────
     sys.stderr.write("Step 1: Updating .core/ from cache...\n")
     if not args.dry_run:
@@ -106,7 +116,9 @@ def cmd_update(argv: List[str]) -> int:
         copy_results = {d: "dry_run" for d in COPY_DIRS}
     actions["core_update"] = copy_results
     sys.stderr.write(f"  {copy_results}\n")
+    # @cpt-end:cpt-cypilot-flow-version-config-update:p1:inst-replace-core
 
+    # @cpt-begin:cpt-cypilot-flow-version-config-update:p1:inst-update-kit-refs
     # ── Step 2: Update kit reference copies (cypilot/kits/) from cache ───
     sys.stderr.write("Step 2: Updating kit references...\n")
     kits_cache_dir = CACHE_DIR / "kits"
@@ -134,7 +146,9 @@ def cmd_update(argv: List[str]) -> int:
                 shutil.copy2(conf_src, ref_dst / "conf.toml")
             sys.stderr.write(f"  kits/{kit_slug}: reference updated\n")
     actions["kit_references"] = "updated"
+    # @cpt-end:cpt-cypilot-flow-version-config-update:p1:inst-update-kit-refs
 
+    # @cpt-begin:cpt-cypilot-flow-version-config-update:p1:inst-compare-versions
     # ── Step 3: Compare kit versions via conf.toml ───────────────────────
     sys.stderr.write("Step 3: Checking kit versions...\n")
     kit_version_report: Dict[str, Any] = {}
@@ -204,7 +218,9 @@ def cmd_update(argv: List[str]) -> int:
                 shutil.copytree(scripts_src, gen_kit_scripts)
 
     actions["kit_versions"] = kit_version_report
+    # @cpt-end:cpt-cypilot-flow-version-config-update:p1:inst-compare-versions
 
+    # @cpt-begin:cpt-cypilot-flow-version-config-update:p1:inst-regenerate-gen
     # ── Step 4: Regenerate .gen/ from USER's blueprints ──────────────────
     sys.stderr.write("Step 4: Regenerating .gen/ from user blueprints...\n")
     from ..utils.blueprint import process_kit
@@ -287,7 +303,9 @@ def cmd_update(argv: List[str]) -> int:
             )
 
     actions["gen_kits"] = kit_gen_results
+    # @cpt-end:cpt-cypilot-flow-version-config-update:p1:inst-regenerate-gen
 
+    # @cpt-begin:cpt-cypilot-flow-version-config-update:p1:inst-regenerate-agents
     # Write .gen/AGENTS.md
     if not args.dry_run:
         project_name = _read_project_name(config_dir) or "Cypilot"
@@ -325,7 +343,9 @@ def cmd_update(argv: List[str]) -> int:
         actions["gen_skill"] = "updated"
 
         (gen_dir / "README.md").write_text(_gen_readme(), encoding="utf-8")
+    # @cpt-end:cpt-cypilot-flow-version-config-update:p1:inst-regenerate-agents
 
+    # @cpt-begin:cpt-cypilot-flow-version-config-update:p1:inst-ensure-scaffold
     # ── Step 5: Ensure config/ scaffold (create only if missing) ─────────
     sys.stderr.write("Step 5: Ensuring config/ scaffold...\n")
     if not args.dry_run:
@@ -350,7 +370,9 @@ def cmd_update(argv: List[str]) -> int:
     if not args.dry_run:
         root_agents_action = _inject_root_agents(project_root, install_rel)
         actions["root_agents"] = root_agents_action
+    # @cpt-end:cpt-cypilot-flow-version-config-update:p1:inst-ensure-scaffold
 
+    # @cpt-begin:cpt-cypilot-flow-version-config-update:p1:inst-return-report
     # ── Report ───────────────────────────────────────────────────────────
     status = "PASS" if not errors and not warnings else "WARN"
     result: Dict[str, Any] = {
@@ -366,6 +388,7 @@ def cmd_update(argv: List[str]) -> int:
         result["warnings"] = warnings
 
     print(json.dumps(result, indent=2, ensure_ascii=False))
+    # @cpt-end:cpt-cypilot-flow-version-config-update:p1:inst-return-report
     return 0
 
 

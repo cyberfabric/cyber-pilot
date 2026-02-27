@@ -140,7 +140,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         "list-ids", "list-id-kinds",
         "get-content",
         "where-defined", "where-used",
-        "info", "info",
+        "info",
         "self-check",
         "agents",
     ]
@@ -237,7 +237,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         return _cmd_where_defined(rest)
     elif cmd == "where-used":
         return _cmd_where_used(rest)
-    elif cmd in ("info", "info"):
+    elif cmd == "info":
         return _cmd_cypilot_info(rest)
     elif cmd == "self-check":
         return _cmd_self_check(rest)

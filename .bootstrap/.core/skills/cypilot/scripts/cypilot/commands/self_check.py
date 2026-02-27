@@ -1,10 +1,21 @@
+"""
+Self-Check Command — validate kit examples against their own templates/constraints.
+
+Ensures kit integrity by verifying that generated templates and examples
+pass the same heading contract and constraint checks used for user artifacts.
+
+@cpt-flow:cpt-cypilot-flow-developer-experience-self-check:p1
+@cpt-algo:cpt-cypilot-algo-developer-experience-self-check:p1
+@cpt-dod:cpt-cypilot-dod-developer-experience-self-check:p1
+"""
+
 import argparse
 import json
 import re
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-from ..utils.artifacts_meta import ArtifactsMeta
+from ..utils.artifacts_meta import ArtifactsMeta, load_artifacts_meta
 from ..utils.constraints import (
     error as constraints_error,
     heading_constraint_ids_by_line,
@@ -13,7 +24,7 @@ from ..utils.constraints import (
 )
 from ..utils import error_codes as EC
 from ..utils.document import read_text_safe
-from ..utils.files import find_cypilot_directory, find_project_root, load_artifacts_registry
+from ..utils.files import find_cypilot_directory, find_project_root
 
 
 def run_self_check_from_meta(
@@ -31,6 +42,7 @@ def run_self_check_from_meta(
     """
     from ..utils.constraints import load_constraints_toml
 
+    # @cpt-begin:cpt-cypilot-algo-developer-experience-self-check:p1:inst-validate-headings
     def _check_template_constraints_consistency(
         *,
         template_path: Path,
@@ -358,6 +370,7 @@ def run_self_check_from_meta(
                     ))
 
         return {"errors": errs, "warnings": warns}
+    # @cpt-end:cpt-cypilot-algo-developer-experience-self-check:p1:inst-validate-headings
 
     results: List[Dict[str, object]] = []
     overall_status = "PASS"
@@ -373,6 +386,7 @@ def run_self_check_from_meta(
         }
         return 1, out
 
+    # @cpt-begin:cpt-cypilot-algo-developer-experience-self-check:p1:inst-locate-files
     for kit_id, kit_obj in kits.items():
         if kit_filter and str(kit_id) != str(kit_filter):
             continue
@@ -509,6 +523,7 @@ def run_self_check_from_meta(
                     item["warnings"] = warns  # Show warnings on failure or verbose
 
             results.append(item)
+    # @cpt-end:cpt-cypilot-algo-developer-experience-self-check:p1:inst-locate-files
 
     out = {
         "status": overall_status,
@@ -522,12 +537,15 @@ def run_self_check_from_meta(
 
 
 def cmd_self_check(argv: List[str]) -> int:
+    # @cpt-begin:cpt-cypilot-flow-developer-experience-self-check:p1:inst-user-self-check
     p = argparse.ArgumentParser(prog="self-check", description="Validate kit example artifacts against constraints")
     p.add_argument("--root", default=".", help="Project root to search from (default: current directory)")
     p.add_argument("--kit", "--rule", dest="kit", help="Specific kit ID to check (e.g., cypilot-sdlc)")
     p.add_argument("--verbose", action="store_true", help="Include full per-template error/warning lists")
     args = p.parse_args(argv)
+    # @cpt-end:cpt-cypilot-flow-developer-experience-self-check:p1:inst-user-self-check
 
+    # @cpt-begin:cpt-cypilot-flow-developer-experience-self-check:p1:inst-load-registry
     start_path = Path(args.root).resolve()
     project_root = find_project_root(start_path)
     if project_root is None:
@@ -539,13 +557,10 @@ def cmd_self_check(argv: List[str]) -> int:
         print(json.dumps({"status": "ERROR", "message": "Cypilot not initialized. Run 'cypilot init' first."}, indent=2, ensure_ascii=False))
         return 1
 
-    reg, reg_err = load_artifacts_registry(adapter_dir)
-    if reg_err or reg is None:
-        print(json.dumps({"status": "ERROR", "message": reg_err or "Missing artifacts registry"}, indent=2, ensure_ascii=False))
+    artifacts_meta, meta_err = load_artifacts_meta(adapter_dir)
+    if meta_err or artifacts_meta is None:
+        print(json.dumps({"status": "ERROR", "message": meta_err or "Missing artifacts registry"}, indent=2, ensure_ascii=False))
         return 1
-
-    # Validate slugs in the registry
-    artifacts_meta = ArtifactsMeta.from_dict(reg)
     slug_errors = artifacts_meta.validate_all_slugs()
     if slug_errors:
         print(json.dumps({
@@ -554,7 +569,9 @@ def cmd_self_check(argv: List[str]) -> int:
             "slug_errors": slug_errors,
         }, indent=2, ensure_ascii=False))
         return 1
+    # @cpt-end:cpt-cypilot-flow-developer-experience-self-check:p1:inst-load-registry
 
+    # @cpt-begin:cpt-cypilot-flow-developer-experience-self-check:p1:inst-return-self-check
     rc, out = run_self_check_from_meta(
         project_root=project_root,
         adapter_dir=adapter_dir,
@@ -563,4 +580,5 @@ def cmd_self_check(argv: List[str]) -> int:
         verbose=bool(args.verbose),
     )
     print(json.dumps(out, indent=2, ensure_ascii=False))
+    # @cpt-end:cpt-cypilot-flow-developer-experience-self-check:p1:inst-return-self-check
     return rc

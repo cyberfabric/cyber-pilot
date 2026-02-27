@@ -300,6 +300,7 @@ All outputs are **core-defined** — the Blueprint Processor owns all marker typ
 
 ##### Utility Commands
 
+- [x] `p1` - `cpt-cypilot-fr-core-toc`
 - [ ] `p2` - `cpt-cypilot-fr-core-template-qa`
 - [ ] `p2` - `cpt-cypilot-fr-core-doctor`
 - [ ] `p3` - `cpt-cypilot-fr-core-hooks`
@@ -658,6 +659,9 @@ Provides the deterministic quality gate that ensures artifacts meet structural r
 - Cross-reference validation (covered_by, checked consistency)
 - Constraint enforcement from `constraints.toml` (headings scoping, reference rules)
 - Blueprint validation: verify `cpt:blueprint` header present, all block markers closed, no nested blocks, all marker types registered, heading IDs unique
+- TOC validation (`validate-toc`): verify anchors resolve, all headings covered, TOC not stale
+- Stable error codes (`error_codes.py`): machine-readable codes for all validation issues, used by fixing prompts and downstream consumers
+- Fixing prompt generation (`fixing.py`): enrich errors with actionable prompts for LLM agents
 - Single-pass scanning for performance (≤ 3s per artifact)
 
 ##### Responsibility boundaries
@@ -683,10 +687,11 @@ Implements the ID system that links design elements to code. Without this compon
 ##### Responsibility scope
 
 - Scan artifacts for ID definitions (`**ID**: \`cpt-...\``) and references (backticked `cpt-...`)
-- Scan code for traceability tags (`@cpt-*`)
+- Scan code for traceability tags (`@cpt-*`) with language-aware comment detection (`language_config.py`)
 - Resolve cross-references between definitions and references
 - Provide query commands: `list-ids`, `list-id-kinds`, `where-defined`, `where-used`, `get-content`
 - Support ID versioning (`-vN` suffix)
+- Markdown structure parsing (`parsing.py`): section extraction, heading analysis, content block identification
 
 ##### Responsibility boundaries
 
@@ -756,7 +761,7 @@ Does NOT own kit resources (templates, checklists, rules) — delegates generati
 
 #### Agent Generator
 
-- [ ] `p2` - **ID**: `cpt-cypilot-component-agent-generator`
+- [x] `p1` - **ID**: `cpt-cypilot-component-agent-generator`
 
 ##### Why this component exists
 
@@ -837,6 +842,12 @@ Does NOT own the blueprint contract or processor — uses core Blueprint Process
 | `hook install/uninstall` | Manage pre-commit hooks | 0 |
 | `migrate-config` | Migrate legacy JSON configs to TOML | 0 |
 | `self-check` | Validate examples against templates | 0=PASS, 2=FAIL |
+| `toc` | Generate/update table of contents in artifact | 0 |
+| `validate-toc` | Validate table of contents consistency | 0=PASS, 2=FAIL |
+| `list-id-kinds` | List all known ID kind tokens | 0 |
+| `validate-kits` | Validate kit structural correctness | 0=PASS, 2=FAIL |
+| `generate-resources` | Regenerate kit outputs from blueprints | 0 |
+| `kit install/update` | Install or update a kit | 0 |
 
 **Kit Commands (SDLC)**:
 
@@ -881,7 +892,7 @@ No internal module dependencies beyond the component relationships documented in
 
 | Dependency | Interface Used | Purpose |
 |------------|---------------|---------|
-| Python 3.10+ | Runtime environment | Execute all Cypilot skill scripts and kit plugins |
+| Python 3.11+ | Runtime environment | Execute all Cypilot skill scripts and kit plugins (requires `tomllib` from stdlib) |
 
 **Dependency Rules**:
 - Core uses stdlib only — no pip dependencies
@@ -1174,7 +1185,7 @@ The following design domains are not applicable to Cypilot and are explicitly ex
 
 - **PRD**: [PRD.md](./PRD.md)
 - **ADRs**: [ADR/](./ADR/) (none created yet)
-- **Features**: [features/](./features/) (none created yet)
+- **Features**: [features/](./features/) — `core-infra.md`, `blueprint-system.md`, `traceability-validation.md`, `sdlc-kit.md`, `agent-integration.md`, `pr-workflows.md`, `version-config.md`, `developer-experience.md`
 
 ### Specifications
 

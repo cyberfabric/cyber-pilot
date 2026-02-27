@@ -1,3 +1,10 @@
+"""
+List ID Kinds Command — list all ID kind tokens found in artifacts.
+
+@cpt-flow:cpt-cypilot-flow-traceability-validation-query:p1
+@cpt-dod:cpt-cypilot-dod-traceability-validation-queries:p1
+"""
+
 import argparse
 import json
 from pathlib import Path
@@ -12,10 +19,13 @@ def cmd_list_id_kinds(argv: List[str]) -> int:
     Parses artifacts against their templates and returns only kinds
     that have at least one ID definition in the artifact(s).
     """
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-list-id-kinds:p1:inst-kinds-parse-args
     p = argparse.ArgumentParser(prog="list-id-kinds", description="List ID kinds found in Cypilot artifacts")
     p.add_argument("--artifact", default=None, help="Scan specific artifact (if omitted, scans all registered Cypilot artifacts)")
     args = p.parse_args(argv)
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-list-id-kinds:p1:inst-kinds-parse-args
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-list-id-kinds:p1:inst-kinds-resolve-artifacts
     # Collect artifacts to scan: (artifact_path, artifact_kind)
     artifacts_to_scan: List[Tuple[Path, str]] = []
     ctx = None
@@ -67,10 +77,14 @@ def cmd_list_id_kinds(argv: List[str]) -> int:
             if artifact_path.exists():
                 artifacts_to_scan.append((artifact_path, str(artifact_meta.kind)))
 
+        # @cpt-begin:cpt-cypilot-algo-traceability-validation-list-id-kinds:p1:inst-kinds-if-no-artifacts
         if not artifacts_to_scan:
             print(json.dumps({"kinds": [], "kind_counts": {}, "kind_to_templates": {}, "template_to_kinds": {}, "artifacts_scanned": 0}, indent=None, ensure_ascii=False))
             return 0
+        # @cpt-end:cpt-cypilot-algo-traceability-validation-list-id-kinds:p1:inst-kinds-if-no-artifacts
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-list-id-kinds:p1:inst-kinds-resolve-artifacts
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-list-id-kinds:p1:inst-kinds-build-known
     # Parse artifacts and collect kinds that have actual IDs
     template_to_kinds: Dict[str, Set[str]] = {}
     kind_to_templates: Dict[str, Set[str]] = {}
@@ -87,7 +101,9 @@ def cmd_list_id_kinds(argv: List[str]) -> int:
                 for c in (kind_constraints.defined_id or []):
                     if c and getattr(c, "kind", None):
                         known_kinds.add(str(c.kind).strip().lower())
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-list-id-kinds:p1:inst-kinds-build-known
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-list-id-kinds:p1:inst-kinds-scan-ids
     def _match_system_prefix(cpt_id: str) -> Optional[str]:
         best: Optional[str] = None
         for sys_slug in registered_systems:
@@ -126,7 +142,9 @@ def cmd_list_id_kinds(argv: List[str]) -> int:
                 kind_to_templates.setdefault(kind_name, set()).add(artifact_type)
                 template_to_kinds.setdefault(artifact_type, set()).add(kind_name)
                 kind_counts[kind_name] = kind_counts.get(kind_name, 0) + 1
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-list-id-kinds:p1:inst-kinds-scan-ids
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-list-id-kinds:p1:inst-kinds-return
     # Build output
     all_kinds = sorted(kind_to_templates.keys())
 
@@ -147,4 +165,5 @@ def cmd_list_id_kinds(argv: List[str]) -> int:
             "template_to_kinds": {k: sorted(v) for k, v in sorted(template_to_kinds.items())},
             "artifacts_scanned": len(artifacts_to_scan),
         }, indent=None, ensure_ascii=False))
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-list-id-kinds:p1:inst-kinds-return
     return 0

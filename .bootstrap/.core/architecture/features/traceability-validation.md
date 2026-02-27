@@ -18,6 +18,12 @@
   - [Cross-Validate Artifacts](#cross-validate-artifacts)
   - [Scan Code Markers](#scan-code-markers)
   - [Cross-Validate Code](#cross-validate-code)
+  - [List ID Kinds](#list-id-kinds)
+  - [Validate TOC](#validate-toc)
+  - [TOC Utilities](#toc-utilities)
+  - [Markdown Parsing Utilities](#markdown-parsing-utilities)
+  - [Fixing Prompt Enrichment](#fixing-prompt-enrichment)
+  - [Language Configuration](#language-configuration)
 - [4. States (CDSL)](#4-states-cdsl)
   - [Validation Report Lifecycle](#validation-report-lifecycle)
 - [5. Definitions of Done](#5-definitions-of-done)
@@ -26,7 +32,8 @@
   - [Code Traceability Validation](#code-traceability-validation)
   - [Traceability Query Commands](#traceability-query-commands)
   - [CDSL Instruction Tracking](#cdsl-instruction-tracking)
-- [6. Acceptance Criteria](#6-acceptance-criteria)
+- [6. Implementation Modules](#6-implementation-modules)
+- [7. Acceptance Criteria](#7-acceptance-criteria)
 
 <!-- /toc -->
 
@@ -233,6 +240,86 @@ Catches structural and traceability issues that AI agents miss or hallucinate �
    2. [x] - `p1` - **IF** code block has no matching CDSL step in artifact, emit error - `inst-if-inst-orphan`
 7. [x] - `p1` - **RETURN** accumulated errors and warnings - `inst-return-code-cross`
 
+### List ID Kinds
+
+- [x] `p1` - **ID**: `cpt-cypilot-algo-traceability-validation-list-id-kinds`
+
+**Input**: Optional artifact path, project context
+
+**Output**: JSON with kind list, counts, kind↔template mappings
+
+**Steps**:
+1. [x] - `p1` - Parse arguments: `--artifact` - `inst-kinds-parse-args`
+2. [x] - `p1` - Resolve artifacts to scan (single or all registered) - `inst-kinds-resolve-artifacts`
+3. [x] - `p1` - **IF** no artifacts found **RETURN** empty result or error - `inst-kinds-if-no-artifacts`
+4. [x] - `p1` - Build known kinds set from kit constraints - `inst-kinds-build-known`
+5. [x] - `p1` - **FOR EACH** artifact, scan ID definitions and infer kind tokens from ID slugs - `inst-kinds-scan-ids`
+6. - `p1` - Aggregate kind counts and kind↔template mappings - `inst-kinds-aggregate`
+7. [x] - `p1` - **RETURN** JSON: `{kinds, kind_counts, kind_to_templates, template_to_kinds}` - `inst-kinds-return`
+
+### Validate TOC
+
+- [x] `p1` - **ID**: `cpt-cypilot-algo-traceability-validation-validate-toc`
+
+**Input**: List of file paths (or all registered artifacts)
+
+**Output**: JSON with per-file TOC validation results
+
+**Steps**:
+1. [x] - `p1` - Parse arguments: positional files or `--all` - `inst-toc-parse-args`
+2. - `p1` - Resolve file list (explicit paths or all registered artifacts) - `inst-toc-resolve-files`
+3. [x] - `p1` - **FOR EACH** file - `inst-toc-foreach-file`
+   1. - `p1` - Parse existing TOC block between `<!-- toc -->` markers - `inst-toc-parse-existing`
+   2. - `p1` - Generate expected TOC from headings - `inst-toc-generate-expected`
+   3. - `p1` - Compare existing vs expected: check anchor validity, heading coverage, staleness - `inst-toc-compare`
+   4. - `p1` - **IF** mismatch, record error with diff details - `inst-toc-if-mismatch`
+4. [x] - `p1` - **RETURN** JSON: `{status, files_checked, errors}` - `inst-toc-return`
+
+### TOC Utilities
+
+- [x] `p1` - **ID**: `cpt-cypilot-algo-traceability-validation-toc-utils`
+
+**Input**: Markdown content string, optional file path
+
+1. [x] - `p1` - Parse headings from markdown lines (respecting fenced code blocks, min/max level, skip options) - `inst-toc-util-parse-headings`
+2. [x] - `p1` - Build TOC string from heading tuples (numbered or bulleted, GitHub-compatible anchors) - `inst-toc-util-build-toc`
+3. [x] - `p1` - Insert/update TOC using HTML markers (`<!-- toc -->`) for CLI command - `inst-toc-util-insert-markers`
+4. [x] - `p1` - Insert/update TOC using heading-based insertion (`## Table of Contents`) for blueprint generator - `inst-toc-util-insert-heading`
+5. [x] - `p1` - Process file: strip manual TOC, insert marker-based TOC, write if changed - `inst-toc-util-process-file`
+6. [x] - `p1` - Validate TOC: check existence, anchor validity, completeness, staleness - `inst-toc-util-validate`
+
+### Markdown Parsing Utilities
+
+- [x] `p1` - **ID**: `cpt-cypilot-algo-traceability-validation-parsing-utils`
+
+**Input**: Markdown text, section regex patterns
+
+1. [x] - `p1` - Parse required sections from requirements file (section ID → title mapping) - `inst-parse-required-sections`
+2. [x] - `p1` - Find present section IDs in artifact text (e.g., A, B, C letter headings) - `inst-parse-find-sections`
+3. [x] - `p1` - Split text by lettered sections with optional line offsets - `inst-parse-split-sections`
+4. [x] - `p1` - Extract field blocks from markdown (`**Field Name**: value` patterns) - `inst-parse-field-block`
+5. [x] - `p1` - Extract backticked IDs matching a pattern from text - `inst-parse-extract-ids`
+
+### Fixing Prompt Enrichment
+
+- [x] `p1` - **ID**: `cpt-cypilot-algo-traceability-validation-fixing-prompts`
+
+**Input**: List of validation issues (errors/warnings), optional project root
+
+1. [x] - `p1` - Define probable reasons registry mapping error codes to human-readable templates - `inst-fix-define-reasons`
+2. [x] - `p1` - Build actionable fixing prompt per error code with location, ID, and constraint context - `inst-fix-build-prompt`
+3. [x] - `p1` - Enrich each issue in-place: resolve reasons, attach fixing prompt, normalize location - `inst-fix-enrich`
+
+### Language Configuration
+
+- [x] `p1` - **ID**: `cpt-cypilot-algo-traceability-validation-language-config`
+
+**Input**: Optional start path for project config lookup
+
+1. [x] - `p1` - Define extension-based comment format defaults for all supported languages - `inst-lang-define-defaults`
+2. [x] - `p1` - Load language config from project core.toml `codeScanning` section (with fallback to defaults) - `inst-lang-load-config`
+3. [x] - `p1` - Build regex patterns for `@cpt-begin`/`@cpt-end` markers using language-specific comment syntax - `inst-lang-build-regex`
+
 ## 4. States (CDSL)
 
 ### Validation Report Lifecycle
@@ -252,7 +339,7 @@ Catches structural and traceability issues that AI agents miss or hallucinate �
 
 ### Artifact Structural Validation
 
-- [ ] `p1` - **ID**: `cpt-cypilot-dod-traceability-validation-structure`
+- [x] `p1` - **ID**: `cpt-cypilot-dod-traceability-validation-structure`
 
 The system **MUST** validate each artifact against its kit-defined constraints: heading contract (required sections, levels, patterns), ID format (`cpt-{system}-{kind}-{slug}`), priority marker presence, CDSL step consistency (checked parent implies checked steps), and parent-child checkbox consistency. Validation **MUST** produce errors with file path, line number, and actionable fixing prompts. Self-check **MUST** verify kit examples pass template validation before proceeding.
 
@@ -286,7 +373,7 @@ The system **MUST** validate cross-artifact relationships: every ID reference re
 
 ### Code Traceability Validation
 
-- [ ] `p1` - **ID**: `cpt-cypilot-dod-traceability-validation-code`
+- [x] `p1` - **ID**: `cpt-cypilot-dod-traceability-validation-code`
 
 The system **MUST** scan code files for `@cpt-*` markers (scope markers and block markers), validate marker structure (pairing, no empty blocks, proper nesting), and cross-validate against artifact IDs: orphaned markers (code references non-existent ID), missing markers (`to_code` IDs without code markers), forbidden markers (`to_code` ID with unchecked task checkbox), and CDSL instruction-level cross-validation. DOCS-ONLY traceability mode **MUST** prohibit all code markers. Single-pass scanning **MUST** complete in ≤ 3 seconds per artifact.
 
@@ -306,7 +393,7 @@ The system **MUST** scan code files for `@cpt-*` markers (scope markers and bloc
 
 ### Traceability Query Commands
 
-- [ ] `p1` - **ID**: `cpt-cypilot-dod-traceability-validation-queries`
+- [x] `p1` - **ID**: `cpt-cypilot-dod-traceability-validation-queries`
 
 The system **MUST** provide CLI commands for navigating the ID graph: `list-ids [--kind K] [--pattern P]` (list definitions matching criteria), `where-defined --id <id>` (find definition location), `where-used --id <id>` (find all references), `get-content --id <id>` (extract content block). All commands **MUST** output JSON, scan all registered artifacts, and use exit codes 0 (found) / 2 (not found).
 
@@ -337,7 +424,26 @@ The system **MUST** scan CDSL instruction markers (`inst-{slug}` suffixes in num
 - `cpt-cypilot-component-validator`
 - `cpt-cypilot-component-traceability-engine`
 
-## 6. Acceptance Criteria
+## 6. Implementation Modules
+
+| Module | Path | Responsibility |
+|--------|------|----------------|
+| Validate Command | `skills/.../commands/validate.py` | Main validation orchestration, context loading, report generation |
+| Validate TOC | `skills/.../commands/validate_toc.py` | TOC consistency validation |
+| List IDs | `skills/.../commands/list_ids.py` | List ID definitions matching criteria |
+| List ID Kinds | `skills/.../commands/list_id_kinds.py` | List all ID kind tokens found in artifacts |
+| Get Content | `skills/.../commands/get_content.py` | Extract content block for a specific ID |
+| Where Defined | `skills/.../commands/where_defined.py` | Find where an ID is defined |
+| Where Used | `skills/.../commands/where_used.py` | Find all references to an ID |
+| Document Utils | `skills/.../utils/document.py` | ID scanning, CDSL instruction scanning |
+| Constraints Utils | `skills/.../utils/constraints.py` | Constraint loading, heading validation, cross-validation |
+| Codebase Utils | `skills/.../utils/codebase.py` | Code file scanning, `@cpt-*` marker validation |
+| Error Codes | `skills/.../utils/error_codes.py` | Stable error codes for validation issues |
+| Fixing Utils | `skills/.../utils/fixing.py` | Fixing prompt generation for LLM agents |
+| Language Config | `skills/.../utils/language_config.py` | Language-specific file extensions and comment patterns |
+| Parsing Utils | `skills/.../utils/parsing.py` | Markdown structure parsing, section extraction |
+
+## 7. Acceptance Criteria
 
 - [ ] `cypilot validate` validates all registered artifacts and produces JSON report with PASS/FAIL status
 - [ ] `cypilot validate --artifact <path>` validates a single artifact against its constraints

@@ -2,6 +2,8 @@
 Cypilot TOC Command — Generate Table of Contents for Markdown files.
 
 Thin CLI wrapper around the unified ``cypilot.utils.toc`` module.
+
+@cpt-flow:cpt-cypilot-flow-developer-experience-toc:p1
 """
 
 import argparse
@@ -17,6 +19,7 @@ from cypilot.utils.toc import (
 
 def cmd_toc(argv: List[str]) -> int:
     """Generate/update Table of Contents in markdown files."""
+    # @cpt-begin:cpt-cypilot-flow-developer-experience-toc:p1:inst-toc-gen-parse-args
     p = argparse.ArgumentParser(
         prog="cypilot toc",
         description="Generate or update Table of Contents in Markdown files",
@@ -49,18 +52,23 @@ def cmd_toc(argv: List[str]) -> int:
         help="Skip post-generation validation",
     )
     args = p.parse_args(argv)
+    # @cpt-end:cpt-cypilot-flow-developer-experience-toc:p1:inst-toc-gen-parse-args
 
     results = []
+    # @cpt-begin:cpt-cypilot-flow-developer-experience-toc:p1:inst-toc-gen-foreach-file
     validation_errors = 0
     for filepath_str in args.files:
         filepath = Path(filepath_str).resolve()
+        # @cpt-begin:cpt-cypilot-flow-developer-experience-toc:p1:inst-toc-gen-process
         result = _process_file(
             filepath,
             max_level=args.max_level,
             dry_run=args.dry_run,
             indent_size=args.indent,
         )
+        # @cpt-end:cpt-cypilot-flow-developer-experience-toc:p1:inst-toc-gen-process
 
+        # @cpt-begin:cpt-cypilot-flow-developer-experience-toc:p1:inst-toc-gen-validate
         # Auto-validate after generation (unless skipped or dry-run)
         if (not args.skip_validate
                 and not args.dry_run
@@ -84,9 +92,12 @@ def cmd_toc(argv: List[str]) -> int:
                 validation_errors += len(errs)
             else:
                 result["validation"] = {"status": "PASS"}
+        # @cpt-end:cpt-cypilot-flow-developer-experience-toc:p1:inst-toc-gen-validate
 
         results.append(result)
+    # @cpt-end:cpt-cypilot-flow-developer-experience-toc:p1:inst-toc-gen-foreach-file
 
+    # @cpt-begin:cpt-cypilot-flow-developer-experience-toc:p1:inst-toc-gen-return
     output = {
         "status": "OK",
         "files_processed": len(results),
@@ -102,4 +113,5 @@ def cmd_toc(argv: List[str]) -> int:
 
     if validation_errors:
         return 2
+    # @cpt-end:cpt-cypilot-flow-developer-experience-toc:p1:inst-toc-gen-return
     return 1 if output["status"] == "ERROR" else 0

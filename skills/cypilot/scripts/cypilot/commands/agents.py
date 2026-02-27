@@ -1,3 +1,19 @@
+"""
+Agent Entry Point Generator
+
+Generates agent-native entry points (Windsurf, Cursor, Claude, Copilot, OpenAI),
+composes SKILL.md from kit @cpt:skill sections, and creates workflow proxies.
+
+@cpt-flow:cpt-cypilot-flow-agent-integration-generate:p1
+@cpt-algo:cpt-cypilot-algo-agent-integration-discover-agents:p1
+@cpt-algo:cpt-cypilot-algo-agent-integration-generate-shims:p1
+@cpt-algo:cpt-cypilot-algo-agent-integration-compose-skill:p1
+@cpt-algo:cpt-cypilot-algo-agent-integration-list-workflows:p1
+@cpt-dod:cpt-cypilot-dod-agent-integration-entry-points:p1
+@cpt-dod:cpt-cypilot-dod-agent-integration-skill-composition:p1
+@cpt-dod:cpt-cypilot-dod-agent-integration-workflow-discovery:p1
+"""
+
 import argparse
 import json
 import os
@@ -127,6 +143,7 @@ def _load_json_file(path: Path) -> Optional[dict]:
         return None
 
 
+# @cpt-begin:cpt-cypilot-algo-agent-integration-discover-agents:p1:inst-define-registry
 def _default_agents_config() -> dict:
     """Unified config for both workflows and skills registration per agent."""
     return {
@@ -354,6 +371,7 @@ def _default_agents_config() -> dict:
             },
         },
     }
+# @cpt-end:cpt-cypilot-algo-agent-integration-discover-agents:p1:inst-define-registry
 
 
 def _parse_frontmatter(file_path: Path) -> Dict[str, str]:
@@ -473,6 +491,7 @@ def _resolve_gen_kits(cypilot_root: Path, project_root: Optional[Path] = None) -
     return gen_kits
 
 
+# @cpt-begin:cpt-cypilot-algo-agent-integration-list-workflows:p1:inst-scan-core-workflows
 def _list_workflow_files(cypilot_root: Path, project_root: Optional[Path] = None) -> List[Tuple[str, Path]]:
     """List workflow files from .core/workflows/ and .gen/kits/*/workflows/.
 
@@ -518,11 +537,13 @@ def _list_workflow_files(cypilot_root: Path, project_root: Optional[Path] = None
 
     out.sort(key=lambda t: t[0])
     return out
+# @cpt-end:cpt-cypilot-algo-agent-integration-list-workflows:p1:inst-scan-core-workflows
 
 
 _ALL_RECOGNIZED_AGENTS = ["windsurf", "cursor", "claude", "copilot", "openai"]
 
 
+# @cpt-begin:cpt-cypilot-algo-agent-integration-generate-shims:p1:inst-create-proxy
 def _process_single_agent(
     agent: str,
     project_root: Path,
@@ -848,10 +869,12 @@ def _process_single_agent(
         },
         "errors": all_errors if all_errors else None,
     }
+# @cpt-end:cpt-cypilot-algo-agent-integration-generate-shims:p1:inst-create-proxy
 
 
 def cmd_agents(argv: List[str]) -> int:
     """Unified command to register both workflows and skills for an agent."""
+    # @cpt-begin:cpt-cypilot-flow-agent-integration-generate:p1:inst-user-agents
     p = argparse.ArgumentParser(prog="agents", description="Generate/update agent-specific workflow proxies and skill outputs")
     agent_group = p.add_mutually_exclusive_group(required=False)
     agent_group.add_argument("--agent", default=None, help="Agent/IDE key (e.g., windsurf, cursor, claude, copilot, openai). Omit to init all supported agents.")
@@ -861,7 +884,9 @@ def cmd_agents(argv: List[str]) -> int:
     p.add_argument("--config", default=None, help="Path to agents config JSON (optional; defaults are built-in)")
     p.add_argument("--dry-run", action="store_true", help="Compute changes without writing files")
     args = p.parse_args(argv)
+    # @cpt-end:cpt-cypilot-flow-agent-integration-generate:p1:inst-user-agents
 
+    # @cpt-begin:cpt-cypilot-flow-agent-integration-generate:p1:inst-resolve-project
     # Determine agent list
     if bool(getattr(args, "openai", False)):
         agents_to_process = ["openai"]
@@ -889,6 +914,9 @@ def cmd_agents(argv: List[str]) -> int:
         if not _is_cypilot_root(cypilot_root):
             cypilot_root = Path(__file__).resolve().parents[7]
 
+    # @cpt-end:cpt-cypilot-flow-agent-integration-generate:p1:inst-resolve-project
+
+    # @cpt-begin:cpt-cypilot-flow-agent-integration-generate:p1:inst-ensure-local
     cypilot_root, copy_report = _ensure_cypilot_local(cypilot_root, project_root, args.dry_run)
     if copy_report.get("action") == "error":
         print(json.dumps({
@@ -898,6 +926,7 @@ def cmd_agents(argv: List[str]) -> int:
             "project_root": project_root.as_posix(),
         }, indent=2, ensure_ascii=False))
         return 1
+    # @cpt-end:cpt-cypilot-flow-agent-integration-generate:p1:inst-ensure-local
 
     cfg_path: Optional[Path] = Path(args.config).resolve() if args.config else None
     cfg: Optional[dict] = _load_json_file(cfg_path) if cfg_path else None
@@ -909,6 +938,7 @@ def cmd_agents(argv: List[str]) -> int:
         else:
             cfg = {"version": 1, "agents": {a: {"workflows": {}, "skills": {}} for a in agents_to_process}}
 
+    # @cpt-begin:cpt-cypilot-flow-agent-integration-generate:p1:inst-for-each-agent
     has_errors = False
     results: Dict[str, Any] = {}
     for agent in agents_to_process:
@@ -916,7 +946,9 @@ def cmd_agents(argv: List[str]) -> int:
         results[agent] = result
         if result.get("status") != "PASS":
             has_errors = True
+    # @cpt-end:cpt-cypilot-flow-agent-integration-generate:p1:inst-for-each-agent
 
+    # @cpt-begin:cpt-cypilot-flow-agent-integration-generate:p1:inst-return-report
     overall_status = "PASS" if not has_errors else "PARTIAL"
 
     print(json.dumps({
@@ -930,4 +962,5 @@ def cmd_agents(argv: List[str]) -> int:
         "results": results,
     }, indent=2, ensure_ascii=False))
 
+    # @cpt-end:cpt-cypilot-flow-agent-integration-generate:p1:inst-return-report
     return 0 if not has_errors else 1

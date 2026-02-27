@@ -3,6 +3,9 @@ Cypilot Validator - Language Configuration
 
 Load and provide language-specific settings from project config.
 Supports dynamic file extensions and comment patterns for any language.
+
+@cpt-algo:cpt-cypilot-algo-traceability-validation-scan-code:p1
+@cpt-dod:cpt-cypilot-dod-traceability-validation-code:p1
 """
 
 import re
@@ -21,6 +24,7 @@ DEFAULT_MULTI_LINE_COMMENTS = [
 ]
 DEFAULT_BLOCK_COMMENT_PREFIXES = ["*"]
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-language-config:p1:inst-lang-define-defaults
 # Extension-based comment format defaults.
 # Each entry: (single_line_comments, multi_line_comments, block_comment_prefixes)
 EXTENSION_COMMENT_DEFAULTS: Dict[str, Tuple[List[str], List[Dict[str, str]], List[str]]] = {
@@ -73,6 +77,7 @@ EXTENSION_COMMENT_DEFAULTS: Dict[str, Tuple[List[str], List[Dict[str, str]], Lis
     ".clj":  ([";"],        [],                               []),
     ".lisp": ([";"],        [{'start': '#|', 'end': '|#'}],  []),
 }
+# @cpt-end:cpt-cypilot-algo-traceability-validation-language-config:p1:inst-lang-define-defaults
 
 
 class LanguageConfig:
@@ -112,6 +117,7 @@ class LanguageConfig:
         return "(?:" + "|".join(patterns) + ")"
 
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-language-config:p1:inst-lang-load-config
 def load_language_config(start_path: Optional[Path] = None) -> LanguageConfig:
     """
     Load language configuration from project config.
@@ -166,6 +172,7 @@ def load_language_config(start_path: Optional[Path] = None) -> LanguageConfig:
         multi_line_comments=multi_line,
         block_comment_prefixes=block_prefixes,
     )
+# @cpt-end:cpt-cypilot-algo-traceability-validation-language-config:p1:inst-lang-load-config
 
 
 def _default_language_config() -> LanguageConfig:
@@ -205,6 +212,7 @@ def comment_defaults_for_extensions(extensions: List[str]) -> Tuple[List[str], L
     return merged_slc, merged_mlc
 
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-language-config:p1:inst-lang-build-regex
 def build_cypilot_begin_regex(lang_config: LanguageConfig) -> re.Pattern:
     """Build cpt-begin regex pattern using language config."""
     comment_pattern = lang_config.build_comment_pattern()
@@ -227,6 +235,7 @@ def build_no_cypilot_end_regex(lang_config: LanguageConfig) -> re.Pattern:
     """Build !no-cpt-end regex pattern using language config."""
     comment_pattern = lang_config.build_comment_pattern()
     return re.compile(rf"^\s*{comment_pattern}.*!no-cpt-end")
+# @cpt-end:cpt-cypilot-algo-traceability-validation-language-config:p1:inst-lang-build-regex
 
 
 __all__ = [

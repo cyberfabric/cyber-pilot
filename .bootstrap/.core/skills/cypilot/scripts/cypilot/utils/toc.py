@@ -12,6 +12,9 @@ Features:
 - Two list styles: numbered top-level (for generated docs) and all-bullet (for user files)
 - Configurable heading level range and indent size
 - Auto-skip of document title (first H1) and existing TOC headings
+
+@cpt-algo:cpt-cypilot-algo-traceability-validation-toc-utils:p1
+@cpt-flow:cpt-cypilot-flow-developer-experience-self-check:p1
 """
 
 from __future__ import annotations
@@ -66,6 +69,7 @@ def github_anchor(text: str) -> str:
 # Heading parsing
 # ---------------------------------------------------------------------------
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-parse-headings
 def parse_headings(
     lines: List[str],
     *,
@@ -115,12 +119,14 @@ def parse_headings(
         headings.append((level, text))
 
     return headings
+# @cpt-end:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-parse-headings
 
 
 # ---------------------------------------------------------------------------
 # TOC building
 # ---------------------------------------------------------------------------
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-build-toc
 def build_toc(
     headings: List[Tuple[int, str]],
     *,
@@ -181,6 +187,7 @@ def build_toc(
             toc_lines.append(f"{indent}- [{disp}](#{slug})")
 
     return "\n".join(toc_lines)
+# @cpt-end:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-build-toc
 
 
 def _unique_slug(text: str, slug_counts: Dict[str, int]) -> str:
@@ -198,6 +205,7 @@ def _unique_slug(text: str, slug_counts: Dict[str, int]) -> str:
 # TOC insertion — marker-based (for CLI ``cypilot toc``)
 # ---------------------------------------------------------------------------
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-insert-markers
 def insert_toc_markers(
     content: str,
     *,
@@ -255,12 +263,14 @@ def insert_toc_markers(
         new_lines = lines[:insert_pos] + toc_block + lines[insert_pos:]
 
     return "\n".join(new_lines)
+# @cpt-end:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-insert-markers
 
 
 # ---------------------------------------------------------------------------
 # TOC insertion — heading-based (for blueprint-generated content)
 # ---------------------------------------------------------------------------
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-insert-heading
 def insert_toc_heading(
     content: str,
     *,
@@ -349,6 +359,7 @@ def insert_toc_heading(
 
     # Fallback: prepend
     return f"{toc_section}\n\n{content}"
+# @cpt-end:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-insert-heading
 
 
 # ---------------------------------------------------------------------------
@@ -411,6 +422,7 @@ def _strip_manual_toc(content: str) -> Tuple[str, bool]:
     return "\n".join(new_lines), True
 
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-process-file
 def process_file(
     filepath: Path,
     *,
@@ -454,6 +466,7 @@ def process_file(
     if manual_removed:
         result["manual_toc_removed"] = True
     return result
+# @cpt-end:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-process-file
 
 
 # ---------------------------------------------------------------------------
@@ -528,6 +541,7 @@ def _build_expected_anchors(
     return result
 
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-validate
 def validate_toc(
     content: str,
     *,
@@ -649,6 +663,7 @@ def validate_toc(
             ))
 
     return {"errors": errors, "warnings": warnings}
+# @cpt-end:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-validate
 
 
 def _find_heading_line(lines: List[str], heading_text: str) -> int:

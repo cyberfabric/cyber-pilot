@@ -20,6 +20,7 @@ from . import error_codes as EC
 #   parent_id, headings, found_headings, heading_pattern, allowed, kinds, etc.
 # ---------------------------------------------------------------------------
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-fixing-prompts:p1:inst-fix-define-reasons
 _REASONS: Dict[str, List[str]] = {
     # Structure — task / checkbox consistency
     EC.CDSL_STEP_UNCHECKED: [
@@ -241,6 +242,7 @@ _REASONS: Dict[str, List[str]] = {
         "Code file failed to load — the file may be missing, empty, or have encoding issues",
     ],
 }
+# @cpt-end:cpt-cypilot-algo-traceability-validation-fixing-prompts:p1:inst-fix-define-reasons
 
 
 class _SafeDict(dict):
@@ -259,6 +261,7 @@ def _resolve_reasons(templates: List[str], issue: Dict[str, object]) -> List[str
 # Public API
 # ---------------------------------------------------------------------------
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-fixing-prompts:p1:inst-fix-enrich
 def enrich_issues(issues: List[Dict[str, object]], project_root: Optional[Path] = None) -> None:
     """Add ``fixing_prompt``, ``reasons``, and strip internal ``path`` from every issue (in-place).
 
@@ -278,6 +281,7 @@ def enrich_issues(issues: List[Dict[str, object]], project_root: Optional[Path] 
                 text += " | Probable causes: " + "; ".join(reasons)
             issue["fixing_prompt"] = text
         issue.pop("path", None)
+# @cpt-end:cpt-cypilot-algo-traceability-validation-fixing-prompts:p1:inst-fix-enrich
 
 
 # ---------------------------------------------------------------------------
@@ -353,6 +357,7 @@ def _rel_path_str(abs_path: str, project_root: Optional[Path]) -> str:
 # Prompt registry — keyed by error ``code`` (see error_codes.py).
 # ---------------------------------------------------------------------------
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-fixing-prompts:p1:inst-fix-build-prompt
 def _build_fixing_prompt(issue: Dict[str, object], project_root: Optional[Path] = None) -> Optional[str]:
     code = str(issue.get("code") or "")
     loc = _rel_loc(issue, project_root)
@@ -699,3 +704,4 @@ def _build_fixing_prompt(issue: Dict[str, object], project_root: Optional[Path] 
         )
 
     return None
+# @cpt-end:cpt-cypilot-algo-traceability-validation-fixing-prompts:p1:inst-fix-build-prompt

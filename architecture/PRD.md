@@ -35,6 +35,7 @@
     - [Version Detection and Updates](#version-detection-and-updates)
     - [CLI Configuration Interface](#cli-configuration-interface)
     - [Template Quality Assurance](#template-quality-assurance)
+    - [Table of Contents Management](#table-of-contents-management)
     - [Environment Diagnostics](#environment-diagnostics)
     - [Pre-Commit Hook Integration](#pre-commit-hook-integration)
     - [Shell Completions](#shell-completions)
@@ -371,6 +372,15 @@ The system MUST provide a `self-check` command that validates example artifacts 
 **Actors**:
 `cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
 
+#### Table of Contents Management
+
+- [x] `p1` - **ID**: `cpt-cypilot-fr-core-toc`
+
+The system MUST provide `cypilot toc` and `cypilot validate-toc` commands for Markdown table of contents management. `cypilot toc` MUST generate or update `<!-- toc -->` blocks with GitHub-compatible anchor slugs, fenced code block awareness, and configurable heading level ranges. `cypilot validate-toc` MUST verify that TOC exists, anchors point to real headings, all headings are covered, and the TOC is not stale. Both commands MUST support batch processing of multiple files and output JSON results. The TOC engine is also used internally by the Blueprint Processor for generated artifact templates.
+
+**Actors**:
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
+
 #### Environment Diagnostics
 
 - [ ] `p2` - **ID**: `cpt-cypilot-fr-core-doctor`
@@ -631,7 +641,7 @@ The SDLC kit MUST support per-project PR review configuration with: prompt selec
 
 **Alternative Flows**:
 - **Download fails**: Tool displays error with HTTP status and retries up to 3 times. If all retries fail, displays: "Failed to download skill bundle. Check network connection and try again."
-- **Python version incompatible**: Tool displays: "Python 3.10+ required (found {version})." and exits.
+- **Python version incompatible**: Tool displays: "Python 3.11+ required (found {version})." and exits.
 
 **Postconditions**: `cypilot`/`cpt` commands are available globally; skill bundle cached; all commands are proxied to the cached or project-installed skill
 
@@ -650,18 +660,17 @@ The SDLC kit MUST support per-project PR review configuration with: prompt selec
 
 1. User runs `cypilot init` in the project root
 2. Tool checks whether Cypilot is already installed in the project
-3. Tool asks: "Install directory?" (default: `.cypilot`) — User confirms or changes
-4. Tool asks: "Which agents to support?" (default: all) — User selects from windsurf, cursor, claude, copilot, openai
-5. Tool copies the skill from the cache (`~/.cypilot/cache/`) into the install directory, installs all available kits (uses capability `cpt-cypilot-fr-core-init`)
-6. Tool creates directory structure: skills/, kits/, workflows/, prompts/, schemas/, config/
-7. Tool defines root system — derives name and slug from project directory name (uses capability `cpt-cypilot-fr-core-init`)
-8. Tool creates `{cypilot_path}/config/core.toml` with project root, root system definition, and kit registrations (uses capability `cpt-cypilot-fr-core-config`)
-9. Tool creates `{cypilot_path}/config/artifacts.toml` with fully populated root system entry: default SDLC autodetect rules for standard artifact kinds, codebase entries, and ignore patterns (uses capability `cpt-cypilot-fr-core-config`, `cpt-cypilot-fr-core-kits`)
-10. Tool installs all available kits — each kit generates full config in `{cypilot_path}/config/kits/<slug>/` (uses capability `cpt-cypilot-fr-core-kits`)
-11. Tool generates agent entry points for selected agents (uses capability `cpt-cypilot-fr-core-agents`)
-12. Tool injects `<!-- @cpt:root-agents -->` managed block into project root `AGENTS.md` (creates file if absent) (uses capability `cpt-cypilot-fr-core-init`)
-13. Tool creates `{cypilot_path}/config/AGENTS.md` with default WHEN rules for standard system prompts
-14. Tool displays: "Cypilot initialized. Start with: `cypilot on` or `cypilot help`"
+3. Tool uses default install directory `cypilot` (configurable via `--install-dir` flag)
+4. Tool copies the skill from the cache (`~/.cypilot/cache/`) into the install directory, installs all available kits (uses capability `cpt-cypilot-fr-core-init`)
+5. Tool creates directory structure: `.core/`, `.gen/`, `config/` inside the install directory
+6. Tool defines root system — derives name and slug from project directory name (uses capability `cpt-cypilot-fr-core-init`)
+7. Tool creates `{cypilot_path}/config/core.toml` with project root, root system definition, and kit registrations (uses capability `cpt-cypilot-fr-core-config`)
+8. Tool creates `{cypilot_path}/config/artifacts.toml` with fully populated root system entry: default SDLC autodetect rules for standard artifact kinds, codebase entries, and ignore patterns (uses capability `cpt-cypilot-fr-core-config`, `cpt-cypilot-fr-core-kits`)
+9. Tool installs all available kits — each kit generates full config in `{cypilot_path}/config/kits/<slug>/` (uses capability `cpt-cypilot-fr-core-kits`)
+10. Tool generates agent entry points for all supported agents (uses capability `cpt-cypilot-fr-core-agents`)
+11. Tool injects `<!-- @cpt:root-agents -->` managed block into project root `AGENTS.md` (creates file if absent) (uses capability `cpt-cypilot-fr-core-init`)
+12. Tool creates `{cypilot_path}/config/AGENTS.md` with default WHEN rules for standard system prompts
+13. Tool displays: "Cypilot initialized. Start with: `cypilot on` or `cypilot help`"
 
 **Alternative Flows**:
 - **Existing installation detected**: Tool displays "Cypilot is already installed at {path} (version {version})." and proposes `cypilot update` if a newer version is available. Does NOT overwrite or modify the existing installation.
@@ -938,7 +947,7 @@ The SDLC kit MUST support per-project PR review configuration with: prompt selec
 
 | Dependency | Description | Criticality |
 |------------|-------------|-------------|
-| Python 3.10+ | Runtime for CLI tool and skill engine | p1 |
+| Python 3.11+ | Runtime for CLI tool and skill engine (requires `tomllib` from stdlib) | p1 |
 | Git | Project detection, skill installation, version control | p1 |
 | pipx | Global CLI installation (recommended) | p2 |
 | gh CLI | GitHub API access for PR review/status workflows | p2 |
@@ -946,7 +955,7 @@ The SDLC kit MUST support per-project PR review configuration with: prompt selec
 ## 11. Assumptions
 
 - AI coding assistants (Windsurf, Cursor, Claude, Copilot) can follow structured markdown workflows with embedded instructions.
-- Developers have access to Python 3.10+ for running the Cypilot CLI tool.
+- Developers have access to Python 3.11+ for running the Cypilot CLI tool.
 - Projects use Git for version control (project detection relies on `.git` directory).
 - Teams are willing to maintain design artifacts as part of their development workflow.
 - The `pipx` package manager is available or installable for global CLI installation.

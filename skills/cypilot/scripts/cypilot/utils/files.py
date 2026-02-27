@@ -2,6 +2,10 @@
 Cypilot Validator - File System Operations
 
 File I/O, project root discovery, cypilot detection, path resolution.
+
+@cpt-algo:cpt-cypilot-algo-core-infra-project-root-detection:p1
+@cpt-algo:cpt-cypilot-algo-core-infra-config-management:p1
+@cpt-dod:cpt-cypilot-dod-core-infra-init-config:p1
 """
 
 import json
@@ -52,6 +56,7 @@ def cfg_get_str(cfg: object, *keys: str) -> Optional[str]:
     return None
 
 
+# @cpt-begin:cpt-cypilot-algo-core-infra-project-root-detection:p1:inst-root-walk-up
 def find_project_root(start: Path) -> Optional[Path]:
     """
     Find project root by looking for AGENTS.md with @cpt:root-agents marker or .git directory.
@@ -77,8 +82,10 @@ def find_project_root(start: Path) -> Optional[Path]:
             break
         current = parent
     return None
+# @cpt-end:cpt-cypilot-algo-core-infra-project-root-detection:p1:inst-root-walk-up
 
 
+# @cpt-begin:cpt-cypilot-algo-core-infra-config-management:p1:inst-cfg-read-var
 def _read_cypilot_var(project_root: Path) -> Optional[str]:
     """Read ``cypilot_path`` (or legacy ``cypilot``) variable from root AGENTS.md TOML block."""
     agents_file = project_root / "AGENTS.md"
@@ -93,8 +100,10 @@ def _read_cypilot_var(project_root: Path) -> Optional[str]:
     data = toml_utils.parse_toml_from_markdown(content)
     val = data.get("cypilot_path") or data.get("cypilot")
     return val.strip() if isinstance(val, str) and val.strip() else None
+# @cpt-end:cpt-cypilot-algo-core-infra-config-management:p1:inst-cfg-read-var
 
 
+# @cpt-begin:cpt-cypilot-algo-core-infra-config-management:p1:inst-cfg-load-core
 def load_project_config(project_root: Path) -> Optional[dict]:
     """Load project config from config/core.toml in cypilot dir (discovered via AGENTS.md)."""
     cypilot_rel = _read_cypilot_var(project_root)
@@ -110,6 +119,7 @@ def load_project_config(project_root: Path) -> Optional[dict]:
         return toml_utils.load(core_toml)
     except Exception:
         return None
+# @cpt-end:cpt-cypilot-algo-core-infra-config-management:p1:inst-cfg-load-core
 
 
 def cypilot_root_from_project_config() -> Optional[Path]:
@@ -134,6 +144,7 @@ def cypilot_root_from_project_config() -> Optional[Path]:
     return None
 
 
+# @cpt-begin:cpt-cypilot-algo-core-infra-config-management:p1:inst-cfg-find-dir
 def find_cypilot_directory(start: Path, cypilot_root: Optional[Path] = None) -> Optional[Path]:
     """
     Find cypilot directory starting from project root.
@@ -247,8 +258,10 @@ def find_cypilot_directory(start: Path, cypilot_root: Optional[Path] = None) -> 
         return None
     
     return search_recursive(project_root)
+# @cpt-end:cpt-cypilot-algo-core-infra-config-management:p1:inst-cfg-find-dir
 
 
+# @cpt-begin:cpt-cypilot-algo-core-infra-config-management:p1:inst-cfg-load-config
 def load_cypilot_config(adapter_dir: Path) -> Dict[str, object]:
     """
     Load Cypilot configuration from AGENTS.md and rules/
@@ -282,8 +295,10 @@ def load_cypilot_config(adapter_dir: Path) -> Dict[str, object]:
         config["rules"] = sorted(rule_files)
     
     return config
+# @cpt-end:cpt-cypilot-algo-core-infra-config-management:p1:inst-cfg-load-config
 
 
+# @cpt-begin:cpt-cypilot-algo-core-infra-config-management:p1:inst-cfg-load-registry
 def load_artifacts_registry(adapter_dir: Path) -> Tuple[Optional[dict], Optional[str]]:
     path = adapter_dir / ARTIFACTS_REGISTRY_FILENAME
     # Fallback chain: config/artifacts.toml -> artifacts.json (legacy)
@@ -310,6 +325,7 @@ def load_artifacts_registry(adapter_dir: Path) -> Tuple[Optional[dict], Optional
     if not isinstance(cfg.get("systems"), list) and not isinstance(cfg.get("artifacts"), list):
         return None, f"Invalid artifacts registry (missing 'systems' or 'artifacts' list): {path}"
     return cfg, None
+# @cpt-end:cpt-cypilot-algo-core-infra-config-management:p1:inst-cfg-load-registry
 
 
 def iter_registry_entries(registry: dict) -> List[dict]:

@@ -4,6 +4,9 @@ Cypilot validate-toc command — validate Table of Contents in Markdown files.
 Checks that TOC exists, anchors point to real headings, all headings are
 covered, and the TOC is not stale.  Thin CLI wrapper around
 ``cypilot.utils.toc.validate_toc``.
+
+@cpt-flow:cpt-cypilot-flow-traceability-validation-validate:p1
+@cpt-dod:cpt-cypilot-dod-traceability-validation-structure:p1
 """
 
 import argparse
@@ -16,6 +19,7 @@ from ..utils.toc import validate_toc
 
 def cmd_validate_toc(argv: List[str]) -> int:
     """Validate Table of Contents in markdown files."""
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-toc:p1:inst-toc-parse-args
     p = argparse.ArgumentParser(
         prog="cypilot validate-toc",
         description="Validate Table of Contents in Markdown files",
@@ -37,11 +41,13 @@ def cmd_validate_toc(argv: List[str]) -> int:
         help="Include full error details in output",
     )
     args = p.parse_args(argv)
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-toc:p1:inst-toc-parse-args
 
     results = []
     total_errors = 0
     total_warnings = 0
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-toc:p1:inst-toc-foreach-file
     for filepath_str in args.files:
         filepath = Path(filepath_str).resolve()
 
@@ -79,7 +85,9 @@ def cmd_validate_toc(argv: List[str]) -> int:
             file_result["warnings"] = warnings
 
         results.append(file_result)
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-toc:p1:inst-toc-foreach-file
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-toc:p1:inst-toc-return
     overall = "PASS"
     if total_errors:
         overall = "FAIL"
@@ -100,3 +108,4 @@ def cmd_validate_toc(argv: List[str]) -> int:
     if total_errors:
         return 2
     return 0
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-toc:p1:inst-toc-return

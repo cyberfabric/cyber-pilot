@@ -8,6 +8,9 @@ Loads and caches:
 - Registered system names
 
 Use CypilotContext.load() to initialize on CLI startup.
+
+@cpt-algo:cpt-cypilot-algo-core-infra-config-management:p1
+@cpt-flow:cpt-cypilot-flow-core-infra-cli-invocation:p1
 """
 
 from dataclasses import dataclass, field
@@ -49,6 +52,7 @@ class CypilotContext:
         """
         from .files import find_cypilot_directory
 
+        # @cpt-begin:cpt-cypilot-algo-core-infra-context-loading:p1:inst-ctx-find-and-load
         start = start_path or Path.cwd()
         adapter_dir = find_cypilot_directory(start)
         if not adapter_dir:
@@ -59,11 +63,13 @@ class CypilotContext:
             return None
 
         project_root = (adapter_dir / meta.project_root).resolve()
+        # @cpt-end:cpt-cypilot-algo-core-infra-context-loading:p1:inst-ctx-find-and-load
 
         # Load all templates for each Cypilot kit
         kits: Dict[str, LoadedKit] = {}
         errors: List[Dict[str, object]] = []
 
+        # @cpt-begin:cpt-cypilot-algo-core-infra-context-loading:p1:inst-ctx-load-kits
         for kit_id, kit in meta.kits.items():
             if not kit.is_cypilot_format():
                 continue
@@ -90,7 +96,9 @@ class CypilotContext:
                 ))
 
             kits[kit_id] = LoadedKit(kit=kit, templates=templates, constraints=kit_constraints)
+        # @cpt-end:cpt-cypilot-algo-core-infra-context-loading:p1:inst-ctx-load-kits
 
+        # @cpt-begin:cpt-cypilot-algo-core-infra-context-loading:p1:inst-ctx-expand-autodetect
         # Expand autodetect (v1.1+): turns pattern rules into concrete artifacts/codebase.
         # This must happen after kits are loaded so we can validate kinds against templates/constraints.
         def _is_kind_registered(kit_id: str, kind: str) -> bool:
@@ -149,6 +157,9 @@ class CypilotContext:
                 error=str(e),
             ))
 
+        # @cpt-end:cpt-cypilot-algo-core-infra-context-loading:p1:inst-ctx-expand-autodetect
+
+        # @cpt-begin:cpt-cypilot-algo-core-infra-context-loading:p1:inst-ctx-return
         # Get all system prefixes (slug hierarchy prefixes used in cpt-<system>-... IDs)
         registered_systems = meta.get_all_system_prefixes()
 
@@ -160,6 +171,7 @@ class CypilotContext:
             registered_systems=registered_systems,
             _errors=errors,
         )
+        # @cpt-end:cpt-cypilot-algo-core-infra-context-loading:p1:inst-ctx-return
         return ctx
 
     def get_known_id_kinds(self) -> Set[str]:
