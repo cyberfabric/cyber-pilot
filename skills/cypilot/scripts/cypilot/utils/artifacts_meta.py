@@ -124,6 +124,8 @@ class CodebaseEntry:
     path: str
     extensions: List[str] = field(default_factory=list)
     name: Optional[str] = None  # Human-readable name (optional)
+    single_line_comments: Optional[List[str]] = None
+    multi_line_comments: Optional[List[Dict[str, str]]] = None
 
     @classmethod
     def from_dict(cls, data: dict) -> "CodebaseEntry":
@@ -131,10 +133,29 @@ class CodebaseEntry:
         if not isinstance(exts, list):
             exts = []
         name = data.get("name")
+
+        slc = data.get("singleLineComments")
+        if isinstance(slc, list):
+            slc = [str(s) for s in slc if isinstance(s, str) and str(s).strip()]
+        else:
+            slc = None
+
+        mlc = data.get("multiLineComments")
+        if isinstance(mlc, list):
+            parsed_mlc: List[Dict[str, str]] = []
+            for item in mlc:
+                if isinstance(item, dict) and "start" in item and "end" in item:
+                    parsed_mlc.append({"start": str(item["start"]), "end": str(item["end"])})
+            mlc = parsed_mlc if parsed_mlc else None
+        else:
+            mlc = None
+
         return cls(
             path=str(data.get("path", "")),
             extensions=[str(e) for e in exts if isinstance(e, str)],
             name=str(name) if name else None,
+            single_line_comments=slc,
+            multi_line_comments=mlc,
         )
 
 
@@ -644,7 +665,13 @@ class ArtifactsMeta:
                     continue
                 if self.is_ignored(cb_rel):
                     continue
-                discovered_codebase.append(CodebaseEntry(path=cb_rel, extensions=list(cb.extensions or []), name=cb.name))
+                discovered_codebase.append(CodebaseEntry(
+                    path=cb_rel,
+                    extensions=list(cb.extensions or []),
+                    name=cb.name,
+                    single_line_comments=list(cb.single_line_comments) if cb.single_line_comments else None,
+                    multi_line_comments=list(cb.multi_line_comments) if cb.multi_line_comments else None,
+                ))
 
             return discovered_artifacts, discovered_codebase, system_root_str, list(rule.children or [])
 

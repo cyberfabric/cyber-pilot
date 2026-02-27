@@ -179,16 +179,16 @@ class TestCypilotContextLoad:
         """Reset global context after each test."""
         set_context(None)
 
-    @patch("cypilot.utils.files.find_adapter_directory")
+    @patch("cypilot.utils.files.find_cypilot_directory")
     def test_load_returns_none_when_no_adapter(self, mock_find):
         """load returns None when adapter directory not found."""
         mock_find.return_value = None
         result = CypilotContext.load()
         assert result is None
 
-    @patch("cypilot.utils.context.load_constraints_json")
+    @patch("cypilot.utils.context.load_constraints_toml")
     @patch("cypilot.utils.context.load_artifacts_meta")
-    @patch("cypilot.utils.files.find_adapter_directory")
+    @patch("cypilot.utils.files.find_cypilot_directory")
     def test_load_success_loads_templates_and_expands_autodetect(
         self,
         mock_find,
@@ -256,7 +256,7 @@ class TestCypilotContextLoad:
             assert any("Autodetect validation error" in m for m in msgs)
 
     @patch("cypilot.utils.context.load_artifacts_meta")
-    @patch("cypilot.utils.files.find_adapter_directory")
+    @patch("cypilot.utils.files.find_cypilot_directory")
     def test_load_autodetect_exception_is_captured(self, mock_find, mock_load_meta):
         with TemporaryDirectory() as tmpdir:
             tmp = Path(tmpdir)
@@ -284,9 +284,9 @@ class TestCypilotContextLoad:
             assert any("Autodetect expansion failed" in m for m in msgs)
 
     @patch("cypilot.utils.context.load_artifacts_meta")
-    @patch("cypilot.utils.files.find_adapter_directory")
+    @patch("cypilot.utils.files.find_cypilot_directory")
     def test_load_returns_none_on_meta_error(self, mock_find, mock_load_meta):
-        """load returns None when artifacts.json fails to load."""
+        """load returns None when artifacts registry fails to load."""
         mock_find.return_value = Path("/fake/adapter")
         mock_load_meta.return_value = (None, "Some error")
 

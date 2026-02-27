@@ -21,20 +21,48 @@ from cypilot.cli import main
 
 def _bootstrap_registry(project_root: Path, *, entries: list) -> None:
     (project_root / ".git").mkdir(exist_ok=True)
-    (project_root / ".cypilot-config.json").write_text(
-        '{\n  "cypilotAdapterPath": "adapter"\n}\n',
+    (project_root / "AGENTS.md").write_text(
+        '<!-- @cpt:root-agents -->\n```toml\ncypilot_path = "adapter"\n```\n',
         encoding="utf-8",
     )
     adapter_dir = project_root / "adapter"
     adapter_dir.mkdir(parents=True, exist_ok=True)
-    (adapter_dir / "AGENTS.md").write_text(
-        "# Cypilot Adapter: Test\n\n**Extends**: `../AGENTS.md`\n",
+    (adapter_dir / "config").mkdir(exist_ok=True)
+    (adapter_dir / "config" / "AGENTS.md").write_text(
+        "# Cypilot Adapter: Test\n",
         encoding="utf-8",
     )
-    (adapter_dir / "artifacts.json").write_text(
-        json.dumps({"version": "1.0", "artifacts": entries}, indent=2) + "\n",
+    # Write legacy artifacts.json with entries list (tests using old format)
+    (adapter_dir / "config" / "artifacts.toml").write_text(
+        _make_artifacts_toml_from_entries(entries),
         encoding="utf-8",
     )
+
+
+def _make_artifacts_toml_from_entries(entries: list) -> str:
+    """Build minimal artifacts.toml from a list of legacy entry dicts."""
+    lines = ['version = "1.0"', 'project_root = ".."', '']
+    for e in entries:
+        kind = e.get("kind", e.get("type", "UNKNOWN"))
+        path = e.get("path", "")
+        system = e.get("system", "Test")
+        lines.append('[[systems]]')
+        lines.append(f'name = "{system}"')
+        lines.append(f'slug = "test"')
+        lines.append(f'kit = "k"')
+        lines.append('')
+        lines.append('[[systems.artifacts]]')
+        lines.append(f'path = "{path}"')
+        lines.append(f'kind = "{kind}"')
+        lines.append(f'traceability = "FULL"')
+        lines.append('')
+    if not entries:
+        lines.append('[[systems]]')
+        lines.append('name = "Test"')
+        lines.append('slug = "test"')
+        lines.append('kit = "k"')
+        lines.append('')
+    return '\n'.join(lines) + '\n'
 
 
 class TestCLIValidateCommand(unittest.TestCase):
@@ -158,7 +186,7 @@ class TestCLIValidateCommand(unittest.TestCase):
             # Minimal SDLC kit with constraints
             (root / "kits" / "sdlc").mkdir(parents=True)
             import shutil
-            src_constraints = Path(__file__).parent.parent / "kits" / "sdlc" / "constraints.toml"
+            src_constraints = Path(__file__).parent.parent / "kits" / "sdlc" / "example" / "constraints.toml"
             shutil.copy2(src_constraints, root / "kits" / "sdlc" / "constraints.toml")
 
             # Create markerless DESIGN artifact defining a principle (DESIGN/principle prohibits PRD/ADR refs)
@@ -289,15 +317,16 @@ class TestCLIInitCommand(unittest.TestCase):
                     "init",
                     "--project-root",
                     str(project),
-                    "--cypilot-root",
-                    str(cypilot_core),
                     "--yes",
                 ])
             self.assertEqual(exit_code, 0)
             out = json.loads(stdout.getvalue())
             self.assertEqual(out.get("status"), "PASS")
-            self.assertTrue((project / ".cypilot-config.json").exists())
-            self.assertTrue((project / ".cypilot-adapter" / "AGENTS.md").exists())
+            # Init now creates root AGENTS.md and cypilot/ directory with config/
+            self.assertTrue((project / "AGENTS.md").exists())
+            cypilot_dir_path = Path(out.get("cypilot_dir", ""))
+            self.assertTrue(cypilot_dir_path.is_dir())
+            self.assertTrue((cypilot_dir_path / "config" / "AGENTS.md").exists())
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
@@ -347,12 +376,13 @@ class TestCLIInitCommand(unittest.TestCase):
                 with unittest.mock.patch("builtins.input", side_effect=["", ""]):
                     stdout = io.StringIO()
                     with redirect_stdout(stdout), redirect_stderr(io.StringIO()):
-                        exit_code = main(["init", "--cypilot-root", str(cypilot_core)])
+                        exit_code = main(["init"])
                 self.assertEqual(exit_code, 0)
                 out = json.loads(stdout.getvalue())
                 self.assertEqual(out.get("status"), "PASS")
-                self.assertTrue((project / ".cypilot-config.json").exists())
-                self.assertTrue((project / ".cypilot-adapter" / "AGENTS.md").exists())
+                self.assertTrue((project / "AGENTS.md").exists())
+                cypilot_dir_path = Path(out.get("cypilot_dir", ""))
+                self.assertTrue(cypilot_dir_path.is_dir())
             finally:
                 os.chdir(orig_cwd)
 
@@ -409,7 +439,8 @@ class TestCLIAgentsCommand(unittest.TestCase):
 
             out = json.loads(stdout.getvalue())
             self.assertEqual(out.get("status"), "PASS")
-            self.assertGreater(out.get("workflows", {}).get("counts", {}).get("created", 0), 0)
+            agent_r = out.get("results", {}).get("windsurf", out)
+            self.assertGreater(agent_r.get("workflows", {}).get("counts", {}).get("created", 0), 0)
 
             # Ensure description is always double-quoted in generated skill frontmatter
             skill_file = root / ".windsurf" / "skills" / "cypilot" / "SKILL.md"
@@ -451,7 +482,8 @@ class TestCLIAgentsCommand(unittest.TestCase):
 
             out = json.loads(stdout.getvalue())
             self.assertTrue(out.get("dry_run"))
-            created = out.get("workflows", {}).get("created", [])
+            agent_r = out.get("results", {}).get("windsurf", out)
+            created = agent_r.get("workflows", {}).get("created", [])
             self.assertTrue(all(not Path(p).exists() for p in created))
 
     def test_agents_unknown_agent_uses_builtin_defaults(self):
@@ -488,7 +520,9 @@ class TestCLIAgentsCommand(unittest.TestCase):
                 code = main(["agents", "--agent", "windsurf", "--root", str(root), "--config", str(cfg_path)])
             self.assertEqual(code, 1)
             out = json.loads(stdout.getvalue())
-            self.assertEqual(out.get("status"), "CONFIG_ERROR")
+            # Outer status is PARTIAL; per-agent result carries CONFIG_ERROR
+            self.assertEqual(out.get("status"), "PARTIAL")
+            self.assertEqual(out["results"]["windsurf"]["status"], "CONFIG_ERROR")
 
     def test_agents_missing_workflow_dir_error(self):
         """Test agents command with missing workflow_dir in config."""
@@ -515,7 +549,8 @@ class TestCLIAgentsCommand(unittest.TestCase):
                 code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root), "--config", str(cfg_path)])
             # Should return partial status due to workflow error
             out = json.loads(stdout.getvalue())
-            self.assertIn("Missing workflow_dir", str(out.get("errors", [])))
+            agent_result = out.get("results", {}).get("windsurf", {})
+            self.assertIn("Missing workflow_dir", str(agent_result.get("errors", [])))
 
     def test_agents_missing_template_error(self):
         """Test agents command with missing template in config."""
@@ -544,7 +579,8 @@ class TestCLIAgentsCommand(unittest.TestCase):
             with redirect_stdout(stdout):
                 code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root), "--config", str(cfg_path)])
             out = json.loads(stdout.getvalue())
-            self.assertIn("Missing or invalid template", str(out.get("errors", [])))
+            agent_result = out.get("results", {}).get("windsurf", {})
+            self.assertIn("Missing or invalid template", str(agent_result.get("errors", [])))
 
     def test_agents_skills_invalid_outputs_error(self):
         """Test agents command with invalid skills outputs config."""
@@ -570,7 +606,8 @@ class TestCLIAgentsCommand(unittest.TestCase):
             with redirect_stdout(stdout):
                 code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root), "--config", str(cfg_path)])
             out = json.loads(stdout.getvalue())
-            self.assertIn("outputs must be an array", str(out.get("errors", [])))
+            agent_result = out.get("results", {}).get("windsurf", {})
+            self.assertIn("outputs must be an array", str(agent_result.get("errors", [])))
 
     def test_agents_skills_missing_path_error(self):
         """Test agents command with missing path in skills output."""
@@ -597,7 +634,8 @@ class TestCLIAgentsCommand(unittest.TestCase):
             with redirect_stdout(stdout):
                 code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root), "--config", str(cfg_path)])
             out = json.loads(stdout.getvalue())
-            self.assertIn("missing path", str(out.get("errors", [])))
+            agent_result = out.get("results", {}).get("windsurf", {})
+            self.assertIn("missing path", str(agent_result.get("errors", [])))
 
     def test_agents_skills_missing_template_error(self):
         """Test agents command with missing template in skills output."""
@@ -624,7 +662,8 @@ class TestCLIAgentsCommand(unittest.TestCase):
             with redirect_stdout(stdout):
                 code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(root), "--config", str(cfg_path)])
             out = json.loads(stdout.getvalue())
-            self.assertIn("invalid template", str(out.get("errors", [])))
+            agent_result = out.get("results", {}).get("windsurf", {})
+            self.assertIn("invalid template", str(agent_result.get("errors", [])))
 
     def test_agents_updates_existing_files(self):
         """Test agents command updates existing proxy files."""
@@ -653,7 +692,8 @@ class TestCLIAgentsCommand(unittest.TestCase):
             self.assertEqual(exit_code, 0)
             out = json.loads(stdout.getvalue())
             # Should have some updated files
-            updated = out.get("workflows", {}).get("counts", {}).get("updated", 0)
+            agent_r = out.get("results", {}).get("windsurf", out)
+            updated = agent_r.get("workflows", {}).get("counts", {}).get("updated", 0)
             self.assertGreaterEqual(updated, 0)
 
     def test_agents_recognized_agent_added_to_existing_config(self):
@@ -724,7 +764,8 @@ class TestCLIAgentsCommand(unittest.TestCase):
             self.assertEqual(exit_code, 0)
 
             out = json.loads(stdout.getvalue())
-            self.assertGreater(len(out.get("skills", {}).get("created", [])), 0)
+            agent_result = out.get("results", {}).get("test", out)
+            self.assertGreater(len(agent_result.get("skills", {}).get("created", [])), 0)
 
             # Verify file was created
             skill_file = root / ".test" / "skill.md"
@@ -742,7 +783,8 @@ class TestCLIAgentsCommand(unittest.TestCase):
             self.assertEqual(exit_code, 0)
 
             out = json.loads(stdout.getvalue())
-            self.assertGreater(len(out.get("skills", {}).get("updated", [])), 0)
+            agent_result = out.get("results", {}).get("test", out)
+            self.assertGreater(len(agent_result.get("skills", {}).get("updated", [])), 0)
 
 
 class TestCLIParseFrontmatter(unittest.TestCase):
@@ -856,7 +898,8 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
 
             out = json.loads(stdout.getvalue())
             # Should rename the misnamed file
-            renamed = out.get("workflows", {}).get("renamed", [])
+            agent_r = out.get("results", {}).get("windsurf", out)
+            renamed = agent_r.get("workflows", {}).get("renamed", [])
             self.assertGreaterEqual(len(renamed), 0)
 
     def test_agents_deletes_stale_proxy(self):
@@ -880,7 +923,8 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
             self.assertEqual(exit_code, 0)
 
             out = json.loads(stdout.getvalue())
-            deleted = out.get("workflows", {}).get("deleted", [])
+            agent_r = out.get("results", {}).get("windsurf", out)
+            deleted = agent_r.get("workflows", {}).get("deleted", [])
             self.assertGreaterEqual(len(deleted), 0)
 
     def test_agents_read_error_on_existing_file(self):
@@ -1299,7 +1343,7 @@ class TestCLIAgentsAtPathFormat(unittest.TestCase):
                 ".claude/commands/cypilot-generate.md",
                 ".claude/commands/cypilot.md",
                 ".claude/skills/cypilot/SKILL.md",
-                ".claude/skills/cypilot-adapter/SKILL.md",
+                ".claude/skills/cypilot-generate/SKILL.md",
             ],
             "copilot": [
                 ".github/copilot-instructions.md",
@@ -1358,7 +1402,7 @@ class TestCLIAgentsAtPathFormat(unittest.TestCase):
         (cypilot_root / "AGENTS.md").write_text("# AGENTS\n", encoding="utf-8")
 
     def test_cypilot_outside_project_root_no_escape(self):
-        """When cypilot root is outside the project, files are copied into .cypilot/ and proxies use @/ paths."""
+        """When cypilot root is outside the project, files are copied into cypilot/ and proxies use @/ paths."""
         with TemporaryDirectory() as project_tmpdir, TemporaryDirectory() as cypilot_tmpdir:
             root = Path(project_tmpdir)
             cypilot_root = Path(cypilot_tmpdir)
@@ -1370,35 +1414,36 @@ class TestCLIAgentsAtPathFormat(unittest.TestCase):
                 exit_code = main(["agents", "--agent", "windsurf", "--root", str(root), "--cypilot-root", str(cypilot_root)])
             self.assertEqual(exit_code, 0)
 
-            # .cypilot/ must have been created inside the project
-            self.assertTrue((root / ".cypilot" / "AGENTS.md").is_file(), ".cypilot/AGENTS.md must exist")
-            self.assertTrue((root / ".cypilot" / "workflows").is_dir(), ".cypilot/workflows/ must exist")
-            self.assertTrue((root / ".cypilot" / "skills" / "cypilot" / "SKILL.md").is_file())
+            # cypilot/ must have been created inside the project (default name)
+            local_dot = root / "cypilot"
+            self.assertTrue(local_dot.is_dir(), "cypilot/ must exist")
+            self.assertTrue((local_dot / ".core" / "workflows").is_dir(), "cypilot/.core/workflows/ must exist")
 
             # JSON output must report the copy
             out = json.loads(stdout.getvalue())
             self.assertEqual(out.get("cypilot_copy", {}).get("action"), "copied")
 
-            # Proxy must use @/.cypilot/... paths, not absolute paths
+            # Proxy must use @/cypilot/... paths, not absolute paths
             proxy = root / ".windsurf" / "workflows" / "cypilot-generate.md"
             self.assertTrue(proxy.exists())
             content = proxy.read_text(encoding="utf-8")
-            self.assertIn("@/.cypilot/", content, "Proxy must use @/.cypilot/ path")
-            self.assertNotRegex(content, r"\.\./\.\.", "Must not use ../../ style path escape")
+            self.assertIn("@/cypilot/", content, "Proxy must use @/cypilot/ path")
+            self.assertNotRegex(content, r"\.\./.\.\.", "Must not use ../../ style path escape")
             # No absolute paths anywhere
             self.assertNotRegex(content, r"`/[a-zA-Z/]", "Must not contain absolute paths in backticks")
 
     def test_cypilot_outside_no_copy_when_existing(self):
-        """When .cypilot/ already has AGENTS.md + workflows/, skip copy."""
+        """When cypilot/ already has valid markers, skip copy."""
         with TemporaryDirectory() as project_tmpdir, TemporaryDirectory() as cypilot_tmpdir:
             root = Path(project_tmpdir)
             cypilot_root = Path(cypilot_tmpdir)
             (root / ".git").mkdir()
             self._setup_external_cypilot(cypilot_root)
 
-            # Pre-populate .cypilot/ with valid markers
-            local_dot = root / ".cypilot"
+            # Pre-populate cypilot/ with valid markers (needs AGENTS.md + requirements/ + workflows/ for _is_cypilot_root)
+            local_dot = root / "cypilot"
             (local_dot / "workflows").mkdir(parents=True, exist_ok=True)
+            (local_dot / "requirements").mkdir(parents=True, exist_ok=True)
             (local_dot / "AGENTS.md").write_text("# Existing\n", encoding="utf-8")
             # Also need skills for the agents command to work
             (local_dot / "skills" / "cypilot").mkdir(parents=True, exist_ok=True)
@@ -1445,20 +1490,20 @@ class TestCLIAgentsAtPathFormat(unittest.TestCase):
             self.assertEqual(out.get("cypilot_copy", {}).get("action"), "would_copy")
 
             # No files should have been written
-            self.assertFalse((root / ".cypilot").exists(), ".cypilot/ must not be created in dry-run")
+            self.assertFalse((root / "cypilot").exists(), "cypilot/ must not be created in dry-run")
 
     def test_cypilot_outside_submodule_not_overwritten(self):
-        """When .cypilot/.git exists (submodule), do not overwrite."""
+        """When cypilot/.git exists (submodule), do not overwrite."""
         with TemporaryDirectory() as project_tmpdir, TemporaryDirectory() as cypilot_tmpdir:
             root = Path(project_tmpdir)
             cypilot_root = Path(cypilot_tmpdir)
             (root / ".git").mkdir()
             self._setup_external_cypilot(cypilot_root)
 
-            # Simulate submodule: .cypilot/.git exists
-            local_dot = root / ".cypilot"
+            # Simulate submodule: cypilot/.git exists
+            local_dot = root / "cypilot"
             local_dot.mkdir(parents=True, exist_ok=True)
-            (local_dot / ".git").write_text("gitdir: ../.git/modules/.cypilot\n", encoding="utf-8")
+            (local_dot / ".git").write_text("gitdir: ../.git/modules/cypilot\n", encoding="utf-8")
             # Also need skills for the agents command to work
             (local_dot / "skills" / "cypilot").mkdir(parents=True, exist_ok=True)
             (local_dot / "skills" / "cypilot" / "SKILL.md").write_text(
@@ -1684,7 +1729,9 @@ class TestCLICoreHelpers(unittest.TestCase):
 
             with unittest.mock.patch.object(Path, "read_text", _rt):
                 out = _list_workflow_files(root)
-            self.assertEqual(out, ["ok.md"])
+            # _list_workflow_files returns (name, path) tuples
+            names = [entry[0] if isinstance(entry, tuple) else entry for entry in out]
+            self.assertEqual(names, ["ok.md"])
 
     def test_list_workflow_files_iterdir_error_returns_empty(self):
         from cypilot.commands.agents import _list_workflow_files
@@ -1797,11 +1844,14 @@ class TestCLIAdapterInfo(unittest.TestCase):
         self.assertIn("status", out)
 
     def test_adapter_info_config_error_when_path_invalid(self):
-        """Cover info CONFIG_ERROR when .cypilot-config.json points to missing adapter directory."""
+        """Cover info NOT_FOUND when AGENTS.md TOML block points to missing adapter directory."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            (root / ".cypilot-config.json").write_text('{"cypilotAdapterPath": "missing-adapter"}', encoding="utf-8")
+            (root / "AGENTS.md").write_text(
+                '<!-- @cpt:root-agents -->\n```toml\ncypilot_path = "missing-adapter"\n```\n',
+                encoding="utf-8",
+            )
 
             cwd = os.getcwd()
             try:
@@ -1811,7 +1861,7 @@ class TestCLIAdapterInfo(unittest.TestCase):
                     exit_code = main(["info"])
                 self.assertEqual(exit_code, 1)
                 out = json.loads(stdout.getvalue())
-                self.assertEqual(out.get("status"), "CONFIG_ERROR")
+                self.assertEqual(out.get("status"), "NOT_FOUND")
             finally:
                 os.chdir(cwd)
 
@@ -1871,10 +1921,15 @@ class TestCLIAdapterInfo(unittest.TestCase):
 
             outside = Path(tmpdir) / "outside-adapter"
             outside.mkdir(parents=True)
+            (outside / "config").mkdir()
+            (outside / "config" / "AGENTS.md").write_text("# Cypilot Adapter: Outside\n", encoding="utf-8")
             (outside / "AGENTS.md").write_text("# Cypilot Adapter: Outside\n\n**Extends**: `../AGENTS.md`\n", encoding="utf-8")
 
-            # Point config path outside the project.
-            (root / ".cypilot-config.json").write_text('{"cypilotAdapterPath": "../outside-adapter"}', encoding="utf-8")
+            # Point AGENTS.md TOML block outside the project.
+            (root / "AGENTS.md").write_text(
+                '<!-- @cpt:root-agents -->\n```toml\ncypilot_path = "../outside-adapter"\n```\n',
+                encoding="utf-8",
+            )
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
@@ -1889,14 +1944,15 @@ class TestCLIAdapterInfo(unittest.TestCase):
 def _bootstrap_registry_new_format(project_root: Path, *, systems: list, kits: dict = None) -> None:
     """Bootstrap registry with new format (systems instead of artifacts)."""
     (project_root / ".git").mkdir(exist_ok=True)
-    (project_root / ".cypilot-config.json").write_text(
-        '{\n  "cypilotAdapterPath": "adapter"\n}\n',
+    (project_root / "AGENTS.md").write_text(
+        '<!-- @cpt:root-agents -->\n```toml\ncypilot_path = "adapter"\n```\n',
         encoding="utf-8",
     )
     adapter_dir = project_root / "adapter"
     adapter_dir.mkdir(parents=True, exist_ok=True)
-    (adapter_dir / "AGENTS.md").write_text(
-        "# Cypilot Adapter: Test\n\n**Extends**: `../AGENTS.md`\n",
+    (adapter_dir / "config").mkdir(exist_ok=True)
+    (adapter_dir / "config" / "AGENTS.md").write_text(
+        "# Cypilot Adapter: Test\n",
         encoding="utf-8",
     )
     registry = {
@@ -1905,10 +1961,8 @@ def _bootstrap_registry_new_format(project_root: Path, *, systems: list, kits: d
         "kits": kits if kits is not None else {"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
         "systems": systems,
     }
-    (adapter_dir / "artifacts.json").write_text(
-        json.dumps(registry, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    from cypilot.utils import toml_utils
+    toml_utils.dump(registry, adapter_dir / "config" / "artifacts.toml")
 
 
 class TestCLIListIdsCommand(unittest.TestCase):

@@ -35,6 +35,8 @@ from .language_config import (
     build_no_cypilot_begin_regex,
     build_no_cypilot_end_regex,
     DEFAULT_FILE_EXTENSIONS,
+    EXTENSION_COMMENT_DEFAULTS,
+    comment_defaults_for_extensions,
 )
 
 from .artifacts_meta import (
@@ -92,6 +94,8 @@ __all__ = [
     "build_no_cypilot_begin_regex",
     "build_no_cypilot_end_regex",
     "DEFAULT_FILE_EXTENSIONS",
+    "EXTENSION_COMMENT_DEFAULTS",
+    "comment_defaults_for_extensions",
     # Artifacts metadata
     "ArtifactsMeta",
     "SystemNode",

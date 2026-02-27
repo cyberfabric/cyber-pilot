@@ -168,6 +168,12 @@ def cmd_adapter_info(argv: list[str]) -> int:
                         nm = getattr(c, "name", None)
                         if isinstance(nm, str) and nm.strip():
                             d["name"] = nm
+                        slc = getattr(c, "single_line_comments", None)
+                        if isinstance(slc, list) and slc:
+                            d["singleLineComments"] = slc
+                        mlc = getattr(c, "multi_line_comments", None)
+                        if isinstance(mlc, list) and mlc:
+                            d["multiLineComments"] = mlc
                         return d
 
                     def _system_to_dict(s: object) -> dict:
@@ -213,7 +219,9 @@ def cmd_adapter_info(argv: list[str]) -> int:
         relative_path = adapter_dir.as_posix()
     config["relative_path"] = relative_path
 
-    core_toml = adapter_dir / "core.toml"
+    core_toml = adapter_dir / "config" / "core.toml"
+    if not core_toml.is_file():
+        core_toml = adapter_dir / "core.toml"
     config["has_config"] = core_toml.exists()
 
     print(json.dumps(config, indent=2, ensure_ascii=False))

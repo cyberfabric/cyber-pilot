@@ -33,7 +33,7 @@ from cypilot.utils.language_config import (
 
 
 class TestLanguageConfigLoading(unittest.TestCase):
-    """Test language configuration loading from .cypilot-config.json."""
+    """Test language configuration loading from project config (core.toml)."""
 
     def test_default_config_when_no_project_config(self):
         """Verify default config is used when no .cypilot-config.json exists."""
@@ -51,24 +51,32 @@ class TestLanguageConfigLoading(unittest.TestCase):
             self.assertIn("//", config.single_line_comments)
             self.assertIn("--", config.single_line_comments)
 
+    def _write_project_config(self, root: Path, core_toml_content: str) -> None:
+        """Helper to set up AGENTS.md TOML block + config/core.toml."""
+        (root / "AGENTS.md").write_text(
+            '<!-- @cpt:root-agents -->\n```toml\ncypilot_path = "adapter"\n```\n',
+            encoding="utf-8",
+        )
+        config_dir = root / "adapter" / "config"
+        config_dir.mkdir(parents=True, exist_ok=True)
+        (config_dir / "core.toml").write_text(core_toml_content, encoding="utf-8")
+
     def test_custom_config_overrides_defaults(self):
-        """Verify custom config from .cypilot-config.json overrides defaults."""
+        """Verify custom config from core.toml overrides defaults."""
         with TemporaryDirectory() as tmpdir:
             tmppath = Path(tmpdir)
             
-            # Write custom config
-            config_file = tmppath / ".cypilot-config.json"
-            config_file.write_text(json.dumps({
-                "cypilotAdapterPath": "adapter",
-                "codeScanning": {
-                    "fileExtensions": [".php", ".rb"],
-                    "singleLineComments": ["#", "//"],
-                    "multiLineComments": [
-                        {"start": "/*", "end": "*/"}
-                    ],
-                    "blockCommentPrefixes": ["*"]
-                }
-            }))
+            # Write custom config via TOML
+            self._write_project_config(tmppath, '''
+[code_scanning]
+fileExtensions = [".php", ".rb"]
+singleLineComments = ["#", "//"]
+blockCommentPrefixes = ["*"]
+
+[[code_scanning.multiLineComments]]
+start = "/*"
+end = "*/"
+''')
             
             config = load_language_config(tmppath)
             
@@ -85,13 +93,10 @@ class TestLanguageConfigLoading(unittest.TestCase):
             tmppath = Path(tmpdir)
             
             # Write config with only fileExtensions
-            config_file = tmppath / ".cypilot-config.json"
-            config_file.write_text(json.dumps({
-                "cypilotAdapterPath": "adapter",
-                "codeScanning": {
-                    "fileExtensions": [".kt", ".swift"]
-                }
-            }))
+            self._write_project_config(tmppath, '''
+[code_scanning]
+fileExtensions = [".kt", ".swift"]
+''')
             
             config = load_language_config(tmppath)
             
@@ -103,39 +108,34 @@ class TestLanguageConfigLoading(unittest.TestCase):
             self.assertIn("//", config.single_line_comments)
 
     def test_invalid_code_scanning_type_falls_back_to_defaults(self):
-        """Cover: codeScanning exists but is not a dict."""
+        """Cover: code_scanning exists but is not a dict (string in TOML is fine, just not useful)."""
         with TemporaryDirectory() as tmpdir:
             tmppath = Path(tmpdir)
-            (tmppath / ".cypilot-config.json").write_text(
-                json.dumps({
-                    "cypilotAdapterPath": "adapter",
-                    "codeScanning": "not-a-dict",
-                })
-            )
+            self._write_project_config(tmppath, 'code_scanning = "not-a-dict"\n')
 
             config = load_language_config(tmppath)
             self.assertEqual(config.file_extensions, DEFAULT_FILE_EXTENSIONS)
             self.assertEqual(config.single_line_comments, DEFAULT_SINGLE_LINE_COMMENTS)
 
     def test_invalid_scanning_field_types_fall_back_to_defaults(self):
-        """Cover: wrong types inside codeScanning for list-like fields."""
+        """Cover: wrong types inside code_scanning for list-like fields."""
         with TemporaryDirectory() as tmpdir:
             tmppath = Path(tmpdir)
-            (tmppath / ".cypilot-config.json").write_text(
-                json.dumps({
-                    "cypilotAdapterPath": "adapter",
-                    "codeScanning": {
-                        "fileExtensions": "not-a-list",
-                        "singleLineComments": "not-a-list",
-                        "multiLineComments": {"start": "/*", "end": "*/"},
-                        "blockCommentPrefixes": 123,
-                    },
-                })
-            )
+            self._write_project_config(tmppath, '''
+[code_scanning]
+fileExtensions = "not-a-list"
+singleLineComments = "not-a-list"
+blockCommentPrefixes = 123
+
+[code_scanning.multiLineComments]
+start = "/*"
+end = "*/"
+''')
 
             config = load_language_config(tmppath)
             self.assertEqual(config.file_extensions, DEFAULT_FILE_EXTENSIONS)
             self.assertEqual(config.single_line_comments, DEFAULT_SINGLE_LINE_COMMENTS)
+            # Note: in TOML, multiLineComments as a table is a dict, not a list
             self.assertEqual(config.multi_line_comments, DEFAULT_MULTI_LINE_COMMENTS)
             self.assertEqual(config.block_comment_prefixes, DEFAULT_BLOCK_COMMENT_PREFIXES)
 
@@ -315,6 +315,134 @@ class TestCommentPatternBuilding(unittest.TestCase):
         
         # Should include block prefixes
         self.assertIn("*", pattern)
+
+
+class TestCodebaseEntryCommentFields(unittest.TestCase):
+    """Test CodebaseEntry parsing of singleLineComments / multiLineComments."""
+
+    def test_from_dict_with_comment_fields(self):
+        from cypilot.utils.artifacts_meta import CodebaseEntry
+
+        entry = CodebaseEntry.from_dict({
+            "path": "src",
+            "extensions": [".py"],
+            "singleLineComments": ["#"],
+            "multiLineComments": [{"start": '"""', "end": '"""'}],
+        })
+        self.assertEqual(entry.single_line_comments, ["#"])
+        self.assertEqual(entry.multi_line_comments, [{"start": '"""', "end": '"""'}])
+
+    def test_from_dict_without_comment_fields(self):
+        from cypilot.utils.artifacts_meta import CodebaseEntry
+
+        entry = CodebaseEntry.from_dict({
+            "path": "src",
+            "extensions": [".ts"],
+        })
+        self.assertIsNone(entry.single_line_comments)
+        self.assertIsNone(entry.multi_line_comments)
+
+    def test_from_dict_empty_comment_lists(self):
+        from cypilot.utils.artifacts_meta import CodebaseEntry
+
+        entry = CodebaseEntry.from_dict({
+            "path": "src",
+            "extensions": [".css"],
+            "singleLineComments": [],
+            "multiLineComments": [],
+        })
+        # Explicit empty list = "no comments of this type" (valid override, not None)
+        self.assertEqual(entry.single_line_comments, [])
+        self.assertIsNone(entry.multi_line_comments)  # empty after filtering invalid items
+
+    def test_from_dict_malformed_multiline_ignored(self):
+        from cypilot.utils.artifacts_meta import CodebaseEntry
+
+        entry = CodebaseEntry.from_dict({
+            "path": "src",
+            "extensions": [".py"],
+            "multiLineComments": [{"start": "/*"}],  # missing 'end'
+        })
+        self.assertIsNone(entry.multi_line_comments)
+
+
+class TestLanguageConfigFromCodebaseEntry(unittest.TestCase):
+    """Test LanguageConfig.from_codebase_entry() factory."""
+
+    def test_explicit_comments_from_entry(self):
+        from cypilot.utils.artifacts_meta import CodebaseEntry
+
+        entry = CodebaseEntry(
+            path="src",
+            extensions=[".py"],
+            single_line_comments=["#"],
+            multi_line_comments=[{"start": '"""', "end": '"""'}],
+        )
+        lc = LanguageConfig.from_codebase_entry(entry)
+        self.assertEqual(lc.single_line_comments, ["#"])
+        self.assertEqual(lc.multi_line_comments, [{"start": '"""', "end": '"""'}])
+        self.assertEqual(lc.block_comment_prefixes, [])
+
+    def test_explicit_comments_with_block_star(self):
+        from cypilot.utils.artifacts_meta import CodebaseEntry
+
+        entry = CodebaseEntry(
+            path="src",
+            extensions=[".js"],
+            single_line_comments=["//"],
+            multi_line_comments=[{"start": "/*", "end": "*/"}],
+        )
+        lc = LanguageConfig.from_codebase_entry(entry)
+        self.assertEqual(lc.single_line_comments, ["//"])
+        self.assertEqual(lc.block_comment_prefixes, ["*"])
+
+    def test_fallback_to_extension_defaults(self):
+        from cypilot.utils.artifacts_meta import CodebaseEntry
+
+        entry = CodebaseEntry(path="src", extensions=[".ts", ".tsx"])
+        lc = LanguageConfig.from_codebase_entry(entry)
+        self.assertIn("//", lc.single_line_comments)
+        self.assertTrue(any(m["start"] == "/*" for m in lc.multi_line_comments))
+
+    def test_unknown_extension_falls_back_to_global_defaults(self):
+        from cypilot.utils.artifacts_meta import CodebaseEntry
+
+        entry = CodebaseEntry(path="src", extensions=[".xyz"])
+        lc = LanguageConfig.from_codebase_entry(entry)
+        self.assertEqual(lc.single_line_comments, DEFAULT_SINGLE_LINE_COMMENTS)
+        self.assertEqual(lc.multi_line_comments, DEFAULT_MULTI_LINE_COMMENTS)
+
+
+class TestCommentDefaultsForExtensions(unittest.TestCase):
+    """Test comment_defaults_for_extensions() utility."""
+
+    def test_python_defaults(self):
+        from cypilot.utils.language_config import comment_defaults_for_extensions
+
+        slc, mlc = comment_defaults_for_extensions([".py"])
+        self.assertEqual(slc, ["#"])
+        self.assertEqual(mlc, [{"start": '"""', "end": '"""'}])
+
+    def test_js_defaults(self):
+        from cypilot.utils.language_config import comment_defaults_for_extensions
+
+        slc, mlc = comment_defaults_for_extensions([".js"])
+        self.assertEqual(slc, ["//"])
+        self.assertEqual(mlc, [{"start": "/*", "end": "*/"}])
+
+    def test_mixed_extensions_deduplicates(self):
+        from cypilot.utils.language_config import comment_defaults_for_extensions
+
+        slc, mlc = comment_defaults_for_extensions([".ts", ".tsx"])
+        self.assertEqual(slc, ["//"])  # deduplicated
+        self.assertEqual(len(mlc), 1)  # deduplicated
+
+    def test_unknown_extension_returns_empty(self):
+        from cypilot.utils.language_config import comment_defaults_for_extensions
+
+        slc, mlc = comment_defaults_for_extensions([".xyz"])
+        self.assertEqual(slc, [])
+        self.assertEqual(mlc, [])
 
 
 if __name__ == "__main__":

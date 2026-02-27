@@ -19,7 +19,7 @@ from tempfile import TemporaryDirectory
 sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "cypilot" / "scripts"))
 
 from cypilot.utils.files import (
-    find_adapter_directory,
+    find_cypilot_directory,
     find_project_root,
     load_artifacts_registry,
     load_project_config,
@@ -31,20 +31,47 @@ from cypilot import cli as cypilot_cli
 
 def _bootstrap_registry(project_root: Path, *, entries: list) -> None:
     (project_root / ".git").mkdir(exist_ok=True)
-    (project_root / ".cypilot-config.json").write_text(
-        '{\n  "cypilotAdapterPath": "adapter"\n}\n',
+    # New layout: cypilot_path variable in root AGENTS.md TOML block
+    (project_root / "AGENTS.md").write_text(
+        '<!-- @cpt:root-agents -->\n```toml\ncypilot_path = "adapter"\n```\n',
         encoding="utf-8",
     )
     adapter_dir = project_root / "adapter"
     adapter_dir.mkdir(parents=True, exist_ok=True)
-    (adapter_dir / "AGENTS.md").write_text(
-        "# Cypilot Adapter: Test\n\n**Extends**: `../AGENTS.md`\n",
+    (adapter_dir / "config").mkdir(exist_ok=True)
+    (adapter_dir / "config" / "AGENTS.md").write_text(
+        "# Cypilot Adapter: Test\n",
         encoding="utf-8",
     )
-    (adapter_dir / "artifacts.json").write_text(
-        json.dumps({"version": "1.0", "artifacts": entries}, indent=2) + "\n",
+    (adapter_dir / "config" / "artifacts.toml").write_text(
+        _make_artifacts_toml(entries),
         encoding="utf-8",
     )
+
+
+def _make_artifacts_toml(entries: list) -> str:
+    """Build a minimal artifacts.toml from a list of legacy entry dicts."""
+    lines = ['version = "1.0"', 'project_root = ".."', '']
+    for e in entries:
+        kind = e.get("kind", e.get("type", "UNKNOWN"))
+        path = e.get("path", "")
+        lines.append('[[systems]]')
+        lines.append(f'name = "Test"')
+        lines.append(f'slug = "test"')
+        lines.append(f'kit = "k"')
+        lines.append('')
+        lines.append('[[systems.artifacts]]')
+        lines.append(f'path = "{path}"')
+        lines.append(f'kind = "{kind}"')
+        lines.append(f'traceability = "FULL"')
+        lines.append('')
+    if not entries:
+        lines.append('[[systems]]')
+        lines.append('name = "Test"')
+        lines.append('slug = "test"')
+        lines.append('kit = "k"')
+        lines.append('')
+    return '\n'.join(lines) + '\n'
 
 
 class TestMain(unittest.TestCase):
@@ -107,18 +134,22 @@ class TestFilesUtilsCoverage(unittest.TestCase):
             root = Path(td)
             self.assertIsNone(find_project_root(root))
 
-    def test_load_project_config_invalid_json_returns_none(self):
+    def test_load_project_config_returns_none_when_no_agents_md(self):
         with TemporaryDirectory() as td:
             root = Path(td)
-            (root / ".cypilot-config.json").write_text("{bad", encoding="utf-8")
+            # No AGENTS.md at all → load_project_config returns None
             self.assertIsNone(load_project_config(root))
 
-    def test_find_adapter_directory_returns_none_when_config_path_invalid(self):
+    def test_find_cypilot_directory_returns_none_when_config_path_invalid(self):
         with TemporaryDirectory() as td:
             root = Path(td)
             (root / ".git").mkdir(exist_ok=True)
-            (root / ".cypilot-config.json").write_text('{"cypilotAdapterPath": "missing-adapter"}', encoding="utf-8")
-            self.assertIsNone(find_adapter_directory(root))
+            # AGENTS.md points to a non-existent directory
+            (root / "AGENTS.md").write_text(
+                '<!-- @cpt:root-agents -->\n```toml\ncypilot_path = "missing-adapter"\n```\n',
+                encoding="utf-8",
+            )
+            self.assertIsNone(find_cypilot_directory(root))
 
     def test_load_artifacts_registry_error_branches(self):
         with TemporaryDirectory() as td:

@@ -188,7 +188,7 @@ class TestCliCommandCoverage(unittest.TestCase):
             root = Path(td)
             (root / ".git").mkdir()
             with patch("cypilot.commands.self_check.find_project_root", return_value=root):
-                with patch("cypilot.commands.self_check.find_adapter_directory", return_value=None):
+                with patch("cypilot.commands.self_check.find_cypilot_directory", return_value=None):
                     buf = io.StringIO()
                     with contextlib.redirect_stdout(buf):
                         code = cypilot_cli._cmd_self_check(["--root", td])
@@ -201,7 +201,7 @@ class TestCliCommandCoverage(unittest.TestCase):
             adapter = root / ".cypilot-adapter"
             adapter.mkdir()
             with patch("cypilot.commands.self_check.find_project_root", return_value=root):
-                with patch("cypilot.commands.self_check.find_adapter_directory", return_value=adapter):
+                with patch("cypilot.commands.self_check.find_cypilot_directory", return_value=adapter):
                     with patch("cypilot.commands.self_check.load_artifacts_registry", return_value=({"version": "1.0"}, None)):
                         buf = io.StringIO()
                         with contextlib.redirect_stdout(buf):
@@ -231,7 +231,7 @@ class TestCliCommandCoverage(unittest.TestCase):
                 },
             }
             with patch("cypilot.commands.self_check.find_project_root", return_value=root):
-                with patch("cypilot.commands.self_check.find_adapter_directory", return_value=adapter):
+                with patch("cypilot.commands.self_check.find_cypilot_directory", return_value=adapter):
                     with patch("cypilot.commands.self_check.load_artifacts_registry", return_value=(registry, None)):
                         buf = io.StringIO()
                         with contextlib.redirect_stdout(buf):

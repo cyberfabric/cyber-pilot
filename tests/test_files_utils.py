@@ -118,31 +118,38 @@ class TestFindAdapterDirectory(unittest.TestCase):
             self.assertEqual(result.resolve(), adapter_dir.resolve())
 
     def test_find_adapter_config_path_valid_wins(self):
-        """When config specifies valid adapter path, it should be returned."""
+        """When AGENTS.md TOML block specifies valid adapter path, it should be returned."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            (root / ".cypilot-config.json").write_text('{"cypilotAdapterPath": "cfg-adapter"}', encoding="utf-8")
+            (root / "AGENTS.md").write_text(
+                '<!-- @cpt:root-agents -->\n```toml\ncypilot_path = "cfg-adapter"\n```\n',
+                encoding="utf-8",
+            )
             adapter_dir = root / "cfg-adapter"
             adapter_dir.mkdir()
-            (adapter_dir / "AGENTS.md").write_text("# Cypilot Adapter: X\n", encoding="utf-8")
+            (adapter_dir / "config").mkdir()
+            (adapter_dir / "config" / "AGENTS.md").write_text("# Cypilot Adapter: X\n", encoding="utf-8")
 
             result = find_adapter_directory(root)
             self.assertIsNotNone(result)
             self.assertEqual(result.resolve(), adapter_dir.resolve())
 
     def test_find_adapter_config_path_invalid_no_fallback(self):
-        """When config exists but path invalid, find_adapter_directory must return None (no recursive fallback)."""
+        """When AGENTS.md TOML block points to missing dir, find_adapter_directory must return None."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            (root / ".cypilot-config.json").write_text('{"cypilotAdapterPath": "missing"}', encoding="utf-8")
+            (root / "AGENTS.md").write_text(
+                '<!-- @cpt:root-agents -->\n```toml\ncypilot_path = "missing"\n```\n',
+                encoding="utf-8",
+            )
 
             # A valid adapter exists elsewhere, but must NOT be used.
             adapter_dir = root / ".cypilot-adapter"
             adapter_dir.mkdir()
-            (adapter_dir / "AGENTS.md").write_text("# Cypilot Adapter: X\n", encoding="utf-8")
-            (adapter_dir / "specs").mkdir()
+            (adapter_dir / "config").mkdir()
+            (adapter_dir / "config" / "AGENTS.md").write_text("# Cypilot Adapter: X\n", encoding="utf-8")
 
             result = find_adapter_directory(root)
             self.assertIsNone(result)
@@ -194,16 +201,22 @@ class TestConfigHelpers(unittest.TestCase):
         self.assertIsNone(cfg_get_str(cfg, "missing"))
         self.assertIsNone(cfg_get_str("not-dict", "a"))
 
-    def test_load_project_config_invalid_json_returns_none(self):
+    def test_load_project_config_no_agents_md_returns_none(self):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            (root / ".cypilot-config.json").write_text("{not json", encoding="utf-8")
+            # No AGENTS.md at all
             self.assertIsNone(load_project_config(root))
 
-    def test_load_project_config_non_dict_returns_none(self):
+    def test_load_project_config_invalid_toml_returns_none(self):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            (root / ".cypilot-config.json").write_text("[]", encoding="utf-8")
+            (root / "AGENTS.md").write_text(
+                '<!-- @cpt:root-agents -->\n```toml\ncypilot_path = "adapter"\n```\n',
+                encoding="utf-8",
+            )
+            adapter = root / "adapter" / "config"
+            adapter.mkdir(parents=True)
+            (adapter / "core.toml").write_text("{not valid toml", encoding="utf-8")
             self.assertIsNone(load_project_config(root))
 
     def test_cypilot_root_from_project_config_success(self):
@@ -216,7 +229,17 @@ class TestConfigHelpers(unittest.TestCase):
             (cypilot_core / "requirements").mkdir()
             (cypilot_core / "workflows").mkdir()
 
-            (root / ".cypilot-config.json").write_text('{"cypilotCorePath": "Cypilot"}', encoding="utf-8")
+            # New layout: AGENTS.md TOML block + config/core.toml with [paths] core
+            (root / "AGENTS.md").write_text(
+                '<!-- @cpt:root-agents -->\n```toml\ncypilot_path = "adapter"\n```\n',
+                encoding="utf-8",
+            )
+            adapter = root / "adapter" / "config"
+            adapter.mkdir(parents=True)
+            (adapter / "core.toml").write_text(
+                '[paths]\ncore = "../Cypilot"\n',
+                encoding="utf-8",
+            )
 
             # Run from a subdir to exercise find_project_root via cwd.
             sub = root / "src"
@@ -236,7 +259,14 @@ class TestConfigHelpers(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            (root / ".cypilot-config.json").write_text("{}", encoding="utf-8")
+            # AGENTS.md + core.toml exist but no [paths] core key
+            (root / "AGENTS.md").write_text(
+                '<!-- @cpt:root-agents -->\n```toml\ncypilot_path = "adapter"\n```\n',
+                encoding="utf-8",
+            )
+            adapter = root / "adapter" / "config"
+            adapter.mkdir(parents=True)
+            (adapter / "core.toml").write_text('version = "1.0"\n', encoding="utf-8")
             sub = root / "src"
             sub.mkdir()
             cwd = Path.cwd()
@@ -252,7 +282,13 @@ class TestConfigHelpers(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
-            (root / ".cypilot-config.json").write_text('{"cypilotCorePath": "MissingCypilot"}', encoding="utf-8")
+            (root / "AGENTS.md").write_text(
+                '<!-- @cpt:root-agents -->\n```toml\ncypilot_path = "adapter"\n```\n',
+                encoding="utf-8",
+            )
+            adapter = root / "adapter" / "config"
+            adapter.mkdir(parents=True)
+            (adapter / "core.toml").write_text('[paths]\ncore = "MissingCypilot"\n', encoding="utf-8")
             cwd = Path.cwd()
             try:
                 import os
