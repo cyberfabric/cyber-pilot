@@ -65,6 +65,7 @@ class ArtifactKindConstraints:
     description: Optional[str]
     defined_id: List[IdConstraint]
     headings: Optional[List[HeadingConstraint]] = None
+    toc: bool = True
 
 
 @dataclass(frozen=True)
@@ -339,23 +340,24 @@ def validate_artifact_file(
         # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-if-headings-fail
     # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-check-headings
 
-    # Phase 1b: TOC validation
-    from .toc import validate_toc as _validate_toc
-    from .document import read_text_safe as _read_text_safe
+    # Phase 1b: TOC validation (only when toc=true in constraints)
+    if getattr(constraints, "toc", True):
+        from .toc import validate_toc as _validate_toc
+        from .document import read_text_safe as _read_text_safe
 
-    _toc_lines = _read_text_safe(artifact_path)
-    if _toc_lines is not None:
-        _toc_content = "\n".join(_toc_lines)
-        _max_hl = 6
-        if getattr(constraints, "headings", None):
-            _max_hl = max((h.level for h in constraints.headings), default=6)
-        _toc_result = _validate_toc(
-            _toc_content,
-            artifact_path=artifact_path,
-            max_heading_level=_max_hl,
-        )
-        errors.extend(_toc_result.get("errors", []))
-        warnings.extend(_toc_result.get("warnings", []))
+        _toc_lines = _read_text_safe(artifact_path)
+        if _toc_lines is not None:
+            _toc_content = "\n".join(_toc_lines)
+            _max_hl = 6
+            if getattr(constraints, "headings", None):
+                _max_hl = max((h.level for h in constraints.headings), default=6)
+            _toc_result = _validate_toc(
+                _toc_content,
+                artifact_path=artifact_path,
+                max_heading_level=_max_hl,
+            )
+            errors.extend(_toc_result.get("errors", []))
+            warnings.extend(_toc_result.get("warnings", []))
 
     # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-scan-ids
     # Phase 2: identifier/content validation
@@ -1708,11 +1710,21 @@ def parse_kit_constraints(data: object) -> Tuple[Optional[KitConstraints], List[
                 seen_defined.add(kk)
                 defined_id.append(c)
 
+        # TOC flag (default true when absent)
+        toc_raw = raw.get("toc")
+        toc_val = True
+        if toc_raw is not None:
+            if not isinstance(toc_raw, bool):
+                errors.append(f"constraints for {kind} field 'toc' must be boolean")
+                continue
+            toc_val = toc_raw
+
         out[kind.strip().upper()] = ArtifactKindConstraints(
             name=name,
             description=description,
             defined_id=defined_id,
             headings=headings,
+            toc=toc_val,
         )
 
     if errors:
