@@ -1584,6 +1584,195 @@ class TestCLIPyCoverageInitUnchanged(unittest.TestCase):
                 os.chdir(cwd)
 
 
+class TestInitCopyFromCache(unittest.TestCase):
+    """Direct tests for _copy_from_cache edge cases."""
+
+    def test_copy_creates_and_skips(self):
+        """First copy creates, second without force skips."""
+        from cypilot.commands.init import _copy_from_cache
+        with TemporaryDirectory() as td:
+            cache = Path(td) / "cache"
+            target = Path(td) / "project" / "cypilot"
+            target.mkdir(parents=True)
+            # Populate cache with one valid dir and one missing
+            (cache / "requirements").mkdir(parents=True)
+            (cache / "requirements" / "README.md").write_text("# req\n", encoding="utf-8")
+            r1 = _copy_from_cache(cache, target, force=False)
+            self.assertEqual(r1["requirements"], "created")
+            self.assertEqual(r1.get("schemas", "missing_in_cache"), "missing_in_cache")
+            # Second call without force → skipped
+            r2 = _copy_from_cache(cache, target, force=False)
+            self.assertEqual(r2["requirements"], "skipped")
+            # Third call with force → updated
+            r3 = _copy_from_cache(cache, target, force=True)
+            self.assertEqual(r3["requirements"], "updated")
+
+    def test_missing_cache_dir_entries(self):
+        """When cache dirs don't exist, reports missing_in_cache."""
+        from cypilot.commands.init import _copy_from_cache
+        with TemporaryDirectory() as td:
+            cache = Path(td) / "empty_cache"
+            cache.mkdir()
+            target = Path(td) / "target"
+            target.mkdir()
+            result = _copy_from_cache(cache, target, force=False)
+            for k, v in result.items():
+                self.assertEqual(v, "missing_in_cache")
+
+
+class TestInitReadExistingInstall(unittest.TestCase):
+    """Tests for _read_existing_install edge cases."""
+
+    def test_returns_none_when_no_agents(self):
+        from cypilot.commands.init import _read_existing_install
+        with TemporaryDirectory() as td:
+            self.assertIsNone(_read_existing_install(Path(td)))
+
+    def test_returns_none_when_no_marker(self):
+        from cypilot.commands.init import _read_existing_install
+        with TemporaryDirectory() as td:
+            (Path(td) / "AGENTS.md").write_text("# Just a file\n", encoding="utf-8")
+            self.assertIsNone(_read_existing_install(Path(td)))
+
+    def test_returns_none_when_dir_missing(self):
+        """TOML has cypilot_path but directory doesn't exist → None."""
+        from cypilot.commands.init import _read_existing_install
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "AGENTS.md").write_text(
+                '<!-- @cpt:root-agents -->\n```toml\ncypilot_path = "nonexistent"\n```\n<!-- /@cpt:root-agents -->\n',
+                encoding="utf-8",
+            )
+            self.assertIsNone(_read_existing_install(root))
+
+    def test_returns_rel_when_dir_exists(self):
+        from cypilot.commands.init import _read_existing_install
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "cpt").mkdir()
+            (root / "AGENTS.md").write_text(
+                '<!-- @cpt:root-agents -->\n```toml\ncypilot_path = "cpt"\n```\n<!-- /@cpt:root-agents -->\n',
+                encoding="utf-8",
+            )
+            self.assertEqual(_read_existing_install(root), "cpt")
+
+
+class TestInjectRootAgents(unittest.TestCase):
+    """Tests for _inject_root_agents: create, update, unchanged."""
+
+    def test_creates_agents_file(self):
+        from cypilot.commands.init import _inject_root_agents
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            action = _inject_root_agents(root, "cypilot")
+            self.assertEqual(action, "created")
+            self.assertTrue((root / "AGENTS.md").is_file())
+
+    def test_replaces_stale_block(self):
+        from cypilot.commands.init import _inject_root_agents, MARKER_START, MARKER_END
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            # Write AGENTS.md with old block
+            (root / "AGENTS.md").write_text(
+                f"{MARKER_START}\nold content\n{MARKER_END}\n\nUser stuff\n",
+                encoding="utf-8",
+            )
+            action = _inject_root_agents(root, "cypilot")
+            self.assertEqual(action, "updated")
+            content = (root / "AGENTS.md").read_text(encoding="utf-8")
+            self.assertIn("cypilot_path", content)
+            self.assertIn("User stuff", content)
+
+    def test_unchanged_when_current(self):
+        from cypilot.commands.init import _inject_root_agents
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            # First inject creates
+            _inject_root_agents(root, "cypilot")
+            # Second should be unchanged
+            action = _inject_root_agents(root, "cypilot")
+            self.assertEqual(action, "unchanged")
+
+    def test_dry_run_does_not_write(self):
+        from cypilot.commands.init import _inject_root_agents
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            action = _inject_root_agents(root, "cypilot", dry_run=True)
+            self.assertEqual(action, "created")
+            self.assertFalse((root / "AGENTS.md").is_file())
+
+
+class TestInitNoCacheError(unittest.TestCase):
+    """init fails when ~/.cypilot/cache doesn't exist."""
+
+    def test_init_no_cache_returns_error(self):
+        from cypilot.cli import main
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            (root / ".git").mkdir()
+            cwd = os.getcwd()
+            try:
+                os.chdir(root)
+                fake_cache = Path(td) / "nonexistent_cache"
+                with patch("cypilot.commands.init.CACHE_DIR", fake_cache):
+                    buf = io.StringIO()
+                    with redirect_stdout(buf):
+                        rc = main(["init", "--yes"])
+                self.assertEqual(rc, 1)
+                out = json.loads(buf.getvalue())
+                self.assertIn("cache", out.get("message", "").lower())
+            finally:
+                os.chdir(cwd)
+
+
+class TestInitForceReinit(unittest.TestCase):
+    """init --force on existing project: creates backup, overwrites files."""
+
+    def test_force_reinit_overwrites(self):
+        from cypilot.cli import main
+        with TemporaryDirectory() as td:
+            root = Path(td)
+            (root / ".git").mkdir()
+            cache = Path(td) / "cache"
+            _make_test_cache(cache)
+            cwd = os.getcwd()
+            try:
+                os.chdir(root)
+                with patch("cypilot.commands.init.CACHE_DIR", cache):
+                    # First init
+                    buf = io.StringIO()
+                    with redirect_stdout(buf):
+                        rc = main(["init", "--yes"])
+                    self.assertEqual(rc, 0)
+                    # Force re-init
+                    buf = io.StringIO()
+                    with redirect_stdout(buf):
+                        rc = main(["init", "--yes", "--force"])
+                    self.assertEqual(rc, 0)
+                    out = json.loads(buf.getvalue())
+                    self.assertEqual(out["status"], "PASS")
+            finally:
+                os.chdir(cwd)
+
+
+def _make_test_cache(cache_dir: Path) -> None:
+    """Minimal cache for init tests."""
+    for d in ("architecture", "requirements", "schemas", "workflows", "skills"):
+        (cache_dir / d).mkdir(parents=True, exist_ok=True)
+        (cache_dir / d / "README.md").write_text(f"# {d}\n", encoding="utf-8")
+    bp_dir = cache_dir / "kits" / "sdlc" / "blueprints"
+    bp_dir.mkdir(parents=True, exist_ok=True)
+    (bp_dir / "prd.md").write_text(
+        "<!-- @cpt:blueprint -->\n```toml\n"
+        'artifact = "PRD"\nkit = "sdlc"\nversion = 1\n'
+        "```\n<!-- /@cpt:blueprint -->\n\n"
+        "<!-- @cpt:heading -->\n# Product Requirements\n<!-- /@cpt:heading -->\n",
+        encoding="utf-8",
+    )
+    from cypilot.utils import toml_utils
+    toml_utils.dump({"version": 1, "blueprints": {"prd": 1}}, cache_dir / "kits" / "sdlc" / "conf.toml")
+
+
 class TestCLIPyCoverageValidateRules(unittest.TestCase):
     """Tests for validate-kits command (kit constraints validation)."""
 
@@ -1882,6 +2071,70 @@ class TestCLIPyCoverageListIdsWithCode(unittest.TestCase):
                 self.assertIn("ids", out)
             finally:
                 os.chdir(cwd)
+
+
+class TestCLIDispatchUncoveredCommands(unittest.TestCase):
+    """Cover cli.py dispatch branches for update, kit, generate-resources, toc, validate-toc."""
+
+    def test_dispatch_update_no_project(self):
+        """'update' dispatches to cmd_update; fails gracefully outside a project."""
+        from cypilot.cli import main
+        with TemporaryDirectory() as td:
+            cwd = os.getcwd()
+            try:
+                os.chdir(td)
+                buf = io.StringIO()
+                with redirect_stdout(buf):
+                    rc = main(["update"])
+                self.assertIn(rc, [0, 1, 2])
+            finally:
+                os.chdir(cwd)
+
+    def test_dispatch_kit_no_subcommand(self):
+        """'kit' with no subcommand returns error."""
+        from cypilot.cli import main
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            rc = main(["kit"])
+        self.assertEqual(rc, 1)
+        out = json.loads(buf.getvalue())
+        self.assertEqual(out["status"], "ERROR")
+
+    def test_dispatch_generate_resources_no_project(self):
+        """'generate-resources' dispatches correctly; fails outside a project."""
+        from cypilot.cli import main
+        with TemporaryDirectory() as td:
+            cwd = os.getcwd()
+            try:
+                os.chdir(td)
+                buf = io.StringIO()
+                with redirect_stdout(buf):
+                    rc = main(["generate-resources"])
+                self.assertIn(rc, [1, 2])
+            finally:
+                os.chdir(cwd)
+
+    def test_dispatch_toc(self):
+        """'toc' command dispatches to cmd_toc."""
+        from cypilot.cli import main
+        with TemporaryDirectory() as td:
+            md = Path(td) / "doc.md"
+            md.write_text("# Title\n", encoding="utf-8")
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                rc = main(["toc", str(md)])
+            self.assertIn(rc, [0, 1, 2])
+
+    def test_dispatch_validate_toc(self):
+        """'validate-toc' command dispatches to cmd_validate_toc."""
+        from cypilot.cli import main
+        with TemporaryDirectory() as td:
+            md = Path(td) / "doc.md"
+            md.write_text("# Title\n", encoding="utf-8")
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                rc = main(["validate-toc", str(md)])
+            self.assertIn(rc, [0, 1, 2])
 
 
 if __name__ == "__main__":

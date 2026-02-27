@@ -563,7 +563,6 @@ def _collect_checklist(bp: ParsedBlueprint) -> str:
     """
     # Parse @cpt:checklist skeleton
     severity_levels: List[str] = []
-    review_priority: List[str] = []
     domains: List[Dict[str, Any]] = []
     group_by_kind: bool = True
     preamble: str = ""
@@ -575,7 +574,6 @@ def _collect_checklist(bp: ParsedBlueprint) -> str:
         if mk.marker_type == "checklist":
             td = mk.toml_data
             severity_levels = td.get("severity", {}).get("levels", [])
-            review_priority = td.get("review", {}).get("priority", [])
             domains = td.get("domain", [])
             group_by_kind = td.get("group_by_kind", True)
             must_not_preamble = td.get("must_not_preamble", "")
@@ -936,7 +934,6 @@ def _collect_template(bp: ParsedBlueprint) -> str:
 
     # Section counters for numbered headings: level → counter
     section_counters: Dict[int, int] = {}
-    last_numbered_level = 0
     toc_placeholder_emitted = False
 
     for idx, hm in enumerate(heading_markers):
@@ -975,7 +972,6 @@ def _collect_template(bp: ParsedBlueprint) -> str:
             # Single-level numbers get trailing dot (e.g., "1." not "1")
             if "." not in section_num:
                 section_num += "."
-            last_numbered_level = level
 
         prefix = "#" * level
         if section_num:

@@ -17,14 +17,6 @@ def _safe_relpath(path: Path, base: Path) -> str:
         return path.as_posix()
 
 
-def _safe_relpath_from_dir(target: Path, from_dir: Path) -> str:
-    try:
-        rel = os.path.relpath(target.as_posix(), from_dir.as_posix())
-    except Exception:
-        return target.as_posix()
-    return rel.replace(os.sep, "/")
-
-
 def _target_path_from_root(target: Path, project_root: Path) -> str:
     """Return agent-instruction path as @/<project-root-relative> when possible.
 
@@ -133,10 +125,6 @@ def _load_json_file(path: Path) -> Optional[dict]:
         return data if isinstance(data, dict) else None
     except (json.JSONDecodeError, OSError, IOError):
         return None
-
-
-def _write_json_file(path: Path, data: dict) -> None:
-    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
 def _default_agents_config() -> dict:
@@ -768,7 +756,6 @@ def _process_single_agent(
                         continue
 
                     out_path = (project_root / rel_path).resolve()
-                    out_dir = out_path.parent
 
                     custom_target = out_cfg.get("target")
                     if custom_target:

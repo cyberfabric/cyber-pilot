@@ -10,9 +10,6 @@ from pathlib import Path
 from typing import List
 
 from cypilot.utils.toc import (
-    github_anchor as _slugify,
-    parse_headings as _parse_headings,
-    build_toc as _build_toc,
     process_file as _process_file,
     validate_toc as _validate_toc,
 )

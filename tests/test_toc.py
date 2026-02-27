@@ -8,12 +8,12 @@ from pathlib import Path
 
 import pytest
 
-from cypilot.commands.toc import (
-    _build_toc,
-    _parse_headings,
-    _process_file,
-    _slugify,
-    cmd_toc,
+from cypilot.commands.toc import cmd_toc
+from cypilot.utils.toc import (
+    build_toc as _build_toc,
+    parse_headings as _parse_headings,
+    process_file as _process_file,
+    github_anchor as _slugify,
 )
 from cypilot.commands.validate_toc import cmd_validate_toc
 from cypilot.utils.toc import (
@@ -845,6 +845,61 @@ class TestBlueprintTocFlag:
         generate_artifact_outputs(bp, out_dir)
         rules = (out_dir / "rules.md").read_text(encoding="utf-8")
         assert "Table of Contents" in rules
+
+
+class TestCmdTocValidation:
+    """cmd_toc post-validation and error-status paths."""
+
+    def test_validation_errors_set_status_and_return_2(self, tmp_path):
+        """When _validate_toc returns errors, cmd_toc reports VALIDATION_FAIL and rc=2."""
+        md = tmp_path / "doc.md"
+        md.write_text("# Title\n\n## Sub\n\nText.\n", encoding="utf-8")
+
+        from unittest.mock import patch as _p
+        fake = {"errors": ["bad toc entry"], "warnings": []}
+        with _p("cypilot.commands.toc._validate_toc", return_value=fake):
+            import io, json
+            buf = io.StringIO()
+            from contextlib import redirect_stdout
+            with redirect_stdout(buf):
+                rc = cmd_toc([str(md)])
+        assert rc == 2
+        out = json.loads(buf.getvalue())
+        assert out["status"] == "VALIDATION_FAIL"
+        r = out["results"][0]
+        assert r["validation"]["status"] == "FAIL"
+        assert r["validation"]["errors"] == 1
+
+    def test_validation_warnings_only(self, tmp_path):
+        """Warnings without errors ⇒ WARN validation, overall OK, rc=0."""
+        md = tmp_path / "doc.md"
+        md.write_text("# Title\n\n## Sub\n\nText.\n", encoding="utf-8")
+
+        from unittest.mock import patch as _p
+        fake = {"errors": [], "warnings": ["minor issue"]}
+        with _p("cypilot.commands.toc._validate_toc", return_value=fake):
+            import io, json
+            buf = io.StringIO()
+            from contextlib import redirect_stdout
+            with redirect_stdout(buf):
+                rc = cmd_toc([str(md)])
+        assert rc == 0
+        out = json.loads(buf.getvalue())
+        r = out["results"][0]
+        assert r["validation"]["status"] == "WARN"
+
+    def test_error_on_missing_file(self, tmp_path):
+        """Processing a non-existent file produces ERROR status."""
+        import io, json
+        from contextlib import redirect_stdout
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            rc = cmd_toc([str(tmp_path / "nope.md")])
+        out = json.loads(buf.getvalue())
+        assert out["results"][0]["status"] == "ERROR"
+        # Single file error ⇒ overall ERROR, rc=1
+        assert out["status"] == "ERROR"
+        assert rc == 1
 
 
 class TestArtifactKindConstraintsToc:

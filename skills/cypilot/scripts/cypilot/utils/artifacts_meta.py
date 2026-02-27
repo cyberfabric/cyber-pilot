@@ -866,23 +866,6 @@ class ArtifactsMeta:
         self.rebuild_indices()
         return errors
 
-    @classmethod
-    def from_json(cls, json_str: str) -> "ArtifactsMeta":
-        """Create ArtifactsMeta from JSON string."""
-        data = json.loads(json_str)
-        return cls.from_dict(data)
-
-    @classmethod
-    def from_file(cls, path: Path) -> "ArtifactsMeta":
-        """Create ArtifactsMeta from file path (TOML or JSON)."""
-        if path.suffix == ".toml":
-            import tomllib
-            with open(path, "rb") as f:
-                data = tomllib.load(f)
-            return cls.from_dict(data)
-        content = path.read_text(encoding="utf-8")
-        return cls.from_json(content)
-
     # === Kit Methods ===
 
     def get_kit(self, kit_id: str) -> Optional[Kit]:
@@ -1042,15 +1025,6 @@ def create_backup(path: Path) -> Optional[Path]:
         return backup_path
     except Exception:
         return None
-
-
-def _join_path(base: str, tail: str) -> str:
-    """Join base path with tail, handling edge cases."""
-    b = str(base).strip()
-    t = str(tail).strip()
-    if b in {"", "."}:
-        return t
-    return f"{b.rstrip('/')}/{t.lstrip('/')}"
 
 
 def extract_system_slug_candidates(cpt_id: str, parent_prefix: str, kind_tokens: Set[str]) -> List[str]:
