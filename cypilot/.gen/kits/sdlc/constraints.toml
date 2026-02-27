@@ -1,0 +1,1158 @@
+# Auto-generated from all kit blueprints — do not edit manually
+kit = "sdlc"
+
+# ── ADR Heading outline ───────────────────────────────────────────────
+
+[[artifacts.ADR.headings]]
+id = "adr-h1-title"
+level = 1
+required = true
+multiple = false
+numbered = false
+description = "ADR document title (H1)."
+
+[[artifacts.ADR.headings]]
+id = "adr-context"
+level = 2
+required = true
+multiple = false
+numbered = false
+pattern = "Context and Problem Statement"
+description = "Problem context and motivating forces."
+
+[[artifacts.ADR.headings]]
+id = "adr-decision-drivers"
+level = 2
+required = true
+multiple = false
+numbered = false
+pattern = "Decision Drivers"
+description = "Key decision drivers and constraints."
+
+[[artifacts.ADR.headings]]
+id = "adr-considered-options"
+level = 2
+required = true
+multiple = false
+numbered = false
+pattern = "Considered Options"
+description = "Options that were considered."
+
+[[artifacts.ADR.headings]]
+id = "adr-decision-outcome"
+level = 2
+required = true
+multiple = false
+numbered = false
+pattern = "Decision Outcome"
+description = "Selected decision and outcome."
+
+[[artifacts.ADR.headings]]
+id = "adr-decision-outcome-consequences"
+level = 3
+required = true
+multiple = false
+numbered = false
+pattern = "Consequences"
+description = "Consequences of the decision."
+
+[[artifacts.ADR.headings]]
+id = "adr-decision-outcome-confirmation"
+level = 3
+required = true
+multiple = false
+numbered = false
+pattern = "Confirmation"
+description = "How/when the decision will be confirmed."
+
+[[artifacts.ADR.headings]]
+id = "adr-pros-cons"
+level = 2
+required = true
+multiple = false
+numbered = false
+pattern = "Pros and Cons of the Options"
+description = "Pros and cons analysis for the options."
+
+[[artifacts.ADR.headings]]
+id = "adr-pros-cons-entry"
+level = 3
+required = true
+multiple = true
+numbered = false
+description = "A single option evaluation entry (pros/cons)."
+
+[[artifacts.ADR.headings]]
+id = "adr-more-info"
+level = 2
+required = false
+multiple = false
+numbered = false
+pattern = "More Information"
+description = "Optional additional information and links."
+
+[[artifacts.ADR.headings]]
+id = "adr-traceability"
+level = 2
+required = false
+multiple = false
+numbered = false
+pattern = "Traceability"
+description = "Optional traceability links back to requirements/decisions."
+
+# ── ADR ID kinds ───────────────────────────────────────────────
+
+[artifacts.ADR.identifiers.adr]
+name = "Architecture Decision Record"
+description = "A documented architecture decision with context, options, outcome, and consequences; referenced from DESIGN."
+required = true
+task = false
+priority = false
+to_code = false
+template = "cpt-{system}-adr-{slug}"
+headings = ["adr-h1-title"]
+
+[artifacts.ADR.identifiers.adr.references.DESIGN]
+coverage = true
+headings = ["design-arch-overview-drivers"]
+
+[artifacts.ADR.identifiers.adr.references.PRD]
+coverage = false
+
+# ── DECOMPOSITION Heading outline ─────────────────────────────────────
+
+[[artifacts.DECOMPOSITION.headings]]
+id = "decomposition-h1-title"
+level = 1
+required = true
+multiple = false
+numbered = false
+description = "DECOMPOSITION document title (H1)."
+
+[[artifacts.DECOMPOSITION.headings]]
+id = "decomposition-overview"
+level = 2
+required = true
+multiple = false
+numbered = true
+pattern = "Overview"
+description = "Overview of decomposition strategy."
+
+[[artifacts.DECOMPOSITION.headings]]
+id = "decomposition-entries"
+level = 2
+required = true
+multiple = false
+numbered = true
+pattern = "Entries"
+description = "List of feature entries."
+
+[[artifacts.DECOMPOSITION.headings]]
+id = "decomposition-entry"
+level = 3
+required = true
+multiple = true
+numbered = true
+description = "A single feature entry."
+
+[[artifacts.DECOMPOSITION.headings]]
+id = "decomposition-feature-deps"
+level = 2
+required = true
+multiple = false
+numbered = true
+pattern = "Feature Dependencies"
+description = "Cross-feature dependency overview."
+
+# ── DECOMPOSITION ID kinds ─────────────────────────────────────
+
+[artifacts.DECOMPOSITION.identifiers.feature]
+name = "Feature Entry"
+description = "A DECOMPOSITION entry representing a FEATURE spec, including dependency and coverage links."
+required = true
+to_code = false
+template = "cpt-{system}-feature-{slug}"
+headings = ["decomposition-entry"]
+
+[artifacts.DECOMPOSITION.identifiers.feature.references.FEATURE]
+coverage = true
+headings = ["feature-h1-title"]
+
+[artifacts.DECOMPOSITION.identifiers.status]
+name = "Overall Status"
+description = "A decomposition-level status indicator used to summarize overall progress/state."
+required = false
+to_code = false
+template = "cpt-{system}-status-overall"
+headings = ["decomposition-entries"]
+
+# ── DESIGN Heading outline ────────────────────────────────────────────
+
+[[artifacts.DESIGN.headings]]
+id = "design-h1-title"
+level = 1
+required = true
+multiple = false
+numbered = false
+description = "DESIGN document title (H1)."
+
+[[artifacts.DESIGN.headings]]
+id = "design-arch-overview"
+level = 2
+required = true
+multiple = false
+numbered = true
+pattern = "Architecture Overview"
+description = "Architecture overview section."
+
+[[artifacts.DESIGN.headings]]
+id = "design-arch-overview-vision"
+level = 3
+required = true
+multiple = false
+numbered = true
+pattern = "Architectural Vision"
+description = "High-level architectural vision."
+
+[[artifacts.DESIGN.headings]]
+id = "design-arch-overview-drivers"
+level = 3
+required = true
+multiple = false
+numbered = true
+pattern = "Architecture Drivers"
+description = "Architecture drivers: requirements, constraints, and ADR links."
+
+[[artifacts.DESIGN.headings]]
+id = "design-arch-overview-drivers-functional"
+level = 4
+required = true
+multiple = false
+numbered = false
+pattern = "Functional Drivers"
+description = "Functional drivers table mapping PRD requirements to design responses."
+
+[[artifacts.DESIGN.headings]]
+id = "design-arch-overview-drivers-nfr"
+level = 4
+required = true
+multiple = false
+numbered = false
+pattern = "NFR Allocation"
+description = "NFR allocation table mapping non-functional requirements to design elements."
+
+[[artifacts.DESIGN.headings]]
+id = "design-arch-overview-layers"
+level = 3
+required = true
+multiple = false
+numbered = true
+pattern = "Architecture Layers"
+description = "Architecture layering and responsibilities."
+
+[[artifacts.DESIGN.headings]]
+id = "design-principles-constraints"
+level = 2
+required = true
+multiple = false
+numbered = true
+pattern = "Principles & Constraints"
+description = "Principles and constraints section."
+
+[[artifacts.DESIGN.headings]]
+id = "design-principles"
+level = 3
+required = true
+multiple = false
+numbered = true
+pattern = "Design Principles"
+description = "Design principles list."
+
+[[artifacts.DESIGN.headings]]
+id = "design-principle-entry"
+level = 4
+required = true
+numbered = false
+description = "Individual design principle entry."
+
+[[artifacts.DESIGN.headings]]
+id = "design-constraints"
+level = 3
+required = true
+multiple = false
+numbered = true
+pattern = "Constraints"
+description = "Design constraints list."
+
+[[artifacts.DESIGN.headings]]
+id = "design-constraint-entry"
+level = 4
+required = true
+numbered = false
+description = "Individual design constraint entry."
+
+[[artifacts.DESIGN.headings]]
+id = "design-tech-arch"
+level = 2
+required = true
+multiple = false
+numbered = true
+pattern = "Technical Architecture"
+description = "Technical architecture section."
+
+[[artifacts.DESIGN.headings]]
+id = "design-tech-arch-domain"
+level = 3
+required = true
+multiple = false
+numbered = true
+pattern = "Domain Model"
+description = "Domain model."
+
+[[artifacts.DESIGN.headings]]
+id = "design-tech-arch-component-model"
+level = 3
+required = true
+multiple = false
+numbered = true
+pattern = "Component Model"
+description = "Component model and responsibilities."
+
+[[artifacts.DESIGN.headings]]
+id = "design-component-entry"
+level = 4
+required = true
+numbered = false
+description = "Individual component entry."
+
+[[artifacts.DESIGN.headings]]
+id = "design-component-why"
+level = 5
+required = true
+multiple = false
+numbered = false
+pattern = "Why this component exists"
+description = "Rationale for this component's existence."
+
+[[artifacts.DESIGN.headings]]
+id = "design-component-scope"
+level = 5
+required = true
+multiple = false
+numbered = false
+pattern = "Responsibility scope"
+description = "Core responsibilities and invariants."
+
+[[artifacts.DESIGN.headings]]
+id = "design-component-boundaries"
+level = 5
+required = true
+multiple = false
+numbered = false
+pattern = "Responsibility boundaries"
+description = "Explicit non-responsibilities and delegation boundaries."
+
+[[artifacts.DESIGN.headings]]
+id = "design-component-related"
+level = 5
+required = true
+multiple = false
+numbered = false
+pattern = "Related components (by ID)"
+description = "Component-to-component relationships using IDs."
+
+[[artifacts.DESIGN.headings]]
+id = "design-tech-arch-api-contracts"
+level = 3
+required = true
+multiple = false
+numbered = true
+pattern = "API Contracts"
+description = "API contracts and external interfaces."
+
+[[artifacts.DESIGN.headings]]
+id = "design-tech-arch-internal-deps"
+level = 3
+required = true
+multiple = false
+numbered = true
+pattern = "Internal Dependencies"
+description = "Internal dependencies."
+
+[[artifacts.DESIGN.headings]]
+id = "design-tech-arch-external-deps"
+level = 3
+required = true
+multiple = false
+numbered = true
+pattern = "External Dependencies"
+description = "External dependencies."
+
+[[artifacts.DESIGN.headings]]
+id = "design-external-dep-entry"
+level = 4
+required = false
+numbered = false
+description = "Individual external dependency entry."
+
+[[artifacts.DESIGN.headings]]
+id = "design-tech-arch-seq"
+level = 3
+required = true
+multiple = false
+numbered = true
+pattern = "Interactions & Sequences"
+description = "Interactions and sequences."
+
+[[artifacts.DESIGN.headings]]
+id = "design-seq-entry"
+level = 4
+required = true
+numbered = false
+description = "Individual sequence diagram entry."
+
+[[artifacts.DESIGN.headings]]
+id = "design-tech-arch-db"
+level = 3
+required = true
+multiple = false
+numbered = true
+pattern = "Database schemas & tables"
+description = "Database schemas and tables."
+
+[[artifacts.DESIGN.headings]]
+id = "design-dbtable-entry"
+level = 4
+required = false
+numbered = false
+description = "Individual database table entry."
+
+[[artifacts.DESIGN.headings]]
+id = "design-additional-context"
+level = 2
+required = false
+multiple = false
+numbered = true
+pattern = "Additional context"
+description = "Optional additional context."
+
+[[artifacts.DESIGN.headings]]
+id = "design-traceability"
+level = 2
+required = false
+multiple = false
+numbered = true
+pattern = "Traceability"
+description = "Optional traceability links."
+
+# ── DESIGN ID kinds ────────────────────────────────────────────
+
+[artifacts.DESIGN.identifiers.component]
+name = "Component"
+description = "A logical architecture component/module with clear responsibilities and interfaces."
+required = true
+to_code = false
+template = "cpt-{system}-component-{slug}"
+headings = ["design-tech-arch-component-model"]
+
+[artifacts.DESIGN.identifiers.component.references.DECOMPOSITION]
+coverage = true
+headings = ["decomposition-entry"]
+
+[artifacts.DESIGN.identifiers.component.references.PRD]
+coverage = false
+
+[artifacts.DESIGN.identifiers.constraint]
+name = "Design Constraint"
+description = "A hard boundary (technical/organizational/regulatory) that the design must satisfy."
+required = true
+to_code = false
+template = "cpt-{system}-constraint-{slug}"
+headings = ["design-constraints"]
+
+[artifacts.DESIGN.identifiers.constraint.references.DECOMPOSITION]
+coverage = true
+headings = ["decomposition-entry"]
+
+[artifacts.DESIGN.identifiers.constraint.references.FEATURE]
+headings = ["feature-dod-entry"]
+
+[artifacts.DESIGN.identifiers.constraint.references.PRD]
+coverage = false
+
+[artifacts.DESIGN.identifiers.db]
+name = "Database (legacy db-table prefix)"
+description = "Legacy/compatibility database identifier; prefer explicit table identifiers via dbtable when applicable."
+required = false
+to_code = false
+template = "cpt-{system}-db-{slug}"
+headings = ["design-tech-arch-db"]
+
+[artifacts.DESIGN.identifiers.db.references.DECOMPOSITION]
+headings = ["decomposition-entry"]
+
+[artifacts.DESIGN.identifiers.db.references.PRD]
+coverage = false
+
+[artifacts.DESIGN.identifiers.dbtable]
+name = "Database Table"
+description = "A concrete database schema/table entity with columns, keys, and constraints documented in DESIGN."
+required = false
+to_code = false
+template = "cpt-{system}-dbtable-{slug}"
+headings = ["design-tech-arch-db"]
+
+[artifacts.DESIGN.identifiers.dbtable.references.DECOMPOSITION]
+coverage = true
+headings = ["decomposition-entry"]
+
+[artifacts.DESIGN.identifiers.dbtable.references.PRD]
+coverage = false
+
+[artifacts.DESIGN.identifiers.design]
+name = "Design Element (legacy prefix)"
+description = "Legacy/compatibility design identifier (prefer more specific kinds like principle/constraint/component/seq)."
+required = false
+to_code = false
+template = "cpt-{system}-design-{slug}"
+headings = ["design-h1-title"]
+
+[artifacts.DESIGN.identifiers.design.references.PRD]
+coverage = false
+
+[artifacts.DESIGN.identifiers.interface]
+name = "External Interface / Protocol"
+description = "A system boundary interface or protocol contract (e.g., CLI, IPC, REST endpoints) described in DESIGN."
+required = false
+to_code = false
+template = "cpt-{system}-interface-{slug}"
+headings = ["design-tech-arch-api-contracts"]
+
+[artifacts.DESIGN.identifiers.interface.references.PRD]
+coverage = false
+
+[artifacts.DESIGN.identifiers.principle]
+name = "Design Principle"
+description = "A guiding design rule (why/what to prefer) that shapes architecture and implementation decisions."
+required = true
+to_code = false
+template = "cpt-{system}-principle-{slug}"
+headings = ["design-principles"]
+
+[artifacts.DESIGN.identifiers.principle.references.DECOMPOSITION]
+coverage = true
+headings = ["decomposition-entry"]
+
+[artifacts.DESIGN.identifiers.principle.references.FEATURE]
+headings = ["feature-context-purpose"]
+
+[artifacts.DESIGN.identifiers.principle.references.PRD]
+coverage = false
+
+[artifacts.DESIGN.identifiers.seq]
+name = "Sequence"
+description = "A key interaction sequence (message flow) between components/actors, documented as a sequence diagram."
+required = true
+to_code = false
+template = "cpt-{system}-seq-{slug}"
+headings = ["design-tech-arch-seq"]
+
+[artifacts.DESIGN.identifiers.seq.references.PRD]
+coverage = false
+
+[artifacts.DESIGN.identifiers.tech]
+name = "Tech Stack"
+description = "A technology choice used in the architecture (language, framework, tool, storage, protocol)."
+required = false
+to_code = false
+template = "cpt-{system}-tech-{slug}"
+headings = ["design-arch-overview-layers"]
+
+[artifacts.DESIGN.identifiers.tech.references.PRD]
+coverage = false
+
+[artifacts.DESIGN.identifiers.topology]
+name = "Topology"
+description = "Deployment/runtime topology descriptor (processes/nodes/tiers) for the system or module."
+required = false
+to_code = false
+template = "cpt-{system}-topology-{slug}"
+headings = ["design-tech-arch"]
+
+[artifacts.DESIGN.identifiers.topology.references.PRD]
+coverage = false
+
+# ── FEATURE Heading outline ───────────────────────────────────────────
+
+[[artifacts.FEATURE.headings]]
+id = "feature-h1-title"
+level = 1
+required = true
+multiple = false
+numbered = false
+description = "FEATURE document title (H1)."
+
+[[artifacts.FEATURE.headings]]
+id = "feature-context"
+level = 2
+required = true
+multiple = false
+numbered = true
+pattern = "Feature Context"
+description = "Feature context section."
+
+[[artifacts.FEATURE.headings]]
+id = "feature-context-overview"
+level = 3
+required = true
+multiple = false
+numbered = true
+pattern = "Overview"
+description = "Feature overview."
+
+[[artifacts.FEATURE.headings]]
+id = "feature-context-purpose"
+level = 3
+required = true
+multiple = false
+numbered = true
+pattern = "Purpose"
+description = "Feature purpose."
+
+[[artifacts.FEATURE.headings]]
+id = "feature-context-actors"
+level = 3
+required = true
+multiple = false
+numbered = true
+pattern = "Actors"
+description = "Actors involved in the feature."
+
+[[artifacts.FEATURE.headings]]
+id = "feature-context-references"
+level = 3
+required = true
+multiple = false
+numbered = true
+pattern = "References"
+description = "References to related artifacts."
+
+[[artifacts.FEATURE.headings]]
+id = "feature-actor-flows"
+level = 2
+required = true
+multiple = false
+numbered = true
+pattern = "Actor Flows (CDSL)"
+description = "Actor flows section."
+
+[[artifacts.FEATURE.headings]]
+id = "feature-actor-flow"
+level = 3
+required = true
+multiple = true
+numbered = false
+description = "A single actor flow."
+
+[[artifacts.FEATURE.headings]]
+id = "feature-processes"
+level = 2
+required = true
+multiple = false
+numbered = true
+pattern = "Processes / Business Logic (CDSL)"
+description = "Processes / business logic section."
+
+[[artifacts.FEATURE.headings]]
+id = "feature-process"
+level = 3
+required = true
+multiple = true
+numbered = false
+description = "A single process/algorithm."
+
+[[artifacts.FEATURE.headings]]
+id = "feature-states"
+level = 2
+required = true
+multiple = false
+numbered = true
+pattern = "States (CDSL)"
+description = "States section."
+
+[[artifacts.FEATURE.headings]]
+id = "feature-state"
+level = 3
+required = true
+multiple = true
+numbered = false
+description = "A single state machine."
+
+[[artifacts.FEATURE.headings]]
+id = "feature-dod"
+level = 2
+required = true
+multiple = false
+numbered = true
+pattern = "Definitions of Done"
+description = "Definitions of done section."
+
+[[artifacts.FEATURE.headings]]
+id = "feature-dod-entry"
+level = 3
+required = true
+multiple = true
+numbered = false
+description = "A single definition of done entry."
+
+[[artifacts.FEATURE.headings]]
+id = "feature-acceptance-criteria"
+level = 2
+required = true
+multiple = false
+numbered = true
+pattern = "Acceptance Criteria"
+description = "Acceptance criteria for the feature."
+
+# ── FEATURE ID kinds ───────────────────────────────────────────
+
+[artifacts.FEATURE.identifiers.algo]
+name = "Algorithm"
+description = "A reusable internal process described in CDSL (business logic not directly initiated by an actor)."
+required = false
+to_code = true
+template = "cpt-{system}-algo-{feature-slug}-{slug}"
+headings = ["feature-processes"]
+
+[artifacts.FEATURE.identifiers.algo.references.PRD]
+coverage = false
+
+[artifacts.FEATURE.identifiers.dod]
+name = "Definition of Done"
+description = "A concrete implementation task derived from flows/processes/states, with required traceability."
+required = true
+task = true
+priority = true
+to_code = true
+template = "cpt-{system}-dod-{feature-slug}-{slug}"
+headings = ["feature-dod-entry"]
+
+[artifacts.FEATURE.identifiers.dod.references.PRD]
+coverage = false
+
+[artifacts.FEATURE.identifiers.featstatus]
+name = "Feature Status"
+description = "A feature-level status/anchor marker used in FEATURE context."
+required = true
+task = true
+to_code = false
+template = "cpt-{system}-featstatus-{feature-slug}"
+headings = ["feature-h1-title"]
+
+[artifacts.FEATURE.identifiers.featstatus.references.DESIGN]
+coverage = false
+
+[artifacts.FEATURE.identifiers.featstatus.references.PRD]
+coverage = false
+
+[artifacts.FEATURE.identifiers.flow]
+name = "Flow"
+description = "An actor-facing CDSL flow describing a user/system interaction end-to-end."
+required = false
+to_code = true
+template = "cpt-{system}-flow-{feature-slug}-{slug}"
+headings = ["feature-actor-flow"]
+
+[artifacts.FEATURE.identifiers.flow.references.PRD]
+coverage = false
+
+[artifacts.FEATURE.identifiers.state]
+name = "State Machine"
+description = "A lifecycle/state machine definition for an entity or subsystem, described in CDSL transitions."
+required = false
+to_code = true
+template = "cpt-{system}-state-{feature-slug}-{slug}"
+headings = ["feature-state"]
+
+[artifacts.FEATURE.identifiers.state.references.PRD]
+coverage = false
+
+# ── PRD Heading outline ───────────────────────────────────────────────
+
+[[artifacts.PRD.headings]]
+id = "prd-h1-title"
+level = 1
+required = true
+multiple = false
+numbered = false
+pattern = "PRD\\s*[—–-]\\s*.+"
+description = "PRD document title (H1)."
+
+[[artifacts.PRD.headings]]
+id = "prd-overview"
+level = 2
+required = true
+multiple = false
+numbered = true
+pattern = "Overview"
+description = "High-level overview of the product and problem."
+
+[[artifacts.PRD.headings]]
+id = "prd-overview-purpose"
+level = 3
+required = true
+multiple = false
+numbered = true
+pattern = "Purpose"
+description = "Purpose of the PRD and the product."
+
+[[artifacts.PRD.headings]]
+id = "prd-overview-background"
+level = 3
+required = true
+multiple = false
+numbered = true
+pattern = "Background / Problem Statement"
+description = "Background and problem statement."
+
+[[artifacts.PRD.headings]]
+id = "prd-overview-goals"
+level = 3
+required = true
+multiple = false
+numbered = true
+pattern = "Goals (Business Outcomes)"
+description = "Business outcomes and goals."
+
+[[artifacts.PRD.headings]]
+id = "prd-overview-glossary"
+level = 3
+required = true
+multiple = false
+numbered = true
+pattern = "Glossary"
+description = "Definitions of key terms."
+
+[[artifacts.PRD.headings]]
+id = "prd-actors"
+level = 2
+required = true
+multiple = false
+numbered = true
+pattern = "Actors"
+description = "Actors (human and system) that interact with the product."
+
+[[artifacts.PRD.headings]]
+id = "prd-actors-human"
+level = 3
+required = true
+multiple = false
+numbered = true
+pattern = "Human Actors"
+description = "Human actors."
+
+[[artifacts.PRD.headings]]
+id = "prd-actor-entry"
+level = 4
+required = true
+numbered = false
+description = "Individual human actor entry."
+
+[[artifacts.PRD.headings]]
+id = "prd-actors-system"
+level = 3
+required = true
+multiple = false
+numbered = true
+pattern = "System Actors"
+description = "System and external actors."
+
+[[artifacts.PRD.headings]]
+id = "prd-actor-system-entry"
+level = 4
+required = true
+numbered = false
+description = "Individual system actor entry."
+
+[[artifacts.PRD.headings]]
+id = "prd-operational-concept"
+level = 2
+required = true
+multiple = false
+numbered = true
+pattern = "Operational Concept & Environment"
+description = "Operational concept and environment constraints."
+
+[[artifacts.PRD.headings]]
+id = "prd-operational-concept-constraints"
+level = 3
+required = true
+multiple = false
+numbered = true
+pattern = "Module-Specific Environment Constraints"
+description = "Module-specific environment constraints beyond project defaults."
+
+[[artifacts.PRD.headings]]
+id = "prd-scope"
+level = 2
+required = true
+multiple = false
+numbered = true
+pattern = "Scope"
+description = "Scope of the product and release."
+
+[[artifacts.PRD.headings]]
+id = "prd-scope-in"
+level = 3
+required = true
+multiple = false
+numbered = true
+pattern = "In Scope"
+description = "In-scope items."
+
+[[artifacts.PRD.headings]]
+id = "prd-scope-out"
+level = 3
+required = true
+multiple = false
+numbered = true
+pattern = "Out of Scope"
+description = "Out-of-scope items."
+
+[[artifacts.PRD.headings]]
+id = "prd-fr"
+level = 2
+required = true
+multiple = false
+numbered = true
+pattern = "Functional Requirements"
+description = "Functional requirements section."
+
+[[artifacts.PRD.headings]]
+id = "prd-fr-group"
+level = 3
+required = true
+numbered = true
+description = "Feature area or priority tier grouping."
+
+[[artifacts.PRD.headings]]
+id = "prd-fr-entry"
+level = 4
+required = true
+numbered = false
+description = "Individual functional requirement entry."
+
+[[artifacts.PRD.headings]]
+id = "prd-nfr"
+level = 2
+required = true
+multiple = false
+numbered = true
+pattern = "Non-Functional Requirements"
+description = "Non-functional requirements section."
+
+[[artifacts.PRD.headings]]
+id = "prd-nfr-inclusions"
+level = 3
+required = false
+multiple = false
+numbered = true
+pattern = "NFR Inclusions"
+description = "Non-functional requirements that deviate from or extend project defaults."
+
+[[artifacts.PRD.headings]]
+id = "prd-nfr-entry"
+level = 4
+required = false
+numbered = false
+description = "Individual non-functional requirement entry."
+
+[[artifacts.PRD.headings]]
+id = "prd-nfr-exclusions"
+level = 3
+required = true
+multiple = false
+numbered = true
+pattern = "NFR Exclusions"
+description = "Explicit non-functional requirement exclusions."
+
+[[artifacts.PRD.headings]]
+id = "prd-public-interfaces"
+level = 2
+required = true
+multiple = false
+numbered = true
+pattern = "Public Library Interfaces"
+description = "Public library interfaces and integration contracts."
+
+[[artifacts.PRD.headings]]
+id = "prd-public-interfaces-api"
+level = 3
+required = true
+multiple = false
+numbered = true
+pattern = "Public API Surface"
+description = "Public API surface."
+
+[[artifacts.PRD.headings]]
+id = "prd-interface-entry"
+level = 4
+required = false
+numbered = false
+description = "Individual public interface entry."
+
+[[artifacts.PRD.headings]]
+id = "prd-public-interfaces-external-contracts"
+level = 3
+required = true
+multiple = false
+numbered = true
+pattern = "External Integration Contracts"
+description = "External integration contracts."
+
+[[artifacts.PRD.headings]]
+id = "prd-contract-entry"
+level = 4
+required = false
+numbered = false
+description = "Individual external integration contract entry."
+
+[[artifacts.PRD.headings]]
+id = "prd-use-cases"
+level = 2
+required = true
+multiple = false
+numbered = true
+pattern = "Use Cases"
+description = "Use cases section."
+
+[[artifacts.PRD.headings]]
+id = "prd-usecase-entry"
+level = 4
+required = false
+numbered = false
+description = "Individual use case entry."
+
+[[artifacts.PRD.headings]]
+id = "prd-acceptance-criteria"
+level = 2
+required = true
+multiple = false
+numbered = true
+pattern = "Acceptance Criteria"
+description = "Acceptance criteria for delivery."
+
+[[artifacts.PRD.headings]]
+id = "prd-dependencies"
+level = 2
+required = true
+multiple = false
+numbered = true
+pattern = "Dependencies"
+description = "Dependencies required to deliver the PRD."
+
+[[artifacts.PRD.headings]]
+id = "prd-assumptions"
+level = 2
+required = true
+multiple = false
+numbered = true
+pattern = "Assumptions"
+description = "Assumptions that must hold."
+
+[[artifacts.PRD.headings]]
+id = "prd-risks"
+level = 2
+required = true
+multiple = false
+numbered = true
+pattern = "Risks"
+description = "Risks and mitigations."
+
+# ── PRD ID kinds ───────────────────────────────────────────────
+
+[artifacts.PRD.identifiers.actor]
+name = "Actor"
+description = "An entity (human or system) that interacts with the product; used in PRD, and referenced by requirements/use cases."
+required = false
+task = false
+priority = false
+to_code = false
+template = "cpt-{system}-actor-{slug}"
+headings = ["prd-actors"]
+
+[artifacts.PRD.identifiers.contract]
+name = "Integration Contract"
+description = "An external integration contract (data format/protocol/compatibility expectations) with another system."
+required = false
+to_code = false
+template = "cpt-{system}-contract-{slug}"
+headings = ["prd-public-interfaces"]
+
+[artifacts.PRD.identifiers.contract.references.DESIGN]
+coverage = true
+headings = ["design-tech-arch-api-contracts"]
+
+[artifacts.PRD.identifiers.fr]
+name = "Functional Requirement"
+description = "A testable statement of required system behavior (WHAT the system must do)."
+required = true
+priority = true
+to_code = false
+template = "cpt-{system}-fr-{slug}"
+headings = ["prd-fr"]
+
+[artifacts.PRD.identifiers.fr.references.DECOMPOSITION]
+headings = ["decomposition-entry"]
+
+[artifacts.PRD.identifiers.fr.references.DESIGN]
+coverage = true
+headings = ["design-arch-overview-drivers"]
+
+[artifacts.PRD.identifiers.fr.references.FEATURE]
+headings = ["feature-context-purpose"]
+
+[artifacts.PRD.identifiers.interface]
+name = "Public Interface"
+description = "A public API surface (library interface, protocol, CLI contract) provided by the system."
+required = false
+to_code = false
+template = "cpt-{system}-interface-{slug}"
+headings = ["prd-public-interfaces"]
+
+[artifacts.PRD.identifiers.interface.references.DESIGN]
+coverage = true
+headings = ["design-tech-arch-api-contracts"]
+
+[artifacts.PRD.identifiers.nfr]
+name = "Non-functional Requirement"
+description = "A measurable quality attribute requirement (performance, security, reliability, usability, etc.)."
+required = true
+priority = true
+to_code = false
+template = "cpt-{system}-nfr-{slug}"
+headings = ["prd-nfr"]
+
+[artifacts.PRD.identifiers.nfr.references.DECOMPOSITION]
+headings = ["decomposition-entry"]
+
+[artifacts.PRD.identifiers.nfr.references.DESIGN]
+coverage = true
+headings = ["design-arch-overview-drivers"]
+
+[artifacts.PRD.identifiers.nfr.references.FEATURE]
+headings = ["feature-context-purpose"]
+
+[artifacts.PRD.identifiers.usecase]
+name = "Use Case"
+description = "An end-to-end interaction scenario (actor + goal + flow) that clarifies behavior beyond individual requirements."
+required = true
+to_code = false
+template = "cpt-{system}-usecase-{slug}"
+headings = ["prd-use-cases"]
+
+[artifacts.PRD.identifiers.usecase.references.DESIGN]
+headings = ["design-tech-arch-seq"]
+
+[artifacts.PRD.identifiers.usecase.references.FEATURE]
+headings = ["feature-actor-flow"]

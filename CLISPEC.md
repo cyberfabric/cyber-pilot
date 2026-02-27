@@ -1,5 +1,54 @@
 # CLISPEC - CLI Command Specification Format
 
+
+<!-- toc -->
+
+- [Overview](#overview)
+- [Format Specification](#format-specification)
+  - [Basic Structure](#basic-structure)
+- [Sections](#sections)
+  - [Required Sections](#required-sections)
+  - [Optional Sections](#optional-sections)
+- [Type System](#type-system)
+  - [Supported Types](#supported-types)
+  - [Type Constraints](#type-constraints)
+- [Syntax Rules](#syntax-rules)
+  - [Formatting Rules](#formatting-rules)
+  - [Option Format](#option-format)
+  - [Argument Format](#argument-format)
+- [Linking Syntax](#linking-syntax)
+  - [Command References](#command-references)
+  - [Workflow References](#workflow-references)
+  - [Spec References](#spec-references)
+- [Complete Example](#complete-example)
+- [Validation Rules](#validation-rules)
+  - [Required Elements](#required-elements)
+  - [Content Rules](#content-rules)
+  - [Style Rules](#style-rules)
+- [Benefits for AI Agents](#benefits-for-ai-agents)
+  - [Easy Parsing](#easy-parsing)
+  - [Clear Semantics](#clear-semantics)
+  - [Workflow Integration](#workflow-integration)
+  - [Tool Generation](#tool-generation)
+- [Usage in Cypilot](#usage-in-cypilot)
+  - [In Adapter Configuration](#in-adapter-configuration)
+  - [File Location](#file-location)
+  - [Validation](#validation)
+  - [Linking from DESIGN.md](#linking-from-designmd)
+- [Comparison with Alternatives](#comparison-with-alternatives)
+  - [vs. OpenAPI](#vs-openapi)
+  - [vs. man pages](#vs-man-pages)
+  - [vs. Markdown](#vs-markdown)
+- [Implementation Notes](#implementation-notes)
+  - [Parser Implementation](#parser-implementation)
+  - [Generator Implementation](#generator-implementation)
+  - [Editor Support](#editor-support)
+- [Version History](#version-history)
+- [References](#references)
+- [License](#license)
+
+<!-- /toc -->
+
 **Version**: 1.0  
 **Purpose**: Human and machine-readable format for CLI command documentation
 
