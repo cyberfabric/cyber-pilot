@@ -524,7 +524,7 @@ For a PRD artifact, `config/kits/sdlc/artifacts/PRD/rules.md`:
 
 ## References
 
-- **Kit specification**: `specs/kit/blueprint.md` — blueprint format, marker reference, generation algorithm
-- **Execution protocol**: `specs/execution-protocol.md` — workflow execution rules
-- **Identifiers & Traceability**: `specs/traceability.md` — ID formats, naming, code traceability
-- **CLI**: `specs/cli.md` — `generate-resources`, `generate`, `validate` commands
+- **Kit specification**: `{cypilot_path}/.core/architecture/specs/kit/blueprint.md` — blueprint format, marker reference, generation algorithm
+- **Execution protocol**: `{cypilot_path}/.core/requirements/execution-protocol.md` — workflow execution rules
+- **Identifiers & Traceability**: `{cypilot_path}/.core/architecture/specs/traceability.md` — ID formats, naming, code traceability
+- **CLI**: `{cypilot_path}/.core/architecture/specs/cli.md` — `generate-resources`, `generate`, `validate` commands

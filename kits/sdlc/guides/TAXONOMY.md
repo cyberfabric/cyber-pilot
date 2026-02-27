@@ -173,7 +173,7 @@ Phase tokens:
 - No new Cypilot IDs are defined in code. Code only references IDs that exist in artifacts.
 
 **Traceability**:
-- Mark code with Cypilot markers as specified in `requirements/traceability.md`.
+- Mark code with Cypilot markers as specified in `{cypilot_path}/.core/requirements/traceability.md`.
 
 **Validation**:
 - Structure and pairing checks + cross-validation + coverage checks via `validate-code`.

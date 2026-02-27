@@ -65,7 +65,7 @@ ALWAYS use this notification format WHEN emitting execution logs:
 - [CONTEXT]: MESSAGE
 ```
 
-ALWAYS set **CONTEXT** to the file or section being executed WHEN emitting execution logs (e.g., `workflows/generate.md`, `DESIGN rules`, `execution-protocol`).
+ALWAYS set **CONTEXT** to the file or section being executed WHEN emitting execution logs (e.g., `{cypilot_path}/.core/workflows/generate.md`, `DESIGN rules`, `execution-protocol`).
 
 ALWAYS set **MESSAGE** to what Cypilot is doing and why WHEN emitting execution logs.
 

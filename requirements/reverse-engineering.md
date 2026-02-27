@@ -37,7 +37,7 @@ purpose: Technology-agnostic methodology for systematic project analysis
 
 **ALWAYS open and follow**: This file WHEN user requests to analyze codebase, search in code, search in project documentation, or generate artifacts/code based on existing project structure
 
-**ALWAYS open and follow**: `execution-protocol.md` for workflow context
+**ALWAYS open and follow**: `{cypilot_path}/.core/requirements/execution-protocol.md` for workflow context
 
 **Prerequisite**: Agent confirms understanding before proceeding:
 - [ ] Agent has read and understood this methodology
@@ -860,5 +860,5 @@ This methodology feeds into Cypilot workflows:
 
 ## References
 
-- Generate workflow: `../workflows/generate.md`
-- Execution protocol: `./execution-protocol.md`
+- Generate workflow: `{cypilot_path}/.core/workflows/generate.md`
+- Execution protocol: `{cypilot_path}/.core/requirements/execution-protocol.md`

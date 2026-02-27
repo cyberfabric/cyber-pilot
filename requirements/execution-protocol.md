@@ -32,7 +32,7 @@ purpose: Common protocol executed by generate.md and analyze.md workflows
 
 ## Overview
 
-Common steps shared by `generate.md` and `analyze.md`. Both workflows MUST execute this protocol before their specific logic.
+Common steps shared by `{cypilot_path}/.core/workflows/generate.md` and `{cypilot_path}/.core/workflows/analyze.md`. Both workflows MUST execute this protocol before their specific logic.
 
 ---
 ## ⚠️ Execution Protocol Violations
@@ -42,7 +42,7 @@ Common steps shared by `generate.md` and `analyze.md`. Both workflows MUST execu
 **Common violations**:
 1. ❌ Not reading this protocol first
 2. ❌ Not running `cypilot info`
-3. ❌ Not following invoked workflow rules (`generate.md` / `analyze.md`)
+3. ❌ Not following invoked workflow rules (`{cypilot_path}/.core/workflows/generate.md` / `{cypilot_path}/.core/workflows/analyze.md`)
 
 **Recovery**:
 1. Acknowledge violation + what was skipped
@@ -104,7 +104,7 @@ After cypilot discovery, determine **Rules Mode**:
 - Mandatory semantic validation
 - Evidence requirements enforced
 - Anti-pattern detection active
-- Agent compliance protocol applies (see `agent-compliance.md`)
+- Agent compliance protocol applies (see `{cypilot_path}/.core/requirements/agent-compliance.md`)
 
 **Announce**:
 ```

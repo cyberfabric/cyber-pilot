@@ -46,11 +46,11 @@ drivers:
 
 ## Overview
 
-Projects extend Cypilot behavior by placing **system prompts** in `.cypilot/config/sysprompts/` and registering them via `config/AGENTS.md`. These prompts are loaded by workflows during generate, analyze, and code operations, providing project-specific context without modifying kit blueprints or core configuration.
+Projects extend Cypilot behavior by placing **system prompts** in `{cypilot_path}/config/sysprompts/` and registering them via `{cypilot_path}/config/AGENTS.md`. These prompts are loaded by workflows during generate, analyze, and code operations, providing project-specific context without modifying kit blueprints or core configuration.
 
 **Key properties**:
-- System prompts live in `.cypilot/config/sysprompts/*.md` — plain Markdown files
-- `AGENTS.md` at `.cypilot/config/AGENTS.md` maps prompts to operations via `WHEN` rules
+- System prompts live in `{cypilot_path}/config/sysprompts/*.md` — plain Markdown files
+- `AGENTS.md` at `{cypilot_path}/config/AGENTS.md` maps prompts to operations via `WHEN` rules
 - Prompts are loaded at runtime — no code generation, no build step
 - Project-specific: conventions, tech stack, domain model, patterns, etc.
 - Complementary to kit blueprints: kit rules define artifact structure, project system prompts define project context
@@ -60,9 +60,9 @@ Projects extend Cypilot behavior by placing **system prompts** in `.cypilot/conf
 | Concern | Location |
 |---------|----------|
 | Artifact structure, ID kinds, heading rules | Kit blueprint (`@cpt:rules`, `@cpt:id`, `@cpt:heading`) |
-| Project tech stack, naming conventions | `.cypilot/config/sysprompts/tech-stack.md` |
-| Domain model, entity relationships | `.cypilot/config/sysprompts/domain-model.md` |
-| API contract format | `.cypilot/config/sysprompts/api-contracts.md` |
+| Project tech stack, naming conventions | `{cypilot_path}/config/sysprompts/tech-stack.md` |
+| Domain model, entity relationships | `{cypilot_path}/config/sysprompts/domain-model.md` |
+| API contract format | `{cypilot_path}/config/sysprompts/api-contracts.md` |
 
 ---
 
@@ -89,7 +89,7 @@ All sysprompt files are optional. Only files referenced in `AGENTS.md` are loade
 
 ## Root AGENTS.md Entry
 
-Cypilot injects a managed block into the **project root** `AGENTS.md` that routes agents to `.cypilot/config/AGENTS.md`:
+Cypilot injects a managed block into the **project root** `AGENTS.md` that routes agents to `{cypilot_path}/config/AGENTS.md`:
 
 ```markdown
 <!-- @cpt:root-agents -->
@@ -112,9 +112,9 @@ This ensures any agent that opens the project is immediately routed to Cypilot's
 
 ## config/AGENTS.md
 
-**Location**: `.cypilot/config/AGENTS.md`
+**Location**: `{cypilot_path}/config/AGENTS.md`
 
-`.cypilot/config/AGENTS.md` is the project-level navigation file. It declares which system prompts to load for which operations. Agents reach this file via the root `AGENTS.md` entry above.
+`{cypilot_path}/config/AGENTS.md` is the project-level navigation file. It declares which system prompts to load for which operations. Agents reach this file via the root `AGENTS.md` entry above.
 
 Kit workflow commands are **not** placed here — they are exposed via agent entry points (e.g., `.windsurf/workflows/cypilot-*.md`) generated from `@cpt:workflow` markers in kit blueprints (see [kit.md](./kit.md)).
 
@@ -135,7 +135,7 @@ ALWAYS open and follow `sysprompts/testing.md` WHEN writing tests, reviewing tes
 ALWAYS open and follow `{sysprompt-path}` WHEN {action-description}
 ```
 
-- `{sysprompt-path}` — relative to `.cypilot/config/` (e.g., `sysprompts/tech-stack.md`)
+- `{sysprompt-path}` — relative to `{cypilot_path}/config/` (e.g., `sysprompts/tech-stack.md`)
 - `{action-description}` — action-based description of WHEN to load the system prompt
 
 **Rules MUST be action-based** — they describe what the agent is doing, not which artifact kind is active:
@@ -150,7 +150,7 @@ ALWAYS open and follow `{sysprompt-path}` WHEN {action-description}
 
 ## System Prompt Files
 
-System prompt files are plain Markdown documents in `.cypilot/config/sysprompts/`. Each file provides project-specific context that agents load during operations.
+System prompt files are plain Markdown documents in `{cypilot_path}/config/sysprompts/`. Each file provides project-specific context that agents load during operations.
 
 ### Format
 
@@ -211,7 +211,7 @@ Workflows load project system prompts at specific points:
 ### Loading Algorithm
 
 1. Determine current operation context (generate, analyze, code, etc.)
-2. Read `.cypilot/config/AGENTS.md`
+2. Read `{cypilot_path}/config/AGENTS.md`
 3. For each `WHEN` rule, match the action description against current context
 4. Load matching system prompt files in declaration order
 5. Inject content as system prompt context for the agent
@@ -221,7 +221,7 @@ Workflows load project system prompts at specific points:
 Project system prompts are **additive** — they don't replace kit blueprint system prompts (`@cpt:system-prompt`). Loading order:
 
 1. Kit `@cpt:system-prompt` (from blueprint) — artifact-kind-level directives
-2. Project `.cypilot/config/sysprompts/*.md` (from AGENTS.md WHEN rules) — project-level context
+2. Project `{cypilot_path}/config/sysprompts/*.md` (from AGENTS.md WHEN rules) — project-level context
 
 If a project system prompt contradicts a kit prompt, the project system prompt takes precedence (project-specific overrides generic).
 
@@ -261,7 +261,7 @@ cypilot init --discover
 
 | # | Check | Required | How to Verify |
 |---|-------|----------|---------------|
-| A.1 | `.cypilot/config/AGENTS.md` exists | YES | File exists |
+| A.1 | `{cypilot_path}/config/AGENTS.md` exists | YES | File exists |
 | A.2 | Has project name heading | YES | `# Cypilot: {name}` present |
 | A.3 | All WHEN rules use action-based format | YES | Pattern: `WHEN {verb}ing ...` |
 | A.4 | No orphaned WHEN rules | YES | All referenced system prompt files exist |
@@ -289,7 +289,7 @@ cypilot validate --sysprompts
 
 ```
 ⚠️ Orphaned WHEN rule: sysprompts/{name}.md not found
-→ Referenced in: .cypilot/config/AGENTS.md
+→ Referenced in: {cypilot_path}/config/AGENTS.md
 → Fix: Create the sysprompt file OR remove the WHEN rule
 ```
 **Action**: WARN — workflow continues without the missing spec.
@@ -297,7 +297,7 @@ cypilot validate --sysprompts
 ### AGENTS.md Not Found
 
 ```
-⚠️ Project AGENTS.md not found: .cypilot/config/AGENTS.md
+⚠️ Project AGENTS.md not found: {cypilot_path}/config/AGENTS.md
 → No project-level system prompts will be loaded
 → Fix: Run `cypilot init` to create AGENTS.md
 ```
@@ -319,7 +319,7 @@ cypilot validate --sysprompts
 
 A complete project extension for a TypeScript web application:
 
-`.cypilot/config/AGENTS.md`:
+`{cypilot_path}/config/AGENTS.md`:
 ```markdown
 # Cypilot: MyApp
 
@@ -330,7 +330,7 @@ ALWAYS open and follow `sysprompts/testing.md` WHEN writing tests, reviewing tes
 ALWAYS open and follow `sysprompts/api-contracts.md` WHEN creating/consuming APIs, defining endpoints, or handling requests
 ```
 
-`.cypilot/config/sysprompts/tech-stack.md`:
+`{cypilot_path}/config/sysprompts/tech-stack.md`:
 ```markdown
 # Tech Stack
 
