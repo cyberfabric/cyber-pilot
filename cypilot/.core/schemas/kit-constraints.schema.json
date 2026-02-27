@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/cypilot/kit-constraints.schema.json",
+  "title": "Cypilot Kit Constraints (constraints.json)",
+  "type": "object",
+  "description": "Kit-level constraints for artifact IDs. Root keys are artifact kinds (e.g. PRD, DESIGN, FEATURE).",
+  "patternProperties": {
+    "^\\$": {}
+  },
+  "propertyNames": {
+    "type": "string",
+    "minLength": 1
+  },
+  "additionalProperties": {
+    "$ref": "#/$defs/artifact_kind_constraints"
+  },
+  "$defs": {
+    "artifact_kind_constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identifiers"],
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "headings": {
+          "type": "array",
+          "description": "Outline contract for markdown headings within this artifact kind.",
+          "items": { "$ref": "#/$defs/heading_constraint_entry" }
+        },
+        "identifiers": {
+          "type": "object",
+          "description": "Map of id kind to its constraint entry.",
+          "propertyNames": { "type": "string", "minLength": 1 },
+          "additionalProperties": { "$ref": "#/$defs/id_constraint_entry" }
+        }
+      }
+    },
+    "id_constraint_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "type": "string", "minLength": 1 },
+        "required": { "type": "boolean" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "template": { "type": "string" },
+        "examples": {
+          "type": "array",
+          "items": {}
+        },
+        "headings": {
+          "type": "array",
+          "description": "Allowed heading constraint ids where this ID kind may be defined.",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "task": {
+          "type": ["boolean", "null"],
+          "description": "Whether task checkbox is required (true), prohibited (false), or allowed (null/omitted)."
+        },
+        "priority": {
+          "type": ["boolean", "null"],
+          "description": "Whether priority marker is required (true), prohibited (false), or allowed (null/omitted)."
+        },
+        "to_code": { "type": "boolean" },
+        "references": {
+          "type": "object",
+          "description": "Map of artifact kinds to reference rules.",
+          "propertyNames": { "type": "string", "minLength": 1 },
+          "additionalProperties": { "$ref": "#/$defs/reference_rule" }
+        }
+      }
+    },
+    "reference_rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coverage": {
+          "type": ["boolean", "null"],
+          "description": "Whether reference is required (true), prohibited (false), or optional (null/omitted)."
+        },
+        "task": {
+          "type": ["boolean", "null"],
+          "description": "Whether task checkbox is required (true), prohibited (false), or allowed (null/omitted)."
+        },
+        "priority": {
+          "type": ["boolean", "null"],
+          "description": "Whether priority marker is required (true), prohibited (false), or allowed (null/omitted)."
+        },
+        "headings": {
+          "type": "array",
+          "description": "Heading constraint ids that define required locations for references (when coverage=required). Otherwise, references are allowed anywhere unless coverage=prohibited.",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "heading_constraint_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "pattern": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" },
+        "level": { "type": "integer", "minimum": 1, "maximum": 6 },
+        "required": { "type": "boolean" },
+        "multiple": {
+          "type": ["boolean", "null"],
+          "description": "Whether multiple occurrences are required (true), prohibited (false), or allowed (null/omitted)."
+        },
+        "numbered": {
+          "type": ["boolean", "null"],
+          "description": "Whether numbered headings are required (true), prohibited (false), or allowed (null/omitted)."
+        }
+      }
+    }
+  }
+}

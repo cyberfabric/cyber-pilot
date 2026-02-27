@@ -1,0 +1,7 @@
+---
+description: "Invoke when user asks to do something with Cypilot, or wants to analyze/validate artifacts, or create/generate/implement anything using Cypilot workflows. Core capabilities: workflow routing (analyze/generate/auto-config); deterministic validation (structure, cross-refs, traceability); code\\u2194artifact traceability with @cpt-* markers; ID search/navigation; init/bootstrap; adapter + registry discovery; auto-configuration of brownfield projects (scan conventions, generate rules); agent integrations. Kit sdlc: Artifacts: ADR, CODEBASE, DECOMPOSITION, DESIGN, FEATURE, PR-CODE-REVIEW-TEMPLATE, PR-REVIEW, PR-STATUS-REPORT-TEMPLATE, PRD; Workflows: pr-review, pr-status."
+alwaysApply: true
+---
+
+
+ALWAYS open and follow `@/cypilot/.core/skills/cypilot/SKILL.md`

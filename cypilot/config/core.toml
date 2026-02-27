@@ -1,0 +1,14 @@
+# Cypilot project configuration
+
+version = "1.0"
+project_root = ".."
+
+[system]
+name = "Cypilot"
+slug = "cypilot"
+kit = "cypilot-sdlc"
+
+[kits]
+[kits.cypilot-sdlc]
+format = "Cypilot"
+path = ".gen/kits/sdlc"

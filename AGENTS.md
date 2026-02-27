@@ -4,7 +4,7 @@
 **Remember these variables while working in this project:**
 
 ```toml
-cypilot_path = ".cypilot-adapter"
+cypilot_path = "cypilot"
 ```
 
 ## Navigation Rules
