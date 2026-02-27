@@ -97,13 +97,11 @@ class TestAdapterInfoCommand(unittest.TestCase):
             adapter_dir.mkdir()
             (adapter_dir / "AGENTS.md").write_text("# Cypilot Adapter: TestProject\n\n**Extends**: `../AGENTS.md`\n", encoding="utf-8")
 
-            # Minimal kit with constraints.json (rules-only, no template.md)
+            # Minimal kit with constraints.toml (rules-only, no template.md)
             kit_root = adapter_dir / "kits" / "k"
             (kit_root / "artifacts" / "PRD").mkdir(parents=True)
-            (kit_root / "constraints.json").write_text(
-                json.dumps({"PRD": {"identifiers": {"fr": {"required": False}}}}, indent=2) + "\n",
-                encoding="utf-8",
-            )
+            from _test_helpers import write_constraints_toml
+            write_constraints_toml(kit_root, {"PRD": {"identifiers": {"fr": {"required": False}}}})
 
             # A module with autodetected PRD
             (project_root / "modules" / "m" / "docs").mkdir(parents=True)

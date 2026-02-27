@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import re
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -840,9 +839,9 @@ def cross_validate_artifacts(
     if missing_constraints_kinds:
         errors.append(error(
             "constraints",
-            f"No constraints defined for artifact kinds: {sorted(missing_constraints_kinds)} — add them to constraints.json",
+            f"No constraints defined for artifact kinds: {sorted(missing_constraints_kinds)} — add them to constraints.toml",
             code=EC.MISSING_CONSTRAINTS,
-            path=Path("<constraints.json>"),
+            path=Path("<constraints.toml>"),
             line=1,
             kinds=sorted(missing_constraints_kinds),
         ))
@@ -1571,7 +1570,7 @@ def parse_kit_constraints(data: object) -> Tuple[Optional[KitConstraints], List[
     if data is None:
         return None, []
     if not isinstance(data, dict):
-        return None, ["constraints.json root must be an object mapping artifact kinds to constraints"]
+        return None, ["constraints root must be an object mapping artifact kinds to constraints"]
 
     out: Dict[str, ArtifactKindConstraints] = {}
     errors: List[str] = []
@@ -1582,7 +1581,7 @@ def parse_kit_constraints(data: object) -> Tuple[Optional[KitConstraints], List[
         if isinstance(kind, str) and kind.strip().startswith("$"):
             continue
         if not isinstance(kind, str) or not kind.strip():
-            errors.append("constraints.json has non-string kind key")
+            errors.append("constraints has non-string kind key")
             continue
         if not isinstance(raw, dict):
             errors.append(f"constraints for {kind} must be an object")
@@ -1727,16 +1726,19 @@ def parse_kit_constraints(data: object) -> Tuple[Optional[KitConstraints], List[
     return KitConstraints(by_kind=out), []
 
 
-def load_constraints_json(kit_root: Path) -> Tuple[Optional[KitConstraints], List[str]]:
-    path = (kit_root / "constraints.json").resolve()
+def load_constraints_toml(kit_root: Path) -> Tuple[Optional[KitConstraints], List[str]]:
+    path = (kit_root / "constraints.toml").resolve()
     if not path.is_file():
         return None, []
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
+        from . import toml_utils
+        data = toml_utils.load(path)
     except Exception as e:
-        return None, [f"Failed to parse constraints.json: {e}"]
+        return None, [f"Failed to parse constraints.toml: {e}"]
 
-    constraints, errs = parse_kit_constraints(data)
+    # TOML wraps kinds under "artifacts" key
+    artifacts_data = data.get("artifacts", data)
+    constraints, errs = parse_kit_constraints(artifacts_data)
     if errs:
         return None, errs
     return constraints, []
@@ -1752,7 +1754,7 @@ __all__ = [
     "ParsedCypilotId",
     "cross_validate_artifacts",
     "error",
-    "load_constraints_json",
+    "load_constraints_toml",
     "parse_cpt",
     "parse_kit_constraints",
     "validate_artifact_file",

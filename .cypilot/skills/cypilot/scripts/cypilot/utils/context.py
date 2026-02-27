@@ -2,8 +2,8 @@
 Cypilot Context - Global context for Cypilot tooling.
 
 Loads and caches:
-- Adapter directory and project root
-- ArtifactsMeta from artifacts.json
+- Cypilot directory and project root
+- ArtifactsMeta from artifacts.toml
 - All templates for each kit
 - Registered system names
 
@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set
 
 from .artifacts_meta import ArtifactsMeta, Kit, load_artifacts_meta
-from .constraints import KitConstraints, error, load_constraints_json
+from .constraints import KitConstraints, error, load_constraints_toml
 
 
 @dataclass
@@ -39,18 +39,18 @@ class CypilotContext:
 
     @classmethod
     def load(cls, start_path: Optional[Path] = None) -> Optional["CypilotContext"]:
-        """Load Cypilot context from adapter directory.
+        """Load Cypilot context from cypilot directory.
 
         Args:
-            start_path: Starting path to search for adapter (default: cwd)
+            start_path: Starting path to search for cypilot (default: cwd)
 
         Returns:
-            CypilotContext or None if adapter not found or load failed
+            CypilotContext or None if cypilot not found or load failed
         """
-        from .files import find_adapter_directory
+        from .files import find_cypilot_directory
 
         start = start_path or Path.cwd()
-        adapter_dir = find_adapter_directory(start)
+        adapter_dir = find_cypilot_directory(start)
         if not adapter_dir:
             return None
 
@@ -74,12 +74,12 @@ class CypilotContext:
             kit_constraints: Optional[KitConstraints] = None
             constraints_errs: List[str] = []
             if kit_root.is_dir():
-                kit_constraints, constraints_errs = load_constraints_json(kit_root)
+                kit_constraints, constraints_errs = load_constraints_toml(kit_root)
             if constraints_errs:
-                constraints_path = (kit_root / "constraints.json").resolve()
+                constraints_path = (kit_root / "constraints.toml").resolve()
                 errors.append(error(
                     "constraints",
-                    "Invalid constraints.json",
+                    "Invalid constraints.toml",
                     path=constraints_path,
                     line=1,
                     errors=list(constraints_errs),
@@ -125,7 +125,8 @@ class CypilotContext:
                 get_id_kind_tokens=_get_id_kind_tokens,
             )
             if autodetect_errs:
-                registry_path = (adapter_dir / "artifacts.json").resolve()
+                cfg_dir = adapter_dir / "config"
+                registry_path = (cfg_dir / "artifacts.toml").resolve() if (cfg_dir / "artifacts.toml").is_file() else (adapter_dir / "artifacts.toml").resolve()
                 for msg in autodetect_errs:
                     errors.append(error(
                         "registry",
@@ -135,7 +136,8 @@ class CypilotContext:
                         details=str(msg),
                     ))
         except Exception as e:
-            registry_path = (adapter_dir / "artifacts.json").resolve()
+            cfg_dir = adapter_dir / "config"
+            registry_path = (cfg_dir / "artifacts.toml").resolve() if (cfg_dir / "artifacts.toml").is_file() else (adapter_dir / "artifacts.toml").resolve()
             errors.append(error(
                 "registry",
                 "Autodetect expansion failed",

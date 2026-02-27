@@ -249,10 +249,10 @@ class TestCypilotContextLoad:
             assert ctx is not None
 
             # We should have:
-            # - constraints.json parse error surfaced
+            # - constraints.toml parse error surfaced
             # - autodetect kind-not-registered error surfaced
             msgs = [str(e.get("message", "")) for e in (ctx._errors or [])]
-            assert any("Invalid constraints.json" in m for m in msgs)
+            assert any("Invalid constraints.toml" in m for m in msgs)
             assert any("Autodetect validation error" in m for m in msgs)
 
     @patch("cypilot.utils.context.load_artifacts_meta")

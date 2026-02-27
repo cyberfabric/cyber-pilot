@@ -13,7 +13,7 @@ from ..utils.constraints import (
 )
 from ..utils import error_codes as EC
 from ..utils.document import read_text_safe
-from ..utils.files import find_adapter_directory, find_project_root, load_artifacts_registry
+from ..utils.files import find_cypilot_directory, find_project_root, load_artifacts_registry
 
 
 def run_self_check_from_meta(
@@ -27,9 +27,9 @@ def run_self_check_from_meta(
     """Run self-check using already-loaded registry metadata.
 
     This is used by both the CLI `self-check` command and by `validate` to fail-fast.
-    It does NOT do adapter/project discovery.
+    It does NOT do cypilot/project discovery.
     """
-    from ..utils.constraints import load_constraints_json
+    from ..utils.constraints import load_constraints_toml
 
     def _check_template_constraints_consistency(
         *,
@@ -46,8 +46,8 @@ def run_self_check_from_meta(
         if kit_constraints is None:
             errs.append({
                 "type": "constraints",
-                "message": "constraints.json not found (template consistency checks skipped)",
-                "path": str(kit_base / "constraints.json"),
+                "message": "constraints.toml not found (template consistency checks skipped)",
+                "path": str(kit_base / "constraints.toml"),
             })
             return {"errors": errs, "warnings": warns}
 
@@ -59,7 +59,7 @@ def run_self_check_from_meta(
         if constraints_for_kind is None:
             errs.append(constraints_error(
                 "template",
-                "Template kind not found in constraints.json",
+                "Template kind not found in constraints.toml",
                 path=template_path,
                 line=1,
                 kit_id=str(kit_id),
@@ -69,7 +69,7 @@ def run_self_check_from_meta(
 
         constraints_path = None
         try:
-            constraints_path = (kit_base / "constraints.json").resolve()
+            constraints_path = (kit_base / "constraints.toml").resolve()
         except Exception:
             constraints_path = None
 
@@ -137,7 +137,7 @@ def run_self_check_from_meta(
             if not tpl:
                 errs.append(constraints_error(
                     "template",
-                    "ID kind has no template in constraints.json",
+                    "ID kind has no template in constraints.toml",
                     path=template_path,
                     line=1,
                     kit_id=str(kit_id),
@@ -286,19 +286,19 @@ def run_self_check_from_meta(
                     if rule is None:
                         continue
 
-                    cov = str(getattr(rule, "coverage", "") or "").strip().lower()
-                    if cov == "prohibited":
+                    cov = getattr(rule, "coverage", None)  # True=required, False=prohibited, None=optional
+                    if cov is False:
                         continue
 
                     allowed = [str(h).strip() for h in (getattr(rule, "headings", None) or []) if str(h).strip()]
                     key = (id_kind, tpl)
                     if key not in expectations:
                         expectations[key] = {
-                            "required": cov == "required",
+                            "required": cov is True,
                             "allowed": set(h.lower() for h in allowed),
                         }
                     else:
-                        expectations[key]["required"] = bool(expectations[key]["required"]) or (cov == "required")
+                        expectations[key]["required"] = bool(expectations[key]["required"]) or (cov is True)
                         expectations[key]["allowed"].update(h.lower() for h in allowed)
 
         for (id_kind, tpl), ex in expectations.items():
@@ -367,9 +367,9 @@ def run_self_check_from_meta(
     if not isinstance(kits, dict) or not kits:
         out = {
             "status": "ERROR",
-            "message": "No kits defined in artifacts.json",
+            "message": "No kits defined in artifacts.toml",
             "project_root": project_root.as_posix(),
-            "adapter_dir": adapter_dir.as_posix(),
+            "cypilot_dir": adapter_dir.as_posix(),
         }
         return 1, out
 
@@ -387,14 +387,14 @@ def run_self_check_from_meta(
         artifacts_dir = kit_base / "artifacts"
         # NOTE: With explicit kit.artifacts mapping, artifacts_dir may be absent.
 
-        kit_constraints, kit_constraint_errs = load_constraints_json(kit_base)
+        kit_constraints, kit_constraint_errs = load_constraints_toml(kit_base)
         if kit_constraint_errs:
             results.append({
                 "kit": kit_id,
                 "kind": None,
                 "status": "FAIL",
                 "error_count": len(kit_constraint_errs),
-                "errors": [constraints_error("constraints", "Invalid constraints.json", path=(kit_base / "constraints.json"), line=1, errors=list(kit_constraint_errs))],
+                "errors": [constraints_error("constraints", "Invalid constraints.toml", path=(kit_base / "constraints.toml"), line=1, errors=list(kit_constraint_errs))],
             })
             overall_status = "FAIL"
             kits_checked += 1
@@ -484,14 +484,14 @@ def run_self_check_from_meta(
                     constraints_for_kind = kit_constraints.by_kind[str(kind).upper()]
                 constraints_path = None
                 try:
-                    constraints_path = (kit_base / "constraints.json").resolve()
+                    constraints_path = (kit_base / "constraints.toml").resolve()
                 except Exception:
                     constraints_path = None
                 rep = validate_artifact_file(
                     artifact_path=example_path,
                     artifact_kind=str(kind),
                     constraints=constraints_for_kind,
-                    registered_systems=artifacts_meta.get_all_system_prefixes(),
+                    registered_systems=None,
                     constraints_path=constraints_path,
                     kit_id=str(kit_id),
                 )
@@ -513,7 +513,7 @@ def run_self_check_from_meta(
     out = {
         "status": overall_status,
         "project_root": project_root.as_posix(),
-        "adapter_dir": adapter_dir.as_posix(),
+        "cypilot_dir": adapter_dir.as_posix(),
         "kits_checked": kits_checked,
         "templates_checked": len(results),
         "results": results,
@@ -534,9 +534,9 @@ def cmd_self_check(argv: List[str]) -> int:
         print(json.dumps({"status": "ERROR", "message": "Project root not found"}, indent=2, ensure_ascii=False))
         return 1
 
-    adapter_dir = find_adapter_directory(project_root)
+    adapter_dir = find_cypilot_directory(project_root)
     if adapter_dir is None:
-        print(json.dumps({"status": "ERROR", "message": "Adapter directory not found"}, indent=2, ensure_ascii=False))
+        print(json.dumps({"status": "ERROR", "message": "Cypilot not initialized. Run 'cypilot init' first."}, indent=2, ensure_ascii=False))
         return 1
 
     reg, reg_err = load_artifacts_registry(adapter_dir)
@@ -550,7 +550,7 @@ def cmd_self_check(argv: List[str]) -> int:
     if slug_errors:
         print(json.dumps({
             "status": "ERROR",
-            "message": "Invalid slugs in artifacts.json",
+            "message": "Invalid slugs in artifacts.toml",
             "slug_errors": slug_errors,
         }, indent=2, ensure_ascii=False))
         return 1
