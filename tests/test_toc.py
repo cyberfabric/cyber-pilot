@@ -598,3 +598,245 @@ class TestCmdValidateToc:
         out = json.loads(capsys.readouterr().out)
         assert out["status"] == "WARN"
         assert out["warning_count"] >= 1
+
+
+# ---------------------------------------------------------------------------
+# Blueprint toc flag: rules.md injection + constraints
+# ---------------------------------------------------------------------------
+
+from cypilot.utils.blueprint import (
+    ParsedBlueprint,
+    parse_blueprint,
+    _collect_rules,
+    generate_artifact_outputs,
+    generate_constraints,
+)
+
+
+class TestBlueprintTocFlag:
+    def _make_blueprint(self, tmp_path: Path, toc: bool = True) -> Path:
+        """Create a minimal blueprint file with toc flag."""
+        toc_str = "true" if toc else "false"
+        content = textwrap.dedent(f"""\
+            `@cpt:blueprint`
+            ```toml
+            artifact = "TEST"
+            kit = "test-kit"
+            version = "1.0"
+            toc = {toc_str}
+            ```
+            `@/cpt:blueprint`
+
+            `@cpt:rules`
+            ```toml
+            [tasks]
+            phases = ["setup"]
+
+            [validation]
+            phases = ["structural"]
+            ```
+            `@/cpt:rules`
+
+            `@cpt:rule`
+            ```toml
+            kind = "tasks"
+            section = "setup"
+            ```
+            ```markdown
+            - [ ] Load template
+            ```
+            `@/cpt:rule`
+
+            `@cpt:rule`
+            ```toml
+            kind = "validation"
+            section = "structural"
+            ```
+            ```markdown
+            - [ ] Check headings
+            ```
+            `@/cpt:rule`
+        """)
+        bp_file = tmp_path / "TEST.md"
+        bp_file.write_text(content, encoding="utf-8")
+        return bp_file
+
+    def test_parse_toc_true_default(self, tmp_path: Path):
+        content = textwrap.dedent("""\
+            `@cpt:blueprint`
+            ```toml
+            artifact = "X"
+            kit = "k"
+            ```
+            `@/cpt:blueprint`
+        """)
+        f = tmp_path / "X.md"
+        f.write_text(content, encoding="utf-8")
+        bp = parse_blueprint(f)
+        assert bp.toc is True
+
+    def test_parse_toc_false(self, tmp_path: Path):
+        bp_file = self._make_blueprint(tmp_path, toc=False)
+        bp = parse_blueprint(bp_file)
+        assert bp.toc is False
+
+    def test_rules_inject_toc_phases_when_true(self, tmp_path: Path):
+        bp_file = self._make_blueprint(tmp_path, toc=True)
+        bp = parse_blueprint(bp_file)
+        rules_md = _collect_rules(bp)
+        assert "Table of Contents" in rules_md
+        assert "cypilot toc" in rules_md
+        assert "cypilot validate-toc" in rules_md
+
+    def test_rules_no_toc_phases_when_false(self, tmp_path: Path):
+        bp_file = self._make_blueprint(tmp_path, toc=False)
+        bp = parse_blueprint(bp_file)
+        rules_md = _collect_rules(bp)
+        assert "cypilot toc" not in rules_md
+        assert "cypilot validate-toc" not in rules_md
+
+    def test_constraints_toc_default_true(self, tmp_path: Path):
+        bp_file = self._make_blueprint(tmp_path, toc=True)
+        bp = parse_blueprint(bp_file)
+        # Add minimal heading/id markers for constraints generation
+        out_path = tmp_path / "constraints.toml"
+        # Generate constraints — toc=true should NOT emit toc=false
+        generate_constraints([bp], out_path)
+        content = out_path.read_text(encoding="utf-8")
+        assert "toc = false" not in content
+
+    def test_constraints_toc_false_emitted(self, tmp_path: Path):
+        bp_file = self._make_blueprint(tmp_path, toc=False)
+        bp = parse_blueprint(bp_file)
+        out_path = tmp_path / "constraints.toml"
+        generate_constraints([bp], out_path)
+        content = out_path.read_text(encoding="utf-8")
+        assert "toc = false" in content
+
+    def _make_blueprint_with_example(self, tmp_path: Path, toc: bool) -> Path:
+        toc_str = "true" if toc else "false"
+        content = textwrap.dedent(f"""\
+            `@cpt:blueprint`
+            ```toml
+            artifact = "EX"
+            kit = "test-kit"
+            version = "1.0"
+            toc = {toc_str}
+            ```
+            `@/cpt:blueprint`
+
+            `@cpt:heading`
+            ```toml
+            id = "ex-overview"
+            level = 1
+            pattern = "Example"
+            examples = ["# Example Document"]
+            ```
+            `@/cpt:heading`
+
+            `@cpt:heading`
+            ```toml
+            id = "ex-section-a"
+            level = 2
+            pattern = "Section A"
+            examples = ["## Section A"]
+            ```
+            `@/cpt:heading`
+
+            `@cpt:heading`
+            ```toml
+            id = "ex-section-b"
+            level = 2
+            pattern = "Section B"
+            examples = ["## Section B"]
+            ```
+            `@/cpt:heading`
+
+            `@cpt:example`
+            ```markdown
+            Content of section A.
+            ```
+            `@/cpt:example`
+
+            `@cpt:example`
+            ```markdown
+            Content of section B.
+            ```
+            `@/cpt:example`
+        """)
+        bp_file = tmp_path / "EX.md"
+        bp_file.write_text(content, encoding="utf-8")
+        return bp_file
+
+    def test_example_has_toc_when_true(self, tmp_path: Path):
+        bp_file = self._make_blueprint_with_example(tmp_path, toc=True)
+        bp = parse_blueprint(bp_file)
+        out_dir = tmp_path / "out" / "artifacts" / "EX"
+        generate_artifact_outputs(bp, out_dir)
+        example = (out_dir / "examples" / "example.md").read_text(encoding="utf-8")
+        assert "Table of Contents" in example
+
+    def test_example_no_toc_when_false(self, tmp_path: Path):
+        bp_file = self._make_blueprint_with_example(tmp_path, toc=False)
+        bp = parse_blueprint(bp_file)
+        out_dir = tmp_path / "out" / "artifacts" / "EX"
+        generate_artifact_outputs(bp, out_dir)
+        example = (out_dir / "examples" / "example.md").read_text(encoding="utf-8")
+        assert "Table of Contents" not in example
+
+    def test_template_has_toc_placeholder_when_true(self, tmp_path: Path):
+        bp_file = self._make_blueprint_with_example(tmp_path, toc=True)
+        bp = parse_blueprint(bp_file)
+        out_dir = tmp_path / "out" / "artifacts" / "EX"
+        generate_artifact_outputs(bp, out_dir)
+        template = (out_dir / "template.md").read_text(encoding="utf-8")
+        assert "## Table of Contents" in template
+        assert "cypilot toc" in template
+
+    def test_template_no_toc_placeholder_when_false(self, tmp_path: Path):
+        bp_file = self._make_blueprint_with_example(tmp_path, toc=False)
+        bp = parse_blueprint(bp_file)
+        out_dir = tmp_path / "out" / "artifacts" / "EX"
+        generate_artifact_outputs(bp, out_dir)
+        template = (out_dir / "template.md").read_text(encoding="utf-8")
+        assert "## Table of Contents" not in template
+
+    def test_rules_always_has_toc_even_when_false(self, tmp_path: Path):
+        bp_file = self._make_blueprint(tmp_path, toc=False)
+        bp = parse_blueprint(bp_file)
+        out_dir = tmp_path / "out" / "artifacts" / "TEST"
+        generate_artifact_outputs(bp, out_dir)
+        rules = (out_dir / "rules.md").read_text(encoding="utf-8")
+        assert "Table of Contents" in rules
+
+
+class TestArtifactKindConstraintsToc:
+    def test_toc_default_true(self):
+        from cypilot.utils.constraints import ArtifactKindConstraints
+        c = ArtifactKindConstraints(name=None, description=None, defined_id=[])
+        assert c.toc is True
+
+    def test_parse_toc_false(self):
+        from cypilot.utils.constraints import parse_kit_constraints
+        data = {
+            "TEST": {
+                "toc": False,
+                "identifiers": {},
+            }
+        }
+        kc, errs = parse_kit_constraints(data)
+        assert not errs
+        assert kc is not None
+        assert kc.by_kind["TEST"].toc is False
+
+    def test_parse_toc_absent_defaults_true(self):
+        from cypilot.utils.constraints import parse_kit_constraints
+        data = {
+            "TEST": {
+                "identifiers": {},
+            }
+        }
+        kc, errs = parse_kit_constraints(data)
+        assert not errs
+        assert kc is not None
+        assert kc.by_kind["TEST"].toc is True
