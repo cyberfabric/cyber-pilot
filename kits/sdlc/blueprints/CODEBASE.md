@@ -1,10 +1,16 @@
+> **`@cpt:blueprint`** — Blueprint metadata: artifact kind, kit slug, version. Internal; not output to any file.
+
 `@cpt:blueprint`
 ```toml
+# Blueprint version (semver)
 version = 1
+# Kit slug this blueprint belongs to
 kit = "sdlc"
 codebase = true
 ```
 `@/cpt:blueprint`
+
+> **`@cpt:skill`** — Skill content. Agent-facing navigation and instructions. Output: `.gen/kits/{slug}/SKILL.md`.
 
 `@cpt:skill`
 ```markdown
@@ -18,24 +24,36 @@ codebase = true
 ```
 `@/cpt:skill`
 
+> **`@cpt:rules`** — Rules skeleton. Defines section structure (prerequisites, requirements, tasks, validation, etc.) for `rules.md`.
+
 `@cpt:rules`
 ```toml
+# Prerequisite steps (load dependencies, read configs)
 [prerequisites]
+# Ordered list of section keys (each needs a matching @cpt:rule block)
 sections = ["load_dependencies"]
 
+# Requirement sections (structural, semantic, constraints, etc.)
 [requirements]
+# Ordered list of section keys (each needs a matching @cpt:rule block)
 sections = ["structural", "traceability", "checkbox_cascade", "versioning", "engineering", "quality"]
 
+# Task phases — step-by-step workflow for creating the artifact
 [tasks]
+# Ordered list of phase keys (each needs a matching @cpt:rule block)
 phases = ["setup", "implementation", "markers", "sync_feature", "quality_check", "tag_verification"]
+# Display names for non-obvious task phase keys
 [tasks.names]
 implementation = "Implementation (Work Packages)"
 markers = "Cypilot Markers (Traceability Mode ON only)"
 sync_feature = "Sync FEATURE (Traceability Mode ON only)"
 tag_verification = "Tag Verification (Traceability Mode ON only)"
 
+# Validation phases — ordered checks run after artifact is written
 [validation]
+# Ordered list of phase keys (each needs a matching @cpt:rule block)
 phases = ["coverage", "traceability", "tests", "build_lint", "test_execution", "code_quality", "logic_consistency", "semantic_review"]
+# Display names for non-obvious validation phase keys
 [validation.names]
 coverage = "Implementation Coverage"
 traceability = "Traceability Validation (Mode ON only)"
@@ -46,14 +64,20 @@ code_quality = "Code Quality Validation"
 logic_consistency = "Code Logic Consistency with Design"
 semantic_review = "Semantic Expert Review (Always)"
 
+# Next steps — recommended actions after completing the artifact
 [next_steps]
+# Ordered list of section keys (each needs a matching @cpt:rule block)
 sections = ["after_success", "after_issues", "no_design"]
 ```
 `@/cpt:rules`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "prerequisites"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "load_dependencies"
 ```
 ```markdown
@@ -78,9 +102,13 @@ section = "load_dependencies"
 ```
 `@/cpt:rule`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "structural"
 ```
 ```markdown
@@ -89,9 +117,13 @@ section = "structural"
 ```
 `@/cpt:rule`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "traceability"
 ```
 ```markdown
@@ -107,9 +139,13 @@ section = "traceability"
 ```
 `@/cpt:rule`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "checkbox_cascade"
 ```
 ````markdown
@@ -157,9 +193,13 @@ PRD/DESIGN: referenced IDs [x] when ALL downstream refs [x]
 ````
 `@/cpt:rule`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "versioning"
 ```
 ```markdown
@@ -170,9 +210,13 @@ section = "versioning"
 ```
 `@/cpt:rule`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "engineering"
 ```
 ```markdown
@@ -193,9 +237,13 @@ section = "engineering"
 ```
 `@/cpt:rule`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "quality"
 ```
 ```markdown
@@ -208,9 +256,13 @@ section = "quality"
 ```
 `@/cpt:rule`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "tasks"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "setup"
 ```
 ```markdown
@@ -230,9 +282,13 @@ section = "setup"
 ```
 `@/cpt:rule`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "tasks"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "implementation"
 ```
 ```markdown
@@ -246,9 +302,13 @@ section = "implementation"
 ```
 `@/cpt:rule`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "tasks"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "markers"
 ```
 ```markdown
@@ -260,9 +320,13 @@ Apply markers per feature:
 ```
 `@/cpt:rule`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "tasks"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "sync_feature"
 ```
 ```markdown
@@ -276,9 +340,13 @@ After each work package, sync checkboxes:
 ```
 `@/cpt:rule`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "tasks"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "quality_check"
 ```
 ```markdown
@@ -290,9 +358,13 @@ section = "quality_check"
 ```
 `@/cpt:rule`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "tasks"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "tag_verification"
 ```
 ```markdown
@@ -304,9 +376,13 @@ section = "tag_verification"
 ```
 `@/cpt:rule`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "coverage"
 ```
 ```markdown
@@ -315,9 +391,13 @@ section = "coverage"
 ```
 `@/cpt:rule`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "traceability"
 ```
 ```markdown
@@ -332,9 +412,13 @@ section = "traceability"
 ```
 `@/cpt:rule`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "tests"
 ```
 ```markdown
@@ -345,9 +429,13 @@ section = "tests"
 ```
 `@/cpt:rule`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "build_lint"
 ```
 ````markdown
@@ -372,9 +460,13 @@ Logic Consistency: PASS/FAIL
 ````
 `@/cpt:rule`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "test_execution"
 ```
 ```markdown
@@ -385,9 +477,13 @@ section = "test_execution"
 ```
 `@/cpt:rule`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "code_quality"
 ```
 ```markdown
@@ -402,9 +498,13 @@ section = "code_quality"
 ```
 `@/cpt:rule`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "logic_consistency"
 ```
 ```markdown
@@ -428,9 +528,13 @@ section = "logic_consistency"
 ```
 `@/cpt:rule`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "semantic_review"
 ```
 ````markdown
@@ -478,9 +582,13 @@ Run expert panel review after producing validation output.
 ````
 `@/cpt:rule`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "next_steps"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "after_success"
 ```
 ```markdown
@@ -491,9 +599,13 @@ section = "after_success"
 ```
 `@/cpt:rule`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "next_steps"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "after_issues"
 ```
 ```markdown
@@ -503,9 +615,13 @@ section = "after_issues"
 ```
 `@/cpt:rule`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "next_steps"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "no_design"
 ```
 ```markdown
@@ -514,6 +630,8 @@ section = "no_design"
 - [ ] Quick prototype → proceed without traceability, suggest FEATURE later
 ```
 `@/cpt:rule`
+
+> **`@cpt:checklist`** — Checklist preamble. Static markdown placed at the top of `checklist.md` (standards, prerequisites, severity dictionary).
 
 `@cpt:checklist`
 ```toml
@@ -560,6 +678,8 @@ Before running the SDLC-specific checks:
 ````
 `@/cpt:checklist`
 
+> **`@cpt:checklist_epilogue`** — Checklist epilogue. Static markdown appended at the end of `checklist.md`.
+
 `@cpt:checklist_epilogue`
 ````markdown
 ---
@@ -568,12 +688,19 @@ Use `{cypilot_path}/.core/requirements/code-checklist.md` for all generic code q
 ````
 `@/cpt:checklist_epilogue`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEM-CODE-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "SEM"
+# Human-readable check title
 title = "Resolve Design Sources"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -584,12 +711,19 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEM-CODE-002"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "SEM"
+# Human-readable check title
 title = "Spec Context Semantics"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -599,12 +733,19 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEM-CODE-003"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "SEM"
+# Human-readable check title
 title = "Spec Flows Semantics"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -614,12 +755,19 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEM-CODE-004"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "SEM"
+# Human-readable check title
 title = "Algorithms Semantics"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -629,12 +777,19 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEM-CODE-005"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "SEM"
+# Human-readable check title
 title = "State Semantics"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -644,12 +799,19 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEM-CODE-006"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "SEM"
+# Human-readable check title
 title = "Definition of Done Semantics"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -661,12 +823,19 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEM-CODE-007"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "SEM"
+# Human-readable check title
 title = "Overall Design Consistency"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown

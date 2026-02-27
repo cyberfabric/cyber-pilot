@@ -1,26 +1,29 @@
 # PRD Blueprint
-<!-- 
-  Blueprint for Product Requirements Documents (PRD).
-  
-  This file is the single source of truth for:
-  - template.md generation (from @cpt:heading + @cpt:prompt markers)
-  - example.md generation (from @cpt:heading examples + @cpt:example markers)
-  - rules.md generation (from @cpt:rules + @cpt:rule markers)
-  - checklist.md generation (from @cpt:checklist + @cpt:check markers)
-  - constraints.toml contributions (from @cpt:heading + @cpt:id markers)
-  
-  All text between markers is ignored by the generator — it serves as
-  human-readable documentation for anyone editing this blueprint.
-  
-  Based on: ISO/IEC/IEEE 29148:2018, ISO/IEC 25010:2011
--->
+Blueprint for Product Requirements Documents (PRD).
+
+This file is the single source of truth for:
+- template.md generation (from @cpt:heading + @cpt:prompt markers)
+- example.md generation (from @cpt:heading examples + @cpt:example markers)
+- rules.md generation (from @cpt:rules + @cpt:rule markers)
+- checklist.md generation (from @cpt:checklist + @cpt:check markers)
+- constraints.toml contributions (from @cpt:heading + @cpt:id markers)
+
+All text between markers is ignored by the generator — it serves as
+human-readable documentation for anyone editing this blueprint.
+
+Based on: ISO/IEC/IEEE 29148:2018, ISO/IEC 25010:2011
 
 ## Metadata
 
+> **`@cpt:blueprint`** — Blueprint metadata: artifact kind, kit slug, version. Internal; not output to any file.
+
 `@cpt:blueprint`
 ```toml
+# Blueprint version (semver)
 version = 1
+# Kit slug this blueprint belongs to
 kit = "sdlc"
+# Artifact kind: PRD | ADR | DESIGN | DECOMPOSITION | FEATURE | CODE
 artifact = "PRD"
 codebase = false
 ```
@@ -29,6 +32,8 @@ codebase = false
 ## Skill Integration
 
 Commands and workflows exposed to AI agents for PRD operations.
+
+> **`@cpt:skill`** — Skill content. Agent-facing navigation and instructions. Output: `.gen/kits/{slug}/SKILL.md`.
 
 `@cpt:skill`
 ```markdown
@@ -52,23 +57,36 @@ Rules are organized into sections that map to the generated `rules.md`.
 
 ### Rules Skeleton
 
+> **`@cpt:rules`** — Rules skeleton. Defines section structure (prerequisites, requirements, tasks, validation, etc.) for `rules.md`.
+
 `@cpt:rules`
 ```toml
+# Prerequisite steps (load dependencies, read configs)
 [prerequisites]
+# Ordered list of section keys (each needs a matching @cpt:rule block)
 sections = ["load_dependencies"]
 
+# Requirement sections (structural, semantic, constraints, etc.)
 [requirements]
+# Ordered list of section keys (each needs a matching @cpt:rule block)
 sections = ["structural", "versioning", "semantic", "traceability", "constraints", "deliberate_omissions"]
+# Display names for non-obvious requirement section keys
 [requirements.names]
 deliberate_omissions = "Deliberate Omissions (MUST NOT HAVE)"
 
+# Task phases — step-by-step workflow for creating the artifact
 [tasks]
+# Ordered list of phase keys (each needs a matching @cpt:rule block)
 phases = ["setup", "content_creation", "ids_and_structure", "quality_check"]
+# Display names for non-obvious task phase keys
 [tasks.names]
 ids_and_structure = "IDs and Structure"
 
+# Validation phases — ordered checks run after artifact is written
 [validation]
+# Ordered list of phase keys (each needs a matching @cpt:rule block)
 phases = ["structural", "semantic", "validation_report", "applicability", "review_priority", "report_format", "reporting", "pr_review"]
+# Display names for non-obvious validation phase keys
 [validation.names]
 structural = "Structural Validation (Deterministic)"
 semantic = "Semantic Validation (Checklist-based)"
@@ -78,10 +96,14 @@ report_format = "Report Format"
 reporting = "Reporting Commitment"
 pr_review = "PR Review Focus (Requirements)"
 
+# Error handling sections — what to do when things go wrong
 [error_handling]
+# Ordered list of section keys (each needs a matching @cpt:rule block)
 sections = ["missing_dependencies", "missing_adapter", "escalation"]
 
+# Next steps — recommended actions after completing the artifact
 [next_steps]
+# Ordered list of section keys (each needs a matching @cpt:rule block)
 sections = ["options"]
 ```
 `@/cpt:rules`
@@ -90,9 +112,13 @@ sections = ["options"]
 
 Dependencies that must be loaded before working with a PRD artifact.
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "prerequisites"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "load_dependencies"
 ```
 ```markdown
@@ -110,9 +136,13 @@ section = "load_dependencies"
 
 #### Structural Requirements
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "structural"
 ```
 ```markdown
@@ -128,9 +158,13 @@ section = "structural"
 
 #### Versioning Rules
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "versioning"
 ```
 ```markdown
@@ -143,9 +177,13 @@ section = "versioning"
 
 #### Traceability
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "traceability"
 ```
 ```markdown
@@ -157,9 +195,13 @@ section = "traceability"
 
 #### Constraints Integration
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "constraints"
 ```
 ```markdown
@@ -182,9 +224,13 @@ section = "constraints"
 
 #### Deliberate Omissions (MUST NOT HAVE)
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "deliberate_omissions"
 ```
 ```markdown
@@ -207,9 +253,13 @@ PRDs must NOT contain the following — report as violation if found:
 
 #### Setup
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "tasks"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "setup"
 ```
 ```markdown
@@ -222,9 +272,13 @@ section = "setup"
 
 #### Content Creation
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "tasks"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "content_creation"
 ```
 ```markdown
@@ -242,9 +296,13 @@ section = "content_creation"
 
 #### IDs & Structure
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "tasks"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "ids_and_structure"
 ```
 ```markdown
@@ -257,9 +315,13 @@ section = "ids_and_structure"
 
 #### Quality Check
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "tasks"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "quality_check"
 ```
 ```markdown
@@ -273,9 +335,13 @@ section = "quality_check"
 
 #### Structural Validation
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "structural"
 ```
 ```markdown
@@ -290,9 +356,13 @@ section = "structural"
 
 #### Semantic Validation
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "semantic"
 ```
 ```markdown
@@ -308,9 +378,13 @@ section = "semantic"
 
 #### Validation Report
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "validation_report"
 ```
 ````markdown
@@ -329,9 +403,13 @@ Issues:
 
 #### Applicability Context
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "applicability"
 ```
 ```markdown
@@ -366,9 +444,13 @@ For each major checklist category (BIZ, ARCH, SEC, TEST, MAINT), confirm:
 
 #### Review Priority
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "review_priority"
 ```
 ```markdown
@@ -380,9 +462,13 @@ section = "review_priority"
 
 #### Report Format
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "report_format"
 ```
 ````markdown
@@ -432,9 +518,13 @@ For each issue include:
 
 #### Reporting Commitment
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "reporting"
 ```
 ```markdown
@@ -451,9 +541,13 @@ section = "reporting"
 
 #### PR Review Focus (Requirements)
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "pr_review"
 ```
 ```markdown
@@ -474,9 +568,13 @@ When reviewing PRs that add or change PRD/requirements documents, additionally f
 
 #### Missing Dependencies
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "error_handling"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "missing_dependencies"
 ```
 ```markdown
@@ -488,9 +586,13 @@ section = "missing_dependencies"
 
 #### Missing Config
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "error_handling"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "missing_config"
 ```
 ```markdown
@@ -501,9 +603,13 @@ section = "missing_config"
 
 #### Escalation
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "error_handling"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "escalation"
 ```
 ```markdown
@@ -518,9 +624,13 @@ section = "escalation"
 
 Recommended actions after completing a PRD.
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "next_steps"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "options"
 ```
 ```markdown
@@ -538,6 +648,8 @@ section = "options"
 Severity levels, review domains, and individual check items for PRD quality.
 
 ### Checklist Skeleton
+
+> **`@cpt:checklist`** — Checklist preamble. Static markdown placed at the top of `checklist.md` (standards, prerequisites, severity dictionary).
 
 `@cpt:checklist`
 ```toml
@@ -765,13 +877,21 @@ Mark review as "PARTIAL" if not all domains completed.
 ````
 `@/cpt:checklist`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "BIZ-PRD-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "BIZ"
+# Human-readable check title
 title = "Vision Clarity"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "CRITICAL"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO/IEC/IEEE 29148 §5.2.5 (Stakeholder requirements definition)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -784,13 +904,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "BIZ-PRD-002"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "BIZ"
+# Human-readable check title
 title = "Stakeholder Coverage"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO/IEC/IEEE 29148 §6.2.2 (Stakeholders), ISO 9241-210 §4 (HCD principles)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -802,13 +930,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "BIZ-PRD-003"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "BIZ"
+# Human-readable check title
 title = "Requirements Completeness"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "CRITICAL"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO/IEC/IEEE 29148 §5.2.6 (Requirements analysis), §6.4.3 (Specific requirements)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -820,12 +956,19 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "BIZ-PRD-004"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "BIZ"
+# Human-readable check title
 title = "Use Case Coverage"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -837,13 +980,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "BIZ-PRD-005"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "BIZ"
+# Human-readable check title
 title = "Success Metrics"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO/IEC/IEEE 29148 §6.2.4 (Operational concept), ISO 9241-11 §5 (Measures of usability)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -855,12 +1006,19 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "BIZ-PRD-006"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "BIZ"
+# Human-readable check title
 title = "Terminology & Definitions"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -870,12 +1028,19 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "BIZ-PRD-007"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "BIZ"
+# Human-readable check title
 title = "Assumptions & Open Questions"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -885,12 +1050,19 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "BIZ-PRD-008"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "BIZ"
+# Human-readable check title
 title = "Risks & Non-Goals"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -899,13 +1071,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-PRD-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "ARCH"
+# Human-readable check title
 title = "Scope Boundaries"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "CRITICAL"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO/IEC/IEEE 29148 §6.3.2 (System overview), §6.3.4 (System interfaces)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -917,13 +1097,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-PRD-002"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "ARCH"
+# Human-readable check title
 title = "Modularity Enablement"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO/IEC 25010:2023 §4.2.7.2 (Modularity subcharacteristic)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -935,13 +1123,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-PRD-003"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "ARCH"
+# Human-readable check title
 title = "Scalability Considerations"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO/IEC 25010:2023 §4.2.8.4 (Scalability subcharacteristic of Flexibility)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -953,13 +1149,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-PRD-004"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "ARCH"
+# Human-readable check title
 title = "System Actor Clarity"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO/IEC/IEEE 29148 §6.3.4 (System interfaces)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -971,13 +1175,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-PRD-005"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "ARCH"
+# Human-readable check title
 title = "Compatibility Requirements"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "[ISO/IEC 25010:2023](https://www.iso.org/standard/78176.html) §4.2.3 (Compatibility characteristic)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -991,13 +1203,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEC-PRD-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "SEC"
+# Human-readable check title
 title = "Authentication Requirements"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "CRITICAL"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "OWASP ASVS V2 (Authentication), [RFC 6749](https://datatracker.ietf.org/doc/html/rfc6749) (OAuth 2.0), NIST 800-53 IA family"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1009,13 +1229,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEC-PRD-002"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "SEC"
+# Human-readable check title
 title = "Authorization Requirements"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "CRITICAL"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "OWASP ASVS V4 (Access Control), NIST 800-53 AC family, ISO 27001 A.9"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1027,13 +1255,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEC-PRD-003"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "SEC"
+# Human-readable check title
 title = "Data Classification"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO/IEC 25010:2023 §4.2.6.2 (Confidentiality), NIST 800-53 SC family, [GDPR Art. 9](https://gdpr-info.eu/art-9-gdpr/)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1045,13 +1281,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEC-PRD-004"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "SEC"
+# Human-readable check title
 title = "Audit Requirements"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO/IEC 25010:2023 §4.2.6.5 (Accountability), NIST 800-53 AU family, SOC 2 CC6/CC7"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1063,13 +1307,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEC-PRD-005"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "SEC"
+# Human-readable check title
 title = "Privacy by Design"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH (if applicable)"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "[GDPR Article 25](https://gdpr-info.eu/art-25-gdpr/), [EDPB Guidelines 4/2019](https://www.edpb.europa.eu/sites/default/files/files/file1/edpb_guidelines_201904_dataprotection_by_design_and_by_default_v2.0_en.pdf)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1084,13 +1336,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SAFE-PRD-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "SAFE"
+# Human-readable check title
 title = "Operational Safety Requirements"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "CRITICAL (if applicable)"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO/IEC 25010:2023 §4.2.9.1 (Operational constraint), §4.2.9.2 (Risk identification)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1102,13 +1362,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SAFE-PRD-002"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "SAFE"
+# Human-readable check title
 title = "Fail-Safe and Hazard Prevention"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "CRITICAL (if applicable)"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO/IEC 25010:2023 §4.2.9.3 (Fail safe), §4.2.9.4 (Hazard warning), §4.2.9.5 (Safe integration)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1120,13 +1388,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "PERF-PRD-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "PERF"
+# Human-readable check title
 title = "Response Time Expectations"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO/IEC 25010:2023 §4.2.2.2 (Time behaviour)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1138,13 +1414,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "PERF-PRD-002"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "PERF"
+# Human-readable check title
 title = "Throughput Requirements"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO/IEC 25010:2023 §4.2.2.3 (Resource utilization), §4.2.2.4 (Capacity)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1156,12 +1440,19 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "PERF-PRD-003"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "PERF"
+# Human-readable check title
 title = "Capacity Planning Inputs"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1173,13 +1464,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "REL-PRD-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "REL"
+# Human-readable check title
 title = "Availability Requirements"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO/IEC 25010:2023 §4.2.5.2 (Availability), SOC 2 A1.1"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1191,13 +1490,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "REL-PRD-002"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "REL"
+# Human-readable check title
 title = "Recovery Requirements"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO/IEC 25010:2023 §4.2.5.4 (Recoverability), [ISO 22301:2019](https://www.iso.org/standard/75106.html) §8.4 (Business continuity plans), NIST 800-53 CP family"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1209,13 +1516,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "REL-PRD-003"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "REL"
+# Human-readable check title
 title = "Error Handling Expectations"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO/IEC 25010:2023 §4.2.5.3 (Fault tolerance)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1227,13 +1542,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "UX-PRD-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "UX"
+# Human-readable check title
 title = "User Experience Goals"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO 9241-11 §5 (Framework for usability), ISO/IEC 25010:2023 §4.2.4 (Interaction Capability)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1245,13 +1568,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "UX-PRD-002"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "UX"
+# Human-readable check title
 title = "Accessibility Requirements"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "[WCAG 2.2](https://www.w3.org/WAI/standards-guidelines/wcag/) (A/AA/AAA levels), ISO/IEC 25010:2023 §4.2.4.7 (Accessibility), [EN 301 549](https://www.etsi.org/standards/en-301-549)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1263,12 +1594,19 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "UX-PRD-003"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "UX"
+# Human-readable check title
 title = "Internationalization Requirements"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1280,13 +1618,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "UX-PRD-004"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "UX"
+# Human-readable check title
 title = "Device/Platform Requirements"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO/IEC 25010:2023 §4.2.8 (Flexibility — Installability, Adaptability)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1298,13 +1644,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "UX-PRD-005"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "UX"
+# Human-readable check title
 title = "Inclusivity Requirements"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM (if applicable)"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "[ISO/IEC 25010:2023](https://www.iso.org/standard/78176.html) §4.2.4.8 (Inclusivity) — **NEW subcharacteristic in 2023 edition**"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1318,13 +1672,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "MAINT-PRD-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "MAINT"
+# Human-readable check title
 title = "Documentation Requirements"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO/IEC/IEEE 29148 §6.6 (Information items)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1336,12 +1698,19 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "MAINT-PRD-002"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "MAINT"
+# Human-readable check title
 title = "Support Requirements"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1353,13 +1722,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "COMPL-PRD-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "COMPL"
+# Human-readable check title
 title = "Regulatory Requirements"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "CRITICAL (if applicable)"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "GDPR (EU personal data), HIPAA (US healthcare), PCI DSS (payment cards), SOX (financial reporting)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1371,13 +1748,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "COMPL-PRD-002"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "COMPL"
+# Human-readable check title
 title = "Industry Standards"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO 27001 (security), ISO 22301 (continuity), SOC 2 (trust services), ISO 9001 (quality)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1389,13 +1774,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "COMPL-PRD-003"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "COMPL"
+# Human-readable check title
 title = "Legal Requirements"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH (if applicable)"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "GDPR Art. 12-23 (Data subject rights), GDPR Art. 6-7 (Consent)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1407,13 +1800,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "DATA-PRD-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "DATA"
+# Human-readable check title
 title = "Data Ownership"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "GDPR Art. 4 (Definitions — controller, processor), GDPR Art. 26 (Joint controllers)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1425,13 +1826,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "DATA-PRD-002"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "DATA"
+# Human-readable check title
 title = "Data Quality Requirements"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "[ISO/IEC 25012](https://www.iso.org/standard/35736.html) (Data Quality model), GDPR Art. 5(1)(d) (Accuracy principle)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1443,13 +1852,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "DATA-PRD-003"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "DATA"
+# Human-readable check title
 title = "Data Lifecycle"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "GDPR Art. 5(1)(e) (Storage limitation), GDPR Art. 17 (Right to erasure)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1461,13 +1878,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "INT-PRD-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "INT"
+# Human-readable check title
 title = "External System Integration"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO/IEC 25010:2023 §4.2.3.2 (Interoperability), ISO/IEC/IEEE 29148 §6.3.4 (System interfaces)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1479,13 +1904,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "INT-PRD-002"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "INT"
+# Human-readable check title
 title = "API Requirements"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "[OpenAPI Specification](https://spec.openapis.org/oas/latest.html), RFC 6749 (OAuth for API auth)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1497,13 +1930,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "OPS-PRD-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "OPS"
+# Human-readable check title
 title = "Deployment Requirements"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "NIST 800-53 CM family (Configuration Management)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1515,13 +1956,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "OPS-PRD-002"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "OPS"
+# Human-readable check title
 title = "Monitoring Requirements"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "NIST 800-53 AU family (Audit and Accountability), SI family (System and Information Integrity)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1533,13 +1982,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "TEST-PRD-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "TEST"
+# Human-readable check title
 title = "Acceptance Criteria"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO/IEC/IEEE 29148 §5.2.8 (Requirements verification), ISO/IEC/IEEE 29119-1 §4 (Test concepts)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1551,13 +2008,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "TEST-PRD-002"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "TEST"
+# Human-readable check title
 title = "Testability"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO/IEC/IEEE 29148 §5.2.5 (Characteristics of well-formed requirements), ISO/IEC 25010:2023 §4.2.7.4 (Testability)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1569,12 +2034,19 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "DOC-PRD-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "DOC"
+# Human-readable check title
 title = "Explicit Non-Applicability"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "CRITICAL"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1584,12 +2056,19 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-PRD-NO-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "ARCH"
+# Human-readable check title
 title = "No Technical Implementation Details"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "CRITICAL"
+# Check kind: must_have | must_not_have
 kind = "must_not_have"
 ```
 ```markdown
@@ -1605,12 +2084,19 @@ kind = "must_not_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-PRD-NO-002"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "ARCH"
+# Human-readable check title
 title = "No Architectural Decisions"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "CRITICAL"
+# Check kind: must_have | must_not_have
 kind = "must_not_have"
 ```
 ```markdown
@@ -1625,12 +2111,19 @@ kind = "must_not_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "BIZ-PRD-NO-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "BIZ"
+# Human-readable check title
 title = "No Implementation Tasks"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Check kind: must_have | must_not_have
 kind = "must_not_have"
 ```
 ```markdown
@@ -1645,12 +2138,19 @@ kind = "must_not_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "BIZ-PRD-NO-002"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "BIZ"
+# Human-readable check title
 title = "No Spec-Level Design"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Check kind: must_have | must_not_have
 kind = "must_not_have"
 ```
 ```markdown
@@ -1665,12 +2165,19 @@ kind = "must_not_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "DATA-PRD-NO-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "DATA"
+# Human-readable check title
 title = "No Data Schema Definitions"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Check kind: must_have | must_not_have
 kind = "must_not_have"
 ```
 ```markdown
@@ -1685,12 +2192,19 @@ kind = "must_not_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "INT-PRD-NO-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "INT"
+# Human-readable check title
 title = "No API Specifications"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Check kind: must_have | must_not_have
 kind = "must_not_have"
 ```
 ```markdown
@@ -1705,12 +2219,19 @@ kind = "must_not_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "TEST-PRD-NO-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "TEST"
+# Human-readable check title
 title = "No Test Cases"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Check kind: must_have | must_not_have
 kind = "must_not_have"
 ```
 ```markdown
@@ -1724,12 +2245,19 @@ kind = "must_not_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "OPS-PRD-NO-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "OPS"
+# Human-readable check title
 title = "No Infrastructure Specifications"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Check kind: must_have | must_not_have
 kind = "must_not_have"
 ```
 ```markdown
@@ -1744,12 +2272,19 @@ kind = "must_not_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEC-PRD-NO-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "SEC"
+# Human-readable check title
 title = "No Security Implementation Details"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Check kind: must_have | must_not_have
 kind = "must_not_have"
 ```
 ```markdown
@@ -1764,12 +2299,19 @@ kind = "must_not_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "MAINT-PRD-NO-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "MAINT"
+# Human-readable check title
 title = "No Code-Level Documentation"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Check kind: must_have | must_not_have
 kind = "must_not_have"
 ```
 ```markdown
@@ -1795,48 +2337,82 @@ acceptance criteria, dependencies, assumptions, and risks.
 
 ### Title (H1)
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-h1-title"
+# Markdown heading level (1=H1 … 6=H6)
 level = 1
+# true = heading MUST appear in artifact | false = optional
 required = true
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = false
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = false
+# Regex the heading text must match (omit or null = any text)
 pattern = "PRD\\s*[—–-]\\s*.+"
+# Suggested heading text template for authors
 template = "PRD — {Module/Feature Name}"
+# Brief writing instruction for content under this heading
 prompt = "Title of product"
+# Human description of this heading's purpose
 description = "PRD document title (H1)."
+# Example heading texts showing correct usage
 examples = ["# PRD — TaskFlow"]
 ```
 `@/cpt:heading`
 
 ### Overview
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-overview"
+# Markdown heading level (1=H1 … 6=H6)
 level = 2
+# true = heading MUST appear in artifact | false = optional
 required = true
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = true
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = false
+# Regex the heading text must match (omit or null = any text)
 pattern = "Overview"
+# Human description of this heading's purpose
 description = "High-level overview of the product and problem."
+# Example heading texts showing correct usage
 examples = ["## 1. Overview"]
 ```
 `@/cpt:heading`
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-overview-purpose"
+# Markdown heading level (1=H1 … 6=H6)
 level = 3
+# true = heading MUST appear in artifact | false = optional
 required = true
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = true
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = false
+# Regex the heading text must match (omit or null = any text)
 pattern = "Purpose"
+# Human description of this heading's purpose
 description = "Purpose of the PRD and the product."
+# Example heading texts showing correct usage
 examples = ["### 1.1 Purpose"]
 ```
 `@/cpt:heading`
+
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -1844,9 +2420,13 @@ examples = ["### 1.1 Purpose"]
 ```
 `@/cpt:prompt`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "semantic"
 ```
 ```markdown
@@ -1858,24 +2438,38 @@ section = "semantic"
 ```
 `@/cpt:rule`
 
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
+
 `@cpt:example`
 ```markdown
 TaskFlow is a lightweight task management system for small teams, enabling task creation, assignment, and progress tracking with real-time notifications.
 ```
 `@/cpt:example`
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-overview-background"
+# Markdown heading level (1=H1 … 6=H6)
 level = 3
+# true = heading MUST appear in artifact | false = optional
 required = true
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = true
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = false
+# Regex the heading text must match (omit or null = any text)
 pattern = "Background / Problem Statement"
+# Human description of this heading's purpose
 description = "Background and problem statement."
+# Example heading texts showing correct usage
 examples = ["### 1.2 Background / Problem Statement"]
 ```
 `@/cpt:heading`
+
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -1883,9 +2477,13 @@ examples = ["### 1.2 Background / Problem Statement"]
 ```
 `@/cpt:prompt`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "semantic"
 ```
 ```markdown
@@ -1893,6 +2491,8 @@ section = "semantic"
 - [ ] MUST include target users and key problems solved
 ```
 `@/cpt:rule`
+
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
 
 `@cpt:example`
 ```markdown
@@ -1912,18 +2512,30 @@ The system focuses on simplicity and speed, allowing teams to manage their daily
 ```
 `@/cpt:example`
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-overview-goals"
+# Markdown heading level (1=H1 … 6=H6)
 level = 3
+# true = heading MUST appear in artifact | false = optional
 required = true
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = true
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = false
+# Regex the heading text must match (omit or null = any text)
 pattern = "Goals (Business Outcomes)"
+# Human description of this heading's purpose
 description = "Business outcomes and goals."
+# Example heading texts showing correct usage
 examples = ["### 1.3 Goals (Business Outcomes)"]
 ```
 `@/cpt:heading`
+
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -1932,9 +2544,13 @@ examples = ["### 1.3 Goals (Business Outcomes)"]
 ```
 `@/cpt:prompt`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "semantic"
 ```
 ```markdown
@@ -1944,6 +2560,8 @@ section = "semantic"
 - [ ] Success criteria MUST include baseline, target, and timeframe
 ```
 `@/cpt:rule`
+
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
 
 `@cpt:example`
 ```markdown
@@ -1961,18 +2579,30 @@ section = "semantic"
 ```
 `@/cpt:example`
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-overview-glossary"
+# Markdown heading level (1=H1 … 6=H6)
 level = 3
+# true = heading MUST appear in artifact | false = optional
 required = true
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = true
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = false
+# Regex the heading text must match (omit or null = any text)
 pattern = "Glossary"
+# Human description of this heading's purpose
 description = "Definitions of key terms."
+# Example heading texts showing correct usage
 examples = ["### 1.4 Glossary"]
 ```
 `@/cpt:heading`
+
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -1981,6 +2611,8 @@ examples = ["### 1.4 Glossary"]
 | {Term} | {Definition} |
 ```
 `@/cpt:prompt`
+
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
 
 `@cpt:example`
 ```markdown
@@ -1996,33 +2628,47 @@ examples = ["### 1.4 Glossary"]
 
 Human and system actors that interact with the module.
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-actors"
+# Markdown heading level (1=H1 … 6=H6)
 level = 2
+# true = heading MUST appear in artifact | false = optional
 required = true
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = true
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = false
+# Regex the heading text must match (omit or null = any text)
 pattern = "Actors"
+# Human description of this heading's purpose
 description = "Actors (human and system) that interact with the product."
+# Example heading texts showing correct usage
 examples = ["## 2. Actors"]
 ```
 `@/cpt:heading`
+
+> **`@cpt:id`** — Identifier constraint. Defines an ID kind (template, references, task/priority rules). Output: `constraints.toml`.
 
 `@cpt:id`
 ```toml
 kind = "actor"
 name = "Actor"
 description = "An entity (human or system) that interacts with the product; used in PRD, and referenced by requirements/use cases."
-required = false
-task = false      # true = required | false = prohibited
-priority = false  # true = required | false = prohibited
+required = false          # true = at least one ID of this kind must exist in artifact
+task = false               # true = must carry task attr | false = prohibited | omit = optional
+priority = false           # true = must carry priority attr | false = prohibited | omit = optional
 template = "cpt-{system}-actor-{slug}"
 examples = ["cpt-cypilot-actor-ai-assistant", "cpt-ex-ovwa-actor-user", "cpt-ex-ovwa-actor-macos"]
-to_code = false
-headings = ["prd-actors"]
+to_code = false              # true = ID is expected to appear in code via @cpt-* markers
+headings = ["prd-actors"]  # heading constraint IDs where this identifier must be placed
 ```
 `@/cpt:id`
+
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -2030,9 +2676,13 @@ headings = ["prd-actors"]
 ```
 `@/cpt:prompt`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "semantic"
 ```
 ```markdown
@@ -2044,18 +2694,30 @@ section = "semantic"
 ```
 `@/cpt:rule`
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-actors-human"
+# Markdown heading level (1=H1 … 6=H6)
 level = 3
+# true = heading MUST appear in artifact | false = optional
 required = true
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = true
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = false
+# Regex the heading text must match (omit or null = any text)
 pattern = "Human Actors"
+# Human description of this heading's purpose
 description = "Human actors."
+# Example heading texts showing correct usage
 examples = ["### 2.1 Human Actors"]
 ```
 `@/cpt:heading`
+
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
 
 `@cpt:heading`
 ```toml
@@ -2070,6 +2732,8 @@ examples = ["#### Team Member", "#### Team Lead"]
 ```
 `@/cpt:heading`
 
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
+
 `@cpt:prompt`
 ```markdown
 **ID**: `cpt-{system}-actor-{slug}`
@@ -2078,6 +2742,8 @@ examples = ["#### Team Member", "#### Team Lead"]
 **Needs**: {What this actor needs from the system.}
 ```
 `@/cpt:prompt`
+
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
 
 `@cpt:example`
 ```markdown
@@ -2093,18 +2759,30 @@ examples = ["#### Team Member", "#### Team Lead"]
 ```
 `@/cpt:example`
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-actors-system"
+# Markdown heading level (1=H1 … 6=H6)
 level = 3
+# true = heading MUST appear in artifact | false = optional
 required = true
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = true
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = false
+# Regex the heading text must match (omit or null = any text)
 pattern = "System Actors"
+# Human description of this heading's purpose
 description = "System and external actors."
+# Example heading texts showing correct usage
 examples = ["### 2.2 System Actors"]
 ```
 `@/cpt:heading`
+
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
 
 `@cpt:heading`
 ```toml
@@ -2119,6 +2797,8 @@ examples = ["#### Notification Service", "#### External Auth Provider"]
 ```
 `@/cpt:heading`
 
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
+
 `@cpt:prompt`
 ```markdown
 **ID**: `cpt-{system}-actor-{slug}`
@@ -2126,6 +2806,8 @@ examples = ["#### Notification Service", "#### External Auth Provider"]
 **Role**: {Description of what this system actor does (external service, scheduler, etc.)}
 ```
 `@/cpt:prompt`
+
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
 
 `@cpt:example`
 ```markdown
@@ -2137,18 +2819,30 @@ examples = ["#### Notification Service", "#### External Auth Provider"]
 
 ### Operational Concept & Environment
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-operational-concept"
+# Markdown heading level (1=H1 … 6=H6)
 level = 2
+# true = heading MUST appear in artifact | false = optional
 required = true
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = true
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = false
+# Regex the heading text must match (omit or null = any text)
 pattern = "Operational Concept & Environment"
+# Human description of this heading's purpose
 description = "Operational concept and environment constraints."
+# Example heading texts showing correct usage
 examples = ["## 3. Operational Concept & Environment"]
 ```
 `@/cpt:heading`
+
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -2156,18 +2850,30 @@ examples = ["## 3. Operational Concept & Environment"]
 ```
 `@/cpt:prompt`
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-operational-concept-constraints"
+# Markdown heading level (1=H1 … 6=H6)
 level = 3
+# true = heading MUST appear in artifact | false = optional
 required = true
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = true
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = false
+# Regex the heading text must match (omit or null = any text)
 pattern = "Module-Specific Environment Constraints"
+# Human description of this heading's purpose
 description = "Module-specific environment constraints beyond project defaults."
+# Example heading texts showing correct usage
 examples = ["### 3.1 Module-Specific Environment Constraints"]
 ```
 `@/cpt:heading`
+
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -2179,6 +2885,8 @@ examples = ["### 3.1 Module-Specific Environment Constraints"]
 ```
 `@/cpt:prompt`
 
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
+
 `@cpt:example`
 ```markdown
 None.
@@ -2189,31 +2897,53 @@ None.
 
 In-scope and out-of-scope boundaries.
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-scope"
+# Markdown heading level (1=H1 … 6=H6)
 level = 2
+# true = heading MUST appear in artifact | false = optional
 required = true
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = true
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = false
+# Regex the heading text must match (omit or null = any text)
 pattern = "Scope"
+# Human description of this heading's purpose
 description = "Scope of the product and release."
+# Example heading texts showing correct usage
 examples = ["## 4. Scope"]
 ```
 `@/cpt:heading`
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-scope-in"
+# Markdown heading level (1=H1 … 6=H6)
 level = 3
+# true = heading MUST appear in artifact | false = optional
 required = true
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = true
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = false
+# Regex the heading text must match (omit or null = any text)
 pattern = "In Scope"
+# Human description of this heading's purpose
 description = "In-scope items."
+# Example heading texts showing correct usage
 examples = ["### 4.1 In Scope"]
 ```
 `@/cpt:heading`
+
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -2221,6 +2951,8 @@ examples = ["### 4.1 In Scope"]
 - {Another capability}
 ```
 `@/cpt:prompt`
+
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
 
 `@cpt:example`
 ```markdown
@@ -2230,18 +2962,30 @@ examples = ["### 4.1 In Scope"]
 ```
 `@/cpt:example`
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-scope-out"
+# Markdown heading level (1=H1 … 6=H6)
 level = 3
+# true = heading MUST appear in artifact | false = optional
 required = true
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = true
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = false
+# Regex the heading text must match (omit or null = any text)
 pattern = "Out of Scope"
+# Human description of this heading's purpose
 description = "Out-of-scope items."
+# Example heading texts showing correct usage
 examples = ["### 4.2 Out of Scope"]
 ```
 `@/cpt:heading`
+
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -2250,15 +2994,21 @@ examples = ["### 4.2 Out of Scope"]
 ```
 `@/cpt:prompt`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "semantic"
 ```
 ```markdown
 - [ ] Non-goals MUST explicitly state what product does NOT do
 ```
 `@/cpt:rule`
+
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
 
 `@cpt:example`
 ```markdown
@@ -2269,45 +3019,63 @@ section = "semantic"
 
 ### Functional Requirements
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-fr"
+# Markdown heading level (1=H1 … 6=H6)
 level = 2
+# true = heading MUST appear in artifact | false = optional
 required = true
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = true
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = false
+# Regex the heading text must match (omit or null = any text)
 pattern = "Functional Requirements"
+# Human description of this heading's purpose
 description = "Functional requirements section."
+# Example heading texts showing correct usage
 examples = ["## 5. Functional Requirements"]
 ```
 `@/cpt:heading`
+
+> **`@cpt:id`** — Identifier constraint. Defines an ID kind (template, references, task/priority rules). Output: `constraints.toml`.
 
 `@cpt:id`
 ```toml
 kind = "fr"
 name = "Functional Requirement"
 description = "A testable statement of required system behavior (WHAT the system must do)."
-required = true
-# task = true|false    # optional by default
-priority = true
+required = true          # true = at least one ID of this kind must exist in artifact
+# task: omitted (optional) # true = must carry task attr | false = prohibited | omit = optional
+priority = true            # true = must carry priority attr | false = prohibited | omit = optional
 template = "cpt-{system}-fr-{slug}"
 examples = ["cpt-cypilot-fr-validation", "cpt-ex-ovwa-fr-track-active-time", "cpt-ex-ovwa-fr-cli-controls"]
-to_code = false
-headings = ["prd-fr"]
+to_code = false              # true = ID is expected to appear in code via @cpt-* markers
+headings = ["prd-fr"]  # heading constraint IDs where this identifier must be placed
 
-[ref.DESIGN]
-coverage = true
-headings = ["design-arch-overview-drivers"]
-
-[ref.DECOMPOSITION]
-# coverage = true|false  # optional by default
-headings = ["decomposition-entry"]
-
-[ref.FEATURE]
-# coverage = true|false  # optional by default
-headings = ["feature-context-purpose"]
+[references.DECOMPOSITION]  # how this ID is referenced in DECOMPOSITION artifacts
+# coverage: omitted (optional) # true = must reference | false = prohibited | omit = optional
+# task: omitted (optional) # true = ref must carry task | false = prohibited | omit = optional
+# priority: omitted (optional) # true = ref must carry priority | false = prohibited | omit = optional
+headings = ["decomposition-entry"]  # target heading constraint in DECOMPOSITION
+[references.DESIGN]  # how this ID is referenced in DESIGN artifacts
+coverage = true            # true = must reference | false = referencing prohibited | omit = optional
+# task: omitted (optional) # true = ref must carry task | false = prohibited | omit = optional
+# priority: omitted (optional) # true = ref must carry priority | false = prohibited | omit = optional
+headings = ["design-arch-overview-drivers"]  # target heading constraint in DESIGN
+[references.FEATURE]  # how this ID is referenced in FEATURE artifacts
+# coverage: omitted (optional) # true = must reference | false = prohibited | omit = optional
+# task: omitted (optional) # true = ref must carry task | false = prohibited | omit = optional
+# priority: omitted (optional) # true = ref must carry priority | false = prohibited | omit = optional
+headings = ["feature-context-purpose"]  # target heading constraint in FEATURE
 ```
 `@/cpt:id`
+
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -2317,9 +3085,13 @@ Functional requirements define WHAT the system must do. Group by feature area or
 ```
 `@/cpt:prompt`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "semantic"
 ```
 ```markdown
@@ -2336,6 +3108,8 @@ section = "semantic"
 ```
 `@/cpt:rule`
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
 id = "prd-fr-group"
@@ -2349,6 +3123,8 @@ examples = []
 ```
 `@/cpt:heading`
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
 id = "prd-fr-entry"
@@ -2361,6 +3137,8 @@ description = "Individual functional requirement entry."
 examples = []
 ```
 `@/cpt:heading`
+
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -2377,6 +3155,8 @@ The system **MUST** {do something specific and verifiable}.
 **Acceptance Evidence** (optional): {Only if non-obvious: specific test suite path, analysis report, review checklist}
 ```
 `@/cpt:prompt`
+
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
 
 `@cpt:example`
 ```markdown
@@ -2404,51 +3184,71 @@ The system MUST send push notifications for task assignments. The system MUST se
 
 ### Non-Functional Requirements
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-nfr"
+# Markdown heading level (1=H1 … 6=H6)
 level = 2
+# true = heading MUST appear in artifact | false = optional
 required = true
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = true
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = false
+# Regex the heading text must match (omit or null = any text)
 pattern = "Non-Functional Requirements"
+# Human description of this heading's purpose
 description = "Non-functional requirements section."
+# Example heading texts showing correct usage
 examples = ["## 6. Non-Functional Requirements"]
 ```
 `@/cpt:heading`
+
+> **`@cpt:id`** — Identifier constraint. Defines an ID kind (template, references, task/priority rules). Output: `constraints.toml`.
 
 `@cpt:id`
 ```toml
 kind = "nfr"
 name = "Non-functional Requirement"
 description = "A measurable quality attribute requirement (performance, security, reliability, usability, etc.)."
-required = true
-# task = true|false    # optional by default
-priority = true
+required = true          # true = at least one ID of this kind must exist in artifact
+# task: omitted (optional) # true = must carry task attr | false = prohibited | omit = optional
+priority = true            # true = must carry priority attr | false = prohibited | omit = optional
 template = "cpt-{system}-nfr-{slug}"
 examples = ["cpt-cypilot-nfr-validation-performance", "cpt-ex-ovwa-nfr-privacy-local-only", "cpt-ex-ovwa-nfr-low-overhead"]
-to_code = false
-headings = ["prd-nfr"]
+to_code = false              # true = ID is expected to appear in code via @cpt-* markers
+headings = ["prd-nfr"]  # heading constraint IDs where this identifier must be placed
 
-[ref.DESIGN]
-coverage = true
-headings = ["design-arch-overview-drivers"]
-
-[ref.DECOMPOSITION]
-# coverage = true|false  # optional by default
-headings = ["decomposition-entry"]
-
-[ref.FEATURE]
-# coverage = true|false  # optional by default
-headings = ["feature-context-purpose"]
+[references.DECOMPOSITION]  # how this ID is referenced in DECOMPOSITION artifacts
+# coverage: omitted (optional) # true = must reference | false = prohibited | omit = optional
+# task: omitted (optional) # true = ref must carry task | false = prohibited | omit = optional
+# priority: omitted (optional) # true = ref must carry priority | false = prohibited | omit = optional
+headings = ["decomposition-entry"]  # target heading constraint in DECOMPOSITION
+[references.DESIGN]  # how this ID is referenced in DESIGN artifacts
+coverage = true            # true = must reference | false = referencing prohibited | omit = optional
+# task: omitted (optional) # true = ref must carry task | false = prohibited | omit = optional
+# priority: omitted (optional) # true = ref must carry priority | false = prohibited | omit = optional
+headings = ["design-arch-overview-drivers"]  # target heading constraint in DESIGN
+[references.FEATURE]  # how this ID is referenced in FEATURE artifacts
+# coverage: omitted (optional) # true = must reference | false = prohibited | omit = optional
+# task: omitted (optional) # true = ref must carry task | false = prohibited | omit = optional
+# priority: omitted (optional) # true = ref must carry priority | false = prohibited | omit = optional
+headings = ["feature-context-purpose"]  # target heading constraint in FEATURE
 ```
 `@/cpt:id`
 
 `@/cpt:prompt`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "semantic"
 ```
 ```markdown
@@ -2457,24 +3257,38 @@ section = "semantic"
 ```
 `@/cpt:rule`
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-nfr-inclusions"
+# Markdown heading level (1=H1 … 6=H6)
 level = 3
+# true = heading MUST appear in artifact | false = optional
 required = false
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = true
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = false
+# Regex the heading text must match (omit or null = any text)
 pattern = "NFR Inclusions"
+# Human description of this heading's purpose
 description = "Non-functional requirements that deviate from or extend project defaults."
+# Example heading texts showing correct usage
 examples = ["### 6.1 Module-Specific NFRs"]
 ```
 `@/cpt:heading`
+
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
 
 `@cpt:prompt`
 ```markdown
 {Only include this section if there are NFRs that deviate from or extend project defaults.}
 ```
 `@/cpt:prompt`
+
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
 
 `@cpt:heading`
 ```toml
@@ -2489,6 +3303,8 @@ examples = ["#### Security", "#### Performance"]
 ```
 `@/cpt:heading`
 
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
+
 `@cpt:prompt`
 ```markdown
 - [ ] `p1` - **ID**: `cpt-{system}-nfr-{slug}`
@@ -2502,6 +3318,8 @@ The system **MUST** {measurable NFR with specific thresholds, e.g., "respond wit
 **Verification Method** (optional): {Only if non-standard approach needed}
 ```
 `@/cpt:prompt`
+
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
 
 `@cpt:example`
 ```markdown
@@ -2520,18 +3338,30 @@ The system **MUST** {measurable NFR with specific thresholds, e.g., "respond wit
 ```
 `@/cpt:example`
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-nfr-exclusions"
+# Markdown heading level (1=H1 … 6=H6)
 level = 3
+# true = heading MUST appear in artifact | false = optional
 required = true
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = true
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = false
+# Regex the heading text must match (omit or null = any text)
 pattern = "NFR Exclusions"
+# Human description of this heading's purpose
 description = "Explicit non-functional requirement exclusions."
+# Example heading texts showing correct usage
 examples = ["### 6.2 NFR Exclusions"]
 ```
 `@/cpt:heading`
+
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -2541,15 +3371,21 @@ examples = ["### 6.2 NFR Exclusions"]
 ```
 `@/cpt:prompt`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "semantic"
 ```
 ```markdown
 - [ ] Intentional exclusions MUST list N/A checklist categories with reasoning
 ```
 `@/cpt:rule`
+
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
 
 `@cpt:example`
 ```markdown
@@ -2563,56 +3399,76 @@ section = "semantic"
 
 API surface and external integration contracts.
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-public-interfaces"
+# Markdown heading level (1=H1 … 6=H6)
 level = 2
+# true = heading MUST appear in artifact | false = optional
 required = true
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = true
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = false
+# Regex the heading text must match (omit or null = any text)
 pattern = "Public Library Interfaces"
+# Human description of this heading's purpose
 description = "Public library interfaces and integration contracts."
+# Example heading texts showing correct usage
 examples = ["## 7. Public Library Interfaces"]
 ```
 `@/cpt:heading`
+
+> **`@cpt:id`** — Identifier constraint. Defines an ID kind (template, references, task/priority rules). Output: `constraints.toml`.
 
 `@cpt:id`
 ```toml
 kind = "interface"
 name = "Public Interface"
 description = "A public API surface (library interface, protocol, CLI contract) provided by the system."
-required = false
-# task = true|false      # optional by default
-# priority = true|false  # optional by default
+required = false          # true = at least one ID of this kind must exist in artifact
+# task: omitted (optional) # true = must carry task attr | false = prohibited | omit = optional
+# priority: omitted (optional) # true = must carry priority | false = prohibited | omit = optional
 template = "cpt-{system}-interface-{slug}"
 examples = ["cpt-cypilot-interface-cli-json", "cpt-ex-ovwa-interface-cli", "cpt-ex-ovwa-interface-ipc-protocol"]
-to_code = false
-headings = ["prd-public-interfaces"]
+to_code = false              # true = ID is expected to appear in code via @cpt-* markers
+headings = ["prd-public-interfaces"]  # heading constraint IDs where this identifier must be placed
 
-[ref.DESIGN]
-coverage = true
-headings = ["design-tech-arch-api-contracts"]
+[references.DESIGN]  # how this ID is referenced in DESIGN artifacts
+coverage = true            # true = must reference | false = referencing prohibited | omit = optional
+# task: omitted (optional) # true = ref must carry task | false = prohibited | omit = optional
+# priority: omitted (optional) # true = ref must carry priority | false = prohibited | omit = optional
+headings = ["design-tech-arch-api-contracts"]  # target heading constraint in DESIGN
 ```
 `@/cpt:id`
+
+> **`@cpt:id`** — Identifier constraint. Defines an ID kind (template, references, task/priority rules). Output: `constraints.toml`.
 
 `@cpt:id`
 ```toml
 kind = "contract"
 name = "Integration Contract"
 description = "An external integration contract (data format/protocol/compatibility expectations) with another system."
-required = false
-# task = true|false      # optional by default
-# priority = true|false  # optional by default
+required = false          # true = at least one ID of this kind must exist in artifact
+# task: omitted (optional) # true = must carry task attr | false = prohibited | omit = optional
+# priority: omitted (optional) # true = must carry priority | false = prohibited | omit = optional
 template = "cpt-{system}-contract-{slug}"
 examples = ["cpt-ex-ovwa-contract-macos-notification-center", "cpt-ex-ovwa-contract-launchd", "cpt-cypilot-contract-openai-api"]
-to_code = false
-headings = ["prd-public-interfaces"]
+to_code = false              # true = ID is expected to appear in code via @cpt-* markers
+headings = ["prd-public-interfaces"]  # heading constraint IDs where this identifier must be placed
 
-[ref.DESIGN]
-coverage = true
-headings = ["design-tech-arch-api-contracts"]
+[references.DESIGN]  # how this ID is referenced in DESIGN artifacts
+coverage = true            # true = must reference | false = referencing prohibited | omit = optional
+# task: omitted (optional) # true = ref must carry task | false = prohibited | omit = optional
+# priority: omitted (optional) # true = ref must carry priority | false = prohibited | omit = optional
+headings = ["design-tech-arch-api-contracts"]  # target heading constraint in DESIGN
 ```
 `@/cpt:id`
+
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -2620,18 +3476,30 @@ Define the public API surface, versioning/compatibility guarantees, and integrat
 ```
 `@/cpt:prompt`
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-public-interfaces-api"
+# Markdown heading level (1=H1 … 6=H6)
 level = 3
+# true = heading MUST appear in artifact | false = optional
 required = true
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = true
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = false
+# Regex the heading text must match (omit or null = any text)
 pattern = "Public API Surface"
+# Human description of this heading's purpose
 description = "Public API surface."
+# Example heading texts showing correct usage
 examples = ["### 7.1 Public API Surface"]
 ```
 `@/cpt:heading`
+
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
 
 `@cpt:heading`
 ```toml
@@ -2645,6 +3513,8 @@ description = "Individual public interface entry."
 examples = []
 ```
 `@/cpt:heading`
+
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -2660,30 +3530,46 @@ examples = []
 ```
 `@/cpt:prompt`
 
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
+
 `@cpt:example`
 ```markdown
 None.
 ```
 `@/cpt:example`
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-public-interfaces-external-contracts"
+# Markdown heading level (1=H1 … 6=H6)
 level = 3
+# true = heading MUST appear in artifact | false = optional
 required = true
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = true
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = false
+# Regex the heading text must match (omit or null = any text)
 pattern = "External Integration Contracts"
+# Human description of this heading's purpose
 description = "External integration contracts."
+# Example heading texts showing correct usage
 examples = ["### 7.2 External Integration Contracts"]
 ```
 `@/cpt:heading`
+
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
 
 `@cpt:prompt`
 ```markdown
 Contracts this library expects from external systems or provides to downstream clients.
 ```
 `@/cpt:prompt`
+
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
 
 `@cpt:heading`
 ```toml
@@ -2698,6 +3584,8 @@ examples = []
 ```
 `@/cpt:heading`
 
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
+
 `@cpt:prompt`
 ```markdown
 - [ ] `p2` - **ID**: `cpt-{system}-contract-{slug}`
@@ -2710,6 +3598,8 @@ examples = []
 ```
 `@/cpt:prompt`
 
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
+
 `@cpt:example`
 ```markdown
 None.
@@ -2718,47 +3608,66 @@ None.
 
 ### Use Cases
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-use-cases"
+# Markdown heading level (1=H1 … 6=H6)
 level = 2
+# true = heading MUST appear in artifact | false = optional
 required = true
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = true
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = false
+# Regex the heading text must match (omit or null = any text)
 pattern = "Use Cases"
+# Human description of this heading's purpose
 description = "Use cases section."
+# Example heading texts showing correct usage
 examples = ["## 8. Use Cases"]
 ```
 `@/cpt:heading`
+
+> **`@cpt:id`** — Identifier constraint. Defines an ID kind (template, references, task/priority rules). Output: `constraints.toml`.
 
 `@cpt:id`
 ```toml
 kind = "usecase"
 name = "Use Case"
 description = "An end-to-end interaction scenario (actor + goal + flow) that clarifies behavior beyond individual requirements."
-required = true
-# task = true|false      # optional by default
-# priority = true|false  # optional by default
+required = true          # true = at least one ID of this kind must exist in artifact
+# task: omitted (optional) # true = must carry task attr | false = prohibited | omit = optional
+# priority: omitted (optional) # true = must carry priority | false = prohibited | omit = optional
 template = "cpt-{system}-usecase-{slug}"
 examples = ["cpt-ex-ovwa-usecase-run-and-alert", "cpt-ex-ovwa-usecase-configure-limit", "cpt-ex-ovwa-usecase-control-session"]
-to_code = false
-headings = ["prd-use-cases"]
+to_code = false              # true = ID is expected to appear in code via @cpt-* markers
+headings = ["prd-use-cases"]  # heading constraint IDs where this identifier must be placed
 
-[ref.DESIGN]
-# coverage = true|false  # optional by default
-headings = ["design-tech-arch-seq"]
-
-[ref.FEATURE]
-# coverage = true|false  # optional by default
-headings = ["feature-actor-flow"]
+[references.DESIGN]  # how this ID is referenced in DESIGN artifacts
+# coverage: omitted (optional) # true = must reference | false = prohibited | omit = optional
+# task: omitted (optional) # true = ref must carry task | false = prohibited | omit = optional
+# priority: omitted (optional) # true = ref must carry priority | false = prohibited | omit = optional
+headings = ["design-tech-arch-seq"]  # target heading constraint in DESIGN
+[references.FEATURE]  # how this ID is referenced in FEATURE artifacts
+# coverage: omitted (optional) # true = must reference | false = prohibited | omit = optional
+# task: omitted (optional) # true = ref must carry task | false = prohibited | omit = optional
+# priority: omitted (optional) # true = ref must carry priority | false = prohibited | omit = optional
+headings = ["feature-actor-flow"]  # target heading constraint in FEATURE
 ```
 `@/cpt:id`
+
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
 
 `@cpt:prompt`
 ```markdown
 Optional: Include when interaction flows add clarity beyond requirement statements.
 ```
 `@/cpt:prompt`
+
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
 
 `@cpt:heading`
 ```toml
@@ -2772,6 +3681,8 @@ description = "Individual use case entry."
 examples = []
 ```
 `@/cpt:heading`
+
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -2794,9 +3705,13 @@ examples = []
 ```
 `@/cpt:prompt`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "semantic"
 ```
 ```markdown
@@ -2805,6 +3720,8 @@ section = "semantic"
 - [ ] Use case IDs follow: `cpt-{system}-usecase-{slug}`
 ```
 `@/cpt:rule`
+
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
 
 `@cpt:example`
 ```markdown
@@ -2836,18 +3753,30 @@ section = "semantic"
 
 ### Acceptance Criteria, Dependencies, Assumptions, Risks
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-acceptance-criteria"
+# Markdown heading level (1=H1 … 6=H6)
 level = 2
+# true = heading MUST appear in artifact | false = optional
 required = true
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = true
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = false
+# Regex the heading text must match (omit or null = any text)
 pattern = "Acceptance Criteria"
+# Human description of this heading's purpose
 description = "Acceptance criteria for delivery."
+# Example heading texts showing correct usage
 examples = ["## 9. Acceptance Criteria"]
 ```
 `@/cpt:heading`
+
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -2858,6 +3787,8 @@ Business-level acceptance criteria for the PRD as a whole.
 ```
 `@/cpt:prompt`
 
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
+
 `@cpt:example`
 ```markdown
 - [ ] Tasks can be created/assigned in under 30 seconds
@@ -2866,18 +3797,30 @@ Business-level acceptance criteria for the PRD as a whole.
 ```
 `@/cpt:example`
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-dependencies"
+# Markdown heading level (1=H1 … 6=H6)
 level = 2
+# true = heading MUST appear in artifact | false = optional
 required = true
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = true
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = false
+# Regex the heading text must match (omit or null = any text)
 pattern = "Dependencies"
+# Human description of this heading's purpose
 description = "Dependencies required to deliver the PRD."
+# Example heading texts showing correct usage
 examples = ["## 10. Dependencies"]
 ```
 `@/cpt:heading`
+
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -2887,6 +3830,8 @@ examples = ["## 10. Dependencies"]
 ```
 `@/cpt:prompt`
 
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
+
 `@cpt:example`
 ```markdown
 | Dependency | Description | Criticality |
@@ -2895,18 +3840,30 @@ examples = ["## 10. Dependencies"]
 ```
 `@/cpt:example`
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-assumptions"
+# Markdown heading level (1=H1 … 6=H6)
 level = 2
+# true = heading MUST appear in artifact | false = optional
 required = true
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = true
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = false
+# Regex the heading text must match (omit or null = any text)
 pattern = "Assumptions"
+# Human description of this heading's purpose
 description = "Assumptions that must hold."
+# Example heading texts showing correct usage
 examples = ["## 11. Assumptions"]
 ```
 `@/cpt:heading`
+
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -2914,9 +3871,13 @@ examples = ["## 11. Assumptions"]
 ```
 `@/cpt:prompt`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "semantic"
 ```
 ```markdown
@@ -2925,6 +3886,8 @@ section = "semantic"
 ```
 `@/cpt:rule`
 
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
+
 `@cpt:example`
 ```markdown
 - Users have modern browsers and reliable connectivity for real-time updates
@@ -2932,18 +3895,30 @@ section = "semantic"
 ```
 `@/cpt:example`
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-risks"
+# Markdown heading level (1=H1 … 6=H6)
 level = 2
+# true = heading MUST appear in artifact | false = optional
 required = true
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = true
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = false
+# Regex the heading text must match (omit or null = any text)
 pattern = "Risks"
+# Human description of this heading's purpose
 description = "Risks and mitigations."
+# Example heading texts showing correct usage
 examples = ["## 12. Risks"]
 ```
 `@/cpt:heading`
+
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -2953,15 +3928,21 @@ examples = ["## 12. Risks"]
 ```
 `@/cpt:prompt`
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "semantic"
 ```
 ```markdown
 - [ ] Risks and uncertainties MUST be documented with impact and mitigation
 ```
 `@/cpt:rule`
+
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
 
 `@cpt:example`
 ```markdown
