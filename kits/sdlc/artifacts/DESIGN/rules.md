@@ -203,7 +203,7 @@ If DESIGN cannot be completed in a single session:
 2. **Ensure valid intermediate state**:
    - All completed sections must be internally consistent
    - Add `status: DRAFT` to frontmatter
-   - Mark incomplete sections with `<!-- INCOMPLETE: {reason} -->`
+   - Mark incomplete sections with `INCOMPLETE: {reason}`
 3. **Document resumption point**:
    ```
    DESIGN checkpoint:

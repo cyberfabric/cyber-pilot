@@ -1,33 +1,38 @@
 # DECOMPOSITION Blueprint
-<!-- 
-  Blueprint for Decomposition Plans.
-  
-  This file is the single source of truth for:
-  - template.md generation (from @cpt:heading + @cpt:prompt markers)
-  - example.md generation (from @cpt:heading examples + @cpt:example markers)
-  - rules.md generation (from @cpt:rules + @cpt:rule markers)
-  - checklist.md generation (from @cpt:checklist + @cpt:check markers)
-  - constraints.toml contributions (from @cpt:heading + @cpt:id markers)
-  
-  All text between markers is ignored by the generator — it serves as
-  human-readable documentation for anyone editing this blueprint.
-  
-  DECOMPOSITION bridges DESIGN → FEATURE by listing features, ordering,
-  dependencies, and traceability to PRD/DESIGN.
--->
+Blueprint for Decomposition Plans.
+
+This file is the single source of truth for:
+- template.md generation (from @cpt:heading + @cpt:prompt markers)
+- example.md generation (from @cpt:heading examples + @cpt:example markers)
+- rules.md generation (from @cpt:rules + @cpt:rule markers)
+- checklist.md generation (from @cpt:checklist + @cpt:check markers)
+- constraints.toml contributions (from @cpt:heading + @cpt:id markers)
+
+All text between markers is ignored by the generator — it serves as
+human-readable documentation for anyone editing this blueprint.
+
+DECOMPOSITION bridges DESIGN → FEATURE by listing features, ordering,
+dependencies, and traceability to PRD/DESIGN.
 
 ## Metadata
 
+> **`@cpt:blueprint`** — Blueprint metadata: artifact kind, kit slug, version. Internal; not output to any file.
+
 `@cpt:blueprint`
 ```toml
+# Blueprint version (semver)
 version = 1
+# Kit slug this blueprint belongs to
 kit = "sdlc"
+# Artifact kind: PRD | ADR | DESIGN | DECOMPOSITION | FEATURE | CODE
 artifact = "DECOMPOSITION"
 codebase = false
 ```
 `@/cpt:blueprint`
 
 ## Skill Integration
+
+> **`@cpt:skill`** — Skill content. Agent-facing navigation and instructions. Output: `.gen/kits/{slug}/SKILL.md`.
 
 `@cpt:skill`
 ```markdown
@@ -49,22 +54,34 @@ codebase = false
 
 ### Rules Skeleton
 
+> **`@cpt:rules`** — Rules skeleton. Defines section structure (prerequisites, requirements, tasks, validation, etc.) for `rules.md`.
+
 `@cpt:rules`
 ```toml
+# Prerequisite steps (load dependencies, read configs)
 [prerequisites]
+# Ordered list of section keys (each needs a matching @cpt:rule block)
 sections = ["load_dependencies"]
 
+# Requirement sections (structural, semantic, constraints, etc.)
 [requirements]
+# Ordered list of section keys (each needs a matching @cpt:rule block)
 sections = ["structural", "decomposition_quality", "upstream_traceability", "checkbox_management", "constraints"]
 
+# Task phases — step-by-step workflow for creating the artifact
 [tasks]
+# Ordered list of phase keys (each needs a matching @cpt:rule block)
 phases = ["setup", "content_creation", "ids_and_structure", "quality_check", "checkbox_workflow"]
+# Display names for non-obvious task phase keys
 [tasks.names]
 ids_and_structure = "IDs and Structure"
 checkbox_workflow = "Checkbox Status Workflow"
 
+# Validation phases — ordered checks run after artifact is written
 [validation]
+# Ordered list of phase keys (each needs a matching @cpt:rule block)
 phases = ["structural", "decomposition_quality", "validation_report", "applicability", "report_format", "domain_disposition", "reporting"]
+# Display names for non-obvious validation phase keys
 [validation.names]
 structural = "Structural Validation (Deterministic)"
 decomposition_quality = "Decomposition Quality Validation (Checklist-based)"
@@ -73,19 +90,27 @@ report_format = "Report Format"
 domain_disposition = "Domain Disposition"
 reporting = "Reporting"
 
+# Error handling sections — what to do when things go wrong
 [error_handling]
+# Ordered list of section keys (each needs a matching @cpt:rule block)
 sections = ["missing_dependencies", "quality_issues", "escalation"]
 
+# Next steps — recommended actions after completing the artifact
 [next_steps]
+# Ordered list of section keys (each needs a matching @cpt:rule block)
 sections = ["options"]
 ```
 `@/cpt:rules`
 
 ### Prerequisites
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "prerequisites"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "load_dependencies"
 ```
 ```markdown
@@ -104,9 +129,13 @@ section = "load_dependencies"
 
 #### Structural
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "structural"
 ```
 ```markdown
@@ -122,9 +151,13 @@ section = "structural"
 
 #### Decomposition Quality
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "decomposition_quality"
 ```
 ```markdown
@@ -156,9 +189,13 @@ section = "decomposition_quality"
 
 #### Upstream Traceability
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "upstream_traceability"
 ```
 ```markdown
@@ -170,9 +207,13 @@ section = "upstream_traceability"
 
 #### Checkbox Management
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "checkbox_management"
 ```
 ```markdown
@@ -192,9 +233,13 @@ section = "checkbox_management"
 
 #### Constraints
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "constraints"
 ```
 ```markdown
@@ -219,9 +264,13 @@ section = "constraints"
 
 #### Setup
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "tasks"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "setup"
 ```
 ```markdown
@@ -235,9 +284,13 @@ section = "setup"
 
 #### Content Creation
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "tasks"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "content_creation"
 ```
 ```markdown
@@ -252,9 +305,13 @@ section = "content_creation"
 
 #### IDs & Structure
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "tasks"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "ids_and_structure"
 ```
 ```markdown
@@ -268,9 +325,13 @@ section = "ids_and_structure"
 
 #### Quality Check
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "tasks"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "quality_check"
 ```
 ```markdown
@@ -284,9 +345,13 @@ section = "quality_check"
 
 #### Checkbox Workflow
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "tasks"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "checkbox_workflow"
 ```
 ```markdown
@@ -317,9 +382,13 @@ section = "checkbox_workflow"
 
 #### Missing Dependencies
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "error_handling"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "missing_dependencies"
 ```
 ```markdown
@@ -330,9 +399,13 @@ section = "missing_dependencies"
 
 #### Quality Issues
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "error_handling"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "quality_issues"
 ```
 ```markdown
@@ -343,9 +416,13 @@ section = "quality_issues"
 
 #### Escalation
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "error_handling"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "escalation"
 ```
 ```markdown
@@ -359,9 +436,13 @@ section = "escalation"
 
 #### Structural
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "structural"
 ```
 ```markdown
@@ -376,9 +457,13 @@ section = "structural"
 
 #### Decomposition Quality
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "decomposition_quality"
 ```
 ```markdown
@@ -393,9 +478,13 @@ Apply `checklist.md` systematically:
 
 #### Validation Report
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "validation_report"
 ```
 ````markdown
@@ -414,9 +503,13 @@ Issues:
 
 #### Applicability Context
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "applicability"
 ```
 ```markdown
@@ -435,9 +528,13 @@ section = "applicability"
 
 #### Report Format
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "report_format"
 ```
 ````markdown
@@ -482,9 +579,13 @@ For each issue include:
 
 #### Domain Disposition
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "domain_disposition"
 ```
 ```markdown
@@ -500,9 +601,13 @@ For each major checklist category, confirm:
 
 #### Reporting
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "reporting"
 ```
 ````markdown
@@ -545,9 +650,13 @@ For each issue include:
 
 ### Next Steps
 
+> **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `rules.md`.
+
 `@cpt:rule`
 ```toml
+# Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "next_steps"
+# Section name — must match a section defined in the @cpt:rules skeleton
 section = "options"
 ```
 ```markdown
@@ -566,6 +675,8 @@ section = "options"
 Decomposition quality checks organized by domain.
 
 ### Checklist Skeleton
+
+> **`@cpt:checklist`** — Checklist preamble. Static markdown placed at the top of `checklist.md` (standards, prerequisites, severity dictionary).
 
 `@cpt:checklist`
 ```toml
@@ -725,13 +836,21 @@ Mark review as "PARTIAL" if not all domains completed.
 ````
 `@/cpt:checklist`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "COV-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "COV"
+# Human-readable check title
 title = "Design Element Coverage (100% Rule)"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "CRITICAL"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO 21511:2018 §4.2 (WBS 100% rule)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -746,13 +865,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "COV-002"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "COV"
+# Human-readable check title
 title = "Requirements Coverage Passthrough"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO/IEC/IEEE 29148:2018 §6.5 (Traceability)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -764,12 +891,19 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "COV-003"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "COV"
+# Human-readable check title
 title = "Coverage Mapping Completeness"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -781,13 +915,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "EXC-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "EXC"
+# Human-readable check title
 title = "Scope Non-Overlap"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "CRITICAL"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO 21511:2018 §4.2 (Mutual exclusivity)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -800,12 +942,19 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "EXC-002"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "EXC"
+# Human-readable check title
 title = "Boundary Clarity"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -816,12 +965,19 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "EXC-003"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "EXC"
+# Human-readable check title
 title = "Dependency vs Overlap Distinction"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -831,13 +987,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ATTR-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "ATTR"
+# Human-readable check title
 title = "Entity Identification"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "IEEE 1016-2009 §5.4.1 (identification attribute)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -848,13 +1012,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ATTR-002"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "ATTR"
+# Human-readable check title
 title = "Entity Type"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "IEEE 1016-2009 §5.4.1 (type attribute)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -864,13 +1036,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ATTR-003"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "ATTR"
+# Human-readable check title
 title = "Entity Purpose"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "IEEE 1016-2009 §5.4.1 (purpose attribute)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -881,13 +1061,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ATTR-004"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "ATTR"
+# Human-readable check title
 title = "Entity Function (Scope)"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "IEEE 1016-2009 §5.4.1 (function attribute)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -898,13 +1086,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ATTR-005"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "ATTR"
+# Human-readable check title
 title = "Entity Subordinates"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "IEEE 1016-2009 §5.4.1 (subordinates attribute)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -915,13 +1111,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "LEV-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "LEV"
+# Human-readable check title
 title = "Granularity Consistency"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO 21511:2018 §5.2 (decomposition levels)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -932,13 +1136,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "LEV-002"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "LEV"
+# Human-readable check title
 title = "Decomposition Depth"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "IEEE 1016-2009 §5.4.2 (decomposition hierarchy)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -948,12 +1160,19 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "LEV-003"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "LEV"
+# Human-readable check title
 title = "Phase Balance"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "LOW"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -963,13 +1182,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "CFG-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "CFG"
+# Human-readable check title
 title = "Configuration Item Boundaries"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO 10007:2017 §6.2 (CI selection)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -979,13 +1206,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "CFG-002"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "CFG"
+# Human-readable check title
 title = "Change Control Readiness"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "LOW"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO 10007:2017 §6.3 (change control)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -995,13 +1230,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "TRC-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "TRC"
+# Human-readable check title
 title = "Forward Traceability (Design → Features)"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO/IEC/IEEE 29148:2018 §6.5.2 (forward traceability)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1011,13 +1254,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "TRC-002"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "TRC"
+# Human-readable check title
 title = "Backward Traceability (Features → Design)"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO/IEC/IEEE 29148:2018 §6.5.2 (backward traceability)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1027,13 +1278,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "TRC-003"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "TRC"
+# Human-readable check title
 title = "Cross-Artifact Consistency"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO/IEC/IEEE 42010:2022 §5.6 (architecture description consistency)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1043,13 +1302,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "TRC-004"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "TRC"
+# Human-readable check title
 title = "Impact Analysis Readiness"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO/IEC/IEEE 42010:2022 §5.6 (consistency checking)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1059,13 +1326,21 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "DEP-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "DEP"
+# Human-readable check title
 title = "Dependency Graph Quality"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "CRITICAL"
+# Reference standard (ISO, IEEE, etc.) or empty string
 ref = "ISO/IEC 25010:2023 §4.2.7.2 (Modularity — loose coupling)"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1077,12 +1352,19 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "DEP-002"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "DEP"
+# Human-readable check title
 title = "Dependency Minimization"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1092,12 +1374,19 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "DEP-003"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "DEP"
+# Human-readable check title
 title = "Implementation Order"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "MEDIUM"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1107,12 +1396,19 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "CHK-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "CHK"
+# Human-readable check title
 title = "Status Integrity"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1123,12 +1419,19 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "CHK-002"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "CHK"
+# Human-readable check title
 title = "Reference Validity"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1138,12 +1441,19 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "DOC-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "DOC"
+# Human-readable check title
 title = "Explicit Non-Applicability"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "CRITICAL"
+# Check kind: must_have | must_not_have
 kind = "must_have"
 ```
 ```markdown
@@ -1153,12 +1463,19 @@ kind = "must_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "DECOMP-NO-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "DECOMP"
+# Human-readable check title
 title = "No Implementation Details"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "CRITICAL"
+# Check kind: must_have | must_not_have
 kind = "must_not_have"
 ```
 ```markdown
@@ -1172,12 +1489,19 @@ kind = "must_not_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "DECOMP-NO-002"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "DECOMP"
+# Human-readable check title
 title = "No Requirements Definitions"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Check kind: must_have | must_not_have
 kind = "must_not_have"
 ```
 ```markdown
@@ -1191,12 +1515,19 @@ kind = "must_not_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "DECOMP-NO-003"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "DECOMP"
+# Human-readable check title
 title = "No Architecture Decisions"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Check kind: must_have | must_not_have
 kind = "must_not_have"
 ```
 ```markdown
@@ -1209,12 +1540,19 @@ kind = "must_not_have"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "FMT-001"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "FMT"
+# Human-readable check title
 title = "Feature Entry Format"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Check kind: must_have | must_not_have
 kind = "format_validation"
 ```
 ```markdown
@@ -1224,12 +1562,19 @@ kind = "format_validation"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "FMT-002"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "FMT"
+# Human-readable check title
 title = "Required Fields Present"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "HIGH"
+# Check kind: must_have | must_not_have
 kind = "format_validation"
 ```
 ```markdown
@@ -1243,12 +1588,19 @@ kind = "format_validation"
 ```
 `@/cpt:check`
 
+> **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `checklist.md`.
+
 `@cpt:check`
 ```toml
+# Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "FMT-003"
+# Expertise domain: BIZ|ARCH|SEC|TEST|MAINT|OPS|DOC|UX|SAFE|COMPL|PERF|DATA|INT
 domain = "FMT"
+# Human-readable check title
 title = "Checkbox Syntax"
+# Severity: CRITICAL | HIGH | MEDIUM | LOW
 severity = "CRITICAL"
+# Check kind: must_have | must_not_have
 kind = "format_validation"
 ```
 ```markdown
@@ -1269,40 +1621,65 @@ entries with status/priority/scope/dependencies/traceability.
 
 ### Title (H1)
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "decomposition-h1-title"
+# Markdown heading level (1=H1 … 6=H6)
 level = 1
+# true = heading MUST appear in artifact | false = optional
 required = true
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = false
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = false
+# Suggested heading text template for authors
 template = "Decomposition: {PROJECT_NAME}"
+# Brief writing instruction for content under this heading
 prompt = "Project or system name"
+# Human description of this heading's purpose
 description = "DECOMPOSITION document title (H1)."
+# Example heading texts showing correct usage
 examples = ["# Decomposition: TaskFlow"]
 ```
 `@/cpt:heading`
 
 ### Overview
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "decomposition-overview"
+# Markdown heading level (1=H1 … 6=H6)
 level = 2
+# true = heading MUST appear in artifact | false = optional
 required = true
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = true
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = false
+# Regex the heading text must match (omit or null = any text)
 pattern = "Overview"
+# Human description of this heading's purpose
 description = "Overview of decomposition strategy."
+# Example heading texts showing correct usage
 examples = ["## 1. Overview"]
 ```
 `@/cpt:heading`
+
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
 
 `@cpt:prompt`
 ```markdown
 { Description of how the DESIGN was decomposed into features, the decomposition strategy, and any relevant decomposition rationale. }
 ```
 `@/cpt:prompt`
+
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
 
 `@cpt:example`
 ```markdown
@@ -1318,33 +1695,47 @@ TaskFlow design is decomposed into features organized around core task managemen
 
 ### Feature Entries
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "decomposition-entries"
+# Markdown heading level (1=H1 … 6=H6)
 level = 2
+# true = heading MUST appear in artifact | false = optional
 required = true
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = true
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = false
+# Regex the heading text must match (omit or null = any text)
 pattern = "Entries"
+# Human description of this heading's purpose
 description = "List of feature entries."
+# Example heading texts showing correct usage
 examples = ["## 2. Entries"]
 ```
 `@/cpt:heading`
+
+> **`@cpt:id`** — Identifier constraint. Defines an ID kind (template, references, task/priority rules). Output: `constraints.toml`.
 
 `@cpt:id`
 ```toml
 kind = "status"
 name = "Overall Status"
 description = "A decomposition-level status indicator used to summarize overall progress/state."
-required = false
-task = false
-priority = false
+required = false          # true = at least one ID of this kind must exist in artifact
+# task: omitted (optional) # true = must carry task attr | false = prohibited | omit = optional
+# priority: omitted (optional) # true = must carry priority | false = prohibited | omit = optional
 template = "cpt-{system}-status-overall"
-examples = ["cpt-cypilot-status-overall", "cpt-ex-ovwa-status-overall"]
-to_code = false
-headings = ["decomposition-entries"]
+examples = ["cpt-cypilot-status-overall", "cpt-ex-ovwa-status-overall", "cpt-cypilot-status-overall"]
+to_code = false              # true = ID is expected to appear in code via @cpt-* markers
+headings = ["decomposition-entries"]  # heading constraint IDs where this identifier must be placed
 ```
 `@/cpt:id`
+
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -1354,33 +1745,53 @@ headings = ["decomposition-entries"]
 ```
 `@/cpt:prompt`
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "decomposition-entry"
+# Markdown heading level (1=H1 … 6=H6)
 level = 3
+# true = heading MUST appear in artifact | false = optional
 required = true
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = true
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = true
+# Suggested heading text template for authors
 template = "[{Feature Title 1}](feature-{slug}/) - HIGH"
+# Human description of this heading's purpose
 description = "A single feature entry."
+# Example heading texts showing correct usage
 examples = []
 ```
 `@/cpt:heading`
+
+> **`@cpt:id`** — Identifier constraint. Defines an ID kind (template, references, task/priority rules). Output: `constraints.toml`.
 
 `@cpt:id`
 ```toml
 kind = "feature"
 name = "Feature Entry"
 description = "A DECOMPOSITION entry representing a FEATURE spec, including dependency and coverage links."
-required = true
-task = false
-priority = false
+required = true          # true = at least one ID of this kind must exist in artifact
+# task: omitted (optional) # true = must carry task attr | false = prohibited | omit = optional
+# priority: omitted (optional) # true = must carry priority | false = prohibited | omit = optional
 template = "cpt-{system}-feature-{slug}"
 examples = ["cpt-cypilot-feature-template-system", "cpt-cypilot-feature-adapter-system", "cpt-ex-ovwa-feature-tracker-core"]
-to_code = false
-headings = ["decomposition-entry"]
+to_code = false              # true = ID is expected to appear in code via @cpt-* markers
+headings = ["decomposition-entry"]  # heading constraint IDs where this identifier must be placed
+
+[references.FEATURE]  # how this ID is referenced in FEATURE artifacts
+coverage = true            # true = must reference | false = referencing prohibited | omit = optional
+# task: omitted (optional) # true = ref must carry task | false = prohibited | omit = optional
+# priority: omitted (optional) # true = ref must carry priority | false = prohibited | omit = optional
+headings = ["feature-h1-title"]  # target heading constraint in FEATURE
 ```
 `@/cpt:id`
+
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
 
 `@cpt:prompt`
 ```markdown
@@ -1581,6 +1992,8 @@ headings = ["decomposition-entry"]
 ```
 `@/cpt:prompt`
 
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
+
 `@cpt:example`
 ```markdown
 **Overall implementation status:**
@@ -1700,18 +2113,30 @@ headings = ["decomposition-entry"]
 ```
 `@/cpt:example`
 
+> **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `template.md`.
+
 `@cpt:heading`
 ```toml
+# Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "decomposition-feature-deps"
+# Markdown heading level (1=H1 … 6=H6)
 level = 2
+# true = heading MUST appear in artifact | false = optional
 required = true
+# true = may have number prefix (e.g. "1. Overview") | false = no numbering
 numbered = true
+# true = multiple instances allowed | false = exactly one | "required" = must have 2+
 multiple = false
+# Regex the heading text must match (omit or null = any text)
 pattern = "Feature Dependencies"
+# Human description of this heading's purpose
 description = "Cross-feature dependency overview."
+# Example heading texts showing correct usage
 examples = ["## 3. Feature Dependencies"]
 ```
 `@/cpt:heading`
+
+> **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `template.md`.
 
 `@cpt:prompt`
 ````markdown
@@ -1729,6 +2154,8 @@ cpt-{system}-feature-{foundation-slug}
 - `cpt-{system}-feature-{dependent-1-slug}` and `cpt-{system}-feature-{dependent-2-slug}` are independent of each other and can be developed in parallel
 ````
 `@/cpt:prompt`
+
+> **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `examples/example.md`.
 
 `@cpt:example`
 ```markdown
