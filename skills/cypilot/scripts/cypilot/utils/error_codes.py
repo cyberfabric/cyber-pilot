@@ -94,6 +94,14 @@ CODE_INST_MISSING = "code-inst-missing"
 CODE_INST_ORPHAN = "code-inst-orphan"
 
 # ---------------------------------------------------------------------------
+# TOC (Table of Contents) validation
+# ---------------------------------------------------------------------------
+TOC_MISSING = "toc-missing"
+TOC_ANCHOR_BROKEN = "toc-anchor-broken"
+TOC_HEADING_NOT_IN_TOC = "toc-heading-not-in-toc"
+TOC_STALE = "toc-stale"
+
+# ---------------------------------------------------------------------------
 # File errors
 # ---------------------------------------------------------------------------
 FILE_READ_ERROR = "file-read-error"

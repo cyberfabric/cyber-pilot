@@ -4,39 +4,41 @@
 **Kit**: sdlc
 
 **Dependencies**:
-- `checklist.md` — semantic quality criteria
+- `{cypilot_path}/.gen/kits/sdlc/codebase/checklist.md` — semantic quality criteria
 
 ## Table of Contents
 
-1. [Prerequisites](#prerequisites)
-   - [Load Dependencies](#load-dependencies)
-2. [Requirements](#requirements)
-   - [Structural](#structural)
-   - [Traceability](#traceability)
-   - [Checkbox Cascade](#checkbox-cascade)
-   - [Versioning](#versioning)
-   - [Engineering](#engineering)
-   - [Quality](#quality)
-3. [Tasks](#tasks)
-   - [Phase 1: Setup](#phase-1-setup)
-   - [Phase 2: Implementation (Work Packages)](#phase-2-implementation-work-packages)
-   - [Phase 3: Cypilot Markers (Traceability Mode ON only)](#phase-3-cypilot-markers-traceability-mode-on-only)
-   - [Phase 4: Sync FEATURE (Traceability Mode ON only)](#phase-4-sync-feature-traceability-mode-on-only)
-   - [Phase 5: Quality Check](#phase-5-quality-check)
-   - [Phase 6: Tag Verification (Traceability Mode ON only)](#phase-6-tag-verification-traceability-mode-on-only)
-4. [Validation](#validation)
-   - [Phase 1: Implementation Coverage](#phase-1-implementation-coverage)
-   - [Phase 2: Traceability Validation (Mode ON only)](#phase-2-traceability-validation-mode-on-only)
-   - [Phase 3: Test Scenarios Validation](#phase-3-test-scenarios-validation)
-   - [Phase 4: Build and Lint Validation](#phase-4-build-and-lint-validation)
-   - [Phase 5: Test Execution](#phase-5-test-execution)
-   - [Phase 6: Code Quality Validation](#phase-6-code-quality-validation)
-   - [Phase 7: Code Logic Consistency with Design](#phase-7-code-logic-consistency-with-design)
-   - [Phase 8: Semantic Expert Review (Always)](#phase-8-semantic-expert-review-always)
-5. [Next Steps](#next-steps)
-   - [After Success](#after-success)
-   - [After Issues](#after-issues)
-   - [No Design](#no-design)
+- [CODEBASE Rules](#codebase-rules)
+  - [Table of Contents](#table-of-contents)
+  - [Prerequisites](#prerequisites)
+    - [Load Dependencies](#load-dependencies)
+  - [Requirements](#requirements)
+    - [Structural](#structural)
+    - [Traceability](#traceability)
+    - [Checkbox Cascade](#checkbox-cascade)
+    - [Versioning](#versioning)
+    - [Engineering](#engineering)
+    - [Quality](#quality)
+  - [Tasks](#tasks)
+    - [Phase 1: Setup](#phase-1-setup)
+    - [Phase 2: Implementation (Work Packages)](#phase-2-implementation-work-packages)
+    - [Phase 3: Cypilot Markers (Traceability Mode ON only)](#phase-3-cypilot-markers-traceability-mode-on-only)
+    - [Phase 4: Sync FEATURE (Traceability Mode ON only)](#phase-4-sync-feature-traceability-mode-on-only)
+    - [Phase 5: Quality Check](#phase-5-quality-check)
+    - [Phase 6: Tag Verification (Traceability Mode ON only)](#phase-6-tag-verification-traceability-mode-on-only)
+  - [Validation](#validation)
+    - [Phase 1: Implementation Coverage](#phase-1-implementation-coverage)
+    - [Phase 2: Traceability Validation (Mode ON only)](#phase-2-traceability-validation-mode-on-only)
+    - [Phase 3: Test Scenarios Validation](#phase-3-test-scenarios-validation)
+    - [Phase 4: Build and Lint Validation](#phase-4-build-and-lint-validation)
+    - [Phase 5: Test Execution](#phase-5-test-execution)
+    - [Phase 6: Code Quality Validation](#phase-6-code-quality-validation)
+    - [Phase 7: Code Logic Consistency with Design](#phase-7-code-logic-consistency-with-design)
+    - [Phase 8: Semantic Expert Review (Always)](#phase-8-semantic-expert-review-always)
+  - [Next Steps](#next-steps)
+    - [After Success](#after-success)
+    - [After Issues](#after-issues)
+    - [No Design](#no-design)
 
 ---
 
@@ -46,7 +48,7 @@
 
 - [ ] Read project `AGENTS.md` for code conventions
 - [ ] Load source artifact/description (FEATURE preferred)
-- [ ] Load `checklist.md` for quality guidance
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/codebase/checklist.md` for quality guidance
 - [ ] Load `{cypilot_path}/.core/requirements/code-checklist.md` for generic code quality checks
 - [ ] If FEATURE source: identify all IDs with `to_code="true"` attribute
 - [ ] Determine Traceability Mode (FULL vs DOCS-ONLY)
@@ -154,7 +156,7 @@ PRD/DESIGN: referenced IDs [x] when ALL downstream refs [x]
 
 ### Quality
 
-**Reference**: `checklist.md` for detailed criteria
+**Reference**: `{cypilot_path}/.gen/kits/sdlc/codebase/checklist.md` for detailed criteria
 
 - [ ] Code passes quality checklist
 - [ ] Functions/methods are appropriately sized
@@ -177,7 +179,7 @@ PRD/DESIGN: referenced IDs [x] when ALL downstream refs [x]
 **Load Context**:
 - [ ] Read project `AGENTS.md` for code conventions
 - [ ] Load source artifact/description
-- [ ] Load `checklist.md` for quality guidance
+- [ ] Load `{cypilot_path}/.gen/kits/sdlc/codebase/checklist.md` for quality guidance
 - [ ] Determine Traceability Mode
 - [ ] Plan implementation order
 
@@ -211,7 +213,7 @@ After each work package, sync checkboxes:
 
 ### Phase 5: Quality Check
 
-- [ ] Self-review against `checklist.md`
+- [ ] Self-review against `{cypilot_path}/.gen/kits/sdlc/codebase/checklist.md`
 - [ ] If Traceability Mode ON: verify all `to_code="true"` IDs have markers
 - [ ] If Traceability Mode ON: ensure no orphaned markers
 - [ ] Run tests to verify implementation

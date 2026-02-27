@@ -23,6 +23,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+from cypilot.utils.toc import insert_toc_heading as _insert_toc
+
 
 # ---------------------------------------------------------------------------
 # Data structures
@@ -326,167 +328,8 @@ def generate_artifact_outputs(
     # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-return-outputs
 
 
-def _github_anchor(text: str) -> str:
-    """Convert heading text to GitHub-compatible markdown anchor."""
-    # Remove markdown formatting (bold, italic, code, strikethrough)
-    text = re.sub(r"\*\*|__|[*_`~]", "", text)
-    text = text.lower().strip()
-    # Keep word chars (letters, digits, underscore), spaces, hyphens
-    text = re.sub(r"[^\w\s-]", "", text)
-    # Collapse whitespace → single hyphen
-    text = re.sub(r"[\s]+", "-", text)
-    return text.strip("-")
-
-
-def _build_toc(content: str, *, max_heading_level: int = 2) -> str:
-    """Build Table of Contents entries from markdown headings.
-
-    Skips the document title (first heading) and any existing ToC heading.
-    Uses a parent-stack approach for correct indentation:
-    - Top-level items are numbered (1. 2. 3.)
-    - Sub-level items are bulleted with indentation
-    """
-    lines = content.split("\n")
-    headings: List[tuple] = []
-    first_heading_skipped = False
-    in_fenced_block = False
-
-    for line in lines:
-        # Track fenced code blocks to skip headings inside them
-        if re.match(r"^(`{3,}|~{3,})", line):
-            in_fenced_block = not in_fenced_block
-            continue
-        if in_fenced_block:
-            continue
-
-        m = re.match(r"^(#{1,6})\s+(.+)$", line)
-        if not m:
-            continue
-        level = len(m.group(1))
-        text = m.group(2).strip()
-
-        if not first_heading_skipped:
-            first_heading_skipped = True
-            continue
-
-        if level > max_heading_level:
-            continue
-
-        # Skip ToC heading itself
-        if text.lower() in ("table of contents", "toc"):
-            continue
-
-        headings.append((level, text))
-
-    if not headings:
-        return ""
-
-    # Build ToC using parent-stack for indentation
-    anchor_counts: Dict[str, int] = {}
-    parent_stack: List[int] = []
-    top_num = 0
-    toc_lines: List[str] = []
-
-    for level, text in headings:
-        anchor = _github_anchor(text)
-        # Handle duplicate anchors (GitHub appends -1, -2, …)
-        if anchor in anchor_counts:
-            suffix = anchor_counts[anchor]
-            anchor_counts[anchor] = suffix + 1
-            anchor = f"{anchor}-{suffix}"
-        else:
-            anchor_counts[anchor] = 1
-
-        # Pop stack entries at same or higher level
-        while parent_stack and parent_stack[-1] >= level:
-            parent_stack.pop()
-
-        depth = len(parent_stack)
-        parent_stack.append(level)
-
-        if depth == 0:
-            top_num += 1
-            toc_lines.append(f"{top_num}. [{text}](#{anchor})")
-        else:
-            indent = "   " * depth
-            toc_lines.append(f"{indent}- [{text}](#{anchor})")
-
-    return "\n".join(toc_lines)
-
-
-def _insert_toc(content: str, *, max_heading_level: int = 2) -> str:
-    """Insert or replace a Table of Contents section in markdown content.
-
-    If an existing ``## Table of Contents`` is found, replaces it.
-    Otherwise inserts after the title metadata block (before the first
-    ``---`` separator that is not part of YAML frontmatter).
-    """
-    toc_body = _build_toc(content, max_heading_level=max_heading_level)
-    if not toc_body:
-        return content
-
-    toc_section = f"## Table of Contents\n\n{toc_body}"
-    lines = content.split("\n")
-
-    # --- Try replacing an existing ToC section ---
-    toc_start = toc_end = None
-    for i, line in enumerate(lines):
-        if re.match(r"^##\s+Table of Contents\s*$", line):
-            toc_start = i
-            # End = next heading or --- separator
-            for j in range(i + 1, len(lines)):
-                if re.match(r"^#{1,6}\s", lines[j]) or lines[j].strip() == "---":
-                    toc_end = j
-                    break
-            else:
-                toc_end = len(lines)
-            break
-
-    if toc_start is not None and toc_end is not None:
-        # Strip blank lines around the replacement region
-        while toc_start > 0 and lines[toc_start - 1].strip() == "":
-            toc_start -= 1
-        while toc_end < len(lines) and lines[toc_end].strip() == "":
-            toc_end += 1
-        before = "\n".join(lines[:toc_start])
-        after = "\n".join(lines[toc_end:])
-        return f"{before}\n\n{toc_section}\n\n{after}"
-
-    # --- No existing ToC: insert before first non-frontmatter --- ---
-    i = 0
-    # Skip YAML frontmatter (starts and ends with ---)
-    if lines and lines[0].strip() == "---":
-        i = 1
-        while i < len(lines) and lines[i].strip() != "---":
-            i += 1
-        if i < len(lines):
-            i += 1  # skip closing ---
-
-    # Find the first --- separator (section break)
-    for j in range(i, len(lines)):
-        if lines[j].strip() == "---":
-            # Insert ToC before this ---
-            before = "\n".join(lines[:j]).rstrip("\n")
-            after = "\n".join(lines[j:])
-            return f"{before}\n\n{toc_section}\n\n{after}"
-
-    # No --- found: insert after first heading + metadata block
-    for j in range(i, len(lines)):
-        if re.match(r"^#{1,6}\s", lines[j]):
-            # Skip past the heading's metadata (bold lines, list items, blanks)
-            k = j + 1
-            while k < len(lines):
-                s = lines[k].strip()
-                if s.startswith("**") or s.startswith("- ") or s == "":
-                    k += 1
-                else:
-                    break
-            before = "\n".join(lines[:k]).rstrip("\n")
-            after = "\n".join(lines[k:])
-            return f"{before}\n\n{toc_section}\n\n{after}"
-
-    # Fallback: prepend
-    return f"{toc_section}\n\n{content}"
+# NOTE: _insert_toc is now imported from cypilot.utils.toc (insert_toc_heading)
+# and provides the same interface: _insert_toc(content, *, max_heading_level=2)
 
 
 def _collect_skill_blocks(bp: ParsedBlueprint) -> str:
@@ -609,13 +452,22 @@ def _collect_rules(bp: ParsedBlueprint) -> str:
     has_template = any(m.marker_type in ("heading", "prompt") for m in bp.markers) and bp.artifact_kind
     has_checklist = any(m.marker_type in ("checklist", "check") for m in bp.markers)
     has_example = any(m.marker_type == "example" for m in bp.markers) and bp.artifact_kind
+    # Build base path: artifacts/{KIND} for artifact blueprints, codebase for CODEBASE
+    is_codebase = not bp.artifact_kind or not any(
+        m.marker_type == "blueprint" and m.toml_data.get("artifact")
+        for m in bp.markers
+    )
+    if not is_codebase:
+        dep_base = "{cypilot_path}/.gen/kits/" + kit + "/artifacts/" + bp.artifact_kind
+    else:
+        dep_base = "{cypilot_path}/.gen/kits/" + kit + "/codebase"
     deps: List[str] = []
     if has_template:
-        deps.append("- `template.md` — structural reference")
+        deps.append("- `" + dep_base + "/template.md` — structural reference")
     if has_checklist:
-        deps.append("- `checklist.md` — semantic quality criteria")
+        deps.append("- `" + dep_base + "/checklist.md` — semantic quality criteria")
     if has_example:
-        deps.append("- `examples/example.md` — reference implementation")
+        deps.append("- `" + dep_base + "/examples/example.md` — reference implementation")
     if deps:
         parts.append("**Dependencies**:")
         parts.extend(deps)

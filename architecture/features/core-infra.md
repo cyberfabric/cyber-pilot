@@ -218,11 +218,11 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 
 **Input**: Cypilot directory path, installed kits list
 
-**Output**: Created `.cypilot/AGENTS.md`
+**Output**: Created `{cypilot_path}/config/AGENTS.md`
 
 **Steps**:
 1. [x] - `p1` - Generate default WHEN rules for artifacts.toml, schemas, requirements - `inst-gen-when-rules`
-2. [x] - `p1` - Write `.cypilot/AGENTS.md` with navigation header and WHEN rules - `inst-write-config-agents`
+2. [x] - `p1` - Write `{cypilot_path}/config/AGENTS.md` with navigation header and WHEN rules - `inst-write-config-agents`
 3. [x] - `p1` - **RETURN** path to created file - `inst-return-config-agents-path`
 
 
@@ -306,7 +306,7 @@ The system **MUST** provide a cache mechanism in the CLI proxy that downloads th
 
 - [x] `p1` - **ID**: `cpt-cypilot-dod-core-infra-init-config`
 
-The system **MUST** provide a `cypilot init` command that copies skill bundle from cache, defines the root system from the project directory name, creates `.cypilot/core.toml` with system and kit registrations, creates `.cypilot/artifacts.toml` with default SDLC autodetect rules, injects the root `AGENTS.md` managed block, and creates `.cypilot/AGENTS.md` with default WHEN rules.
+The system **MUST** provide a `cypilot init` command that copies skill bundle from cache, defines the root system from the project directory name, creates `.cypilot/config/core.toml` with system and kit registrations, creates `.cypilot/config/artifacts.toml` with default SDLC autodetect rules, injects the root `AGENTS.md` managed block, and creates `{cypilot_path}/config/AGENTS.md` with default WHEN rules.
 
 **Implements**:
 - `cpt-cypilot-flow-core-infra-project-init`
@@ -354,4 +354,4 @@ The system **MUST** verify the root `AGENTS.md` managed block on every CLI invoc
 - [x] All commands output JSON to stdout and use exit codes 0/1/2
 - [x] Root `AGENTS.md` managed block is verified and re-injected on every CLI invocation
 - [x] Background version check does not block command execution
-- [x] `.cypilot/AGENTS.md` is created with default WHEN rules for artifacts registry
+- [x] `{cypilot_path}/config/AGENTS.md` is created with default WHEN rules for artifacts registry

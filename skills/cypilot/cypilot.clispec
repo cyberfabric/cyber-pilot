@@ -350,3 +350,69 @@ RELATED:
   - @CLI.validate-kits
   - @CLI.validate
   - @Workflow.rules
+---
+
+COMMAND toc
+SYNOPSIS: python3 scripts/cypilot.py toc <files...> [options]
+DESCRIPTION: Generate or update Table of Contents in Markdown files. Parses ATX headings (## … ######) and inserts/updates a TOC between <!-- toc --> and <!-- /toc --> markers. If markers are absent, inserts them after the first H1 heading.
+
+ARGUMENTS:
+  files  <path>  required  One or more Markdown file paths to process
+
+OPTIONS:
+  --max-level  <number>  [default: 6]  Maximum heading level to include (1-6)
+  --indent  <number>  [default: 2]  Indent spaces per nesting level
+  --dry-run  <boolean>  Show what would change without writing files
+
+EXIT CODES:
+  0  Success
+  1  Error (file not found or processing failure)
+
+OUTPUT:
+  JSON object with:
+  - status: OK, PARTIAL, or ERROR
+  - files_processed: Number of files processed
+  - results: Per-file results with status (UPDATED, UNCHANGED, SKIP, WOULD_UPDATE, ERROR)
+
+EXAMPLE:
+  $ python3 scripts/cypilot.py toc architecture/specs/traceability.md
+  $ python3 scripts/cypilot.py toc --dry-run *.md
+  $ python3 scripts/cypilot.py toc --max-level 3 README.md DESIGN.md
+  $ python3 scripts/cypilot.py toc --indent 4 docs/*.md
+
+RELATED:
+  - @CLI.validate
+  - @CLI.validate-toc
+---
+
+COMMAND validate-toc
+SYNOPSIS: python3 scripts/cypilot.py validate-toc <files...> [options]
+DESCRIPTION: Validate Table of Contents in Markdown files. Checks that a TOC section exists (either ## Table of Contents heading or <!-- toc --> markers), all TOC anchors point to real headings, all headings are represented in the TOC, and the TOC is not stale.
+
+ARGUMENTS:
+  files  <path>  required  One or more Markdown file paths to validate
+
+OPTIONS:
+  --max-level  <number>  [default: 6]  Maximum heading level to include (1-6)
+  --verbose  <boolean>  Include full error/warning details in output
+
+EXIT CODES:
+  0  All files pass validation
+  2  One or more files have TOC errors
+
+OUTPUT:
+  JSON object with:
+  - status: PASS, WARN, or FAIL
+  - files_validated: Number of files validated
+  - error_count: Total errors across all files
+  - warning_count: Total warnings across all files
+  - results: Per-file results with status (PASS, WARN, FAIL, ERROR) and error/warning details
+
+EXAMPLE:
+  $ python3 scripts/cypilot.py validate-toc architecture/PRD.md
+  $ python3 scripts/cypilot.py validate-toc --verbose *.md
+  $ python3 scripts/cypilot.py validate-toc --max-level 3 DESIGN.md DECOMPOSITION.md
+
+RELATED:
+  - @CLI.toc
+  - @CLI.validate

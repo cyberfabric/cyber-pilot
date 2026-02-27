@@ -70,7 +70,7 @@ Without SDLC-specific content, Cypilot is a generic ID system with no domain val
 
 **Steps**:
 1. [ ] - `p1` - User invokes `cypilot self-check` - `inst-user-self-check`
-2. [ ] - `p1` - Load installed kits from `config/core.toml` - `inst-load-kits`
+2. [ ] - `p1` - Load installed kits from `{cypilot_path}/config/core.toml` - `inst-load-kits`
 3. [ ] - `p1` - **FOR EACH** installed kit - `inst-foreach-kit`
    1. [ ] - `p1` - Validate kit completeness using `cpt-cypilot-algo-sdlc-kit-validate-completeness` - `inst-validate-kit`
 4. [ ] - `p1` - Aggregate results across all kits - `inst-aggregate-results`
@@ -109,10 +109,10 @@ Without SDLC-specific content, Cypilot is a generic ID system with no domain val
 1. [ ] - `p1` - Define expected artifact kinds for SDLC kit: PRD, DESIGN, ADR, DECOMPOSITION, FEATURE - `inst-define-expected`
 2. [ ] - `p1` - Define expected codebase outputs: `codebase/rules.md`, `codebase/checklist.md` - `inst-define-codebase`
 3. [ ] - `p1` - **FOR EACH** expected artifact kind - `inst-foreach-kind`
-   1. [ ] - `p1` - Check that output directory `config/kits/{slug}/artifacts/{KIND}/` exists - `inst-check-output-dir`
+   1. [ ] - `p1` - Check that output directory `{cypilot_path}/config/kits/{slug}/artifacts/{KIND}/` exists - `inst-check-output-dir`
    2. [ ] - `p1` - Check required files present: `rules.md`, `checklist.md`, `template.md` - `inst-check-required-files`
    3. [ ] - `p1` - **IF** any required file missing, record as FAIL for this kind - `inst-if-missing-file`
-4. [ ] - `p1` - Check kit-wide `constraints.toml` exists at `config/kits/{slug}/constraints.toml` - `inst-check-constraints`
+4. [ ] - `p1` - Check kit-wide `constraints.toml` exists at `{cypilot_path}/config/kits/{slug}/constraints.toml` - `inst-check-constraints`
 5. [ ] - `p1` - Check codebase outputs exist - `inst-check-codebase`
 6. [ ] - `p1` - **IF** any check failed **RETURN** FAIL with list of missing files - `inst-if-any-fail`
 7. [ ] - `p1` - **RETURN** PASS with coverage (kinds verified, files checked) - `inst-return-valid`

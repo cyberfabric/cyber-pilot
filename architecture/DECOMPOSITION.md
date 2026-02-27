@@ -29,8 +29,8 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
 - **Scope**:
   - Global CLI proxy with local cache (`~/.cypilot/cache/`), automatic skill bundle download from GitHub on first run, command routing, background version checks
   - Skill engine: command dispatch, JSON output serialization, exit code conventions (0/1/2)
-  - Config manager: `config/core.toml` CRUD, schema validation, deterministic TOML serialization
-  - Project initialization: interactive bootstrapper, root system definition (name/slug from directory), `config/core.toml` creation, `config/artifacts.toml` with default autodetect rules, root `AGENTS.md` injection, `config/AGENTS.md` with default WHEN rules
+  - Config manager: `{cypilot_path}/config/core.toml` CRUD, schema validation, deterministic TOML serialization
+  - Project initialization: interactive bootstrapper, root system definition (name/slug from directory), `{cypilot_path}/config/core.toml` creation, `{cypilot_path}/config/artifacts.toml` with default autodetect rules, root `AGENTS.md` injection, `{cypilot_path}/config/AGENTS.md` with default WHEN rules
 
 - **Out of scope**:
   - Kit installation logic (Feature 2)
@@ -79,8 +79,8 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
   - `cpt-cypilot-seq-init`
 
 - **Data**:
-  - `config/core.toml` — system definitions, kit registrations, ignore lists
-  - `config/artifacts.toml` — artifact registry with autodetect rules
+  - `{cypilot_path}/config/core.toml` — system definitions, kit registrations, ignore lists
+  - `{cypilot_path}/config/artifacts.toml` — artifact registry with autodetect rules
 
 
 ### 2.2 [Blueprint System](feature-blueprint-system/) ⏳ HIGH
@@ -94,10 +94,10 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
 - **Scope**:
   - Blueprint Processor: parse `@cpt:` markers, extract TOML/Markdown content blocks
   - Resource generation: `rules.md`, `checklist.md`, `template.md`, `example.md`, `constraints.toml`, `workflows/*.md`, `codebase/rules.md`, `codebase/checklist.md`
-  - Kit Manager: install kits (save to `{cypilot_path}/.core/kits/{slug}/`, copy blueprints to `config/kits/{slug}/blueprints/`), register in `core.toml`
+  - Kit Manager: install kits (save to `{cypilot_path}/.core/kits/{slug}/`, copy blueprints to `{cypilot_path}/config/kits/{slug}/blueprints/`), register in `core.toml`
   - Update model: force mode (full overwrite) and additive mode (three-way diff using reference)
-  - SKILL composition: collect `@cpt:skill` sections and write to `config/SKILL.md`
-  - System prompt composition: collect `@cpt:system-prompt` sections and append to `config/AGENTS.md`
+  - SKILL composition: collect `@cpt:skill` sections and write to `{cypilot_path}/config/SKILL.md`
+  - System prompt composition: collect `@cpt:system-prompt` sections and append to `{cypilot_path}/config/AGENTS.md`
   - Workflow registration: generate workflow files from `@cpt:workflow` markers
   - Blueprint validation: verify structure, marker closure, unique IDs
 
@@ -143,10 +143,10 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
 
 - **Data**:
   - `{cypilot_path}/.core/kits/{slug}/` — reference kit copies
-  - `config/kits/{slug}/blueprints/` — user-editable blueprint copies
-  - `config/kits/{slug}/constraints.toml` — kit-wide structural constraints
-  - `config/kits/{slug}/artifacts/{KIND}/` — generated per-artifact outputs
-  - `config/kits/{slug}/workflows/` — generated workflow files
+  - `{cypilot_path}/config/kits/{slug}/blueprints/` — user-editable blueprint copies
+  - `{cypilot_path}/config/kits/{slug}/constraints.toml` — kit-wide structural constraints
+  - `{cypilot_path}/config/kits/{slug}/artifacts/{KIND}/` — generated per-artifact outputs
+  - `{cypilot_path}/config/kits/{slug}/workflows/` — generated workflow files
 
 
 ### 2.3 [Traceability & Validation](feature-traceability-validation/) ⏳ HIGH
@@ -267,7 +267,7 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
 
 - **Data**:
   - `kits/sdlc/blueprints/` — source blueprint files
-  - `config/kits/sdlc/` — installed kit config and generated outputs
+  - `{cypilot_path}/config/kits/sdlc/` — installed kit config and generated outputs
 
 
 ### 2.5 [Agent Integration & Workflows](feature-agent-integration/) ⏳ MEDIUM
@@ -283,7 +283,7 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
   - Supported agents: Windsurf, Cursor, Claude, Copilot, OpenAI
   - SKILL.md composition: collect `@cpt:skill` sections and assemble into main SKILL.md
   - Full overwrite on each invocation; `--agent` flag for single-agent regeneration
-  - Generic workflows: `generate.md` and `analyze.md` with common execution protocol
+  - Generic workflows: `{cypilot_path}/.core/workflows/generate.md` and `{cypilot_path}/.core/workflows/analyze.md` with common execution protocol
 
 - **Out of scope**:
   - Agent-specific state persistence
@@ -368,7 +368,7 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
   - `cpt-cypilot-seq-pr-review`
 
 - **Data**:
-  - `config/kits/sdlc/` — PR review prompts, checklists, exclude lists
+  - `{cypilot_path}/config/kits/sdlc/` — PR review prompts, checklists, exclude lists
 
 - **External Dependencies**:
 
@@ -384,7 +384,7 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
 - **Depends On**: `cpt-cypilot-feature-core-infra`, `cpt-cypilot-feature-blueprint-system`
 
 - **Scope**:
-  - Update command: copy cached skill to project, migrate `config/core.toml`, invoke kit migration scripts, regenerate agent entry points
+  - Update command: copy cached skill to project, migrate `{cypilot_path}/config/core.toml`, invoke kit migration scripts, regenerate agent entry points
   - Config migration: backup before applying, preserve all user settings across versions
   - CLI config interface: `config system add/remove`, dry-run mode
   - Schema validation before all config writes
@@ -427,7 +427,7 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
   - `cpt-cypilot-seq-update`
 
 - **Data**:
-  - `config/core.toml` — migrated config with version field
+  - `{cypilot_path}/config/core.toml` — migrated config with version field
 
 
 ### 2.8 [Developer Experience](feature-developer-experience/) ⏳ LOW
@@ -543,7 +543,7 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
   None (workflows are agent-driven)
 
 - **Data**:
-  - `config/kits/sdlc/` — PR config, autodetect rules
+  - `{cypilot_path}/config/kits/sdlc/` — PR config, autodetect rules
 
 
 ### 2.10 [V2 → V3 Migration](feature-v2-v3-migration/) ⏳ HIGH
@@ -556,12 +556,12 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
 
 - **Scope**:
   - Detect v2 installation: identify `.cypilot-adapter/` directory, `artifacts.toml`, legacy kit paths
-  - Convert `artifacts.toml` → `config/artifacts.toml`: map systems, artifacts, codebase, autodetect, ignore rules to TOML format
+  - Convert `artifacts.toml` → `{cypilot_path}/config/artifacts.toml`: map systems, artifacts, codebase, autodetect, ignore rules to TOML format
   - Convert legacy adapter directory → `config/` structure: migrate adapter-level specs to `config/sysprompts/`
-  - Generate `config/core.toml` from legacy config: extract system definitions, kit registrations
-  - Create `config/AGENTS.md` from legacy adapter `AGENTS.md`: convert WHEN rules, update paths
-  - Migrate kit resources: install SDLC kit from cache, regenerate blueprint outputs into `config/kits/sdlc/`
-  - Inject root `AGENTS.md` managed block with new `config/AGENTS.md` path
+  - Generate `{cypilot_path}/config/core.toml` from legacy config: extract system definitions, kit registrations
+  - Create `{cypilot_path}/config/AGENTS.md` from legacy adapter `AGENTS.md`: convert WHEN rules, update paths
+  - Migrate kit resources: install SDLC kit from cache, regenerate blueprint outputs into `{cypilot_path}/config/kits/sdlc/`
+  - Inject root `AGENTS.md` managed block with new `{cypilot_path}/config/AGENTS.md` path
   - Regenerate all agent entry points for v3 structure
   - Preserve all existing artifact files and ID definitions unchanged
   - Validate migration completeness: all artifacts still resolve, all IDs still discoverable
@@ -607,8 +607,8 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
 
 - **Data**:
   - `.cypilot-adapter/` → `config/` (converted)
-  - `artifacts.toml` → `config/artifacts.toml` (converted)
-  - `.cypilot-adapter/AGENTS.md` → `config/AGENTS.md` (converted)
+  - `artifacts.toml` → `{cypilot_path}/config/artifacts.toml` (converted)
+  - `.cypilot-adapter/AGENTS.md` → `{cypilot_path}/config/AGENTS.md` (converted)
   - `.cypilot-adapter/specs/` → `config/sysprompts/` (converted)
 
 

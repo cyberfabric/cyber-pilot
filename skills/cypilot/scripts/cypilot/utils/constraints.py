@@ -339,6 +339,24 @@ def validate_artifact_file(
         # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-if-headings-fail
     # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-check-headings
 
+    # Phase 1b: TOC validation
+    from .toc import validate_toc as _validate_toc
+    from .document import read_text_safe as _read_text_safe
+
+    _toc_lines = _read_text_safe(artifact_path)
+    if _toc_lines is not None:
+        _toc_content = "\n".join(_toc_lines)
+        _max_hl = 6
+        if getattr(constraints, "headings", None):
+            _max_hl = max((h.level for h in constraints.headings), default=6)
+        _toc_result = _validate_toc(
+            _toc_content,
+            artifact_path=artifact_path,
+            max_heading_level=_max_hl,
+        )
+        errors.extend(_toc_result.get("errors", []))
+        warnings.extend(_toc_result.get("warnings", []))
+
     # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-scan-ids
     # Phase 2: identifier/content validation
     hits = scan_cpt_ids(artifact_path)

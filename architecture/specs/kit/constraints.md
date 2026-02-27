@@ -56,7 +56,7 @@ drivers:
 
 ## Location
 
-**Kit-wide**: `config/kits/<slug>/constraints.toml`
+**Kit-wide**: `{cypilot_path}/config/kits/<slug>/constraints.toml`
 
 ---
 

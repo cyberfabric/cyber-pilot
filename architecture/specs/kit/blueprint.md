@@ -72,19 +72,19 @@ Blueprints with an `artifact` key in `@cpt:blueprint` define artifact kinds (e.g
 
 **File location**:
 - Source: `kits/<kit-slug>/blueprints/<KIND>.md`
-- Installed (user-editable): `config/kits/<slug>/blueprints/<KIND>.md`
+- Installed (user-editable): `{cypilot_path}/config/kits/<slug>/blueprints/<KIND>.md`
 
 **Generated outputs** (see individual specs for format details):
 
 | Output | Location | Spec |
 |--------|----------|------|
-| `rules.md` | `config/kits/<slug>/artifacts/<KIND>/` | [rules.md](rules.md) |
-| `checklist.md` | `config/kits/<slug>/artifacts/<KIND>/` | [checklist.md](checklist.md) |
-| `template.md` | `config/kits/<slug>/artifacts/<KIND>/` | [template.md](template.md) |
-| `example.md` | `config/kits/<slug>/artifacts/<KIND>/` | [example.md](example.md) |
-| `constraints.toml` | `config/kits/<slug>/` (kit-wide) | [constraints.md](constraints.md) |
-| codebase `rules.md` | `config/kits/<slug>/codebase/` | [rules.md](rules.md) |
-| codebase `checklist.md` | `config/kits/<slug>/codebase/` | [checklist.md](checklist.md) |
+| `rules.md` | `{cypilot_path}/config/kits/<slug>/artifacts/<KIND>/` | [rules.md](rules.md) |
+| `checklist.md` | `{cypilot_path}/config/kits/<slug>/artifacts/<KIND>/` | [checklist.md](checklist.md) |
+| `template.md` | `{cypilot_path}/config/kits/<slug>/artifacts/<KIND>/` | [template.md](template.md) |
+| `example.md` | `{cypilot_path}/config/kits/<slug>/artifacts/<KIND>/` | [example.md](example.md) |
+| `constraints.toml` | `{cypilot_path}/config/kits/<slug>/` (kit-wide) | [constraints.md](constraints.md) |
+| codebase `rules.md` | `{cypilot_path}/config/kits/<slug>/codebase/` | [rules.md](rules.md) |
+| codebase `checklist.md` | `{cypilot_path}/config/kits/<slug>/codebase/` | [checklist.md](checklist.md) |
 
 ---
 
@@ -140,8 +140,8 @@ Each marker may contain two types of fenced code blocks:
 | Marker | Content Blocks | Owner | Description | Generates |
 |--------|---------------|-------|-------------|-----------|
 | `@cpt:blueprint` | toml | core | Blueprint identity and metadata | — |
-| `@cpt:skill` | markdown | core | SKILL.md extension content | → `config/SKILL.md` (aggregated) |
-| `@cpt:system-prompt` | markdown | core | Agent directives (ALWAYS/WHEN) | → `config/AGENTS.md` (appended) |
+| `@cpt:skill` | markdown | core | SKILL.md extension content | → `{cypilot_path}/config/SKILL.md` (aggregated) |
+| `@cpt:system-prompt` | markdown | core | Agent directives (ALWAYS/WHEN) | → `{cypilot_path}/config/AGENTS.md` (appended) |
 | `@cpt:workflow` | toml + markdown | core | Workflow definition | → `workflows/{name}.md` + agent entry points |
 | `@cpt:rules` | toml | core | rules.md structure skeleton | → rules.md |
 | `@cpt:rule` | toml + markdown | core | Individual rule entry | → rules.md |
@@ -206,7 +206,7 @@ Contains a single ` ```markdown ` block with SKILL.md extension content.
 `@/cpt:skill`
 ````
 
-Content from all blueprints in the kit is aggregated and written to `config/SKILL.md` during `cypilot init` / `cypilot kit install`. The main SKILL.md has a navigation rule (`ALWAYS open and follow {cypilot_path}/config/SKILL.md WHEN it exists`) that ensures AI agents discover kit capabilities automatically.
+Content from all blueprints in the kit is aggregated and written to `{cypilot_path}/config/SKILL.md` during `cypilot init` / `cypilot kit install`. The main SKILL.md has a navigation rule (`ALWAYS open and follow {cypilot_path}/config/SKILL.md WHEN it exists`) that ensures AI agents discover kit capabilities automatically.
 
 ---
 
@@ -226,7 +226,7 @@ ALWAYS use observable behavior language (MUST/MUST NOT/SHOULD) WHEN writing func
 `@/cpt:system-prompt`
 ````
 
-Content from all blueprints in the kit is appended to `config/AGENTS.md` during `cypilot init` / `cypilot kit install`. Since `config/AGENTS.md` is loaded via the Protocol Guard, these directives are automatically active when the agent processes the corresponding artifact kind.
+Content from all blueprints in the kit is appended to `{cypilot_path}/config/AGENTS.md` during `cypilot init` / `cypilot kit install`. Since `{cypilot_path}/config/AGENTS.md` is loaded via the Protocol Guard, these directives are automatically active when the agent processes the corresponding artifact kind.
 
 ---
 
@@ -787,16 +787,16 @@ The Blueprint Processor parses all markers and invokes output generators. All ou
 
 ### Reference Principle
 
-The **installed kit** in `{cypilot_path}/.core/kits/{slug}/` serves as the reference for all update operations. When a kit is installed, its source is saved to `{cypilot_path}/.core/kits/{slug}/` — this is the reference copy. User-editable blueprints live in `config/kits/{slug}/blueprints/`.
+The **installed kit** in `{cypilot_path}/.core/kits/{slug}/` serves as the reference for all update operations. When a kit is installed, its source is saved to `{cypilot_path}/.core/kits/{slug}/` — this is the reference copy. User-editable blueprints live in `{cypilot_path}/config/kits/{slug}/blueprints/`.
 
 ### Initial Installation
 
 When a kit is installed (`cypilot init` or `cypilot kit install`):
 
 1. The tool saves the kit source to `{cypilot_path}/.core/kits/{slug}/` (reference copy).
-2. Blueprints are copied from `{cypilot_path}/.core/kits/{slug}/blueprints/` to `config/kits/{slug}/blueprints/` (user-editable).
+2. Blueprints are copied from `{cypilot_path}/.core/kits/{slug}/blueprints/` to `{cypilot_path}/config/kits/{slug}/blueprints/` (user-editable).
 3. All output files are generated from the user blueprints.
-4. The kit version is recorded in `config/core.toml`.
+4. The kit version is recorded in `{cypilot_path}/config/core.toml`.
 
 ### Update Modes
 
@@ -807,9 +807,9 @@ When a kit is installed (`cypilot init` or `cypilot kit install`):
 Overwrites all user blueprints from the reference and regenerates all outputs. User edits are discarded.
 
 1. Update `{cypilot_path}/.core/kits/{slug}/` with new kit version.
-2. Copy all blueprints from `{cypilot_path}/.core/kits/{slug}/blueprints/` → `config/kits/{slug}/blueprints/` (overwrite).
+2. Copy all blueprints from `{cypilot_path}/.core/kits/{slug}/blueprints/` → `{cypilot_path}/config/kits/{slug}/blueprints/` (overwrite).
 3. Regenerate all outputs.
-4. Update kit version in `config/core.toml`.
+4. Update kit version in `{cypilot_path}/config/core.toml`.
 
 Use when: starting fresh, after breaking edits, or when you want to fully sync with the upstream kit.
 
@@ -863,7 +863,7 @@ When conflicts are detected during additive update:
 
 | Error | Cause | Resolution |
 |-------|-------|------------|
-| `BLUEPRINT_NOT_FOUND` | No `<KIND>.md` in `config/kits/<slug>/blueprints/` | Create blueprint or check kit installation |
+| `BLUEPRINT_NOT_FOUND` | No `<KIND>.md` in `{cypilot_path}/config/kits/<slug>/blueprints/` | Create blueprint or check kit installation |
 | `BLUEPRINT_NO_HEADER` | Missing `@cpt:blueprint` marker | Add `` `@cpt:blueprint` `` with TOML block as first marker |
 | `BLUEPRINT_UNKNOWN_MARKER` | Marker type not registered by core or any kit | Check marker spelling, ensure kit is installed |
 | `BLUEPRINT_UNCLOSED_BLOCK` | Block marker without matching close tag | Add `` `@/cpt:type` `` closing tag |
