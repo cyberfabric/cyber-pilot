@@ -21,11 +21,14 @@ tests/test_codebase.py
 tests/test_constraints_utils.py
 tests/test_context.py
 tests/test_core_structure.py
+tests/test_coverage_utils.py
 tests/test_cypilot_package_init.py
 tests/test_design_validation.py
 tests/test_files_utils.py
 tests/test_fixing.py
+tests/test_kit.py
 tests/test_language_config.py
+tests/test_migrate.py
 tests/test_overwork_alert_ipc.py
 tests/test_overwork_alert_launchagent.py
 tests/test_overwork_alert_notifications.py
@@ -33,6 +36,8 @@ tests/test_overwork_alert_tracker_core.py
 tests/test_parse_sid.py
 tests/test_parsing_utils.py
 tests/test_quickstart_bootstrap.py
+tests/test_spec_coverage.py
 tests/test_toc.py
+tests/test_update.py
 tests/test_validate.py
 tests/test_workflow_parsing.py

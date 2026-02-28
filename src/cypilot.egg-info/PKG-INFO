@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: cypilot
-Version: 3.0.0a1
+Version: 3.0.0
 Summary: Cypilot global CLI proxy — deterministic agent tool for structured workflows
 License: Apache-2.0
 Requires-Python: >=3.11

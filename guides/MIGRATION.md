@@ -4,19 +4,41 @@ This guide covers migrating a Cypilot v2 project (adapter-based, `artifacts.json
 
 ## Table of Contents
 
-- [Prerequisites](#prerequisites)
-- [Quick Start](#quick-start)
-- [What Changes](#what-changes)
-- [CLI Reference](#cli-reference)
-- [Step-by-Step Walkthrough](#step-by-step-walkthrough)
-- [Edge Cases & Prompts](#edge-cases--prompts)
-  - [Custom Kits](#custom-kits)
-  - [Submodule Core](#submodule-core)
-  - [Non-Standard Paths](#non-standard-paths)
-  - [Monorepo / Multi-System](#monorepo--multi-system)
-  - [Custom AGENTS.md Rules](#custom-agentsmd-rules)
-  - [Post-Migration Validation Failures](#post-migration-validation-failures)
-  - [Rollback](#rollback)
+- [V2 → V3 Migration Guide](#v2--v3-migration-guide)
+  - [Table of Contents](#table-of-contents)
+  - [Prerequisites](#prerequisites)
+  - [Quick Start](#quick-start)
+  - [What Changes](#what-changes)
+    - [Directory Structure](#directory-structure)
+    - [Kit Slugs](#kit-slugs)
+    - [What the Tool Does](#what-the-tool-does)
+  - [CLI Reference](#cli-reference)
+    - [`cpt migrate`](#cpt-migrate)
+    - [`cpt migrate-config`](#cpt-migrate-config)
+  - [Step-by-Step Walkthrough](#step-by-step-walkthrough)
+    - [1. Dry Run](#1-dry-run)
+    - [2. Run Migration](#2-run-migration)
+    - [3. Post-Migration Checks](#3-post-migration-checks)
+    - [4. Clean Up Remaining JSON](#4-clean-up-remaining-json)
+  - [Post-Migration AI Validation](#post-migration-ai-validation)
+    - [What the Deterministic Migration Does NOT Check](#what-the-deterministic-migration-does-not-check)
+    - [Validation Prompt](#validation-prompt)
+    - [Interpreting Results](#interpreting-results)
+  - [Guided Fixes](#guided-fixes)
+    - [Legacy Path Fixes](#legacy-path-fixes)
+    - [Autodetect Fixes](#autodetect-fixes)
+    - [Blueprint Conversion](#blueprint-conversion)
+    - [Validation Fixes](#validation-fixes)
+    - [Gitignore Fixes](#gitignore-fixes)
+    - [5. Regenerate and Commit](#5-regenerate-and-commit)
+  - [Edge Cases \& Prompts](#edge-cases--prompts)
+    - [Custom Kits](#custom-kits)
+    - [Submodule Core](#submodule-core)
+    - [Non-Standard Paths](#non-standard-paths)
+    - [Monorepo / Multi-System](#monorepo--multi-system)
+    - [Custom AGENTS.md Rules](#custom-agentsmd-rules)
+    - [Post-Migration Validation Failures](#post-migration-validation-failures)
+    - [Rollback](#rollback)
 
 ---
 
@@ -168,12 +190,235 @@ cpt validate
 cpt migrate-config
 ```
 
-### 5. Commit
+---
+
+## Post-Migration AI Validation
+
+The deterministic migration handles structure, file conversion, and path rewriting. However, it **cannot** verify semantic correctness — things like stale path references in project docs, broken WHEN rule logic, missing blueprint markers, or CI configs pointing to old directories.
+
+Use the prompt below **immediately after** step 4 (migrate-config) to catch what the tool missed.
+
+### What the Deterministic Migration Does NOT Check
+
+| Category | What can slip through | Why it matters |
+|---|---|---|
+| **Legacy path references** | `.cypilot-adapter/`, `.cypilot/`, `{cypilot_adapter_path}` in docs, scripts, CI, hooks | Broken tooling, wrong file loading |
+| **WHEN rule semantics** | Path substitution is syntactic — rule *logic* may be stale or context-wrong | Agent loads wrong files or skips rules |
+| **autodetect paths** | `artifacts_root`, `system_root`, `codebase` paths in `artifacts.toml` | Validation and artifact discovery fail |
+| **Blueprint markers** | Custom kits have no `@cpt:blueprint` markers → `.gen/` regeneration skips them | Kit outputs not regenerated |
+| **Cross-references** | Artifact IDs, `@cpt-*` traceability markers referencing moved files | Broken traceability |
+| **Kit outputs** | Templates, rules, checklists are copied as-is, not regenerated | Outdated kit output format |
+| **External tooling** | CI/CD pipelines, git hooks, Makefiles referencing old paths | Build/deploy failures |
+| **`.gitignore`** | Old patterns may not cover new dirs; new dirs may be ignored accidentally | Files tracked or untracked incorrectly |
+
+### Validation Prompt
+
+Give this prompt to Cypilot (or any AI agent) **after** running the deterministic migration:
+
+> **Prompt:**
+> ```
+> @cypilot I just completed the deterministic v2 → v3 migration.
+> My install directory is: {install_dir}
+>
+> Run a semantic validation of the migration. For EACH category below,
+> report PASS or FAIL with evidence:
+>
+> 1. LEGACY PATH SCAN
+>    Search the ENTIRE project for stale v2 references:
+>    - Strings: `.cypilot-adapter`, `.cypilot-config.json`, `cypilot-agents.json`
+>    - Variables: `{cypilot_adapter_path}`, `cypilotAdapterPath`, `cypilotCorePath`
+>    - Old path patterns: references to the v2 core path outside {install_dir}/
+>    Scan: *.md, *.toml, *.json, *.yaml, *.yml, *.sh, *.py, Makefile, Dockerfile,
+>          .github/workflows/*, .gitignore, .git/hooks/*
+>    Report: file, line number, matched string for each hit.
+>
+> 2. WHEN RULE AUDIT
+>    Open {install_dir}/config/AGENTS.md and verify:
+>    - Every path in WHEN/ALWAYS clauses resolves to an existing file
+>    - No references to `artifacts.json` (should be `artifacts.toml`)
+>    - No references to `{cypilot_adapter_path}` (should be `{cypilot_path}/config`)
+>    - No references to directories outside {install_dir}/
+>    Report: each rule line, PASS/FAIL, and the resolved target path.
+>
+> 3. AUTODETECT PATH CHECK
+>    Open {install_dir}/config/artifacts.toml and for each system's autodetect rules:
+>    - Verify `system_root` directory exists
+>    - Verify `artifacts_root` directory exists
+>    - Verify each artifact path pattern matches at least one file
+>    - Verify each `codebase` path exists
+>    Report: system slug, rule index, field, PASS/FAIL.
+>
+> 4. BLUEPRINT MARKER CHECK
+>    For each kit in {install_dir}/config/kits/:
+>    - Check if kit has a blueprints/ subdirectory with .md files
+>    - Check if each blueprint has a `@cpt:blueprint` TOML block
+>    - If no blueprints exist, flag as NEEDS_CONVERSION
+>    Report: kit slug, blueprint count, marker status.
+>
+> 5. KIT OUTPUT FRESHNESS
+>    Run: cpt validate
+>    Report the full output. If validation passes, report PASS.
+>    If it fails, list each issue.
+>
+> 6. EXTERNAL TOOLING SCAN
+>    Search for references to old Cypilot paths in:
+>    - CI configs: .github/workflows/*.yml, .gitlab-ci.yml, Jenkinsfile
+>    - Build files: Makefile, package.json scripts, pyproject.toml scripts
+>    - Git hooks: .git/hooks/*, .husky/*
+>    - Docker: Dockerfile*, docker-compose*.yml
+>    Report: file, line, matched reference.
+>
+> 7. GITIGNORE CHECK
+>    Open .gitignore and verify:
+>    - {install_dir}/.core/ is NOT ignored (must be tracked in git)
+>    - {install_dir}/.gen/ is NOT ignored (must be tracked in git)
+>    - {install_dir}/config/ is NOT ignored (must be tracked in git)
+>    - Old v2 ignore patterns (`.cypilot`, `.cypilot-adapter`) are removed or updated
+>    Report: each relevant line, PASS/FAIL.
+>
+> Format the output as a summary table:
+> | # | Category | Status | Issues |
+> Then list details for each FAIL.
+> ```
+
+### Interpreting Results
+
+- **All PASS** → Migration is clean. Proceed to `cpt update --force` to regenerate `.gen/`.
+- **FAIL in categories 1, 2, 6** → Path reference issues. Use the **Legacy Path Fixes** prompt below.
+- **FAIL in category 3** → Autodetect configuration issue. Use the **Autodetect Fixes** prompt below.
+- **FAIL in category 4** → Kit needs blueprint conversion. Use the **Blueprint Conversion** prompt below.
+- **FAIL in category 5** → Validation errors. Use the **Validation Fixes** prompt below.
+- **FAIL in category 7** → Gitignore issue. Use the **Gitignore Fixes** prompt below.
+
+---
+
+## Guided Fixes
+
+Use these prompts to fix issues found by the validation above. Each prompt targets a specific category, uses imperative instructions, and includes verification criteria.
+
+### Legacy Path Fixes
+
+> **Prompt:**
+> ```
+> @cypilot The post-migration validation found stale v2 path references.
+> Here are the hits:
+> {paste the FAIL details from categories 1, 2, and 6}
+>
+> For EACH stale reference:
+> 1. Determine the correct v3 replacement:
+>    - `.cypilot-adapter/` → `{install_dir}/config/`
+>    - `.cypilot/` (as core) → `{install_dir}/.core/`
+>    - `{cypilot_adapter_path}` → `{cypilot_path}/config`
+>    - `artifacts.json` → `artifacts.toml`
+>    - `.cypilot-config.json` → `{install_dir}/config/core.toml`
+> 2. Apply the replacement. Preserve surrounding context.
+> 3. If the reference is in a WHEN rule, verify the target file exists after replacement.
+> 4. If the reference is in CI/build config, verify the command still works.
+>
+> After all fixes, re-run the legacy path scan (categories 1, 2, 6) and confirm all PASS.
+> Do NOT commit — show me the diff first.
+> ```
+
+### Autodetect Fixes
+
+> **Prompt:**
+> ```
+> @cypilot The post-migration validation found broken autodetect paths in artifacts.toml.
+> Here are the failing rules:
+> {paste the FAIL details from category 3}
+>
+> For EACH failing autodetect rule:
+> 1. Open {install_dir}/config/artifacts.toml
+> 2. Locate the system and autodetect entry by slug and index
+> 3. Check if the path simply needs a prefix update (v2 → v3 directory move)
+> 4. If the target directory genuinely doesn't exist, flag it and ask me
+> 5. Fix paths that are resolvable
+>
+> After fixes, re-run autodetect path validation and confirm all PASS.
+> Show the before/after for each changed path.
+> ```
+
+### Blueprint Conversion
+
+> **Prompt:**
+> ```
+> @cypilot The post-migration validation found kits without blueprint markers.
+> Kits flagged as NEEDS_CONVERSION:
+> {paste the FAIL details from category 4}
+>
+> For EACH kit that needs conversion:
+> 1. List all .md files in {install_dir}/config/kits/{slug}/
+> 2. Identify which files are artifact templates, rules, or checklists
+> 3. For each file, determine the appropriate @cpt:blueprint marker:
+>    - artifact = the artifact KIND this blueprint defines
+>    - kit = the kit slug
+>    - version = 1
+> 4. Show me the proposed @cpt:blueprint TOML block for each file
+> 5. Wait for my approval before inserting markers
+>
+> After I approve, insert the markers and run: cpt update --force
+> Verify .gen/kits/{slug}/ is regenerated correctly.
+> ```
+
+### Validation Fixes
+
+> **Prompt:**
+> ```
+> @cypilot The post-migration `cpt validate` reported these issues:
+> {paste the full validation output from category 5}
+>
+> For EACH validation issue:
+> 1. Classify the root cause:
+>    - STRUCTURE: missing section, wrong heading level
+>    - CROSS-REF: broken ID reference, missing artifact
+>    - TRACEABILITY: @cpt-* marker pointing to moved/renamed file
+>    - CONFIG: malformed TOML, missing required field
+> 2. Determine if the fix is in an artifact file or a config file
+> 3. Apply the minimal fix. Do NOT rewrite entire files.
+> 4. For traceability issues: update the @cpt-* marker path, not the code
+>
+> After fixes, re-run: cpt validate
+> Confirm exit code 0 (PASS). If issues remain, report them.
+> ```
+
+### Gitignore Fixes
+
+> **Prompt:**
+> ```
+> @cypilot The post-migration .gitignore check found issues:
+> {paste the FAIL details from category 7}
+>
+> Apply these rules to .gitignore:
+> 1. VERIFY not ignored (all three directories MUST be tracked in git):
+>    - `{install_dir}/.core/` — read-only but committed
+>    - `{install_dir}/.gen/` — auto-generated but committed
+>    - `{install_dir}/config/` — user-editable, committed
+> 2. REMOVE any .gitignore entries that would ignore these directories
+> 3. REMOVE or UPDATE stale v2 patterns:
+>    - Old `.cypilot` ignore entries that no longer apply
+>    - Old `.cypilot-adapter` ignore entries
+> 4. KEEP any user-added patterns unrelated to Cypilot
+>
+> Show the diff before committing.
+> ```
+
+### 5. Regenerate and Commit
+
+After all validation checks pass and fixes are applied, finalize the migration:
 
 ```bash
+# Regenerate .gen/ from corrected blueprints and config
+cpt update --force
+
+# Re-validate everything
+cpt validate
+
+# Commit the complete migration (deterministic + AI-validated fixes)
 git add -A
 git commit -m "chore: migrate Cypilot v2 → v3"
 ```
+
+> **Note**: This is the single commit point for the entire migration. Do not commit between the deterministic steps and the AI validation — keep everything in one atomic commit.
 
 ---
 
