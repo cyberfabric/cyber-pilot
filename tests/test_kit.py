@@ -109,6 +109,48 @@ class TestInstallKit(unittest.TestCase):
             self.assertIn(result["status"], ["PASS", "WARN"])
             self.assertTrue((adapter / ".gen" / "kits" / "scripted" / "scripts" / "helper.py").is_file())
 
+    def test_install_kit_with_skill_and_workflow(self):
+        """Kit with @cpt:skill and @cpt:workflow markers generates SKILL.md and workflow files."""
+        from cypilot.commands.kit import install_kit
+        with TemporaryDirectory() as td:
+            td_p = Path(td)
+            kit_src = td_p / "richkit"
+            bp_dir = kit_src / "blueprints"
+            bp_dir.mkdir(parents=True)
+            (bp_dir / "FEAT.md").write_text(
+                "`@cpt:blueprint`\n```toml\n"
+                'artifact = "FEAT"\nkit = "richkit"\nversion = 1\n'
+                "```\n`@/cpt:blueprint`\n\n"
+                "`@cpt:heading`\n```toml\nid = \"h1\"\nlevel = 1\n"
+                "template = \"Feature\"\n```\n`@/cpt:heading`\n\n"
+                "`@cpt:skill`\n```markdown\nUse this for features.\n```\n`@/cpt:skill`\n\n"
+                "`@cpt:workflow`\n```toml\nname = \"feat-review\"\n"
+                'description = "Review features"\nversion = "1"\n'
+                'purpose = "QA"\n```\n'
+                "```markdown\n## Steps\n1. Check\n```\n`@/cpt:workflow`\n",
+                encoding="utf-8",
+            )
+            from cypilot.utils import toml_utils
+            toml_utils.dump({"version": 1, "blueprints": {"FEAT": 1}}, kit_src / "conf.toml")
+            root = td_p / "project"
+            adapter = _bootstrap_project(root)
+            result = install_kit(kit_src, adapter, "richkit")
+            self.assertIn(result["status"], ["PASS", "WARN"])
+            # SKILL.md should be generated
+            skill_path = adapter / ".gen" / "kits" / "richkit" / "SKILL.md"
+            self.assertTrue(skill_path.is_file())
+            skill_content = skill_path.read_text(encoding="utf-8")
+            self.assertIn("Artifacts: FEAT", skill_content)
+            self.assertIn("Workflows: feat-review", skill_content)
+            # Workflow file should be generated
+            wf_path = adapter / ".gen" / "kits" / "richkit" / "workflows" / "feat-review.md"
+            self.assertTrue(wf_path.is_file())
+            wf_content = wf_path.read_text(encoding="utf-8")
+            self.assertIn("type: workflow", wf_content)
+            self.assertIn('description: Review features', wf_content)
+            self.assertIn('version: 1', wf_content)
+            self.assertIn('purpose: QA', wf_content)
+
 
 # =========================================================================
 # cmd_kit dispatcher
