@@ -24,6 +24,7 @@
    - [Phase 3: IDs and Structure](#phase-3-ids-and-structure)
    - [Phase 4: Quality Check](#phase-4-quality-check)
    - [Phase 5: Checkbox Status Workflow](#phase-5-checkbox-status-workflow)
+   - [Phase 6: Table of Contents](#phase-6-table-of-contents)
 4. [Validation](#validation)
    - [Phase 1: Structural Validation (Deterministic)](#phase-1-structural-validation-deterministic)
    - [Phase 2: Decomposition Quality Validation (Checklist-based)](#phase-2-decomposition-quality-validation-checklist-based)
@@ -32,6 +33,7 @@
    - [Phase 5: Report Format](#phase-5-report-format)
    - [Phase 6: Domain Disposition](#phase-6-domain-disposition)
    - [Phase 7: Reporting](#phase-7-reporting)
+   - [Phase 8: Table of Contents Validation](#phase-8-table-of-contents-validation)
 5. [Error Handling](#error-handling)
    - [Missing Dependencies](#missing-dependencies)
    - [Quality Issues](#quality-issues)
@@ -191,6 +193,11 @@
 2. Run `cypilot validate` to confirm cascade consistency
 3. Change the `status-overall` line from `[ ]` to `[x]`
 
+### Phase 6: Table of Contents
+
+- [ ] Run `cypilot toc <artifact-file>` to generate/update Table of Contents
+- [ ] Verify TOC is present and complete with `cypilot validate-toc <artifact-file>`
+
 ---
 
 ## Validation
@@ -324,6 +331,14 @@ For each issue include:
 
 {Concrete fix}
 ```
+
+### Phase 8: Table of Contents Validation
+
+- [ ] Table of Contents section exists (`## Table of Contents` or `<!-- toc -->` markers)
+- [ ] All TOC anchors point to actual headings in the document
+- [ ] All headings are represented in the TOC
+- [ ] TOC order matches document heading order
+- [ ] Run `cypilot validate-toc <artifact-file>` — must report PASS
 
 ---
 
