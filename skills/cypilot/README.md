@@ -1,52 +1,59 @@
-# Cypilot Tool
+# Cypilot Skill Engine
 
-Unified Cypilot tool for artifact validation, search, and traceability.
+Deterministic agent tool for structured workflows, artifact validation, traceability, and multi-agent integration.
 
 ## Commands
 
 | Command | Description |
 |---------|-------------|
-| `validate` | Validate Cypilot artifacts against templates |
-| `validate-kits` | Validate kit configuration and templates |
-| `validate-code` | Validate Cypilot traceability markers in code |
-| `list-ids` | List all Cypilot IDs from artifacts |
+| `init` | Initialize Cypilot config directory (`.core/`, `.gen/`, `config/`) and root `AGENTS.md` |
+| `update` | Update `.core/` from cache, regenerate `.gen/` from user blueprints, ensure `config/` scaffold |
+| `agents` | Generate agent-specific entry points (skills, workflows, commands) for supported agents |
+| `auto-config` | Scan project structure and generate per-system convention rules |
+| `validate` | Validate artifacts against templates (structure, IDs, cross-references) |
+| `validate-kits` | Validate kit configuration, blueprint markers, and constraints |
+| `validate-code` | Validate `@cpt-*` traceability markers in code (pairing, coverage, orphans) |
+| `list-ids` | List all Cypilot IDs from registered artifacts |
 | `list-id-kinds` | List ID kinds that exist in artifacts |
 | `get-content` | Get content block for a specific Cypilot ID |
-| `where-defined` | Find where an Cypilot ID is defined |
-| `where-used` | Find all references to an Cypilot ID |
-| `info` | Discover Cypilot adapter configuration |
-| `init` | Initialize Cypilot config and adapter |
-| `agents` | Generate agent-specific workflow proxies and skill outputs |
-| `self-check` | Validate examples against templates |
+| `where-defined` | Find where a Cypilot ID is defined |
+| `where-used` | Find all references to a Cypilot ID |
+| `info` | Discover Cypilot configuration and show project status |
+| `self-check` | Validate kit examples against their own templates |
 
 ## Usage
 
+### Via global CLI (recommended)
+
 ```bash
-# Validate all registered artifacts
-python3 scripts/cypilot.py validate
-
-# Validate specific artifact
-python3 scripts/cypilot.py validate --artifact architecture/PRD.md
-
-# Validate code traceability
-python3 scripts/cypilot.py validate-code
-
-# List all IDs
-python3 scripts/cypilot.py list-ids
-
-# Find where ID is defined
-python3 scripts/cypilot.py where-defined --id cpt-myapp-req-auth
-
-# Initialize project
-python3 scripts/cypilot.py init --yes
+cypilot init
+cypilot validate
+cypilot validate-code
+cypilot agents --agent windsurf
+cypilot update
 ```
+
+### Via direct script invocation
+
+```bash
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate --artifact architecture/PRD.md
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate-code
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py list-ids
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py where-defined --id cpt-myapp-fr-auth
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py init --yes
+```
+
+All commands output JSON to stdout.
 
 ## Testing
 
 ```bash
 make test
+make test-coverage
 ```
 
 ## Documentation
 
-See `SKILL.md` for complete command reference and `cypilot.clispec` for CLI specification.
+- `SKILL.md` — complete skill definition with mandatory instructions, workflow routing, and command reference
+- `cypilot.clispec` — CLI specification (commands, flags, output formats)

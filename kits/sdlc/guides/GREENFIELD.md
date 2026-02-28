@@ -10,7 +10,7 @@ Create a validated baseline (PRD + architecture) before writing code.
 
 ## What You Will Produce
 
-Cypilot artifacts registered in `.cypilot-adapter/artifacts.toml` ([taxonomy](TAXONOMY.md)):
+Cypilot artifacts registered in `cypilot/config/artifacts.toml` ([taxonomy](TAXONOMY.md)):
 
 | Artifact | Default Location |
 |----------|------------------|
@@ -29,7 +29,7 @@ Cypilot artifacts registered in `.cypilot-adapter/artifacts.toml` ([taxonomy](TA
 | `cypilot register PRD at docs/requirements/product-requirements.md` | Registers existing file as PRD artifact |
 | `cypilot show artifact locations` | Displays current paths from `artifacts.toml` |
 
-You can also edit `.cypilot-adapter/artifacts.toml` directly:
+You can also edit `cypilot/config/artifacts.toml` directly:
 - `artifacts_dir` — Default base directory for new artifacts (default: `architecture`)
 - Subdirectories for FEATUREs (`features/`) and ADRs (`ADR/`) are defined by the kit
 - Artifact paths in `artifacts` array are FULL paths — you can place artifacts anywhere
