@@ -384,7 +384,7 @@ class TestConvertArtifactsRegistry(unittest.TestCase):
                     {"reason": "vendor", "patterns": ["vendor/**"]},
                 ],
             }
-            result = convert_artifacts_registry(v2_data, "cypilot", target)
+            result = convert_artifacts_registry(v2_data, target)
             self.assertEqual(result["systems_count"], 1)
             self.assertEqual(result["kits_count"], 1)
             self.assertIn("cf-sdlc", result["kit_slug_map"])
@@ -411,7 +411,7 @@ class TestConvertArtifactsRegistry(unittest.TestCase):
                 },
                 "ignore": [],
             }
-            result = convert_artifacts_registry(v2_data, "cypilot", target)
+            result = convert_artifacts_registry(v2_data, target)
             self.assertEqual(result["kit_slug_map"]["my-custom-kit"], "my-custom-kit")
 
             # Verify kits NOT in artifacts.toml
@@ -435,7 +435,7 @@ class TestConvertArtifactsRegistry(unittest.TestCase):
                 },
                 "ignore": [],
             }
-            result = convert_artifacts_registry(v2_data, "cypilot", target)
+            result = convert_artifacts_registry(v2_data, target)
             self.assertEqual(result["kits_count"], 2)
             self.assertEqual(result["kit_slug_map"]["cf-sdlc"], "cf-sdlc")
             self.assertEqual(result["kit_slug_map"]["my-kit"], "my-kit")
@@ -461,7 +461,7 @@ class TestConvertArtifactsRegistry(unittest.TestCase):
                 "kits": {"sdlc": {"format": "Cypilot", "path": "kits/sdlc"}},
                 "ignore": [],
             }
-            result = convert_artifacts_registry(v2_data, "cypilot", target)
+            result = convert_artifacts_registry(v2_data, target)
             from cypilot.utils import toml_utils
             registry = toml_utils.load(target / "artifacts.toml")
             system = registry["systems"][0]
@@ -956,7 +956,7 @@ class TestComplexMigration(unittest.TestCase):
             self._make_hyperspot(root)
             v2 = detect_v2(root)
             target = Path(d) / "target"
-            result = convert_artifacts_registry(v2["artifacts_json"], "cypilot", target)
+            result = convert_artifacts_registry(v2["artifacts_json"], target)
             self.assertEqual(result["systems_count"], 2)
             self.assertEqual(result["kit_slug_map"]["cf-sdlc"], "cf-sdlc")
 

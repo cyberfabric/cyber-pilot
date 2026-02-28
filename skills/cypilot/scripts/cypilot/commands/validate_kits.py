@@ -54,7 +54,7 @@ def cmd_validate_kits(argv: List[str]) -> int:
         # @cpt-begin:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-verify-blueprints-dir
         # Structural validation: verify blueprints directory exists
         user_bp_dir = ctx.adapter_dir / "config" / "kits" / str(kit_id) / "blueprints"
-        has_blueprints = user_bp_dir.is_dir()
+        _has_blueprints = user_bp_dir.is_dir()
         # @cpt-end:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-verify-blueprints-dir
 
         # @cpt-begin:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-foreach-blueprint

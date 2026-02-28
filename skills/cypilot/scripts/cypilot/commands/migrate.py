@@ -592,14 +592,12 @@ def _remove_gitmodule_entry(content: str, path: str) -> str:
 # @cpt-algo:cpt-cypilot-algo-v2-v3-migration-convert-artifacts-registry:p1
 def convert_artifacts_registry(
     artifacts_json: Dict[str, Any],
-    cypilot_path: str,
     target_dir: Path,
 ) -> Dict[str, Any]:
     """Convert v2 artifacts.json to v3 artifacts.toml.
 
     Args:
         artifacts_json: Parsed v2 artifacts.json content.
-        cypilot_path: Relative path to the cypilot directory (e.g., 'cypilot').
         target_dir: Directory to write artifacts.toml into (config/).
 
     Returns:
@@ -891,7 +889,6 @@ def migrate_kits(
         # @cpt-begin:cpt-cypilot-algo-v2-v3-migration-migrate-kits:p1:inst-locate-kit-dir
         v2_kit_dir = adapter_dir / "kits" / v2_slug
         config_kit_dir = config_dir / "kits" / v2_slug
-        gen_kit_dir = gen_dir / "kits" / v2_slug
         # @cpt-end:cpt-cypilot-algo-v2-v3-migration-migrate-kits:p1:inst-locate-kit-dir
 
         if not v2_kit_dir.is_dir():
@@ -1255,7 +1252,7 @@ def run_migrate(
         kit_slug_map: Dict[str, str] = {}
         if artifacts_json:
             reg_result = convert_artifacts_registry(
-                artifacts_json, install_dir, config_dir,
+                artifacts_json, config_dir,
             )
             all_warnings.extend(reg_result.get("warnings", []))
             kit_slug_map = reg_result.get("kit_slug_map", {})
