@@ -21,6 +21,33 @@ Unlike greenfield projects, **brownfield has no required order**. You can:
 
 ---
 
+## Recommended First Step: Auto-Configuration
+
+Before choosing an adoption scenario, run auto-config to let Cypilot learn your project:
+
+```
+cypilot auto-config
+```
+
+**What it does** (6 phases):
+1. **Project Scan** — reads directory structure, entry points, language/framework detection
+2. **Documentation Discovery** — finds existing docs, READMEs, API specs, schemas
+3. **System Detection** — identifies system boundaries, subsystems, components
+4. **Rule Generation** — creates per-system convention rules in `cypilot/config/rules/{slug}.md`
+5. **AGENTS.md Integration** — adds WHEN rules to `cypilot/config/AGENTS.md` so the agent loads the right rules at the right time
+6. **Registry Update** — registers detected systems and codebase paths in `cypilot/config/artifacts.toml`
+
+**When to run**:
+- After `cypilot init` on an existing project
+- After major structural changes (new modules, framework migration)
+- When Cypilot doesn't know your conventions yet
+
+**What you get**: The agent will now understand your project structure, naming conventions, tech stack, and test patterns — making all subsequent prompts (from any adoption scenario below) more accurate.
+
+> **Note**: Auto-config is also triggered automatically by the `generate` workflow when it detects a brownfield project with no rules.
+
+---
+
 ## Adoption Scenarios
 
 ### Scenario A: Code-Only
