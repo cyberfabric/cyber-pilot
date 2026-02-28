@@ -86,7 +86,7 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
 3. [x] - `p1` - **IF** validation fails **RETURN** error with structural requirements - `inst-if-invalid-source`
 4. [x] - `p1` - Extract kit metadata: read `@cpt:blueprint` marker from first blueprint to get kit slug and version - `inst-extract-metadata`
 5. [x] - `p1` - **IF** kit slug already registered AND `--force` not set **RETURN** error with hint - `inst-if-already-registered`
-6. [x] - `p1` - Save kit source to `{cypilot_path}/.core/kits/{slug}/` (reference copy) - `inst-save-reference`
+6. [x] - `p1` - Save kit source to `{cypilot_path}/kits/{slug}/` (reference copy) - `inst-save-reference`
 7. [x] - `p1` - Copy blueprints to `{cypilot_path}/config/kits/{slug}/blueprints/` (user-editable) - `inst-copy-blueprints`
 8. [x] - `p1` - Process all blueprints using `cpt-cypilot-algo-blueprint-system-process-kit` - `inst-process-blueprints`
 9. [x] - `p1` - Register kit in `{cypilot_path}/config/core.toml` with slug, format, path, and artifact templates - `inst-register-kit`
@@ -110,7 +110,7 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
 1. [x] - `p1` - User invokes `cypilot kit update [--force] [--kit SLUG]` - `inst-user-update`
 2. [x] - `p1` - Resolve target kits: if `--kit` specified use that, otherwise update all installed kits - `inst-resolve-kits`
 3. [x] - `p1` - **FOR EACH** kit in target kits - `inst-foreach-kit`
-   1. [x] - `p1` - Load new kit source from cache at `{cypilot_path}/.core/kits/{slug}/` - `inst-load-new-source`
+   1. [x] - `p1` - Load new kit source from cache at `{cypilot_path}/kits/{slug}/` - `inst-load-new-source`
    2. [x] - `p1` - **IF** `--force` - `inst-if-force`
       1. [x] - `p1` - Overwrite user blueprints in `{cypilot_path}/config/kits/{slug}/blueprints/` with new source - `inst-force-overwrite`
    3. [x] - `p1` - Regenerate all outputs using `cpt-cypilot-algo-blueprint-system-process-kit` - `inst-regenerate`
@@ -206,7 +206,7 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
 
 - [x] `p1` - **ID**: `cpt-cypilot-algo-blueprint-system-generate-artifact-outputs`
 
-**Input**: Parsed blueprint, artifact kind, output directory (`{cypilot_path}/config/kits/{slug}/artifacts/{KIND}/`)
+**Input**: Parsed blueprint, artifact kind, output directory (`{cypilot_path}/.gen/kits/{slug}/artifacts/{KIND}/`)
 
 **Output**: Generated files: `rules.md`, `checklist.md`, `template.md`, `example.md`
 
@@ -227,7 +227,7 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
 
 **Input**: List of parsed blueprints for a kit
 
-**Output**: `{cypilot_path}/config/kits/{slug}/constraints.toml`
+**Output**: `{cypilot_path}/.gen/kits/{slug}/constraints.toml`
 
 **Steps**:
 1. [x] - `p1` - Initialize empty constraints structure with `version` and `id_kinds` sections - `inst-init-constraints`
@@ -238,14 +238,14 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
    3. [x] - `p1` - **FOR EACH** `@cpt:id` marker - `inst-foreach-id`
       1. [x] - `p1` - Extract ID kind definition (name, `to_code`, `defined_in`, `referenced_in`) - `inst-extract-id-kind`
       2. [x] - `p1` - Add to `id_kinds` section - `inst-add-id-kind`
-3. [x] - `p1` - Write constraints to `{cypilot_path}/config/kits/{slug}/constraints.toml` using deterministic TOML serialization - `inst-write-constraints`
+3. [x] - `p1` - Write constraints to `{cypilot_path}/.gen/kits/{slug}/constraints.toml` using deterministic TOML serialization - `inst-write-constraints`
 4. [x] - `p1` - **RETURN** path to written constraints file - `inst-return-constraints`
 
 ### Three-Way Merge
 
 - [ ] `p2` - **ID**: `cpt-cypilot-algo-blueprint-system-three-way-merge`
 
-**Input**: Reference blueprint (old version in `{cypilot_path}/.core/kits/{slug}/`), user blueprint (`{cypilot_path}/config/kits/{slug}/blueprints/`), new blueprint (from updated kit source)
+**Input**: Reference blueprint (old version in `{cypilot_path}/kits/{slug}/`), user blueprint (`{cypilot_path}/config/kits/{slug}/blueprints/`), new blueprint (from updated kit source)
 
 **Output**: Merged blueprint content, or list of conflicts
 
@@ -280,7 +280,7 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
 
 - [ ] `p2` - **ID**: `cpt-cypilot-algo-blueprint-system-generate-workflows`
 
-**Input**: List of parsed blueprints, output directory (`{cypilot_path}/config/kits/{slug}/workflows/`)
+**Input**: List of parsed blueprints, output directory (`{cypilot_path}/.gen/kits/{slug}/workflows/`)
 
 **Output**: Generated workflow `.md` files
 
@@ -289,7 +289,7 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
    1. [ ] - `p2` - Extract all `@cpt:workflow` markers - `inst-extract-workflow`
    2. [ ] - `p2` - **FOR EACH** workflow marker - `inst-foreach-workflow`
       1. [ ] - `p2` - Parse TOML header (name, description) and Markdown body (steps) - `inst-parse-workflow`
-      2. [ ] - `p2` - Write to `{cypilot_path}/config/kits/{slug}/workflows/{name}.md` - `inst-write-workflow`
+      2. [ ] - `p2` - Write to `{cypilot_path}/.gen/kits/{slug}/workflows/{name}.md` - `inst-write-workflow`
 2. [ ] - `p2` - **RETURN** list of generated workflow paths - `inst-return-workflows`
 
 ## 4. States (CDSL)
@@ -344,7 +344,7 @@ The system **MUST** generate four output files per artifact blueprint: `rules.md
 
 - [x] `p1` - **ID**: `cpt-cypilot-dod-blueprint-system-constraints-gen`
 
-The system **MUST** aggregate `@cpt:heading` and `@cpt:id` markers from all blueprints in a kit into a single `constraints.toml` at `{cypilot_path}/config/kits/{slug}/constraints.toml`. The constraints file **MUST** define ID kinds with their `to_code`, `defined_in`, and `referenced_in` attributes, using deterministic TOML serialization.
+The system **MUST** aggregate `@cpt:heading` and `@cpt:id` markers from all blueprints in a kit into a single `constraints.toml` at `{cypilot_path}/.gen/kits/{slug}/constraints.toml`. The constraints file **MUST** define ID kinds with their `to_code`, `defined_in`, and `referenced_in` attributes, using deterministic TOML serialization.
 
 **Implements**:
 - `cpt-cypilot-algo-blueprint-system-generate-constraints`
@@ -360,7 +360,7 @@ The system **MUST** aggregate `@cpt:heading` and `@cpt:id` markers from all blue
 
 - [x] `p1` - **ID**: `cpt-cypilot-dod-blueprint-system-kit-install`
 
-The system **MUST** provide `cypilot kit install <path>` that saves kit source to `{cypilot_path}/.core/kits/{slug}/` (reference), copies blueprints to `{cypilot_path}/config/kits/{slug}/blueprints/` (user-editable), processes all blueprints to generate outputs, and registers the kit in `{cypilot_path}/config/core.toml`. Installation of an already-registered kit without `--force` **MUST** produce exit code 2 with a helpful message.
+The system **MUST** provide `cypilot kit install <path>` that saves kit source to `{cypilot_path}/kits/{slug}/` (reference), copies blueprints to `{cypilot_path}/config/kits/{slug}/blueprints/` (user-editable), processes all blueprints to generate outputs, and registers the kit in `{cypilot_path}/config/core.toml`. Installation of an already-registered kit without `--force` **MUST** produce exit code 2 with a helpful message.
 
 **Implements**:
 - `cpt-cypilot-flow-blueprint-system-kit-install`
@@ -376,7 +376,7 @@ The system **MUST** provide `cypilot kit install <path>` that saves kit source t
 
 - [x] `p1` - **ID**: `cpt-cypilot-dod-blueprint-system-kit-update`
 
-The system **MUST** provide `cypilot kit update [--force] [--kit SLUG]`. Force mode **MUST** overwrite all user blueprints and regenerate outputs. Additive mode (p2) **MUST** use three-way diff with the reference in `{cypilot_path}/.core/kits/{slug}/` to preserve user modifications while incorporating new markers.
+The system **MUST** provide `cypilot kit update [--force] [--kit SLUG]`. Force mode **MUST** overwrite all user blueprints and regenerate outputs. Additive mode (p2) **MUST** use three-way diff with the reference in `{cypilot_path}/kits/{slug}/` to preserve user modifications while incorporating new markers.
 
 **Implements**:
 - `cpt-cypilot-flow-blueprint-system-kit-update`

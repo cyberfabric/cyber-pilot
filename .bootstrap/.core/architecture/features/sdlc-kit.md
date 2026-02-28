@@ -135,10 +135,10 @@ Without SDLC-specific content, Cypilot is a generic ID system with no domain val
 1. [ ] - `p1` - Define expected artifact kinds for SDLC kit: PRD, DESIGN, ADR, DECOMPOSITION, FEATURE - `inst-define-expected`
 2. [ ] - `p1` - Define expected codebase outputs: `codebase/rules.md`, `codebase/checklist.md` - `inst-define-codebase`
 3. [ ] - `p1` - **FOR EACH** expected artifact kind - `inst-foreach-kind`
-   1. [ ] - `p1` - Check that output directory `{cypilot_path}/config/kits/{slug}/artifacts/{KIND}/` exists - `inst-check-output-dir`
+   1. [ ] - `p1` - Check that output directory `{cypilot_path}/.gen/kits/{slug}/artifacts/{KIND}/` exists - `inst-check-output-dir`
    2. [ ] - `p1` - Check required files present: `rules.md`, `checklist.md`, `template.md` - `inst-check-required-files`
    3. [ ] - `p1` - **IF** any required file missing, record as FAIL for this kind - `inst-if-missing-file`
-4. [ ] - `p1` - Check kit-wide `constraints.toml` exists at `{cypilot_path}/config/kits/{slug}/constraints.toml` - `inst-check-constraints`
+4. [ ] - `p1` - Check kit-wide `constraints.toml` exists at `{cypilot_path}/.gen/kits/{slug}/constraints.toml` - `inst-check-constraints`
 5. [ ] - `p1` - Check codebase outputs exist - `inst-check-codebase`
 6. [ ] - `p1` - **IF** any check failed **RETURN** FAIL with list of missing files - `inst-if-any-fail`
 7. [ ] - `p1` - **RETURN** PASS with coverage (kinds verified, files checked) - `inst-return-valid`

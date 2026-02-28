@@ -59,12 +59,12 @@ Blueprints with an `artifact` key in `@cpt:blueprint` define artifact kinds (e.g
 
 ## Kit Directory Structure
 
-### Reference Kit (in {cypilot_path}/.core/)
+### Reference Kit (in {cypilot_path}/kits/)
 
-When a kit is installed, its source is saved to `{cypilot_path}/.core/kits/{slug}/` as the reference copy:
+When a kit is installed, its source is saved to `{cypilot_path}/kits/{slug}/` as the reference copy:
 
 ```
-{cypilot_path}/.core/kits/<slug>/
+{cypilot_path}/kits/<slug>/
 ├── blueprints/                    # One .md per artifact kind (required)
 │   ├── PRD.md
 │   ├── DESIGN.md
@@ -76,13 +76,13 @@ When a kit is installed, its source is saved to `{cypilot_path}/.core/kits/{slug
 ```
 
 - `blueprints/` is the **minimum required structure**. For blueprints with `artifact` key, the filename (without `.md`) becomes the artifact kind slug (e.g., `PRD.md` → artifact kind `PRD`). Blueprints without `artifact` key generate into `codebase/`.
-- `scripts/` contains kit-specific scripts. Scripts are **not copied** to `config/` — they are referenced directly from `{cypilot_path}/.core/kits/{slug}/scripts/`.
+- `scripts/` contains kit-specific scripts. Scripts are copied to `{cypilot_path}/.gen/kits/{slug}/scripts/` during install.
 
-The reference copy is used for three-way diff during additive updates. Users MUST NOT edit files in `{cypilot_path}/.core/kits/`.
+The reference copy is used for three-way diff during additive updates. Users MUST NOT edit files in `{cypilot_path}/kits/`.
 
-### Installed Kit (in project)
+### User Blueprints (in config/)
 
-Blueprints are copied from the reference into the project's config directory where users can edit them. All outputs are generated from these user-editable copies:
+Blueprints are copied from the reference into the project's config directory where users can edit them:
 
 ```
 config/kits/<slug>/
@@ -91,38 +91,49 @@ config/kits/<slug>/
 │   ├── DESIGN.md
 │   ├── CODEBASE.md
 │   └── ...
+└── conf.toml                      # Kit version metadata
+```
+
+### Generated Outputs (in .gen/)
+
+All outputs are generated from user-editable blueprints into `.gen/`:
+
+```
+.gen/kits/<slug>/
+├── SKILL.md                       # Generated: per-kit skill instructions
 ├── constraints.toml               # Generated: kit-wide structural constraints (from all artifact blueprints)
-├── taxonomy.md                    # Generated: kit taxonomy (artifact kinds, ID types, traceability)
 ├── artifacts/                     # Generated outputs per artifact kind
 │   ├── PRD/
 │   │   ├── template.md            # Generated: heading structure
 │   │   ├── rules.md               # Generated: agent rules
 │   │   ├── checklist.md           # Generated: quality checklist
-│   │   └── example.md             # Generated: concrete example
+│   │   └── examples/example.md    # Generated: concrete example
 │   ├── DESIGN/
 │   │   └── ...
 │   └── .../
 ├── codebase/                      # Generated from blueprints without artifact key
 │   ├── rules.md               # Generated: codebase agent rules
 │   └── checklist.md           # Generated: codebase quality checklist
+├── scripts/                       # Copied from kit source
+│   └── ...
 └── workflows/                     # Generated from @cpt:workflow markers
-    ├── generate-prd.md
-    ├── analyze-prd.md
+    ├── pr-review.md
+    ├── pr-status.md
     └── ...
 ```
 
 **Flow**:
-1. `cypilot init` / `cypilot kit install` saves kit source to `{cypilot_path}/.core/kits/{slug}/` (reference copy)
-2. Blueprints are copied from `{cypilot_path}/.core/kits/{slug}/blueprints/` to `{cypilot_path}/config/kits/{slug}/blueprints/` (user-editable)
-3. Blueprint Processor reads user blueprints and generates outputs into `artifacts/<KIND>/`, `codebase/`, `constraints.toml`, and `workflows/`
+1. `cypilot init` / `cypilot kit install` saves kit source to `{cypilot_path}/kits/{slug}/` (reference copy)
+2. Blueprints are copied from `{cypilot_path}/kits/{slug}/blueprints/` to `{cypilot_path}/config/kits/{slug}/blueprints/` (user-editable)
+3. Blueprint Processor reads user blueprints and generates outputs into `.gen/kits/{slug}/` (`artifacts/<KIND>/`, `codebase/`, `constraints.toml`, `workflows/`)
 4. Users edit blueprints in `{cypilot_path}/config/kits/{slug}/blueprints/` and run `cypilot generate-resources` to regenerate outputs
 
 **Update modes** (see also [blueprint.md § Update Model](blueprint.md#update-model)):
 
 | Mode | Command | Behavior |
 |------|---------|----------|
-| **Force** | `cypilot kit update --force` | Updates reference in `{cypilot_path}/.core/kits/{slug}/`, overwrites all user blueprints, regenerates all outputs. User edits are discarded. |
-| **Additive** | `cypilot kit update` | Three-way diff: reference (`{cypilot_path}/.core/kits/{slug}/`) vs. user blueprints vs. new kit version. User-modified sections are preserved; new markers are merged in; deleted markers stay removed. Reference is updated after merge. |
+| **Force** | `cypilot kit update --force` | Updates reference in `{cypilot_path}/kits/{slug}/`, overwrites all user blueprints, regenerates all outputs. User edits are discarded. |
+| **Additive** | `cypilot kit update` | Three-way diff: reference (`{cypilot_path}/kits/{slug}/`) vs. user blueprints vs. new kit version. User-modified sections are preserved; new markers are merged in; deleted markers stay removed. Reference is updated after merge. |
 
 ---
 

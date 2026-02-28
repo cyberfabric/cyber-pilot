@@ -44,7 +44,7 @@ drivers:
 
 ## Location
 
-**Per-artifact**: `{cypilot_path}/config/kits/<slug>/artifacts/<KIND>/example.md`
+**Per-artifact**: `{cypilot_path}/.gen/kits/<slug>/artifacts/<KIND>/example.md`
 
 ---
 

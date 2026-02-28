@@ -568,7 +568,7 @@ cypilot doctor
 | Config integrity | `{cypilot_path}/config/core.toml` exists and parses, schema valid |
 | Skill version | project skill matches or is newer than cache |
 | Kit structure | all registered kits have valid entry points |
-| Blueprint integrity | all blueprints in `{cypilot_path}/config/kits/<slug>/blueprints/` parse successfully, reference kits in `{cypilot_path}/.core/kits/` present |
+| Blueprint integrity | all blueprints in `{cypilot_path}/config/kits/<slug>/blueprints/` parse successfully, reference kits in `{cypilot_path}/kits/` present |
 
 **Output** (JSON):
 ```json

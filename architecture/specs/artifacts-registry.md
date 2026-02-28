@@ -703,8 +703,8 @@ for system in registry.systems:
 # For artifact with kind="PRD" in system with kit="cypilot-sdlc"
 # Kit details resolved from config/core.toml
 kit = core_config.kits["cypilot-sdlc"]
-template_path = f"config/kits/{kit.slug}/artifacts/{artifact.kind}/template.md"
-# → "config/kits/sdlc/artifacts/PRD/template.md"
+template_path = f".gen/kits/{kit.slug}/artifacts/{artifact.kind}/template.md"
+# → ".gen/kits/sdlc/artifacts/PRD/template.md"
 ```
 
 ### Checking Format
@@ -767,7 +767,7 @@ else:
 
 **If template for artifact kind doesn't exist**:
 ```
-⚠️ Template not found: config/kits/sdlc/artifacts/PRD/template.md
+⚠️ Template not found: .gen/kits/sdlc/artifacts/PRD/template.md
 → Kind "PRD" registered but template missing
 → Fix: Create template OR use different kit package
 ```

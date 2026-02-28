@@ -43,7 +43,7 @@ drivers:
 
 ## Location
 
-**Per-artifact**: `{cypilot_path}/config/kits/<slug>/artifacts/<KIND>/template.md`
+**Per-artifact**: `{cypilot_path}/.gen/kits/<slug>/artifacts/<KIND>/template.md`
 
 ---
 

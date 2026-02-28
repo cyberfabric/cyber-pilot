@@ -78,13 +78,13 @@ Blueprints with an `artifact` key in `@cpt:blueprint` define artifact kinds (e.g
 
 | Output | Location | Spec |
 |--------|----------|------|
-| `rules.md` | `{cypilot_path}/config/kits/<slug>/artifacts/<KIND>/` | [rules.md](rules.md) |
-| `checklist.md` | `{cypilot_path}/config/kits/<slug>/artifacts/<KIND>/` | [checklist.md](checklist.md) |
-| `template.md` | `{cypilot_path}/config/kits/<slug>/artifacts/<KIND>/` | [template.md](template.md) |
-| `example.md` | `{cypilot_path}/config/kits/<slug>/artifacts/<KIND>/` | [example.md](example.md) |
-| `constraints.toml` | `{cypilot_path}/config/kits/<slug>/` (kit-wide) | [constraints.md](constraints.md) |
-| codebase `rules.md` | `{cypilot_path}/config/kits/<slug>/codebase/` | [rules.md](rules.md) |
-| codebase `checklist.md` | `{cypilot_path}/config/kits/<slug>/codebase/` | [checklist.md](checklist.md) |
+| `rules.md` | `{cypilot_path}/.gen/kits/<slug>/artifacts/<KIND>/` | [rules.md](rules.md) |
+| `checklist.md` | `{cypilot_path}/.gen/kits/<slug>/artifacts/<KIND>/` | [checklist.md](checklist.md) |
+| `template.md` | `{cypilot_path}/.gen/kits/<slug>/artifacts/<KIND>/` | [template.md](template.md) |
+| `example.md` | `{cypilot_path}/.gen/kits/<slug>/artifacts/<KIND>/` | [example.md](example.md) |
+| `constraints.toml` | `{cypilot_path}/.gen/kits/<slug>/` (kit-wide) | [constraints.md](constraints.md) |
+| codebase `rules.md` | `{cypilot_path}/.gen/kits/<slug>/codebase/` | [rules.md](rules.md) |
+| codebase `checklist.md` | `{cypilot_path}/.gen/kits/<slug>/codebase/` | [checklist.md](checklist.md) |
 
 ---
 
@@ -787,14 +787,14 @@ The Blueprint Processor parses all markers and invokes output generators. All ou
 
 ### Reference Principle
 
-The **installed kit** in `{cypilot_path}/.core/kits/{slug}/` serves as the reference for all update operations. When a kit is installed, its source is saved to `{cypilot_path}/.core/kits/{slug}/` — this is the reference copy. User-editable blueprints live in `{cypilot_path}/config/kits/{slug}/blueprints/`.
+The **installed kit** in `{cypilot_path}/kits/{slug}/` serves as the reference for all update operations. When a kit is installed, its source is saved to `{cypilot_path}/kits/{slug}/` — this is the reference copy. User-editable blueprints live in `{cypilot_path}/config/kits/{slug}/blueprints/`.
 
 ### Initial Installation
 
 When a kit is installed (`cypilot init` or `cypilot kit install`):
 
-1. The tool saves the kit source to `{cypilot_path}/.core/kits/{slug}/` (reference copy).
-2. Blueprints are copied from `{cypilot_path}/.core/kits/{slug}/blueprints/` to `{cypilot_path}/config/kits/{slug}/blueprints/` (user-editable).
+1. The tool saves the kit source to `{cypilot_path}/kits/{slug}/` (reference copy).
+2. Blueprints are copied from `{cypilot_path}/kits/{slug}/blueprints/` to `{cypilot_path}/config/kits/{slug}/blueprints/` (user-editable).
 3. All output files are generated from the user blueprints.
 4. The kit version is recorded in `{cypilot_path}/config/core.toml`.
 
@@ -806,8 +806,8 @@ When a kit is installed (`cypilot init` or `cypilot kit install`):
 
 Overwrites all user blueprints from the reference and regenerates all outputs. User edits are discarded.
 
-1. Update `{cypilot_path}/.core/kits/{slug}/` with new kit version.
-2. Copy all blueprints from `{cypilot_path}/.core/kits/{slug}/blueprints/` → `{cypilot_path}/config/kits/{slug}/blueprints/` (overwrite).
+1. Update `{cypilot_path}/kits/{slug}/` with new kit version.
+2. Copy all blueprints from `{cypilot_path}/kits/{slug}/blueprints/` → `{cypilot_path}/config/kits/{slug}/blueprints/` (overwrite).
 3. Regenerate all outputs.
 4. Update kit version in `{cypilot_path}/config/core.toml`.
 
@@ -817,19 +817,19 @@ Use when: starting fresh, after breaking edits, or when you want to fully sync w
 
 **Command**: `cypilot kit update`
 
-Three-way diff using the **current reference** in `{cypilot_path}/.core/kits/{slug}/` as the base:
+Three-way diff using the **current reference** in `{cypilot_path}/kits/{slug}/` as the base:
 
 ```
-{cypilot_path}/.core/kits/{slug}/ (current)  ── the reference
+{cypilot_path}/kits/{slug}/ (current)  ── the reference
     ↕ diff A: detect user modifications
 config/kits/{slug}/blueprints/    ── user’s version
 
-{cypilot_path}/.core/kits/{slug}/ (current)  ── the reference
+{cypilot_path}/kits/{slug}/ (current)  ── the reference
     ↕ diff B: detect kit upstream changes
 new kit version                   ── the updated upstream
 ```
 
-The reference is always available in `{cypilot_path}/.core/kits/{slug}/`. After a successful merge, the reference is replaced with the new version.
+The reference is always available in `{cypilot_path}/kits/{slug}/`. After a successful merge, the reference is replaced with the new version.
 
 **Merge rules**:
 
