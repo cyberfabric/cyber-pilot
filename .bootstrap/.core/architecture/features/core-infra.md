@@ -275,10 +275,10 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 1. [x] - `p1` - Parse arguments: `--root`, `--cypilot-root` - `inst-info-parse-args`
 2. [x] - `p1` - Find project root from start path - `inst-info-find-root`
 3. [x] - `p1` - **IF** project root not found - `inst-info-if-no-root`
-   1. - `p1` - **RETURN** JSON: `{status: NOT_FOUND, hint}` (exit 1) - `inst-info-return-no-root`
+   1. [x] - `p1` - **RETURN** JSON: `{status: NOT_FOUND, hint}` (exit 1) - `inst-info-return-no-root`
 4. [x] - `p1` - Find cypilot directory - `inst-info-find-cypilot`
 5. [x] - `p1` - **IF** cypilot directory not found - `inst-info-if-no-cypilot`
-   1. - `p1` - **RETURN** JSON: `{status: NOT_FOUND, hint}` (exit 1) - `inst-info-return-no-cypilot`
+   1. [x] - `p1` - **RETURN** JSON: `{status: NOT_FOUND, hint}` (exit 1) - `inst-info-return-no-cypilot`
 6. [x] - `p1` - Load cypilot config from directory - `inst-info-load-config`
 7. [x] - `p1` - Locate artifacts registry (config/artifacts.toml, fallback to legacy paths) - `inst-info-locate-registry`
 8. [x] - `p1` - **IF** registry found — load and expand with autodetect data - `inst-info-expand-registry`
@@ -293,11 +293,11 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 
 **Input**: Start path (directory to begin searching from)
 
-1. - `p1` - Resolve start path to absolute - `inst-root-resolve-start`
+1. [x] - `p1` - Resolve start path to absolute - `inst-root-resolve-start`
 2. [x] - `p1` - Walk up directory hierarchy (max 25 levels) looking for AGENTS.md with `@cpt:root-agents` marker or `.git` directory - `inst-root-walk-up`
-3. - `p1` - **IF** found AGENTS.md with marker **RETURN** that directory as project root - `inst-root-found-agents`
-4. - `p1` - **IF** found `.git` **RETURN** that directory as project root - `inst-root-found-git`
-5. - `p1` - **ELSE RETURN** None - `inst-root-not-found`
+3. [x] - `p1` - **IF** found AGENTS.md with marker **RETURN** that directory as project root - `inst-root-found-agents`
+4. [x] - `p1` - **IF** found `.git` **RETURN** that directory as project root - `inst-root-found-git`
+5. [x] - `p1` - **ELSE RETURN** None - `inst-root-not-found`
 
 ### Config Management
 
@@ -331,7 +331,7 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 2. [x] - `p1` - Parse registry data and merge fields from core.toml (version, project_root, kits) - `inst-reg-parse-merge`
 3. [x] - `p1` - Build ArtifactsMeta from parsed dict: parse kits, systems hierarchy, ignore rules - `inst-reg-build-meta`
 4. [x] - `p1` - Expand autodetect rules into concrete artifact/codebase entries via glob matching - `inst-reg-expand-autodetect`
-5. - `p1` - **RETURN** ArtifactsMeta with indexed artifacts and system tree - `inst-reg-return`
+5. [x] - `p1` - **RETURN** ArtifactsMeta with indexed artifacts and system tree - `inst-reg-return`
 
 ### Context Loading
 
@@ -342,7 +342,7 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 1. [x] - `p1` - Find cypilot directory and load artifacts registry - `inst-ctx-find-and-load`
 2. [x] - `p1` - **FOR EACH** registered kit, load constraints and templates - `inst-ctx-load-kits`
 3. [x] - `p1` - Expand autodetect rules into concrete artifact/codebase entries - `inst-ctx-expand-autodetect`
-4. - `p1` - Collect registered system prefixes - `inst-ctx-collect-systems`
+4. [x] - `p1` - Collect registered system prefixes - `inst-ctx-collect-systems`
 5. [x] - `p1` - **RETURN** CypilotContext with all loaded metadata - `inst-ctx-return`
 
 ## 4. States (CDSL)

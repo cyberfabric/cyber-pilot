@@ -584,6 +584,7 @@ def validate_toc(
         # No headings → nothing to validate
         return {"errors": errors, "warnings": warnings}
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-toc:p1:inst-toc-parse-existing
     # 1. TOC exists?
     toc_info = _find_toc_section(lines)
     if toc_info is None:
@@ -598,16 +599,20 @@ def validate_toc(
         return {"errors": errors, "warnings": warnings}
 
     toc_start, toc_end, toc_mode = toc_info
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-toc:p1:inst-toc-parse-existing
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-toc:p1:inst-toc-generate-expected
     # 2. Extract TOC entries and expected anchors
     toc_entries = _extract_toc_entries(lines, toc_start, toc_end)
     expected_anchors = _build_expected_anchors(headings)
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-toc:p1:inst-toc-generate-expected
 
     # Set of anchors found in TOC
     toc_anchors: Dict[str, int] = {}  # anchor → line (1-based)
     for _display, anchor, line_num in toc_entries:
         toc_anchors[anchor] = line_num
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-toc:p1:inst-toc-compare
     # 3. Every TOC anchor must point to a real heading
     for display, anchor, line_num in toc_entries:
         if anchor not in expected_anchors:
@@ -635,7 +640,9 @@ def validate_toc(
                 heading_text=heading_text,
                 expected_anchor=anchor,
             ))
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-toc:p1:inst-toc-compare
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-toc:p1:inst-toc-if-mismatch
     # 5. Staleness check — regenerate TOC and compare
     if not errors:
         if toc_mode == "heading":
@@ -661,6 +668,7 @@ def validate_toc(
                 path=path,
                 line=diff_line,
             ))
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-toc:p1:inst-toc-if-mismatch
 
     return {"errors": errors, "warnings": warnings}
 # @cpt-end:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-validate

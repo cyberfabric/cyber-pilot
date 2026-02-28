@@ -4,27 +4,27 @@
 <!-- toc -->
 
 - [1. Feature Context](#1-feature-context)
-    - [1. Overview](#1-overview)
-    - [2. Purpose](#2-purpose)
-    - [3. Actors](#3-actors)
-    - [4. References](#4-references)
-  - [2. Actor Flows (CDSL)](#2-actor-flows-cdsl)
-    - [Run Spec Coverage Report](#run-spec-coverage-report)
-    - [Reverse-Engineer Feature Specs](#reverse-engineer-feature-specs)
-  - [3. Processes / Business Logic (CDSL)](#3-processes-business-logic-cdsl)
-    - [Scan Code Coverage](#scan-code-coverage)
-    - [Calculate Coverage Metrics](#calculate-coverage-metrics)
-    - [Calculate Granularity Score](#calculate-granularity-score)
-    - [Generate Coverage Report](#generate-coverage-report)
-    - [Place CDSL Markers](#place-cdsl-markers)
-  - [4. States (CDSL)](#4-states-cdsl)
-    - [Coverage Report Lifecycle](#coverage-report-lifecycle)
-  - [5. Definitions of Done](#5-definitions-of-done)
-    - [Coverage Percentage Metric](#coverage-percentage-metric)
-    - [Granularity Quality Metric](#granularity-quality-metric)
-    - [Coverage Report Output](#coverage-report-output)
-  - [6. Implementation Modules](#6-implementation-modules)
-  - [7. Acceptance Criteria](#7-acceptance-criteria)
+  - [1. Overview](#1-overview)
+  - [2. Purpose](#2-purpose)
+  - [3. Actors](#3-actors)
+  - [4. References](#4-references)
+- [2. Actor Flows (CDSL)](#2-actor-flows-cdsl)
+  - [Run Spec Coverage Report](#run-spec-coverage-report)
+  - [Reverse-Engineer Feature Specs](#reverse-engineer-feature-specs)
+- [3. Processes / Business Logic (CDSL)](#3-processes-business-logic-cdsl)
+  - [Scan Code Coverage](#scan-code-coverage)
+  - [Calculate Coverage Metrics](#calculate-coverage-metrics)
+  - [Calculate Granularity Score](#calculate-granularity-score)
+  - [Generate Coverage Report](#generate-coverage-report)
+  - [Place CDSL Markers](#place-cdsl-markers)
+- [4. States (CDSL)](#4-states-cdsl)
+  - [Coverage Report Lifecycle](#coverage-report-lifecycle)
+- [5. Definitions of Done](#5-definitions-of-done)
+  - [Coverage Percentage Metric](#coverage-percentage-metric)
+  - [Granularity Quality Metric](#granularity-quality-metric)
+  - [Coverage Report Output](#coverage-report-output)
+- [6. Implementation Modules](#6-implementation-modules)
+- [7. Acceptance Criteria](#7-acceptance-criteria)
 
 <!-- /toc -->
 
@@ -74,15 +74,15 @@ Without spec coverage, teams have no visibility into which parts of the codebase
 - No code files found → report with 0% coverage
 
 **Steps**:
-1. `p1` - User invokes `cypilot spec-coverage [--min-coverage N] [--min-granularity N] [--verbose]` - `inst-user-spec-coverage`
-2. `p1` - Load project context: cypilot config, registry, systems, codebase entries - `inst-load-context`
-3. `p1` - Resolve all code files from registered codebase entries - `inst-resolve-code-files`
-4. `p1` - **FOR EACH** code file, scan for `@cpt-*` markers using `cpt-cypilot-algo-spec-coverage-scan` - `inst-foreach-file`
-5. `p1` - Calculate coverage metrics using `cpt-cypilot-algo-spec-coverage-metrics` - `inst-calc-metrics`
-6. `p1` - Calculate granularity scores using `cpt-cypilot-algo-spec-coverage-granularity` - `inst-calc-granularity`
-7. `p1` - Generate report using `cpt-cypilot-algo-spec-coverage-report` - `inst-gen-report`
-8. `p1` - **IF** `--min-coverage` set AND coverage < threshold → exit code 2 - `inst-if-threshold`
-9. `p1` - **RETURN** JSON report (summary, per-file stats, uncovered files) - `inst-return-report`
+1. [x] - `p1` - User invokes `cypilot spec-coverage [--min-coverage N] [--min-granularity N] [--verbose]` - `inst-user-spec-coverage`
+2. [x] - `p1` - Load project context: cypilot config, registry, systems, codebase entries - `inst-load-context`
+3. [x] - `p1` - Resolve all code files from registered codebase entries - `inst-resolve-code-files`
+4. [x] - `p1` - **FOR EACH** code file, scan for `@cpt-*` markers using `cpt-cypilot-algo-spec-coverage-scan` - `inst-foreach-file`
+5. [x] - `p1` - Calculate coverage metrics using `cpt-cypilot-algo-spec-coverage-metrics` - `inst-calc-metrics`
+6. [x] - `p1` - Calculate granularity scores using `cpt-cypilot-algo-spec-coverage-granularity` - `inst-calc-granularity`
+7. [x] - `p1` - Generate report using `cpt-cypilot-algo-spec-coverage-report` - `inst-gen-report`
+8. [x] - `p1` - **IF** `--min-coverage` set AND coverage < threshold → exit code 2 - `inst-if-threshold`
+9. [x] - `p1` - **RETURN** JSON report (summary, per-file stats, uncovered files) - `inst-return-report`
 
 ### Reverse-Engineer Feature Specs
 
@@ -94,11 +94,11 @@ Without spec coverage, teams have no visibility into which parts of the codebase
 - Agent invokes reverse-engineering workflow → unspecified code identified, CDSL markers placed in code, feature specs generated from code structure
 
 **Steps**:
-1. `p2` - Agent runs `cypilot spec-coverage` to identify uncovered code - `inst-re-identify-gaps`
-2. `p2` - Agent analyzes uncovered code to identify logical function groups - `inst-re-analyze-code`
-3. `p2` - Agent places `@cpt-begin`/`@cpt-end` markers in code with instruction slugs - `inst-re-place-markers`
-4. `p2` - Agent generates FEATURE spec from placed markers, mapping instructions to CDSL steps - `inst-re-generate-spec`
-5. `p2` - Agent runs `cypilot validate` to verify consistency between new spec and markers - `inst-re-validate`
+1. [ ] - `p2` - Agent runs `cypilot spec-coverage` to identify uncovered code - `inst-re-identify-gaps`
+2. [ ] - `p2` - Agent analyzes uncovered code to identify logical function groups - `inst-re-analyze-code`
+3. [ ] - `p2` - Agent places `@cpt-begin`/`@cpt-end` markers in code with instruction slugs - `inst-re-place-markers`
+4. [ ] - `p2` - Agent generates FEATURE spec from placed markers, mapping instructions to CDSL steps - `inst-re-generate-spec`
+5. [ ] - `p2` - Agent runs `cypilot validate` to verify consistency between new spec and markers - `inst-re-validate`
 
 ## 3. Processes / Business Logic (CDSL)
 
@@ -111,11 +111,11 @@ Without spec coverage, teams have no visibility into which parts of the codebase
 **Output**: `{path, total_lines, covered_lines, covered_ranges, markers, block_markers}`
 
 **Steps**:
-1. `p1` - Read file and count total non-blank, non-comment lines (effective lines) - `inst-scan-count-lines`
-2. `p1` - Scan for `@cpt-algo`, `@cpt-flow`, `@cpt-dod` scope markers (file-level coverage) - `inst-scan-scope-markers`
-3. `p1` - Scan for `@cpt-begin`/`@cpt-end` block markers (range-level coverage) - `inst-scan-block-markers`
-4. `p1` - Calculate covered line ranges: lines between block marker pairs are covered; file-level scope markers cover all lines - `inst-scan-calc-ranges`
-5. `p1` - **RETURN** file coverage record with ranges and marker counts - `inst-scan-return`
+1. [x] - `p1` - Read file and count total non-blank, non-comment lines (effective lines) - `inst-scan-count-lines`
+2. [x] - `p1` - Scan for `@cpt-algo`, `@cpt-flow`, `@cpt-dod` scope markers (file-level coverage) - `inst-scan-scope-markers`
+3. [x] - `p1` - Scan for `@cpt-begin`/`@cpt-end` block markers (range-level coverage) - `inst-scan-block-markers`
+4. [x] - `p1` - Calculate covered line ranges: lines between block marker pairs are covered; file-level scope markers cover all lines - `inst-scan-calc-ranges`
+5. [x] - `p1` - **RETURN** file coverage record with ranges and marker counts - `inst-scan-return`
 
 ### Calculate Coverage Metrics
 
@@ -126,10 +126,10 @@ Without spec coverage, teams have no visibility into which parts of the codebase
 **Output**: `{total_lines, covered_lines, coverage_pct, per_file_coverage}`
 
 **Steps**:
-1. `p1` - Sum total effective lines across all files - `inst-metrics-sum-total`
-2. `p1` - Sum covered lines across all files - `inst-metrics-sum-covered`
-3. `p1` - Calculate overall coverage percentage: `covered / total * 100` - `inst-metrics-calc-pct`
-4. `p1` - **RETURN** metrics with per-file breakdown - `inst-metrics-return`
+1. [x] - `p1` - Sum total effective lines across all files - `inst-metrics-sum-total`
+2. [x] - `p1` - Sum covered lines across all files - `inst-metrics-sum-covered`
+3. [x] - `p1` - Calculate overall coverage percentage: `covered / total * 100` - `inst-metrics-calc-pct`
+4. [x] - `p1` - **RETURN** metrics with per-file breakdown - `inst-metrics-return`
 
 ### Calculate Granularity Score
 
@@ -142,13 +142,13 @@ Without spec coverage, teams have no visibility into which parts of the codebase
 A file with good granularity has approximately 1 CDSL instruction (`@cpt-begin`/`@cpt-end` block) per 10 lines of code. Files with only scope markers at file level (no block markers) get a granularity score of 0 even if nominally 100% covered. This prevents the anti-pattern of wrapping an entire file with a single begin/end pair.
 
 **Steps**:
-1. `p1` - **FOR EACH** covered file - `inst-gran-foreach`
-2. `p1` - Count block marker pairs (instruction-level markers) in file - `inst-gran-count-blocks`
-3. `p1` - Calculate ideal block count: `effective_lines / 10` - `inst-gran-ideal`
-4. `p1` - Calculate file granularity: `min(1.0, actual_blocks / ideal_blocks)` — capped at 1.0 - `inst-gran-calc`
-5. `p1` - Flag files where granularity < 0.5 (fewer than 1 instruction per 20 lines) - `inst-gran-flag`
-6. `p1` - Calculate overall granularity: weighted average across covered files (weighted by line count) - `inst-gran-overall`
-7. `p1` - **RETURN** granularity scores with flagged files - `inst-gran-return`
+1. [x] - `p1` - **FOR EACH** covered file - `inst-gran-foreach`
+2. [x] - `p1` - Count block marker pairs (instruction-level markers) in file - `inst-gran-count-blocks`
+3. [x] - `p1` - Calculate ideal block count: `effective_lines / 10` - `inst-gran-ideal`
+4. [x] - `p1` - Calculate file granularity: `min(1.0, actual_blocks / ideal_blocks)` — capped at 1.0 - `inst-gran-calc`
+5. [x] - `p1` - Flag files where granularity < 0.5 (fewer than 1 instruction per 20 lines) - `inst-gran-flag`
+6. [x] - `p1` - Calculate overall granularity: weighted average across covered files (weighted by line count) - `inst-gran-overall`
+7. [x] - `p1` - **RETURN** granularity scores with flagged files - `inst-gran-return`
 
 ### Generate Coverage Report
 
@@ -159,10 +159,10 @@ A file with good granularity has approximately 1 CDSL instruction (`@cpt-begin`/
 **Output**: JSON report matching `coverage.py` structure
 
 **Steps**:
-1. `p1` - Build summary section: total files, covered files, coverage %, granularity score - `inst-report-summary`
-2. `p1` - Build per-file section: path, total lines, covered lines, coverage %, granularity, uncovered ranges - `inst-report-per-file`
-3. `p1` - **IF** verbose, include marker details per file - `inst-report-verbose`
-4. `p1` - **RETURN** formatted JSON report - `inst-report-return`
+1. [x] - `p1` - Build summary section: total files, covered files, coverage %, granularity score - `inst-report-summary`
+2. [x] - `p1` - Build per-file section: path, total lines, covered lines, coverage %, granularity, uncovered ranges - `inst-report-per-file`
+3. [x] - `p1` - **IF** verbose, include marker details per file - `inst-report-verbose`
+4. [x] - `p1` - **RETURN** formatted JSON report - `inst-report-return`
 
 ### Place CDSL Markers
 
@@ -173,10 +173,10 @@ A file with good granularity has approximately 1 CDSL instruction (`@cpt-begin`/
 **Output**: Modified code file with `@cpt-begin`/`@cpt-end` markers inserted
 
 **Steps**:
-1. `p2` - Parse code file to identify function/method boundaries - `inst-place-parse`
-2. `p2` - Generate instruction slugs from function names (kebab-case) - `inst-place-slugs`
-3. `p2` - Insert `@cpt-begin` before function body and `@cpt-end` after function body - `inst-place-insert`
-4. `p2` - **RETURN** list of placed markers with file path and line numbers - `inst-place-return`
+1. [ ] - `p2` - Parse code file to identify function/method boundaries - `inst-place-parse`
+2. [ ] - `p2` - Generate instruction slugs from function names (kebab-case) - `inst-place-slugs`
+3. [ ] - `p2` - Insert `@cpt-begin` before function body and `@cpt-end` after function body - `inst-place-insert`
+4. [ ] - `p2` - **RETURN** list of placed markers with file path and line numbers - `inst-place-return`
 
 ## 4. States (CDSL)
 
@@ -187,9 +187,9 @@ A file with good granularity has approximately 1 CDSL instruction (`@cpt-begin`/
 **States**: NOT_RUN, COVERED, PARTIAL, UNCOVERED
 
 **Transitions**:
-1. `p1` - **FROM** NOT_RUN **TO** COVERED **WHEN** coverage ≥ threshold AND granularity ≥ threshold - `inst-state-covered`
-2. `p1` - **FROM** NOT_RUN **TO** PARTIAL **WHEN** coverage > 0 but below threshold OR granularity below threshold - `inst-state-partial`
-3. `p1` - **FROM** NOT_RUN **TO** UNCOVERED **WHEN** no CDSL markers found in any code file - `inst-state-uncovered`
+1. [ ] - `p1` - **FROM** NOT_RUN **TO** COVERED **WHEN** coverage ≥ threshold AND granularity ≥ threshold - `inst-state-covered`
+2. [ ] - `p1` - **FROM** NOT_RUN **TO** PARTIAL **WHEN** coverage > 0 but below threshold OR granularity below threshold - `inst-state-partial`
+3. [ ] - `p1` - **FROM** NOT_RUN **TO** UNCOVERED **WHEN** no CDSL markers found in any code file - `inst-state-uncovered`
 
 ## 5. Definitions of Done
 

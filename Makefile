@@ -1,5 +1,5 @@
 # @cpt-algo:cpt-cypilot-spec-init-structure-change-infrastructure:p1
-.PHONY: test test-verbose test-quick test-coverage validate validate-examples validate-feature validate-code validate-code-feature self-check vulture vulture-ci install install-pipx clean help check-pytest check-pytest-cov check-pipx check-vulture
+.PHONY: test test-verbose test-quick test-coverage validate validate-examples validate-feature validate-code validate-code-feature self-check vulture vulture-ci install install-pipx clean help check-pytest check-pytest-cov check-pipx check-vulture update
 
 PYTHON ?= python3
 PIPX ?= pipx
@@ -24,6 +24,7 @@ help:
 	@echo "  make vulture                       - Scan python code for dead code (report only, does not fail)"
 	@echo "  make vulture-ci                    - Scan python code for dead code (fails if findings)"
 	@echo "  make install                       - Install Python dependencies"
+	@echo "  make update                        - Update .bootstrap from local source"
 	@echo "  make clean                         - Remove Python cache files"
 	@echo "  make help                          - Show this help message"
 
@@ -111,6 +112,10 @@ vulture: check-vulture
 vulture-ci: check-vulture
 	@echo "Running vulture dead-code scan (CI mode, fails if findings)..."
 	$(VULTURE_PIPX) skills/cypilot/scripts/cypilot --min-confidence $(VULTURE_MIN_CONF)
+
+# Update .bootstrap from local source
+update:
+	$(CPT) update --source . --force
 
 # Validate core methodology spec
 validate:

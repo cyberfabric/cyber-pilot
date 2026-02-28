@@ -17,7 +17,7 @@ def cmd_spec_coverage(argv: List[str]) -> int:
     """Run spec coverage analysis on registered codebase files."""
     from ..utils.context import get_context
 
-    # Parse arguments
+    # @cpt-begin:cpt-cypilot-flow-spec-coverage-report:p1:inst-user-spec-coverage
     p = argparse.ArgumentParser(
         prog="spec-coverage",
         description="Measure CDSL marker coverage in codebase files",
@@ -27,8 +27,9 @@ def cmd_spec_coverage(argv: List[str]) -> int:
     p.add_argument("--verbose", action="store_true", help="Include per-file marker details and line ranges")
     p.add_argument("--output", default=None, help="Write report to file instead of stdout")
     args = p.parse_args(argv)
+    # @cpt-end:cpt-cypilot-flow-spec-coverage-report:p1:inst-user-spec-coverage
 
-    # Load context
+    # @cpt-begin:cpt-cypilot-flow-spec-coverage-report:p1:inst-load-context
     ctx = get_context()
     if not ctx:
         print(json.dumps({"status": "ERROR", "message": "Cypilot not initialized. Run 'cypilot init' first."}, ensure_ascii=False))
@@ -36,8 +37,9 @@ def cmd_spec_coverage(argv: List[str]) -> int:
 
     meta = ctx.meta
     project_root = ctx.project_root
+    # @cpt-end:cpt-cypilot-flow-spec-coverage-report:p1:inst-load-context
 
-    # Resolve all code files from registered codebase entries
+    # @cpt-begin:cpt-cypilot-flow-spec-coverage-report:p1:inst-resolve-code-files
     code_files_to_scan: List[Path] = []
 
     def resolve_code_path(pth: str) -> Path:
@@ -64,7 +66,6 @@ def cmd_spec_coverage(argv: List[str]) -> int:
     for system_node in meta.systems:
         collect_codebase_files(system_node)
 
-    # Filter out ignored files
     filtered_files: List[Path] = []
     for fp in code_files_to_scan:
         try:
@@ -74,6 +75,7 @@ def cmd_spec_coverage(argv: List[str]) -> int:
         if rel and meta.is_ignored(rel):
             continue
         filtered_files.append(fp)
+    # @cpt-end:cpt-cypilot-flow-spec-coverage-report:p1:inst-resolve-code-files
 
     if not filtered_files:
         out = {
@@ -89,20 +91,27 @@ def cmd_spec_coverage(argv: List[str]) -> int:
         _output(out, args)
         return 0
 
-    # Scan each file
+    # @cpt-begin:cpt-cypilot-flow-spec-coverage-report:p1:inst-foreach-file
     file_coverages: List[FileCoverage] = []
     for fp in sorted(set(filtered_files)):
         fc = scan_file_coverage(fp)
         if fc is not None:
             file_coverages.append(fc)
+    # @cpt-end:cpt-cypilot-flow-spec-coverage-report:p1:inst-foreach-file
 
-    # Calculate aggregate metrics
+    # @cpt-begin:cpt-cypilot-flow-spec-coverage-report:p1:inst-calc-metrics
     report = calculate_metrics(file_coverages)
+    # @cpt-end:cpt-cypilot-flow-spec-coverage-report:p1:inst-calc-metrics
 
-    # Generate JSON report
+    # @cpt-begin:cpt-cypilot-flow-spec-coverage-report:p1:inst-calc-granularity
+    # Granularity is calculated inside calculate_metrics
+    # @cpt-end:cpt-cypilot-flow-spec-coverage-report:p1:inst-calc-granularity
+
+    # @cpt-begin:cpt-cypilot-flow-spec-coverage-report:p1:inst-gen-report
     json_report = generate_report(report, verbose=args.verbose, project_root=project_root)
+    # @cpt-end:cpt-cypilot-flow-spec-coverage-report:p1:inst-gen-report
 
-    # Determine status
+    # @cpt-begin:cpt-cypilot-flow-spec-coverage-report:p1:inst-if-threshold
     status = "PASS"
     threshold_failures: List[str] = []
 
@@ -117,10 +126,13 @@ def cmd_spec_coverage(argv: List[str]) -> int:
     json_report["status"] = status
     if threshold_failures:
         json_report["threshold_failures"] = threshold_failures
+    # @cpt-end:cpt-cypilot-flow-spec-coverage-report:p1:inst-if-threshold
 
+    # @cpt-begin:cpt-cypilot-flow-spec-coverage-report:p1:inst-return-report
     _output(json_report, args)
 
     return 0 if status == "PASS" else 2
+    # @cpt-end:cpt-cypilot-flow-spec-coverage-report:p1:inst-return-report
 
 
 def _output(data: dict, args: argparse.Namespace) -> None:
