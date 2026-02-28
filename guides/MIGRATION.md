@@ -44,9 +44,9 @@ This guide covers migrating a Cypilot v2 project (adapter-based, `artifacts.json
 
 ## Prerequisites
 
-1. **Update Cypilot** to the latest version before migrating:
+1. **Update the CLI** to the latest version (`cpt migrate` uses the cached skill bundle, which the proxy updates automatically):
    ```bash
-   cpt update
+   pipx install --force git+https://github.com/cyberfabric/cyber-pilot.git
    ```
 2. **Commit or stash** any uncommitted changes in your project.
 3. **Verify v2 is detected** with a dry run:
