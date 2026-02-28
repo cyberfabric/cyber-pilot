@@ -62,8 +62,11 @@ def find_project_root(start: Path) -> Optional[Path]:
     Find project root by looking for AGENTS.md with @cpt:root-agents marker or .git directory.
     Searches up to 25 levels in directory hierarchy.
     """
+    # @cpt-begin:cpt-cypilot-algo-core-infra-project-root-detection:p1:inst-root-resolve-start
     current = start.resolve()
+    # @cpt-end:cpt-cypilot-algo-core-infra-project-root-detection:p1:inst-root-resolve-start
     for _ in range(25):
+        # @cpt-begin:cpt-cypilot-algo-core-infra-project-root-detection:p1:inst-root-found-agents
         agents = current / "AGENTS.md"
         if agents.is_file():
             try:
@@ -72,16 +75,21 @@ def find_project_root(start: Path) -> Optional[Path]:
                 head = ""
             if _MARKER_START in head:
                 return current
+        # @cpt-end:cpt-cypilot-algo-core-infra-project-root-detection:p1:inst-root-found-agents
 
+        # @cpt-begin:cpt-cypilot-algo-core-infra-project-root-detection:p1:inst-root-found-git
         git_marker = current / ".git"
         if git_marker.exists():
             return current
+        # @cpt-end:cpt-cypilot-algo-core-infra-project-root-detection:p1:inst-root-found-git
 
         parent = current.parent
         if parent == current:
             break
         current = parent
+    # @cpt-begin:cpt-cypilot-algo-core-infra-project-root-detection:p1:inst-root-not-found
     return None
+    # @cpt-end:cpt-cypilot-algo-core-infra-project-root-detection:p1:inst-root-not-found
 # @cpt-end:cpt-cypilot-algo-core-infra-project-root-detection:p1:inst-root-walk-up
 
 

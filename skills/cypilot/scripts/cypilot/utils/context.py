@@ -159,9 +159,12 @@ class CypilotContext:
 
         # @cpt-end:cpt-cypilot-algo-core-infra-context-loading:p1:inst-ctx-expand-autodetect
 
-        # @cpt-begin:cpt-cypilot-algo-core-infra-context-loading:p1:inst-ctx-return
+        # @cpt-begin:cpt-cypilot-algo-core-infra-context-loading:p1:inst-ctx-collect-systems
         # Get all system prefixes (slug hierarchy prefixes used in cpt-<system>-... IDs)
         registered_systems = meta.get_all_system_prefixes()
+        # @cpt-end:cpt-cypilot-algo-core-infra-context-loading:p1:inst-ctx-collect-systems
+
+        # @cpt-begin:cpt-cypilot-algo-core-infra-context-loading:p1:inst-ctx-return
 
         ctx = cls(
             adapter_dir=adapter_dir,

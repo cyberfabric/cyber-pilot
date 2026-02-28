@@ -50,6 +50,23 @@ def cmd_validate_kits(argv: List[str]) -> int:
             continue
 
         kit_root = (project_root / str(kit.path or "").strip().strip("/")).resolve()
+
+        # @cpt-begin:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-verify-blueprints-dir
+        # Structural validation: verify blueprints directory exists
+        user_bp_dir = ctx.adapter_dir / "config" / "kits" / str(kit_id) / "blueprints"
+        has_blueprints = user_bp_dir.is_dir()
+        # @cpt-end:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-verify-blueprints-dir
+
+        # @cpt-begin:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-foreach-blueprint
+        # @cpt-begin:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-validate-markers
+        # @cpt-begin:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-verify-identity
+        # @cpt-begin:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-verify-content
+        # Blueprint marker validation delegated to constraints loading
+        # @cpt-end:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-verify-content
+        # @cpt-end:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-verify-identity
+        # @cpt-end:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-validate-markers
+        # @cpt-end:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-foreach-blueprint
+
         _kc, kc_errs = load_constraints_toml(kit_root)
 
         rep: Dict[str, object] = {

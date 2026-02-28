@@ -11,7 +11,7 @@ import io
 import contextlib
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "cypilot" / "scripts"))
 
@@ -192,7 +192,13 @@ class TestCliCommandCoverage(unittest.TestCase):
             adapter.mkdir()
             with patch("cypilot.commands.self_check.find_project_root", return_value=root):
                 with patch("cypilot.commands.self_check.find_cypilot_directory", return_value=adapter):
-                    with patch("cypilot.commands.self_check.load_artifacts_registry", return_value=({"version": "1.0"}, None)):
+                    with patch("cypilot.commands.self_check.load_artifacts_meta") as mock_load:
+                        meta_mock = MagicMock()
+                        meta_mock.validate_all_slugs.return_value = []
+                        meta_mock.kits = {}
+                        mock_load.return_value = (meta_mock, None)
+                        _unused = mock_load  # noqa
+                    with patch("cypilot.commands.self_check.load_artifacts_meta", return_value=(meta_mock, None)):
                         buf = io.StringIO()
                         with contextlib.redirect_stdout(buf):
                             code = cypilot_cli._cmd_self_check(["--root", td])
@@ -222,7 +228,14 @@ class TestCliCommandCoverage(unittest.TestCase):
             }
             with patch("cypilot.commands.self_check.find_project_root", return_value=root):
                 with patch("cypilot.commands.self_check.find_cypilot_directory", return_value=adapter):
-                    with patch("cypilot.commands.self_check.load_artifacts_registry", return_value=(registry, None)):
+                    with patch("cypilot.commands.self_check.load_artifacts_meta") as mock_load2:
+                        meta_mock2 = MagicMock()
+                        meta_mock2.validate_all_slugs.return_value = []
+                        meta_mock2.kits = {"test-rules": MagicMock(path="kits/test")}
+                        meta_mock2.kits["test-rules"].is_cypilot_format.return_value = True
+                        mock_load2.return_value = (meta_mock2, None)
+                        _unused2 = mock_load2  # noqa
+                    with patch("cypilot.commands.self_check.load_artifacts_meta", return_value=(meta_mock2, None)):
                         buf = io.StringIO()
                         with contextlib.redirect_stdout(buf):
                             code = cypilot_cli._cmd_self_check(["--root", td])

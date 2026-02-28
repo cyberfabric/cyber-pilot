@@ -48,6 +48,7 @@ def cmd_adapter_info(argv: list[str]) -> int:
     # @cpt-end:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-find-root
     # @cpt-begin:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-if-no-root
     if project_root is None:
+        # @cpt-begin:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-return-no-root
         print(json.dumps(
             {
                 "status": "NOT_FOUND",
@@ -59,6 +60,7 @@ def cmd_adapter_info(argv: list[str]) -> int:
             ensure_ascii=False,
         ))
         return 1
+        # @cpt-end:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-return-no-root
     # @cpt-end:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-if-no-root
 
     # @cpt-begin:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-find-cypilot
@@ -66,6 +68,7 @@ def cmd_adapter_info(argv: list[str]) -> int:
     # @cpt-end:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-find-cypilot
     # @cpt-begin:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-if-no-cypilot
     if adapter_dir is None:
+        # @cpt-begin:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-return-no-cypilot
         print(json.dumps(
             {
                 "status": "NOT_FOUND",
@@ -77,6 +80,7 @@ def cmd_adapter_info(argv: list[str]) -> int:
             ensure_ascii=False,
         ))
         return 1
+        # @cpt-end:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-return-no-cypilot
     # @cpt-end:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-if-no-cypilot
 
     # @cpt-begin:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-load-config

@@ -871,6 +871,51 @@ class ArtifactsMeta:
         return errors
     # @cpt-end:cpt-cypilot-algo-core-infra-registry-parsing:p1:inst-reg-expand-autodetect
 
+    # === Pipeline Resolution ===
+    # @cpt-begin:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-define-ordering
+    PIPELINE_ORDER = ["PRD", "DESIGN", "ADR", "DECOMPOSITION", "FEATURE"]
+    # @cpt-end:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-define-ordering
+
+    def resolve_pipeline(self, system_slug: str) -> dict:
+        """Resolve pipeline position for a system."""
+        # @cpt-begin:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-classify-artifacts
+        present_kinds: set = set()
+        for art, node in self.iter_all_artifacts():
+            if node.slug == system_slug or system_slug in node.get_hierarchy_prefix():
+                present_kinds.add(str(art.kind).upper())
+        # @cpt-end:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-classify-artifacts
+
+        # @cpt-begin:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-identify-present-missing
+        missing_kinds = [k for k in self.PIPELINE_ORDER if k not in present_kinds]
+        # @cpt-end:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-identify-present-missing
+
+        # @cpt-begin:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-foreach-missing
+        recommendation = None
+        for kind in missing_kinds:
+            # @cpt-begin:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-check-dependencies
+            idx = self.PIPELINE_ORDER.index(kind)
+            deps_satisfied = all(d in present_kinds for d in self.PIPELINE_ORDER[:idx])
+            # @cpt-end:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-check-dependencies
+            # @cpt-begin:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-if-deps-satisfied
+            if deps_satisfied:
+                recommendation = kind
+                break
+            # @cpt-end:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-if-deps-satisfied
+        # @cpt-end:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-foreach-missing
+
+        # @cpt-begin:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-if-all-present
+        if not missing_kinds:
+            recommendation = "CODE"
+        # @cpt-end:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-if-all-present
+
+        # @cpt-begin:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-return-status
+        return {
+            "present": sorted(present_kinds),
+            "missing": missing_kinds,
+            "recommendation": recommendation,
+        }
+        # @cpt-end:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-return-status
+
     # === Kit Methods ===
 
     def get_kit(self, kit_id: str) -> Optional[Kit]:
@@ -1006,7 +1051,9 @@ def load_artifacts_meta(adapter_dir: Path) -> Tuple[Optional[ArtifactsMeta], Opt
         # @cpt-begin:cpt-cypilot-algo-core-infra-registry-parsing:p1:inst-reg-build-meta
         meta = ArtifactsMeta.from_dict(data)
         # @cpt-end:cpt-cypilot-algo-core-infra-registry-parsing:p1:inst-reg-build-meta
+        # @cpt-begin:cpt-cypilot-algo-core-infra-registry-parsing:p1:inst-reg-return
         return meta, None
+        # @cpt-end:cpt-cypilot-algo-core-infra-registry-parsing:p1:inst-reg-return
     except Exception as e:
         return None, f"Failed to load artifacts registry {path}: {e}"
 

@@ -254,7 +254,7 @@ Catches structural and traceability issues that AI agents miss or hallucinate â€
 3. [x] - `p1` - **IF** no artifacts found **RETURN** empty result or error - `inst-kinds-if-no-artifacts`
 4. [x] - `p1` - Build known kinds set from kit constraints - `inst-kinds-build-known`
 5. [x] - `p1` - **FOR EACH** artifact, scan ID definitions and infer kind tokens from ID slugs - `inst-kinds-scan-ids`
-6. - `p1` - Aggregate kind counts and kindâ†”template mappings - `inst-kinds-aggregate`
+6. [x] - `p1` - Aggregate kind counts and kindâ†”template mappings - `inst-kinds-aggregate`
 7. [x] - `p1` - **RETURN** JSON: `{kinds, kind_counts, kind_to_templates, template_to_kinds}` - `inst-kinds-return`
 
 ### Validate TOC
@@ -267,12 +267,12 @@ Catches structural and traceability issues that AI agents miss or hallucinate â€
 
 **Steps**:
 1. [x] - `p1` - Parse arguments: positional files or `--all` - `inst-toc-parse-args`
-2. - `p1` - Resolve file list (explicit paths or all registered artifacts) - `inst-toc-resolve-files`
+2. [x] - `p1` - Resolve file list (explicit paths or all registered artifacts) - `inst-toc-resolve-files`
 3. [x] - `p1` - **FOR EACH** file - `inst-toc-foreach-file`
-   1. - `p1` - Parse existing TOC block between `<!-- toc -->` markers - `inst-toc-parse-existing`
-   2. - `p1` - Generate expected TOC from headings - `inst-toc-generate-expected`
-   3. - `p1` - Compare existing vs expected: check anchor validity, heading coverage, staleness - `inst-toc-compare`
-   4. - `p1` - **IF** mismatch, record error with diff details - `inst-toc-if-mismatch`
+   1. [x] - `p1` - Parse existing TOC block between `<!-- toc -->` markers - `inst-toc-parse-existing`
+   2. [x] - `p1` - Generate expected TOC from headings - `inst-toc-generate-expected`
+   3. [x] - `p1` - Compare existing vs expected: check anchor validity, heading coverage, staleness - `inst-toc-compare`
+   4. [x] - `p1` - **IF** mismatch, record error with diff details - `inst-toc-if-mismatch`
 4. [x] - `p1` - **RETURN** JSON: `{status, files_checked, errors}` - `inst-toc-return`
 
 ### TOC Utilities

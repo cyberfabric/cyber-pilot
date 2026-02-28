@@ -105,7 +105,7 @@ def scan_file_coverage(path: Path) -> Optional[FileCoverage]:
     total_lines = len(lines)
     ext = path.suffix.lower()
 
-    # Count effective lines (non-blank, non-comment)
+    # @cpt-begin:cpt-cypilot-algo-spec-coverage-scan:p1:inst-scan-count-lines
     effective_lines = 0
     effective_line_set: Set[int] = set()
     for idx, line in enumerate(lines):
@@ -113,6 +113,7 @@ def scan_file_coverage(path: Path) -> Optional[FileCoverage]:
         if not _is_blank_or_comment(line, ext):
             effective_lines += 1
             effective_line_set.add(line_no)
+    # @cpt-end:cpt-cypilot-algo-spec-coverage-scan:p1:inst-scan-count-lines
 
     if effective_lines == 0:
         return FileCoverage(
@@ -129,10 +130,13 @@ def scan_file_coverage(path: Path) -> Optional[FileCoverage]:
             granularity=0.0,
         )
 
-    # Scan for markers
+    # @cpt-begin:cpt-cypilot-algo-spec-coverage-scan:p1:inst-scan-scope-markers
     scope_markers: List[int] = []
+    # @cpt-end:cpt-cypilot-algo-spec-coverage-scan:p1:inst-scan-scope-markers
+    # @cpt-begin:cpt-cypilot-algo-spec-coverage-scan:p1:inst-scan-block-markers
     block_ranges: List[Tuple[int, int]] = []
     open_blocks: Dict[str, int] = {}
+    # @cpt-end:cpt-cypilot-algo-spec-coverage-scan:p1:inst-scan-block-markers
 
     for idx, line in enumerate(lines):
         line_no = idx + 1
@@ -155,19 +159,16 @@ def scan_file_coverage(path: Path) -> Optional[FileCoverage]:
     block_count = len(block_ranges)
     has_scope_only = scope_count > 0 and block_count == 0
 
-    # Calculate covered lines
+    # @cpt-begin:cpt-cypilot-algo-spec-coverage-scan:p1:inst-scan-calc-ranges
     covered_set: Set[int] = set()
 
     if has_scope_only:
-        # Scope-only: all effective lines are nominally covered
         covered_set = set(effective_line_set)
     else:
-        # Block markers: lines between begin/end pairs are covered
         for start, end in block_ranges:
             for ln in range(start, end + 1):
                 if ln in effective_line_set:
                     covered_set.add(ln)
-        # Also cover lines at scope marker positions
         for ln in scope_markers:
             if ln in effective_line_set:
                 covered_set.add(ln)
@@ -175,12 +176,10 @@ def scan_file_coverage(path: Path) -> Optional[FileCoverage]:
     covered_lines = len(covered_set)
     coverage_pct = (covered_lines / effective_lines * 100.0) if effective_lines > 0 else 0.0
 
-    # Build covered/uncovered ranges from effective lines
     covered_ranges = _build_ranges(sorted(covered_set))
     uncovered_effective = sorted(effective_line_set - covered_set)
     uncovered_ranges = _build_ranges(uncovered_effective)
 
-    # Calculate granularity
     if has_scope_only:
         granularity = 0.0
     elif block_count == 0:
@@ -188,7 +187,9 @@ def scan_file_coverage(path: Path) -> Optional[FileCoverage]:
     else:
         ideal_blocks = max(1.0, effective_lines / 10.0)
         granularity = min(1.0, block_count / ideal_blocks)
+    # @cpt-end:cpt-cypilot-algo-spec-coverage-scan:p1:inst-scan-calc-ranges
 
+    # @cpt-begin:cpt-cypilot-algo-spec-coverage-scan:p1:inst-scan-return
     return FileCoverage(
         path=str(path),
         total_lines=total_lines,
@@ -202,6 +203,7 @@ def scan_file_coverage(path: Path) -> Optional[FileCoverage]:
         coverage_pct=round(coverage_pct, 2),
         granularity=round(granularity, 4),
     )
+    # @cpt-end:cpt-cypilot-algo-spec-coverage-scan:p1:inst-scan-return
 
 
 def _build_ranges(sorted_lines: List[int]) -> List[Tuple[int, int]]:
@@ -228,29 +230,55 @@ def _build_ranges(sorted_lines: List[int]) -> List[Tuple[int, int]]:
 
 def calculate_metrics(file_coverages: List[FileCoverage]) -> CoverageReport:
     """Calculate aggregate coverage metrics from per-file data."""
+    # @cpt-begin:cpt-cypilot-algo-spec-coverage-metrics:p1:inst-metrics-sum-total
     total_files = len(file_coverages)
     covered_files = sum(1 for fc in file_coverages if fc.covered_lines > 0)
     uncovered_files = total_files - covered_files
-
     total_lines = sum(fc.effective_lines for fc in file_coverages)
+    # @cpt-end:cpt-cypilot-algo-spec-coverage-metrics:p1:inst-metrics-sum-total
+
+    # @cpt-begin:cpt-cypilot-algo-spec-coverage-metrics:p1:inst-metrics-sum-covered
     covered_lines = sum(fc.covered_lines for fc in file_coverages)
+    # @cpt-end:cpt-cypilot-algo-spec-coverage-metrics:p1:inst-metrics-sum-covered
 
+    # @cpt-begin:cpt-cypilot-algo-spec-coverage-metrics:p1:inst-metrics-calc-pct
     coverage_pct = (covered_lines / total_lines * 100.0) if total_lines > 0 else 0.0
+    # @cpt-end:cpt-cypilot-algo-spec-coverage-metrics:p1:inst-metrics-calc-pct
 
-    # Weighted-average granularity across covered files
+    # @cpt-begin:cpt-cypilot-algo-spec-coverage-granularity:p1:inst-gran-foreach
     gran_num = 0.0
     gran_den = 0
     flagged_files: List[str] = []
+    # @cpt-end:cpt-cypilot-algo-spec-coverage-granularity:p1:inst-gran-foreach
 
     for fc in file_coverages:
         if fc.covered_lines > 0:
+            # @cpt-begin:cpt-cypilot-algo-spec-coverage-granularity:p1:inst-gran-count-blocks
             gran_num += fc.granularity * fc.effective_lines
             gran_den += fc.effective_lines
+            # @cpt-end:cpt-cypilot-algo-spec-coverage-granularity:p1:inst-gran-count-blocks
+
+            # @cpt-begin:cpt-cypilot-algo-spec-coverage-granularity:p1:inst-gran-ideal
+            # ideal is effective_lines / 10 — already computed in per-file granularity
+            # @cpt-end:cpt-cypilot-algo-spec-coverage-granularity:p1:inst-gran-ideal
+
+            # @cpt-begin:cpt-cypilot-algo-spec-coverage-granularity:p1:inst-gran-calc
+            # per-file granularity = min(1.0, actual_blocks / ideal_blocks) — already in fc.granularity
+            # @cpt-end:cpt-cypilot-algo-spec-coverage-granularity:p1:inst-gran-calc
+
+            # @cpt-begin:cpt-cypilot-algo-spec-coverage-granularity:p1:inst-gran-flag
             if fc.granularity < 0.5:
                 flagged_files.append(fc.path)
+            # @cpt-end:cpt-cypilot-algo-spec-coverage-granularity:p1:inst-gran-flag
 
+    # @cpt-begin:cpt-cypilot-algo-spec-coverage-granularity:p1:inst-gran-overall
     granularity_score = (gran_num / gran_den) if gran_den > 0 else 0.0
+    # @cpt-end:cpt-cypilot-algo-spec-coverage-granularity:p1:inst-gran-overall
+    # @cpt-begin:cpt-cypilot-algo-spec-coverage-granularity:p1:inst-gran-return
+    # granularity_score returned as part of CoverageReport below
+    # @cpt-end:cpt-cypilot-algo-spec-coverage-granularity:p1:inst-gran-return
 
+    # @cpt-begin:cpt-cypilot-algo-spec-coverage-metrics:p1:inst-metrics-return
     return CoverageReport(
         total_files=total_files,
         covered_files=covered_files,
@@ -262,6 +290,7 @@ def calculate_metrics(file_coverages: List[FileCoverage]) -> CoverageReport:
         per_file=file_coverages,
         flagged_files=flagged_files,
     )
+    # @cpt-end:cpt-cypilot-algo-spec-coverage-metrics:p1:inst-metrics-return
 
 
 # ---------------------------------------------------------------------------
@@ -278,6 +307,7 @@ def generate_report(report: CoverageReport, *, verbose: bool = False, project_ro
                 pass
         return p
 
+    # @cpt-begin:cpt-cypilot-algo-spec-coverage-report:p1:inst-report-summary
     summary = {
         "total_files": report.total_files,
         "covered_files": report.covered_files,
@@ -290,7 +320,9 @@ def generate_report(report: CoverageReport, *, verbose: bool = False, project_ro
 
     if report.flagged_files:
         summary["flagged_files_count"] = len(report.flagged_files)
+    # @cpt-end:cpt-cypilot-algo-spec-coverage-report:p1:inst-report-summary
 
+    # @cpt-begin:cpt-cypilot-algo-spec-coverage-report:p1:inst-report-per-file
     files: Dict[str, Dict] = {}
     uncovered_file_list: List[str] = []
 
@@ -308,6 +340,7 @@ def generate_report(report: CoverageReport, *, verbose: bool = False, project_ro
         if fc.has_scope_only:
             entry["scope_only"] = True
 
+        # @cpt-begin:cpt-cypilot-algo-spec-coverage-report:p1:inst-report-verbose
         if verbose:
             entry["scope_markers"] = fc.scope_marker_count
             entry["block_markers"] = fc.block_marker_count
@@ -315,9 +348,12 @@ def generate_report(report: CoverageReport, *, verbose: bool = False, project_ro
                 entry["uncovered_ranges"] = [[s, e] for s, e in fc.uncovered_ranges]
             if fc.covered_ranges:
                 entry["covered_ranges"] = [[s, e] for s, e in fc.covered_ranges]
+        # @cpt-end:cpt-cypilot-algo-spec-coverage-report:p1:inst-report-verbose
 
         files[_rel(fc.path)] = entry
+    # @cpt-end:cpt-cypilot-algo-spec-coverage-report:p1:inst-report-per-file
 
+    # @cpt-begin:cpt-cypilot-algo-spec-coverage-report:p1:inst-report-return
     result: Dict = {
         "summary": summary,
         "files": files,
@@ -330,3 +366,4 @@ def generate_report(report: CoverageReport, *, verbose: bool = False, project_ro
         result["flagged_files"] = [_rel(f) for f in report.flagged_files]
 
     return result
+    # @cpt-end:cpt-cypilot-algo-spec-coverage-report:p1:inst-report-return

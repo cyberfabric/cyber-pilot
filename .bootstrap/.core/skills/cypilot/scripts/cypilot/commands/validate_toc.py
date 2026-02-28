@@ -47,9 +47,12 @@ def cmd_validate_toc(argv: List[str]) -> int:
     total_errors = 0
     total_warnings = 0
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-toc:p1:inst-toc-resolve-files
+    files_to_validate = [Path(f).resolve() for f in args.files]
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-toc:p1:inst-toc-resolve-files
+
     # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-toc:p1:inst-toc-foreach-file
-    for filepath_str in args.files:
-        filepath = Path(filepath_str).resolve()
+    for filepath in files_to_validate:
 
         if not filepath.is_file():
             results.append({

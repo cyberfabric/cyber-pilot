@@ -144,9 +144,11 @@ def cmd_list_id_kinds(argv: List[str]) -> int:
                 kind_counts[kind_name] = kind_counts.get(kind_name, 0) + 1
     # @cpt-end:cpt-cypilot-algo-traceability-validation-list-id-kinds:p1:inst-kinds-scan-ids
 
-    # @cpt-begin:cpt-cypilot-algo-traceability-validation-list-id-kinds:p1:inst-kinds-return
-    # Build output
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-list-id-kinds:p1:inst-kinds-aggregate
     all_kinds = sorted(kind_to_templates.keys())
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-list-id-kinds:p1:inst-kinds-aggregate
+
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-list-id-kinds:p1:inst-kinds-return
 
     if args.artifact and artifacts_to_scan:
         artifact_path, artifact_type = artifacts_to_scan[0]

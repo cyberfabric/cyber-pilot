@@ -31,7 +31,7 @@ def _bootstrap_project_root(root: Path, adapter_rel: str = "adapter") -> Path:
 
 
 def _bootstrap_self_check_kits(root: Path, adapter: Path, *, with_example: bool = True, bad_example: bool = False) -> None:
-    # Minimal artifacts registry that passes `load_artifacts_registry` and contains kits.
+    # Minimal artifacts registry that passes `load_artifacts_meta` and contains kits.
     from cypilot.utils import toml_utils
     toml_utils.dump(
         {
@@ -1318,7 +1318,13 @@ class TestCLIPyCoverageSelfCheckSkipBranches(unittest.TestCase):
 
             with patch("cypilot.commands.self_check.find_project_root", return_value=root):
                 with patch("cypilot.commands.self_check.find_cypilot_directory", return_value=adapter):
-                    with patch("cypilot.commands.self_check.load_artifacts_registry", return_value=(reg, None)):
+                    with patch("cypilot.commands.self_check.load_artifacts_meta") as mock_lam:
+                        from unittest.mock import MagicMock
+                        meta_m = MagicMock()
+                        meta_m.validate_all_slugs.return_value = []
+                        meta_m.kits = reg.get("kits", {})
+                        mock_lam.return_value = (meta_m, None)
+                    with patch("cypilot.commands.self_check.load_artifacts_meta", return_value=(meta_m, None)):
                         buf = io.StringIO()
                         with redirect_stdout(buf):
                             rc = cypilot_cli._cmd_self_check(["--root", td])
