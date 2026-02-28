@@ -16,6 +16,7 @@
   - [2.8 Developer Experience ⏳ LOW](#28-developer-experience-low)
   - [2.9 Advanced SDLC Workflows ⏳ LOW](#29-advanced-sdlc-workflows-low)
   - [2.10 V2 → V3 Migration ⏳ HIGH](#210-v2-v3-migration-high)
+  - [2.11 Spec Coverage ⏳ HIGH](#211-spec-coverage-high)
 - [3. Feature Dependencies](#3-feature-dependencies)
 
 <!-- /toc -->
@@ -631,6 +632,60 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
   - `.cypilot-adapter/specs/` → `config/sysprompts/` (converted)
 
 
+### 2.11 [Spec Coverage](features/spec-coverage.md) ⏳ HIGH
+
+- [x] `p1` - **ID**: `cpt-cypilot-feature-spec-coverage`
+
+- **Purpose**: Measure how much of a project's codebase is covered by CDSL specification markers, report coverage percentage and instruction granularity quality, and support reverse-engineering of feature specs from existing code.
+
+- **Depends On**: `cpt-cypilot-feature-traceability-validation`
+
+- **Scope**:
+  - Coverage percentage: ratio of spec-covered lines to total effective lines
+  - Granularity score: instruction density (~1 instruction per 10 lines of code)
+  - JSON report matching `coverage.py` structure (summary + per-file)
+  - Threshold enforcement via `--min-coverage` and `--min-granularity` flags
+  - Reverse-engineering workflow: identify uncovered code, place markers, generate specs (p2)
+
+- **Out of scope**:
+  - Modifying validation logic (Feature 3)
+  - Generating PRD or DESIGN from code (manual process)
+
+- **Requirements Covered**:
+
+  - [x] `p1` - `cpt-cypilot-fr-core-traceability`
+  - [x] `p1` - `cpt-cypilot-fr-core-cdsl`
+
+- **Design Principles Covered**:
+
+  - [x] `p1` - `cpt-cypilot-principle-traceability-by-design`
+  - [x] `p1` - `cpt-cypilot-principle-determinism-first`
+
+- **Design Constraints Covered**:
+
+  - [x] `p1` - `cpt-cypilot-constraint-no-weakening`
+
+- **Domain Model Entities**:
+  - CodeFile
+  - CoverageRecord
+  - CoverageReport
+
+- **Design Components**:
+
+  - [x] `p1` - `cpt-cypilot-component-traceability-engine`
+  - [x] `p1` - `cpt-cypilot-component-validator`
+
+- **API**:
+  - `cypilot spec-coverage [--min-coverage N] [--min-granularity N] [--verbose]`
+
+- **Sequences**:
+
+  None (single-command flow)
+
+- **Data**:
+  - Registered codebase entries from `{cypilot_path}/config/artifacts.toml`
+
+
 ---
 
 ## 3. Feature Dependencies
@@ -652,7 +707,9 @@ cpt-cypilot-feature-core-infra
     │
     ├─→ cpt-cypilot-feature-traceability-validation
     │    ↓
-    │    └─→ cpt-cypilot-feature-developer-experience
+    │    ├─→ cpt-cypilot-feature-developer-experience
+    │    │
+    │    └─→ cpt-cypilot-feature-spec-coverage
     │
     └─→ cpt-cypilot-feature-v2-v3-migration ←── cpt-cypilot-feature-blueprint-system, cpt-cypilot-feature-traceability-validation
 ```
