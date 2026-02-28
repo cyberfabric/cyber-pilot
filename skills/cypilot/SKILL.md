@@ -250,9 +250,14 @@ Cypilot can scan a brownfield project and generate project-specific rules automa
 
 ## Project Configuration
 
-Optional `{project-root}/.cypilot-config.json`:
-```json
-{"cypilotPath": "cypilot"}
-```
+Project configuration is stored in `{cypilot_path}/config/core.toml`:
+- System definitions (name, slug)
+- Kit registrations and paths
+- Ignore lists for validation
+
+Artifact registry: `{cypilot_path}/config/artifacts.toml`
+- Artifact paths, kinds, and system mappings
+- Codebase paths for traceability scanning
+- Autodetect rules for artifact discovery
 
 All commands output JSON. Exit codes: 0=PASS, 1=filesystem error, 2=FAIL.

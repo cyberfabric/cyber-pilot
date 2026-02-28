@@ -65,75 +65,88 @@ Each level can have its own `artifacts` and `codebase`. Deeper levels inherit co
 
 System → Subsystem → Component → Module:
 
-```json
-{
-  "version": "1.0",
-  "project_root": "..",
-  "kits": {
-    "cypilot-sdlc": {
-      "format": "Cypilot",
-      "path": ".cypilot/kits/sdlc"
-    }
-  },
-  "systems": [
-    {
-      "name": "Banking Platform",
-      "slug": "banking",
-      "kit": "cypilot-sdlc",
-      "artifacts_dir": "architecture",
-      "artifacts": [
-        { "name": "Platform PRD", "path": "architecture/PRD.md", "kind": "PRD", "traceability": "DOCS-ONLY" },
-        { "name": "Platform Design", "path": "architecture/DESIGN.md", "kind": "DESIGN", "traceability": "FULL" }
-      ],
-      "codebase": [
-        { "name": "Source", "path": "src", "extensions": [".ts"] }
-      ],
-      "children": [
-        {
-          "name": "Core Banking",
-          "slug": "core",
-          "kit": "cypilot-sdlc",
-          "artifacts_dir": "subsystems/core/architecture",
-          "artifacts": [
-            { "path": "subsystems/core/architecture/DESIGN.md", "kind": "DESIGN", "traceability": "FULL" }
-          ],
-          "codebase": [
-            { "name": "Core Subsystem", "path": "src/core", "extensions": [".ts"] }
-          ],
-          "children": [
-            {
-              "name": "Accounts",
-              "slug": "accounts",
-              "kit": "cypilot-sdlc",
-              "artifacts_dir": "subsystems/core/accounts/architecture",
-              "artifacts": [
-                { "path": "subsystems/core/accounts/architecture/DESIGN.md", "kind": "DESIGN", "traceability": "FULL" }
-              ],
-              "codebase": [
-                { "name": "Accounts", "path": "src/core/accounts", "extensions": [".ts"] }
-              ],
-              "children": [
-                {
-                  "name": "Savings",
-                  "slug": "savings",
-                  "kit": "cypilot-sdlc",
-                  "artifacts_dir": "subsystems/core/accounts/savings/architecture",
-                  "artifacts": [
-                    { "path": "subsystems/core/accounts/savings/architecture/features/interest-calc.md", "kind": "FEATURE", "traceability": "FULL" }
-                  ],
-                  "codebase": [
-                    { "name": "Savings", "path": "src/core/accounts/savings", "extensions": [".ts"] }
-                  ],
-                  "children": []
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}
+```toml
+version = "1.0"
+project_root = ".."
+
+[kits.cypilot-sdlc]
+format = "Cypilot"
+path = ".gen/kits/sdlc"
+
+# System: Banking Platform
+[[systems]]
+name = "Banking Platform"
+slug = "banking"
+kit = "cypilot-sdlc"
+artifacts_dir = "architecture"
+
+[[systems.artifacts]]
+name = "Platform PRD"
+path = "architecture/PRD.md"
+kind = "PRD"
+traceability = "DOCS-ONLY"
+
+[[systems.artifacts]]
+name = "Platform Design"
+path = "architecture/DESIGN.md"
+kind = "DESIGN"
+traceability = "FULL"
+
+[[systems.codebase]]
+name = "Source"
+path = "src"
+extensions = [".ts"]
+
+# Subsystem: Core Banking
+[[systems.children]]
+name = "Core Banking"
+slug = "core"
+kit = "cypilot-sdlc"
+artifacts_dir = "subsystems/core/architecture"
+
+[[systems.children.artifacts]]
+path = "subsystems/core/architecture/DESIGN.md"
+kind = "DESIGN"
+traceability = "FULL"
+
+[[systems.children.codebase]]
+name = "Core Subsystem"
+path = "src/core"
+extensions = [".ts"]
+
+# Component: Accounts
+[[systems.children.children]]
+name = "Accounts"
+slug = "accounts"
+kit = "cypilot-sdlc"
+artifacts_dir = "subsystems/core/accounts/architecture"
+
+[[systems.children.children.artifacts]]
+path = "subsystems/core/accounts/architecture/DESIGN.md"
+kind = "DESIGN"
+traceability = "FULL"
+
+[[systems.children.children.codebase]]
+name = "Accounts"
+path = "src/core/accounts"
+extensions = [".ts"]
+
+# Module: Savings
+[[systems.children.children.children]]
+name = "Savings"
+slug = "savings"
+kit = "cypilot-sdlc"
+artifacts_dir = "subsystems/core/accounts/savings/architecture"
+
+[[systems.children.children.children.artifacts]]
+path = "subsystems/core/accounts/savings/architecture/features/interest-calc.md"
+kind = "FEATURE"
+traceability = "FULL"
+
+[[systems.children.children.children.codebase]]
+name = "Savings"
+path = "src/core/accounts/savings"
+extensions = [".ts"]
 ```
 
 **Key points:**
@@ -148,182 +161,253 @@ System → Subsystem → Component → Module:
 
 Each module has its own complete artifact set:
 
-```json
-{
-  "version": "1.0",
-  "project_root": "..",
-  "kits": {
-    "cypilot-sdlc": {
-      "format": "Cypilot",
-      "path": ".cypilot/kits/sdlc"
-    }
-  },
-  "systems": [
-    {
-      "name": "SaaS Platform",
-      "slug": "saas",
-      "kit": "cypilot-sdlc",
-      "artifacts_dir": "architecture",
-      "artifacts": [
-        { "name": "Product Requirements", "path": "architecture/PRD.md", "kind": "PRD", "traceability": "DOCS-ONLY" },
-        { "name": "System Design", "path": "architecture/DESIGN.md", "kind": "DESIGN", "traceability": "FULL" },
-        { "name": "Feature Breakdown", "path": "architecture/DECOMPOSITION.md", "kind": "DECOMPOSITION", "traceability": "FULL" },
-        { "name": "Modular Architecture", "path": "architecture/ADR/0001-modular-monolith.md", "kind": "ADR", "traceability": "DOCS-ONLY" }
-      ],
-      "codebase": [
-        { "name": "Source Code", "path": "src", "extensions": [".ts", ".tsx"] }
-      ],
-      "children": [
-        {
-          "name": "Auth",
-          "slug": "auth",
-          "kit": "cypilot-sdlc",
-          "artifacts_dir": "modules/auth/architecture",
-          "artifacts": [
-            { "path": "modules/auth/architecture/PRD.md", "kind": "PRD", "traceability": "DOCS-ONLY" },
-            { "path": "modules/auth/architecture/DESIGN.md", "kind": "DESIGN", "traceability": "FULL" },
-            { "path": "modules/auth/architecture/features/login.md", "kind": "FEATURE", "traceability": "FULL" },
-            { "path": "modules/auth/architecture/features/sessions.md", "kind": "FEATURE", "traceability": "FULL" }
-          ],
-          "codebase": [
-            { "name": "Auth Module", "path": "src/modules/auth", "extensions": [".ts"] }
-          ],
-          "children": []
-        },
-        {
-          "name": "Billing",
-          "slug": "billing",
-          "kit": "cypilot-sdlc",
-          "artifacts_dir": "modules/billing/architecture",
-          "artifacts": [
-            { "path": "modules/billing/architecture/PRD.md", "kind": "PRD", "traceability": "DOCS-ONLY" },
-            { "path": "modules/billing/architecture/DESIGN.md", "kind": "DESIGN", "traceability": "FULL" },
-            { "path": "modules/billing/architecture/features/invoices.md", "kind": "FEATURE", "traceability": "FULL" }
-          ],
-          "codebase": [
-            { "name": "Billing Module", "path": "src/modules/billing", "extensions": [".ts"] }
-          ],
-          "children": []
-        }
-      ]
-    }
-  ]
-}
+```toml
+version = "1.0"
+project_root = ".."
+
+[kits.cypilot-sdlc]
+format = "Cypilot"
+path = ".gen/kits/sdlc"
+
+# System: SaaS Platform
+[[systems]]
+name = "SaaS Platform"
+slug = "saas"
+kit = "cypilot-sdlc"
+artifacts_dir = "architecture"
+
+[[systems.artifacts]]
+name = "Product Requirements"
+path = "architecture/PRD.md"
+kind = "PRD"
+traceability = "DOCS-ONLY"
+
+[[systems.artifacts]]
+name = "System Design"
+path = "architecture/DESIGN.md"
+kind = "DESIGN"
+traceability = "FULL"
+
+[[systems.artifacts]]
+name = "Feature Breakdown"
+path = "architecture/DECOMPOSITION.md"
+kind = "DECOMPOSITION"
+traceability = "FULL"
+
+[[systems.artifacts]]
+name = "Modular Architecture"
+path = "architecture/ADR/0001-modular-monolith.md"
+kind = "ADR"
+traceability = "DOCS-ONLY"
+
+[[systems.codebase]]
+name = "Source Code"
+path = "src"
+extensions = [".ts", ".tsx"]
+
+# Child: Auth
+[[systems.children]]
+name = "Auth"
+slug = "auth"
+kit = "cypilot-sdlc"
+artifacts_dir = "modules/auth/architecture"
+
+[[systems.children.artifacts]]
+path = "modules/auth/architecture/PRD.md"
+kind = "PRD"
+traceability = "DOCS-ONLY"
+
+[[systems.children.artifacts]]
+path = "modules/auth/architecture/DESIGN.md"
+kind = "DESIGN"
+traceability = "FULL"
+
+[[systems.children.artifacts]]
+path = "modules/auth/architecture/features/login.md"
+kind = "FEATURE"
+traceability = "FULL"
+
+[[systems.children.artifacts]]
+path = "modules/auth/architecture/features/sessions.md"
+kind = "FEATURE"
+traceability = "FULL"
+
+[[systems.children.codebase]]
+name = "Auth Module"
+path = "src/modules/auth"
+extensions = [".ts"]
+
+# Child: Billing
+[[systems.children]]
+name = "Billing"
+slug = "billing"
+kit = "cypilot-sdlc"
+artifacts_dir = "modules/billing/architecture"
+
+[[systems.children.artifacts]]
+path = "modules/billing/architecture/PRD.md"
+kind = "PRD"
+traceability = "DOCS-ONLY"
+
+[[systems.children.artifacts]]
+path = "modules/billing/architecture/DESIGN.md"
+kind = "DESIGN"
+traceability = "FULL"
+
+[[systems.children.artifacts]]
+path = "modules/billing/architecture/features/invoices.md"
+kind = "FEATURE"
+traceability = "FULL"
+
+[[systems.children.codebase]]
+name = "Billing Module"
+path = "src/modules/billing"
+extensions = [".ts"]
 ```
 
 ### Example 2: Feature-Only Modules
 
 Modules have only FEATURE artifacts, sharing project-level DESIGN:
 
-```json
-{
-  "version": "1.0",
-  "project_root": "..",
-  "kits": {
-    "cypilot-sdlc": {
-      "format": "Cypilot",
-      "path": ".cypilot/kits/sdlc"
-    }
-  },
-  "systems": [
-    {
-      "name": "SaaS Platform",
-      "slug": "saas",
-      "kit": "cypilot-sdlc",
-      "artifacts_dir": "architecture",
-      "artifacts": [
-        { "name": "Product Requirements", "path": "architecture/PRD.md", "kind": "PRD", "traceability": "DOCS-ONLY" },
-        { "name": "System Design", "path": "architecture/DESIGN.md", "kind": "DESIGN", "traceability": "FULL" },
-        { "name": "Feature Breakdown", "path": "architecture/DECOMPOSITION.md", "kind": "DECOMPOSITION", "traceability": "FULL" }
-      ],
-      "codebase": [
-        { "name": "Source Code", "path": "src", "extensions": [".ts", ".tsx"] }
-      ],
-      "children": [
-        {
-          "name": "Auth",
-          "slug": "auth",
-          "kit": "cypilot-sdlc",
-          "artifacts_dir": "modules/auth/architecture",
-          "artifacts": [
-            { "path": "modules/auth/architecture/features/login.md", "kind": "FEATURE", "traceability": "FULL" },
-            { "path": "modules/auth/architecture/features/sessions.md", "kind": "FEATURE", "traceability": "FULL" }
-          ],
-          "codebase": [
-            { "name": "Auth Module", "path": "src/modules/auth", "extensions": [".ts"] }
-          ],
-          "children": []
-        },
-        {
-          "name": "Billing",
-          "slug": "billing",
-          "kit": "cypilot-sdlc",
-          "artifacts_dir": "modules/billing/architecture",
-          "artifacts": [
-            { "path": "modules/billing/architecture/features/invoices.md", "kind": "FEATURE", "traceability": "FULL" }
-          ],
-          "codebase": [
-            { "name": "Billing Module", "path": "src/modules/billing", "extensions": [".ts"] }
-          ],
-          "children": []
-        }
-      ]
-    }
-  ]
-}
+```toml
+version = "1.0"
+project_root = ".."
+
+[kits.cypilot-sdlc]
+format = "Cypilot"
+path = ".gen/kits/sdlc"
+
+[[systems]]
+name = "SaaS Platform"
+slug = "saas"
+kit = "cypilot-sdlc"
+artifacts_dir = "architecture"
+
+[[systems.artifacts]]
+name = "Product Requirements"
+path = "architecture/PRD.md"
+kind = "PRD"
+traceability = "DOCS-ONLY"
+
+[[systems.artifacts]]
+name = "System Design"
+path = "architecture/DESIGN.md"
+kind = "DESIGN"
+traceability = "FULL"
+
+[[systems.artifacts]]
+name = "Feature Breakdown"
+path = "architecture/DECOMPOSITION.md"
+kind = "DECOMPOSITION"
+traceability = "FULL"
+
+[[systems.codebase]]
+name = "Source Code"
+path = "src"
+extensions = [".ts", ".tsx"]
+
+# Child: Auth (features only)
+[[systems.children]]
+name = "Auth"
+slug = "auth"
+kit = "cypilot-sdlc"
+artifacts_dir = "modules/auth/architecture"
+
+[[systems.children.artifacts]]
+path = "modules/auth/architecture/features/login.md"
+kind = "FEATURE"
+traceability = "FULL"
+
+[[systems.children.artifacts]]
+path = "modules/auth/architecture/features/sessions.md"
+kind = "FEATURE"
+traceability = "FULL"
+
+[[systems.children.codebase]]
+name = "Auth Module"
+path = "src/modules/auth"
+extensions = [".ts"]
+
+# Child: Billing (features only)
+[[systems.children]]
+name = "Billing"
+slug = "billing"
+kit = "cypilot-sdlc"
+artifacts_dir = "modules/billing/architecture"
+
+[[systems.children.artifacts]]
+path = "modules/billing/architecture/features/invoices.md"
+kind = "FEATURE"
+traceability = "FULL"
+
+[[systems.children.codebase]]
+name = "Billing Module"
+path = "src/modules/billing"
+extensions = [".ts"]
 ```
 
 ### Example 3: Code-Only Modules
 
 Modules declared for codebase scoping only, no module-level artifacts:
 
-```json
-{
-  "version": "1.0",
-  "project_root": "..",
-  "kits": {
-    "cypilot-sdlc": {
-      "format": "Cypilot",
-      "path": ".cypilot/kits/sdlc"
-    }
-  },
-  "systems": [
-    {
-      "name": "SaaS Platform",
-      "slug": "saas",
-      "kit": "cypilot-sdlc",
-      "artifacts_dir": "architecture",
-      "artifacts": [
-        { "name": "Product Requirements", "path": "architecture/PRD.md", "kind": "PRD", "traceability": "DOCS-ONLY" },
-        { "name": "System Design", "path": "architecture/DESIGN.md", "kind": "DESIGN", "traceability": "FULL" },
-        { "name": "Feature Breakdown", "path": "architecture/DECOMPOSITION.md", "kind": "DECOMPOSITION", "traceability": "FULL" }
-      ],
-      "codebase": [
-        { "name": "Source Code", "path": "src", "extensions": [".ts", ".tsx"] }
-      ],
-      "children": [
-        {
-          "name": "Auth",
-          "slug": "auth",
-          "kit": "cypilot-sdlc",
-          "codebase": [
-            { "name": "Auth Module", "path": "src/modules/auth", "extensions": [".ts"] }
-          ],
-          "children": []
-        },
-        {
-          "name": "Billing",
-          "slug": "billing",
-          "kit": "cypilot-sdlc",
-          "codebase": [
-            { "name": "Billing Module", "path": "src/modules/billing", "extensions": [".ts"] }
-          ],
-          "children": []
-        }
-      ]
-    }
-  ]
-}
+```toml
+version = "1.0"
+project_root = ".."
+
+[kits.cypilot-sdlc]
+format = "Cypilot"
+path = ".gen/kits/sdlc"
+
+[[systems]]
+name = "SaaS Platform"
+slug = "saas"
+kit = "cypilot-sdlc"
+artifacts_dir = "architecture"
+
+[[systems.artifacts]]
+name = "Product Requirements"
+path = "architecture/PRD.md"
+kind = "PRD"
+traceability = "DOCS-ONLY"
+
+[[systems.artifacts]]
+name = "System Design"
+path = "architecture/DESIGN.md"
+kind = "DESIGN"
+traceability = "FULL"
+
+[[systems.artifacts]]
+name = "Feature Breakdown"
+path = "architecture/DECOMPOSITION.md"
+kind = "DECOMPOSITION"
+traceability = "FULL"
+
+[[systems.codebase]]
+name = "Source Code"
+path = "src"
+extensions = [".ts", ".tsx"]
+
+# Child: Auth (code scope only)
+[[systems.children]]
+name = "Auth"
+slug = "auth"
+kit = "cypilot-sdlc"
+
+[[systems.children.codebase]]
+name = "Auth Module"
+path = "src/modules/auth"
+extensions = [".ts"]
+
+# Child: Billing (code scope only)
+[[systems.children]]
+name = "Billing"
+slug = "billing"
+kit = "cypilot-sdlc"
+
+[[systems.children.codebase]]
+name = "Billing Module"
+path = "src/modules/billing"
+extensions = [".ts"]
 ```
 
 ### Directory Structure
@@ -332,8 +416,9 @@ The registry maps to this file structure:
 
 ```text
 project-root/
-├── .cypilot-adapter/
-│   └── artifacts.toml
+├── cypilot/
+│   └── config/
+│       └── artifacts.toml
 ├── architecture/
 │   ├── PRD.md
 │   ├── DESIGN.md
@@ -863,12 +948,12 @@ Context:
 
 ---
 
-## Adapter Configuration
+## Configuration
 
-Example adapter AGENTS.md for a modular monolith:
+Example `cypilot/config/AGENTS.md` for a modular monolith:
 
 ```markdown
-# Project Cypilot Adapter
+# Project Configuration
 
 WHEN working in this repo:
 - This is a modular monolith with hierarchy: System → Subsystem → Component

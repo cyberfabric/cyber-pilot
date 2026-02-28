@@ -50,6 +50,6 @@ NEVER edit files inside `{cypilot_path}/.core/` or `{cypilot_path}/.gen/` direct
 
 <!-- auto-config:docs:start -->
 
-ALWAYS open and follow `CLISPEC.md` WHEN writing CLI commands, modifying command dispatch, or adding new subcommands
+ALWAYS open and follow `architecture/specs/CLISPEC.md` WHEN writing CLI commands, modifying command dispatch, or adding new subcommands
 
 <!-- auto-config:docs:end -->

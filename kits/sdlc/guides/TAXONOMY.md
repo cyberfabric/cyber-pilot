@@ -183,11 +183,15 @@ Phase tokens:
 - Rules: [kits/sdlc/codebase/rules.md](../codebase/rules.md)
 - Checklist: [kits/sdlc/codebase/checklist.md](../codebase/checklist.md)
 
-## Validation commands
+## Validation Commands
 
-- Validate artifacts (templates + cross-refs): `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate`
-- Validate code markers (pairing + coverage): `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate-code`
-- Validate kit package itself: `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate-kits`
+| Command | What it validates |
+|---------|-------------------|
+| `cypilot validate` | Artifacts against templates + cross-references |
+| `cypilot validate-code` | Code markers — pairing, coverage, orphan checks |
+| `cypilot validate-kits` | Kit package integrity — blueprint markers, constraints |
+
+Script path (for direct invocation): `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py <command>`
 
 ## References
 

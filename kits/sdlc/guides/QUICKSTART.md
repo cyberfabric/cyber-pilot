@@ -50,8 +50,8 @@ Learn what each artifact means: [TAXONOMY.md](TAXONOMY.md)
 
 | Prompt | What happens |
 |--------|--------------|
-| `cypilot on` | Enables Cypilot mode, discovers adapter, loads project context |
-| `cypilot init` | Creates `.cypilot-adapter/` with `artifacts.toml` and domain context files |
+| `cypilot on` | Enables Cypilot mode, discovers config, loads project context |
+| `cypilot init` | Creates `cypilot/` directory with `.core/`, `.gen/`, `config/` and initializes `artifacts.toml` |
 | `cypilot show pipeline` | Displays current artifact hierarchy and validation status |
 
 **Customizing artifact locations:**

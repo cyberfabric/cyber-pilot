@@ -34,7 +34,7 @@ Evidence: `commands/validate.py:14`, `commands/init.py`, `cli.py:34-98`.
 
 ### File Naming
 
-Use `snake_case.py` for all Python modules. Use `UPPERCASE.md` for major documentation files (`AGENTS.md`, `CLISPEC.md`, `README.md`). Use kebab-case for non-Python config files (`artifacts.toml`, `core.toml`).
+Use `snake_case.py` for all Python modules. Use `UPPERCASE.md` for major documentation files (`AGENTS.md`, `README.md`). CLI spec lives at `architecture/specs/CLISPEC.md`. Use kebab-case for non-Python config files (`artifacts.toml`, `core.toml`).
 
 Evidence: `src/cypilot_proxy/`, `skills/cypilot/scripts/cypilot/utils/`.
 

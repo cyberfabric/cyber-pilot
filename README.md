@@ -1,40 +1,34 @@
 # <p align="center"><img src="images/cypilot-kit.png" alt="Cypilot Banner" width="100%" /></p>
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.0-green.svg)]()
+[![Version](https://img.shields.io/badge/version-3.0-green.svg)]()
 [![Status](https://img.shields.io/badge/status-active-brightgreen.svg)]()
-[![Python](https://img.shields.io/badge/python-3.8+-blue.svg)]()
+[![Python](https://img.shields.io/badge/python-3.11+-blue.svg)]()
 
-**Version**: 2.0 | **Status**: Active | **Language**: English
+**Version**: 3.0 | **Status**: Active | **Language**: English
 
-**Audience**: Prompt engineers, AI developers, software architects, engineering teams
+**Audience**: Developers using AI coding assistants, technical leads, engineering teams, DevOps engineers
 
-## Cyber Pilot — Agentic Kit with AI-Native SDLC Automation
+## Cyber Pilot — Deterministic Agent Tool for Structured Workflows
 
-Cyber Pilot keeps **requirements, design, code, and tests continuously aligned** in repositories that use AI-assisted development.
+Cypilot is a **deterministic agent tool** that embeds into AI coding assistants and CI pipelines to provide structured workflows, artifact validation, and design-to-code traceability.
 
-AI can generate artifacts fast. Cyber Pilot makes sure they stay **consistent and traceable over time**.
+Everything that can be validated, checked, or enforced without an LLM is handled by **deterministic scripts**; the LLM is reserved only for tasks that require reasoning, creativity, or natural language understanding.
 
 ## Problem
 
-In most projects:
+- **AI Agent Non-Determinism** — AI agents produce inconsistent results without structured guardrails; deterministic validation catches structural and traceability issues that LLMs miss or hallucinate
+- **Design-Code Disconnect** — code diverges from design when there is no single source of truth and no automated traceability enforcement
+- **Fragmented Tool Setup** — each AI agent (Windsurf, Cursor, Claude, Copilot) requires different file formats for skills, workflows, and rules; maintaining these manually is error-prone
+- **Inconsistent PR Reviews** — code reviews vary in depth and focus without structured checklists and prompts
+- **Manual Configuration Overhead** — project-specific conventions, artifact locations, and validation rules require manual setup and synchronization
 
-- Requirements, design and code evolve separately  
-- Documentation becomes outdated  
-- AI-generated changes introduce silent scope drift  
-- There is no automated ownership of end-to-end consistency  
+## What Cypilot Provides
 
-The result is slower onboarding, risky refactoring, misleading documentation and unclear decision history.
+Two layers of functionality:
 
-## What Cyber Pilot adds
-
-A lightweight automation layer for repository-native governance:
-
-- Structured spec templates (BRD, PRD, ADR, DESIGN, etc.)
-- Human-readable traceability IDs linking specs ↔ code ↔ tests
-- CLI checks for cross-document and code consistency
-- AI workflows for generation, review and validation
-- CI-friendly validation with a single script
+- **Core** — deterministic skill engine, generic workflows (generate/analyze), multi-agent integrations (Windsurf, Cursor, Claude, Copilot, OpenAI), global CLI (`cypilot`/`cpt`), config directory management, extensible kit system with blueprint-based resource generation, ID/traceability infrastructure, and Cypilot DSL (CDSL) for behavioral specifications
+- **SDLC Kit** — artifact-first development pipeline (PRD → DESIGN → ADR → DECOMPOSITION → FEATURE → CODE) with templates, checklists, examples, deterministic validation, cross-artifact consistency checks, and GitHub PR review/status workflows
 
 Works with any language, stack, or repository.
 
@@ -43,18 +37,18 @@ Works with any language, stack, or repository.
 ## Table of Contents
 
 - [Problem](#problem)
-- [What Cyber Pilot adds](#what-cyber-pilot-adds)
+- [What Cypilot Provides](#what-cypilot-provides)
 - [Prerequisites](#prerequisites)
-- [Project Setup (Cypilot + Agents)](#project-setup-cypilot--agents)
+- [Installation](#installation)
+- [Project Setup](#project-setup)
 - [Using Cypilot](#using-cypilot)
-  - [Real Conversation (Prompt Excerpt)](#real-conversation-prompt-excerpt)
-    - [1) Enable Cypilot mode](#1-enable-cypilot-mode)
-    - [2) Ask what Cypilot can do](#2-ask-what-cypilot-can-do)
-    - [3) Ask what Cypilot can generate](#3-ask-what-cypilot-can-generate)
   - [Example Prompts](#example-prompts)
   - [Agent Skill](#agent-skill)
   - [Workflow Commands](#workflow-commands)
   - [Checklists and Quality Gates](#checklists-and-quality-gates)
+- [Architecture](#architecture)
+  - [Directory Structure](#directory-structure)
+  - [Blueprint System](#blueprint-system)
 - [Extensibility](#extensibility)
   - [Kit: Cypilot SDLC](#kit-cypilot-sdlc)
 - [Contributing](#contributing)
@@ -63,428 +57,223 @@ Works with any language, stack, or repository.
 
 ## Prerequisites
 
-Before using **Cypilot**, ensure you have:
-
-- **Python 3.8+** — Required for `cypilot` tool execution
-- **Git** — For version control and submodule installation (recommended)
-- **AI Agent** — OpenAI Codex, Claude Code, Windsurf, Cursor, GH Copilot, or similar LLM-powered coding assistant integrated with your IDE
+- **Python 3.11+** — required for the CLI tool and skill engine (uses `tomllib` from stdlib)
+- **Git** — for project detection and version control
+- **AI Agent** — Windsurf, Cursor, Claude Code, GitHub Copilot, or OpenAI Codex
+- **`gh` CLI** (optional) — required only for PR review/status workflows
+- **`pipx`** (recommended) — for global CLI installation
 
 ---
 
-## Project Setup (Cypilot + Agents)
+## Installation
 
-Add Cypilot to your repo, then initialize and generate agent proxy files.
-
-```bash
-# Option A: git submodule (recommended)
-git submodule add https://github.com/cyberfabric/cyber-pilot cypilot
-git submodule update --init --recursive
-
-# Option B: plain clone
-git clone https://github.com/cyberfabric/cyber-pilot cypilot
-```
+### Global CLI (recommended)
 
 ```bash
-# Agent-safe invocation (recommended)
-python3 cypilot/skills/cypilot/scripts/cypilot.py init
-python3 cypilot/skills/cypilot/scripts/cypilot.py agents --agent windsurf
+pipx install git+https://github.com/cyberfabric/cyber-pilot.git
 ```
+
+This installs `cypilot` and `cpt` commands globally. The CLI is a thin proxy shell — on first run it downloads the skill bundle into `~/.cypilot/cache/` and delegates all commands to the cached or project-local skill engine.
+
+### Update
+
+```bash
+cypilot update
+```
+
+Updates `.core/` from cache, regenerates `.gen/` from user blueprints, and ensures `config/` scaffold integrity. User-editable files in `config/` are never overwritten.
+
+---
+
+## Project Setup
+
+```bash
+# Initialize Cypilot in your project
+cypilot init
+
+# Generate agent entry points for your IDE
+cypilot agents --agent windsurf
+```
+
+`cypilot init` creates the Cypilot directory (default: `cypilot/`) with three subdirectories:
+
+| Directory | Purpose | Editable? |
+|-----------|---------|-----------|
+| `.core/` | Read-only core files (skills, kits, workflows, schemas) copied from cache | No |
+| `.gen/` | Auto-generated files (SKILL.md, AGENTS.md, kit outputs, constraints) from blueprints | No |
+| `config/` | User-editable config (`core.toml`, `artifacts.toml`, AGENTS.md, kit blueprints) | Yes |
+
+The command also:
+- Defines a root system (name/slug derived from the project directory)
+- Creates `config/core.toml` and `config/artifacts.toml`
+- Installs all available kits and generates resources from blueprints
+- Injects a managed `<!-- @cpt:root-agents -->` block into the root `AGENTS.md`
 
 Supported agents: `windsurf`, `cursor`, `claude`, `copilot`, `openai`.
 
-If you update the Cypilot submodule later, re-run:
-
-```bash
-python3 cypilot/skills/cypilot/scripts/cypilot.py agents --agent windsurf
-```
-
 ## Using Cypilot
 
-To use Cypilot, run your IDE with an AI agent (or run an agent in a terminal), and then start your requests with `cypilot`.
-
-That prefix switches the agent into Cypilot mode: it loads the config + required rules, routes the request to the right workflow (analyze vs generate), and gates any file writes behind explicit confirmation.
-
-### Real Conversation (Prompt Excerpt)
-
-Below are a few real prompts from the story (with outcomes summarized). The full conversation is in [`guides/STORY.md`](guides/STORY.md).
-
-#### 1) Enable Cypilot mode
-
-Prompt: `cypilot on`
-
-**Summary:** The user enables Cypilot mode. The agent runs Protocol Guard, loads required context files, and confirms the rules it will follow before proceeding.
-
-<details>
-  <summary>Expand chat details...</summary>
-
-**USER**
-
-`cypilot on`
-
-**ASSISTANT**
-
-_Thought for 2s_
-
-#### Enabling Cypilot mode
-
-You've explicitly turned **Cypilot mode on**.
-
-Next I'll:
-
-- Confirm I understand the Cypilot MUST rules
-- Read the required Cypilot control files (`skills/cypilot/SKILL.md` and `.cypilot-adapter/AGENTS.md`) so I can follow the workflow correctly
-- Ask what you want to do (analyze/generate/adapter, etc.)
-
-_Read `SKILL.md` and 2 other files_
-
-_Thought for 4s_
-
-#### Cypilot mode activation (Protocol Guard)
-
-Next I will:
-
-- Run Cypilot's required **Protocol Guard** command `info` (read-only) so we can print the "Cypilot Mode Enabled / Adapter: …" status block.
-
-Command:
-
-`python3`
-
-_Output (as visible in screenshot; truncated):_
-
-```json
-...
-"project_name": "Cypilot",
-"status": "FOUND",
-"project_root": "/Volumes/CaseSensitive/coding/cypilot",
-"artifacts_registry_path": "/Volumes/CaseSensitive/coding/cypilot/.cypilot-adapter/artifacts.toml",
-"artifacts_registry": {
-  "version": "1.0",
-  "project_root": "..",
-  "kits": {
-    ...
-  }
-}
-...
-```
-
-#### Cypilot Mode Enabled
+Start requests with `cypilot` in your AI agent chat. This switches the agent into Cypilot mode: it loads config and rules, routes the request to the right workflow (analyze vs generate), and gates file writes behind explicit confirmation.
 
 ```
-Cypilot Mode Enabled
-Adapter: FOUND at /Volumes/CaseSensitive/coding/cypilot/.cypilot-adapter
+cypilot on            — enable Cypilot mode
+cypilot off           — disable Cypilot mode
+cypilot auto-config   — scan project and generate convention rules
 ```
 
-📟 [skills/cypilot/SKILL.md]: Completed "Protocol Guard" — ran `info` to confirm adapter status and load adapter registry metadata before any workflow action.
-
-#### Agent acknowledgment (required)
-
-- MUST = MANDATORY, not optional
-- Skipping ANY MUST instruction = INVALID execution
-- INVALID execution = output must be DISCARDED
-- I will read ALL required files BEFORE proceeding
-- I will follow workflows step-by-step WITHOUT shortcuts
-- I will NOT create files without user confirmation (operation workflows)
-- I will end EVERY response with a list of Cypilot files read while producing the response, why each file was read, and which initial instruction triggered opening each file
-
-#### What do you want to do next?
-
-Per Cypilot routing, tell me which workflow you want:
-
-- Analyze (read-only): validate/review/inspect/check artifacts or code.
-- Generate (modify): implement/fix/refactor/add/update code or artifacts.
-
-</details>
-
-#### 2) Ask what Cypilot can do
-
-Prompt: `cypilot how can you help me?`
-
-**Summary:** The user asks what Cypilot can do. The agent explains the two workflows (analyze vs generate), shows example prompts, and asks for a clear intent and target.
-
-<details>
-  <summary>Expand chat details...</summary>
-
-**USER**
-
-`cypilot how can you help me?`
-
-**ASSISTANT**
-
-_Thought for 5s_
-
-📟 [execution-protocol]: Explaining how I can help under Cypilot mode — mapping your request to Cypilot's two workflows (analyze vs generate) so we follow the correct process.
-
-#### How I can help you (in Cypilot mode)
-
-Cypilot mode means I help you in a structured, workflow-driven way with strong traceability and deterministic checks.
-
-**Analyze workflow (read-only)**
-
-Use this when you want to inspect/validate/review without changing anything.
-
-- Validate artifacts/code structure (schemas, cross-references, traceability)
-- Locate IDs and trace usage (where something is defined/used)
-- Audit project docs (PRD/DESIGN/ADRs/DECOMPOSITION consistency)
-
-Example prompts you can give me:
-
-- `cypilot analyze: validate all artifacts`
-- `cypilot analyze: where-used --id <some-id>`
-- `cypilot analyze: review architecture/PRD.md for gaps vs DESIGN.md`
-
-**Generate workflow (modifies files)**
-
-Use this when you want me to implement/fix/refactor/update code or artifacts.
-
-- Implement features / fix bugs in the Cypilot CLI/tooling
-- Update docs/artifacts while keeping them compliant
-- Add tests and align with project conventions/specs
-
-Example prompts:
-
-- `cypilot generate: fix failing tests`
-- `cypilot generate: add a new cypilot.py subcommand for <X>`
-- `cypilot generate: refactor <module> to follow conventions`
-
-#### What I need from you to proceed
-
-Your prompt `cypilot how can you help me?` is intent-unclear (could be analyze or generate).
-
-Reply with one of these, plus your goal:
-
-- `cypilot analyze: <what you want to inspect>`
-- `cypilot generate: <what you want to change/build>`
-
-#### Status
-
-- Completed: Explained Cypilot-mode capabilities and how to choose the correct workflow.
-- Pending: You choose analyze (read-only) or generate (modify) + what target (artifact/code).
-
-</details>
-
-#### 3) Ask what Cypilot can generate
-
-Prompt: `cypilot what can I generate with you?`
-
-**Summary:** The user asks what "generate" can do. The agent lists supported write outcomes (adapter, architecture artifacts, code), what it will not do blindly, and provides copy/paste examples.
-
-<details>
-  <summary>Expand chat details...</summary>
-
-**USER**
-
-`cypilot what can I generate with you?`
-
-**ASSISTANT**
-
-_Thought for 18s_
-
-📟 [execution-protocol]: I'm going to re-open `guides/ADAPTER.md` so I can accurately describe what kinds of "generate" actions are supported and what constraints apply, then I'll give you a concrete list of things you can generate and the exact prompts to use.
-
-_Read `ADAPTER.md`_
-
-📟 [execution-protocol]: Entering "Generate capabilities" — I'm mapping "what can I generate?" to Cypilot's supported WRITE outcomes (adapter, artifacts, codebase) and the immutable adapter rules you must not violate.
-
-#### What you can generate with me (Cypilot generate workflow)
-
-1) **Adapter (project context)**
-
-- [Create/update `.cypilot-adapter/`]: `AGENTS.md` + spec files that define your tech stack, conventions, testing strategy, build/deploy, project structure, patterns, etc.
-- [Add new adapter specs]: e.g. `security.md`, `performance.md`, `linting.md`, custom API guidelines, module-creation rules.
-
-2) **Architecture artifacts (design → feature → implementation plan)**
-
-- [PRD]: create/update `architecture/PRD.md` (actors, capabilities, requirements).
-- [Overall DESIGN]: create/update `architecture/DESIGN.md` (requirements/principles, architecture, ADR index, etc.).
-- [ADRs]: create new ADRs in `architecture/ADR/...` in the required format.
-- [DECOMPOSITION]: update `architecture/DECOMPOSITION.md` to reflect feature breakdown and traceability.
-- [FEATURE docs]: create/update feature documents under `architecture/features/...` (e.g. "template system"-style features).
-
-3) **Codebase changes (implementation)**
-
-- [Implement/fix/refactor code]: especially the Cypilot CLI (`skills/cypilot/scripts/cypilot.py`) and related modules.
-- [Add new CLI subcommands]: plus CLISPEC/docs updates if needed.
-- [Add tests]: unit/integration tests aligned to the adapter's testing spec.
-- [Build/CI tweaks]: updates to tooling/config consistent with build-deploy spec.
-
-#### What "generate" will not do blindly
-
-- [No surprise file creation]: I will ask for confirmation before creating new files (mandatory rule).
-- [No breaking hierarchy]: We won't violate the design chain:
-
-  `ADAPTER → PRD → OVERALL DESIGN → FEATURE → CODE`
-
-- [No coding in DESIGN.md]: Actor flows / algorithms should be in Cypilot Domain-Specific Language (CDSL) where required, not embedded code.
-- [Validation-first mindset]: We'll aim for the required scores (Overall ≥90/100, Feature 100/100) before "locking in" implementation direction.
-
-#### How to ask (examples you can copy/paste)
-
-- Adapter work
-
-  `cypilot generate: create/update adapter specs for a new TypeScript + Next.js app`
-
-- New feature from idea → design → code
-
-  `cypilot generate: add a new feature "<feature>" — update PRD + DESIGN + spec, then implement`
-
-  `cypilot generate: add a new feature "<feature>" — update PRD + DESIGN + FEATURE, then implement`
-
-- Code-first change
-
-  `cypilot generate: add a new cypilot.py subcommand "<name>" that does <behavior>`
-
-- Quality work
-
-  `cypilot generate: refactor <module> to match conventions + add tests`
-
-#### One question so I can start the right "generate" path
-
-What do you want to generate right now?
-
-- [Adapter] (project rules/specs)
-- [Artifacts] (PRD/DESIGN/ADR/specs)
-- [Code] (implementation/tests)
-
-Reply with: `cypilot generate: <your goal>` + which of the three targets.
-
-</details>
-
-**End result of the full story:** A working example application ("Overwork Alert") with CLI + daemon wiring, deterministic validations, unit tests, and a successful manual macOS smoke test.
-
-[Continue reading the story](guides/STORY.md)
+A full walkthrough is available in [`guides/STORY.md`](guides/STORY.md).
 
 ### Example Prompts
-
-**Enable / Disable**
-
-| Prompt | What the agent does |
-|--------|---------------------|
-| `cypilot on` | Enables Cypilot mode — discovers config, loads project context, shows available workflows |
-| `cypilot off` | Disables Cypilot mode — returns to normal assistant behavior |
 
 **Setup & Configuration**
 
 | Prompt | What the agent does |
 |--------|---------------------|
-| `cypilot init` | Initializes Cypilot for the project — creates config, generates rules, injects root AGENTS.md |
-| `cypilot add src/api/ to tracked codebase` | Updates `artifacts.toml` to include directory in traceability scanning |
-| `cypilot register FEATURE at architecture/features/payments.md` | Adds artifact entry to `artifacts.toml` with kind, path, and system mapping |
-| `cypilot add tech-stack spec for PostgreSQL + Redis` | Creates `specs/tech-stack.md` with database and caching conventions |
-| `cypilot update testing conventions` | Modifies `specs/testing.md` with project-specific test patterns |
-| `cypilot show config` | Displays `artifacts.toml` structure, registered artifacts, and codebase mappings |
-| `cypilot regenerate AGENTS.md` | Rebuilds navigation rules based on current artifact registry |
+| `cypilot init` | Initializes Cypilot — creates config directory, generates rules, injects root AGENTS.md |
+| `cypilot auto-config` | Scans project structure and generates per-system convention rules |
+| `cypilot show config` | Displays config structure, registered artifacts, and codebase mappings |
+| `cypilot agents --agent windsurf` | Regenerates agent entry points for a specific agent |
 
 **Artifact Generation**
 
 | Prompt | What the agent does |
 |--------|---------------------|
-| `cypilot make PRD for user authentication system` | Generates PRD with actors, capabilities, requirements, flows, and constraints following the template |
-| `cypilot make DESIGN from PRD.md` | Transforms PRD into architecture design with components, interfaces, data models, and full traceability |
-| `cypilot decompose auth feature into tasks` | Creates DECOMPOSITION artifact breaking the feature into ordered, dependency-mapped implementation units |
-| `cypilot make FEATURE for login flow` | Produces detailed feature design with acceptance criteria, edge cases, and code implementation instructions |
+| `cypilot make PRD for user authentication system` | Generates PRD with actors, requirements, flows following the template |
+| `cypilot make DESIGN from PRD.md` | Transforms PRD into architecture design with full traceability |
+| `cypilot decompose auth feature into tasks` | Creates DECOMPOSITION with ordered, dependency-mapped implementation units |
+| `cypilot make FEATURE for login flow` | Produces feature design with acceptance criteria, CDSL flows, edge cases |
 
 **Validation & Quality**
 
 | Prompt | What the agent does |
 |--------|---------------------|
-| `cypilot validate PRD.md` | Runs deterministic template validation + semantic quality scoring against PRD checklist (50+ criteria) |
-| `cypilot validate all` | Validates entire artifact hierarchy, checks cross-references, reports broken links and missing IDs |
-| `cypilot validate code for auth module` | Scans code for `@cpt-*` markers, verifies coverage against feature docs, reports unimplemented items |
-| `cypilot review DESIGN.md with consistency-checklist` | Performs multi-phase consistency analysis detecting contradictions and alignment issues |
-
-**With Checklists (Deep Review)**
-
-| Prompt | What the agent does |
-|--------|---------------------|
-| `cypilot review PRD with PRD checklist, focus on requirements` | Applies 50+ expert criteria: completeness, testability, atomicity, no implementation leakage |
-| `cypilot review FEATURE with code-checklist` | Checks implementation readiness: error handling, security, edge cases, testing strategy |
-| `cypilot validate codebase with reverse-engineering checklist` | Systematic code archaeology: identifies patterns, dependencies, undocumented behaviors |
-| `cypilot improve this prompt with prompt-engineering checklist` | Applies prompt design guidelines: clarity, constraints, examples, output format |
+| `cypilot validate PRD.md` | Runs deterministic template validation + semantic quality scoring |
+| `cypilot validate all` | Validates entire artifact hierarchy, checks cross-references, reports issues |
+| `cypilot validate code for auth module` | Scans code for `@cpt-*` markers, verifies coverage against feature docs |
+| `cypilot review DESIGN.md with consistency-checklist` | Multi-phase consistency analysis detecting contradictions |
 
 **Traceability & Search**
 
 | Prompt | What the agent does |
 |--------|---------------------|
-| `cypilot find requirements related to authentication` | Searches artifacts for IDs matching pattern, returns definitions and all references |
-| `cypilot trace REQ-AUTH-001` | Traces requirement through DESIGN → FEATURE → code, shows implementation locations |
-| `cypilot list unimplemented features` | Cross-references feature docs with code markers, reports items without `@cpt-*` tags |
+| `cypilot find requirements related to authentication` | Searches artifacts for IDs matching pattern, returns definitions and references |
+| `cypilot trace cpt-myapp-fr-auth` | Traces requirement through DESIGN → FEATURE → code |
+| `cypilot list unimplemented features` | Cross-references feature docs with code markers |
 
 **Code Review & Pull Requests**
 
 | Prompt | What the agent does |
 |--------|---------------------|
-| `cypilot review PR https://github.com/org/repo/pull/123` | Fetches PR diff, validates changes against design specs, checks traceability markers, reports coverage gaps |
-| `cypilot review PR #59` | Reviews local PR by number — checks code quality, design alignment, and Cypilot marker consistency |
-| `cypilot review PR with code-checklist` | Deep PR review applying code quality criteria: error handling, security, edge cases, testing |
-| `cypilot analyze PR against FEATURE` | Verifies PR implements all items from linked feature doc, reports missing or extra changes |
-| `cypilot check PR traceability` | Scans PR diff for `@cpt-*` markers, validates they reference existing design IDs |
-
-**Kits & Extensions**
-
-| Prompt | What the agent does |
-|--------|---------------------|
-| `cypilot make kit for API documentation` | Scaffolds kit directory with template, rules, checklist, and examples for custom artifact kind |
-| `cypilot register kit at kits/api-docs` | Adds kit entry with format and path to artifact registry |
-| `cypilot add ENDPOINT kind to api-docs kit` | Creates template structure for new artifact kind with markers and validation rules |
-| `cypilot show kit SDLC` | Displays kit directory layout, available artifact kinds, and their templates |
-| `cypilot analyze kits` | Checks template marker pairing, frontmatter, and rule syntax across all kits |
+| `cypilot review PR #123` | Fetches PR diff, analyzes against checklists, produces structured review report |
+| `cypilot PR status #123` | Assesses unreplied comments by severity, audits resolved comments, reports CI status |
 
 ### Agent Skill
 
-Cypilot provides a single **Agent Skill** (`cypilot`) following the [Agent Skills specification](https://agentskills.io/specification). The skill is defined in `skills/cypilot/SKILL.md` and gets loaded into the agent's context when invoked.
+Cypilot provides a unified **Agent Skill** (`cypilot`) defined in `skills/cypilot/SKILL.md`. The skill is loaded into the agent's context when Cypilot mode is enabled and provides:
 
-The skill provides:
-- Artifact validation and search capabilities
-- ID lookup and traceability across documents and code
-- Protocol guard for consistent context loading
-- Integration with project config
-
-When the skill is loaded, the agent gains access to Cypilot's CLI commands and workflow triggers.
+- Deterministic validation and traceability commands
+- Protocol Guard for consistent context loading
+- Workflow routing (generate vs analyze)
+- ID lookup and cross-reference resolution
+- Auto-configuration for brownfield projects
 
 ### Workflow Commands
 
-For agents that don't support the Agent Skills specification, Cypilot provides **workflow commands** — slash commands that load structured prompts guiding the agent through deterministic pipelines:
+Cypilot has exactly **two** universal workflows:
 
 | Command | Workflow | Description |
 |---------|----------|-------------|
-| `/cypilot` | — | Enable Cypilot mode, discover config, show available workflows |
-| `/cypilot-generate` | `workflows/generate.md` | Create/update artifacts (PRD, DESIGN, DECOMPOSITION, ADR, FEATURE) or implement code with traceability markers |
-| `/cypilot-analyze` | `workflows/analyze.md` | Validate artifacts against templates or code against design (deterministic + semantic) |
+| `/cypilot-generate` | `generate.md` | Write: create, edit, fix, update, implement, refactor, configure |
+| `/cypilot-analyze` | `analyze.md` | Read: validate, review, check, inspect, audit, compare |
 
-Each workflow includes feedback loops, quality gates, and references to relevant checklists and rules.
+Kit-specific workflows (e.g., PR review, PR status) are generated from blueprint `@cpt:workflow` markers and exposed as agent entry points automatically.
 
 ### Checklists and Quality Gates
 
-Cypilot provides **expert-level checklists** for validation at each stage.
-
-**Artifact checklists** in `kits/sdlc/artifacts/{KIND}/`:
-- [**PRD checklist**](kits/sdlc/artifacts/PRD/checklist.md) — 300+ criteria for requirements completeness, stakeholder coverage, constraint clarity
-- [**DESIGN checklist**](kits/sdlc/artifacts/DESIGN/checklist.md) — 380+ criteria for architecture validation, component boundaries, integration points
-- [**DECOMPOSITION checklist**](kits/sdlc/artifacts/DECOMPOSITION/checklist.md) — 130+ criteria for feature breakdown quality, dependency mapping
-- [**FEATURE checklist**](kits/sdlc/artifacts/FEATURE/checklist.md) — 380+ criteria for implementation readiness, acceptance criteria, edge cases
-- [**ADR checklist**](kits/sdlc/artifacts/ADR/checklist.md) — 270+ criteria for decision rationale, alternatives analysis, consequences
+**Artifact checklists** (generated from SDLC kit blueprints):
+- **PRD** — 300+ criteria for requirements completeness
+- **DESIGN** — 380+ criteria for architecture validation
+- **DECOMPOSITION** — 130+ criteria for feature breakdown quality
+- **FEATURE** — 380+ criteria for implementation readiness
+- **ADR** — 270+ criteria for decision rationale
 
 **Generic checklists** in `requirements/`:
-- [**Code checklist**](requirements/code-checklist.md) — 200+ criteria for code quality, security, error handling, testing
-- [**Consistency checklist**](requirements/consistency-checklist.md) — 45+ criteria for cross-artifact consistency and contradiction detection
-- [**Reverse engineering**](requirements/reverse-engineering.md) — 270+ criteria for legacy code analysis methodology
-- [**Prompt engineering**](requirements/prompt-engineering.md) — 220+ criteria for AI prompt design guidelines
+- [**Code checklist**](requirements/code-checklist.md) — 200+ criteria for code quality
+- [**Consistency checklist**](requirements/consistency-checklist.md) — 45+ criteria for cross-artifact consistency
+- [**Reverse engineering**](requirements/reverse-engineering.md) — 270+ criteria for legacy code analysis
+- [**Prompt engineering**](requirements/prompt-engineering.md) — 220+ criteria for AI prompt design
 
-Use checklists by referencing them in `/cypilot-analyze` or manually during review.
+---
+
+## Architecture
+
+### Directory Structure
+
+After `cypilot init`, a project has:
+
+```
+project/
+├── cypilot/                    # Cypilot install directory
+│   ├── .core/                  # Read-only core (from cache)
+│   │   ├── skills/             # Skill engine + scripts
+│   │   ├── kits/               # Reference kit copies
+│   │   ├── workflows/          # Core workflows (generate.md, analyze.md)
+│   │   ├── schemas/            # JSON schemas
+│   │   └── requirements/       # Core requirements + checklists
+│   ├── .gen/                   # Auto-generated (from blueprints)
+│   │   ├── AGENTS.md           # Generated WHEN rules + sysprompt content
+│   │   ├── SKILL.md            # Composed skill with kit extensions
+│   │   └── kits/sdlc/          # Generated artifacts, workflows, constraints
+│   └── config/                 # User-editable
+│       ├── core.toml           # System definitions, kit registrations
+│       ├── artifacts.toml      # Artifact registry, autodetect rules
+│       ├── AGENTS.md           # User WHEN rules
+│       ├── SKILL.md            # User skill extensions
+│       └── kits/sdlc/          # User-editable blueprints
+│           └── blueprints/
+├── AGENTS.md                   # Root entry (managed block → cypilot/.gen/)
+├── .windsurf/                  # Agent entry points (generated)
+├── .cursor/
+├── .claude/
+└── .github/prompts/
+```
+
+### Blueprint System
+
+Each kit is a **blueprint package** — a `blueprints/` directory containing one `.md` file per artifact kind. Blueprints are the single source of truth from which all kit resources are generated:
+
+| Blueprint Marker | Generated Output |
+|-----------------|-----------------|
+| `@cpt:heading` + `@cpt:id` | `constraints.toml` (heading/ID constraints) |
+| `@cpt:rules` + `@cpt:rule` | `rules.md` (validation rules) |
+| `@cpt:checklist` + `@cpt:check` | `checklist.md` (quality criteria) |
+| `@cpt:prompt` | `template.md` (writing instructions) |
+| `@cpt:example` | `examples/example.md` |
+| `@cpt:skill` | `SKILL.md` (kit skill extensions) |
+| `@cpt:sysprompt` | `AGENTS.md` (agent system prompt content) |
+| `@cpt:workflow` | `workflows/{name}.md` (kit-specific workflows) |
+
+Users can customize blueprints in `config/kits/{slug}/blueprints/`. Running `cypilot update` regenerates `.gen/` from user blueprints while preserving user config.
 
 ---
 
 ## Extensibility
 
-Cypilot is extensible: there can be multiple agent packages called **Kits**. A Kit bundles templates, rules, checklists, and examples for a specific domain or use case.
+Cypilot is extensible through **Kits** — self-contained packages that bundle templates, rules, checklists, examples, and workflows for a specific domain. The kit plugin system supports extension at three levels:
 
-Cypilot ships with a built-in **SDLC Kit** that runs a full PRD → code pipeline, with traceability and validation at every step.
+1. **Kit-level** — new kits for entirely new domains (e.g., API design, infrastructure-as-code)
+2. **Artifact-level** — new artifact kinds within an existing kit
+3. **Resource-level** — override templates, extend checklists, modify rules within an artifact kind
 
 ### Kit: **Cypilot SDLC**
 
-**Cypilot SDLC** is a production-ready software development life cycle (SDLC) SDD built on **Cypilot**. It fully leverages Cypilot’s capabilities — identifier-based **traceability**, reliable **workflows** that follow a strict protocol, and Kit-defined rules and tasks, structured templates and quality checklists. Each Kit can both generate (transform/derive) content and evaluate it: scoring semantic quality, validating artifact-to-artifact alignment (e.g., requirements → design → implementation), and enforcing structure against the templates defined in the kit.
+The built-in SDLC Kit provides an artifact-first development pipeline with end-to-end traceability:
 
-See the [SDLC Pipeline](kits/sdlc/README.md) for a detailed overview of the **Cypilot SDLC** pipeline, artifact kinds, generation and validation processes, and references to related documentation.
+**PRD → ADR + DESIGN → DECOMPOSITION → FEATURE → CODE**
+
+Each artifact kind has templates, rules, checklists (300+ criteria), and examples. The kit also provides PR review and PR status workflows for GitHub.
+
+See the [SDLC Kit README](kits/sdlc/README.md) for the full pipeline overview, artifact kinds, and guides.
 
 ---
 
@@ -494,22 +283,21 @@ We welcome contributions to **Cypilot**.
 
 **How to contribute**:
 
-1. **Report issues**: Use GitHub Issues for bugs, spec requests, or questions
-2. **Submit pull requests**: Fork the repository, create a branch, submit PR with description
-3. **Follow** **Cypilot** **methodology**: Use **Cypilot** workflows when making changes to **Cypilot** itself
-4. **Update documentation**: Include doc updates for any user-facing changes
+1. **Report issues** — use GitHub Issues for bugs, spec requests, or questions
+2. **Submit pull requests** — fork the repository, create a branch, submit PR with description
+3. **Follow Cypilot methodology** — use Cypilot workflows when making changes to Cypilot itself
+4. **Update documentation** — include doc updates for any user-facing changes
 
 **Guidelines**:
+- Python stdlib only — zero third-party dependencies
 - Follow existing code style and conventions
-- Update workflows with real-world examples when possible
 - Maintain backward compatibility
-- Document breaking changes in version history
 - Add tests for new functionality
 
 **Development setup**:
 ```bash
-git clone <cypilot-repo-url>
-cd cypilot
+git clone https://github.com/cyberfabric/cyber-pilot.git
+cd cyber-pilot
 make test-coverage
 make self-check
 make validate
