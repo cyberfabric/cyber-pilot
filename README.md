@@ -32,12 +32,38 @@ Two layers of functionality:
 
 Works with any language, stack, or repository.
 
+## Document Types
+
+Cyber Pilot uses structured specification documents commonly used in modern SDLC:
+
+- **BRD — Business Requirements Document**  
+  Defines business goals, stakeholders, scope, and success metrics. Answers: *Why are we building this?*
+
+- **PRD — Product Requirements Document**  
+  Defines functional requirements, user stories, and acceptance criteria. Answers: *What should be built?*
+
+- **ADR — Architecture Decision Record**  
+  Captures architectural decisions, alternatives, rationale, and consequences. Answers: *Why was this technical decision made?*
+
+- **DESIGN — Technical Design Document**  
+  Describes system architecture, components, APIs, and implementation approach. Answers: *How will it be built?*
+
+- **DECOMPOSITION — Task Decomposition Document**  
+  Provides an executable plan with ordered FEATURE list, dependencies, and coverage links to PRD and DESIGN. Answers: *What are the steps to build it?*
+
+- **FEATURE — Feature Specification Document**  
+  Defines a specific feature's behavior, and integration points. Answers: *What exactly does this feature do?*
+
+These documents create a traceable chain:
+business intent (BRD) → product requirements (PRD) → architecture decisions and design (ADR + DESIGN) → executable plan (DECOMPOSITION) → implementable feature specs (FEATURE) → code.
+
 ---
 
 ## Table of Contents
 
 - [Problem](#problem)
 - [What Cypilot Provides](#what-cypilot-provides)
+- [Document Types](#document-types)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Project Setup](#project-setup)
