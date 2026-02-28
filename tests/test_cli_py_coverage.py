@@ -1568,24 +1568,27 @@ class TestCLIPyCoverageInitUnchanged(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
+            fake_cache = Path(tmpdir) / "cache"
+            fake_cache.mkdir()
 
             # First init to create files (use --yes to avoid prompts)
             cwd = os.getcwd()
             try:
                 os.chdir(root)
-                stdout = io.StringIO()
-                with redirect_stdout(stdout):
-                    exit_code = main(["init", "--yes"])
-                self.assertEqual(exit_code, 0)
+                with patch("cypilot.commands.init.CACHE_DIR", fake_cache):
+                    stdout = io.StringIO()
+                    with redirect_stdout(stdout):
+                        exit_code = main(["init", "--yes"])
+                    self.assertEqual(exit_code, 0)
 
-                # Second init without changes should still succeed
-                stdout = io.StringIO()
-                with redirect_stdout(stdout):
-                    exit_code = main(["init", "--yes"])
-                # Init may succeed (0) or report issues (1/2) on re-run
-                self.assertIn(exit_code, [0, 1, 2])
-                out = json.loads(stdout.getvalue())
-                self.assertIn("status", out)
+                    # Second init without changes should still succeed
+                    stdout = io.StringIO()
+                    with redirect_stdout(stdout):
+                        exit_code = main(["init", "--yes"])
+                    # Init may succeed (0) or report issues (1/2) on re-run
+                    self.assertIn(exit_code, [0, 1, 2])
+                    out = json.loads(stdout.getvalue())
+                    self.assertIn("status", out)
             finally:
                 os.chdir(cwd)
 

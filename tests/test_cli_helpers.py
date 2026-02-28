@@ -245,9 +245,12 @@ class TestCliCommandCoverage(unittest.TestCase):
     def test_init_yes_dry_run(self):
         with TemporaryDirectory() as td:
             root = Path(td)
+            fake_cache = Path(td) / "cache"
+            fake_cache.mkdir()
             buf = io.StringIO()
-            with contextlib.redirect_stdout(buf):
-                rc = cypilot_cli.main(["init", "--project-root", str(root), "--yes", "--dry-run"])
+            with patch("cypilot.commands.init.CACHE_DIR", fake_cache):
+                with contextlib.redirect_stdout(buf):
+                    rc = cypilot_cli.main(["init", "--project-root", str(root), "--yes", "--dry-run"])
         self.assertEqual(rc, 0)
 
     def test_main_missing_subcommand_returns_error(self):
