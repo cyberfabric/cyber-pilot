@@ -13,6 +13,7 @@ import unittest.mock
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from contextlib import redirect_stdout, redirect_stderr
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "cypilot" / "scripts"))
 
@@ -303,22 +304,28 @@ class TestCLIInitCommand(unittest.TestCase):
             cypilot_core = project / "Cypilot"
             cypilot_core.mkdir()
             (cypilot_core / "AGENTS.md").write_text("# Cypilot Core\n", encoding="utf-8")
-            (cypilot_core / "requirements").mkdir()
-            (cypilot_core / "workflows").mkdir()
-            (cypilot_core / "skills" / "cypilot").mkdir(parents=True)
-            (cypilot_core / "skills" / "cypilot" / "SKILL.md").write_text(
+            core_dir = cypilot_core / ".core"
+            core_dir.mkdir()
+            (core_dir / "requirements").mkdir()
+            (core_dir / "workflows").mkdir()
+            (core_dir / "skills" / "cypilot").mkdir(parents=True)
+            (core_dir / "skills" / "cypilot" / "SKILL.md").write_text(
                 "---\nname: cypilot\ndescription: Cypilot skill\n---\n# Cypilot\n",
                 encoding="utf-8",
             )
 
+            fake_cache = Path(tmpdir) / "cache"
+            fake_cache.mkdir()
+
             stdout = io.StringIO()
-            with redirect_stdout(stdout):
-                exit_code = main([
-                    "init",
-                    "--project-root",
-                    str(project),
-                    "--yes",
-                ])
+            with patch("cypilot.commands.init.CACHE_DIR", fake_cache):
+                with redirect_stdout(stdout):
+                    exit_code = main([
+                        "init",
+                        "--project-root",
+                        str(project),
+                        "--yes",
+                    ])
             self.assertEqual(exit_code, 0)
             out = json.loads(stdout.getvalue())
             self.assertEqual(out.get("status"), "PASS")
@@ -370,10 +377,14 @@ class TestCLIInitCommand(unittest.TestCase):
             (cypilot_core / "requirements").mkdir()
             (cypilot_core / "workflows").mkdir()
 
+            fake_cache = Path(tmpdir) / "cache"
+            fake_cache.mkdir()
+
             orig_cwd = os.getcwd()
             try:
                 os.chdir(project.as_posix())
-                with unittest.mock.patch("builtins.input", side_effect=["", ""]):
+                with patch("cypilot.commands.init.CACHE_DIR", fake_cache), \
+                     unittest.mock.patch("builtins.input", side_effect=["", ""]):
                     stdout = io.StringIO()
                     with redirect_stdout(stdout), redirect_stderr(io.StringIO()):
                         exit_code = main(["init"])
