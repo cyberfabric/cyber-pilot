@@ -3,4 +3,4 @@ description: "Generate status reports for GitHub PRs with severity assessment an
 ---
 
 
-ALWAYS open and follow `@/.bootstrap/.gen/kits/sdlc/workflows/pr-status.md`
+ALWAYS open and follow `{cypilot_path}/.gen/kits/sdlc/workflows/pr-status.md`

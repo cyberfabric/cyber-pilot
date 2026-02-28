@@ -216,16 +216,17 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     # @cpt-dod:cpt-cypilot-dod-core-infra-agents-integrity:p1
     # @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-verify-agents
-    # Verify root AGENTS.md integrity on every invocation (silent re-inject if stale)
+    # Verify root AGENTS.md and CLAUDE.md integrity on every invocation (silent re-inject if stale)
     if ctx is not None and cmd != "init":
         try:
-            from .commands.init import _inject_root_agents
+            from .commands.init import _inject_root_agents, _inject_root_claude
             from .utils.files import find_project_root, _read_cypilot_var
             project_root = find_project_root(Path.cwd())
             if project_root is not None:
                 install_rel = _read_cypilot_var(project_root)
                 if install_rel:
                     _inject_root_agents(project_root, install_rel)
+                    _inject_root_claude(project_root, install_rel)
         except Exception:
             pass  # Non-fatal: don't block command execution
     # @cpt-end:cpt-cypilot-algo-core-infra-route-command:p1:inst-verify-agents

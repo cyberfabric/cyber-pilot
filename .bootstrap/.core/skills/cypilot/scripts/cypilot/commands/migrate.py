@@ -443,25 +443,6 @@ def cleanup_core_path(
             )
             # @cpt-end:cpt-cypilot-algo-v2-v3-migration-cleanup-core-path:p1:inst-submodule-deinit
 
-            # @cpt-begin:cpt-cypilot-algo-v2-v3-migration-cleanup-core-path:p1:inst-remove-gitmodules-entry
-            gitmodules = project_root / ".gitmodules"
-            if gitmodules.is_file():
-                content = gitmodules.read_text(encoding="utf-8")
-                cleaned = _remove_gitmodule_entry(content, core_path)
-                # @cpt-begin:cpt-cypilot-algo-v2-v3-migration-cleanup-core-path:p1:inst-delete-empty-gitmodules
-                if cleaned.strip():
-                    gitmodules.write_text(cleaned, encoding="utf-8")
-                else:
-                    gitmodules.unlink()
-                # @cpt-end:cpt-cypilot-algo-v2-v3-migration-cleanup-core-path:p1:inst-delete-empty-gitmodules
-            # @cpt-end:cpt-cypilot-algo-v2-v3-migration-cleanup-core-path:p1:inst-remove-gitmodules-entry
-
-            # @cpt-begin:cpt-cypilot-algo-v2-v3-migration-cleanup-core-path:p1:inst-remove-git-modules-dir
-            git_modules_dir = project_root / ".git" / "modules" / core_path
-            if git_modules_dir.is_dir():
-                shutil.rmtree(git_modules_dir)
-            # @cpt-end:cpt-cypilot-algo-v2-v3-migration-cleanup-core-path:p1:inst-remove-git-modules-dir
-
             # @cpt-begin:cpt-cypilot-algo-v2-v3-migration-cleanup-core-path:p1:inst-git-rm-submodule
             subprocess.run(
                 ["git", "rm", "-f", core_path],
@@ -472,17 +453,44 @@ def cleanup_core_path(
             )
             # @cpt-end:cpt-cypilot-algo-v2-v3-migration-cleanup-core-path:p1:inst-git-rm-submodule
 
-            # @cpt-begin:cpt-cypilot-algo-v2-v3-migration-cleanup-core-path:p1:inst-stage-gitmodules
-            gitmodules_path = project_root / ".gitmodules"
-            if gitmodules_path.is_file():
-                subprocess.run(
-                    ["git", "add", ".gitmodules"],
-                    cwd=str(project_root),
-                    capture_output=True,
-                    text=True,
-                    check=False,
-                )
-            # @cpt-end:cpt-cypilot-algo-v2-v3-migration-cleanup-core-path:p1:inst-stage-gitmodules
+            # @cpt-begin:cpt-cypilot-algo-v2-v3-migration-cleanup-core-path:p1:inst-remove-git-modules-dir
+            git_modules_dir = project_root / ".git" / "modules" / core_path
+            if git_modules_dir.is_dir():
+                shutil.rmtree(git_modules_dir)
+            # @cpt-end:cpt-cypilot-algo-v2-v3-migration-cleanup-core-path:p1:inst-remove-git-modules-dir
+
+            # @cpt-begin:cpt-cypilot-algo-v2-v3-migration-cleanup-core-path:p1:inst-remove-gitmodules-entry
+            # git rm updates .gitmodules but may leave the entry in older git;
+            # ensure the entry is removed and handle empty .gitmodules
+            gitmodules = project_root / ".gitmodules"
+            if gitmodules.is_file():
+                content = gitmodules.read_text(encoding="utf-8")
+                cleaned = _remove_gitmodule_entry(content, core_path)
+                # @cpt-begin:cpt-cypilot-algo-v2-v3-migration-cleanup-core-path:p1:inst-delete-empty-gitmodules
+                if cleaned.strip():
+                    gitmodules.write_text(cleaned, encoding="utf-8")
+                    subprocess.run(
+                        ["git", "add", ".gitmodules"],
+                        cwd=str(project_root),
+                        capture_output=True,
+                        text=True,
+                        check=False,
+                    )
+                else:
+                    gitmodules.unlink()
+                    subprocess.run(
+                        ["git", "rm", "--cached", ".gitmodules"],
+                        cwd=str(project_root),
+                        capture_output=True,
+                        text=True,
+                        check=False,
+                    )
+                # @cpt-end:cpt-cypilot-algo-v2-v3-migration-cleanup-core-path:p1:inst-delete-empty-gitmodules
+            # @cpt-end:cpt-cypilot-algo-v2-v3-migration-cleanup-core-path:p1:inst-remove-gitmodules-entry
+
+            # Remove leftover empty directory if deinit/git-rm left it
+            if core_dir.is_dir():
+                shutil.rmtree(core_dir, ignore_errors=True)
 
             # @cpt-begin:cpt-cypilot-algo-v2-v3-migration-cleanup-core-path:p1:inst-return-submodule-ok
             warnings.append(

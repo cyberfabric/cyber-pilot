@@ -33,19 +33,23 @@ def _safe_relpath(path: Path, base: Path) -> str:
         return path.as_posix()
 
 
-def _target_path_from_root(target: Path, project_root: Path) -> str:
-    """Return agent-instruction path as @/<project-root-relative> when possible.
+def _target_path_from_root(target: Path, project_root: Path, cypilot_root: Optional[Path] = None) -> str:
+    """Return agent-instruction path using ``{cypilot_path}/`` variable prefix.
 
-    Using a project-root-relative alias avoids long ``../../..`` traversals that
-    escape the repository when the cypilot submodule lives at a path that is
-    outside or at a different depth than the project root.
+    If *target* is inside *cypilot_root*, returns ``{cypilot_path}/<relative>``
+    which is portable — the variable is defined in root AGENTS.md.
 
-    After ``_ensure_cypilot_local`` runs, every referenced path should be inside
-    ``project_root``, so the ``except`` branch is a defensive safety-net only.
+    Falls back to ``@/<project-root-relative>`` for paths outside cypilot_root.
     """
+    if cypilot_root is not None:
+        try:
+            rel = target.relative_to(cypilot_root).as_posix()
+            return "{cypilot_path}/" + rel
+        except ValueError:
+            pass
     try:
         rel = target.relative_to(project_root).as_posix()
-        return f"@/{rel}"
+        return "{cypilot_path}/" + rel if cypilot_root is None else f"@/{rel}"
     except ValueError:
         print(
             f"WARNING: path {target} is outside project root {project_root}, "
@@ -638,7 +642,7 @@ def _process_single_agent(
                 if desired_path.as_posix() in skill_output_paths:
                     continue
 
-                target_rel = _target_path_from_root(target_workflow_path, project_root)
+                target_rel = _target_path_from_root(target_workflow_path, project_root, cypilot_root)
 
                 fm = _parse_frontmatter(target_workflow_path)
                 source_name = fm.get("name", command)
@@ -689,13 +693,13 @@ def _process_single_agent(
                 if not m:
                     continue
                 target_rel = m.group(1)
-                # Normalize legacy relative/absolute paths to @/... canonical form
-                if not target_rel.startswith("@/"):
+                # Normalize legacy relative/absolute paths to {cypilot_path}/... canonical form
+                if not target_rel.startswith("@/") and not target_rel.startswith("{cypilot_path}/"):
                     if target_rel.startswith("/"):
                         resolved = Path(target_rel)
                     else:
                         resolved = (pth.parent / target_rel).resolve()
-                    target_rel = _target_path_from_root(resolved, project_root)
+                    target_rel = _target_path_from_root(resolved, project_root, cypilot_root)
                 dst = desired_by_target.get(target_rel)
                 if not dst or pth.as_posix() == dst:
                     continue
@@ -743,7 +747,9 @@ def _process_single_agent(
                 target_rel = m.group(1)
                 if "workflows/" not in target_rel and "/workflows/" not in target_rel:
                     continue
-                if target_rel.startswith("@/"):
+                if target_rel.startswith("{cypilot_path}/"):
+                    expected = (cypilot_root / target_rel[len("{cypilot_path}/"):]).resolve()
+                elif target_rel.startswith("@/"):
                     expected = (project_root / target_rel[2:]).resolve()
                 elif not target_rel.startswith("/"):
                     expected = (pth.parent / target_rel).resolve()
@@ -824,12 +830,12 @@ def _process_single_agent(
                     custom_target = out_cfg.get("target")
                     if custom_target:
                         target_abs = core_subpath(cypilot_root, *Path(custom_target).parts).resolve()
-                        target_rel = _target_path_from_root(target_abs, project_root)
+                        target_rel = _target_path_from_root(target_abs, project_root, cypilot_root)
                         target_fm = _parse_frontmatter(target_abs)
                         out_name = target_fm.get("name", skill_source_name)
                         out_description = target_fm.get("description", skill_source_description)
                     else:
-                        target_rel = _target_path_from_root(target_skill_abs, project_root)
+                        target_rel = _target_path_from_root(target_skill_abs, project_root, cypilot_root)
                         out_name = skill_source_name
                         out_description = skill_source_description
 

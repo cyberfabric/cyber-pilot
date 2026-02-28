@@ -38,6 +38,7 @@ from .init import (
     _core_readme,
     _gen_readme,
     _inject_root_agents,
+    _inject_root_claude,
 )
 
 
@@ -366,10 +367,12 @@ def cmd_update(argv: List[str]) -> int:
             actions, "config_skill",
         )
 
-    # Re-inject root AGENTS.md
+    # Re-inject root AGENTS.md and CLAUDE.md
     if not args.dry_run:
         root_agents_action = _inject_root_agents(project_root, install_rel)
         actions["root_agents"] = root_agents_action
+        root_claude_action = _inject_root_claude(project_root, install_rel)
+        actions["root_claude"] = root_claude_action
     # @cpt-end:cpt-cypilot-flow-version-config-update:p1:inst-ensure-scaffold
 
     # @cpt-begin:cpt-cypilot-flow-version-config-update:p1:inst-return-report

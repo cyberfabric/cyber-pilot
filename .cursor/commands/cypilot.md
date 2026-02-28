@@ -1,4 +1,4 @@
 # /cypilot
 
 
-ALWAYS open and follow `@/skills/cypilot/SKILL.md`
+ALWAYS open and follow `{cypilot_path}/.core/skills/cypilot/SKILL.md`

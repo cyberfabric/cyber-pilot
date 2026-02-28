@@ -1288,7 +1288,7 @@ class TestCLIAgentsEdgeCases(unittest.TestCase):
 
 
 class TestCLIAgentsAtPathFormat(unittest.TestCase):
-    """Verify that generated agent files use @/ project-root-relative paths."""
+    """Verify that generated agent files use {cypilot_path}/ variable paths."""
 
     def _write_minimal_cypilot_skill(self, root: Path) -> None:
         (root / "skills" / "cypilot").mkdir(parents=True, exist_ok=True)
@@ -1311,7 +1311,7 @@ class TestCLIAgentsAtPathFormat(unittest.TestCase):
         self.assertEqual(exit_code, 0, f"agents --agent {agent} failed: {stdout.getvalue()}")
 
     def test_workflow_proxy_uses_at_path(self):
-        """Workflow proxies must reference the target via @/ not relative traversal."""
+        """Workflow proxies must reference the target via {cypilot_path}/ not relative traversal."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
@@ -1323,11 +1323,11 @@ class TestCLIAgentsAtPathFormat(unittest.TestCase):
             proxy = root / ".windsurf" / "workflows" / "cypilot-generate.md"
             self.assertTrue(proxy.exists())
             content = proxy.read_text(encoding="utf-8")
-            self.assertIn("@/", content, "Workflow proxy must use @/ path prefix")
+            self.assertIn("{cypilot_path}/", content, "Workflow proxy must use {cypilot_path}/ path prefix")
             self.assertNotIn("../", content, "Workflow proxy must not use relative traversal paths")
 
     def test_skill_output_uses_at_path(self):
-        """Skill outputs must reference the target via @/ not relative traversal."""
+        """Skill outputs must reference the target via {cypilot_path}/ not relative traversal."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
@@ -1339,11 +1339,11 @@ class TestCLIAgentsAtPathFormat(unittest.TestCase):
             skill = root / ".windsurf" / "skills" / "cypilot" / "SKILL.md"
             self.assertTrue(skill.exists())
             content = skill.read_text(encoding="utf-8")
-            self.assertIn("@/", content, "Skill output must use @/ path prefix")
+            self.assertIn("{cypilot_path}/", content, "Skill output must use {cypilot_path}/ path prefix")
             self.assertNotIn("../", content, "Skill output must not use relative traversal paths")
 
     def test_all_agents_use_at_path(self):
-        """All supported agents must generate files with @/ paths, not relative traversal."""
+        """All supported agents must generate files with {cypilot_path}/ paths, not relative traversal."""
         agents_and_files = {
             "windsurf": [
                 ".windsurf/workflows/cypilot-generate.md",
@@ -1385,12 +1385,12 @@ class TestCLIAgentsAtPathFormat(unittest.TestCase):
                     fpath = root / rel_path
                     self.assertTrue(fpath.exists(), f"{agent}: {rel_path} not created")
                     content = fpath.read_text(encoding="utf-8")
-                    # Every generated file that has an ALWAYS open instruction must use @/
+                    # Every generated file that has an ALWAYS open instruction must use {cypilot_path}/
                     if "ALWAYS open and follow" in content:
                         self.assertIn(
-                            "@/",
+                            "{cypilot_path}/",
                             content,
-                            f"{agent}: {rel_path} must use @/ prefix — got:\n{content}",
+                            f"{agent}: {rel_path} must use {{cypilot_path}}/ prefix — got:\n{content}",
                         )
                         self.assertNotIn(
                             "../",
@@ -1413,7 +1413,7 @@ class TestCLIAgentsAtPathFormat(unittest.TestCase):
         (cypilot_root / "AGENTS.md").write_text("# AGENTS\n", encoding="utf-8")
 
     def test_cypilot_outside_project_root_no_escape(self):
-        """When cypilot root is outside the project, files are copied into cypilot/ and proxies use @/ paths."""
+        """When cypilot root is outside the project, files are copied into cypilot/ and proxies use {cypilot_path}/ paths."""
         with TemporaryDirectory() as project_tmpdir, TemporaryDirectory() as cypilot_tmpdir:
             root = Path(project_tmpdir)
             cypilot_root = Path(cypilot_tmpdir)
@@ -1434,11 +1434,11 @@ class TestCLIAgentsAtPathFormat(unittest.TestCase):
             out = json.loads(stdout.getvalue())
             self.assertEqual(out.get("cypilot_copy", {}).get("action"), "copied")
 
-            # Proxy must use @/cypilot/... paths, not absolute paths
+            # Proxy must use {cypilot_path}/... paths, not absolute paths
             proxy = root / ".windsurf" / "workflows" / "cypilot-generate.md"
             self.assertTrue(proxy.exists())
             content = proxy.read_text(encoding="utf-8")
-            self.assertIn("@/cypilot/", content, "Proxy must use @/cypilot/ path")
+            self.assertIn("{cypilot_path}/", content, "Proxy must use {cypilot_path}/ path")
             self.assertNotRegex(content, r"\.\./.\.\.", "Must not use ../../ style path escape")
             # No absolute paths anywhere
             self.assertNotRegex(content, r"`/[a-zA-Z/]", "Must not contain absolute paths in backticks")
@@ -1571,14 +1571,14 @@ class TestCLIAgentsAtPathFormat(unittest.TestCase):
                         out["cypilot_copy"]["action"], "none",
                         f"No copy should happen when cypilot is at {rel} inside project",
                     )
-                    # Proxies must use @/{rel}/... paths, not absolute
+                    # Proxies must use {cypilot_path}/... paths, not absolute
                     proxy = root / ".windsurf" / "workflows" / "cypilot-generate.md"
                     self.assertTrue(proxy.exists(), f"Proxy not created for {rel}")
                     content = proxy.read_text(encoding="utf-8")
                     self.assertIn(
-                        f"@/{rel}/",
+                        "{cypilot_path}/",
                         content,
-                        f"Proxy must use @/{rel}/ path — got:\n{content}",
+                        f"Proxy must use {{cypilot_path}}/ path — got:\n{content}",
                     )
                     self.assertNotRegex(
                         content,

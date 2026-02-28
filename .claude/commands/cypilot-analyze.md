@@ -3,4 +3,4 @@ description: "Analyze Cypilot artifacts against templates or code against design
 ---
 
 
-ALWAYS open and follow `@/workflows/analyze.md`
+ALWAYS open and follow `{cypilot_path}/.core/workflows/analyze.md`

@@ -256,22 +256,21 @@ def _compute_managed_block(install_dir: str) -> str:
     # @cpt-end:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-compute-block
 
 
-def _inject_root_agents(project_root: Path, install_dir: str, dry_run: bool = False) -> str:
-    """Inject or update root AGENTS.md managed block. Returns action taken."""
-    agents_file = project_root / "AGENTS.md"
+def _inject_managed_block(target_file: Path, install_dir: str, dry_run: bool = False) -> str:
+    """Inject or update a managed block into *target_file*. Returns action taken."""
     expected_block = _compute_managed_block(install_dir)
 
     # @cpt-begin:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-if-no-agents
-    if not agents_file.is_file():
+    if not target_file.is_file():
         # @cpt-begin:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-create-agents-file
         if not dry_run:
-            agents_file.write_text(expected_block + "\n", encoding="utf-8")
+            target_file.write_text(expected_block + "\n", encoding="utf-8")
         return "created"
         # @cpt-end:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-create-agents-file
     # @cpt-end:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-if-no-agents
 
     # @cpt-begin:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-read-existing
-    content = agents_file.read_text(encoding="utf-8")
+    content = target_file.read_text(encoding="utf-8")
     # @cpt-end:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-read-existing
 
     # @cpt-begin:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-if-markers-exist
@@ -292,12 +291,52 @@ def _inject_root_agents(project_root: Path, install_dir: str, dry_run: bool = Fa
 
     # @cpt-begin:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-write-agents
     if not dry_run:
-        agents_file.write_text(new_content, encoding="utf-8")
+        target_file.write_text(new_content, encoding="utf-8")
     # @cpt-end:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-write-agents
 
     # @cpt-begin:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-return-agents-path
     return "updated"
     # @cpt-end:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-return-agents-path
+
+
+def _inject_root_agents(project_root: Path, install_dir: str, dry_run: bool = False) -> str:
+    """Inject or update root AGENTS.md managed block. Returns action taken."""
+    return _inject_managed_block(project_root / "AGENTS.md", install_dir, dry_run)
+
+
+def _compute_claude_block() -> str:
+    return (
+        f"{MARKER_START}\n"
+        f"STOP and READ `AGENTS.md` in project root before ANY tool calls or skill invocation\n"
+        f"{MARKER_END}"
+    )
+
+
+def _inject_root_claude(project_root: Path, install_dir: str, dry_run: bool = False) -> str:
+    """Inject or update root CLAUDE.md managed block. Returns action taken."""
+    claude_file = project_root / "CLAUDE.md"
+    expected_block = _compute_claude_block()
+
+    if not claude_file.is_file():
+        if not dry_run:
+            claude_file.write_text(expected_block + "\n", encoding="utf-8")
+        return "created"
+
+    content = claude_file.read_text(encoding="utf-8")
+
+    if MARKER_START in content and MARKER_END in content:
+        start_idx = content.index(MARKER_START)
+        end_idx = content.index(MARKER_END) + len(MARKER_END)
+        current_block = content[start_idx:end_idx]
+        if current_block == expected_block.strip():
+            return "unchanged"
+        new_content = content[:start_idx] + expected_block + content[end_idx:]
+    else:
+        new_content = expected_block + "\n\n" + content
+
+    if not dry_run:
+        claude_file.write_text(new_content, encoding="utf-8")
+    return "updated"
 
 
 def cmd_init(argv: List[str]) -> int:
@@ -570,6 +609,8 @@ def cmd_init(argv: List[str]) -> int:
     # @cpt-begin:cpt-cypilot-flow-core-infra-project-init:p1:inst-inject-agents
     root_agents_action = _inject_root_agents(project_root, install_rel, dry_run=args.dry_run)
     actions["root_agents"] = root_agents_action
+    root_claude_action = _inject_root_claude(project_root, install_rel, dry_run=args.dry_run)
+    actions["root_claude"] = root_claude_action
     # @cpt-end:cpt-cypilot-flow-core-infra-project-init:p1:inst-inject-agents
 
     if errors:
