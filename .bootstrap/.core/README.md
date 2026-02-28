@@ -5,7 +5,6 @@
 These files are copied from the Cypilot cache (`~/.cypilot/cache/`) during
 `cpt init` or `cpt kit install`. They are the read-only reference copies of:
 
-- `kits/` — kit definitions (blueprints, constraints, artifacts)
 - `skills/` — Cypilot skill scripts and CLI entry points
 - `architecture/` — architecture specs and feature documents
 - `requirements/` — validation requirements

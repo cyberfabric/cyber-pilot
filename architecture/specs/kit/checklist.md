@@ -46,9 +46,9 @@ drivers:
 
 ## Location
 
-**Per-artifact**: `{cypilot_path}/config/kits/<slug>/artifacts/<KIND>/checklist.md`
+**Per-artifact**: `{cypilot_path}/.gen/kits/<slug>/artifacts/<KIND>/checklist.md`
 
-**Codebase**: `{cypilot_path}/config/kits/<slug>/codebase/checklist.md` (from blueprints without `artifact` key)
+**Codebase**: `{cypilot_path}/.gen/kits/<slug>/codebase/checklist.md` (from blueprints without `artifact` key)
 
 ---
 

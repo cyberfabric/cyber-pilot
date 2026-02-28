@@ -114,7 +114,7 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
 - **Scope**:
   - Blueprint Processor: parse `@cpt:` markers, extract TOML/Markdown content blocks
   - Resource generation: `rules.md`, `checklist.md`, `template.md`, `example.md`, `constraints.toml`, `workflows/*.md`, `codebase/rules.md`, `codebase/checklist.md`
-  - Kit Manager: install kits (save to `{cypilot_path}/.core/kits/{slug}/`, copy blueprints to `{cypilot_path}/config/kits/{slug}/blueprints/`), register in `core.toml`
+  - Kit Manager: install kits (save to `{cypilot_path}/kits/{slug}/`, copy blueprints to `{cypilot_path}/config/kits/{slug}/blueprints/`), register in `core.toml`
   - Update model: force mode (full overwrite) and additive mode (three-way diff using reference)
   - SKILL composition: collect `@cpt:skill` sections and write to `{cypilot_path}/config/SKILL.md`
   - System prompt composition: collect `@cpt:system-prompt` sections and append to `{cypilot_path}/config/AGENTS.md`
@@ -162,11 +162,11 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
   None (blueprint processing is invoked internally by kit install/update)
 
 - **Data**:
-  - `{cypilot_path}/.core/kits/{slug}/` — reference kit copies
+  - `{cypilot_path}/kits/{slug}/` — reference kit copies
   - `{cypilot_path}/config/kits/{slug}/blueprints/` — user-editable blueprint copies
-  - `{cypilot_path}/config/kits/{slug}/constraints.toml` — kit-wide structural constraints
-  - `{cypilot_path}/config/kits/{slug}/artifacts/{KIND}/` — generated per-artifact outputs
-  - `{cypilot_path}/config/kits/{slug}/workflows/` — generated workflow files
+  - `{cypilot_path}/.gen/kits/{slug}/constraints.toml` — kit-wide structural constraints
+  - `{cypilot_path}/.gen/kits/{slug}/artifacts/{KIND}/` — generated per-artifact outputs
+  - `{cypilot_path}/.gen/kits/{slug}/workflows/` — generated workflow files
 
 
 ### 2.3 [Traceability & Validation](features/traceability-validation.md) ⏳ HIGH

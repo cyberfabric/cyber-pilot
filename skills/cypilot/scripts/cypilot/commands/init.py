@@ -65,7 +65,6 @@ def _core_readme() -> str:
         "These files are copied from the Cypilot cache (`~/.cypilot/cache/`) during\n"
         "`cpt init` or `cpt kit install`. They are the read-only reference copies of:\n"
         "\n"
-        "- `kits/` — kit definitions (blueprints, constraints, artifacts)\n"
         "- `skills/` — Cypilot skill scripts and CLI entry points\n"
         "- `architecture/` — architecture specs and feature documents\n"
         "- `requirements/` — validation requirements\n"

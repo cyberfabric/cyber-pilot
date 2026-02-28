@@ -876,7 +876,7 @@ class ArtifactsMeta:
     PIPELINE_ORDER = ["PRD", "DESIGN", "ADR", "DECOMPOSITION", "FEATURE"]
     # @cpt-end:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-define-ordering
 
-    def resolve_pipeline(self, system_slug: str) -> dict:
+    def resolve_pipeline(self, system_slug: str) -> dict:  # noqa: vulture
         """Resolve pipeline position for a system."""
         # @cpt-begin:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-classify-artifacts
         present_kinds: set = set()
