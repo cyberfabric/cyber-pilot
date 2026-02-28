@@ -8,6 +8,8 @@ __pycache__/
 
 # Build output
 dist/
+build/
+*.egg-info/
 *.tsbuildinfo
 
 # Environment
