@@ -7,4 +7,4 @@ and forwards commands. Installable via pipx.
 @cpt-dod:cpt-cypilot-dod-core-infra-global-package:p1
 """
 
-__version__ = "3.0.0a1"
+__version__ = "v3.0.2-beta"
