@@ -26,6 +26,7 @@
    - [Phase 2: Content Creation](#phase-2-content-creation)
    - [Phase 3: IDs and Structure](#phase-3-ids-and-structure)
    - [Phase 4: Quality Check](#phase-4-quality-check)
+   - [Phase 5: Table of Contents](#phase-5-table-of-contents)
 4. [Validation](#validation)
    - [Phase 1: Structural Validation (Deterministic)](#phase-1-structural-validation-deterministic)
    - [Phase 2: Semantic Validation (Checklist-based)](#phase-2-semantic-validation-checklist-based)
@@ -35,6 +36,7 @@
    - [Phase 6: Report Format](#phase-6-report-format)
    - [Phase 7: Reporting Commitment](#phase-7-reporting-commitment)
    - [Phase 8: PR Review Focus (ADR)](#phase-8-pr-review-focus-adr)
+   - [Phase 9: Table of Contents Validation](#phase-9-table-of-contents-validation)
 5. [Error Handling](#error-handling)
    - [Number Conflict](#number-conflict)
    - [Missing Directory](#missing-directory)
@@ -253,6 +255,11 @@ ADRs must NOT contain the following — report as violation if found:
 - After ACCEPTED: do not modify decision/rationale
 - To change: create new ADR with SUPERSEDES reference
 
+### Phase 5: Table of Contents
+
+- [ ] Run `cypilot toc <artifact-file>` to generate/update Table of Contents
+- [ ] Verify TOC is present and complete with `cypilot validate-toc <artifact-file>`
+
 ---
 
 ## Validation
@@ -408,6 +415,14 @@ When reviewing PRs that add or change Architecture Decision Records, additionall
 - [ ] Ensure the problem is not already solved by other existing ADRs in the project ADR directory (see `{cypilot_path}/config/artifacts.toml` for path)
 - [ ] Alternatives are genuinely different approaches (not straw men)
 - [ ] Decision rationale is concrete and traceable to project constraints
+
+### Phase 9: Table of Contents Validation
+
+- [ ] Table of Contents section exists (`## Table of Contents` or `<!-- toc -->` markers)
+- [ ] All TOC anchors point to actual headings in the document
+- [ ] All headings are represented in the TOC
+- [ ] TOC order matches document heading order
+- [ ] Run `cypilot validate-toc <artifact-file>` — must report PASS
 
 ---
 

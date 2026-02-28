@@ -258,6 +258,9 @@ Goal: Create new dashboard
 - For codebase traceability, every implemented instruction marker maps to code via paired Cypilot block markers wrapping non-empty code.
    - Format: `@cpt-begin:{cpt-id}:p{N}:inst-{id}` ... code ... `@cpt-end:{cpt-id}:p{N}:inst-{id}`
    - Example: `# @cpt-begin:cpt-system-feature-x-algo-validate:p1:inst-check-input`
+   - Each begin/end pair wraps **only the specific lines** implementing that one instruction — NOT the entire function
+   - A function implementing multiple CDSL instructions has **separate** begin/end pairs per instruction
+   - See `traceability.md` Part II for full specification and examples
 
 ### ❌ Prohibited
 

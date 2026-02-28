@@ -8,37 +8,37 @@
 
 ## Table of Contents
 
-- [CODEBASE Rules](#codebase-rules)
-  - [Table of Contents](#table-of-contents)
-  - [Prerequisites](#prerequisites)
-    - [Load Dependencies](#load-dependencies)
-  - [Requirements](#requirements)
-    - [Structural](#structural)
-    - [Traceability](#traceability)
-    - [Checkbox Cascade](#checkbox-cascade)
-    - [Versioning](#versioning)
-    - [Engineering](#engineering)
-    - [Quality](#quality)
-  - [Tasks](#tasks)
-    - [Phase 1: Setup](#phase-1-setup)
-    - [Phase 2: Implementation (Work Packages)](#phase-2-implementation-work-packages)
-    - [Phase 3: Cypilot Markers (Traceability Mode ON only)](#phase-3-cypilot-markers-traceability-mode-on-only)
-    - [Phase 4: Sync FEATURE (Traceability Mode ON only)](#phase-4-sync-feature-traceability-mode-on-only)
-    - [Phase 5: Quality Check](#phase-5-quality-check)
-    - [Phase 6: Tag Verification (Traceability Mode ON only)](#phase-6-tag-verification-traceability-mode-on-only)
-  - [Validation](#validation)
-    - [Phase 1: Implementation Coverage](#phase-1-implementation-coverage)
-    - [Phase 2: Traceability Validation (Mode ON only)](#phase-2-traceability-validation-mode-on-only)
-    - [Phase 3: Test Scenarios Validation](#phase-3-test-scenarios-validation)
-    - [Phase 4: Build and Lint Validation](#phase-4-build-and-lint-validation)
-    - [Phase 5: Test Execution](#phase-5-test-execution)
-    - [Phase 6: Code Quality Validation](#phase-6-code-quality-validation)
-    - [Phase 7: Code Logic Consistency with Design](#phase-7-code-logic-consistency-with-design)
-    - [Phase 8: Semantic Expert Review (Always)](#phase-8-semantic-expert-review-always)
-  - [Next Steps](#next-steps)
-    - [After Success](#after-success)
-    - [After Issues](#after-issues)
-    - [No Design](#no-design)
+1. [Prerequisites](#prerequisites)
+   - [Load Dependencies](#load-dependencies)
+2. [Requirements](#requirements)
+   - [Structural](#structural)
+   - [Traceability](#traceability)
+   - [Checkbox Cascade](#checkbox-cascade)
+   - [Versioning](#versioning)
+   - [Engineering](#engineering)
+   - [Quality](#quality)
+3. [Tasks](#tasks)
+   - [Phase 1: Setup](#phase-1-setup)
+   - [Phase 2: Implementation (Work Packages)](#phase-2-implementation-work-packages)
+   - [Phase 3: Cypilot Markers (Traceability Mode ON only)](#phase-3-cypilot-markers-traceability-mode-on-only)
+   - [Phase 4: Sync FEATURE (Traceability Mode ON only)](#phase-4-sync-feature-traceability-mode-on-only)
+   - [Phase 5: Quality Check](#phase-5-quality-check)
+   - [Phase 6: Tag Verification (Traceability Mode ON only)](#phase-6-tag-verification-traceability-mode-on-only)
+   - [Phase 7: Table of Contents](#phase-7-table-of-contents)
+4. [Validation](#validation)
+   - [Phase 1: Implementation Coverage](#phase-1-implementation-coverage)
+   - [Phase 2: Traceability Validation (Mode ON only)](#phase-2-traceability-validation-mode-on-only)
+   - [Phase 3: Test Scenarios Validation](#phase-3-test-scenarios-validation)
+   - [Phase 4: Build and Lint Validation](#phase-4-build-and-lint-validation)
+   - [Phase 5: Test Execution](#phase-5-test-execution)
+   - [Phase 6: Code Quality Validation](#phase-6-code-quality-validation)
+   - [Phase 7: Code Logic Consistency with Design](#phase-7-code-logic-consistency-with-design)
+   - [Phase 8: Semantic Expert Review (Always)](#phase-8-semantic-expert-review-always)
+   - [Phase 9: Table of Contents Validation](#phase-9-table-of-contents-validation)
+5. [Next Steps](#next-steps)
+   - [After Success](#after-success)
+   - [After Issues](#after-issues)
+   - [No Design](#no-design)
 
 ---
 
@@ -227,6 +227,11 @@ After each work package, sync checkboxes:
 - [ ] Confirm tags exist in files that implement corresponding logic/tests
 - [ ] If any FEATURE ID has no code tag → report as gap and/or add tag
 
+### Phase 7: Table of Contents
+
+- [ ] Run `cypilot toc <artifact-file>` to generate/update Table of Contents
+- [ ] Verify TOC is present and complete with `cypilot validate-toc <artifact-file>`
+
 ---
 
 ## Validation
@@ -356,6 +361,14 @@ Run expert panel review after producing validation output.
 - Coverage meets project requirements
 - No CRITICAL divergences between code and design
 - If Traceability Mode ON: required tags present and properly paired
+
+### Phase 9: Table of Contents Validation
+
+- [ ] Table of Contents section exists (`## Table of Contents` or `<!-- toc -->` markers)
+- [ ] All TOC anchors point to actual headings in the document
+- [ ] All headings are represented in the TOC
+- [ ] TOC order matches document heading order
+- [ ] Run `cypilot validate-toc <artifact-file>` — must report PASS
 
 ---
 

@@ -26,6 +26,7 @@
    - [Phase 2: Content Creation](#phase-2-content-creation)
    - [Phase 3: IDs and References](#phase-3-ids-and-references)
    - [Phase 4: Quality Check](#phase-4-quality-check)
+   - [Phase 5: Table of Contents](#phase-5-table-of-contents)
 4. [Validation](#validation)
    - [Phase 1: Structural Validation (Deterministic)](#phase-1-structural-validation-deterministic)
    - [Phase 2: Semantic Validation (Checklist-based)](#phase-2-semantic-validation-checklist-based)
@@ -35,6 +36,7 @@
    - [Compact Report Format (Quick Reviews)](#compact-report-format-quick-reviews)
    - [Phase 6: Reporting Commitment](#phase-6-reporting-commitment)
    - [Phase 7: PR Review Focus (Design)](#phase-7-pr-review-focus-design)
+   - [Phase 8: Table of Contents Validation](#phase-8-table-of-contents-validation)
 5. [Error Handling](#error-handling)
    - [Missing Prd](#missing-prd)
    - [Incomplete Prd](#incomplete-prd)
@@ -231,6 +233,11 @@ If DESIGN cannot be completed in a single session:
 - [ ] Ensure no MUST NOT HAVE violations
 - [ ] Verify PRD traceability
 
+### Phase 5: Table of Contents
+
+- [ ] Run `cypilot toc <artifact-file>` to generate/update Table of Contents
+- [ ] Verify TOC is present and complete with `cypilot validate-toc <artifact-file>`
+
 ---
 
 ## Validation
@@ -341,6 +348,14 @@ When reviewing PRs that add or change design documents, additionally focus on:
 - [ ] Compare proposed design with IEEE, ISO, and other industry standards where applicable
 - [ ] Critical assessment of design decisions — challenge assumptions and gaps
 - [ ] Split findings by checklist category and rate each 1-10
+
+### Phase 8: Table of Contents Validation
+
+- [ ] Table of Contents section exists (`## Table of Contents` or `<!-- toc -->` markers)
+- [ ] All TOC anchors point to actual headings in the document
+- [ ] All headings are represented in the TOC
+- [ ] TOC order matches document heading order
+- [ ] Run `cypilot validate-toc <artifact-file>` — must report PASS
 
 ---
 

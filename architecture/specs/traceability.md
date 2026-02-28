@@ -226,14 +226,36 @@ Paired markers wrapping specific CDSL instruction implementations:
 
 - `inst-{local}` — local instruction identifier (kit-defined)
 
-**Example**:
+**Granularity rule**: Each `@cpt-begin`/`@cpt-end` pair wraps **only the specific lines** that implement that one CDSL instruction — NOT the entire function. A function implementing multiple CDSL instructions contains multiple independent block marker pairs, each wrapping its own code fragment.
+
+**Example** (single function, multiple instructions — each wrapped individually):
 ```python
-# @cpt-begin:cpt-my-system-feature-core-auth-v2:p1:inst-fetch-tenant-from-db
+# @cpt-flow:cpt-my-system-feature-core-auth-v2:p1
+def validate_credentials(username, password):
+    # @cpt-begin:cpt-my-system-feature-core-auth-v2:p1:inst-validate-input
+    if not username or not password:
+        raise ValidationError("Missing credentials")
+    # @cpt-end:cpt-my-system-feature-core-auth-v2:p1:inst-validate-input
+
+    # @cpt-begin:cpt-my-system-feature-core-auth-v2:p1:inst-authenticate
+    result = authenticate(username, password)
+    # @cpt-end:cpt-my-system-feature-core-auth-v2:p1:inst-authenticate
+
+    # @cpt-begin:cpt-my-system-feature-core-auth-v2:p1:inst-return-token
+    return generate_token(result.user_id)
+    # @cpt-end:cpt-my-system-feature-core-auth-v2:p1:inst-return-token
+```
+
+**Anti-pattern** — do NOT wrap the entire function body with a single begin/end pair:
+```python
+# WRONG — wraps entire function, loses per-instruction traceability
+# @cpt-begin:cpt-my-system-feature-core-auth-v2:p1:inst-validate-input
 def validate_credentials(username, password):
     if not username or not password:
         raise ValidationError("Missing credentials")
-    return authenticate(username, password)
-# @cpt-end:cpt-my-system-feature-core-auth-v2:p1:inst-fetch-tenant-from-db
+    result = authenticate(username, password)
+    return generate_token(result.user_id)
+# @cpt-end:cpt-my-system-feature-core-auth-v2:p1:inst-validate-input
 ```
 
 ### Language-Specific Syntax
@@ -262,10 +284,11 @@ Traceability mode is configured per artifact/codebase entry in `.cypilot/config/
 ### Code Validation Rules
 
 **Placement**:
-1. Scope markers at beginning of function/method/class
-2. Block markers wrap exact code implementing CDSL instruction
-3. Multiple markers allowed when code implements multiple IDs
-4. External dependencies: place on integration point
+1. Scope markers at beginning of function/method/class (single-line, no begin/end)
+2. Block markers wrap **only the specific lines** implementing one CDSL instruction — place them as close to the relevant code as possible
+3. When a function implements multiple CDSL instructions, use **separate** begin/end pairs for each instruction inside the function body — do NOT wrap the entire function with one pair
+4. Multiple markers allowed when code implements multiple IDs
+5. External dependencies: place on integration point
 
 **Pairing**:
 1. Every `@cpt-begin` MUST have matching `@cpt-end`

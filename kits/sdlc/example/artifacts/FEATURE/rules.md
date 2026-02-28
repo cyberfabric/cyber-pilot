@@ -28,6 +28,7 @@
    - [Phase 2: Content Creation](#phase-2-content-creation)
    - [Phase 3: IDs and Structure](#phase-3-ids-and-structure)
    - [Phase 4: Quality Check](#phase-4-quality-check)
+   - [Phase 5: Table of Contents](#phase-5-table-of-contents)
 4. [Validation](#validation)
    - [Phase 1: Structural Validation (Deterministic)](#phase-1-structural-validation-deterministic)
    - [Phase 2: Semantic Validation (Checklist-based)](#phase-2-semantic-validation-checklist-based)
@@ -36,6 +37,7 @@
    - [Phase 5: Applicability Context](#phase-5-applicability-context)
    - [Phase 6: Report Format](#phase-6-report-format)
    - [Phase 7: Reporting Commitment](#phase-7-reporting-commitment)
+   - [Phase 8: Table of Contents Validation](#phase-8-table-of-contents-validation)
 5. [Error Handling](#error-handling)
    - [Missing Decomposition](#missing-decomposition)
    - [Missing Design](#missing-design)
@@ -276,6 +278,11 @@ FEATURE documents must NOT contain the following — report as violation if foun
 - [ ] Ensure no MUST NOT HAVE violations
 - [ ] Verify parent feature reference exists
 
+### Phase 5: Table of Contents
+
+- [ ] Run `cypilot toc <artifact-file>` to generate/update Table of Contents
+- [ ] Verify TOC is present and complete with `cypilot validate-toc <artifact-file>`
+
 ---
 
 ## Validation
@@ -394,6 +401,14 @@ For each issue include:
 - [ ] I did not hide or omit known problems
 - [ ] I verified explicit handling for all major checklist categories
 - [ ] I am ready to iterate on the proposals and re-review after changes
+
+### Phase 8: Table of Contents Validation
+
+- [ ] Table of Contents section exists (`## Table of Contents` or `<!-- toc -->` markers)
+- [ ] All TOC anchors point to actual headings in the document
+- [ ] All headings are represented in the TOC
+- [ ] TOC order matches document heading order
+- [ ] Run `cypilot validate-toc <artifact-file>` — must report PASS
 
 ---
 

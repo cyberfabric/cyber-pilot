@@ -295,7 +295,7 @@ section = "implementation"
 **For each work package:**
 1. Identify exact design items to code (flows/algos/states/requirements/tests)
 2. Implement according to project conventions
-3. If Traceability Mode ON: add instruction-level tags while implementing
+3. If Traceability Mode ON: add `@cpt-begin`/`@cpt-end` markers **per CDSL instruction** while implementing — wrap only the specific lines that implement each instruction, not entire functions
 4. Run work package validation (tests, build, linters per project config)
 5. If Traceability Mode ON: update FEATURE.md checkboxes
 6. Proceed to next work package
@@ -311,13 +311,48 @@ kind = "tasks"
 # Section name — must match a section defined in the @cpt:rules skeleton
 section = "markers"
 ```
-```markdown
+````markdown
 **Traceability Mode ON only.**
 
 Apply markers per feature:
-- Scope markers: `@cpt-{kind}:{cpt-id}:p{N}` at function/class entry
-- Block markers: `@cpt-begin:{cpt-id}:p{N}:inst-{local}` / `@cpt-end:...` wrapping CDSL steps
+- **Scope markers**: `@cpt-{kind}:{cpt-id}:p{N}` — single-line, at function/class entry point
+- **Block markers**: `@cpt-begin:{cpt-id}:p{N}:inst-{local}` / `@cpt-end:...` — paired, wrapping **only the specific lines** that implement one CDSL instruction
+
+**Granularity rules (MANDATORY)**:
+1. Each `@cpt-begin`/`@cpt-end` pair wraps the **smallest code fragment** that implements its CDSL instruction
+2. When a function implements multiple CDSL instructions, place **separate** begin/end pairs for each instruction inside the function body
+3. Place markers as **close to the implementing code as possible** — directly above/below the relevant lines
+4. Do NOT wrap an entire function body with a single begin/end pair when the function implements multiple instructions
+
+**Correct** — each instruction wrapped individually:
+```python
+# @cpt-algo:cpt-system-algo-process:p1
+def process_data(items):
+    # @cpt-begin:cpt-system-algo-process:p1:inst-validate
+    if not items:
+        raise ValueError("Empty input")
+    # @cpt-end:cpt-system-algo-process:p1:inst-validate
+
+    # @cpt-begin:cpt-system-algo-process:p1:inst-transform
+    result = [transform(item) for item in items]
+    # @cpt-end:cpt-system-algo-process:p1:inst-transform
+
+    # @cpt-begin:cpt-system-algo-process:p1:inst-return-result
+    return result
+    # @cpt-end:cpt-system-algo-process:p1:inst-return-result
 ```
+
+**WRONG** — entire function wrapped with one pair (loses per-instruction traceability):
+```python
+# @cpt-begin:cpt-system-algo-process:p1:inst-validate
+def process_data(items):
+    if not items:
+        raise ValueError("Empty input")
+    result = [transform(item) for item in items]
+    return result
+# @cpt-end:cpt-system-algo-process:p1:inst-validate
+```
+````
 `@/cpt:rule`
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/codebase/rules.md`.
