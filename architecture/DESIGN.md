@@ -32,6 +32,7 @@
       - [PR Review Configuration](#pr-review-configuration)
       - [Quickstart Guides](#quickstart-guides)
       - [Utility Commands](#utility-commands)
+      - [Spec Coverage](#spec-coverage)
     - [NFR Allocation](#nfr-allocation)
   - [1.3 Architecture Layers](#13-architecture-layers)
 - [2. Principles & Constraints](#2-principles-constraints)
@@ -307,6 +308,12 @@ All outputs are **core-defined** — the Blueprint Processor owns all marker typ
 - [ ] `p3` - `cpt-cypilot-fr-core-completions`
 
 **Design Response**: Utility commands are implemented as standalone handlers in the Skill Engine with no architectural impact beyond the standard command routing pattern. `self-check` validates examples against templates. `doctor` checks environment health (Python version, git, gh, agents, config integrity). `hook install/uninstall` manages git pre-commit hooks for lightweight validation. `completions install` generates shell completion scripts for bash/zsh/fish.
+
+##### Spec Coverage
+
+- [x] `p1` - `cpt-cypilot-fr-core-traceability`
+
+**Design Response**: The `spec-coverage` command reuses the Traceability Engine's code scanning infrastructure to measure two metrics: **coverage percentage** (ratio of lines within `@cpt-begin`/`@cpt-end` blocks to total effective lines) and **granularity score** (instruction density — ideally 1 block marker per 10 lines). Output mirrors `coverage.py` JSON format with per-file and summary statistics. Threshold enforcement via `--min-coverage` and `--min-granularity` flags enables CI gating. Implementation lives in `skills/.../utils/coverage.py` (scanner + metrics) and `skills/.../commands/spec_coverage.py` (CLI entry point).
 
 #### NFR Allocation
 
@@ -692,6 +699,7 @@ Implements the ID system that links design elements to code. Without this compon
 - Provide query commands: `list-ids`, `list-id-kinds`, `where-defined`, `where-used`, `get-content`
 - Support ID versioning (`-vN` suffix)
 - Markdown structure parsing (`parsing.py`): section extraction, heading analysis, content block identification
+- Spec coverage analysis: measure CDSL marker coverage percentage and instruction granularity per code file
 
 ##### Responsibility boundaries
 

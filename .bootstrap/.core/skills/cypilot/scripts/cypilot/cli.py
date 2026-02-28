@@ -107,6 +107,11 @@ def _cmd_validate_toc(argv: List[str]) -> int:
     return cmd_validate_toc(argv)
 
 
+def _cmd_spec_coverage(argv: List[str]) -> int:
+    from .commands.spec_coverage import cmd_spec_coverage
+    return cmd_spec_coverage(argv)
+
+
 # =============================================================================
 # ADAPTER COMMAND
 # =============================================================================
@@ -131,7 +136,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     # Context may be None if Cypilot not initialized - that's OK for some commands like init
 
     # Define all available commands
-    analysis_commands = ["validate", "validate-kits", "validate-toc"]
+    analysis_commands = ["validate", "validate-kits", "validate-toc", "spec-coverage"]
     legacy_aliases = ["validate-code", "validate-rules"]
     kit_commands = ["kit", "generate-resources"]
     utility_commands = ["toc"]
@@ -251,6 +256,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         return _cmd_toc(rest)
     elif cmd == "validate-toc":
         return _cmd_validate_toc(rest)
+    elif cmd == "spec-coverage":
+        return _cmd_spec_coverage(rest)
     else:
         # @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-if-no-handler
         # @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-return-unknown
