@@ -36,22 +36,27 @@ Works with any language, stack, or repository.
 
 ## Table of Contents
 
-- [Problem](#problem)
-- [What Cypilot Provides](#what-cypilot-provides)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Project Setup](#project-setup)
-- [Using Cypilot](#using-cypilot)
-  - [Example Prompts](#example-prompts)
-  - [Agent Skill](#agent-skill)
-  - [Workflow Commands](#workflow-commands)
-  - [Checklists and Quality Gates](#checklists-and-quality-gates)
-- [Architecture](#architecture)
-  - [Directory Structure](#directory-structure)
-  - [Blueprint System](#blueprint-system)
-- [Extensibility](#extensibility)
-  - [Kit: Cypilot SDLC](#kit-cypilot-sdlc)
-- [Contributing](#contributing)
+- [](#)
+  - [Cyber Pilot — Deterministic Agent Tool for Structured Workflows](#cyber-pilot--deterministic-agent-tool-for-structured-workflows)
+  - [Problem](#problem)
+  - [What Cypilot Provides](#what-cypilot-provides)
+  - [Table of Contents](#table-of-contents)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+    - [Global CLI (recommended)](#global-cli-recommended)
+  - [Project Setup](#project-setup)
+  - [Using Cypilot](#using-cypilot)
+    - [Example Prompts](#example-prompts)
+    - [Agent Skill](#agent-skill)
+    - [Workflow Commands](#workflow-commands)
+    - [Checklists and Quality Gates](#checklists-and-quality-gates)
+    - [Update](#update)
+  - [Architecture](#architecture)
+    - [Directory Structure](#directory-structure)
+    - [Blueprint System](#blueprint-system)
+  - [Extensibility](#extensibility)
+    - [Kit: **Cypilot SDLC**](#kit-cypilot-sdlc)
+  - [Contributing](#contributing)
 
 ---
 
@@ -75,14 +80,6 @@ pipx install git+https://github.com/cyberfabric/cyber-pilot.git
 
 This installs `cypilot` and `cpt` commands globally. The CLI is a thin proxy shell — on first run it downloads the skill bundle into `~/.cypilot/cache/` and delegates all commands to the cached or project-local skill engine.
 
-### Update
-
-```bash
-cypilot update
-```
-
-Updates `.core/` from cache, regenerates `.gen/` from user blueprints, and ensures `config/` scaffold integrity. User-editable files in `config/` are never overwritten.
-
 ---
 
 ## Project Setup
@@ -93,6 +90,9 @@ cypilot init
 
 # Generate agent entry points for your IDE
 cypilot agents --agent windsurf
+
+# Generate all agents for your IDE
+cypilot agents
 ```
 
 `cypilot init` creates the Cypilot directory (default: `cypilot/`) with three subdirectories:
@@ -202,6 +202,15 @@ Kit-specific workflows (e.g., PR review, PR status) are generated from blueprint
 - [**Consistency checklist**](requirements/consistency-checklist.md) — 45+ criteria for cross-artifact consistency
 - [**Reverse engineering**](requirements/reverse-engineering.md) — 270+ criteria for legacy code analysis
 - [**Prompt engineering**](requirements/prompt-engineering.md) — 220+ criteria for AI prompt design
+
+### Update
+
+```bash
+cypilot update
+```
+
+Updates `.core/` from cache, regenerates `.gen/` from user blueprints, and ensures `config/` scaffold integrity. User-editable files in `config/` are never overwritten.
+
 
 ---
 
