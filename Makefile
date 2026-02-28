@@ -1,5 +1,5 @@
 # @cpt-algo:cpt-cypilot-spec-init-structure-change-infrastructure:p1
-.PHONY: test test-verbose test-quick test-coverage validate validate-examples validate-feature validate-code validate-code-feature self-check vulture vulture-ci install install-pipx clean help check-pytest check-pytest-cov check-pipx check-vulture update
+.PHONY: test test-verbose test-quick test-coverage validate validate-examples validate-feature validate-code validate-code-feature self-check vulture vulture-ci install install-pipx install-proxy clean help check-pytest check-pytest-cov check-pipx check-vulture update
 
 PYTHON ?= python3
 PIPX ?= pipx
@@ -24,6 +24,7 @@ help:
 	@echo "  make vulture                       - Scan python code for dead code (report only, does not fail)"
 	@echo "  make vulture-ci                    - Scan python code for dead code (fails if findings)"
 	@echo "  make install                       - Install Python dependencies"
+	@echo "  make install-proxy                 - Reinstall cpt proxy from local source"
 	@echo "  make update                        - Update .bootstrap from local source"
 	@echo "  make clean                         - Remove Python cache files"
 	@echo "  make help                          - Show this help message"
@@ -160,6 +161,10 @@ install-pipx: check-pipx
 	@echo "Done. If pytest is not found, run: pipx ensurepath (then restart your shell)."
 
 install: install-pipx
+
+# Reinstall cpt/cypilot proxy from local source
+install-proxy: check-pipx
+	$(PIPX) install --force .
 
 # Clean Python cache
 clean:

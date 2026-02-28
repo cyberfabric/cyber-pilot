@@ -79,9 +79,10 @@ def main(argv: Optional[List[str]] = None) -> int:
                 print(f"skill (project): {pv}")
         return 0
 
-    # Extract --version VERSION, --force, --source, --url only for init and update commands
+    # Extract --version VERSION, --force, --source, --url, --no-cache only for init and update commands
     target_version = None
     force_update = False
+    skip_cache = False
     source_dir = None
     custom_url = None
     if args and args[0] in ("init", "update"):
@@ -91,31 +92,34 @@ def main(argv: Optional[List[str]] = None) -> int:
         if "--force" in args:
             force_update = True
             args.remove("--force")
+        if "--no-cache" in args:
+            skip_cache = True
+            args.remove("--no-cache")
 
     # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-update-cache
     if args and args[0] == "update":
-        # Step 1: Update cache
-        if source_dir is not None:
-            from cypilot_proxy.cache import copy_from_local
+        if not skip_cache:
+            # Step 1: Update cache
+            if source_dir is not None:
+                from cypilot_proxy.cache import copy_from_local
 
-            success, message = copy_from_local(source_dir=source_dir, force=force_update)
-        else:
-            from cypilot_proxy.cache import download_and_cache
+                success, message = copy_from_local(source_dir=source_dir, force=force_update)
+            else:
+                from cypilot_proxy.cache import download_and_cache
 
-            # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-explicit-cache-update
-            explicit = target_version or (args[1] if len(args) > 1 else None)
-            success, message = download_and_cache(version=explicit, force=force_update, url=custom_url)
-            # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-explicit-cache-update
+                # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-explicit-cache-update
+                explicit = target_version or (args[1] if len(args) > 1 else None)
+                success, message = download_and_cache(version=explicit, force=force_update, url=custom_url)
+                # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-explicit-cache-update
 
-        sys.stderr.write(f"{message}\n")
-        if not success:
-            return 1
+            sys.stderr.write(f"{message}\n")
+            if not success:
+                return 1
 
         # Step 2: Forward to skill engine for .core/ + kits + .gen/ update
-        # Use cached skill (freshly updated) to avoid stale code
         skill_path = find_cached_skill()
         if skill_path is None:
-            sys.stderr.write("Cache updated but skill entry point not found.\n")
+            sys.stderr.write("Cache not found. Run 'cpt update' without --no-cache first.\n")
             # @cpt-begin:cpt-cypilot-state-core-infra-project-install:p1:inst-update-complete
             return 1
             # @cpt-end:cpt-cypilot-state-core-infra-project-install:p1:inst-update-complete
@@ -125,7 +129,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         update_args = ["update"]
         if "--dry-run" in args:
             update_args.append("--dry-run")
+        # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-return-cache-update
         return _forward_to_skill(skill_path, update_args)
+        # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-return-cache-update
     # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-update-cache
 
     # Re-add --force to args for init (skill needs it for config overwrite)

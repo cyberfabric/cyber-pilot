@@ -718,5 +718,109 @@ class TestExtractSystemSlugCandidates(unittest.TestCase):
         assert result == ["myapp"]
 
 
+class TestResolvePipeline(unittest.TestCase):
+    def _make_meta(self, artifacts):
+        """Build an ArtifactsMeta with given artifacts in a single system."""
+        arts = [Artifact(path=f"docs/{k}.md", kind=k, traceability="FULL") for k in artifacts]
+        sys_node = SystemNode(name="app", slug="app", kit="sdlc", artifacts=arts, codebase=[], children=[])
+        return ArtifactsMeta(version=1, project_root=".", kits={}, systems=[sys_node])
+
+    def test_empty_system_recommends_prd(self):
+        meta = self._make_meta([])
+        result = meta.resolve_pipeline("app")
+        self.assertEqual(result["recommendation"], "PRD")
+        self.assertEqual(result["present"], [])
+        self.assertEqual(result["missing"], ["PRD", "DESIGN", "ADR", "DECOMPOSITION", "FEATURE"])
+
+    def test_prd_present_recommends_design(self):
+        meta = self._make_meta(["PRD"])
+        result = meta.resolve_pipeline("app")
+        self.assertIn("PRD", result["present"])
+        self.assertEqual(result["recommendation"], "DESIGN")
+
+    def test_prd_design_present_recommends_adr(self):
+        meta = self._make_meta(["PRD", "DESIGN"])
+        result = meta.resolve_pipeline("app")
+        self.assertEqual(result["recommendation"], "ADR")
+
+    def test_all_present_recommends_code(self):
+        meta = self._make_meta(["PRD", "DESIGN", "ADR", "DECOMPOSITION", "FEATURE"])
+        result = meta.resolve_pipeline("app")
+        self.assertEqual(result["recommendation"], "CODE")
+        self.assertEqual(result["missing"], [])
+
+    def test_gap_blocks_recommendation(self):
+        # Only DESIGN present (no PRD) → PRD recommended first
+        meta = self._make_meta(["DESIGN"])
+        result = meta.resolve_pipeline("app")
+        self.assertEqual(result["recommendation"], "PRD")
+
+    def test_unknown_system_returns_all_missing(self):
+        meta = self._make_meta(["PRD"])
+        result = meta.resolve_pipeline("nonexistent")
+        self.assertEqual(result["recommendation"], "PRD")
+        self.assertEqual(result["present"], [])
+
+
+class TestIterAllSystemPrefixes(unittest.TestCase):
+    def test_single_system(self):
+        sys_node = SystemNode(name="App", slug="app", kit="sdlc", artifacts=[], codebase=[], children=[])
+        meta = ArtifactsMeta(version=1, project_root=".", kits={}, systems=[sys_node])
+        prefixes = list(meta.iter_all_system_prefixes())
+        self.assertEqual(prefixes, ["app"])
+
+    def test_nested_systems(self):
+        child = SystemNode(name="Sub", slug="sub", kit="sdlc", artifacts=[], codebase=[], children=[])
+        parent = SystemNode(name="App", slug="app", kit="sdlc", artifacts=[], codebase=[], children=[child])
+        child.parent = parent
+        meta = ArtifactsMeta(version=1, project_root=".", kits={}, systems=[parent])
+        prefixes = set(meta.iter_all_system_prefixes())
+        self.assertIn("app", prefixes)
+        self.assertIn("app-sub", prefixes)
+
+    def test_get_all_system_prefixes_lowercased(self):
+        sys_node = SystemNode(name="App", slug="MyApp", kit="sdlc", artifacts=[], codebase=[], children=[])
+        meta = ArtifactsMeta(version=1, project_root=".", kits={}, systems=[sys_node])
+        prefixes = meta.get_all_system_prefixes()
+        self.assertIn("myapp", prefixes)
+
+
+class TestLoadArtifactsMetaMissing(unittest.TestCase):
+    def test_missing_registry_returns_error(self):
+        with TemporaryDirectory() as d:
+            adapter_dir = Path(d)
+            result, err = load_artifacts_meta(adapter_dir)
+            self.assertIsNone(result)
+            self.assertIn("Missing artifacts registry", err)
+
+
+class TestKitFromDictEdgeCases(unittest.TestCase):
+    def test_invalid_artifact_kind_skipped(self):
+        data = {
+            "format": "Cypilot",
+            "path": "templates",
+            "artifacts": {
+                "": {"template": "t.md", "examples": "e/"},
+                "PRD": {"template": "prd.md", "examples": "examples/"},
+            },
+        }
+        kit = Kit.from_dict("test", data)
+        self.assertNotIn("", kit.artifacts)
+        self.assertIn("PRD", kit.artifacts)
+
+    def test_non_dict_artifact_spec_skipped(self):
+        data = {
+            "format": "Cypilot",
+            "path": "templates",
+            "artifacts": {
+                "PRD": "not-a-dict",
+                "DESIGN": {"template": "d.md", "examples": "ex/"},
+            },
+        }
+        kit = Kit.from_dict("test", data)
+        self.assertNotIn("PRD", kit.artifacts)
+        self.assertIn("DESIGN", kit.artifacts)
+
+
 if __name__ == "__main__":
     unittest.main()

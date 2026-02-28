@@ -23,7 +23,7 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from ..utils.files import core_subpath, gen_subpath, find_project_root, _is_cypilot_root, _read_cypilot_var
+from ..utils.files import core_subpath, gen_subpath, find_project_root, _is_cypilot_root, _read_cypilot_var, load_project_config
 
 
 def _safe_relpath(path: Path, base: Path) -> str:
@@ -491,6 +491,25 @@ def _resolve_gen_kits(cypilot_root: Path, project_root: Optional[Path] = None) -
     return gen_kits
 
 
+def _registered_kit_dirs(project_root: Optional[Path]) -> Optional[Set[str]]:
+    """Return set of kit directory names registered in core.toml, or None if config unavailable."""
+    if project_root is None:
+        return None
+    cfg = load_project_config(project_root)
+    if cfg is None:
+        return None
+    kits = cfg.get("kits")
+    if not isinstance(kits, dict):
+        return None
+    dirs: Set[str] = set()
+    for kit_cfg in kits.values():
+        if isinstance(kit_cfg, dict):
+            path = kit_cfg.get("path", "")
+            if path:
+                dirs.add(Path(path).name)
+    return dirs if dirs else None
+
+
 # @cpt-begin:cpt-cypilot-algo-agent-integration-list-workflows:p1:inst-scan-core-workflows
 def _list_workflow_files(cypilot_root: Path, project_root: Optional[Path] = None) -> List[Tuple[str, Path]]:
     """List workflow files from .core/workflows/ and .gen/kits/*/workflows/.
@@ -527,10 +546,13 @@ def _list_workflow_files(cypilot_root: Path, project_root: Optional[Path] = None
     _scan_dir(core_subpath(cypilot_root, "workflows"))
 
     # 2. Generated workflows from blueprints (.gen/kits/*/workflows/)
+    registered = _registered_kit_dirs(project_root)
     gen_kits = _resolve_gen_kits(cypilot_root, project_root)
     if gen_kits.is_dir():
         try:
             for kit_dir in sorted(gen_kits.iterdir()):
+                if registered is not None and kit_dir.name not in registered:
+                    continue
                 _scan_dir(kit_dir / "workflows")
         except Exception:
             pass
@@ -766,11 +788,14 @@ def _process_single_agent(
                 skill_source_description = skill_fm.get("description", "Proxy to Cypilot core skill instructions")
 
                 # Enrich description with per-kit skill descriptions from .gen/kits/*/SKILL.md
+                registered = _registered_kit_dirs(project_root)
                 gen_kits = _resolve_gen_kits(cypilot_root, project_root)
                 if gen_kits.is_dir():
                     kit_descs: List[str] = []
                     try:
                         for kit_dir in sorted(gen_kits.iterdir()):
+                            if registered is not None and kit_dir.name not in registered:
+                                continue
                             kit_skill = kit_dir / "SKILL.md"
                             if kit_skill.is_file():
                                 kit_fm = _parse_frontmatter(kit_skill)
@@ -910,9 +935,22 @@ def cmd_agents(argv: List[str]) -> int:
 
     cypilot_root = Path(args.cypilot_root).resolve() if args.cypilot_root else None
     if cypilot_root is None:
-        cypilot_root = (Path(__file__).resolve().parents[5])
-        if not _is_cypilot_root(cypilot_root):
-            cypilot_root = Path(__file__).resolve().parents[7]
+        # Primary: read cypilot_path from root AGENTS.md (canonical source)
+        cypilot_rel = _read_cypilot_var(project_root)
+        if cypilot_rel:
+            candidate = (project_root / cypilot_rel).resolve()
+            if _is_cypilot_root(candidate):
+                cypilot_root = candidate
+        # Fallback: resolve from __file__ (running from cache before first install)
+        if cypilot_root is None:
+            resolved_file = Path(__file__).resolve()
+            for _level in (5, 6, 7):
+                _candidate = resolved_file.parents[_level]
+                if _is_cypilot_root(_candidate):
+                    cypilot_root = _candidate
+                    break
+            else:
+                cypilot_root = resolved_file.parents[5]
 
     # @cpt-end:cpt-cypilot-flow-agent-integration-generate:p1:inst-resolve-project
 
