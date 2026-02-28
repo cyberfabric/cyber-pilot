@@ -1,3 +1,0 @@
-[console_scripts]
-cpt = cypilot_proxy.cli:main
-cypilot = cypilot_proxy.cli:main
