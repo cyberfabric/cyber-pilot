@@ -7,6 +7,7 @@ version = 1
 # Kit slug this blueprint belongs to
 kit = "sdlc"
 codebase = true
+toc = false
 ```
 `@/cpt:blueprint`
 
