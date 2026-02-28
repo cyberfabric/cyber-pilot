@@ -268,8 +268,16 @@ def calculate_metrics(file_coverages: List[FileCoverage]) -> CoverageReport:
 # Report generation (coverage.py JSON format)
 # ---------------------------------------------------------------------------
 
-def generate_report(report: CoverageReport, *, verbose: bool = False) -> Dict:
+def generate_report(report: CoverageReport, *, verbose: bool = False, project_root: Optional[Path] = None) -> Dict:
     """Generate JSON report matching coverage.py structure."""
+    def _rel(p: str) -> str:
+        if project_root is not None:
+            try:
+                return str(Path(p).relative_to(project_root))
+            except ValueError:
+                pass
+        return p
+
     summary = {
         "total_files": report.total_files,
         "covered_files": report.covered_files,
@@ -295,7 +303,7 @@ def generate_report(report: CoverageReport, *, verbose: bool = False) -> Dict:
         }
 
         if fc.covered_lines == 0:
-            uncovered_file_list.append(fc.path)
+            uncovered_file_list.append(_rel(fc.path))
 
         if fc.has_scope_only:
             entry["scope_only"] = True
@@ -308,7 +316,7 @@ def generate_report(report: CoverageReport, *, verbose: bool = False) -> Dict:
             if fc.covered_ranges:
                 entry["covered_ranges"] = [[s, e] for s, e in fc.covered_ranges]
 
-        files[fc.path] = entry
+        files[_rel(fc.path)] = entry
 
     result: Dict = {
         "summary": summary,
@@ -319,6 +327,6 @@ def generate_report(report: CoverageReport, *, verbose: bool = False) -> Dict:
         result["uncovered_files"] = uncovered_file_list
 
     if report.flagged_files:
-        result["flagged_files"] = report.flagged_files
+        result["flagged_files"] = [_rel(f) for f in report.flagged_files]
 
     return result
