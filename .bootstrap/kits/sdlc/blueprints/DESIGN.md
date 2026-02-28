@@ -3940,7 +3940,7 @@ examples = []
 ```markdown
 TaskFlow prioritizes real-time collaboration and predictable REST semantics. Future considerations include mobile app support and Slack integration. Trade-offs accepted: PostgreSQL requires operational overhead vs SQLite simplicity.
 
-**Date**: 2025-01-15
+**Date**: 2026-01-15
 ```
 `@/cpt:example`
 
