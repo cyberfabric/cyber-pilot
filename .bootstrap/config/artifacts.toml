@@ -58,13 +58,6 @@ extensions = [".py"]
 singleLineComments = ["#"]
 multiLineComments = [{start = '"""', end = '"""'}]
 
-[[systems.autodetect.codebase]]
-name = "Cypilot Tests"
-path = "tests"
-extensions = [".py"]
-singleLineComments = ["#"]
-multiLineComments = [{start = '"""', end = '"""'}]
-
 [[systems]]
 name = "Examples"
 slug = "ex"
@@ -104,13 +97,6 @@ required = false
 [[systems.autodetect.codebase]]
 name = "Overwork Alert"
 path = "{system_root}/src"
-extensions = [".py"]
-singleLineComments = ["#"]
-multiLineComments = [{start = '"""', end = '"""'}]
-
-[[systems.autodetect.codebase]]
-name = "Tests"
-path = "{project_root}/tests"
 extensions = [".py"]
 singleLineComments = ["#"]
 multiLineComments = [{start = '"""', end = '"""'}]

@@ -100,7 +100,7 @@ def cmd_spec_coverage(argv: List[str]) -> int:
     report = calculate_metrics(file_coverages)
 
     # Generate JSON report
-    json_report = generate_report(report, verbose=args.verbose)
+    json_report = generate_report(report, verbose=args.verbose, project_root=project_root)
 
     # Determine status
     status = "PASS"
@@ -125,10 +125,7 @@ def cmd_spec_coverage(argv: List[str]) -> int:
 
 def _output(data: dict, args: argparse.Namespace) -> None:
     """Output JSON report to stdout or file."""
-    indent = 2 if getattr(args, "verbose", False) else None
-    text = json.dumps(data, indent=indent, ensure_ascii=False)
-    if indent:
-        text += "\n"
+    text = json.dumps(data, indent=2, ensure_ascii=False)
     if getattr(args, "output", None):
         Path(args.output).write_text(text, encoding="utf-8")
     else:
