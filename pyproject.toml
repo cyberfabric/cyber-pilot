@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cypilot"
-version = "3.0.0a1"
+version = "3.0.0"
 description = "Cypilot global CLI proxy — deterministic agent tool for structured workflows"
 readme = "README.md"
 license = {text = "Apache-2.0"}
