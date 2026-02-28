@@ -99,7 +99,7 @@ cypilot agents --agent windsurf
 
 | Directory | Purpose | Editable? |
 |-----------|---------|-----------|
-| `.core/` | Read-only core files (skills, kits, workflows, schemas) copied from cache | No |
+| `.core/` | Read-only core files (skills, kits, workflows, schemas, architecture, requirements) copied from cache | No |
 | `.gen/` | Auto-generated files (SKILL.md, AGENTS.md, kit outputs, constraints) from blueprints | No |
 | `config/` | User-editable config (`core.toml`, `artifacts.toml`, AGENTS.md, kit blueprints) | Yes |
 
@@ -219,6 +219,7 @@ project/
 │   │   ├── kits/               # Reference kit copies
 │   │   ├── workflows/          # Core workflows (generate.md, analyze.md)
 │   │   ├── schemas/            # JSON schemas
+│   │   ├── architecture/       # Core architecture docs (PRD, DESIGN, specs)
 │   │   └── requirements/       # Core requirements + checklists
 │   ├── .gen/                   # Auto-generated (from blueprints)
 │   │   ├── AGENTS.md           # Generated WHEN rules + sysprompt content
