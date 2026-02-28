@@ -150,7 +150,20 @@ def cmd_validate(argv: List[str]) -> int:
             if artifact_path.exists():
                 artifacts_to_validate.append((artifact_path, template_path, artifact_meta.kind, artifact_meta.traceability, system_node.kit))
 
+    # Surface context-level errors (e.g., invalid constraints.toml) even when
+    # no artifacts are registered — these must never be silently swallowed.
     if not artifacts_to_validate:
+        if ctx_errors:
+            enrich_issues(ctx_errors, project_root=project_root)
+            print(json.dumps({
+                "status": "FAIL",
+                "project_root": project_root.as_posix(),
+                "artifacts_validated": 0,
+                "error_count": len(ctx_errors),
+                "warning_count": 0,
+                "errors": ctx_errors,
+            }, indent=2, ensure_ascii=False))
+            return 2
         print(json.dumps({"status": "PASS", "artifacts_validated": 0, "error_count": 0, "warning_count": 0, "message": "No Cypilot artifacts found in registry"}, indent=None, ensure_ascii=False))
         return 0
     # @cpt-end:cpt-cypilot-flow-traceability-validation-validate:p1:inst-resolve-artifacts

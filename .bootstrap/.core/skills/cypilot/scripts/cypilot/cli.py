@@ -121,6 +121,16 @@ def _cmd_cypilot_info(argv: List[str]) -> int:
     return cmd_adapter_info(argv)
 
 
+def _cmd_migrate(argv: List[str]) -> int:
+    from .commands.migrate import cmd_migrate
+    return cmd_migrate(argv)
+
+
+def _cmd_migrate_config(argv: List[str]) -> int:
+    from .commands.migrate import cmd_migrate_config
+    return cmd_migrate_config(argv)
+
+
 # =============================================================================
 # MAIN ENTRY POINT
 # =============================================================================
@@ -140,6 +150,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     legacy_aliases = ["validate-code", "validate-rules"]
     kit_commands = ["kit", "generate-resources"]
     utility_commands = ["toc"]
+    migration_commands = ["migrate", "migrate-config"]
     search_commands = [
         "init", "update",
         "list-ids", "list-id-kinds",
@@ -149,7 +160,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         "self-check",
         "agents",
     ]
-    all_commands = analysis_commands + kit_commands + search_commands + utility_commands + legacy_aliases
+    all_commands = analysis_commands + kit_commands + migration_commands + search_commands + utility_commands + legacy_aliases
 
     # Handle --help / -h at top level
     if argv_list and argv_list[0] in ("-h", "--help"):
@@ -167,6 +178,10 @@ def main(argv: Optional[List[str]] = None) -> int:
         print()
         print("Search and utility commands:")
         for c in search_commands:
+            print(f"  {c}")
+        print()
+        print("Migration commands:")
+        for c in migration_commands:
             print(f"  {c}")
         print()
         print("Utility commands:")
@@ -258,6 +273,10 @@ def main(argv: Optional[List[str]] = None) -> int:
         return _cmd_validate_toc(rest)
     elif cmd == "spec-coverage":
         return _cmd_spec_coverage(rest)
+    elif cmd == "migrate":
+        return _cmd_migrate(rest)
+    elif cmd == "migrate-config":
+        return _cmd_migrate_config(rest)
     else:
         # @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-if-no-handler
         # @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-return-unknown
