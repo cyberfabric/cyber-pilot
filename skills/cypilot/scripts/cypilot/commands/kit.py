@@ -997,6 +997,9 @@ def update_kit(
             config_kit_dir.mkdir(parents=True, exist_ok=True)
             shutil.copy2(conf_src, config_kit_dir / "conf.toml")
         result["version"] = {"status": "created"}
+        # Clean up .prev/ — not needed after first install
+        if prev_dir.is_dir():
+            shutil.rmtree(prev_dir)
     else:
         # Check version drift and auto-migrate
         mig_result = migrate_kit(
@@ -1074,6 +1077,11 @@ def migrate_kit(
         user_kit_ver = 0
 
     if ref_kit_ver <= user_kit_ver:
+        # Clean up stale .prev/ if left by update_kit (no migration needed)
+        if not dry_run:
+            prev_dir = ref_dir / ".prev"
+            if prev_dir.is_dir():
+                shutil.rmtree(prev_dir)
         return {"kit": kit_slug, "status": "current"}
 
     # Directories
