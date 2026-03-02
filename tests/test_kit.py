@@ -821,8 +821,8 @@ class TestMigrateKit(unittest.TestCase):
         """Marker unchanged by user → updated from new ref (three-way via .prev/)."""
         from cypilot.commands.kit import migrate_kit
         with TemporaryDirectory() as td:
-            _, _, ref_dir, config_kit, gen_kits = self._setup_kit(Path(td))
-            result = migrate_kit("sdlc", ref_dir, config_kit, gen_kits)
+            _, _, ref_dir, config_kit, _ = self._setup_kit(Path(td))
+            result = migrate_kit("sdlc", ref_dir, config_kit)
             self.assertEqual(result["status"], "migrated")
             bp = result["blueprints"][0]
             self.assertEqual(bp["action"], "merged")
@@ -834,10 +834,10 @@ class TestMigrateKit(unittest.TestCase):
         """Marker customized by user → skipped during merge."""
         from cypilot.commands.kit import migrate_kit
         with TemporaryDirectory() as td:
-            _, _, ref_dir, config_kit, gen_kits = self._setup_kit(
+            _, _, ref_dir, config_kit, _ = self._setup_kit(
                 Path(td), user_heading="My Custom Heading",
             )
-            result = migrate_kit("sdlc", ref_dir, config_kit, gen_kits)
+            result = migrate_kit("sdlc", ref_dir, config_kit)
             bp = result["blueprints"][0]
             # blueprint marker is unchanged → updated; heading is customized → skipped
             self.assertTrue(any("heading" in k for k in bp.get("markers_skipped", [])))
@@ -847,18 +847,18 @@ class TestMigrateKit(unittest.TestCase):
     def test_no_migration_when_current(self):
         from cypilot.commands.kit import migrate_kit
         with TemporaryDirectory() as td:
-            _, _, ref_dir, config_kit, gen_kits = self._setup_kit(
+            _, _, ref_dir, config_kit, _ = self._setup_kit(
                 Path(td), ref_ver=1, user_ver=1,
             )
-            result = migrate_kit("sdlc", ref_dir, config_kit, gen_kits)
+            result = migrate_kit("sdlc", ref_dir, config_kit)
             self.assertEqual(result["status"], "current")
 
     def test_updates_conf_toml(self):
         from cypilot.commands.kit import migrate_kit
         import tomllib
         with TemporaryDirectory() as td:
-            _, _, ref_dir, config_kit, gen_kits = self._setup_kit(Path(td))
-            migrate_kit("sdlc", ref_dir, config_kit, gen_kits)
+            _, _, ref_dir, config_kit, _ = self._setup_kit(Path(td))
+            migrate_kit("sdlc", ref_dir, config_kit)
             with open(config_kit / "conf.toml", "rb") as f:
                 data = tomllib.load(f)
             self.assertEqual(data["version"], 2)
@@ -866,8 +866,8 @@ class TestMigrateKit(unittest.TestCase):
     def test_dry_run_does_not_write(self):
         from cypilot.commands.kit import migrate_kit
         with TemporaryDirectory() as td:
-            _, _, ref_dir, config_kit, gen_kits = self._setup_kit(Path(td))
-            result = migrate_kit("sdlc", ref_dir, config_kit, gen_kits, dry_run=True)
+            _, _, ref_dir, config_kit, _ = self._setup_kit(Path(td))
+            result = migrate_kit("sdlc", ref_dir, config_kit, dry_run=True)
             # Should report migration but not write
             user_text = (config_kit / "blueprints" / "FEAT.md").read_text()
             self.assertIn("Feature v1", user_text)
@@ -876,11 +876,11 @@ class TestMigrateKit(unittest.TestCase):
         """Without .prev/, user customizations must NOT be overwritten."""
         from cypilot.commands.kit import migrate_kit
         with TemporaryDirectory() as td:
-            _, _, ref_dir, config_kit, gen_kits = self._setup_kit(
+            _, _, ref_dir, config_kit, _ = self._setup_kit(
                 Path(td), with_prev=False,
                 user_heading="My Custom Heading",
             )
-            result = migrate_kit("sdlc", ref_dir, config_kit, gen_kits)
+            result = migrate_kit("sdlc", ref_dir, config_kit)
             self.assertEqual(result["status"], "migrated")
             # User customization MUST survive
             user_text = (config_kit / "blueprints" / "FEAT.md").read_text()
@@ -890,22 +890,22 @@ class TestMigrateKit(unittest.TestCase):
     def test_kit_version_drift(self):
         from cypilot.commands.kit import migrate_kit
         with TemporaryDirectory() as td:
-            _, _, ref_dir, config_kit, gen_kits = self._setup_kit(
+            _, _, ref_dir, config_kit, _ = self._setup_kit(
                 Path(td), ref_ver=2, user_ver=2,
                 old_heading="Feature v2", new_heading="Feature v2", user_heading="Feature v2",
             )
             from cypilot.utils import toml_utils
             toml_utils.dump({"version": 3}, ref_dir / "conf.toml")
             toml_utils.dump({"version": 2}, config_kit / "conf.toml")
-            result = migrate_kit("sdlc", ref_dir, config_kit, gen_kits)
+            result = migrate_kit("sdlc", ref_dir, config_kit)
             self.assertEqual(result["status"], "migrated")
             self.assertIn("kit_version", result)
 
     def test_prev_cleaned_after_migration(self):
         from cypilot.commands.kit import migrate_kit
         with TemporaryDirectory() as td:
-            _, _, ref_dir, config_kit, gen_kits = self._setup_kit(Path(td))
-            migrate_kit("sdlc", ref_dir, config_kit, gen_kits)
+            _, _, ref_dir, config_kit, _ = self._setup_kit(Path(td))
+            migrate_kit("sdlc", ref_dir, config_kit)
             self.assertFalse((ref_dir / ".prev").exists())
 
     def test_missing_ref_blueprint_file(self):
@@ -922,8 +922,7 @@ class TestMigrateKit(unittest.TestCase):
             config_kit = adapter / "config" / "kits" / "sdlc"
             config_kit.mkdir(parents=True)
             toml_utils.dump({"version": 1}, config_kit / "conf.toml")
-            gen_kits = adapter / ".gen" / "kits"
-            result = migrate_kit("sdlc", ref_dir, config_kit, gen_kits)
+            result = migrate_kit("sdlc", ref_dir, config_kit)
             # No .md files in ref blueprints dir → no blueprints migrated
             self.assertEqual(result["status"], "migrated")
             self.assertNotIn("blueprints", result)

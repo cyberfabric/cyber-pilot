@@ -1317,7 +1317,12 @@ def run_migrate(
         adapter_dir_path = project_root / adapter_path
         json_convert_failed: List[str] = []
         if adapter_dir_path.is_dir():
-            primary_slug = next(iter(kit_slug_map.values()), _PR_REVIEW_DEFAULT_KIT_SLUG)
+            v2_systems = v2.get("systems", [])
+            if v2_systems:
+                v2_kit = v2_systems[0].get("kit", "")
+                primary_slug = kit_slug_map.get(v2_kit, v2_kit) or _PR_REVIEW_DEFAULT_KIT_SLUG
+            else:
+                primary_slug = next(iter(kit_slug_map.values()), _PR_REVIEW_DEFAULT_KIT_SLUG)
             _, json_convert_failed = _migrate_adapter_json_configs(
                 adapter_dir_path, config_dir, kit_slug=primary_slug,
             )
@@ -1476,6 +1481,7 @@ def _regenerate_gen_from_config(config_dir: Path, gen_dir: Path) -> None:
         RuntimeError: If process_kit reports any errors for any kit.
     """
     from ..utils.blueprint import process_kit
+    from .kit import _write_kit_gen_outputs
 
     gen_dir.mkdir(parents=True, exist_ok=True)
     gen_kits_dir = gen_dir / "kits"
@@ -1508,43 +1514,8 @@ def _regenerate_gen_from_config(config_dir: Path, gen_dir: Path) -> None:
         if errors:
             all_errors.extend(f"[{kit_slug}] {e}" for e in errors)
 
-        # Write SKILL.md
-        skill_content = summary.get("skill_content", "")
-        if skill_content:
-            art_kinds = [k.upper() for k in summary.get("artifact_kinds", []) if k]
-            wf_names = [w["name"] for w in summary.get("workflows", []) if w.get("name")]
-            desc_parts: List[str] = []
-            if art_kinds:
-                desc_parts.append(f"Artifacts: {', '.join(art_kinds)}")
-            if wf_names:
-                desc_parts.append(f"Workflows: {', '.join(wf_names)}")
-            kit_description = "; ".join(desc_parts) if desc_parts else f"Kit {kit_slug}"
-
-            gen_kit_skill_path = gen_kits_dir / kit_slug / "SKILL.md"
-            gen_kit_skill_path.parent.mkdir(parents=True, exist_ok=True)
-            gen_kit_skill_path.write_text(
-                f"---\nname: cypilot-{kit_slug}\n"
-                f"description: \"{kit_description}\"\n---\n\n"
-                f"# Cypilot Skill — Kit `{kit_slug}`\n\n"
-                f"Generated from kit `{kit_slug}` blueprints.\n\n"
-                + skill_content + "\n",
-                encoding="utf-8",
-            )
-
-        # Write generated workflows
-        for wf in summary.get("workflows", []):
-            wf_name = wf["name"]
-            wf_path = gen_kits_dir / kit_slug / "workflows" / f"{wf_name}.md"
-            wf_path.parent.mkdir(parents=True, exist_ok=True)
-            fm_lines = ["---", "cypilot: true", "type: workflow", f"name: cypilot-{wf_name}"]
-            if wf.get("description"):
-                fm_lines.append(f"description: {wf['description']}")
-            if wf.get("version"):
-                fm_lines.append(f"version: {wf['version']}")
-            if wf.get("purpose"):
-                fm_lines.append(f"purpose: {wf['purpose']}")
-            fm_lines.append("---")
-            wf_path.write_text("\n".join(fm_lines) + "\n\n" + wf["content"] + "\n", encoding="utf-8")
+        # Write per-kit SKILL.md + workflow files
+        _write_kit_gen_outputs(kit_slug, summary, gen_kits_dir)
 
     if all_errors:
         raise RuntimeError(

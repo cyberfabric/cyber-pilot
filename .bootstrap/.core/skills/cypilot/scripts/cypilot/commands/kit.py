@@ -54,6 +54,94 @@ def _seed_kit_config_files(
 
 
 # ---------------------------------------------------------------------------
+# Shared CLI helper — resolve project root + cypilot directory
+# ---------------------------------------------------------------------------
+
+
+def _resolve_cypilot_dir() -> Optional[tuple]:
+    """Resolve project root and cypilot directory from CWD.
+
+    Returns (project_root, cypilot_dir) or None (after printing JSON error).
+    """
+    from ..utils.files import find_project_root, _read_cypilot_var
+
+    project_root = find_project_root(Path.cwd())
+    if project_root is None:
+        print(json.dumps({"status": "ERROR", "message": "No project root found"}, ensure_ascii=False))
+        return None
+
+    cypilot_rel = _read_cypilot_var(project_root)
+    if not cypilot_rel:
+        print(json.dumps({"status": "ERROR", "message": "No cypilot directory"}, ensure_ascii=False))
+        return None
+
+    cypilot_dir = (project_root / cypilot_rel).resolve()
+    return project_root, cypilot_dir
+
+
+# ---------------------------------------------------------------------------
+# Shared helper — write per-kit SKILL.md + workflow files into .gen/
+# ---------------------------------------------------------------------------
+
+
+def _write_kit_gen_outputs(
+    kit_slug: str,
+    summary: Dict[str, Any],
+    gen_kits_dir: Path,
+) -> Dict[str, Any]:
+    """Write per-kit SKILL.md and workflow .md files into .gen/kits/{slug}/.
+
+    Returns dict with keys: skill_nav (str or ""), workflows_written (list).
+    """
+    result: Dict[str, Any] = {"skill_nav": "", "workflows_written": []}
+
+    skill_content = summary.get("skill_content", "")
+    if skill_content:
+        art_kinds = [k.upper() for k in summary.get("artifact_kinds", []) if k]
+        wf_names = [w["name"] for w in summary.get("workflows", []) if w.get("name")]
+        desc_parts: List[str] = []
+        if art_kinds:
+            desc_parts.append(f"Artifacts: {', '.join(art_kinds)}")
+        if wf_names:
+            desc_parts.append(f"Workflows: {', '.join(wf_names)}")
+        kit_description = "; ".join(desc_parts) if desc_parts else f"Kit {kit_slug}"
+
+        gen_kit_skill_path = gen_kits_dir / kit_slug / "SKILL.md"
+        gen_kit_skill_path.parent.mkdir(parents=True, exist_ok=True)
+        gen_kit_skill_path.write_text(
+            f"---\nname: cypilot-{kit_slug}\n"
+            f"description: \"{kit_description}\"\n---\n\n"
+            f"# Cypilot Skill — Kit `{kit_slug}`\n\n"
+            f"Generated from kit `{kit_slug}` blueprints.\n\n"
+            + skill_content + "\n",
+            encoding="utf-8",
+        )
+        result["skill_nav"] = (
+            f"ALWAYS invoke `{{cypilot_path}}/.gen/kits/{kit_slug}/SKILL.md` FIRST"
+        )
+
+    for wf in summary.get("workflows", []):
+        wf_name = wf["name"]
+        wf_path = gen_kits_dir / kit_slug / "workflows" / f"{wf_name}.md"
+        wf_path.parent.mkdir(parents=True, exist_ok=True)
+        fm_lines = ["---", "cypilot: true", "type: workflow", f"name: cypilot-{wf_name}"]
+        if wf.get("description"):
+            fm_lines.append(f"description: {wf['description']}")
+        if wf.get("version"):
+            fm_lines.append(f"version: {wf['version']}")
+        if wf.get("purpose"):
+            fm_lines.append(f"purpose: {wf['purpose']}")
+        fm_lines.append("---")
+        wf_path.write_text(
+            "\n".join(fm_lines) + "\n\n" + wf["content"] + "\n",
+            encoding="utf-8",
+        )
+        result["workflows_written"].append(wf_name)
+
+    return result
+
+
+# ---------------------------------------------------------------------------
 # Core kit installation logic (used by both cmd_kit_install and init)
 # ---------------------------------------------------------------------------
 
@@ -153,55 +241,12 @@ def install_kit(
     errors.extend(kit_errors)
     # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-process-blueprints
 
-    # Write per-kit SKILL.md into .gen/kits/{slug}/SKILL.md
-    skill_nav = ""
-    skill_content = summary.get("skill_content", "")
-    if skill_content:
-        gen_kit_skill_path = gen_kits_dir / kit_slug / "SKILL.md"
-        gen_kit_skill_path.parent.mkdir(parents=True, exist_ok=True)
-        art_kinds = [k.upper() for k in summary.get("artifact_kinds", []) if k]
-        wf_names = [w["name"] for w in summary.get("workflows", []) if w.get("name")]
-        desc_parts: list[str] = []
-        if art_kinds:
-            desc_parts.append(f"Artifacts: {', '.join(art_kinds)}")
-        if wf_names:
-            desc_parts.append(f"Workflows: {', '.join(wf_names)}")
-        kit_description = "; ".join(desc_parts) if desc_parts else f"Kit {kit_slug}"
-        gen_kit_skill_path.write_text(
-            f"---\nname: cypilot-{kit_slug}\n"
-            f"description: \"{kit_description}\"\n---\n\n"
-            f"# Cypilot Skill — Kit `{kit_slug}`\n\n"
-            f"Generated from kit `{kit_slug}` blueprints.\n\n"
-            + skill_content + "\n",
-            encoding="utf-8",
-        )
-        skill_nav = f"ALWAYS invoke `{{cypilot_path}}/.gen/kits/{kit_slug}/SKILL.md` FIRST"
+    # Write per-kit SKILL.md + workflow files into .gen/
+    gen_out = _write_kit_gen_outputs(kit_slug, summary, gen_kits_dir)
+    skill_nav = gen_out["skill_nav"]
+    if skill_nav:
         actions["gen_kit_skill"] = "created"
-
-    # Write generated workflows into .gen/kits/{slug}/workflows/{name}.md
-    kit_workflows = summary.get("workflows", [])
-    for wf in kit_workflows:
-        wf_name = wf["name"]
-        wf_path = gen_kits_dir / kit_slug / "workflows" / f"{wf_name}.md"
-        wf_path.parent.mkdir(parents=True, exist_ok=True)
-        fm_lines = [
-            "---",
-            "cypilot: true",
-            "type: workflow",
-            f"name: cypilot-{wf_name}",
-        ]
-        if wf.get("description"):
-            fm_lines.append(f"description: {wf['description']}")
-        if wf.get("version"):
-            fm_lines.append(f"version: {wf['version']}")
-        if wf.get("purpose"):
-            fm_lines.append(f"purpose: {wf['purpose']}")
-        fm_lines.append("---")
-        frontmatter = "\n".join(fm_lines)
-        wf_path.write_text(
-            frontmatter + "\n\n" + wf["content"] + "\n",
-            encoding="utf-8",
-        )
+    for wf_name in gen_out["workflows_written"]:
         actions[f"gen_workflow_{wf_name}"] = "created"
 
     # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-register-kit
@@ -283,8 +328,9 @@ def cmd_kit_install(argv: List[str]) -> int:
             ver = conf_data.get("version")
             if ver is not None:
                 kit_version = str(ver)
-        except Exception:
-            pass
+        except Exception as exc:
+            print(f"kit-install: failed to read {conf_toml}: {exc}",
+                  file=sys.stderr)
 
     if not kit_slug:
         kit_slug = kit_source.name
@@ -371,19 +417,10 @@ def cmd_kit_update(argv: List[str]) -> int:
     args = p.parse_args(argv)
     # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-user-update
 
-    from ..utils.files import find_project_root, _read_cypilot_var
-
-    project_root = find_project_root(Path.cwd())
-    if project_root is None:
-        print(json.dumps({"status": "ERROR", "message": "No project root found"}, ensure_ascii=False))
+    resolved = _resolve_cypilot_dir()
+    if resolved is None:
         return 1
-
-    cypilot_rel = _read_cypilot_var(project_root)
-    if not cypilot_rel:
-        print(json.dumps({"status": "ERROR", "message": "No cypilot directory"}, ensure_ascii=False))
-        return 1
-
-    cypilot_dir = (project_root / cypilot_rel).resolve()
+    _, cypilot_dir = resolved
     config_dir = cypilot_dir / "config"
     gen_dir = cypilot_dir / ".gen"
     kits_ref_dir = cypilot_dir / "kits"
@@ -501,19 +538,10 @@ def cmd_generate_resources(argv: List[str]) -> int:
     args = p.parse_args(argv)
     # @cpt-end:cpt-cypilot-flow-blueprint-system-generate-resources:p1:inst-user-generate
 
-    from ..utils.files import find_project_root, _read_cypilot_var
-
-    project_root = find_project_root(Path.cwd())
-    if project_root is None:
-        print(json.dumps({"status": "ERROR", "message": "No project root found"}, ensure_ascii=False))
+    resolved = _resolve_cypilot_dir()
+    if resolved is None:
         return 1
-
-    cypilot_rel = _read_cypilot_var(project_root)
-    if not cypilot_rel:
-        print(json.dumps({"status": "ERROR", "message": "No cypilot directory"}, ensure_ascii=False))
-        return 1
-
-    cypilot_dir = (project_root / cypilot_rel).resolve()
+    _, cypilot_dir = resolved
     config_dir = cypilot_dir / "config"
     gen_dir = cypilot_dir / ".gen"
     config_kits_dir = config_dir / "kits"
@@ -612,7 +640,7 @@ def _marker_identity_key(marker_type: str, raw_content: str) -> str:
     def _toml_val(key: str) -> str:
         for line in raw_content.splitlines():
             stripped = line.strip()
-            if stripped.startswith(f"{key}") and "=" in stripped:
+            if (stripped.startswith(f"{key} ") or stripped.startswith(f"{key}=")) and "=" in stripped:
                 _, _, val = stripped.partition("=")
                 return val.strip().strip('"').strip("'")
         return ""
@@ -747,11 +775,12 @@ def _three_way_merge_blueprint(
     updated: List[str] = []
     skipped: List[str] = []
     kept: List[str] = []
-    merged_parts: List[str] = []
+    # Each element: (raw_text, marker_key or None)
+    merged_parts: List[tuple] = []
 
     for seg in user_segments:
         if seg.kind == "text":
-            merged_parts.append(seg.raw)
+            merged_parts.append((seg.raw, None))
             continue
 
         key = seg.marker_key
@@ -760,38 +789,57 @@ def _three_way_merge_blueprint(
 
         if old_raw is None:
             # Marker not in old reference — user-added or unknown, keep as-is
-            merged_parts.append(seg.raw)
+            merged_parts.append((seg.raw, key))
             kept.append(key)
         elif new_raw is None:
             # Marker removed in new reference — keep user's version
-            merged_parts.append(seg.raw)
+            merged_parts.append((seg.raw, key))
             kept.append(key)
         elif seg.raw == old_raw:
             # User hasn't changed it — safe to update
             if new_raw != old_raw:
-                merged_parts.append(new_raw)
+                merged_parts.append((new_raw, key))
                 updated.append(key)
             else:
-                merged_parts.append(seg.raw)
+                merged_parts.append((seg.raw, key))
                 kept.append(key)
         else:
             # User customized this marker — skip update
-            merged_parts.append(seg.raw)
+            merged_parts.append((seg.raw, key))
             skipped.append(key)
 
-    # Append markers that are truly new (in new_ref but NOT in old_ref).
+    # Insert markers that are truly new (in new_ref but NOT in old_ref)
+    # at their correct position based on new_segments ordering.
     # Markers that existed in old_ref but were removed by the user stay deleted.
     inserted: List[str] = []
     seen_keys = set(updated) | set(skipped) | set(kept)
-    for seg in new_segments:
-        if (seg.kind == "marker"
-                and seg.marker_key not in seen_keys
-                and seg.marker_key not in old_map):
-            merged_parts.append(seg.raw)
-            inserted.append(seg.marker_key)
-            seen_keys.add(seg.marker_key)
+    for ni, seg in enumerate(new_segments):
+        if seg.kind != "marker":
+            continue
+        if seg.marker_key in seen_keys or seg.marker_key in old_map:
+            continue
 
-    merged_text = "".join(merged_parts)
+        # Find nearest preceding known marker in new_segments as anchor
+        anchor_key = None
+        for pi in range(ni - 1, -1, -1):
+            prev = new_segments[pi]
+            if prev.kind == "marker" and prev.marker_key in seen_keys:
+                anchor_key = prev.marker_key
+                break
+
+        # Find anchor position in merged_parts and insert after it
+        insert_idx = 0
+        if anchor_key is not None:
+            for mi in range(len(merged_parts) - 1, -1, -1):
+                if merged_parts[mi][1] == anchor_key:
+                    insert_idx = mi + 1
+                    break
+
+        merged_parts.insert(insert_idx, (seg.raw, seg.marker_key))
+        inserted.append(seg.marker_key)
+        seen_keys.add(seg.marker_key)
+
+    merged_text = "".join(part[0] for part in merged_parts)
     report = {
         "updated": updated, "skipped": skipped,
         "kept": kept, "inserted": inserted,
@@ -910,7 +958,7 @@ def update_kit(
     else:
         # Check version drift and auto-migrate
         mig_result = migrate_kit(
-            kit_slug, ref_dir, config_kit_dir, gen_kits_dir,
+            kit_slug, ref_dir, config_kit_dir,
         )
         result["version"] = mig_result
 
@@ -937,53 +985,14 @@ def update_kit(
         if gen_errors:
             result["gen_errors"] = gen_errors
 
-        # Write per-kit SKILL.md
-        skill_content = summary.get("skill_content", "")
-        if skill_content:
-            art_kinds = [k.upper() for k in summary.get("artifact_kinds", []) if k]
-            wf_names = [w["name"] for w in summary.get("workflows", []) if w.get("name")]
-            desc_parts: List[str] = []
-            if art_kinds:
-                desc_parts.append(f"Artifacts: {', '.join(art_kinds)}")
-            if wf_names:
-                desc_parts.append(f"Workflows: {', '.join(wf_names)}")
-            kit_description = "; ".join(desc_parts) if desc_parts else f"Kit {kit_slug}"
-
-            gen_kit_skill_path = gen_kits_dir / kit_slug / "SKILL.md"
-            gen_kit_skill_path.parent.mkdir(parents=True, exist_ok=True)
-            gen_kit_skill_path.write_text(
-                f"---\nname: cypilot-{kit_slug}\n"
-                f"description: \"{kit_description}\"\n---\n\n"
-                f"# Cypilot Skill — Kit `{kit_slug}`\n\n"
-                f"Generated from kit `{kit_slug}` blueprints.\n\n"
-                + skill_content + "\n",
-                encoding="utf-8",
-            )
-            result["skill_nav"] = (
-                f"ALWAYS invoke `{{cypilot_path}}/.gen/kits/{kit_slug}/SKILL.md` FIRST"
-            )
+        # Write per-kit SKILL.md + workflow files
+        gen_out = _write_kit_gen_outputs(kit_slug, summary, gen_kits_dir)
+        if gen_out["skill_nav"]:
+            result["skill_nav"] = gen_out["skill_nav"]
 
         sysprompt_content = summary.get("sysprompt_content", "")
         if sysprompt_content:
             result["agents_content"] = sysprompt_content
-
-        # Write per-kit workflow files
-        for wf in summary.get("workflows", []):
-            wf_name = wf["name"]
-            wf_path = gen_kits_dir / kit_slug / "workflows" / f"{wf_name}.md"
-            wf_path.parent.mkdir(parents=True, exist_ok=True)
-            fm_lines = ["---", "cypilot: true", "type: workflow", f"name: cypilot-{wf_name}"]
-            if wf.get("description"):
-                fm_lines.append(f"description: {wf['description']}")
-            if wf.get("version"):
-                fm_lines.append(f"version: {wf['version']}")
-            if wf.get("purpose"):
-                fm_lines.append(f"purpose: {wf['purpose']}")
-            fm_lines.append("---")
-            wf_path.write_text(
-                "\n".join(fm_lines) + "\n\n" + wf["content"] + "\n",
-                encoding="utf-8",
-            )
     else:
         result["gen"] = {"files_written": 0, "artifact_kinds": []}
 
@@ -994,7 +1003,6 @@ def migrate_kit(
     kit_slug: str,
     ref_dir: Path,
     config_kit_dir: Path,
-    gen_kits_dir: Path,
     *,
     dry_run: bool = False,
 ) -> Dict[str, Any]:
@@ -1006,7 +1014,7 @@ def migrate_kit(
     - Customized markers → skipped (preserved)
     - Deleted markers → NOT re-added
 
-    Also updates config conf.toml and regenerates .gen/.
+    Also updates config conf.toml.
 
     Returns dict with migration details.
     """
@@ -1071,8 +1079,10 @@ def migrate_kit(
                 bp_report["markers_updated"] = report["updated"]
             if report["skipped"]:
                 bp_report["markers_skipped"] = report["skipped"]
+            if report.get("inserted"):
+                bp_report["markers_inserted"] = report["inserted"]
 
-            if report["updated"]:
+            if report["updated"] or report.get("inserted"):
                 bp_report["action"] = "merged"
                 if not dry_run:
                     user_bp_dir.mkdir(parents=True, exist_ok=True)
@@ -1128,19 +1138,10 @@ def cmd_kit_migrate(argv: List[str]) -> int:
     p.add_argument("--dry-run", action="store_true", help="Show what would be done")
     args = p.parse_args(argv)
 
-    from ..utils.files import find_project_root, _read_cypilot_var
-
-    project_root = find_project_root(Path.cwd())
-    if project_root is None:
-        print(json.dumps({"status": "ERROR", "message": "No project root found"}, ensure_ascii=False))
+    resolved = _resolve_cypilot_dir()
+    if resolved is None:
         return 1
-
-    cypilot_rel = _read_cypilot_var(project_root)
-    if not cypilot_rel:
-        print(json.dumps({"status": "ERROR", "message": "No cypilot directory"}, ensure_ascii=False))
-        return 1
-
-    cypilot_dir = (project_root / cypilot_rel).resolve()
+    _, cypilot_dir = resolved
     config_dir = cypilot_dir / "config"
     gen_dir = cypilot_dir / ".gen"
     kits_ref_dir = cypilot_dir / "kits"
@@ -1172,7 +1173,7 @@ def cmd_kit_migrate(argv: List[str]) -> int:
         kit_slug = kit_dir.name
         config_kit_dir = config_dir / "kits" / kit_slug
         result = migrate_kit(
-            kit_slug, kit_dir, config_kit_dir, gen_kits_dir,
+            kit_slug, kit_dir, config_kit_dir,
             dry_run=args.dry_run,
         )
         # Regenerate .gen/ after successful migration
@@ -1185,9 +1186,11 @@ def cmd_kit_migrate(argv: List[str]) -> int:
                     summary, _errors = process_kit(
                         kit_slug, bp_dir, gen_kits_dir, dry_run=False,
                     )
+                    gen_out = _write_kit_gen_outputs(kit_slug, summary, gen_kits_dir)
                     result["regenerated"] = {
                         "files_written": summary.get("files_written", 0),
                         "artifact_kinds": summary.get("artifact_kinds", []),
+                        "workflows_written": gen_out["workflows_written"],
                     }
                 except Exception as err:
                     result["status"] = "FAIL"
