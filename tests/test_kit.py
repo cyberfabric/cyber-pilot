@@ -872,15 +872,20 @@ class TestMigrateKit(unittest.TestCase):
             user_text = (config_kit / "blueprints" / "FEAT.md").read_text()
             self.assertIn("Feature v1", user_text)
 
-    def test_fallback_without_prev(self):
-        """Without .prev/, falls back to two-way (conservative: user=old_ref)."""
+    def test_fallback_without_prev_preserves_user(self):
+        """Without .prev/, user customizations must NOT be overwritten."""
         from cypilot.commands.kit import migrate_kit
         with TemporaryDirectory() as td:
             _, _, ref_dir, config_kit, gen_kits = self._setup_kit(
                 Path(td), with_prev=False,
+                user_heading="My Custom Heading",
             )
             result = migrate_kit("sdlc", ref_dir, config_kit, gen_kits)
             self.assertEqual(result["status"], "migrated")
+            # User customization MUST survive
+            user_text = (config_kit / "blueprints" / "FEAT.md").read_text()
+            self.assertIn("My Custom Heading", user_text)
+            self.assertNotIn("Feature v2", user_text)
 
     def test_kit_version_drift(self):
         from cypilot.commands.kit import migrate_kit

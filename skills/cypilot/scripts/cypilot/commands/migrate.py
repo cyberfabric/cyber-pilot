@@ -1316,7 +1316,8 @@ def run_migrate(
         #  this catches kit-specific configs like pr-review.json)
         adapter_dir_path = project_root / adapter_path
         if adapter_dir_path.is_dir():
-            _migrate_adapter_json_configs(adapter_dir_path, config_dir)
+            primary_slug = next(iter(kit_slug_map.values()), _PR_REVIEW_DEFAULT_KIT_SLUG)
+            _migrate_adapter_json_configs(adapter_dir_path, config_dir, kit_slug=primary_slug)
 
         # Step 8b: Clean up adapter directory (already backed up)
         # @cpt-begin:cpt-cypilot-flow-v2-v3-migration-migrate-project:p1:inst-cleanup-adapter
@@ -1457,6 +1458,9 @@ def _regenerate_gen_from_config(config_dir: Path, gen_dir: Path) -> None:
     Mirrors cpt-update step 4: for each kit in config/kits/ that has
     blueprints/, run process_kit to generate artifacts, workflows, SKILL.md.
     Also copies scripts/ to .gen/kits/{slug}/scripts/.
+
+    Raises:
+        RuntimeError: If process_kit reports any errors for any kit.
     """
     from ..utils.blueprint import process_kit
 
@@ -1466,6 +1470,8 @@ def _regenerate_gen_from_config(config_dir: Path, gen_dir: Path) -> None:
     config_kits_dir = config_dir / "kits"
     if not config_kits_dir.is_dir():
         return
+
+    all_errors: List[str] = []
 
     for kit_dir in sorted(config_kits_dir.iterdir()):
         bp_dir = kit_dir / "blueprints"
@@ -1483,9 +1489,11 @@ def _regenerate_gen_from_config(config_dir: Path, gen_dir: Path) -> None:
             shutil.copytree(scripts_src, gen_kit_scripts)
 
         # Process blueprints → artifacts, workflows, SKILL.md
-        summary, _errors = process_kit(
+        summary, errors = process_kit(
             kit_slug, bp_dir, gen_kits_dir, dry_run=False,
         )
+        if errors:
+            all_errors.extend(f"[{kit_slug}] {e}" for e in errors)
 
         # Write SKILL.md
         skill_content = summary.get("skill_content", "")
@@ -1525,6 +1533,12 @@ def _regenerate_gen_from_config(config_dir: Path, gen_dir: Path) -> None:
             fm_lines.append("---")
             wf_path.write_text("\n".join(fm_lines) + "\n\n" + wf["content"] + "\n", encoding="utf-8")
 
+    if all_errors:
+        raise RuntimeError(
+            f"Generation from config failed with {len(all_errors)} error(s):\n"
+            + "\n".join(all_errors)
+        )
+
 
 def _write_gen_agents(gen_dir: Path, project_name: str) -> None:
     """Write .gen/AGENTS.md with generated navigation rules."""
@@ -1560,37 +1574,51 @@ _PR_REVIEW_KEY_MAP = {
     "promptFile": "prompt_file",
 }
 
-# Path patterns to update in pr-review prompt entries
-_PR_REVIEW_PATH_REWRITES = [
-    (".core/prompts/pr/", ".gen/kits/sdlc/scripts/prompts/pr/"),
-    ("prompts/pr/", ".gen/kits/sdlc/scripts/prompts/pr/"),
-]
+# Default kit slug for pr-review migration (v2 only had sdlc)
+_PR_REVIEW_DEFAULT_KIT_SLUG = "sdlc"
 
 
-def _normalize_pr_review_data(data: Dict[str, Any]) -> Dict[str, Any]:
+def _pr_review_path_rewrites(kit_slug: str = _PR_REVIEW_DEFAULT_KIT_SLUG) -> List[Tuple[str, str]]:
+    """Build path rewrite tuples for the given kit slug."""
+    target = f".gen/kits/{kit_slug}/scripts/prompts/pr/"
+    return [
+        (".core/prompts/pr/", target),
+        ("prompts/pr/", target),
+    ]
+
+
+def _normalize_pr_review_data(
+    data: Dict[str, Any],
+    kit_slug: str = _PR_REVIEW_DEFAULT_KIT_SLUG,
+) -> Dict[str, Any]:
     """Normalize pr-review.json keys and paths for v3 TOML format.
 
     - Renames camelCase keys to snake_case (dataDir → data_dir, promptFile → prompt_file)
-    - Rewrites prompt file paths from v2 locations to .gen/kits/sdlc/scripts/prompts/pr/
+    - Rewrites prompt file paths from v2 locations to .gen/kits/{kit_slug}/scripts/prompts/pr/
     """
     out: Dict[str, Any] = {}
     for k, v in data.items():
         new_key = _PR_REVIEW_KEY_MAP.get(k, k)
         if new_key == "prompts" and isinstance(v, list):
-            out[new_key] = [_normalize_pr_review_entry(entry) for entry in v]
+            out[new_key] = [_normalize_pr_review_entry(entry, kit_slug=kit_slug) for entry in v]
         else:
             out[new_key] = v
     return out
 
 
-def _normalize_pr_review_entry(entry: Any) -> Any:
+def _normalize_pr_review_entry(
+    entry: Any,
+    *,
+    kit_slug: str = _PR_REVIEW_DEFAULT_KIT_SLUG,
+) -> Any:
     if not isinstance(entry, dict):
         return entry
+    rewrites = _pr_review_path_rewrites(kit_slug)
     out: Dict[str, Any] = {}
     for k, v in entry.items():
         new_key = _PR_REVIEW_KEY_MAP.get(k, k)
-        if isinstance(v, str):
-            for old_pat, new_pat in _PR_REVIEW_PATH_REWRITES:
+        if isinstance(v, str) and new_key == "prompt_file":
+            for old_pat, new_pat in rewrites:
                 if old_pat in v:
                     v = v.replace(old_pat, new_pat)
                     break
@@ -1605,6 +1633,7 @@ _ALREADY_MIGRATED = {"artifacts.json", "constraints.json"}
 def _migrate_adapter_json_configs(
     adapter_dir: Path,
     config_dir: Path,
+    kit_slug: str = _PR_REVIEW_DEFAULT_KIT_SLUG,
 ) -> List[str]:
     """Migrate remaining .json configs from adapter → config/ as .toml.
 
@@ -1623,7 +1652,7 @@ def _migrate_adapter_json_configs(
         try:
             data = json.loads(json_file.read_text(encoding="utf-8"))
             if json_file.name == "pr-review.json":
-                data = _normalize_pr_review_data(data)
+                data = _normalize_pr_review_data(data, kit_slug=kit_slug)
             toml_utils.dump(_strip_none(data), toml_dest)
             converted.append(json_file.name)
         except (json.JSONDecodeError, OSError, TypeError):
