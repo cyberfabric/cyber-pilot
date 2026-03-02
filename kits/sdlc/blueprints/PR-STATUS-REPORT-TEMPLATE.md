@@ -11,14 +11,14 @@ codebase = false
 
 ## Template
 
-`@cpt:heading`
+`@cpt:heading:pr-status-template`
 ```toml
 level = 1
 template = "PR Status Report Template"
 ```
-`@/cpt:heading`
+`@/cpt:heading:pr-status-template`
 
-`@cpt:prompt`
+`@cpt:prompt:pr-status-template`
 `````markdown
 This file documents the expected format for generated status reports.
 `pr.py status` generates reports in `.prs/{ID}/status.md` following this structure.
@@ -113,4 +113,4 @@ None.
 - PR comments are split into unreplied vs replied using a quote-match heuristic (`_detect_pr_replies`). Only unreplied comments appear as action items.
 - Conversations are rendered as full chat threads with code context (`diff_hunk`) where available.
 `````
-`@/cpt:prompt`
+`@/cpt:prompt:pr-status-template`

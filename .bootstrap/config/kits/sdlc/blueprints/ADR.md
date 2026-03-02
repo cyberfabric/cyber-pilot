@@ -121,7 +121,7 @@ Dependencies that must be loaded before working with an ADR artifact.
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:prerequisites-load_dependencies`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "prerequisites"
@@ -137,7 +137,7 @@ section = "load_dependencies"
 - [ ] Load `{cypilot_path}/.gen/kits/sdlc/constraints.toml` for kit-level constraints
 - [ ] Load `{cypilot_path}/.core/architecture/specs/kit/constraints.md` for constraints specification
 ```
-`@/cpt:rule`
+`@/cpt:rule:prerequisites-load_dependencies`
 
 ### Requirements
 
@@ -147,7 +147,7 @@ Structural and semantic rules that every ADR must satisfy.
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-structural`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -162,7 +162,7 @@ section = "structural"
 - [ ] No placeholder content (TODO, TBD, FIXME)
 - [ ] No duplicate IDs
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-structural`
 
 #### Versioning Rules
 
@@ -170,7 +170,7 @@ ADR immutability and supersession policy.
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-versioning`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -184,7 +184,7 @@ section = "versioning"
 - [ ] To change accepted decision: create NEW ADR with SUPERSEDES reference
 - [ ] Superseding ADR: `cpt-{hierarchy-prefix}-adr-{new-slug}` with status SUPERSEDED on original
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-versioning`
 
 #### Semantic Quality
 
@@ -192,7 +192,7 @@ Content quality standards for ADR sections.
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-semantic`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -208,7 +208,7 @@ section = "semantic"
 - [ ] Consequences documented (pros and cons)
 - [ ] Valid status (PROPOSED, ACCEPTED, REJECTED, DEPRECATED, SUPERSEDED)
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-semantic`
 
 #### Decision Scope
 
@@ -216,7 +216,7 @@ Guidelines for what constitutes an ADR-worthy decision.
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-scope`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -245,7 +245,7 @@ section = "scope"
 - Specific library versions (unless security-critical)
 - UI component styling choices
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-scope`
 
 #### Status & Traceability
 
@@ -253,7 +253,7 @@ Valid statuses and transition rules for ADR lifecycle.
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-status_traceability`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -289,7 +289,7 @@ Use when:
 
 Keep REJECTED ADRs for historical record — do not delete.
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-status_traceability`
 
 #### Constraints Integration
 
@@ -297,7 +297,7 @@ How ADR relates to kit-level constraints validation.
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-constraints`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -318,13 +318,13 @@ section = "constraints"
 **Validation Checks**:
 - `cypilot validate` enforces `identifiers[<kind>].references` rules for ADR coverage in DESIGN
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-constraints`
 
 #### Deliberate Omissions (MUST NOT HAVE)
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-deliberate_omissions`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -346,13 +346,13 @@ ADRs must NOT contain the following — report as violation if found:
 - **ARCH-ADR-NO-003**: No Trivial Decisions (MEDIUM) — ADRs are for significant decisions only
 - **ARCH-ADR-NO-004**: No Incomplete Decisions (HIGH) — ADR must have a clear decision, not "TBD"
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-deliberate_omissions`
 
 #### ADR Writing Quality
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-writing_quality`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -386,7 +386,7 @@ section = "writing_quality"
 - [ ] Assumptions verifiable
 - [ ] Consequences measurable
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-writing_quality`
 
 ### Task Phases
 
@@ -396,7 +396,7 @@ Step-by-step workflow for creating an ADR.
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:tasks-setup`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "tasks"
@@ -424,7 +424,7 @@ section = "setup"
 2. Extract highest number: parse `NNNN` from filenames
 3. Assign next sequential: `NNNN + 1`
 ```
-`@/cpt:rule`
+`@/cpt:rule:tasks-setup`
 
 #### Content Creation
 
@@ -432,7 +432,7 @@ How to use the example as a reference when writing each ADR section.
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:tasks-content_creation`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "tasks"
@@ -449,7 +449,7 @@ section = "content_creation"
 | Decision | How example explains choice | ADR-003: Decision Rationale |
 | Consequences | How example documents impact | ADR-004: Consequences |
 ```
-`@/cpt:rule`
+`@/cpt:rule:tasks-content_creation`
 
 #### IDs & Structure
 
@@ -457,7 +457,7 @@ ID generation and structural verification.
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:tasks-ids_and_structure`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "tasks"
@@ -470,7 +470,7 @@ section = "ids_and_structure"
 - [ ] Link to DESIGN if applicable
 - [ ] Verify uniqueness with `cypilot list-ids`
 ```
-`@/cpt:rule`
+`@/cpt:rule:tasks-ids_and_structure`
 
 #### Quality Check
 
@@ -478,7 +478,7 @@ Final self-review before completion.
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:tasks-quality_check`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "tasks"
@@ -494,7 +494,7 @@ section = "quality_check"
 - After ACCEPTED: do not modify decision/rationale
 - To change: create new ADR with SUPERSEDES reference
 ```
-`@/cpt:rule`
+`@/cpt:rule:tasks-quality_check`
 
 ### Error Handling
 
@@ -504,7 +504,7 @@ Recovery procedures for common ADR authoring issues.
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:error_handling-number_conflict`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "error_handling"
@@ -520,13 +520,13 @@ section = "number_conflict"
 → If duplicate content: consider updating existing ADR instead
 ```
 ````
-`@/cpt:rule`
+`@/cpt:rule:error_handling-number_conflict`
 
 #### Missing Directory
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:error_handling-missing_directory`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "error_handling"
@@ -541,7 +541,7 @@ section = "missing_directory"
 → Start numbering at 0001
 ```
 ````
-`@/cpt:rule`
+`@/cpt:rule:error_handling-missing_directory`
 
 #### Escalation
 
@@ -549,7 +549,7 @@ When to involve the user.
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:error_handling-escalation`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "error_handling"
@@ -561,7 +561,7 @@ section = "escalation"
 - [ ] Ask user when options require domain expertise to evaluate
 - [ ] Ask user when compliance or security implications are uncertain
 ```
-`@/cpt:rule`
+`@/cpt:rule:error_handling-escalation`
 
 ### Validation
 
@@ -571,7 +571,7 @@ Post-creation validation steps.
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:validation-structural`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
@@ -584,13 +584,13 @@ Run `cypilot validate` for:
 - [ ] ID format validation
 - [ ] No placeholders
 ```
-`@/cpt:rule`
+`@/cpt:rule:validation-structural`
 
 #### Semantic Validation
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:validation-semantic`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
@@ -604,13 +604,13 @@ Apply `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`:
 3. Verify decision has clear rationale
 4. Verify consequences documented
 ```
-`@/cpt:rule`
+`@/cpt:rule:validation-semantic`
 
 #### Validation Report
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:validation-validation_report`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
@@ -629,13 +629,13 @@ Issues:
 - [SEVERITY] CHECKLIST-ID: Description
 ```
 ````
-`@/cpt:rule`
+`@/cpt:rule:validation-validation_report`
 
 #### Applicability Context
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:validation-applicability`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
@@ -670,13 +670,13 @@ For each major checklist category (ARCH, PERF, SEC, REL, DATA, INT, OPS, MAINT, 
 - [ ] Category is explicitly marked "Not applicable" with reasoning in the document, OR
 - [ ] Category absence is reported as a violation (with applicability justification)
 ```
-`@/cpt:rule`
+`@/cpt:rule:validation-applicability`
 
 #### Review Scope Selection
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:validation-review_scope`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
@@ -724,13 +724,13 @@ Select review depth based on ADR complexity and impact:
 | COMPL | Regulated industries | Internal tools |
 | UX | End-user impact | Backend infrastructure |
 ```
-`@/cpt:rule`
+`@/cpt:rule:validation-review_scope`
 
 #### Report Format
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:validation-report_format`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
@@ -768,13 +768,13 @@ section = "report_format"
 - **Why it matters**: Impact (risk, cost, user harm, compliance)
 - **Proposal**: Concrete fix with clear acceptance criteria
 ````
-`@/cpt:rule`
+`@/cpt:rule:validation-report_format`
 
 #### Reporting Commitment
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:validation-reporting`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
@@ -791,13 +791,13 @@ section = "reporting"
 - [ ] I verified explicit handling for all major checklist categories
 - [ ] I am ready to iterate on the proposals and re-review after changes
 ```
-`@/cpt:rule`
+`@/cpt:rule:validation-reporting`
 
 #### PR Review Focus (ADR)
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:validation-pr_review`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
@@ -813,7 +813,7 @@ When reviewing PRs that add or change Architecture Decision Records, additionall
 - [ ] Alternatives are genuinely different approaches (not straw men)
 - [ ] Decision rationale is concrete and traceable to project constraints
 ```
-`@/cpt:rule`
+`@/cpt:rule:validation-pr_review`
 
 ### Next Steps
 
@@ -821,7 +821,7 @@ Recommended actions after completing an ADR.
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:next_steps-options`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "next_steps"
@@ -837,7 +837,7 @@ section = "options"
 | ADR supersedes another | Update original ADR status to SUPERSEDED |
 | Want checklist review only | `/cypilot-analyze semantic` — semantic validation (skip deterministic) |
 ```
-`@/cpt:rule`
+`@/cpt:rule:next_steps-options`
 
 ---
 
@@ -1075,7 +1075,7 @@ For architectural decisions with broad impact, check ALL applicable domains.
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-adr-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-ADR-001"
@@ -1098,11 +1098,11 @@ kind = "must_have"
 - [ ] Decision represents a real choice between alternatives
 - [ ] Decision is worth documenting for future reference
 ```
-`@/cpt:check`
+`@/cpt:check:arch-adr-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-adr-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-ADR-002"
@@ -1127,11 +1127,11 @@ kind = "must_have"
 - [ ] Stakeholders identified
 - [ ] ≥2 sentences describing the problem
 ```
-`@/cpt:check`
+`@/cpt:check:arch-adr-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-adr-003`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-ADR-003"
@@ -1155,11 +1155,11 @@ kind = "must_have"
 - [ ] No strawman options (obviously inferior just for comparison)
 - [ ] All options could realistically be implemented
 ```
-`@/cpt:check`
+`@/cpt:check:arch-adr-003`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-adr-004`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-ADR-004"
@@ -1183,11 +1183,11 @@ kind = "must_have"
 - [ ] Risks of chosen option acknowledged
 - [ ] Mitigation strategies for risks documented
 ```
-`@/cpt:check`
+`@/cpt:check:arch-adr-004`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-adr-005`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-ADR-005"
@@ -1209,11 +1209,11 @@ kind = "must_have"
 - [ ] Each link has a short explanation of relevance
 - [ ] Scope of impact is explicitly stated (what changes, what does not)
 ```
-`@/cpt:check`
+`@/cpt:check:arch-adr-005`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-adr-006`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-ADR-006"
@@ -1236,11 +1236,11 @@ kind = "must_have"
 - [ ] Scope / affected systems are stated
 - [ ] If this record supersedes another decision record, the superseded record is linked
 ```
-`@/cpt:check`
+`@/cpt:check:arch-adr-006`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-adr-007`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-ADR-007"
@@ -1260,11 +1260,11 @@ kind = "must_have"
 - [ ] Drivers are used to evaluate options
 - [ ] No vague drivers ("good", "better", "fast")
 ```
-`@/cpt:check`
+`@/cpt:check:arch-adr-007`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-adr-008`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-ADR-008"
@@ -1286,11 +1286,11 @@ kind = "must_have"
 - [ ] Deprecated specs identified
 - [ ] Timeline for transition documented
 ```
-`@/cpt:check`
+`@/cpt:check:arch-adr-008`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-adr-009`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-ADR-009"
@@ -1307,11 +1307,11 @@ kind = "must_have"
 - [ ] A review date or trigger is defined (when the decision should be revisited)
 - [ ] Conditions that would invalidate this decision are documented
 ```
-`@/cpt:check`
+`@/cpt:check:arch-adr-009`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-adr-010`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-ADR-010"
@@ -1329,11 +1329,11 @@ kind = "must_have"
 - [ ] Boundaries of the decision are explicitly stated
 - [ ] Assumptions about the scope are documented
 ```
-`@/cpt:check`
+`@/cpt:check:arch-adr-010`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:perf-adr-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "PERF-ADR-001"
@@ -1357,11 +1357,11 @@ kind = "must_have"
 - [ ] Scalability impact analyzed
 - [ ] Benchmarks or estimates provided where applicable
 ```
-`@/cpt:check`
+`@/cpt:check:perf-adr-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:perf-adr-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "PERF-ADR-002"
@@ -1380,11 +1380,11 @@ kind = "must_have"
 - [ ] Load testing approach outlined
 - [ ] Performance monitoring approach outlined
 ```
-`@/cpt:check`
+`@/cpt:check:perf-adr-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:sec-adr-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEC-ADR-001"
@@ -1408,11 +1408,11 @@ kind = "must_have"
 - [ ] Compliance impact analyzed
 - [ ] Data protection impact analyzed
 ```
-`@/cpt:check`
+`@/cpt:check:sec-adr-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:sec-adr-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEC-ADR-002"
@@ -1434,11 +1434,11 @@ kind = "must_have"
 - [ ] Penetration testing requirements documented
 - [ ] Security monitoring requirements documented
 ```
-`@/cpt:check`
+`@/cpt:check:sec-adr-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:sec-adr-003`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEC-ADR-003"
@@ -1460,11 +1460,11 @@ kind = "must_have"
 - [ ] Token/credential handling changes documented
 - [ ] Backward compatibility for auth documented
 ```
-`@/cpt:check`
+`@/cpt:check:sec-adr-003`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:rel-adr-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "REL-ADR-001"
@@ -1487,11 +1487,11 @@ kind = "must_have"
 - [ ] Resilience pattern changes documented
 - [ ] SLA impact documented
 ```
-`@/cpt:check`
+`@/cpt:check:rel-adr-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:rel-adr-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "REL-ADR-002"
@@ -1511,11 +1511,11 @@ kind = "must_have"
 - [ ] Alerting requirements documented
 - [ ] Runbook updates required documented
 ```
-`@/cpt:check`
+`@/cpt:check:rel-adr-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:data-adr-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "DATA-ADR-001"
@@ -1538,11 +1538,11 @@ kind = "must_have"
 - [ ] Data consistency impact analyzed
 - [ ] Data volume impact analyzed
 ```
-`@/cpt:check`
+`@/cpt:check:data-adr-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:data-adr-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "DATA-ADR-002"
@@ -1564,11 +1564,11 @@ kind = "must_have"
 - [ ] Privacy impact analyzed
 - [ ] Compliance impact documented
 ```
-`@/cpt:check`
+`@/cpt:check:data-adr-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:int-adr-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "INT-ADR-001"
@@ -1591,11 +1591,11 @@ kind = "must_have"
 - [ ] Migration path documented
 - [ ] Deprecation timeline documented
 ```
-`@/cpt:check`
+`@/cpt:check:int-adr-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:int-adr-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "INT-ADR-002"
@@ -1614,11 +1614,11 @@ kind = "must_have"
 - [ ] Consumer notification requirements documented
 - [ ] Testing requirements for consumers documented
 ```
-`@/cpt:check`
+`@/cpt:check:int-adr-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:ops-adr-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "OPS-ADR-001"
@@ -1639,11 +1639,11 @@ kind = "must_have"
 - [ ] Logging changes documented
 - [ ] Cost impact analyzed
 ```
-`@/cpt:check`
+`@/cpt:check:ops-adr-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:ops-adr-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "OPS-ADR-002"
@@ -1663,11 +1663,11 @@ kind = "must_have"
 - [ ] Rollback triggers documented
 - [ ] Success criteria documented
 ```
-`@/cpt:check`
+`@/cpt:check:ops-adr-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:maint-adr-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "MAINT-ADR-001"
@@ -1689,11 +1689,11 @@ kind = "must_have"
 - [ ] Documentation requirements documented
 - [ ] Long-term maintenance burden analyzed
 ```
-`@/cpt:check`
+`@/cpt:check:maint-adr-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:maint-adr-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "MAINT-ADR-002"
@@ -1712,11 +1712,11 @@ kind = "must_have"
 - [ ] Deprecation path documented
 - [ ] Migration to future solutions documented
 ```
-`@/cpt:check`
+`@/cpt:check:maint-adr-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:test-adr-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "TEST-ADR-001"
@@ -1738,11 +1738,11 @@ kind = "must_have"
 - [ ] Integration test requirements documented
 - [ ] Performance test requirements documented
 ```
-`@/cpt:check`
+`@/cpt:check:test-adr-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:test-adr-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "TEST-ADR-002"
@@ -1763,11 +1763,11 @@ kind = "must_have"
 - [ ] Success metrics defined
 - [ ] Timeframe for validation stated
 ```
-`@/cpt:check`
+`@/cpt:check:test-adr-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:compl-adr-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "COMPL-ADR-001"
@@ -1789,11 +1789,11 @@ kind = "must_have"
 - [ ] Legal review requirements documented
 - [ ] Privacy impact assessment requirements documented
 ```
-`@/cpt:check`
+`@/cpt:check:compl-adr-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:ux-adr-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "UX-ADR-001"
@@ -1813,11 +1813,11 @@ kind = "must_have"
 - [ ] Training requirements documented
 - [ ] Documentation updates required documented
 ```
-`@/cpt:check`
+`@/cpt:check:ux-adr-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:biz-adr-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "BIZ-ADR-001"
@@ -1840,11 +1840,11 @@ kind = "must_have"
 - [ ] Resource requirements documented
 - [ ] Stakeholder buy-in documented
 ```
-`@/cpt:check`
+`@/cpt:check:biz-adr-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:biz-adr-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "BIZ-ADR-002"
@@ -1863,11 +1863,11 @@ kind = "must_have"
 - [ ] Risk acceptance documented
 - [ ] Contingency plans documented
 ```
-`@/cpt:check`
+`@/cpt:check:biz-adr-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-adr-no-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-ADR-NO-001"
@@ -1890,11 +1890,11 @@ kind = "must_not_have"
 
 **Where it belongs**: System/Architecture design documentation
 ```
-`@/cpt:check`
+`@/cpt:check:arch-adr-no-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-adr-no-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-ADR-NO-002"
@@ -1917,11 +1917,11 @@ kind = "must_not_have"
 
 **Where it belongs**: Spec specification / implementation design documentation
 ```
-`@/cpt:check`
+`@/cpt:check:arch-adr-no-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:biz-adr-no-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "BIZ-ADR-NO-001"
@@ -1944,11 +1944,11 @@ kind = "must_not_have"
 
 **Where it belongs**: Requirements / Product specification document
 ```
-`@/cpt:check`
+`@/cpt:check:biz-adr-no-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:biz-adr-no-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "BIZ-ADR-NO-002"
@@ -1971,11 +1971,11 @@ kind = "must_not_have"
 
 **Where it belongs**: Project management tools
 ```
-`@/cpt:check`
+`@/cpt:check:biz-adr-no-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:data-adr-no-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "DATA-ADR-NO-001"
@@ -1997,11 +1997,11 @@ kind = "must_not_have"
 
 **Where it belongs**: Source code repository or architecture documentation
 ```
-`@/cpt:check`
+`@/cpt:check:data-adr-no-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:maint-adr-no-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "MAINT-ADR-NO-001"
@@ -2024,11 +2024,11 @@ kind = "must_not_have"
 
 **Where it belongs**: Source code repository
 ```
-`@/cpt:check`
+`@/cpt:check:maint-adr-no-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:sec-adr-no-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEC-ADR-NO-001"
@@ -2051,11 +2051,11 @@ kind = "must_not_have"
 
 **Where it belongs**: Secret management system
 ```
-`@/cpt:check`
+`@/cpt:check:sec-adr-no-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:test-adr-no-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "TEST-ADR-NO-001"
@@ -2077,11 +2077,11 @@ kind = "must_not_have"
 
 **Where it belongs**: Test documentation or test code
 ```
-`@/cpt:check`
+`@/cpt:check:test-adr-no-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:ops-adr-no-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "OPS-ADR-NO-001"
@@ -2103,11 +2103,11 @@ kind = "must_not_have"
 
 **Where it belongs**: Operations documentation or runbooks
 ```
-`@/cpt:check`
+`@/cpt:check:ops-adr-no-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-adr-no-003`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-ADR-NO-003"
@@ -2130,11 +2130,11 @@ kind = "must_not_have"
 
 **Where it belongs**: Team conventions, coding standards, or not documented at all
 ```
-`@/cpt:check`
+`@/cpt:check:arch-adr-no-003`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-adr-no-004`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-ADR-NO-004"
@@ -2157,11 +2157,11 @@ kind = "must_not_have"
 
 **Where it belongs**: Complete the ADR before publishing, or use "Proposed" status
 ```
-`@/cpt:check`
+`@/cpt:check:arch-adr-no-004`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:quality-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "QUALITY-001"
@@ -2183,11 +2183,11 @@ kind = "adr_specific_quality_checks"
 - [ ] Honest about chosen option's weaknesses
 - [ ] Fair comparison of alternatives
 ```
-`@/cpt:check`
+`@/cpt:check:quality-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:quality-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "QUALITY-002"
@@ -2209,11 +2209,11 @@ kind = "adr_specific_quality_checks"
 - [ ] No ambiguous language
 - [ ] Clear, concrete statements
 ```
-`@/cpt:check`
+`@/cpt:check:quality-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:quality-003`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "QUALITY-003"
@@ -2235,11 +2235,11 @@ kind = "adr_specific_quality_checks"
 - [ ] Exceptions documented
 - [ ] Expiration/review date set (if applicable)
 ```
-`@/cpt:check`
+`@/cpt:check:quality-003`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:quality-004`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "QUALITY-004"
@@ -2261,7 +2261,7 @@ kind = "adr_specific_quality_checks"
 - [ ] Consequences measurable
 - [ ] Success criteria verifiable
 ```
-`@/cpt:check`
+`@/cpt:check:quality-004`
 
 
 ---
@@ -2280,7 +2280,7 @@ appears in the generated template. `@cpt:example` provides example content.
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:adr-h1-title`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "adr-h1-title"
@@ -2301,11 +2301,11 @@ description = "ADR document title (H1)."
 # Example heading texts showing correct usage
 examples = ["# ADR-0001: Use PostgreSQL for Task Storage"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:adr-h1-title`
 
 > **`@cpt:id`** — Identifier constraint. Defines an ID kind (template, references, task/priority rules). Output: `constraints.toml`.
 
-`@cpt:id`
+`@cpt:id:adr`
 ```toml
 kind = "adr"
 name = "Architecture Decision Record"
@@ -2326,29 +2326,29 @@ headings = ["design-arch-overview-drivers"]  # target heading constraint in DESI
 [references.PRD]  # how this ID is referenced in PRD artifacts
 coverage = false           # true = must reference | false = referencing prohibited | omit = optional
 ```
-`@/cpt:id`
+`@/cpt:id:adr`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:adr-h1-title`
 ```markdown
 **ID**: `cpt-{system}-adr-{slug}`
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:adr-h1-title`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:adr-h1-title`
 ```markdown
 **ID**: `cpt-ex-task-flow-adr-postgres-storage`
 ```
-`@/cpt:example`
+`@/cpt:example:adr-h1-title`
 
 ### Context and Problem Statement
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:adr-context`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "adr-context"
@@ -2367,19 +2367,19 @@ description = "Problem context and motivating forces."
 # Example heading texts showing correct usage
 examples = ["## Context and Problem Statement"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:adr-context`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:adr-context`
 ```markdown
 {Describe the context and problem statement in 2-3 sentences. You may articulate the problem as a question.}
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:adr-context`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:adr-context`
 ```markdown
 TaskFlow needs persistent storage for tasks, users, and audit history. We need to choose between SQL and NoSQL databases considering query patterns, data relationships, and team expertise.
 
@@ -2390,13 +2390,13 @@ The system will handle:
 - Assignment history and audit trail
 - Real-time updates via change notifications
 ```
-`@/cpt:example`
+`@/cpt:example:adr-context`
 
 ### Decision Drivers
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:adr-decision-drivers`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "adr-decision-drivers"
@@ -2415,33 +2415,33 @@ description = "Key decision drivers and constraints."
 # Example heading texts showing correct usage
 examples = ["## Decision Drivers"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:adr-decision-drivers`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:adr-decision-drivers`
 ```markdown
 * {Decision driver 1, e.g., a force, facing concern, …}
 * {Decision driver 2, e.g., a force, facing concern, …}
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:adr-decision-drivers`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:adr-decision-drivers`
 ```markdown
 - Strong consistency required for task state transitions
 - Relational queries needed for assignments and team structures
 - Team has existing PostgreSQL expertise
 - Operational maturity and hosting options important
 ```
-`@/cpt:example`
+`@/cpt:example:adr-decision-drivers`
 
 ### Considered Options
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:adr-considered-options`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "adr-considered-options"
@@ -2460,33 +2460,33 @@ description = "Options that were considered."
 # Example heading texts showing correct usage
 examples = ["## Considered Options"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:adr-considered-options`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:adr-considered-options`
 ```markdown
 * {Title of option 1}
 * {Title of option 2}
 * {Title of option 3}
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:adr-considered-options`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:adr-considered-options`
 ```markdown
 1. **PostgreSQL** — Relational database with strong ACID guarantees, mature ecosystem, team expertise
 2. **MongoDB** — Document store with flexible schema, good for rapid iteration, less suited for relational data
 3. **SQLite** — Embedded database for simpler deployment, limited concurrent access, no built-in replication
 ```
-`@/cpt:example`
+`@/cpt:example:adr-considered-options`
 
 ### Decision Outcome
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:adr-decision-outcome`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "adr-decision-outcome"
@@ -2505,29 +2505,29 @@ description = "Selected decision and outcome."
 # Example heading texts showing correct usage
 examples = ["## Decision Outcome"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:adr-decision-outcome`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:adr-decision-outcome`
 ```markdown
 Chosen option: "{title of option 1}", because {justification, e.g., only option which meets k.o. criterion decision driver | resolves force | comes out best}.
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:adr-decision-outcome`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:adr-decision-outcome`
 ```markdown
 Chosen option: **PostgreSQL**, because tasks have relational data (users, assignments, comments) that benefit from joins, strong consistency is needed for status transitions and assignments, team has existing PostgreSQL expertise, and it supports JSON columns for flexible metadata if needed later.
 ```
-`@/cpt:example`
+`@/cpt:example:adr-decision-outcome`
 
 #### Consequences
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:adr-decision-outcome-consequences`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "adr-decision-outcome-consequences"
@@ -2546,20 +2546,20 @@ description = "Consequences of the decision."
 # Example heading texts showing correct usage
 examples = ["### Consequences"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:adr-decision-outcome-consequences`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:adr-decision-outcome-consequences`
 ```markdown
 * Good, because {positive consequence, e.g., improvement of one or more desired qualities}
 * Bad, because {negative consequence, e.g., compromising one or more desired qualities}
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:adr-decision-outcome-consequences`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:adr-decision-outcome-consequences`
 ```markdown
 - Positive: ACID transactions ensure data integrity during concurrent updates
 - Positive: Efficient queries for filtering tasks by status, assignee, due date
@@ -2567,7 +2567,7 @@ examples = ["### Consequences"]
 - Negative: Schema migrations needed for model changes
 - Follow-up: Set up connection pooling for scalability
 ```
-`@/cpt:example`
+`@/cpt:example:adr-decision-outcome-consequences`
 
 #### Confirmation
 
@@ -2575,7 +2575,7 @@ How the decision will be validated after implementation.
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:adr-decision-outcome-confirmation`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "adr-decision-outcome-confirmation"
@@ -2594,26 +2594,26 @@ description = "How/when the decision will be confirmed."
 # Example heading texts showing correct usage
 examples = ["### Confirmation"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:adr-decision-outcome-confirmation`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:adr-decision-outcome-confirmation`
 ```markdown
 {Describe how the implementation/compliance of the ADR can be confirmed. E.g., design/code review, ArchUnit test, etc.}
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:adr-decision-outcome-confirmation`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:adr-decision-outcome-confirmation`
 ```markdown
 Confirmed when:
 
 - A prototype persists tasks and assignments with required relational queries
 - Migration story is documented and validated on a schema change
 ```
-`@/cpt:example`
+`@/cpt:example:adr-decision-outcome-confirmation`
 
 ### Pros and Cons of the Options
 
@@ -2621,7 +2621,7 @@ Detailed evaluation of each considered option.
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:adr-pros-cons`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "adr-pros-cons"
@@ -2640,11 +2640,11 @@ description = "Pros and cons analysis for the options."
 # Example heading texts showing correct usage
 examples = ["## Pros and Cons of the Options"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:adr-pros-cons`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:adr-pros-cons-entry`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "adr-pros-cons-entry"
@@ -2663,11 +2663,11 @@ description = "A single option evaluation entry (pros/cons)."
 # Example heading texts showing correct usage
 examples = ["### PostgreSQL", "### MongoDB", "### SQLite"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:adr-pros-cons-entry`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:adr-pros-cons-entry`
 ```markdown
 {Description or pointer to more information}
 
@@ -2683,11 +2683,11 @@ examples = ["### PostgreSQL", "### MongoDB", "### SQLite"]
 * Good, because {argument a}
 * Bad, because {argument b}
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:adr-pros-cons-entry`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:adr-pros-cons-entry`
 ```markdown
 - Pros: Strong consistency, rich SQL queries, mature ecosystem
 - Cons: Operational overhead (DB server, backups, migrations)
@@ -2702,11 +2702,11 @@ examples = ["### PostgreSQL", "### MongoDB", "### SQLite"]
 - Pros: Simple deployment, minimal ops
 - Cons: Limited concurrent writes and scaling options
 ```
-`@/cpt:example`
+`@/cpt:example:adr-pros-cons-entry`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:adr-more-info`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "adr-more-info"
@@ -2725,28 +2725,28 @@ description = "Optional additional information and links."
 # Example heading texts showing correct usage
 examples = ["## More Information"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:adr-more-info`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:adr-more-info`
 ```markdown
 {Additional evidence, team agreement, links to related decisions and resources.}
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:adr-more-info`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:adr-more-info`
 ```markdown
 - [`cpt-ex-task-flow-fr-task-management`](../PRD.md) — Primary requirement for task storage
 - [`cpt-ex-task-flow-feature-task-crud`](../specs/task-crud/DESIGN.md) — Spec implementing task persistence
 ```
-`@/cpt:example`
+`@/cpt:example:adr-more-info`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:adr-traceability`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "adr-traceability"
@@ -2765,11 +2765,11 @@ description = "Optional traceability links back to requirements/decisions."
 # Example heading texts showing correct usage
 examples = []
 ```
-`@/cpt:heading`
+`@/cpt:heading:adr-traceability`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/ADR/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:adr-traceability`
 ```markdown
 - **PRD**: [PRD.md](../PRD.md)
 - **DESIGN**: [DESIGN.md](../DESIGN.md)
@@ -2781,6 +2781,6 @@ This decision directly addresses the following requirements or design elements:
 * `cpt-{system}-usecase-{slug}` — {Brief description of the interaction/use case impacted}
 * `cpt-{system}-design-{slug}` — {Brief description of design element affected}
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:adr-traceability`
 
 `@/cpt:example`

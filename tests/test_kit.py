@@ -1406,5 +1406,108 @@ class TestThreeWayMergeExtended(unittest.TestCase):
         self.assertIn("`@cpt:heading:title`", merged)
 
 
+# =========================================================================
+# Legacy → Named key transition (regression test for duplicate bug)
+# =========================================================================
+
+class TestLegacyToNamedTransition(unittest.TestCase):
+    """Merge must not produce duplicates when old_ref is legacy and new_ref is named."""
+
+    def test_no_duplicates_heading_upgrade(self):
+        """Headings with TOML id: legacy old_ref vs named new_ref → no duplicates."""
+        from cypilot.commands.kit import _three_way_merge_blueprint
+        legacy = (
+            '`@cpt:blueprint`\n```toml\nartifact = "X"\n```\n`@/cpt:blueprint`\n'
+            '`@cpt:heading`\n```toml\nid = "overview"\nlevel = 1\n```\nContent A\n`@/cpt:heading`\n'
+            '`@cpt:heading`\n```toml\nid = "details"\nlevel = 2\n```\nContent B\n`@/cpt:heading`\n'
+        )
+        named = (
+            '`@cpt:blueprint`\n```toml\nartifact = "X"\n```\n`@/cpt:blueprint`\n'
+            '`@cpt:heading:overview`\n```toml\nid = "overview"\nlevel = 1\n```\nContent A v2\n`@/cpt:heading:overview`\n'
+            '`@cpt:heading:details`\n```toml\nid = "details"\nlevel = 2\n```\nContent B v2\n`@/cpt:heading:details`\n'
+        )
+        merged, report = _three_way_merge_blueprint(legacy, named, legacy)
+        # Should update, NOT insert duplicates
+        self.assertIn("Content A v2", merged)
+        self.assertIn("Content B v2", merged)
+        self.assertEqual(merged.count("overview"), merged.count("overview"),
+                         "No duplicate overview markers")
+        # Count heading markers — should be exactly 2 headings
+        import re
+        heading_opens = re.findall(r'`@cpt:heading', merged)
+        heading_closes = re.findall(r'`@/cpt:heading', merged)
+        self.assertEqual(len(heading_opens), 2, f"Expected 2 heading opens, got {len(heading_opens)}")
+        self.assertEqual(len(heading_closes), 2)
+        self.assertEqual(len(report["inserted"]), 0, f"Should not insert: {report['inserted']}")
+        self.assertGreaterEqual(len(report["updated"]), 1)
+
+    def test_no_duplicates_rule_upgrade(self):
+        """Rules with kind+section: legacy old_ref vs named new_ref → no duplicates."""
+        from cypilot.commands.kit import _three_way_merge_blueprint
+        legacy = (
+            '`@cpt:blueprint`\n```toml\nartifact = "X"\n```\n`@/cpt:blueprint`\n'
+            '`@cpt:rule`\n```toml\nkind = "req"\nsection = "structural"\n```\nRule A\n`@/cpt:rule`\n'
+        )
+        named = (
+            '`@cpt:blueprint`\n```toml\nartifact = "X"\n```\n`@/cpt:blueprint`\n'
+            '`@cpt:rule:req-structural`\n```toml\nkind = "req"\nsection = "structural"\n```\nRule A v2\n`@/cpt:rule:req-structural`\n'
+        )
+        merged, report = _three_way_merge_blueprint(legacy, named, legacy)
+        self.assertIn("Rule A v2", merged)
+        self.assertNotIn("Rule A\n", merged)
+        import re
+        rule_opens = re.findall(r'`@cpt:rule', merged)
+        self.assertEqual(len(rule_opens), 1, f"Expected 1 rule open, got {len(rule_opens)}")
+        self.assertEqual(len(report["inserted"]), 0)
+
+    def test_no_duplicates_workflow_upgrade(self):
+        """Workflows with name: legacy old_ref vs named new_ref → no duplicates."""
+        from cypilot.commands.kit import _three_way_merge_blueprint
+        legacy = '`@cpt:workflow`\n```toml\nname = "pr-review"\n```\nWF old\n`@/cpt:workflow`\n'
+        named = '`@cpt:workflow:pr-review`\n```toml\nname = "pr-review"\n```\nWF new\n`@/cpt:workflow:pr-review`\n'
+        merged, report = _three_way_merge_blueprint(legacy, named, legacy)
+        self.assertIn("WF new", merged)
+        import re
+        wf_opens = re.findall(r'`@cpt:workflow', merged)
+        self.assertEqual(len(wf_opens), 1)
+        self.assertEqual(len(report["inserted"]), 0)
+
+    def test_no_duplicates_mixed_types(self):
+        """Full blueprint with multiple marker types — no duplicates after upgrade."""
+        from cypilot.commands.kit import _three_way_merge_blueprint
+        legacy = (
+            '`@cpt:blueprint`\n```toml\nartifact = "X"\n```\n`@/cpt:blueprint`\n'
+            '`@cpt:heading`\n```toml\nid = "intro"\nlevel = 1\n```\nIntro\n`@/cpt:heading`\n'
+            '`@cpt:prompt`\nPrompt text\n`@/cpt:prompt`\n'
+            '`@cpt:rule`\n```toml\nkind = "req"\nsection = "sem"\n```\nRule\n`@/cpt:rule`\n'
+            '`@cpt:check`\n```toml\nid = "BIZ-001"\n```\nCheck\n`@/cpt:check`\n'
+        )
+        named = (
+            '`@cpt:blueprint`\n```toml\nartifact = "X"\n```\n`@/cpt:blueprint`\n'
+            '`@cpt:heading:intro`\n```toml\nid = "intro"\nlevel = 1\n```\nIntro v2\n`@/cpt:heading:intro`\n'
+            '`@cpt:prompt:intro`\nPrompt v2\n`@/cpt:prompt:intro`\n'
+            '`@cpt:rule:req-sem`\n```toml\nkind = "req"\nsection = "sem"\n```\nRule v2\n`@/cpt:rule:req-sem`\n'
+            '`@cpt:check:biz-001`\n```toml\nid = "BIZ-001"\n```\nCheck v2\n`@/cpt:check:biz-001`\n'
+        )
+        merged, report = _three_way_merge_blueprint(legacy, named, legacy)
+        self.assertIn("Intro v2", merged)
+        self.assertIn("Prompt v2", merged)
+        self.assertIn("Rule v2", merged)
+        self.assertIn("Check v2", merged)
+        self.assertEqual(len(report["inserted"]), 0,
+                         f"Should not insert any markers: {report['inserted']}")
+
+    def test_normalize_preserves_user_customization(self):
+        """User customized a marker — normalization doesn't lose the customization."""
+        from cypilot.commands.kit import _three_way_merge_blueprint
+        legacy_ref = '`@cpt:heading`\n```toml\nid = "intro"\nlevel = 1\n```\nOriginal\n`@/cpt:heading`\n'
+        named_ref = '`@cpt:heading:intro`\n```toml\nid = "intro"\nlevel = 1\n```\nUpdated\n`@/cpt:heading:intro`\n'
+        user = '`@cpt:heading`\n```toml\nid = "intro"\nlevel = 1\n```\nMy custom text\n`@/cpt:heading`\n'
+        merged, report = _three_way_merge_blueprint(legacy_ref, named_ref, user)
+        self.assertIn("My custom text", merged)
+        self.assertNotIn("Updated", merged)
+        self.assertEqual(len(report["skipped"]), 1)
+
+
 if __name__ == "__main__":
     unittest.main()

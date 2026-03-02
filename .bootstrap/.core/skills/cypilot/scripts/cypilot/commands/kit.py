@@ -901,6 +901,70 @@ def _upgrade_legacy_tags(merged_parts: List[tuple]) -> tuple:
     return result, upgraded
 
 
+def _normalize_legacy_to_named(text: str, reference_text: str = "") -> str:
+    """Upgrade legacy @cpt:TYPE tags to @cpt:TYPE:ID in text for merge normalization.
+
+    When reference_text is provided, uses positional matching within each marker
+    type to map legacy markers to their named equivalents in the reference.
+    This handles all marker types, including those without derivable TOML IDs.
+
+    Falls back to TOML-based derivation when reference is not available.
+    """
+    if not reference_text:
+        segments = _parse_segments(text)
+        parts = [(seg.raw, seg.marker_key if seg.kind == "marker" else None)
+                 for seg in segments]
+        normalized, _ = _upgrade_legacy_tags(parts)
+        return "".join(p[0] for p in normalized)
+
+    text_segments = _parse_segments(text)
+    ref_segments = _parse_segments(reference_text)
+
+    # Group markers by type for positional matching
+    ref_by_type: Dict[str, List[_Segment]] = {}
+    for seg in ref_segments:
+        if seg.kind == "marker":
+            ref_by_type.setdefault(seg.marker_type, []).append(seg)
+
+    text_by_type: Dict[str, List[_Segment]] = {}
+    for seg in text_segments:
+        if seg.kind == "marker":
+            text_by_type.setdefault(seg.marker_type, []).append(seg)
+
+    # Build upgrade map: text segment id → (marker_type, explicit_id from reference)
+    upgrade_map: Dict[int, tuple] = {}
+    for mtype, t_segs in text_by_type.items():
+        r_segs = ref_by_type.get(mtype, [])
+        if len(t_segs) != len(r_segs):
+            continue  # counts differ — can't safely map positionally
+        for t_seg, r_seg in zip(t_segs, r_segs):
+            if not t_seg.explicit_id and r_seg.explicit_id:
+                upgrade_map[id(t_seg)] = (mtype, r_seg.explicit_id)
+
+    # Rewrite tags in text segments
+    result_parts: List[str] = []
+    for seg in text_segments:
+        if seg.kind != "marker" or id(seg) not in upgrade_map:
+            result_parts.append(seg.raw)
+            continue
+
+        mtype, new_id = upgrade_map[id(seg)]
+        raw = seg.raw
+        raw = re.sub(
+            r"^`@cpt:" + re.escape(mtype) + r"`( *)$",
+            "`@cpt:" + mtype + ":" + new_id + "`\\1",
+            raw, count=1, flags=re.MULTILINE,
+        )
+        raw = re.sub(
+            r"^`@/cpt:" + re.escape(mtype) + r"`( *)$",
+            "`@/cpt:" + mtype + ":" + new_id + "`\\1",
+            raw, count=1, flags=re.MULTILINE,
+        )
+        result_parts.append(raw)
+
+    return "".join(result_parts)
+
+
 def _three_way_merge_blueprint(
     old_ref_text: str,
     new_ref_text: str,
@@ -921,6 +985,11 @@ def _three_way_merge_blueprint(
         - inserted: list of marker keys inserted (new in reference)
         - upgraded: list of marker keys upgraded from legacy to named syntax
     """
+    # Normalize legacy markers to named syntax before comparison.
+    # Uses new_ref as positional guide so ALL marker types get correct IDs.
+    old_ref_text = _normalize_legacy_to_named(old_ref_text, new_ref_text)
+    user_text = _normalize_legacy_to_named(user_text, new_ref_text)
+
     # @cpt-begin:cpt-cypilot-algo-blueprint-system-three-way-merge:p1:inst-parse-three
     old_segments = _parse_segments(old_ref_text)
     new_segments = _parse_segments(new_ref_text)
@@ -1309,8 +1378,11 @@ def migrate_kit(
             if report.get("inserted"):
                 bp_report["markers_inserted"] = report["inserted"]
 
-            if report["updated"] or report.get("inserted"):
+            text_changed = merged_text != user_text
+            if report["updated"] or report.get("inserted") or text_changed:
                 bp_report["action"] = "merged"
+                if text_changed and not report["updated"] and not report.get("inserted"):
+                    bp_report["markers_upgraded"] = True
                 if not dry_run:
                     user_bp_dir.mkdir(parents=True, exist_ok=True)
                     user_file.write_text(merged_text, encoding="utf-8")

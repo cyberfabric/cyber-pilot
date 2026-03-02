@@ -108,7 +108,7 @@ sections = ["options"]
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:prerequisites-load_dependencies`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "prerequisites"
@@ -125,7 +125,7 @@ section = "load_dependencies"
 - [ ] Load `{cypilot_path}/.gen/kits/sdlc/constraints.toml` for kit-level constraints
 - [ ] Load `{cypilot_path}/.core/architecture/specs/traceability.md` for ID formats
 ```
-`@/cpt:rule`
+`@/cpt:rule:prerequisites-load_dependencies`
 
 ### Requirements
 
@@ -133,7 +133,7 @@ section = "load_dependencies"
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-structural`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -152,13 +152,13 @@ section = "structural"
 - [ ] No placeholder content (TODO, TBD, FIXME)
 - [ ] No duplicate IDs within document
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-structural`
 
 #### Versioning
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-versioning`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -171,13 +171,13 @@ section = "versioning"
 - [ ] Keep changelog of significant changes
 - [ ] Versioning code markers must match: `@cpt-{kind}:cpt-{system}-{kind}-{slug}-v2:p{N}`
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-versioning`
 
 #### Semantic
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-semantic`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -194,13 +194,13 @@ section = "semantic"
 - [ ] CDSL instructions describe "what" not "how"
 - [ ] Control flow keywords used correctly (IF, RETURN, FROM/TO/WHEN)
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-semantic`
 
 #### Traceability
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-traceability`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -212,13 +212,13 @@ section = "traceability"
 - [ ] Code must contain markers: `@cpt-{kind}:{cpt-id}:p{N}`
 - [ ] Each CDSL instruction maps to code marker
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-traceability`
 
 #### Constraints
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-constraints`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -241,13 +241,13 @@ section = "constraints"
 - `cypilot validate` enforces headings scoping for ID definitions and references
 - `cypilot validate` enforces "checked ref implies checked def" consistency
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-constraints`
 
 #### Scope
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-scope`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -281,13 +281,13 @@ section = "scope"
 - **DESIGN** → FEATURE: DESIGN provides architecture context, FEATURE details implementable behavior
 - **FEATURE** → CODE: FEATURE defines behavior, CODE implements with traceability markers
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-scope`
 
 #### Upstream Traceability
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-upstream_traceability`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -298,13 +298,13 @@ section = "upstream_traceability"
 - [ ] When all flows/algorithms/states/DoD items `[x]` → mark feature as `[x]` in DECOMPOSITION
 - [ ] When feature complete → update status in DECOMPOSITION (→ IMPLEMENTED)
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-upstream_traceability`
 
 #### Feature Status
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-featstatus`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -319,13 +319,13 @@ section = "featstatus"
   - If ALL nested task-tracked ID definitions AND ALL task-checkbox references within its content are `[x]` then `featstatus` MUST be `[x]`
 - [ ] `featstatus` is a documentation/status rollup marker (it is not a `to_code` identifier kind)
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-featstatus`
 
 #### Checkbox Management
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-checkbox_management`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -392,13 +392,13 @@ section = "checkbox_management"
 | Sequence ID (`cpt-{system}-seq-{slug}`) | DESIGN | Implements sequence diagram |
 | Data ID (`cpt-{system}-dbtable-{slug}`) | DESIGN | Uses database table |
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-checkbox_management`
 
 #### Deliberate Omissions (MUST NOT HAVE)
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-deliberate_omissions`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -418,7 +418,7 @@ FEATURE documents must NOT contain the following — report as violation if foun
 - **SEC-FDESIGN-NO-001**: No Security Secrets (CRITICAL) — secrets must never appear in documentation
 - **OPS-FDESIGN-NO-001**: No Infrastructure Code (MEDIUM) — infra code belongs in implementation
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-deliberate_omissions`
 
 ### Task Phases
 
@@ -426,7 +426,7 @@ FEATURE documents must NOT contain the following — report as violation if foun
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:tasks-setup`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "tasks"
@@ -445,13 +445,13 @@ section = "setup"
 - Read system's `artifacts_dir` from `artifacts.toml` (default: `architecture`)
 - Use kit's default subdirectory for FEATUREs: `features/`
 ```
-`@/cpt:rule`
+`@/cpt:rule:tasks-setup`
 
 #### Content Creation
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:tasks-content_creation`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "tasks"
@@ -466,13 +466,13 @@ section = "content_creation"
 - [ ] Use **IF**, **RETURN**, **FROM/TO/WHEN** keywords for control flow
 - [ ] Nested instructions for conditional branches
 ```
-`@/cpt:rule`
+`@/cpt:rule:tasks-content_creation`
 
 #### IDs & Structure
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:tasks-ids_and_structure`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "tasks"
@@ -487,13 +487,13 @@ section = "ids_and_structure"
 - [ ] Assign priorities (`p1`-`p9`) based on feature priority
 - [ ] Verify ID uniqueness with `cypilot list-ids`
 ```
-`@/cpt:rule`
+`@/cpt:rule:tasks-ids_and_structure`
 
 #### Quality Check
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:tasks-quality_check`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "tasks"
@@ -506,7 +506,7 @@ section = "quality_check"
 - [ ] Ensure no MUST NOT HAVE violations
 - [ ] Verify parent feature reference exists
 ```
-`@/cpt:rule`
+`@/cpt:rule:tasks-quality_check`
 
 ### Error Handling
 
@@ -514,7 +514,7 @@ section = "quality_check"
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:error_handling-missing_decomposition`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "error_handling"
@@ -525,13 +525,13 @@ section = "missing_decomposition"
 - [ ] Option 1: Run `/cypilot-generate DECOMPOSITION` first (recommended)
 - [ ] Option 2: Continue without manifest (FEATURE will lack traceability)
 ```
-`@/cpt:rule`
+`@/cpt:rule:error_handling-missing_decomposition`
 
 #### Missing Design
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:error_handling-missing_design`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "error_handling"
@@ -545,13 +545,13 @@ section = "missing_design"
   - Skip component/type references validation
   - Plan to update when DESIGN available
 ```
-`@/cpt:rule`
+`@/cpt:rule:error_handling-missing_design`
 
 #### Missing Parent
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:error_handling-missing_parent`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "error_handling"
@@ -563,13 +563,13 @@ section = "missing_parent"
 - [ ] If new feature: add to DECOMPOSITION first
 - [ ] If typo: correct the ID reference
 ```
-`@/cpt:rule`
+`@/cpt:rule:error_handling-missing_parent`
 
 #### Escalation
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:error_handling-escalation`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "error_handling"
@@ -581,7 +581,7 @@ section = "escalation"
 - [ ] Ask user when algorithm correctness uncertain
 - [ ] Ask user when state transitions ambiguous
 ```
-`@/cpt:rule`
+`@/cpt:rule:error_handling-escalation`
 
 ### Validation
 
@@ -589,7 +589,7 @@ section = "escalation"
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:validation-structural`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
@@ -605,13 +605,13 @@ section = "structural"
   - No placeholders
   - Parent feature reference validity
 ```
-`@/cpt:rule`
+`@/cpt:rule:validation-structural`
 
 #### Semantic
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:validation-semantic`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
@@ -624,13 +624,13 @@ Apply `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md` systematica
 2. For each MUST NOT HAVE item: scan document for violations
 3. Use example for quality baseline
 ```
-`@/cpt:rule`
+`@/cpt:rule:validation-semantic`
 
 #### Traceability
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:validation-traceability`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
@@ -643,13 +643,13 @@ For IDs with `to_code="true"`:
 - [ ] Report missing markers
 - [ ] Report orphaned markers
 ```
-`@/cpt:rule`
+`@/cpt:rule:validation-traceability`
 
 #### Validation Report
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:validation-validation_report`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
@@ -668,13 +668,13 @@ Issues:
 - [SEVERITY] CHECKLIST-ID: Description
 ```
 ````
-`@/cpt:rule`
+`@/cpt:rule:validation-validation_report`
 
 #### Applicability Context
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:validation-applicability`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
@@ -703,13 +703,13 @@ Before evaluating each checklist item, the expert MUST:
 
 **Key principle**: The reviewer must be able to distinguish "author considered and excluded" from "author forgot"
 ```
-`@/cpt:rule`
+`@/cpt:rule:validation-applicability`
 
 #### Report Format
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:validation-report_format`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
@@ -759,13 +759,13 @@ For each issue include:
 {Concrete fix}
 ```
 ````
-`@/cpt:rule`
+`@/cpt:rule:validation-report_format`
 
 #### Reporting Commitment
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:validation-reporting`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
@@ -782,13 +782,13 @@ section = "reporting"
 - [ ] I verified explicit handling for all major checklist categories
 - [ ] I am ready to iterate on the proposals and re-review after changes
 ```
-`@/cpt:rule`
+`@/cpt:rule:validation-reporting`
 
 ### Next Steps
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:next_steps-options`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "next_steps"
@@ -802,7 +802,7 @@ section = "options"
 - [ ] Another feature to design → `/cypilot-generate FEATURE` — design next feature
 - [ ] Want checklist review only → `/cypilot-analyze semantic` — semantic validation
 ```
-`@/cpt:rule`
+`@/cpt:rule:next_steps-options`
 
 ---
 
@@ -1034,7 +1034,7 @@ Before evaluating each checklist item, the expert MUST:
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-fdesign-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-FDESIGN-001"
@@ -1059,11 +1059,11 @@ kind = "must_have"
 - [ ] Feature boundaries explicit
 - [ ] Out-of-scope items documented
 ```
-`@/cpt:check`
+`@/cpt:check:arch-fdesign-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-fdesign-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-FDESIGN-002"
@@ -1084,11 +1084,11 @@ kind = "must_have"
 - [ ] API endpoints/contracts are referenced consistently with the canonical API documentation (if it exists)
 - [ ] Principles compliance documented
 ```
-`@/cpt:check`
+`@/cpt:check:arch-fdesign-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-fdesign-003`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-FDESIGN-003"
@@ -1110,11 +1110,11 @@ kind = "must_have"
 - [ ] Flows cover edge cases
 - [ ] Actor/user roles are defined consistently with the requirements document
 ```
-`@/cpt:check`
+`@/cpt:check:arch-fdesign-003`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-fdesign-004`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-FDESIGN-004"
@@ -1136,11 +1136,11 @@ kind = "must_have"
 - [ ] Error handling documented
 - [ ] Edge cases addressed
 ```
-`@/cpt:check`
+`@/cpt:check:arch-fdesign-004`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-fdesign-005`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-FDESIGN-005"
@@ -1162,11 +1162,11 @@ kind = "must_have"
 - [ ] Invalid state transitions documented
 - [ ] State persistence documented (if applicable)
 ```
-`@/cpt:check`
+`@/cpt:check:arch-fdesign-005`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-fdesign-006`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-FDESIGN-006"
@@ -1187,11 +1187,11 @@ kind = "must_have"
 - [ ] Async operations documented
 - [ ] Timeout handling documented
 ```
-`@/cpt:check`
+`@/cpt:check:arch-fdesign-006`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-fdesign-007`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-FDESIGN-007"
@@ -1211,11 +1211,11 @@ kind = "must_have"
 - [ ] Feature flags integration documented
 - [ ] Versioning considerations documented
 ```
-`@/cpt:check`
+`@/cpt:check:arch-fdesign-007`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:sem-fdesign-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEM-FDESIGN-001"
@@ -1236,11 +1236,11 @@ kind = "must_have"
 - [ ] Feature outcomes preserve PRD intent and success criteria
 - [ ] Any PRD trade-offs are explicitly documented and approved
 ```
-`@/cpt:check`
+`@/cpt:check:sem-fdesign-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:sem-fdesign-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEM-FDESIGN-002"
@@ -1258,11 +1258,11 @@ kind = "must_have"
 - [ ] Feature design respects all design constraints and does not bypass them
 - [ ] Any constraint exception is explicitly documented with rationale
 ```
-`@/cpt:check`
+`@/cpt:check:sem-fdesign-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:sem-fdesign-003`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEM-FDESIGN-003"
@@ -1281,11 +1281,11 @@ kind = "must_have"
 - [ ] Data models and entities conform to the Overall Design domain model
 - [ ] API contracts and integration boundaries match the Overall Design
 ```
-`@/cpt:check`
+`@/cpt:check:sem-fdesign-003`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:sem-fdesign-004`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEM-FDESIGN-004"
@@ -1303,11 +1303,11 @@ kind = "must_have"
 - [ ] Definition of Done mappings cover required design references (principles, constraints, components, sequences, tables)
 - [ ] Any semantic deviation from design is documented and approved
 ```
-`@/cpt:check`
+`@/cpt:check:sem-fdesign-004`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:sem-fdesign-005`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEM-FDESIGN-005"
@@ -1328,11 +1328,11 @@ kind = "must_have"
 - [ ] Design principles and constraints covered match the DECOMPOSITION mapping
 - [ ] Domain entities, components, APIs, sequences, and data tables match the DECOMPOSITION entry
 ```
-`@/cpt:check`
+`@/cpt:check:sem-fdesign-005`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:perf-fdesign-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "PERF-FDESIGN-001"
@@ -1355,11 +1355,11 @@ kind = "must_have"
 - [ ] N+1 query prevention addressed
 - [ ] Database query optimization documented
 ```
-`@/cpt:check`
+`@/cpt:check:perf-fdesign-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:perf-fdesign-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "PERF-FDESIGN-002"
@@ -1380,11 +1380,11 @@ kind = "must_have"
 - [ ] Streaming approaches documented (if applicable)
 - [ ] Pagination documented (if applicable)
 ```
-`@/cpt:check`
+`@/cpt:check:perf-fdesign-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:perf-fdesign-003`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "PERF-FDESIGN-003"
@@ -1405,11 +1405,11 @@ kind = "must_have"
 - [ ] Rate limiting handled
 - [ ] Throttling documented
 ```
-`@/cpt:check`
+`@/cpt:check:perf-fdesign-003`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:perf-fdesign-004`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "PERF-FDESIGN-004"
@@ -1429,11 +1429,11 @@ kind = "must_have"
 - [ ] Performance test requirements documented
 - [ ] Baseline metrics identified
 ```
-`@/cpt:check`
+`@/cpt:check:perf-fdesign-004`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:sec-fdesign-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEC-FDESIGN-001"
@@ -1456,11 +1456,11 @@ kind = "must_have"
 - [ ] Multi-factor requirements documented (if applicable)
 - [ ] Service-to-service auth documented (if applicable)
 ```
-`@/cpt:check`
+`@/cpt:check:sec-fdesign-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:sec-fdesign-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEC-FDESIGN-002"
@@ -1481,11 +1481,11 @@ kind = "must_have"
 - [ ] Privilege escalation prevention documented
 - [ ] Cross-tenant access prevention documented (if applicable)
 ```
-`@/cpt:check`
+`@/cpt:check:sec-fdesign-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:sec-fdesign-003`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEC-FDESIGN-003"
@@ -1509,11 +1509,11 @@ kind = "must_have"
 - [ ] Command injection prevention documented
 - [ ] Path traversal prevention documented
 ```
-`@/cpt:check`
+`@/cpt:check:sec-fdesign-003`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:sec-fdesign-004`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEC-FDESIGN-004"
@@ -1534,11 +1534,11 @@ kind = "must_have"
 - [ ] Secure data transmission documented
 - [ ] Data sanitization documented
 ```
-`@/cpt:check`
+`@/cpt:check:sec-fdesign-004`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:sec-fdesign-005`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEC-FDESIGN-005"
@@ -1559,11 +1559,11 @@ kind = "must_have"
 - [ ] Audit data retention documented
 - [ ] Non-repudiation requirements documented
 ```
-`@/cpt:check`
+`@/cpt:check:sec-fdesign-005`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:sec-fdesign-006`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEC-FDESIGN-006"
@@ -1583,11 +1583,11 @@ kind = "must_have"
 - [ ] Timing attacks mitigated
 - [ ] Rate limiting on security operations documented
 ```
-`@/cpt:check`
+`@/cpt:check:sec-fdesign-006`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:rel-fdesign-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "REL-FDESIGN-001"
@@ -1610,11 +1610,11 @@ kind = "must_have"
 - [ ] User-facing error messages documented
 - [ ] Logging requirements documented
 ```
-`@/cpt:check`
+`@/cpt:check:rel-fdesign-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:rel-fdesign-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "REL-FDESIGN-002"
@@ -1635,11 +1635,11 @@ kind = "must_have"
 - [ ] Fallback behavior documented
 - [ ] Graceful degradation documented
 ```
-`@/cpt:check`
+`@/cpt:check:rel-fdesign-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:rel-fdesign-003`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "REL-FDESIGN-003"
@@ -1662,11 +1662,11 @@ kind = "must_have"
 - [ ] Data validation before persistence documented
 - [ ] Rollback scenarios documented
 ```
-`@/cpt:check`
+`@/cpt:check:rel-fdesign-003`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:rel-fdesign-004`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "REL-FDESIGN-004"
@@ -1686,11 +1686,11 @@ kind = "must_have"
 - [ ] Resource exhaustion handling documented
 - [ ] Deadlock prevention documented
 ```
-`@/cpt:check`
+`@/cpt:check:rel-fdesign-004`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:rel-fdesign-005`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "REL-FDESIGN-005"
@@ -1710,11 +1710,11 @@ kind = "must_have"
 - [ ] Compensating transactions documented (if applicable)
 - [ ] State recovery documented
 ```
-`@/cpt:check`
+`@/cpt:check:rel-fdesign-005`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:data-fdesign-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "DATA-FDESIGN-001"
@@ -1735,11 +1735,11 @@ kind = "must_have"
 - [ ] Join patterns documented
 - [ ] Aggregation patterns documented
 ```
-`@/cpt:check`
+`@/cpt:check:data-fdesign-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:data-fdesign-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "DATA-FDESIGN-002"
@@ -1760,11 +1760,11 @@ kind = "must_have"
 - [ ] Uniqueness validation documented
 - [ ] Validation error messages documented
 ```
-`@/cpt:check`
+`@/cpt:check:data-fdesign-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:data-fdesign-003`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "DATA-FDESIGN-003"
@@ -1785,11 +1785,11 @@ kind = "must_have"
 - [ ] Null handling documented
 - [ ] Default value handling documented
 ```
-`@/cpt:check`
+`@/cpt:check:data-fdesign-003`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:data-fdesign-004`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "DATA-FDESIGN-004"
@@ -1810,11 +1810,11 @@ kind = "must_have"
 - [ ] Data retention compliance documented
 - [ ] Data migration considerations documented
 ```
-`@/cpt:check`
+`@/cpt:check:data-fdesign-004`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:data-fdesign-005`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "DATA-FDESIGN-005"
@@ -1835,11 +1835,11 @@ kind = "must_have"
 - [ ] Cross-border transfer handling documented
 - [ ] Anonymization/pseudonymization documented
 ```
-`@/cpt:check`
+`@/cpt:check:data-fdesign-005`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:int-fdesign-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "INT-FDESIGN-001"
@@ -1860,11 +1860,11 @@ kind = "must_have"
 - [ ] Rate limiting handling documented
 - [ ] Retry behavior documented
 ```
-`@/cpt:check`
+`@/cpt:check:int-fdesign-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:int-fdesign-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "INT-FDESIGN-002"
@@ -1885,11 +1885,11 @@ kind = "must_have"
 - [ ] Query parameterization documented
 - [ ] Result set handling documented
 ```
-`@/cpt:check`
+`@/cpt:check:int-fdesign-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:int-fdesign-003`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "INT-FDESIGN-003"
@@ -1910,11 +1910,11 @@ kind = "must_have"
 - [ ] Data format translation documented
 - [ ] Version compatibility documented
 ```
-`@/cpt:check`
+`@/cpt:check:int-fdesign-003`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:int-fdesign-004`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "INT-FDESIGN-004"
@@ -1935,11 +1935,11 @@ kind = "must_have"
 - [ ] Delivery guarantees documented
 - [ ] Dead letter handling documented
 ```
-`@/cpt:check`
+`@/cpt:check:int-fdesign-004`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:int-fdesign-005`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "INT-FDESIGN-005"
@@ -1960,11 +1960,11 @@ kind = "must_have"
 - [ ] Cache TTL documented
 - [ ] Cache consistency documented
 ```
-`@/cpt:check`
+`@/cpt:check:int-fdesign-005`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:ops-fdesign-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "OPS-FDESIGN-001"
@@ -1985,11 +1985,11 @@ kind = "must_have"
 - [ ] Correlation ID handling documented
 - [ ] Debug information documented
 ```
-`@/cpt:check`
+`@/cpt:check:ops-fdesign-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:ops-fdesign-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "OPS-FDESIGN-002"
@@ -2010,11 +2010,11 @@ kind = "must_have"
 - [ ] Environment-specific configuration documented
 - [ ] Feature flags documented
 ```
-`@/cpt:check`
+`@/cpt:check:ops-fdesign-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:ops-fdesign-003`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "OPS-FDESIGN-003"
@@ -2034,11 +2034,11 @@ kind = "must_have"
 - [ ] Troubleshooting guidance documented
 - [ ] Common issues documented
 ```
-`@/cpt:check`
+`@/cpt:check:ops-fdesign-003`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:ops-fdesign-004`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "OPS-FDESIGN-004"
@@ -2056,11 +2056,11 @@ kind = "must_have"
 - [ ] Rollback strategy is documented
 - [ ] Data migration/backward compatibility considerations are addressed when applicable
 ```
-`@/cpt:check`
+`@/cpt:check:ops-fdesign-004`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:maint-fdesign-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "MAINT-FDESIGN-001"
@@ -2082,11 +2082,11 @@ kind = "must_have"
 - [ ] Dependency injection opportunities identified
 - [ ] Interface boundaries clear
 ```
-`@/cpt:check`
+`@/cpt:check:maint-fdesign-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:maint-fdesign-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "MAINT-FDESIGN-002"
@@ -2107,11 +2107,11 @@ kind = "must_have"
 - [ ] Edge cases documented
 - [ ] Examples provided where helpful
 ```
-`@/cpt:check`
+`@/cpt:check:maint-fdesign-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:maint-fdesign-003`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "MAINT-FDESIGN-003"
@@ -2131,11 +2131,11 @@ kind = "must_have"
 - [ ] Deprecation plans documented (if applicable)
 - [ ] Migration considerations documented
 ```
-`@/cpt:check`
+`@/cpt:check:maint-fdesign-003`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:test-fdesign-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "TEST-FDESIGN-001"
@@ -2158,11 +2158,11 @@ kind = "must_have"
 - [ ] Test data requirements documented
 - [ ] Test isolation achievable
 ```
-`@/cpt:check`
+`@/cpt:check:test-fdesign-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:test-fdesign-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "TEST-FDESIGN-002"
@@ -2183,11 +2183,11 @@ kind = "must_have"
 - [ ] Error path tests identified
 - [ ] Performance test targets identified
 ```
-`@/cpt:check`
+`@/cpt:check:test-fdesign-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:test-fdesign-003`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "TEST-FDESIGN-003"
@@ -2208,11 +2208,11 @@ kind = "must_have"
 - [ ] Criteria cover error paths
 - [ ] Criteria testable automatically
 ```
-`@/cpt:check`
+`@/cpt:check:test-fdesign-003`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:compl-fdesign-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "COMPL-FDESIGN-001"
@@ -2233,11 +2233,11 @@ kind = "must_have"
 - [ ] Retention requirements met
 - [ ] Reporting requirements addressed
 ```
-`@/cpt:check`
+`@/cpt:check:compl-fdesign-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:compl-fdesign-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "COMPL-FDESIGN-002"
@@ -2258,11 +2258,11 @@ kind = "must_have"
 - [ ] Data subject rights supported
 - [ ] Cross-border considerations addressed
 ```
-`@/cpt:check`
+`@/cpt:check:compl-fdesign-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:ux-fdesign-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "UX-FDESIGN-001"
@@ -2285,11 +2285,11 @@ kind = "must_have"
 - [ ] Progress indication documented
 - [ ] Confirmation flows documented
 ```
-`@/cpt:check`
+`@/cpt:check:ux-fdesign-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:ux-fdesign-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "UX-FDESIGN-002"
@@ -2311,11 +2311,11 @@ kind = "must_have"
 - [ ] Color contrast considered
 - [ ] Focus management documented
 ```
-`@/cpt:check`
+`@/cpt:check:ux-fdesign-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:biz-fdesign-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "BIZ-FDESIGN-001"
@@ -2338,11 +2338,11 @@ kind = "must_have"
 - [ ] Edge cases reflect business reality
 - [ ] Acceptance criteria business-verifiable
 ```
-`@/cpt:check`
+`@/cpt:check:biz-fdesign-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:biz-fdesign-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "BIZ-FDESIGN-002"
@@ -2362,11 +2362,11 @@ kind = "must_have"
 - [ ] Success metrics achievable
 - [ ] ROI evident
 ```
-`@/cpt:check`
+`@/cpt:check:biz-fdesign-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:doc-fdesign-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "DOC-FDESIGN-001"
@@ -2384,11 +2384,11 @@ kind = "must_have"
 - [ ] No silent omissions — every major checklist area is either present or has a documented reason for absence
 - [ ] Reviewer can distinguish "author considered and excluded" from "author forgot"
 ```
-`@/cpt:check`
+`@/cpt:check:doc-fdesign-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-fdesign-no-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-FDESIGN-NO-001"
@@ -2411,11 +2411,11 @@ kind = "must_not_have"
 
 **Where it belongs**: Central domain model / schema documentation
 ```
-`@/cpt:check`
+`@/cpt:check:arch-fdesign-no-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-fdesign-no-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-FDESIGN-NO-002"
@@ -2438,11 +2438,11 @@ kind = "must_not_have"
 
 **Where it belongs**: API contract documentation (e.g., OpenAPI)
 ```
-`@/cpt:check`
+`@/cpt:check:arch-fdesign-no-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-fdesign-no-003`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-FDESIGN-NO-003"
@@ -2465,11 +2465,11 @@ kind = "must_not_have"
 
 **Where it belongs**: `ADR`
 ```
-`@/cpt:check`
+`@/cpt:check:arch-fdesign-no-003`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:biz-fdesign-no-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "BIZ-FDESIGN-NO-001"
@@ -2492,11 +2492,11 @@ kind = "must_not_have"
 
 **Where it belongs**: `PRD`
 ```
-`@/cpt:check`
+`@/cpt:check:biz-fdesign-no-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:biz-fdesign-no-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "BIZ-FDESIGN-NO-002"
@@ -2520,11 +2520,11 @@ kind = "must_not_have"
 
 **Where it belongs**: Project management tools
 ```
-`@/cpt:check`
+`@/cpt:check:biz-fdesign-no-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:maint-fdesign-no-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "MAINT-FDESIGN-NO-001"
@@ -2548,11 +2548,11 @@ kind = "must_not_have"
 
 **Where it belongs**: Source code repository
 ```
-`@/cpt:check`
+`@/cpt:check:maint-fdesign-no-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:test-fdesign-no-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "TEST-FDESIGN-NO-001"
@@ -2575,11 +2575,11 @@ kind = "must_not_have"
 
 **Where it belongs**: Test directories in source code
 ```
-`@/cpt:check`
+`@/cpt:check:test-fdesign-no-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:sec-fdesign-no-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEC-FDESIGN-NO-001"
@@ -2603,11 +2603,11 @@ kind = "must_not_have"
 
 **Where it belongs**: Secret management system
 ```
-`@/cpt:check`
+`@/cpt:check:sec-fdesign-no-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:ops-fdesign-no-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "OPS-FDESIGN-NO-001"
@@ -2630,7 +2630,7 @@ kind = "must_not_have"
 
 **Where it belongs**: Infrastructure code repository
 ```
-`@/cpt:check`
+`@/cpt:check:ops-fdesign-no-001`
 
 
 ---
@@ -2646,7 +2646,7 @@ algorithms, state machines, definitions of done, and acceptance criteria.
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:feature-h1-title`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "feature-h1-title"
@@ -2667,11 +2667,11 @@ description = "FEATURE document title (H1)."
 # Example heading texts showing correct usage
 examples = ["# Feature: Task CRUD"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:feature-h1-title`
 
 > **`@cpt:id`** — Identifier constraint. Defines an ID kind (template, references, task/priority rules). Output: `constraints.toml`.
 
-`@cpt:id`
+`@cpt:id:featstatus`
 ```toml
 kind = "featstatus"
 name = "Feature Status"
@@ -2689,31 +2689,31 @@ coverage = false           # true = must reference | false = referencing prohibi
 [references.PRD]  # how this ID is referenced in PRD artifacts
 coverage = false           # true = must reference | false = referencing prohibited | omit = optional
 ```
-`@/cpt:id`
+`@/cpt:id:featstatus`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:feature-h1-title`
 ```markdown
 - [ ] `p1` - **ID**: `cpt-{system}-featstatus-{feature-slug}`
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:feature-h1-title`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:feature-h1-title`
 ```markdown
 - [ ] `p1` - **ID**: `cpt-ex-task-flow-featstatus-task-crud`
 
 - [ ] `p2` - `cpt-ex-task-flow-feature-task-crud`
 ```
-`@/cpt:example`
+`@/cpt:example:feature-h1-title`
 
 ### Feature Context
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:feature-context`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "feature-context"
@@ -2732,19 +2732,19 @@ description = "Feature context section."
 # Example heading texts showing correct usage
 examples = ["## Feature Context"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:feature-context`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:feature-context`
 ```markdown
 - [ ] `p2` - `cpt-{system}-feature-{slug}`
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:feature-context`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:feature-context-overview`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "feature-context-overview"
@@ -2763,19 +2763,19 @@ description = "Feature overview."
 # Example heading texts showing correct usage
 examples = ["### 1. Overview"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:feature-context-overview`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:feature-context-overview`
 ```markdown
 {Brief overview of what this feature does — 1-2 sentences.}
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:feature-context-overview`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:feature-context-overview`
 ```markdown
 Core task management functionality for creating, viewing, updating, and deleting tasks. This feature provides the foundation for team collaboration by enabling users to track work items through their lifecycle.
 
@@ -2783,11 +2783,11 @@ Problem: Teams need a central place to track tasks with status, priority, and as
 Primary value: Enables organized task tracking with clear ownership.
 Key assumptions: Users have accounts and belong to at least one team.
 ```
-`@/cpt:example`
+`@/cpt:example:feature-context-overview`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:feature-context-purpose`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "feature-context-purpose"
@@ -2806,29 +2806,29 @@ description = "Feature purpose."
 # Example heading texts showing correct usage
 examples = ["### 2. Purpose"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:feature-context-purpose`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:feature-context-purpose`
 ```markdown
 {Why this feature exists, what PRD requirements or DESIGN element it addresses.}
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:feature-context-purpose`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:feature-context-purpose`
 ```markdown
 Enable team members to manage their work items with full lifecycle tracking from creation through completion.
 
 Success criteria: Users can create, view, update, and delete tasks within 500ms response time.
 ```
-`@/cpt:example`
+`@/cpt:example:feature-context-purpose`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:feature-context-actors`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "feature-context-actors"
@@ -2847,30 +2847,30 @@ description = "Actors involved in the feature."
 # Example heading texts showing correct usage
 examples = ["### 3. Actors"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:feature-context-actors`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:feature-context-actors`
 ```markdown
 | Actor | Role in Feature |
 |-------|-----------------|
 | `cpt-{system}-actor-{slug}` | {What this actor does in this feature} |
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:feature-context-actors`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:feature-context-actors`
 ```markdown
 - `cpt-ex-task-flow-actor-member`
 - `cpt-ex-task-flow-actor-lead`
 ```
-`@/cpt:example`
+`@/cpt:example:feature-context-actors`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:feature-context-references`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "feature-context-references"
@@ -2889,33 +2889,33 @@ description = "References to related artifacts."
 # Example heading texts showing correct usage
 examples = ["### 4. References"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:feature-context-references`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:feature-context-references`
 ```markdown
 - **PRD**: [PRD.md](../PRD.md)
 - **Design**: [DESIGN.md](../DESIGN.md)
 - **Dependencies**: {List feature dependencies or "None"}
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:feature-context-references`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:feature-context-references`
 ```markdown
 - Overall Design: [DESIGN.md](../../DESIGN.md)
 - ADRs: `cpt-ex-task-flow-adr-postgres-storage`
 - Related feature: [Notifications](../notifications.md)
 ```
-`@/cpt:example`
+`@/cpt:example:feature-context-references`
 
 ### Actor Flows (CDSL)
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:feature-actor-flows`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "feature-actor-flows"
@@ -2934,19 +2934,19 @@ description = "Actor flows section."
 # Example heading texts showing correct usage
 examples = ["## Actor Flows"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:feature-actor-flows`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:feature-actor-flows`
 ```markdown
 User-facing interactions that start with an actor (human or external system) and describe the end-to-end flow of a use case. Each flow has a triggering actor and shows how the system responds to actor actions.
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:feature-actor-flows`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:feature-actor-flow`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "feature-actor-flow"
@@ -2965,11 +2965,11 @@ description = "A single actor flow."
 # Example heading texts showing correct usage
 examples = []
 ```
-`@/cpt:heading`
+`@/cpt:heading:feature-actor-flow`
 
 > **`@cpt:id`** — Identifier constraint. Defines an ID kind (template, references, task/priority rules). Output: `constraints.toml`.
 
-`@cpt:id`
+`@cpt:id:flow`
 ```toml
 kind = "flow"
 name = "Flow"
@@ -2985,11 +2985,11 @@ headings = ["feature-actor-flow"]  # heading constraint IDs where this identifie
 [references.PRD]  # how this ID is referenced in PRD artifacts
 coverage = false           # true = must reference | false = referencing prohibited | omit = optional
 ```
-`@/cpt:id`
+`@/cpt:id:flow`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:feature-actor-flow`
 ```markdown
 - [ ] `p1` - **ID**: `cpt-{system}-flow-{feature-slug}-{slug}`
 
@@ -3011,11 +3011,11 @@ coverage = false           # true = must reference | false = referencing prohibi
    1. [ ] - `p1` - {Action if false} - `inst-{step-id}`
 6. [ ] - `p1` - **RETURN** {result} - `inst-{step-id}`
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:feature-actor-flow`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:feature-actor-flow`
 ```markdown
 ### Create Task
 
@@ -3034,13 +3034,13 @@ coverage = false           # true = must reference | false = referencing prohibi
 7. [ ] - `p2` - DB: INSERT task_assignees(task_id, assignee_id) - `inst-db-assign-insert`
 8. [x] - `p1` - API: RETURN 201 Created (task_id, status=BACKLOG) - `inst-return-created`
 ```
-`@/cpt:example`
+`@/cpt:example:feature-actor-flow`
 
 ### Processes / Business Logic
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:feature-processes`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "feature-processes"
@@ -3059,19 +3059,19 @@ description = "Processes / business logic section."
 # Example heading texts showing correct usage
 examples = ["## Processes / Business Logic"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:feature-processes`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:feature-processes`
 ```markdown
 Internal system functions and procedures that do not interact with actors directly. Examples: database layer operations, authorization logic, middleware, validation routines, library functions, background jobs. These are reusable building blocks called by Actor Flows or other processes.
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:feature-processes`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:feature-process`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "feature-process"
@@ -3090,11 +3090,11 @@ description = "A single process/algorithm."
 # Example heading texts showing correct usage
 examples = []
 ```
-`@/cpt:heading`
+`@/cpt:heading:feature-process`
 
 > **`@cpt:id`** — Identifier constraint. Defines an ID kind (template, references, task/priority rules). Output: `constraints.toml`.
 
-`@cpt:id`
+`@cpt:id:algo`
 ```toml
 kind = "algo"
 name = "Algorithm"
@@ -3110,11 +3110,11 @@ headings = ["feature-processes"]  # heading constraint IDs where this identifier
 [references.PRD]  # how this ID is referenced in PRD artifacts
 coverage = false           # true = must reference | false = referencing prohibited | omit = optional
 ```
-`@/cpt:id`
+`@/cpt:id:algo`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:feature-process`
 ```markdown
 - [ ] `p2` - **ID**: `cpt-{system}-algo-{feature-slug}-{slug}`
 
@@ -3134,11 +3134,11 @@ coverage = false           # true = must reference | false = referencing prohibi
    1. [ ] - `p1` - {Handle error} - `inst-{step-id}`
 7. [ ] - `p1` - **RETURN** {result} - `inst-{step-id}`
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:feature-process`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:feature-process`
 ```markdown
 ### Validate Task
 
@@ -3151,13 +3151,13 @@ coverage = false           # true = must reference | false = referencing prohibi
 5. [ ] - `p2` - **IF** duplicate exists **RETURN** error - `inst-return-duplicate`
 6. [x] - `p1` - **RETURN** valid - `inst-return-valid`
 ```
-`@/cpt:example`
+`@/cpt:example:feature-process`
 
 ### States
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:feature-states`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "feature-states"
@@ -3176,19 +3176,19 @@ description = "States section."
 # Example heading texts showing correct usage
 examples = ["## States"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:feature-states`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:feature-states`
 ```markdown
 Optional: Include when entities have explicit lifecycle states.
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:feature-states`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:feature-state`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "feature-state"
@@ -3207,11 +3207,11 @@ description = "A single state machine."
 # Example heading texts showing correct usage
 examples = []
 ```
-`@/cpt:heading`
+`@/cpt:heading:feature-state`
 
 > **`@cpt:id`** — Identifier constraint. Defines an ID kind (template, references, task/priority rules). Output: `constraints.toml`.
 
-`@cpt:id`
+`@cpt:id:state`
 ```toml
 kind = "state"
 name = "State Machine"
@@ -3227,11 +3227,11 @@ headings = ["feature-state"]  # heading constraint IDs where this identifier mus
 [references.PRD]  # how this ID is referenced in PRD artifacts
 coverage = false           # true = must reference | false = referencing prohibited | omit = optional
 ```
-`@/cpt:id`
+`@/cpt:id:state`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:feature-state`
 ```markdown
 - [ ] `p2` - **ID**: `cpt-{system}-state-{feature-slug}-{slug}`
 
@@ -3243,11 +3243,11 @@ coverage = false           # true = must reference | false = referencing prohibi
 1. [ ] - `p1` - **FROM** {State1} **TO** {State2} **WHEN** {condition} - `inst-{step-id}`
 2. [ ] - `p1` - **FROM** {State2} **TO** {State3} **WHEN** {condition} - `inst-{step-id}`
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:feature-state`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:feature-state`
 ```markdown
 ### Task Status
 
@@ -3257,13 +3257,13 @@ coverage = false           # true = must reference | false = referencing prohibi
 2. [ ] - `p2` - **FROM** IN_PROGRESS **TO** DONE **WHEN** user completes - `inst-complete`
 3. [ ] - `p2` - **FROM** DONE **TO** BACKLOG **WHEN** user reopens - `inst-reopen`
 ```
-`@/cpt:example`
+`@/cpt:example:feature-state`
 
 ### Definitions of Done
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:feature-dod`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "feature-dod"
@@ -3282,19 +3282,19 @@ description = "Definitions of done section."
 # Example heading texts showing correct usage
 examples = ["## Definitions of Done"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:feature-dod`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:feature-dod`
 ```markdown
 Specific implementation tasks derived from flows/algorithms above.
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:feature-dod`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:feature-dod-entry`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "feature-dod-entry"
@@ -3313,11 +3313,11 @@ description = "A single definition of done entry."
 # Example heading texts showing correct usage
 examples = []
 ```
-`@/cpt:heading`
+`@/cpt:heading:feature-dod-entry`
 
 > **`@cpt:id`** — Identifier constraint. Defines an ID kind (template, references, task/priority rules). Output: `constraints.toml`.
 
-`@cpt:id`
+`@cpt:id:dod`
 ```toml
 kind = "dod"
 name = "Definition of Done"
@@ -3333,11 +3333,11 @@ headings = ["feature-dod-entry"]  # heading constraint IDs where this identifier
 [references.PRD]  # how this ID is referenced in PRD artifacts
 coverage = false           # true = must reference | false = referencing prohibited | omit = optional
 ```
-`@/cpt:id`
+`@/cpt:id:dod`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:feature-dod-entry`
 ```markdown
 - [ ] `p1` - **ID**: `cpt-{system}-dod-{feature-slug}-{slug}`
 
@@ -3351,11 +3351,11 @@ The system **MUST** {clear description of what to implement}.
 - DB: `{table}`
 - Entities: `{EntityName}`
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:feature-dod-entry`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:feature-dod-entry`
 ```markdown
 ### Task Creation
 
@@ -3384,13 +3384,13 @@ Users can create tasks with title, description, priority, and due date. The syst
 - `cpt-ex-task-flow-seq-task-creation`
 - `cpt-ex-task-flow-dbtable-tasks`
 ```
-`@/cpt:example`
+`@/cpt:example:feature-dod-entry`
 
 ### Acceptance Criteria
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:feature-acceptance-criteria`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "feature-acceptance-criteria"
@@ -3409,20 +3409,20 @@ description = "Acceptance criteria for the feature."
 # Example heading texts showing correct usage
 examples = ["## Acceptance Criteria"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:feature-acceptance-criteria`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:feature-acceptance-criteria`
 ```markdown
 - [ ] {Testable criterion for this feature}
 - [ ] {Another testable criterion}
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:feature-acceptance-criteria`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/FEATURE/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:feature-acceptance-criteria`
 ```markdown
 - [ ] The feature supports task creation and assignment flow end-to-end
 - [ ] Validation rules reject invalid titles, priorities, and past due dates
@@ -3432,4 +3432,4 @@ examples = ["## Acceptance Criteria"]
 
 The feature must keep task status transitions consistent with the Task Status state machine in Section D. All state changes should emit events for the notification system.
 ```
-`@/cpt:example`
+`@/cpt:example:feature-acceptance-criteria`

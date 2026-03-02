@@ -110,7 +110,7 @@ Dependencies that must be loaded before working with a PRD artifact.
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:prerequisites-load_dependencies`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "prerequisites"
@@ -126,7 +126,7 @@ section = "load_dependencies"
 - [ ] Load `{cypilot_path}/.gen/kits/sdlc/constraints.toml` for kit-level constraints
 - [ ] Load `{cypilot_path}/.core/architecture/specs/kit/constraints.md` for constraints specification
 ```
-`@/cpt:rule`
+`@/cpt:rule:prerequisites-load_dependencies`
 
 ### Requirements
 
@@ -134,7 +134,7 @@ section = "load_dependencies"
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-structural`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -150,13 +150,13 @@ section = "structural"
 - [ ] No placeholder content (TODO, TBD, FIXME)
 - [ ] No duplicate IDs within document
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-structural`
 
 #### Versioning Rules
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-versioning`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -169,13 +169,13 @@ section = "versioning"
   - Format: `cpt-{hierarchy-prefix}-cap-{slug}-v2`, `cpt-{hierarchy-prefix}-cap-{slug}-v3`, etc.
 - [ ] Keep changelog of significant changes
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-versioning`
 
 #### Traceability
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-traceability`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -187,13 +187,13 @@ section = "traceability"
 - [ ] When capability fully implemented (all specs IMPLEMENTED) → mark capability `[x]`
 - [ ] When all capabilities `[x]` → product version complete
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-traceability`
 
 #### Constraints Integration
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-constraints`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -216,13 +216,13 @@ section = "constraints"
 - `cypilot validate` enforces headings scoping for ID definitions and references
 - `cypilot validate` enforces "checked ref implies checked def" consistency
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-constraints`
 
 #### Deliberate Omissions (MUST NOT HAVE)
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-deliberate_omissions`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -243,7 +243,7 @@ PRDs must NOT contain the following — report as violation if found:
 - **SEC-PRD-NO-001**: No Security Implementation Details (HIGH) — implementation belongs in DESIGN/code
 - **MAINT-PRD-NO-001**: No Code-Level Documentation (MEDIUM) — code docs belong in code
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-deliberate_omissions`
 
 ### Task Phases
 
@@ -251,7 +251,7 @@ PRDs must NOT contain the following — report as violation if found:
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:tasks-setup`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "tasks"
@@ -264,13 +264,13 @@ section = "setup"
 - [ ] Load `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/examples/example.md` for reference style
 - [ ] Read project config for ID prefix
 ```
-`@/cpt:rule`
+`@/cpt:rule:tasks-setup`
 
 #### Content Creation
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:tasks-content_creation`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "tasks"
@@ -288,13 +288,13 @@ section = "content_creation"
   - Non-Goals & Risks → how example scopes product (BIZ-PRD-008)
   - Assumptions → how example states assumptions (BIZ-PRD-007)
 ```
-`@/cpt:rule`
+`@/cpt:rule:tasks-content_creation`
 
 #### IDs & Structure
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:tasks-ids_and_structure`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "tasks"
@@ -307,13 +307,13 @@ section = "ids_and_structure"
 - [ ] Assign priorities based on business impact
 - [ ] Verify uniqueness with `cypilot list-ids`
 ```
-`@/cpt:rule`
+`@/cpt:rule:tasks-ids_and_structure`
 
 #### Quality Check
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:tasks-quality_check`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "tasks"
@@ -325,7 +325,7 @@ section = "quality_check"
 - [ ] Self-review against `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md` MUST HAVE items
 - [ ] Ensure no MUST NOT HAVE violations
 ```
-`@/cpt:rule`
+`@/cpt:rule:tasks-quality_check`
 
 ### Validation
 
@@ -333,7 +333,7 @@ section = "quality_check"
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:validation-structural`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
@@ -348,13 +348,13 @@ section = "structural"
   - No placeholders
   - No duplicate IDs
 ```
-`@/cpt:rule`
+`@/cpt:rule:validation-structural`
 
 #### Semantic Validation
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:validation-semantic`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
@@ -370,13 +370,13 @@ section = "semantic"
 - [ ] Compare content depth to `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/examples/example.md`
   - Flag significant quality gaps
 ```
-`@/cpt:rule`
+`@/cpt:rule:validation-semantic`
 
 #### Validation Report
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:validation-validation_report`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
@@ -395,13 +395,13 @@ Issues:
 - [SEVERITY] CHECKLIST-ID: Description
 ```
 ````
-`@/cpt:rule`
+`@/cpt:rule:validation-validation_report`
 
 #### Applicability Context
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:validation-applicability`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
@@ -436,13 +436,13 @@ For each major checklist category (BIZ, ARCH, SEC, TEST, MAINT), confirm:
 - [ ] Category is explicitly marked "Not applicable" with reasoning, OR
 - [ ] Category absence is reported as a violation (with applicability justification)
 ```
-`@/cpt:rule`
+`@/cpt:rule:validation-applicability`
 
 #### Review Priority
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:validation-review_priority`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
@@ -454,13 +454,13 @@ section = "review_priority"
 
 > **New in v1.2**: Safety was added as a distinct quality characteristic in ISO/IEC 25010:2023. Applicable for systems that could cause harm to people, property, or the environment.
 ```
-`@/cpt:rule`
+`@/cpt:rule:validation-review_priority`
 
 #### Report Format
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:validation-report_format`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
@@ -510,13 +510,13 @@ For each issue include:
 {Concrete fix}
 ```
 ````
-`@/cpt:rule`
+`@/cpt:rule:validation-report_format`
 
 #### Reporting Commitment
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:validation-reporting`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
@@ -533,13 +533,13 @@ section = "reporting"
 - [ ] I verified explicit handling for all major checklist categories
 - [ ] I am ready to iterate on the proposals and re-review after changes
 ```
-`@/cpt:rule`
+`@/cpt:rule:validation-reporting`
 
 #### PR Review Focus (Requirements)
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:validation-pr_review`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "validation"
@@ -558,7 +558,7 @@ When reviewing PRs that add or change PRD/requirements documents, additionally f
 - [ ] Split findings by checklist category and rate each 1-10
 - [ ] Ensure requirements are aligned with the project's existing architecture (see DESIGN artifacts)
 ```
-`@/cpt:rule`
+`@/cpt:rule:validation-pr_review`
 
 ### Error Handling
 
@@ -566,7 +566,7 @@ When reviewing PRs that add or change PRD/requirements documents, additionally f
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:error_handling-missing_dependencies`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "error_handling"
@@ -578,13 +578,13 @@ section = "missing_dependencies"
 - [ ] If `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md` cannot be loaded → warn user, skip semantic validation
 - [ ] If `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/examples/example.md` cannot be loaded → warn user, continue with reduced guidance
 ```
-`@/cpt:rule`
+`@/cpt:rule:error_handling-missing_dependencies`
 
 #### Missing Config
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:error_handling-missing_config`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "error_handling"
@@ -595,13 +595,13 @@ section = "missing_config"
 - [ ] If project config unavailable → use default project prefix `cpt-{dirname}`
 - [ ] Ask user to confirm or provide custom prefix
 ```
-`@/cpt:rule`
+`@/cpt:rule:error_handling-missing_config`
 
 #### Escalation
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:error_handling-escalation`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "error_handling"
@@ -614,7 +614,7 @@ section = "escalation"
 - [ ] Ask user when success criteria cannot be quantified without domain knowledge
 - [ ] Ask user when uncertain whether a category is truly N/A or just missing
 ```
-`@/cpt:rule`
+`@/cpt:rule:error_handling-escalation`
 
 ### Next Steps
 
@@ -622,7 +622,7 @@ Recommended actions after completing a PRD.
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:next_steps-options`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "next_steps"
@@ -635,7 +635,7 @@ section = "options"
 - [ ] PRD needs revision → continue editing PRD
 - [ ] Want checklist review only → `/cypilot-analyze semantic` — semantic validation
 ```
-`@/cpt:rule`
+`@/cpt:rule:next_steps-options`
 
 ---
 
@@ -875,7 +875,7 @@ Mark review as "PARTIAL" if not all domains completed.
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:biz-prd-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "BIZ-PRD-001"
@@ -898,11 +898,11 @@ kind = "must_have"
 - [ ] Capabilities list covers core value propositions
 - [ ] Business context is clear without requiring insider knowledge
 ```
-`@/cpt:check`
+`@/cpt:check:biz-prd-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:biz-prd-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "BIZ-PRD-002"
@@ -924,11 +924,11 @@ kind = "must_have"
 - [ ] Organizational constraints acknowledged
 - [ ] Market positioning context provided (if applicable)
 ```
-`@/cpt:check`
+`@/cpt:check:biz-prd-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:biz-prd-003`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "BIZ-PRD-003"
@@ -950,11 +950,11 @@ kind = "must_have"
 - [ ] Requirements are prioritized (implicit or explicit)
 - [ ] Dependencies between requirements are identified
 ```
-`@/cpt:check`
+`@/cpt:check:biz-prd-003`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:biz-prd-004`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "BIZ-PRD-004"
@@ -974,11 +974,11 @@ kind = "must_have"
 - [ ] Use cases cover the "happy path" and error scenarios
 - [ ] Use cases are realistic and actionable
 ```
-`@/cpt:check`
+`@/cpt:check:biz-prd-004`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:biz-prd-005`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "BIZ-PRD-005"
@@ -1000,11 +1000,11 @@ kind = "must_have"
 - [ ] Target values are realistic
 - [ ] Timeframes for achieving targets specified
 ```
-`@/cpt:check`
+`@/cpt:check:biz-prd-005`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:biz-prd-006`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "BIZ-PRD-006"
@@ -1022,11 +1022,11 @@ kind = "must_have"
 - [ ] Acronyms are expanded on first use
 - [ ] Terms are used consistently (no synonyms that change meaning)
 ```
-`@/cpt:check`
+`@/cpt:check:biz-prd-006`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:biz-prd-007`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "BIZ-PRD-007"
@@ -1044,11 +1044,11 @@ kind = "must_have"
 - [ ] Open questions are listed with owners and desired resolution time
 - [ ] Dependencies on external teams/vendors are called out
 ```
-`@/cpt:check`
+`@/cpt:check:biz-prd-007`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:biz-prd-008`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "BIZ-PRD-008"
@@ -1065,11 +1065,11 @@ kind = "must_have"
 - [ ] Major risks/uncertainties are listed
 - [ ] Explicit non-goals/out-of-scope items are documented
 ```
-`@/cpt:check`
+`@/cpt:check:biz-prd-008`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-prd-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-PRD-001"
@@ -1091,11 +1091,11 @@ kind = "must_have"
 - [ ] Technology constraints acknowledged at high level
 - [ ] No implementation decisions embedded in requirements
 ```
-`@/cpt:check`
+`@/cpt:check:arch-prd-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-prd-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-PRD-002"
@@ -1117,11 +1117,11 @@ kind = "must_have"
 - [ ] Requirements support incremental delivery
 - [ ] Dependencies don't create circular coupling
 ```
-`@/cpt:check`
+`@/cpt:check:arch-prd-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-prd-003`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-PRD-003"
@@ -1143,11 +1143,11 @@ kind = "must_have"
 - [ ] Growth scenarios considered in requirements
 - [ ] Performance expectations stated at business level
 ```
-`@/cpt:check`
+`@/cpt:check:arch-prd-003`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-prd-004`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-PRD-004"
@@ -1169,11 +1169,11 @@ kind = "must_have"
 - [ ] System actor availability requirements stated
 - [ ] Data exchange expectations documented
 ```
-`@/cpt:check`
+`@/cpt:check:arch-prd-004`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-prd-005`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-PRD-005"
@@ -1197,11 +1197,11 @@ kind = "must_have"
 - [ ] Hardware/software environment compatibility stated
 - [ ] Backward compatibility requirements documented (if applicable)
 ```
-`@/cpt:check`
+`@/cpt:check:arch-prd-005`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:sec-prd-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEC-PRD-001"
@@ -1223,11 +1223,11 @@ kind = "must_have"
 - [ ] Session management expectations stated
 - [ ] Password/credential policies referenced
 ```
-`@/cpt:check`
+`@/cpt:check:sec-prd-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:sec-prd-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEC-PRD-002"
@@ -1249,11 +1249,11 @@ kind = "must_have"
 - [ ] Administrative vs user roles separated
 - [ ] Delegation/impersonation needs captured
 ```
-`@/cpt:check`
+`@/cpt:check:sec-prd-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:sec-prd-003`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEC-PRD-003"
@@ -1275,11 +1275,11 @@ kind = "must_have"
 - [ ] Data deletion/anonymization needs captured
 - [ ] Cross-border data transfer considerations noted
 ```
-`@/cpt:check`
+`@/cpt:check:sec-prd-003`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:sec-prd-004`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEC-PRD-004"
@@ -1301,11 +1301,11 @@ kind = "must_have"
 - [ ] Forensic investigation support requirements noted
 - [ ] Non-repudiation requirements documented (ISO 25010 §4.2.6.6)
 ```
-`@/cpt:check`
+`@/cpt:check:sec-prd-004`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:sec-prd-005`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEC-PRD-005"
@@ -1330,11 +1330,11 @@ kind = "must_have"
 - [ ] Privacy by default requirements stated (most privacy-protective settings as default)
 - [ ] Pseudonymization/anonymization requirements documented where applicable
 ```
-`@/cpt:check`
+`@/cpt:check:sec-prd-005`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:safe-prd-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SAFE-PRD-001"
@@ -1356,11 +1356,11 @@ kind = "must_have"
 - [ ] Risk levels assessed for identified hazards
 - [ ] User actions that could lead to harm documented
 ```
-`@/cpt:check`
+`@/cpt:check:safe-prd-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:safe-prd-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SAFE-PRD-002"
@@ -1382,11 +1382,11 @@ kind = "must_have"
 - [ ] Safe integration requirements with other systems documented
 - [ ] Human override capabilities defined where needed
 ```
-`@/cpt:check`
+`@/cpt:check:safe-prd-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:perf-prd-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "PERF-PRD-001"
@@ -1408,11 +1408,11 @@ kind = "must_have"
 - [ ] Search/query performance expectations stated
 - [ ] Expectations are realistic for the problem domain
 ```
-`@/cpt:check`
+`@/cpt:check:perf-prd-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:perf-prd-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "PERF-PRD-002"
@@ -1434,11 +1434,11 @@ kind = "must_have"
 - [ ] Sustained load expectations documented
 - [ ] Growth projections factored in
 ```
-`@/cpt:check`
+`@/cpt:check:perf-prd-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:perf-prd-003`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "PERF-PRD-003"
@@ -1458,11 +1458,11 @@ kind = "must_have"
 - [ ] Burst scenarios documented
 - [ ] Historical growth data referenced (if available)
 ```
-`@/cpt:check`
+`@/cpt:check:perf-prd-003`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:rel-prd-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "REL-PRD-001"
@@ -1484,11 +1484,11 @@ kind = "must_have"
 - [ ] Geographic availability requirements stated
 - [ ] Degraded mode expectations documented
 ```
-`@/cpt:check`
+`@/cpt:check:rel-prd-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:rel-prd-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "REL-PRD-002"
@@ -1510,11 +1510,11 @@ kind = "must_have"
 - [ ] Disaster recovery expectations stated
 - [ ] Business continuity requirements captured
 ```
-`@/cpt:check`
+`@/cpt:check:rel-prd-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:rel-prd-003`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "REL-PRD-003"
@@ -1536,11 +1536,11 @@ kind = "must_have"
 - [ ] Retry/recovery user experience documented
 - [ ] Support escalation paths identified
 ```
-`@/cpt:check`
+`@/cpt:check:rel-prd-003`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:ux-prd-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "UX-PRD-001"
@@ -1562,11 +1562,11 @@ kind = "must_have"
 - [ ] Discoverability requirements for new users stated (ISO 25010 §4.2.4.3 Learnability)
 - [ ] User satisfaction targets defined (ISO 9241-11: satisfaction)
 ```
-`@/cpt:check`
+`@/cpt:check:ux-prd-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:ux-prd-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "UX-PRD-002"
@@ -1588,11 +1588,11 @@ kind = "must_have"
 - [ ] Screen reader compatibility requirements stated (WCAG 4.1.2)
 - [ ] Color/contrast requirements noted (WCAG 1.4.3, 1.4.11)
 ```
-`@/cpt:check`
+`@/cpt:check:ux-prd-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:ux-prd-003`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "UX-PRD-003"
@@ -1612,11 +1612,11 @@ kind = "must_have"
 - [ ] RTL language support requirements noted
 - [ ] Cultural considerations documented
 ```
-`@/cpt:check`
+`@/cpt:check:ux-prd-003`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:ux-prd-004`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "UX-PRD-004"
@@ -1638,11 +1638,11 @@ kind = "must_have"
 - [ ] Offline capability requirements stated
 - [ ] Responsive design requirements documented
 ```
-`@/cpt:check`
+`@/cpt:check:ux-prd-004`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:ux-prd-005`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "UX-PRD-005"
@@ -1666,11 +1666,11 @@ kind = "must_have"
 - [ ] Cultural sensitivity requirements stated (if applicable)
 - [ ] Design for neurodiverse users considered (if applicable)
 ```
-`@/cpt:check`
+`@/cpt:check:ux-prd-005`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:maint-prd-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "MAINT-PRD-001"
@@ -1692,11 +1692,11 @@ kind = "must_have"
 - [ ] Training material requirements documented
 - [ ] Help system requirements captured
 ```
-`@/cpt:check`
+`@/cpt:check:maint-prd-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:maint-prd-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "MAINT-PRD-002"
@@ -1716,11 +1716,11 @@ kind = "must_have"
 - [ ] Diagnostic capability requirements stated
 - [ ] Troubleshooting support requirements documented
 ```
-`@/cpt:check`
+`@/cpt:check:maint-prd-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:compl-prd-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "COMPL-PRD-001"
@@ -1742,11 +1742,11 @@ kind = "must_have"
 - [ ] Reporting requirements captured
 - [ ] Data sovereignty requirements stated (GDPR Art. 44-49)
 ```
-`@/cpt:check`
+`@/cpt:check:compl-prd-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:compl-prd-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "COMPL-PRD-002"
@@ -1768,11 +1768,11 @@ kind = "must_have"
 - [ ] Interoperability standards documented
 - [ ] Security standards referenced (OWASP ASVS, NIST 800-53)
 ```
-`@/cpt:check`
+`@/cpt:check:compl-prd-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:compl-prd-003`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "COMPL-PRD-003"
@@ -1794,11 +1794,11 @@ kind = "must_have"
 - [ ] Data subject rights requirements stated (access, rectification, erasure, portability)
 - [ ] Contractual obligations documented
 ```
-`@/cpt:check`
+`@/cpt:check:compl-prd-003`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:data-prd-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "DATA-PRD-001"
@@ -1820,11 +1820,11 @@ kind = "must_have"
 - [ ] Third-party data usage requirements stated (GDPR Art. 28)
 - [ ] User-generated content ownership defined
 ```
-`@/cpt:check`
+`@/cpt:check:data-prd-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:data-prd-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "DATA-PRD-002"
@@ -1846,11 +1846,11 @@ kind = "must_have"
 - [ ] Data validation requirements stated
 - [ ] Data cleansing requirements documented
 ```
-`@/cpt:check`
+`@/cpt:check:data-prd-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:data-prd-003`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "DATA-PRD-003"
@@ -1872,11 +1872,11 @@ kind = "must_have"
 - [ ] Data migration requirements stated
 - [ ] Historical data access requirements documented
 ```
-`@/cpt:check`
+`@/cpt:check:data-prd-003`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:int-prd-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "INT-PRD-001"
@@ -1898,11 +1898,11 @@ kind = "must_have"
 - [ ] Integration availability requirements stated
 - [ ] Fallback requirements for integration failures documented
 ```
-`@/cpt:check`
+`@/cpt:check:int-prd-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:int-prd-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "INT-PRD-002"
@@ -1924,11 +1924,11 @@ kind = "must_have"
 - [ ] Rate limiting expectations documented
 - [ ] API documentation requirements stated (OpenAPI/Swagger)
 ```
-`@/cpt:check`
+`@/cpt:check:int-prd-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:ops-prd-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "OPS-PRD-001"
@@ -1950,11 +1950,11 @@ kind = "must_have"
 - [ ] Blue/green or canary requirements stated
 - [ ] Environment parity requirements documented
 ```
-`@/cpt:check`
+`@/cpt:check:ops-prd-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:ops-prd-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "OPS-PRD-002"
@@ -1976,11 +1976,11 @@ kind = "must_have"
 - [ ] Incident response requirements stated (NIST 800-53 IR family)
 - [ ] Capacity monitoring requirements documented
 ```
-`@/cpt:check`
+`@/cpt:check:ops-prd-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:test-prd-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "TEST-PRD-001"
@@ -2002,11 +2002,11 @@ kind = "must_have"
 - [ ] Edge cases are testable
 - [ ] Negative test cases implied
 ```
-`@/cpt:check`
+`@/cpt:check:test-prd-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:test-prd-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "TEST-PRD-002"
@@ -2028,11 +2028,11 @@ kind = "must_have"
 - [ ] Requirements avoid compound statements (multiple "and"s)
 - [ ] Requirements can be independently verified
 ```
-`@/cpt:check`
+`@/cpt:check:test-prd-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:doc-prd-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "DOC-PRD-001"
@@ -2050,11 +2050,11 @@ kind = "must_have"
 - [ ] No silent omissions — every major checklist area is either present or has a documented reason for absence
 - [ ] Reviewer can distinguish "author considered and excluded" from "author forgot"
 ```
-`@/cpt:check`
+`@/cpt:check:doc-prd-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-prd-no-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-PRD-NO-001"
@@ -2078,11 +2078,11 @@ kind = "must_not_have"
 
 **Where it belongs**: `DESIGN` (Overall Design)
 ```
-`@/cpt:check`
+`@/cpt:check:arch-prd-no-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:arch-prd-no-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "ARCH-PRD-NO-002"
@@ -2105,11 +2105,11 @@ kind = "must_not_have"
 
 **Where it belongs**: `ADR` (Architecture Decision Records)
 ```
-`@/cpt:check`
+`@/cpt:check:arch-prd-no-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:biz-prd-no-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "BIZ-PRD-NO-001"
@@ -2132,11 +2132,11 @@ kind = "must_not_have"
 
 **Where it belongs**: Project management tools (Jira, Linear, etc.) or Spec DESIGN
 ```
-`@/cpt:check`
+`@/cpt:check:biz-prd-no-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:biz-prd-no-002`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "BIZ-PRD-NO-002"
@@ -2159,11 +2159,11 @@ kind = "must_not_have"
 
 **Where it belongs**: `Spec DESIGN` (Spec Design)
 ```
-`@/cpt:check`
+`@/cpt:check:biz-prd-no-002`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:data-prd-no-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "DATA-PRD-NO-001"
@@ -2186,11 +2186,11 @@ kind = "must_not_have"
 
 **Where it belongs**: Architecture and design documentation (domain model and schemas)
 ```
-`@/cpt:check`
+`@/cpt:check:data-prd-no-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:int-prd-no-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "INT-PRD-NO-001"
@@ -2213,11 +2213,11 @@ kind = "must_not_have"
 
 **Where it belongs**: API contract documentation (e.g., OpenAPI) or architecture and design documentation
 ```
-`@/cpt:check`
+`@/cpt:check:int-prd-no-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:test-prd-no-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "TEST-PRD-NO-001"
@@ -2239,11 +2239,11 @@ kind = "must_not_have"
 
 **Where it belongs**: Test plans, test suites, or QA documentation
 ```
-`@/cpt:check`
+`@/cpt:check:test-prd-no-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:ops-prd-no-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "OPS-PRD-NO-001"
@@ -2266,11 +2266,11 @@ kind = "must_not_have"
 
 **Where it belongs**: Infrastructure-as-code repositories or operations/infrastructure documentation
 ```
-`@/cpt:check`
+`@/cpt:check:ops-prd-no-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:sec-prd-no-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "SEC-PRD-NO-001"
@@ -2293,11 +2293,11 @@ kind = "must_not_have"
 
 **Where it belongs**: Security architecture documentation or ADRs
 ```
-`@/cpt:check`
+`@/cpt:check:sec-prd-no-001`
 
 > **`@cpt:check`** — Checklist item. TOML defines id/domain/severity; markdown defines the check criteria. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/checklist.md`.
 
-`@cpt:check`
+`@cpt:check:maint-prd-no-001`
 ```toml
 # Unique check ID (format: {DOMAIN}-{ARTIFACT}-{NNN})
 id = "MAINT-PRD-NO-001"
@@ -2319,7 +2319,7 @@ kind = "must_not_have"
 
 **Where it belongs**: Source code, README files, or developer documentation
 ```
-`@/cpt:check`
+`@/cpt:check:maint-prd-no-001`
 
 
 ---
@@ -2335,7 +2335,7 @@ acceptance criteria, dependencies, assumptions, and risks.
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-h1-title`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-h1-title"
@@ -2358,13 +2358,13 @@ description = "PRD document title (H1)."
 # Example heading texts showing correct usage
 examples = ["# PRD — TaskFlow"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-h1-title`
 
 ### Overview
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-overview`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-overview"
@@ -2383,11 +2383,11 @@ description = "High-level overview of the product and problem."
 # Example heading texts showing correct usage
 examples = ["## 1. Overview"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-overview`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-overview-purpose`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-overview-purpose"
@@ -2406,19 +2406,19 @@ description = "Purpose of the PRD and the product."
 # Example heading texts showing correct usage
 examples = ["### 1.1 Purpose"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-overview-purpose`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:prd-overview-purpose`
 ```markdown
 {1-2 paragraphs: What is this system/module and what problem does it solve? What are the key features?}
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:prd-overview-purpose`
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-semantic`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -2432,19 +2432,19 @@ section = "semantic"
   - VALID: "Enables developers to validate artifacts against templates" (explains purpose)
   - INVALID: "A tool for Cypilot" (doesn't explain why it matters)
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-semantic`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:prd-overview-purpose`
 ```markdown
 TaskFlow is a lightweight task management system for small teams, enabling task creation, assignment, and progress tracking with real-time notifications.
 ```
-`@/cpt:example`
+`@/cpt:example:prd-overview-purpose`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-overview-background`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-overview-background"
@@ -2463,19 +2463,19 @@ description = "Background and problem statement."
 # Example heading texts showing correct usage
 examples = ["### 1.2 Background / Problem Statement"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-overview-background`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:prd-overview-background`
 ```markdown
 {2-3 paragraphs: Context, current pain points, why this capability is needed now.}
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:prd-overview-background`
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-semantic-1`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -2486,11 +2486,11 @@ section = "semantic"
 - [ ] Background MUST describe current state and specific pain points
 - [ ] MUST include target users and key problems solved
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-semantic-1`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:prd-overview-background`
 ```markdown
 The system focuses on simplicity and speed, allowing teams to manage their daily work without the overhead of complex project management tools. TaskFlow bridges the gap between simple to-do lists and enterprise-grade solutions.
 
@@ -2506,11 +2506,11 @@ The system focuses on simplicity and speed, allowing teams to manage their daily
 - Lack of visibility into team workload
 - Missing deadline notifications
 ```
-`@/cpt:example`
+`@/cpt:example:prd-overview-background`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-overview-goals`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-overview-goals"
@@ -2529,20 +2529,20 @@ description = "Business outcomes and goals."
 # Example heading texts showing correct usage
 examples = ["### 1.3 Goals (Business Outcomes)"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-overview-goals`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:prd-overview-goals`
 ```markdown
 - {Goal 1: measurable business outcome}
 - {Goal 2: measurable business outcome}
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:prd-overview-goals`
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-semantic-2`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -2555,11 +2555,11 @@ section = "semantic"
   - INVALID: "Improve validation speed" (no baseline, no target)
 - [ ] Success criteria MUST include baseline, target, and timeframe
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-semantic-2`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:prd-overview-goals`
 ```markdown
 **Success Criteria**:
 
@@ -2573,11 +2573,11 @@ section = "semantic"
 - Track task status and progress in real time
 - Send notifications for deadlines and status changes
 ```
-`@/cpt:example`
+`@/cpt:example:prd-overview-goals`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-overview-glossary`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-overview-glossary"
@@ -2596,21 +2596,21 @@ description = "Definitions of key terms."
 # Example heading texts showing correct usage
 examples = ["### 1.4 Glossary"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-overview-glossary`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:prd-overview-glossary`
 ```markdown
 | Term | Definition |
 |------|------------|
 | {Term} | {Definition} |
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:prd-overview-glossary`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:prd-overview-glossary`
 ```markdown
 | Term | Definition |
 |------|------------|
@@ -2618,7 +2618,7 @@ examples = ["### 1.4 Glossary"]
 | Assignment | Mapping a task to an assignee (team member) |
 | Notification | An alert emitted when tasks change or become overdue |
 ```
-`@/cpt:example`
+`@/cpt:example:prd-overview-glossary`
 
 ### Actors
 
@@ -2626,7 +2626,7 @@ Human and system actors that interact with the module.
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-actors`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-actors"
@@ -2645,11 +2645,11 @@ description = "Actors (human and system) that interact with the product."
 # Example heading texts showing correct usage
 examples = ["## 2. Actors"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-actors`
 
 > **`@cpt:id`** — Identifier constraint. Defines an ID kind (template, references, task/priority rules). Output: `constraints.toml`.
 
-`@cpt:id`
+`@cpt:id:actor`
 ```toml
 kind = "actor"
 name = "Actor"
@@ -2662,19 +2662,19 @@ examples = ["cpt-cypilot-actor-ai-assistant", "cpt-ex-ovwa-actor-user", "cpt-ex-
 to_code = false              # true = ID is expected to appear in code via @cpt-* markers
 headings = ["prd-actors"]  # heading constraint IDs where this identifier must be placed
 ```
-`@/cpt:id`
+`@/cpt:id:actor`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:prd-actors`
 ```markdown
 > **Note**: Stakeholder needs are managed at project/task level by steering committee. Document **actors** (users, systems) that interact with this module.
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:prd-actors`
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-semantic-3`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -2688,11 +2688,11 @@ section = "semantic"
 - [ ] Each actor MUST have defined capabilities/needs
 - [ ] Actor IDs follow: `cpt-{system}-actor-{slug}`
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-semantic-3`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-actors-human`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-actors-human"
@@ -2711,11 +2711,11 @@ description = "Human actors."
 # Example heading texts showing correct usage
 examples = ["### 2.1 Human Actors"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-actors-human`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-actor-entry`
 ```toml
 id = "prd-actor-entry"
 level = 4
@@ -2726,22 +2726,22 @@ template = "{Actor Name}"
 description = "Individual human actor entry."
 examples = ["#### Team Member", "#### Team Lead"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-actor-entry`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:prd-actor-entry`
 ```markdown
 **ID**: `cpt-{system}-actor-{slug}`
 
 **Role**: {Description of what this actor does and their relationship to the system.}
 **Needs**: {What this actor needs from the system.}
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:prd-actor-entry`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:prd-actor-entry`
 ```markdown
 **ID**: `cpt-ex-task-flow-actor-member`
 
@@ -2753,11 +2753,11 @@ examples = ["#### Team Member", "#### Team Lead"]
 
 **Role**: Assigns tasks, sets priorities, and monitors team workload.
 ```
-`@/cpt:example`
+`@/cpt:example:prd-actor-entry`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-actors-system`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-actors-system"
@@ -2776,11 +2776,11 @@ description = "System and external actors."
 # Example heading texts showing correct usage
 examples = ["### 2.2 System Actors"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-actors-system`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-actor-system-entry`
 ```toml
 id = "prd-actor-system-entry"
 level = 4
@@ -2791,33 +2791,33 @@ template = "{System Actor Name}"
 description = "Individual system actor entry."
 examples = ["#### Notification Service", "#### External Auth Provider"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-actor-system-entry`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:prd-actor-system-entry`
 ```markdown
 **ID**: `cpt-{system}-actor-{slug}`
 
 **Role**: {Description of what this system actor does (external service, scheduler, etc.)}
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:prd-actor-system-entry`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:prd-actor-system-entry`
 ```markdown
 **ID**: `cpt-ex-task-flow-actor-notifier`
 
 **Role**: Sends alerts for due dates, assignments, and status changes.
 ```
-`@/cpt:example`
+`@/cpt:example:prd-actor-system-entry`
 
 ### Operational Concept & Environment
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-operational-concept`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-operational-concept"
@@ -2836,19 +2836,19 @@ description = "Operational concept and environment constraints."
 # Example heading texts showing correct usage
 examples = ["## 3. Operational Concept & Environment"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-operational-concept`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:prd-operational-concept`
 ```markdown
 > **Note**: Project-wide runtime, OS, architecture, lifecycle policy, and integration patterns defined in root PRD. Document only module-specific deviations here. **Delete this section if no special constraints.**
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:prd-operational-concept`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-operational-concept-constraints`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-operational-concept-constraints"
@@ -2867,11 +2867,11 @@ description = "Module-specific environment constraints beyond project defaults."
 # Example heading texts showing correct usage
 examples = ["### 3.1 Module-Specific Environment Constraints"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-operational-concept-constraints`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:prd-operational-concept-constraints`
 ```markdown
 {Only if this module has constraints beyond project defaults:}
 
@@ -2879,15 +2879,15 @@ examples = ["### 3.1 Module-Specific Environment Constraints"]
 - {Constraint 2, e.g., "Incompatible with async runtime due to Y"}
 - {Constraint 3, e.g., "Requires external dependency: Z library v2.0+"}
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:prd-operational-concept-constraints`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:prd-operational-concept-constraints`
 ```markdown
 None.
 ```
-`@/cpt:example`
+`@/cpt:example:prd-operational-concept-constraints`
 
 ### Scope
 
@@ -2895,7 +2895,7 @@ In-scope and out-of-scope boundaries.
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-scope`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-scope"
@@ -2914,11 +2914,11 @@ description = "Scope of the product and release."
 # Example heading texts showing correct usage
 examples = ["## 4. Scope"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-scope`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-scope-in`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-scope-in"
@@ -2937,30 +2937,30 @@ description = "In-scope items."
 # Example heading texts showing correct usage
 examples = ["### 4.1 In Scope"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-scope-in`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:prd-scope-in`
 ```markdown
 - {Capability or feature that IS included}
 - {Another capability}
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:prd-scope-in`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:prd-scope-in`
 ```markdown
 - Task creation, assignment, and lifecycle tracking
 - Real-time updates for task status changes
 - Deadline notifications
 ```
-`@/cpt:example`
+`@/cpt:example:prd-scope-in`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-scope-out`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-scope-out"
@@ -2979,20 +2979,20 @@ description = "Out-of-scope items."
 # Example heading texts showing correct usage
 examples = ["### 4.2 Out of Scope"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-scope-out`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:prd-scope-out`
 ```markdown
 - {Capability explicitly NOT included in this PRD}
 - {Future consideration not addressed now}
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:prd-scope-out`
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-semantic-4`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -3002,22 +3002,22 @@ section = "semantic"
 ```markdown
 - [ ] Non-goals MUST explicitly state what product does NOT do
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-semantic-4`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:prd-scope-out`
 ```markdown
 - Time tracking, billing, or invoicing
 - Cross-organization collaboration
 ```
-`@/cpt:example`
+`@/cpt:example:prd-scope-out`
 
 ### Functional Requirements
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-fr`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-fr"
@@ -3036,11 +3036,11 @@ description = "Functional requirements section."
 # Example heading texts showing correct usage
 examples = ["## 5. Functional Requirements"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-fr`
 
 > **`@cpt:id`** — Identifier constraint. Defines an ID kind (template, references, task/priority rules). Output: `constraints.toml`.
 
-`@cpt:id`
+`@cpt:id:fr`
 ```toml
 kind = "fr"
 name = "Functional Requirement"
@@ -3069,21 +3069,21 @@ headings = ["design-arch-overview-drivers"]  # target heading constraint in DESI
 # priority: omitted (optional) # true = ref must carry priority | false = prohibited | omit = optional
 headings = ["feature-context-purpose"]  # target heading constraint in FEATURE
 ```
-`@/cpt:id`
+`@/cpt:id:fr`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:prd-fr`
 ```markdown
 > **Testing strategy**: All requirements verified via automated tests (unit, integration, e2e) targeting 90%+ code coverage unless otherwise specified. Document verification method only for non-test approaches (analysis, inspection, demonstration).
 
 Functional requirements define WHAT the system must do. Group by feature area or priority tier.
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:prd-fr`
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-semantic-5`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -3102,11 +3102,11 @@ section = "semantic"
 - [ ] All requirements verified via automated tests (unit, integration, e2e) targeting 90%+ code coverage unless otherwise specified
 - [ ] Document verification method only for non-test approaches (analysis, inspection, demonstration)
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-semantic-5`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-fr-group`
 ```toml
 id = "prd-fr-group"
 level = 3
@@ -3117,11 +3117,11 @@ template = "{Feature Area / Priority Tier}"
 description = "Feature area or priority tier grouping."
 examples = []
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-fr-group`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-fr-entry`
 ```toml
 id = "prd-fr-entry"
 level = 4
@@ -3132,11 +3132,11 @@ template = "{Requirement Name}"
 description = "Individual functional requirement entry."
 examples = []
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-fr-entry`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:prd-fr-entry`
 ```markdown
 - [ ] `p1` - **ID**: `cpt-{system}-fr-{slug}`
 
@@ -3150,11 +3150,11 @@ The system **MUST** {do something specific and verifiable}.
 
 **Acceptance Evidence** (optional): {Only if non-obvious: specific test suite path, analysis report, review checklist}
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:prd-fr-entry`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:prd-fr-entry`
 ```markdown
 ### FR-001 Task Management
 
@@ -3176,13 +3176,13 @@ The system MUST send push notifications for task assignments. The system MUST se
 
 `cpt-ex-task-flow-actor-notifier`, `cpt-ex-task-flow-actor-member`
 ```
-`@/cpt:example`
+`@/cpt:example:prd-fr-entry`
 
 ### Non-Functional Requirements
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-nfr`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-nfr"
@@ -3201,11 +3201,11 @@ description = "Non-functional requirements section."
 # Example heading texts showing correct usage
 examples = ["## 6. Non-Functional Requirements"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-nfr`
 
 > **`@cpt:id`** — Identifier constraint. Defines an ID kind (template, references, task/priority rules). Output: `constraints.toml`.
 
-`@cpt:id`
+`@cpt:id:nfr`
 ```toml
 kind = "nfr"
 name = "Non-functional Requirement"
@@ -3234,13 +3234,13 @@ headings = ["design-arch-overview-drivers"]  # target heading constraint in DESI
 # priority: omitted (optional) # true = ref must carry priority | false = prohibited | omit = optional
 headings = ["feature-context-purpose"]  # target heading constraint in FEATURE
 ```
-`@/cpt:id`
+`@/cpt:id:nfr`
 
 `@/cpt:prompt`
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-semantic-6`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -3251,11 +3251,11 @@ section = "semantic"
 - [ ] NFRs MUST have measurable thresholds with units and conditions
 - [ ] NFR exclusions MUST have explicit reasoning
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-semantic-6`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-nfr-inclusions`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-nfr-inclusions"
@@ -3274,19 +3274,19 @@ description = "Non-functional requirements that deviate from or extend project d
 # Example heading texts showing correct usage
 examples = ["### 6.1 Module-Specific NFRs"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-nfr-inclusions`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:prd-nfr-inclusions`
 ```markdown
 {Only include this section if there are NFRs that deviate from or extend project defaults.}
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:prd-nfr-inclusions`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-nfr-entry`
 ```toml
 id = "prd-nfr-entry"
 level = 4
@@ -3297,11 +3297,11 @@ template = "{NFR Name}"
 description = "Individual non-functional requirement entry."
 examples = ["#### Security", "#### Performance"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-nfr-entry`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:prd-nfr-entry`
 ```markdown
 - [ ] `p1` - **ID**: `cpt-{system}-nfr-{slug}`
 
@@ -3313,11 +3313,11 @@ The system **MUST** {measurable NFR with specific thresholds, e.g., "respond wit
 
 **Verification Method** (optional): {Only if non-standard approach needed}
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:prd-nfr-entry`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:prd-nfr-entry`
 ```markdown
 - [ ] `p1` - **ID**: `cpt-ex-task-flow-nfr-security`
 
@@ -3332,11 +3332,11 @@ The system **MUST** {measurable NFR with specific thresholds, e.g., "respond wit
 - Task list SHOULD load within 500ms for teams under 100 tasks
 - Real-time updates SHOULD propagate within 2 seconds
 ```
-`@/cpt:example`
+`@/cpt:example:prd-nfr-entry`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-nfr-exclusions`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-nfr-exclusions"
@@ -3355,21 +3355,21 @@ description = "Explicit non-functional requirement exclusions."
 # Example heading texts showing correct usage
 examples = ["### 6.2 NFR Exclusions"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-nfr-exclusions`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:prd-nfr-exclusions`
 ```markdown
 {Document any project-default NFRs that do NOT apply to this module}
 
 - {Default NFR name}: {Reason for exclusion}
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:prd-nfr-exclusions`
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-semantic-7`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -3379,17 +3379,17 @@ section = "semantic"
 ```markdown
 - [ ] Intentional exclusions MUST list N/A checklist categories with reasoning
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-semantic-7`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:prd-nfr-exclusions`
 ```markdown
 - **Accessibility** (UX-PRD-002): Not applicable — MVP targets internal teams with standard desktop browsers
 - **Internationalization** (UX-PRD-003): Not applicable — English-only for initial release
 - **Regulatory Compliance** (COMPL-PRD-001/002/003): Not applicable — No PII or regulated data in MVP scope
 ```
-`@/cpt:example`
+`@/cpt:example:prd-nfr-exclusions`
 
 ### Public Interfaces
 
@@ -3397,7 +3397,7 @@ API surface and external integration contracts.
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-public-interfaces`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-public-interfaces"
@@ -3416,11 +3416,11 @@ description = "Public library interfaces and integration contracts."
 # Example heading texts showing correct usage
 examples = ["## 7. Public Library Interfaces"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-public-interfaces`
 
 > **`@cpt:id`** — Identifier constraint. Defines an ID kind (template, references, task/priority rules). Output: `constraints.toml`.
 
-`@cpt:id`
+`@cpt:id:interface`
 ```toml
 kind = "interface"
 name = "Public Interface"
@@ -3439,11 +3439,11 @@ coverage = true            # true = must reference | false = referencing prohibi
 # priority: omitted (optional) # true = ref must carry priority | false = prohibited | omit = optional
 headings = ["design-tech-arch-api-contracts"]  # target heading constraint in DESIGN
 ```
-`@/cpt:id`
+`@/cpt:id:interface`
 
 > **`@cpt:id`** — Identifier constraint. Defines an ID kind (template, references, task/priority rules). Output: `constraints.toml`.
 
-`@cpt:id`
+`@cpt:id:contract`
 ```toml
 kind = "contract"
 name = "Integration Contract"
@@ -3462,19 +3462,19 @@ coverage = true            # true = must reference | false = referencing prohibi
 # priority: omitted (optional) # true = ref must carry priority | false = prohibited | omit = optional
 headings = ["design-tech-arch-api-contracts"]  # target heading constraint in DESIGN
 ```
-`@/cpt:id`
+`@/cpt:id:contract`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:prd-public-interfaces`
 ```markdown
 Define the public API surface, versioning/compatibility guarantees, and integration contracts provided by this library.
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:prd-public-interfaces`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-public-interfaces-api`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-public-interfaces-api"
@@ -3493,11 +3493,11 @@ description = "Public API surface."
 # Example heading texts showing correct usage
 examples = ["### 7.1 Public API Surface"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-public-interfaces-api`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-interface-entry`
 ```toml
 id = "prd-interface-entry"
 level = 4
@@ -3508,11 +3508,11 @@ template = "{Interface Name}"
 description = "Individual public interface entry."
 examples = []
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-interface-entry`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:prd-interface-entry`
 ```markdown
 - [ ] `p1` - **ID**: `cpt-{system}-interface-{slug}`
 
@@ -3524,19 +3524,19 @@ examples = []
 
 **Breaking Change Policy**: {e.g., Major version bump required}
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:prd-interface-entry`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:prd-interface-entry`
 ```markdown
 None.
 ```
-`@/cpt:example`
+`@/cpt:example:prd-interface-entry`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-public-interfaces-external-contracts`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-public-interfaces-external-contracts"
@@ -3555,19 +3555,19 @@ description = "External integration contracts."
 # Example heading texts showing correct usage
 examples = ["### 7.2 External Integration Contracts"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-public-interfaces-external-contracts`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:prd-public-interfaces-external-contracts`
 ```markdown
 Contracts this library expects from external systems or provides to downstream clients.
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:prd-public-interfaces-external-contracts`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-contract-entry`
 ```toml
 id = "prd-contract-entry"
 level = 4
@@ -3578,11 +3578,11 @@ template = "{Contract Name}"
 description = "Individual external integration contract entry."
 examples = []
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-contract-entry`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:prd-contract-entry`
 ```markdown
 - [ ] `p2` - **ID**: `cpt-{system}-contract-{slug}`
 
@@ -3592,21 +3592,21 @@ examples = []
 
 **Compatibility**: {Backward/forward compatibility guarantees}
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:prd-contract-entry`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:prd-contract-entry`
 ```markdown
 None.
 ```
-`@/cpt:example`
+`@/cpt:example:prd-contract-entry`
 
 ### Use Cases
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-use-cases`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-use-cases"
@@ -3625,11 +3625,11 @@ description = "Use cases section."
 # Example heading texts showing correct usage
 examples = ["## 8. Use Cases"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-use-cases`
 
 > **`@cpt:id`** — Identifier constraint. Defines an ID kind (template, references, task/priority rules). Output: `constraints.toml`.
 
-`@cpt:id`
+`@cpt:id:usecase`
 ```toml
 kind = "usecase"
 name = "Use Case"
@@ -3653,19 +3653,19 @@ headings = ["design-tech-arch-seq"]  # target heading constraint in DESIGN
 # priority: omitted (optional) # true = ref must carry priority | false = prohibited | omit = optional
 headings = ["feature-actor-flow"]  # target heading constraint in FEATURE
 ```
-`@/cpt:id`
+`@/cpt:id:usecase`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:prd-use-cases`
 ```markdown
 Optional: Include when interaction flows add clarity beyond requirement statements.
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:prd-use-cases`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-usecase-entry`
 ```toml
 id = "prd-usecase-entry"
 level = 4
@@ -3676,11 +3676,11 @@ template = "{Use Case Name}"
 description = "Individual use case entry."
 examples = []
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-usecase-entry`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:prd-usecase-entry`
 ```markdown
 - [ ] `p2` - **ID**: `cpt-{system}-usecase-{slug}`
 
@@ -3699,11 +3699,11 @@ examples = []
 **Alternative Flows**:
 - **{Condition}**: {What happens instead}
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:prd-usecase-entry`
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-semantic-8`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -3715,11 +3715,11 @@ section = "semantic"
 - [ ] Use cases MUST include alternative flows for error scenarios
 - [ ] Use case IDs follow: `cpt-{system}-usecase-{slug}`
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-semantic-8`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:prd-usecase-entry`
 ```markdown
 ### UC-001 Create and Assign Task
 
@@ -3745,13 +3745,13 @@ section = "semantic"
 
 - **Validation fails**: If step 4 fails validation (e.g., no assignee selected), system displays error and returns to step 2
 ```
-`@/cpt:example`
+`@/cpt:example:prd-usecase-entry`
 
 ### Acceptance Criteria, Dependencies, Assumptions, Risks
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-acceptance-criteria`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-acceptance-criteria"
@@ -3770,32 +3770,32 @@ description = "Acceptance criteria for delivery."
 # Example heading texts showing correct usage
 examples = ["## 9. Acceptance Criteria"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-acceptance-criteria`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:prd-acceptance-criteria`
 ```markdown
 Business-level acceptance criteria for the PRD as a whole.
 
 - [ ] {Testable criterion that validates a key business outcome}
 - [ ] {Another testable criterion}
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:prd-acceptance-criteria`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:prd-acceptance-criteria`
 ```markdown
 - [ ] Tasks can be created/assigned in under 30 seconds
 - [ ] Task updates propagate to all clients within 2 seconds
 - [ ] Overdue alerts are delivered within 1 minute
 ```
-`@/cpt:example`
+`@/cpt:example:prd-acceptance-criteria`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-dependencies`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-dependencies"
@@ -3814,31 +3814,31 @@ description = "Dependencies required to deliver the PRD."
 # Example heading texts showing correct usage
 examples = ["## 10. Dependencies"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-dependencies`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:prd-dependencies`
 ```markdown
 | Dependency | Description | Criticality |
 |------------|-------------|-------------|
 | {Service/System} | {What it provides} | {p1/p2/p3} |
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:prd-dependencies`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:prd-dependencies`
 ```markdown
 | Dependency | Description | Criticality |
 |------------|-------------|-------------|
 | Notification delivery | Push notification channel for deadlines/status changes | p2 |
 ```
-`@/cpt:example`
+`@/cpt:example:prd-dependencies`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-assumptions`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-assumptions"
@@ -3857,19 +3857,19 @@ description = "Assumptions that must hold."
 # Example heading texts showing correct usage
 examples = ["## 11. Assumptions"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-assumptions`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:prd-assumptions`
 ```markdown
 - {Assumption about environment, users, or dependent systems}
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:prd-assumptions`
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-semantic-9`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -3880,20 +3880,20 @@ section = "semantic"
 - [ ] Key assumptions MUST be explicitly stated
 - [ ] Open questions MUST have owners and target resolution dates
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-semantic-9`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:prd-assumptions`
 ```markdown
 - Users have modern browsers and reliable connectivity for real-time updates
 - The initial deployment is cloud-hosted
 ```
-`@/cpt:example`
+`@/cpt:example:prd-assumptions`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:heading`
+`@cpt:heading:prd-risks`
 ```toml
 # Unique heading constraint ID — referenced by identifier.headings to bind IDs to sections
 id = "prd-risks"
@@ -3912,21 +3912,21 @@ description = "Risks and mitigations."
 # Example heading texts showing correct usage
 examples = ["## 12. Risks"]
 ```
-`@/cpt:heading`
+`@/cpt:heading:prd-risks`
 
 > **`@cpt:prompt`** — Writing instruction. Markdown tells authors what to write under the preceding heading. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/template.md`.
 
-`@cpt:prompt`
+`@cpt:prompt:prd-risks`
 ```markdown
 | Risk | Impact | Mitigation |
 |------|--------|------------|
 | {Risk description} | {Potential impact} | {Mitigation strategy} |
 ```
-`@/cpt:prompt`
+`@/cpt:prompt:prd-risks`
 
 > **`@cpt:rule`** — Rule entry. TOML selects category+section; markdown block becomes the section body in `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/rules.md`.
 
-`@cpt:rule`
+`@cpt:rule:requirements-semantic-10`
 ```toml
 # Rule category: prerequisites | requirements | tasks | validation | error_handling | next_steps
 kind = "requirements"
@@ -3936,15 +3936,15 @@ section = "semantic"
 ```markdown
 - [ ] Risks and uncertainties MUST be documented with impact and mitigation
 ```
-`@/cpt:rule`
+`@/cpt:rule:requirements-semantic-10`
 
 > **`@cpt:example`** — Example content. Filled-in sample of the preceding section. Output: `{cypilot_path}/.gen/kits/sdlc/artifacts/PRD/examples/example.md`.
 
-`@cpt:example`
+`@cpt:example:prd-risks`
 ```markdown
 | Risk | Impact | Mitigation |
 |------|--------|------------|
 | Adoption risk | Teams may resist switching tools | Focus on migration path and quick wins |
 | Scale risk | Real-time may not scale beyond 50 concurrent users | Load testing before launch |
 ```
-`@/cpt:example`
+`@/cpt:example:prd-risks`

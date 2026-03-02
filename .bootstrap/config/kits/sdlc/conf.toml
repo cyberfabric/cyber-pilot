@@ -2,6 +2,6 @@
 # Bump `version` when any blueprint or script changes.
 # Migration is triggered by kit-level version drift only.
 
-version = 2
+version = 3
 slug = "sdlc"
 name = "Cypilot SDLC Kit"

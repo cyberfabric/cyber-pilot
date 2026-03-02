@@ -13,14 +13,14 @@ codebase = false
 
 ## Template
 
-`@cpt:heading`
+`@cpt:heading:code-review-template`
 ```toml
 level = 1
 template = "Code Review Report Template"
 ```
-`@/cpt:heading`
+`@/cpt:heading:code-review-template`
 
-`@cpt:prompt`
+`@cpt:prompt:code-review-template`
 `````markdown
 This file documents the expected format for generated code review reports.
 The `/cypilot-pr-review` workflow produces reports in `.prs/{ID}/review.md` following this structure.
@@ -135,4 +135,4 @@ No reviewer comments found.
 - Icons: ✅ (pass), ⚠️ (concern), ❌ (fail), 🟢 (low risk), 🟡 (medium), 🔴 (high).
 - The verdict must be one of: `✅ APPROVE`, `⚠️ REQUEST CHANGES`, `💬 COMMENT`.
 `````
-`@/cpt:prompt`
+`@/cpt:prompt:code-review-template`

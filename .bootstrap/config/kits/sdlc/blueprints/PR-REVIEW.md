@@ -66,7 +66,7 @@ When routed to PR status:
 
 ### PR Review
 
-`@cpt:workflow`
+`@cpt:workflow:pr-review`
 ```toml
 name = "pr-review"
 description = "Review GitHub PRs using LLM-powered analysis with configurable prompts and checklists"
@@ -231,13 +231,13 @@ After completion:
 - If the PR is good to merge: confirm that CI is green and no unresolved critical concerns remain.
 - Re-run this workflow after new commits or new review comments.
 `````
-`@/cpt:workflow`
+`@/cpt:workflow:pr-review`
 
 ---
 
 ### PR Status
 
-`@cpt:workflow`
+`@cpt:workflow:pr-status`
 ```toml
 name = "pr-status"
 description = "Generate status reports for GitHub PRs with severity assessment and resolved-comment audit"
@@ -386,4 +386,4 @@ After completion:
 - If suspicious resolutions were found: ask the PR author to confirm the resolution with evidence (reply link, code change, or test results).
 - Re-run this workflow after new commits or new review comments.
 `````
-`@/cpt:workflow`
+`@/cpt:workflow:pr-status`
