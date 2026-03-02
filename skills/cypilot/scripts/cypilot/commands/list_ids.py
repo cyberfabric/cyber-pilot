@@ -22,6 +22,7 @@ def cmd_list_ids(argv: List[str]) -> int:
     p.add_argument("--kind", default=None, help="Filter by inferred ID kind")
     p.add_argument("--all", action="store_true", help="Include duplicate IDs in results")
     p.add_argument("--include-code", action="store_true", help="Also scan code files for Cypilot marker references")
+    p.add_argument("--source", default=None, help="Filter by workspace source name (workspace mode only)")
     args = p.parse_args(argv)
     # @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-user-query
 
@@ -64,7 +65,7 @@ def cmd_list_ids(argv: List[str]) -> int:
             return 1
     else:
         # No artifact specified - use global context from cwd
-        from ..utils.context import get_context
+        from ..utils.context import get_context, collect_artifacts_to_scan, WorkspaceContext
 
         ctx = get_context()
         if not ctx:
@@ -73,11 +74,27 @@ def cmd_list_ids(argv: List[str]) -> int:
 
         meta = ctx.meta
         project_root = ctx.project_root
+        is_workspace = isinstance(ctx, WorkspaceContext)
 
-        for artifact_meta, _system_node in meta.iter_all_artifacts():
-            artifact_path = (project_root / artifact_meta.path).resolve()
-            if artifact_path.exists():
-                artifacts_to_scan.append((artifact_path, str(artifact_meta.kind)))
+        if args.source and not is_workspace:
+            import sys
+            print(f"Warning: --source filter '{args.source}' ignored (not in workspace mode)", file=sys.stderr)
+
+        if not args.source:
+            # No source filter — use shared collection helper
+            artifacts_to_scan, _ = collect_artifacts_to_scan(ctx)
+        else:
+            # --source filter: skip primary, scan only matching remote source
+            if is_workspace and ctx.cross_repo:
+                for sc in ctx.sources.values():
+                    if not sc.reachable or sc.meta is None:
+                        continue
+                    if sc.name != args.source:
+                        continue
+                    for art, _sys in sc.meta.iter_all_artifacts():
+                        art_path = (sc.path / art.path).resolve()
+                        if art_path.exists():
+                            artifacts_to_scan.append((art_path, str(art.kind)))
 
         if not artifacts_to_scan:
             print(json.dumps({"count": 0, "artifacts_scanned": 0, "ids": []}, indent=None, ensure_ascii=False))

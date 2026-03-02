@@ -22,6 +22,7 @@ def cmd_where_used(argv: List[str]) -> int:
 
     # Collect artifacts to scan: (artifact_path, artifact_kind)
     artifacts_to_scan: List[Tuple[Path, str]] = []
+    path_to_source: Dict[str, str] = {}
 
     if args.artifact:
         # Load context from artifact's location
@@ -54,21 +55,14 @@ def cmd_where_used(argv: List[str]) -> int:
             return 1
     else:
         # Use global context
-        from ..utils.context import get_context
+        from ..utils.context import get_context, collect_artifacts_to_scan
 
         ctx = get_context()
         if not ctx:
             print(json.dumps({"status": "ERROR", "message": "Cypilot not initialized. Run 'cypilot init' first."}, indent=None, ensure_ascii=False))
             return 1
 
-        meta = ctx.meta
-        project_root = ctx.project_root
-
-        # Scan all Cypilot artifacts
-        for artifact_meta, _system_node in meta.iter_all_artifacts():
-            artifact_path = (project_root / artifact_meta.path).resolve()
-            if artifact_path.exists():
-                artifacts_to_scan.append((artifact_path, str(artifact_meta.kind)))
+        artifacts_to_scan, path_to_source = collect_artifacts_to_scan(ctx)
 
     if not artifacts_to_scan:
         print(json.dumps({
@@ -80,6 +74,7 @@ def cmd_where_used(argv: List[str]) -> int:
         return 0
 
     # @cpt-begin:cpt-cypilot-flow-traceability-validation-query:p1:inst-if-where-used
+
     # Search for references
     references: List[Dict[str, object]] = []
 
@@ -89,14 +84,18 @@ def cmd_where_used(argv: List[str]) -> int:
                 continue
             if h.get("type") == "definition" and not bool(args.include_definitions):
                 continue
-            references.append({
+            r: Dict[str, object] = {
                 "artifact": str(artifact_path),
                 "artifact_type": artifact_type,
                 "line": int(h.get("line", 1) or 1),
                 "kind": None,
                 "type": str(h.get("type")),
                 "checked": bool(h.get("checked", False)),
-            })
+            }
+            src = path_to_source.get(str(artifact_path))
+            if src:
+                r["source"] = src
+            references.append(r)
 
     # Sort by artifact and line
     references = sorted(references, key=lambda r: (str(r.get("artifact", "")), int(r.get("line", 0))))

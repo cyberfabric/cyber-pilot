@@ -28,6 +28,7 @@ def cmd_validate(argv: List[str]) -> int:
     p.add_argument("--skip-code", action="store_true", help="Skip code traceability validation")
     p.add_argument("--verbose", action="store_true", help="Print full validation report")
     p.add_argument("--output", default=None, help="Write report to file instead of stdout")
+    p.add_argument("--local-only", action="store_true", help="Skip cross-repo workspace validation (validate local repo only)")
     args = p.parse_args(argv)
     # @cpt-end:cpt-cypilot-flow-traceability-validation-validate:p1:inst-user-validate
 
@@ -140,12 +141,16 @@ def cmd_validate(argv: List[str]) -> int:
             return 1
     else:
         # Validate all Cypilot artifacts
+        from ..utils.context import WorkspaceContext
         for artifact_meta, system_node in meta.iter_all_artifacts():
             pkg = meta.get_kit(system_node.kit)
             if not pkg or not pkg.is_cypilot_format():
                 continue
             template_path_str = pkg.get_template_path(artifact_meta.kind)
-            artifact_path = (project_root / artifact_meta.path).resolve()
+            if isinstance(ctx, WorkspaceContext):
+                artifact_path = ctx.resolve_artifact_path(artifact_meta, project_root)
+            else:
+                artifact_path = (project_root / artifact_meta.path).resolve()
             template_path = (project_root / template_path_str).resolve()
             if artifact_path.exists():
                 artifacts_to_validate.append((artifact_path, template_path, artifact_meta.kind, artifact_meta.traceability, system_node.kit))
@@ -302,11 +307,15 @@ def cmd_validate(argv: List[str]) -> int:
     validated_paths = {str(p) for p, _, _, _, _ in artifacts_to_validate}
 
     # Load remaining artifacts that weren't validated (for cross-reference context)
+    from ..utils.context import WorkspaceContext
     for artifact_meta, system_node in meta.iter_all_artifacts():
         pkg = meta.get_kit(system_node.kit)
         if not pkg or not pkg.is_cypilot_format():
             continue
-        art_path = (project_root / artifact_meta.path).resolve()
+        if isinstance(ctx, WorkspaceContext):
+            art_path = ctx.resolve_artifact_path(artifact_meta, project_root)
+        else:
+            art_path = (project_root / artifact_meta.path).resolve()
         if str(art_path) in validated_paths:
             continue  # Already parsed
         if not art_path.exists():
@@ -394,6 +403,24 @@ def cmd_validate(argv: List[str]) -> int:
                                 else:
                                     to_code_ids.add(did)
                                 break
+
+    # Workspace: expand artifact_ids with IDs from remote sources for cross-repo resolution
+    if not args.local_only:
+        from ..utils.context import WorkspaceContext
+        if isinstance(ctx, WorkspaceContext) and ctx.sources and ctx.cross_repo:
+            for sc in ctx.sources.values():
+                if not sc.reachable or sc.meta is None:
+                    continue
+                for art, _sys in sc.meta.iter_all_artifacts():
+                    art_path = (sc.path / art.path).resolve()
+                    if not art_path.exists():
+                        continue
+                    try:
+                        for h in scan_cpt_ids(art_path):
+                            if h.get("type") == "definition" and h.get("id"):
+                                artifact_ids.add(str(h["id"]))
+                    except Exception:
+                        continue
 
     if should_scan_code:
         # Scan code files from all systems

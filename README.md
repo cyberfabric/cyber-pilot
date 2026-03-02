@@ -36,27 +36,25 @@ Works with any language, stack, or repository.
 
 ## Table of Contents
 
-- [](#)
-  - [Cyber Pilot — Deterministic Agent Tool for Structured Workflows](#cyber-pilot--deterministic-agent-tool-for-structured-workflows)
-  - [Problem](#problem)
-  - [What Cypilot Provides](#what-cypilot-provides)
-  - [Table of Contents](#table-of-contents)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-    - [Global CLI (recommended)](#global-cli-recommended)
-  - [Project Setup](#project-setup)
-  - [Using Cypilot](#using-cypilot)
-    - [Example Prompts](#example-prompts)
-    - [Agent Skill](#agent-skill)
-    - [Workflow Commands](#workflow-commands)
-    - [Checklists and Quality Gates](#checklists-and-quality-gates)
-    - [Update](#update)
-  - [Architecture](#architecture)
-    - [Directory Structure](#directory-structure)
-    - [Blueprint System](#blueprint-system)
-  - [Extensibility](#extensibility)
-    - [Kit: **Cypilot SDLC**](#kit-cypilot-sdlc)
-  - [Contributing](#contributing)
+- [Problem](#problem)
+- [What Cypilot Provides](#what-cypilot-provides)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+  - [Global CLI (recommended)](#global-cli-recommended)
+- [Project Setup](#project-setup)
+- [Using Cypilot](#using-cypilot)
+  - [Example Prompts](#example-prompts)
+  - [Agent Skill](#agent-skill)
+  - [Workflow Commands](#workflow-commands)
+  - [Checklists and Quality Gates](#checklists-and-quality-gates)
+  - [Update](#update)
+- [Architecture](#architecture)
+  - [Directory Structure](#directory-structure)
+  - [Blueprint System](#blueprint-system)
+- [Multi-Repo Workspaces](#multi-repo-workspaces)
+- [Extensibility](#extensibility)
+  - [Kit: **Cypilot SDLC**](#kit-cypilot-sdlc)
+- [Contributing](#contributing)
 
 ---
 
@@ -264,6 +262,63 @@ Each kit is a **blueprint package** — a `blueprints/` directory containing one
 | `@cpt:workflow` | `workflows/{name}.md` (kit-specific workflows) |
 
 Users can customize blueprints in `config/kits/{slug}/blueprints/`. Running `cypilot update` regenerates `.gen/` from user blueprints while preserving user config.
+
+---
+
+## Multi-Repo Workspaces
+
+Cypilot supports **multi-repo workspaces** — a federation layer that lets you work across multiple repositories while maintaining cross-repo traceability. Each repo keeps its own independent adapter; the workspace provides a map of named sources.
+
+**Use cases:**
+- PRDs in a docs repo, design in another repo, code in yet another
+- Shared kit packages in a separate repo
+- Working from one repo while referencing artifacts in others
+
+### Quick Setup
+
+```bash
+# Option A: Auto-discover sibling repos and generate workspace
+python3 cypilot/.core/skills/cypilot/scripts/cypilot.py workspace-init
+
+# Option B: Add sources individually
+python3 cypilot/.core/skills/cypilot/scripts/cypilot.py workspace-add --name docs --path ../docs-repo --role artifacts
+python3 cypilot/.core/skills/cypilot/scripts/cypilot.py workspace-add --name shared-kits --path ../shared-kits --role kits
+
+# Option C: Define workspace inline in your repo's config
+python3 cypilot/.core/skills/cypilot/scripts/cypilot.py workspace-add-inline --name docs --path ../docs-repo
+```
+
+### How It Works
+
+The **current working directory** always determines the primary repo. Other repos contribute artifacts, code, and kits for cross-referencing. No adapter merging — each repo owns its configuration.
+
+**Workspace config** can be:
+- A standalone `.cypilot-workspace.toml` file at a super-root directory
+- Inline in any repo's `config/core.toml` under the `[workspace]` section
+- A reference from `core.toml` to an external workspace file
+
+### Cross-Repo Commands
+
+```bash
+# Validate with cross-repo ID resolution (default when workspace active)
+python3 cypilot/.core/skills/cypilot/scripts/cypilot.py validate
+
+# Validate local repo only (skip cross-repo)
+python3 cypilot/.core/skills/cypilot/scripts/cypilot.py validate --local-only
+
+# Search for ID definitions across all repos
+python3 cypilot/.core/skills/cypilot/scripts/cypilot.py where-defined --id cpt-myapp-req-001
+
+# List IDs from a specific source
+python3 cypilot/.core/skills/cypilot/scripts/cypilot.py list-ids --source docs-repo
+
+# Check workspace status
+python3 cypilot/.core/skills/cypilot/scripts/cypilot.py workspace-info
+```
+
+Missing source repos are handled gracefully — a warning is emitted and operations continue with available sources.
+
+For the full specification, see [`requirements/workspace.md`](requirements/workspace.md).
 
 ---
 
