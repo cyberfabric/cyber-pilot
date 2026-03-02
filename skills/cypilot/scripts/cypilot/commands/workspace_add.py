@@ -37,7 +37,7 @@ def cmd_workspace_add(argv: List[str]) -> int:
     if ws_cfg.is_inline:
         print(json.dumps({
             "status": "ERROR",
-            "message": "Workspace is defined inline in .cypilot-config.json. Use 'workspace-add-inline' instead.",
+            "message": "Workspace is defined inline in core.toml. Use 'workspace-add-inline' instead.",
         }, indent=2, ensure_ascii=False))
         return 1
 
@@ -62,10 +62,10 @@ def cmd_workspace_add(argv: List[str]) -> int:
 
 
 def cmd_workspace_add_inline(argv: List[str]) -> int:
-    """Add a source inline to the current repo's .cypilot-config.json."""
+    """Add a source inline to the current repo's config/core.toml."""
     p = argparse.ArgumentParser(
         prog="workspace-add-inline",
-        description="Add a source inline to the current repo's .cypilot-config.json",
+        description="Add a source inline to the current repo's config/core.toml",
     )
     p.add_argument("--name", required=True, help="Source name (human-readable key)")
     p.add_argument("--path", required=True, help="Path to the source repo (relative to project root)")

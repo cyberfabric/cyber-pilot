@@ -24,7 +24,7 @@ def cmd_workspace_init(argv: List[str]) -> int:
     )
     p.add_argument(
         "--inline", action="store_true",
-        help="Write workspace config inline into current repo's .cypilot-config.json instead of standalone file",
+        help="Write workspace config inline into current repo's config/core.toml instead of standalone file",
     )
     p.add_argument("--dry-run", action="store_true", help="Print what would be generated without writing files")
     args = p.parse_args(argv)
@@ -36,7 +36,7 @@ def cmd_workspace_init(argv: List[str]) -> int:
     if project_root is None:
         print(json.dumps({
             "status": "ERROR",
-            "message": "No project root found. Run from inside a project with .git or .cypilot-config.json.",
+            "message": "No project root found. Run from inside a project with .git or AGENTS.md.",
         }, indent=2, ensure_ascii=False))
         return 1
 
@@ -122,7 +122,7 @@ def cmd_workspace_init(argv: List[str]) -> int:
             "status": "NO_SOURCES",
             "message": "No sibling repos with adapters found",
             "scan_root": str(scan_root),
-            "hint": "Ensure sibling directories have .git or .cypilot-config.json",
+            "hint": "Ensure sibling directories have .git or AGENTS.md with @cpt:root-agents marker",
         }, indent=2, ensure_ascii=False))
         return 0
 

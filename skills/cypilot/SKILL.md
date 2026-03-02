@@ -162,13 +162,13 @@ ALWAYS run `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py agent
 
 ALWAYS open and follow `{cypilot_path}/.core/workflows/generate.md` directly WHEN user invokes `cypilot auto-config` or `cypilot configure` — generate.md will trigger the auto-config methodology
 
-ALWAYS run `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py workspace-init` directly WHEN user invokes `cypilot workspace init`
+ALWAYS run `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py workspace-init` directly WHEN user invokes `cypilot workspace init`
 
-ALWAYS run `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py workspace-add --name <name> --path <path>` directly WHEN user invokes `cypilot workspace add <name> <path>`
+ALWAYS run `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py workspace-add --name <name> --path <path>` directly WHEN user invokes `cypilot workspace add <name> <path>`
 
-ALWAYS run `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py workspace-add-inline --name <name> --path <path>` directly WHEN user invokes `cypilot workspace add-inline <name> <path>`
+ALWAYS run `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py workspace-add-inline --name <name> --path <path>` directly WHEN user invokes `cypilot workspace add-inline <name> <path>`
 
-ALWAYS run `python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py workspace-info` directly WHEN user invokes `cypilot workspace info`
+ALWAYS run `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py workspace-info` directly WHEN user invokes `cypilot workspace info`
 
 ---
 
@@ -236,27 +236,27 @@ python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py agents --openai
 
 ### workspace-init
 ```bash
-python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py workspace-init [--root <dir>] [--inline] [--dry-run]
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py workspace-init [--root <dir>] [--inline] [--dry-run]
 ```
-Initialize a multi-repo workspace by scanning sibling directories for repos with adapters.
+Initialize a multi-repo workspace by scanning sibling directories for repos with cypilot directories.
 
 ### workspace-add
 ```bash
-python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py workspace-add --name <name> --path <path> [--role <role>] [--adapter <path>]
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py workspace-add --name <name> --path <path> [--role <role>] [--adapter <path>]
 ```
-Add a source to an existing `.cypilot-workspace.json`.
+Add a source to an existing `.cypilot-workspace.json` standalone workspace file.
 
 ### workspace-add-inline
 ```bash
-python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py workspace-add-inline --name <name> --path <path> [--role <role>]
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py workspace-add-inline --name <name> --path <path> [--role <role>]
 ```
-Add a source inline to the current repo's `.cypilot-config.json`.
+Add a source inline to the current repo's `config/core.toml`.
 
 ### workspace-info
 ```bash
-python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py workspace-info
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py workspace-info
 ```
-Display workspace config, list sources, show per-source status (adapter found, artifact count, reachability).
+Display workspace config, list sources, show per-source status (cypilot dir found, artifact count, reachability).
 
 ---
 

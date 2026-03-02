@@ -13,7 +13,7 @@ ALWAYS open and follow `{cypilot_path}/skills/cypilot/SKILL.md` FIRST WHEN {cypi
 
 **Type**: Operation
 **Role**: Any
-**Output**: `.cypilot-workspace.json` or inline `workspace` in `.cypilot-config.json`
+**Output**: `.cypilot-workspace.json` or inline `[workspace]` in `config/core.toml`
 
 ---
 
@@ -47,7 +47,7 @@ This workflow is invoked through the main Cypilot workflows or directly via work
 
 - [ ] Agent has read SKILL.md
 - [ ] Agent understands multi-repo workspace concepts
-- [ ] Agent knows workspace can be standalone `.cypilot-workspace.json` or inline in `.cypilot-config.json`
+- [ ] Agent knows workspace can be standalone `.cypilot-workspace.json` or inline in `config/core.toml`
 
 ---
 
@@ -59,17 +59,17 @@ This workflow is invoked through the main Cypilot workflows or directly via work
 
 1. **Identify current project root**
    ```bash
-   python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py adapter-info
+   python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py info
    ```
 
-2. **Scan sibling directories** for repos with `.git`, `.cypilot-config.json`, or `.cypilot-adapter`
+2. **Scan sibling directories** for repos with `.git` or `AGENTS.md` with `@cpt:root-agents` marker
    ```bash
    python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py workspace-init --dry-run
    ```
 
 3. **Present discovered repos** to user with:
    - Repo name and path
-   - Whether adapter was found
+   - Whether cypilot directory was found
    - Inferred role (artifacts / codebase / kits / full)
 
 ### Decision Point
@@ -89,7 +89,7 @@ This workflow is invoked through the main Cypilot workflows or directly via work
    - **Name**: Human-readable key for the source (e.g., "docs-repo", "shared-kits")
    - **Path**: Relative filesystem path from workspace file location
    - **Role**: What the source contributes (`artifacts`, `codebase`, `kits`, or `full`)
-   - **Adapter**: Path to `.cypilot-adapter` within the source, or `null` if none
+   - **Adapter**: Path to cypilot directory within the source (auto-discovered via AGENTS.md), or `null` if none
 
 2. **Confirm traceability settings**:
    - Cross-repo traceability enabled? (default: yes)
@@ -97,7 +97,7 @@ This workflow is invoked through the main Cypilot workflows or directly via work
 
 3. **Confirm workspace location**:
    - Option A: Standalone `.cypilot-workspace.json` at super-root (parent of repos)
-   - Option B: Inline `workspace` key in current repo's `.cypilot-config.json`
+   - Option B: Inline `[workspace]` section in current repo's `config/core.toml`
 
 ### Key Design Principle
 
@@ -127,7 +127,7 @@ python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py workspace-init --inline
 # Add to standalone workspace file
 python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py workspace-add --name <name> --path <path> [--role <role>] [--adapter <adapter-path>]
 
-# Add inline to .cypilot-config.json
+# Add inline to core.toml
 python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py workspace-add-inline --name <name> --path <path> [--role <role>]
 ```
 
@@ -140,29 +140,27 @@ python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py workspace-add-inline --
   "sources": {
     "docs-repo": {
       "path": "../docs-repo",
-      "adapter": ".cypilot-adapter",
+      "adapter": "cypilot",
       "role": "artifacts"
     },
     "code-repo": {
       "path": "../code-repo",
-      "adapter": ".cypilot-adapter",
+      "adapter": ".bootstrap",
       "role": "codebase"
     }
   }
 }
 ```
 
-**Inline in `.cypilot-config.json`:**
-```json
-{
-  "cypilotAdapterPath": ".cypilot-adapter",
-  "workspace": {
-    "sources": {
-      "docs": { "path": "../docs-repo", "role": "artifacts" },
-      "shared-kits": { "path": "../shared-kits", "role": "kits" }
-    }
-  }
-}
+**Inline in `config/core.toml`:**
+```toml
+[workspace.sources.docs]
+path = "../docs-repo"
+role = "artifacts"
+
+[workspace.sources.shared-kits]
+path = "../shared-kits"
+role = "kits"
 ```
 
 ---
@@ -180,9 +178,9 @@ python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py workspace-add-inline --
 
 2. **Check each source**:
    - [ ] Path resolves to existing directory
-   - [ ] Adapter found (if specified)
-   - [ ] artifacts.json valid (if adapter present)
-   - [ ] At least one system registered (if adapter present)
+   - [ ] Cypilot directory found (auto-discovered or explicit adapter)
+   - [ ] artifacts.toml valid (if cypilot directory present)
+   - [ ] At least one system registered (if cypilot directory present)
 
 3. **Test cross-repo operations**:
    ```bash
@@ -196,7 +194,7 @@ python3 {cypilot_path}/skills/cypilot/scripts/cypilot.py workspace-add-inline --
 4. **Report**:
    - Total sources: N
    - Reachable sources: N
-   - Sources with adapters: N
+   - Sources with cypilot directories: N
    - Cross-repo IDs available: N
 
 ### Graceful Degradation
@@ -213,10 +211,10 @@ When a source repo is not found on disk:
 | Command | Description |
 |---------|-------------|
 | `workspace-init` | Scan and generate workspace config |
-| `workspace-init --inline` | Generate inline workspace in .cypilot-config.json |
+| `workspace-init --inline` | Generate inline workspace in core.toml |
 | `workspace-init --dry-run` | Preview without writing files |
 | `workspace-add --name N --path P` | Add source to standalone workspace |
-| `workspace-add-inline --name N --path P` | Add source inline to config |
+| `workspace-add-inline --name N --path P` | Add source inline to core.toml |
 | `workspace-info` | Show workspace status and sources |
 | `validate --local-only` | Validate without cross-repo resolution |
 | `list-ids --source <name>` | List IDs from specific source only |
@@ -229,5 +227,5 @@ When a source repo is not found on disk:
 
 - Run `validate` from each participating repo to verify cross-repo ID resolution works
 - Use `list-ids` to confirm artifacts from all sources are visible
-- Add `source` fields to `artifacts.json` entries that reference remote repos
+- Add `source` fields to `artifacts.toml` entries that reference remote repos
 - Consider adding workspace setup to project onboarding documentation

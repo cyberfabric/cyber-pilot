@@ -75,7 +75,7 @@ class WorkspaceConfig:
     sources: Dict[str, SourceEntry] = field(default_factory=dict)
     traceability: TraceabilityConfig = field(default_factory=TraceabilityConfig)
     workspace_file: Optional[Path] = None  # Absolute path to the workspace file
-    is_inline: bool = False  # True if loaded from .cypilot-config.json inline workspace
+    is_inline: bool = False  # True if loaded from core.toml inline workspace
 
     @classmethod
     def from_dict(cls, data: dict, *, workspace_file: Optional[Path] = None, is_inline: bool = False) -> "WorkspaceConfig":

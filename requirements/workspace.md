@@ -90,27 +90,21 @@ Can be placed at a **super-root** (parent directory containing multiple repos) o
 
 ### Inline in Config
 
-A repo can declare workspace participation from within its own `.cypilot-config.json`.
+A repo can declare workspace participation from within its own `config/core.toml`.
 
-**Reference to external workspace file:**
-```json
-{
-  "cypilotAdapterPath": ".cypilot-adapter",
-  "workspace": "../.cypilot-workspace.json"
-}
+**Reference to external workspace file (in core.toml):**
+```toml
+workspace = "../.cypilot-workspace.json"
 ```
 
-**Inline workspace definition:**
-```json
-{
-  "cypilotAdapterPath": ".cypilot-adapter",
-  "workspace": {
-    "sources": {
-      "docs": { "path": "../docs-repo" },
-      "shared-kits": { "path": "../shared-kits", "role": "kits" }
-    }
-  }
-}
+**Inline workspace definition (in core.toml):**
+```toml
+[workspace.sources.docs]
+path = "../docs-repo"
+
+[workspace.sources.shared-kits]
+path = "../shared-kits"
+role = "kits"
 ```
 
 ---
@@ -140,9 +134,9 @@ Each source entry has the following fields:
 
 When Cypilot initializes, workspace configuration is discovered in this order:
 
-1. **Check `workspace` key** in `.cypilot-config.json` at the project root
+1. **Check `workspace` key** in `config/core.toml` (discovered via AGENTS.md `cypilot_path`)
    - If string → treat as path to external `.cypilot-workspace.json`
-   - If object → treat as inline workspace definition
+   - If table → treat as inline workspace definition
 2. **Walk up** from project root looking for `.cypilot-workspace.json`
 3. **Check parent directory** of project root for `.cypilot-workspace.json`
 
@@ -211,10 +205,10 @@ When `source` is absent, paths resolve locally (backward compatible). v1.0/v1.1 
 | Command | Description |
 |---------|-------------|
 | `workspace-init` | Initialize workspace: scan sibling dirs, generate `.cypilot-workspace.json` |
-| `workspace-init --inline` | Initialize workspace inline in `.cypilot-config.json` |
+| `workspace-init --inline` | Initialize workspace inline in `config/core.toml` |
 | `workspace-init --dry-run` | Preview without writing files |
 | `workspace-add --name N --path P` | Add source to standalone workspace file |
-| `workspace-add-inline --name N --path P` | Add source inline to `.cypilot-config.json` |
+| `workspace-add-inline --name N --path P` | Add source inline to `config/core.toml` |
 | `workspace-info` | Display workspace config and per-source status |
 | `validate --local-only` | Validate without cross-repo ID resolution |
 | `list-ids --source <name>` | Filter IDs by workspace source |
@@ -223,8 +217,8 @@ When `source` is absent, paths resolve locally (backward compatible). v1.0/v1.1 
 
 ## Backward Compatibility
 
-- No `.cypilot-workspace.json` and no `workspace` in config = **exact current behavior**
-- v1.0/v1.1 `artifacts.json` without `source` fields = **no change**
+- No `.cypilot-workspace.json` and no `[workspace]` in core.toml = **exact current behavior**
+- v1.0/v1.1 `artifacts.toml` without `source` fields = **no change**
 - All workspace imports are lazy (inside functions), matching existing patterns
 - The global context can be either `CypilotContext` or `WorkspaceContext`; `is_workspace()` tests this
 - Existing mono-repo setups are completely unaffected
@@ -250,22 +244,24 @@ When a source repo path does not exist on disk:
 ```
 workspace/
 ├── docs-repo/
-│   ├── .cypilot-adapter/
-│   │   └── artifacts.json
-│   └── architecture/
-│       └── PRD.md
-├── code-repo/           ← cwd
-│   ├── .cypilot-config.json  (workspace: {"sources": {"docs": {"path": "../docs-repo"}}})
-│   ├── .cypilot-adapter/
-│   │   └── artifacts.json
+│   ├── AGENTS.md              (cypilot_path = "cypilot")
+│   └── cypilot/
+│       └── config/
+│           └── artifacts.toml
+├── code-repo/                  ← cwd
+│   ├── AGENTS.md              (cypilot_path = ".bootstrap")
+│   ├── .bootstrap/
+│   │   └── config/
+│   │       ├── core.toml      ([workspace.sources.docs] path = "../docs-repo")
+│   │       └── artifacts.toml
 │   └── src/
 └── shared-kits/
     └── kits/sdlc/
 ```
 
 Running `cypilot validate` from `code-repo/` will:
-1. Load primary context from `code-repo/.cypilot-adapter`
-2. Detect workspace from `.cypilot-config.json`
+1. Load primary context from `code-repo/.bootstrap`
+2. Detect workspace from `config/core.toml`
 3. Load `docs-repo` artifacts for cross-repo ID resolution
 4. Accept `@cpt-*` markers referencing IDs defined in `docs-repo`
 

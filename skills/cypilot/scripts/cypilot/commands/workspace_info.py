@@ -81,7 +81,7 @@ def cmd_workspace_info(argv: List[str]) -> int:
 
         sources_info.append(info)
 
-    workspace_location = "inline (.cypilot-config.json)" if ws_cfg.is_inline else str(ws_cfg.workspace_file)
+    workspace_location = "inline (core.toml)" if ws_cfg.is_inline else str(ws_cfg.workspace_file)
 
     result: dict = {
         "status": "WORKSPACE_FOUND",

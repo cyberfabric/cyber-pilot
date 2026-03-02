@@ -294,8 +294,8 @@ The **current working directory** always determines the primary repo. Other repo
 
 **Workspace config** can be:
 - A standalone `.cypilot-workspace.json` file at a super-root directory
-- Inline in any repo's `.cypilot-config.json` under the `workspace` key
-- A reference from `.cypilot-config.json` to an external workspace file
+- Inline in any repo's `config/core.toml` under the `[workspace]` section
+- A reference from `core.toml` to an external workspace file
 
 ### Cross-Repo Commands
 
