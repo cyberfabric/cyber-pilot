@@ -17,6 +17,7 @@ import argparse
 import json
 import re
 import shutil
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -622,8 +623,11 @@ def _marker_identity_key(marker_type: str, raw_content: str) -> str:
         name = _toml_val("name")
         return f"workflow:{name}" if name else "workflow"
     if marker_type == "heading":
-        # Use level only — template text may change between versions.
+        # Use the stable `id` field as primary key; fall back to level.
         # Duplicate same-level headings are disambiguated by positional index.
+        hid = _toml_val("id")
+        if hid:
+            return f"heading:{hid}"
         level = _toml_val("level")
         return f"heading:L{level}" if level else "heading"
     if marker_type == "id":
@@ -1035,9 +1039,10 @@ def migrate_kit(
                     old_ref_text, new_ref_text, user_text,
                 )
             else:
-                # No .prev/ — conservative two-way (user=old_ref)
+                # No .prev/ — conservative: treat new_ref as old_ref so all
+                # user diffs are seen as "customized" and preserved.
                 merged_text, report = _three_way_merge_blueprint(
-                    user_text, new_ref_text, user_text,
+                    new_ref_text, new_ref_text, user_text,
                 )
 
             bp_report: Dict[str, Any] = {"blueprint": bp_name}
@@ -1155,18 +1160,25 @@ def cmd_kit_migrate(argv: List[str]) -> int:
             bp_dir = user_bp_dir if user_bp_dir.is_dir() else (kit_dir / "blueprints")
             if bp_dir.is_dir():
                 from ..utils.blueprint import process_kit
-                summary, _errors = process_kit(
-                    kit_slug, bp_dir, gen_kits_dir, dry_run=False,
-                )
-                result["regenerated"] = {
-                    "files_written": summary.get("files_written", 0),
-                    "artifact_kinds": summary.get("artifact_kinds", []),
-                }
+                try:
+                    summary, _errors = process_kit(
+                        kit_slug, bp_dir, gen_kits_dir, dry_run=False,
+                    )
+                    result["regenerated"] = {
+                        "files_written": summary.get("files_written", 0),
+                        "artifact_kinds": summary.get("artifact_kinds", []),
+                    }
+                except Exception as err:
+                    result["status"] = "FAIL"
+                    result["regenerated"] = {"error": str(err)}
+                    print(f"kit-migrate: regen failed for {kit_slug}: {err}",
+                          file=sys.stderr)
         results.append(result)
 
     migrated_count = sum(1 for r in results if r["status"] == "migrated")
+    has_failures = any(r["status"] == "FAIL" for r in results)
     output: Dict[str, Any] = {
-        "status": "PASS",
+        "status": "FAIL" if has_failures else "PASS",
         "kits_migrated": migrated_count,
         "kits_current": len(results) - migrated_count,
         "results": results,

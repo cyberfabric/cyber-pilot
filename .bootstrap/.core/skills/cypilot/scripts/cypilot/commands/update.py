@@ -125,7 +125,8 @@ def cmd_update(argv: List[str]) -> int:
     from .kit import update_kit
 
     kits_cache_dir = CACHE_DIR / "kits"
-    gen_dir.mkdir(parents=True, exist_ok=True)
+    if not args.dry_run:
+        gen_dir.mkdir(parents=True, exist_ok=True)
     gen_skill_nav_parts: List[str] = []
     gen_agents_parts: List[str] = []
     kit_results: Dict[str, Any] = {}

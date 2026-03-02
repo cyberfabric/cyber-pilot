@@ -1569,6 +1569,20 @@ class TestNormalizePrReviewData(unittest.TestCase):
         result = _normalize_pr_review_data(data)
         self.assertEqual(result["prompts"], ["string_entry", 42])
 
+    def test_custom_kit_slug(self):
+        data = {
+            "prompts": [
+                {"promptFile": ".core/prompts/pr/code-review.md"},
+                {"promptFile": "prompts/pr/prd-review.md"},
+            ],
+        }
+        result = _normalize_pr_review_data(data, kit_slug="mykit")
+        self.assertIn(".gen/kits/mykit/scripts/prompts/pr/code-review.md", result["prompts"][0]["prompt_file"])
+        self.assertIn(".gen/kits/mykit/scripts/prompts/pr/prd-review.md", result["prompts"][1]["prompt_file"])
+        # Ensure default slug is NOT present
+        self.assertNotIn("sdlc", result["prompts"][0]["prompt_file"])
+        self.assertNotIn("sdlc", result["prompts"][1]["prompt_file"])
+
 
 class TestMigrateAdapterJsonConfigs(unittest.TestCase):
     def test_converts_pr_review_json(self):
@@ -1587,6 +1601,19 @@ class TestMigrateAdapterJsonConfigs(unittest.TestCase):
             self.assertNotIn("dataDir", content)
             self.assertIn("prompt_file", content)
             self.assertIn(".gen/kits/sdlc/scripts/prompts/pr/", content)
+
+    def test_converts_pr_review_json_custom_slug(self):
+        with TemporaryDirectory() as d:
+            adapter = Path(d) / "adapter"
+            adapter.mkdir()
+            config = Path(d) / "config"
+            pr_json = {"dataDir": ".prs", "prompts": [{"promptFile": "prompts/pr/code.md"}]}
+            (adapter / "pr-review.json").write_text(json.dumps(pr_json))
+            result = _migrate_adapter_json_configs(adapter, config, kit_slug="custom")
+            self.assertIn("pr-review.json", result)
+            content = (config / "pr-review.toml").read_text()
+            self.assertIn(".gen/kits/custom/scripts/prompts/pr/", content)
+            self.assertNotIn("sdlc", content)
 
     def test_skips_artifacts_json(self):
         with TemporaryDirectory() as d:

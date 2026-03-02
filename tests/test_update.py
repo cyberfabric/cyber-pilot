@@ -31,7 +31,7 @@ def _make_cache(cache_dir: Path, kit_version: int = 1) -> None:
     bp_dir.mkdir(parents=True, exist_ok=True)
     (bp_dir / "prd.md").write_text(
         '`@cpt:blueprint`\n```toml\n'
-        f'artifact = "PRD"\nkit = "sdlc"\n'
+        'artifact = "PRD"\nkit = "sdlc"\n'
         '```\n`@/cpt:blueprint`\n\n'
         '`@cpt:heading`\n```toml\nlevel = 1\ntemplate = "Product Requirements"\n```\n`@/cpt:heading`\n',
         encoding="utf-8",
