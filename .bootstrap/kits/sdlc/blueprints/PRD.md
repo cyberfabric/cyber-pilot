@@ -19,10 +19,6 @@ Based on: ISO/IEC/IEEE 29148:2018, ISO/IEC 25010:2011
 
 `@cpt:blueprint`
 ```toml
-# Blueprint version (semver)
-version = 1
-# Kit slug this blueprint belongs to
-kit = "sdlc"
 # Artifact kind: PRD | ADR | DESIGN | DECOMPOSITION | FEATURE | CODE
 artifact = "PRD"
 codebase = false

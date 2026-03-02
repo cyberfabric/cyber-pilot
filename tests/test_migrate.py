@@ -41,6 +41,8 @@ from cypilot.commands.migrate import (
     _rollback,
     _write_gen_agents,
     _copy_tree_contents,
+    _normalize_pr_review_data,
+    _migrate_adapter_json_configs,
 )
 
 
@@ -1522,6 +1524,135 @@ class TestRunMigrateConfigEdgeCases(unittest.TestCase):
             self.assertEqual(result["converted_count"], 0)
             self.assertEqual(result["skipped_count"], 1)
             self.assertIn("broken.json", result["skipped"][0]["file"])
+
+
+# ===========================================================================
+# Test: _normalize_pr_review_data
+# ===========================================================================
+
+class TestNormalizePrReviewData(unittest.TestCase):
+    def test_renames_top_level_keys(self):
+        data = {"dataDir": ".prs", "other": "keep"}
+        result = _normalize_pr_review_data(data)
+        self.assertEqual(result["data_dir"], ".prs")
+        self.assertEqual(result["other"], "keep")
+        self.assertNotIn("dataDir", result)
+
+    def test_renames_prompt_entry_keys(self):
+        data = {
+            "prompts": [
+                {"description": "Code Review", "promptFile": "some/path.md", "checklist": "c.md"},
+            ],
+        }
+        result = _normalize_pr_review_data(data)
+        entry = result["prompts"][0]
+        self.assertEqual(entry["prompt_file"], "some/path.md")
+        self.assertNotIn("promptFile", entry)
+        self.assertEqual(entry["description"], "Code Review")
+
+    def test_rewrites_prompt_paths(self):
+        data = {
+            "prompts": [
+                {"promptFile": "{cypilot_path}/.core/prompts/pr/code-review.md"},
+                {"promptFile": "prompts/pr/prd-review.md"},
+            ],
+        }
+        result = _normalize_pr_review_data(data)
+        self.assertIn(".gen/kits/sdlc/scripts/prompts/pr/code-review.md", result["prompts"][0]["prompt_file"])
+        self.assertIn(".gen/kits/sdlc/scripts/prompts/pr/prd-review.md", result["prompts"][1]["prompt_file"])
+
+    def test_empty_data(self):
+        self.assertEqual(_normalize_pr_review_data({}), {})
+
+    def test_non_dict_prompt_entries_preserved(self):
+        data = {"prompts": ["string_entry", 42]}
+        result = _normalize_pr_review_data(data)
+        self.assertEqual(result["prompts"], ["string_entry", 42])
+
+
+class TestMigrateAdapterJsonConfigs(unittest.TestCase):
+    def test_converts_pr_review_json(self):
+        with TemporaryDirectory() as d:
+            adapter = Path(d) / "adapter"
+            adapter.mkdir()
+            config = Path(d) / "config"
+            pr_json = {"dataDir": ".prs", "prompts": [{"promptFile": "prompts/pr/code.md"}]}
+            (adapter / "pr-review.json").write_text(json.dumps(pr_json))
+            result = _migrate_adapter_json_configs(adapter, config)
+            self.assertIn("pr-review.json", result)
+            toml_path = config / "pr-review.toml"
+            self.assertTrue(toml_path.is_file())
+            content = toml_path.read_text()
+            self.assertIn("data_dir", content)
+            self.assertNotIn("dataDir", content)
+            self.assertIn("prompt_file", content)
+            self.assertIn(".gen/kits/sdlc/scripts/prompts/pr/", content)
+
+    def test_skips_artifacts_json(self):
+        with TemporaryDirectory() as d:
+            adapter = Path(d) / "adapter"
+            adapter.mkdir()
+            config = Path(d) / "config"
+            (adapter / "artifacts.json").write_text('{"key": "val"}')
+            result = _migrate_adapter_json_configs(adapter, config)
+            self.assertEqual(result, [])
+            self.assertFalse((config / "artifacts.toml").exists())
+
+    def test_skips_when_toml_exists(self):
+        with TemporaryDirectory() as d:
+            adapter = Path(d) / "adapter"
+            adapter.mkdir()
+            config = Path(d) / "config"
+            config.mkdir()
+            (adapter / "custom.json").write_text('{"a": 1}')
+            (config / "custom.toml").write_text('a = 1\n')
+            result = _migrate_adapter_json_configs(adapter, config)
+            self.assertEqual(result, [])
+
+    def test_handles_broken_json(self):
+        with TemporaryDirectory() as d:
+            adapter = Path(d) / "adapter"
+            adapter.mkdir()
+            config = Path(d) / "config"
+            (adapter / "broken.json").write_text("NOT JSON")
+            result = _migrate_adapter_json_configs(adapter, config)
+            self.assertEqual(result, [])
+
+    def test_converts_generic_json(self):
+        with TemporaryDirectory() as d:
+            adapter = Path(d) / "adapter"
+            adapter.mkdir()
+            config = Path(d) / "config"
+            (adapter / "custom.json").write_text('{"key": "value"}')
+            result = _migrate_adapter_json_configs(adapter, config)
+            self.assertIn("custom.json", result)
+            self.assertTrue((config / "custom.toml").is_file())
+
+
+class TestRunMigrateConfigPrReview(unittest.TestCase):
+    def test_pr_review_json_normalized(self):
+        """run_migrate_config applies pr-review specific normalization."""
+        with TemporaryDirectory() as d:
+            root = Path(d)
+            config_dir = root / "config"
+            config_dir.mkdir()
+            pr_json = {
+                "dataDir": ".prs",
+                "prompts": [
+                    {"description": "Code", "promptFile": "prompts/pr/code-review.md"},
+                ],
+            }
+            (config_dir / "pr-review.json").write_text(json.dumps(pr_json))
+            result = run_migrate_config(root)
+            self.assertEqual(result["converted_count"], 1)
+            toml_path = config_dir / "pr-review.toml"
+            self.assertTrue(toml_path.is_file())
+            content = toml_path.read_text()
+            self.assertIn("data_dir", content)
+            self.assertNotIn("dataDir", content)
+            self.assertIn("prompt_file", content)
+            self.assertNotIn("promptFile", content)
+            self.assertIn(".gen/kits/sdlc/scripts/prompts/pr/", content)
 
 
 # ===========================================================================

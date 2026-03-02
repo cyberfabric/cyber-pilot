@@ -19,8 +19,6 @@ Based on: Michael Nygard's ADR template (2011), ISO/IEC/IEEE 42010:2022
 
 `@cpt:blueprint`
 ```toml
-# Blueprint version (semver)
-version = 1
 # Kit slug this blueprint belongs to
 kit = "sdlc"
 # Artifact kind: PRD | ADR | DESIGN | DECOMPOSITION | FEATURE | CODE

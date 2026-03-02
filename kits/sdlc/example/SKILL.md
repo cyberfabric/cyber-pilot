@@ -102,8 +102,8 @@ When routed to PR review:
 2. Read `{cypilot_path}/.gen/kits/sdlc/workflows/pr-review.md` and follow its steps
 3. Use `python3 {cypilot_path}/.gen/kits/sdlc/scripts/pr.py` as the script
 4. When target is `ALL` or no PR number given, run `pr.py list` first to show available PRs
-5. Select prompt and checklist from `{cypilot_path}/config/pr-review.json` → `prompts`
-6. Load prompt from `promptFile` and checklist from `checklist` in matched entry
+5. Select prompt and checklist from `{cypilot_path}/config/pr-review.toml` → `prompts`
+6. Load prompt from `prompt_file` and checklist from `checklist` in matched entry
 7. Use templates from `{cypilot_path}/.gen/kits/sdlc/artifacts/PR-CODE-REVIEW-TEMPLATE/template.md` and `{cypilot_path}/.gen/kits/sdlc/artifacts/PR-STATUS-REPORT-TEMPLATE/template.md`
 
 ### PR Status Workflow

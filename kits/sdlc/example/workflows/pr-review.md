@@ -45,11 +45,11 @@ Previous results are stale the moment a new review request arrives.
 ## Paths
 
 - **Script**: `python3 {cypilot_path}/.gen/kits/sdlc/scripts/pr.py`
-- **Config**: `{cypilot_path}/config/pr-review.json`
+- **Config**: `{cypilot_path}/config/pr-review.toml`
 - **Code review template**: `{cypilot_path}/.gen/kits/sdlc/artifacts/PR-CODE-REVIEW-TEMPLATE/template.md`
 - **Status report template**: `{cypilot_path}/.gen/kits/sdlc/artifacts/PR-STATUS-REPORT-TEMPLATE/template.md`
-- **Checklists**: `docs/checklists/` (PRD.md, DESIGN.md, ADR.md, etc.)
-- **Prompts**: `{cypilot_path}/.core/prompts/pr/`
+- **Checklists**: Referenced per-prompt in `pr-review.toml`
+- **Prompts**: `{cypilot_path}/.gen/kits/sdlc/scripts/prompts/pr/`
 - **PR data**: `.prs/{ID}/`
 - **Exclude list**: `.prs/config.yaml` → `exclude_prs`
 
@@ -57,7 +57,7 @@ Previous results are stale the moment a new review request arrives.
 
 - [ ] `gh` CLI installed and authenticated (`gh auth status`)
 - [ ] Repository has GitHub remote configured
-- [ ] `{cypilot_path}/config/pr-review.json` has `prompts` configured
+- [ ] `{cypilot_path}/config/pr-review.toml` has `[[prompts]]` configured
 
 ---
 
@@ -81,16 +81,16 @@ overwrites any previously fetched files.
 Do NOT skip this step. Do NOT reuse previously fetched data.
 
 ## Step 3: Select review prompt and checklist
-Read `{cypilot_path}/config/pr-review.json` → `prompts` list. For each prompt
+Read `{cypilot_path}/config/pr-review.toml` → `[[prompts]]` list. For each prompt
 entry, read the `description` field. Based on the PR title, body (in
 `meta.json`), and the files changed (in `diff.patch`), select the most
 appropriate review prompt. If unsure, default to "Code Review".
-Load the corresponding `promptFile` and `checklist` from the matched entry.
+Load the corresponding `prompt_file` and `checklist` from the matched entry.
 **Resolve `{placeholder}` variables** in the prompt using the fields from
 the matched entry (e.g. `{project_domain}`, `{checklist}`, `{template}`,
 `{existing_artifacts}`, `{architecture}`, `{coding_guidelines}`,
-`{security_guidelines}`, etc.). Each prompt entry in `pr-review.json`
-provides the project-specific paths that the submodule prompts de-reference.
+`{security_guidelines}`, etc.). Each prompt entry in `pr-review.toml`
+provides the project-specific paths that the prompts de-reference.
 Use the checklist criteria to guide the review depth and structure.
 
 ## Step 4: Review each PR (read-only)

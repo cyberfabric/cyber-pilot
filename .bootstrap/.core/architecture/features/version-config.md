@@ -74,15 +74,10 @@ Ensures teams can upgrade Cypilot without losing configuration or customizations
 1. [x] - `p1` - User invokes `cypilot update [--project-root P] [--dry-run]` - `inst-user-update`
 2. [x] - `p1` - Resolve project root and cypilot directory - `inst-resolve-project`
 3. [x] - `p1` - Replace `.core/` from cache (always force-overwrite) - `inst-replace-core`
-4. [x] - `p1` - Update kit reference copies (`cypilot/kits/{slug}/`) from cache - `inst-update-kit-refs`
-5. [x] - `p1` - Compare blueprint versions (cache vs user `config/kits/{slug}/blueprints/`) - `inst-compare-versions`
-6. - `p1` - **IF** same version → skip user blueprints - `inst-if-same-version`
-7. - `p1` - **IF** higher version → WARN "migration needed", don't touch user blueprints - `inst-if-migration-needed`
-8. - `p1` - **IF** missing → copy from cache (first install) - `inst-if-missing`
-9. [x] - `p1` - Regenerate `.gen/` from user's blueprints (NOT from cache) - `inst-regenerate-gen`
-10. [x] - `p1` - Ensure config scaffold files exist (create only if missing) - `inst-ensure-scaffold`
-11. [x] - `p1` - Regenerate agent entry points - `inst-regenerate-agents`
-12. [x] - `p1` - **RETURN** update report with actions taken - `inst-return-report`
+4. [x] - `p1` - For each kit in cache: delegate to `update_kit()` (save .prev, copy ref, first-install/migrate, copy scripts, regen .gen/) - `inst-update-kits`
+5. [x] - `p1` - Ensure config scaffold files exist (create only if missing) - `inst-ensure-scaffold`
+6. [x] - `p1` - Regenerate agent entry points - `inst-regenerate-agents`
+7. [x] - `p1` - **RETURN** update report with actions taken - `inst-return-report`
 
 ### Manage Config via CLI
 

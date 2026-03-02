@@ -119,192 +119,79 @@ def cmd_update(argv: List[str]) -> int:
     sys.stderr.write(f"  {copy_results}\n")
     # @cpt-end:cpt-cypilot-flow-version-config-update:p1:inst-replace-core
 
-    # @cpt-begin:cpt-cypilot-flow-version-config-update:p1:inst-update-kit-refs
-    # ── Step 2: Update kit reference copies (cypilot/kits/) from cache ───
-    sys.stderr.write("Step 2: Updating kit references...\n")
-    kits_cache_dir = CACHE_DIR / "kits"
-    kits_ref_dir = cypilot_dir / "kits"
+    # @cpt-begin:cpt-cypilot-flow-version-config-update:p1:inst-update-kits
+    # ── Step 2: Update kits (ref copy, migrate, regen .gen/) ─────────────
+    sys.stderr.write("Step 2: Updating kits...\n")
+    from .kit import update_kit
 
-    if not args.dry_run and kits_cache_dir.is_dir():
+    kits_cache_dir = CACHE_DIR / "kits"
+    gen_dir.mkdir(parents=True, exist_ok=True)
+    gen_skill_nav_parts: List[str] = []
+    gen_agents_parts: List[str] = []
+    kit_results: Dict[str, Any] = {}
+
+    if kits_cache_dir.is_dir():
         for kit_src in sorted(kits_cache_dir.iterdir()):
             if not kit_src.is_dir():
                 continue
             kit_slug = kit_src.name
-            ref_dst = kits_ref_dir / kit_slug
-            # Reference copies are always overwritten (like .core/)
-            for subdir_name in ("blueprints", "scripts"):
-                src = kit_src / subdir_name
-                dst = ref_dst / subdir_name
-                if src.is_dir():
-                    if dst.exists():
-                        shutil.rmtree(dst)
-                    dst.parent.mkdir(parents=True, exist_ok=True)
-                    shutil.copytree(src, dst)
-            # Copy conf.toml to reference
-            conf_src = kit_src / "conf.toml"
-            if conf_src.is_file():
-                ref_dst.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(conf_src, ref_dst / "conf.toml")
-            sys.stderr.write(f"  kits/{kit_slug}: reference updated\n")
-    actions["kit_references"] = "updated"
-    # @cpt-end:cpt-cypilot-flow-version-config-update:p1:inst-update-kit-refs
 
-    # @cpt-begin:cpt-cypilot-flow-version-config-update:p1:inst-compare-versions
-    # ── Step 3: Compare kit versions via conf.toml ───────────────────────
-    sys.stderr.write("Step 3: Checking kit versions...\n")
-    kit_version_report: Dict[str, Any] = {}
-
-    if kits_cache_dir.is_dir():
-        for kit_src in sorted(kits_cache_dir.iterdir()):
-            if not kit_src.is_dir() or not (kit_src / "blueprints").is_dir():
-                continue
-            kit_slug = kit_src.name
-            user_kit_dir = config_dir / "kits" / kit_slug
-            user_bp_dir = user_kit_dir / "blueprints"
-            user_conf = user_kit_dir / "conf.toml"
-            cache_conf = kit_src / "conf.toml"
-
-            if not user_bp_dir.is_dir():
-                # User blueprints don't exist yet — copy from cache (first install)
-                if not args.dry_run:
-                    user_bp_dir.parent.mkdir(parents=True, exist_ok=True)
-                    shutil.copytree(kit_src / "blueprints", user_bp_dir)
-                    # Copy conf.toml on first install
-                    if cache_conf.is_file():
-                        shutil.copy2(cache_conf, user_kit_dir / "conf.toml")
-                kit_version_report[kit_slug] = {"status": "created"}
-                sys.stderr.write(f"  {kit_slug}: blueprints created (first install)\n")
-            else:
-                # Compare versions via conf.toml
-                cache_ver = _read_conf_version(cache_conf)
-                user_ver = _read_conf_version(user_conf)
-                cache_bp_versions = _read_conf_section(cache_conf, "blueprints")
-                user_bp_versions = _read_conf_section(user_conf, "blueprints")
-                cache_script_versions = _read_conf_section(cache_conf, "scripts")
-                user_script_versions = _read_conf_section(user_conf, "scripts")
-
-                drift = _compare_conf_versions(
-                    cache_ver, user_ver,
-                    cache_bp_versions, user_bp_versions,
-                    cache_script_versions, user_script_versions,
-                )
-                kit_version_report[kit_slug] = drift
-
-                if drift["status"] == "current":
-                    sys.stderr.write(f"  {kit_slug}: v{user_ver} — up to date\n")
-                elif drift["status"] == "migration_needed":
-                    details: List[str] = []
-                    if drift.get("kit_version_drift"):
-                        details.append(f"kit v{user_ver} → v{cache_ver}")
-                    for bp, d in drift.get("blueprint_drift", {}).items():
-                        details.append(f"{bp} v{d['user']} → v{d['cache']}")
-                    for sc, d in drift.get("script_drift", {}).items():
-                        details.append(f"script/{sc} v{d['user']} → v{d['cache']}")
-                    sys.stderr.write(
-                        f"  {kit_slug}: MIGRATION NEEDED — {', '.join(details)}\n"
-                        f"    Reference updated in kits/{kit_slug}/.\n"
-                        f"    User config in config/kits/{kit_slug}/ NOT touched.\n"
-                        f"    Review kits/{kit_slug}/ vs config/kits/{kit_slug}/, "
-                        f"then run 'cpt generate-resources'.\n"
-                    )
-                    warnings.append(f"Kit '{kit_slug}': migration needed — {', '.join(details)}")
-
-            # Copy scripts to .gen/kits/{slug}/scripts/ (always ok, generated)
-            scripts_src = kit_src / "scripts"
-            if not args.dry_run and scripts_src.is_dir():
-                gen_kit_scripts = gen_dir / "kits" / kit_slug / "scripts"
-                if gen_kit_scripts.exists():
-                    shutil.rmtree(gen_kit_scripts)
-                gen_kit_scripts.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copytree(scripts_src, gen_kit_scripts)
-
-    actions["kit_versions"] = kit_version_report
-    # @cpt-end:cpt-cypilot-flow-version-config-update:p1:inst-compare-versions
-
-    # @cpt-begin:cpt-cypilot-flow-version-config-update:p1:inst-regenerate-gen
-    # ── Step 4: Regenerate .gen/ from USER's blueprints ──────────────────
-    sys.stderr.write("Step 4: Regenerating .gen/ from user blueprints...\n")
-    from ..utils.blueprint import process_kit
-
-    gen_dir.mkdir(parents=True, exist_ok=True)
-    gen_kits_dir = gen_dir / "kits"
-    gen_skill_nav_parts: List[str] = []
-    gen_agents_parts: List[str] = []
-    kit_gen_results: Dict[str, Any] = {}
-
-    config_kits_dir = config_dir / "kits"
-    if config_kits_dir.is_dir():
-        for kit_dir in sorted(config_kits_dir.iterdir()):
-            bp_dir = kit_dir / "blueprints"
-            if not bp_dir.is_dir():
-                continue
-            kit_slug = kit_dir.name
+            kit_r = update_kit(
+                kit_slug, kit_src, cypilot_dir, dry_run=args.dry_run,
+            )
+            kit_results[kit_slug] = kit_r
 
             if args.dry_run:
-                kit_gen_results[kit_slug] = "dry_run"
                 continue
 
-            summary, kit_errors = process_kit(
-                kit_slug, bp_dir, gen_kits_dir, dry_run=False,
-            )
-            kit_gen_results[kit_slug] = {
-                "files_written": summary.get("files_written", 0),
-                "artifact_kinds": summary.get("artifact_kinds", []),
-            }
-            if kit_errors:
-                errors.extend({"path": kit_slug, "error": e} for e in kit_errors)
-
-            # Collect skill nav and sysprompt
-            skill_content = summary.get("skill_content", "")
-            if skill_content:
-                art_kinds = [k.upper() for k in summary.get("artifact_kinds", []) if k]
-                wf_names = [w["name"] for w in summary.get("workflows", []) if w.get("name")]
-                desc_parts: list[str] = []
-                if art_kinds:
-                    desc_parts.append(f"Artifacts: {', '.join(art_kinds)}")
-                if wf_names:
-                    desc_parts.append(f"Workflows: {', '.join(wf_names)}")
-                kit_description = "; ".join(desc_parts) if desc_parts else f"Kit {kit_slug}"
-
-                gen_kit_skill_path = gen_kits_dir / kit_slug / "SKILL.md"
-                gen_kit_skill_path.parent.mkdir(parents=True, exist_ok=True)
-                gen_kit_skill_path.write_text(
-                    f"---\nname: cypilot-{kit_slug}\n"
-                    f"description: \"{kit_description}\"\n---\n\n"
-                    f"# Cypilot Skill — Kit `{kit_slug}`\n\n"
-                    f"Generated from kit `{kit_slug}` blueprints.\n\n"
-                    + skill_content + "\n",
-                    encoding="utf-8",
-                )
-                gen_skill_nav_parts.append(
-                    f"ALWAYS invoke `{{cypilot_path}}/.gen/kits/{kit_slug}/SKILL.md` FIRST"
+            # Collect gen errors
+            if kit_r.get("gen_errors"):
+                errors.extend(
+                    {"path": kit_slug, "error": e} for e in kit_r["gen_errors"]
                 )
 
-            sysprompt_content = summary.get("sysprompt_content", "")
-            if sysprompt_content:
-                gen_agents_parts.append(sysprompt_content)
+            # Collect cross-kit aggregation parts
+            if kit_r.get("skill_nav"):
+                gen_skill_nav_parts.append(kit_r["skill_nav"])
+            if kit_r.get("agents_content"):
+                gen_agents_parts.append(kit_r["agents_content"])
 
-            # Write generated workflows
-            for wf in summary.get("workflows", []):
-                wf_name = wf["name"]
-                wf_path = gen_kits_dir / kit_slug / "workflows" / f"{wf_name}.md"
-                wf_path.parent.mkdir(parents=True, exist_ok=True)
-                fm_lines = ["---", "cypilot: true", "type: workflow", f"name: cypilot-{wf_name}"]
-                if wf.get("description"):
-                    fm_lines.append(f"description: {wf['description']}")
-                if wf.get("version"):
-                    fm_lines.append(f"version: {wf['version']}")
-                if wf.get("purpose"):
-                    fm_lines.append(f"purpose: {wf['purpose']}")
-                fm_lines.append("---")
-                wf_path.write_text("\n".join(fm_lines) + "\n\n" + wf["content"] + "\n", encoding="utf-8")
+            # Report progress
+            ver = kit_r.get("version", {})
+            ver_status = ver.get("status", "") if isinstance(ver, dict) else ver
+            gen = kit_r.get("gen", {})
+            files_written = gen.get("files_written", 0) if isinstance(gen, dict) else 0
 
-            sys.stderr.write(
-                f"  {kit_slug}: {summary.get('files_written', 0)} files generated\n"
-            )
+            if ver_status == "created":
+                sys.stderr.write(f"  {kit_slug}: first install, {files_written} files generated\n")
+            elif ver_status == "migrated":
+                sys.stderr.write(f"  {kit_slug}: migrated {ver.get('kit_version', '')}\n")
+                for bp_r in ver.get("blueprints", []):
+                    action = bp_r.get("action", "")
+                    bp_name = bp_r.get("blueprint", "")
+                    if action == "merged":
+                        updated = bp_r.get("markers_updated", [])
+                        skipped = bp_r.get("markers_skipped", [])
+                        sys.stderr.write(
+                            f"    {bp_name}: {len(updated)} markers updated"
+                        )
+                        if skipped:
+                            sys.stderr.write(
+                                f", {len(skipped)} skipped (customized)"
+                            )
+                        sys.stderr.write("\n")
+                    elif action == "created":
+                        sys.stderr.write(f"    {bp_name}: created (new)\n")
+                    elif action == "skipped_all_customized":
+                        sys.stderr.write(
+                            f"    {bp_name}: all markers customized, skipped\n"
+                        )
+                sys.stderr.write(f"    {files_written} files generated\n")
+            elif ver_status == "current":
+                sys.stderr.write(f"  {kit_slug}: up to date, {files_written} files generated\n")
 
-    actions["gen_kits"] = kit_gen_results
-    # @cpt-end:cpt-cypilot-flow-version-config-update:p1:inst-regenerate-gen
+    actions["kits"] = kit_results
+    # @cpt-end:cpt-cypilot-flow-version-config-update:p1:inst-update-kits
 
     # @cpt-begin:cpt-cypilot-flow-version-config-update:p1:inst-regenerate-agents
     # Write .gen/AGENTS.md
@@ -450,73 +337,7 @@ def _read_project_name(config_dir: Path) -> Optional[str]:
     return None
 
 
-def _read_conf_version(conf_path: Path) -> int:
-    """Read top-level 'version' from conf.toml. Returns 0 if missing."""
-    if not conf_path.is_file():
-        return 0
-    try:
-        import tomllib
-        with open(conf_path, "rb") as f:
-            data = tomllib.load(f)
-        ver = data.get("version")
-        return int(ver) if ver is not None else 0
-    except Exception:
-        return 0
+# Re-exported from kit.py — tests import it from here
+from .kit import _read_conf_version as _read_conf_version  # noqa: F401
 
 
-def _read_conf_section(conf_path: Path, section: str) -> Dict[str, int]:
-    """Read a [section] from conf.toml as {name: version_int}."""
-    if not conf_path.is_file():
-        return {}
-    try:
-        import tomllib
-        with open(conf_path, "rb") as f:
-            data = tomllib.load(f)
-        raw = data.get(section, {})
-        if not isinstance(raw, dict):
-            return {}
-        return {str(k): int(v) for k, v in raw.items()}
-    except Exception:
-        return {}
-
-
-def _compare_conf_versions(
-    cache_ver: int,
-    user_ver: int,
-    cache_bp: Dict[str, int],
-    user_bp: Dict[str, int],
-    cache_scripts: Dict[str, int],
-    user_scripts: Dict[str, int],
-) -> Dict[str, Any]:
-    """Compare kit versions from conf.toml (cache vs user).
-
-    Returns dict with status 'current' or 'migration_needed' plus drift details.
-    """
-    result: Dict[str, Any] = {"status": "current"}
-
-    # Kit-level version drift
-    if cache_ver > user_ver:
-        result["kit_version_drift"] = {"cache": cache_ver, "user": user_ver}
-
-    # Per-blueprint drift
-    bp_drift: Dict[str, Dict[str, int]] = {}
-    for name, cver in cache_bp.items():
-        uver = user_bp.get(name, 0)
-        if cver > uver:
-            bp_drift[name] = {"cache": cver, "user": uver}
-    if bp_drift:
-        result["blueprint_drift"] = bp_drift
-
-    # Per-script drift
-    sc_drift: Dict[str, Dict[str, int]] = {}
-    for name, cver in cache_scripts.items():
-        uver = user_scripts.get(name, 0)
-        if cver > uver:
-            sc_drift[name] = {"cache": cver, "user": uver}
-    if sc_drift:
-        result["script_drift"] = sc_drift
-
-    if result.get("kit_version_drift") or bp_drift or sc_drift:
-        result["status"] = "migration_needed"
-
-    return result

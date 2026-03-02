@@ -2,10 +2,6 @@
 
 `@cpt:blueprint`
 ```toml
-# Blueprint version (semver)
-version = 1
-# Kit slug this blueprint belongs to
-kit = "sdlc"
 codebase = true
 toc = false
 ```

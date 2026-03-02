@@ -20,8 +20,6 @@ of done, and acceptance criteria.
 
 `@cpt:blueprint`
 ```toml
-# Blueprint version (semver)
-version = 1
 # Kit slug this blueprint belongs to
 kit = "sdlc"
 # Artifact kind: PRD | ADR | DESIGN | DECOMPOSITION | FEATURE | CODE

@@ -2,8 +2,6 @@
 
 `@cpt:blueprint`
 ```toml
-version = 1
-kit = "sdlc"
 artifact = "PR-CODE-REVIEW-TEMPLATE"
 codebase = false
 ```

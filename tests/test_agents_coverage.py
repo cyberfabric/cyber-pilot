@@ -186,8 +186,21 @@ class TestListWorkflowFilesGenKits(unittest.TestCase):
             self.assertIsInstance(results, list)
 
 
+class TestTargetPathFromRoot(unittest.TestCase):
+    """Cover line 52 in agents.py (_target_path_from_root with cypilot_root=None)."""
+
+    def test_cypilot_root_none_returns_cypilot_path_prefix(self):
+        from cypilot.commands.agents import _target_path_from_root
+
+        with TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            target = project_root / "some" / "file.md"
+            result = _target_path_from_root(target, project_root, cypilot_root=None)
+            self.assertEqual(result, "{cypilot_path}/some/file.md")
+
+
 class TestLoadJsonFileNonDict(unittest.TestCase):
-    """Cover line 137 in agents.py (_load_json_file returns None for non-dict)."""
+    """Cover lines 137, 141 in agents.py (_load_json_file edge cases)."""
 
     def test_json_array_returns_none(self):
         from cypilot.commands.agents import _load_json_file
@@ -196,6 +209,11 @@ class TestLoadJsonFileNonDict(unittest.TestCase):
             p = Path(tmpdir) / "test.json"
             p.write_text("[1, 2, 3]", encoding="utf-8")
             self.assertIsNone(_load_json_file(p))
+
+    def test_nonexistent_file_returns_none(self):
+        from cypilot.commands.agents import _load_json_file
+
+        self.assertIsNone(_load_json_file(Path("/nonexistent/file.json")))
 
 
 if __name__ == "__main__":

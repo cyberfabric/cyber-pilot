@@ -1304,6 +1304,7 @@ def process_kit(
     for bp_file in bp_files:
         # @cpt-begin:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-parse-bp
         bp = parse_blueprint(bp_file)
+        bp.kit_slug = kit_slug  # kit slug comes from caller, not blueprint TOML
         all_blueprints.append(bp)
         # @cpt-end:cpt-cypilot-algo-blueprint-system-process-kit:p1:inst-parse-bp
 

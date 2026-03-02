@@ -1311,9 +1311,15 @@ def run_migrate(
             )
         # @cpt-end:cpt-cypilot-flow-v2-v3-migration-migrate-project:p1:inst-migrate-kits
 
+        # Step 8b-pre: Migrate remaining JSON configs from adapter → config/
+        # (artifacts.json and AGENTS.md are already handled above;
+        #  this catches kit-specific configs like pr-review.json)
+        adapter_dir_path = project_root / adapter_path
+        if adapter_dir_path.is_dir():
+            _migrate_adapter_json_configs(adapter_dir_path, config_dir)
+
         # Step 8b: Clean up adapter directory (already backed up)
         # @cpt-begin:cpt-cypilot-flow-v2-v3-migration-migrate-project:p1:inst-cleanup-adapter
-        adapter_dir_path = project_root / adapter_path
         if adapter_dir_path.is_dir():
             shutil.rmtree(adapter_dir_path)
         # Also remove v2 root config files
@@ -1323,7 +1329,11 @@ def run_migrate(
                 v2_path.unlink()
         # @cpt-end:cpt-cypilot-flow-v2-v3-migration-migrate-project:p1:inst-cleanup-adapter
 
-        # Step 8c: Write .gen/AGENTS.md (generated navigation rules)
+        # Step 8c: Regenerate .gen/ from migrated blueprints
+        # (must happen before cmd_agents so workflow proxies resolve)
+        _regenerate_gen_from_config(config_dir, gen_dir)
+
+        # Step 8d: Write .gen/AGENTS.md (generated navigation rules)
         # @cpt-begin:cpt-cypilot-flow-v2-v3-migration-migrate-project:p1:inst-write-gen-agents
         _write_gen_agents(gen_dir, project_root.name)
         # @cpt-end:cpt-cypilot-flow-v2-v3-migration-migrate-project:p1:inst-write-gen-agents
@@ -1441,6 +1451,81 @@ def run_migrate(
     # @cpt-end:cpt-cypilot-flow-v2-v3-migration-migrate-project:p1:inst-return-success
 
 
+def _regenerate_gen_from_config(config_dir: Path, gen_dir: Path) -> None:
+    """Process migrated blueprints to populate .gen/kits/.
+
+    Mirrors cpt-update step 4: for each kit in config/kits/ that has
+    blueprints/, run process_kit to generate artifacts, workflows, SKILL.md.
+    Also copies scripts/ to .gen/kits/{slug}/scripts/.
+    """
+    from ..utils.blueprint import process_kit
+
+    gen_dir.mkdir(parents=True, exist_ok=True)
+    gen_kits_dir = gen_dir / "kits"
+
+    config_kits_dir = config_dir / "kits"
+    if not config_kits_dir.is_dir():
+        return
+
+    for kit_dir in sorted(config_kits_dir.iterdir()):
+        bp_dir = kit_dir / "blueprints"
+        if not bp_dir.is_dir():
+            continue
+        kit_slug = kit_dir.name
+
+        # Copy scripts to .gen/kits/{slug}/scripts/
+        scripts_src = kit_dir / "scripts"
+        if scripts_src.is_dir():
+            gen_kit_scripts = gen_kits_dir / kit_slug / "scripts"
+            if gen_kit_scripts.exists():
+                shutil.rmtree(gen_kit_scripts)
+            gen_kit_scripts.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copytree(scripts_src, gen_kit_scripts)
+
+        # Process blueprints → artifacts, workflows, SKILL.md
+        summary, _errors = process_kit(
+            kit_slug, bp_dir, gen_kits_dir, dry_run=False,
+        )
+
+        # Write SKILL.md
+        skill_content = summary.get("skill_content", "")
+        if skill_content:
+            art_kinds = [k.upper() for k in summary.get("artifact_kinds", []) if k]
+            wf_names = [w["name"] for w in summary.get("workflows", []) if w.get("name")]
+            desc_parts: List[str] = []
+            if art_kinds:
+                desc_parts.append(f"Artifacts: {', '.join(art_kinds)}")
+            if wf_names:
+                desc_parts.append(f"Workflows: {', '.join(wf_names)}")
+            kit_description = "; ".join(desc_parts) if desc_parts else f"Kit {kit_slug}"
+
+            gen_kit_skill_path = gen_kits_dir / kit_slug / "SKILL.md"
+            gen_kit_skill_path.parent.mkdir(parents=True, exist_ok=True)
+            gen_kit_skill_path.write_text(
+                f"---\nname: cypilot-{kit_slug}\n"
+                f"description: \"{kit_description}\"\n---\n\n"
+                f"# Cypilot Skill — Kit `{kit_slug}`\n\n"
+                f"Generated from kit `{kit_slug}` blueprints.\n\n"
+                + skill_content + "\n",
+                encoding="utf-8",
+            )
+
+        # Write generated workflows
+        for wf in summary.get("workflows", []):
+            wf_name = wf["name"]
+            wf_path = gen_kits_dir / kit_slug / "workflows" / f"{wf_name}.md"
+            wf_path.parent.mkdir(parents=True, exist_ok=True)
+            fm_lines = ["---", "cypilot: true", "type: workflow", f"name: cypilot-{wf_name}"]
+            if wf.get("description"):
+                fm_lines.append(f"description: {wf['description']}")
+            if wf.get("version"):
+                fm_lines.append(f"version: {wf['version']}")
+            if wf.get("purpose"):
+                fm_lines.append(f"purpose: {wf['purpose']}")
+            fm_lines.append("---")
+            wf_path.write_text("\n".join(fm_lines) + "\n\n" + wf["content"] + "\n", encoding="utf-8")
+
+
 def _write_gen_agents(gen_dir: Path, project_name: str) -> None:
     """Write .gen/AGENTS.md with generated navigation rules."""
     kit_id = "cypilot-sdlc"
@@ -1468,6 +1553,83 @@ def _write_gen_agents(gen_dir: Path, project_name: str) -> None:
 # ===========================================================================
 # Migrate Config Flow (JSON → TOML)
 # ===========================================================================
+
+# Key mapping for pr-review.json → pr-review.toml migration
+_PR_REVIEW_KEY_MAP = {
+    "dataDir": "data_dir",
+    "promptFile": "prompt_file",
+}
+
+# Path patterns to update in pr-review prompt entries
+_PR_REVIEW_PATH_REWRITES = [
+    (".core/prompts/pr/", ".gen/kits/sdlc/scripts/prompts/pr/"),
+    ("prompts/pr/", ".gen/kits/sdlc/scripts/prompts/pr/"),
+]
+
+
+def _normalize_pr_review_data(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Normalize pr-review.json keys and paths for v3 TOML format.
+
+    - Renames camelCase keys to snake_case (dataDir → data_dir, promptFile → prompt_file)
+    - Rewrites prompt file paths from v2 locations to .gen/kits/sdlc/scripts/prompts/pr/
+    """
+    out: Dict[str, Any] = {}
+    for k, v in data.items():
+        new_key = _PR_REVIEW_KEY_MAP.get(k, k)
+        if new_key == "prompts" and isinstance(v, list):
+            out[new_key] = [_normalize_pr_review_entry(entry) for entry in v]
+        else:
+            out[new_key] = v
+    return out
+
+
+def _normalize_pr_review_entry(entry: Any) -> Any:
+    if not isinstance(entry, dict):
+        return entry
+    out: Dict[str, Any] = {}
+    for k, v in entry.items():
+        new_key = _PR_REVIEW_KEY_MAP.get(k, k)
+        if isinstance(v, str):
+            for old_pat, new_pat in _PR_REVIEW_PATH_REWRITES:
+                if old_pat in v:
+                    v = v.replace(old_pat, new_pat)
+                    break
+        out[new_key] = v
+    return out
+
+
+# Files already handled by earlier migration steps — skip in generic pass
+_ALREADY_MIGRATED = {"artifacts.json", "constraints.json"}
+
+
+def _migrate_adapter_json_configs(
+    adapter_dir: Path,
+    config_dir: Path,
+) -> List[str]:
+    """Migrate remaining .json configs from adapter → config/ as .toml.
+
+    Skips files already handled by other migration steps (artifacts.json, etc.).
+    Applies file-specific normalization (e.g. pr-review.json key renaming).
+    Returns list of converted filenames.
+    """
+    converted: List[str] = []
+    config_dir.mkdir(parents=True, exist_ok=True)
+    for json_file in sorted(adapter_dir.glob("*.json")):
+        if json_file.name in _ALREADY_MIGRATED:
+            continue
+        toml_dest = config_dir / json_file.with_suffix(".toml").name
+        if toml_dest.is_file():
+            continue
+        try:
+            data = json.loads(json_file.read_text(encoding="utf-8"))
+            if json_file.name == "pr-review.json":
+                data = _normalize_pr_review_data(data)
+            toml_utils.dump(_strip_none(data), toml_dest)
+            converted.append(json_file.name)
+        except (json.JSONDecodeError, OSError, TypeError):
+            pass
+    return converted
+
 
 def run_migrate_config(project_root: Path) -> Dict[str, Any]:
     """Convert remaining JSON config files to TOML.
@@ -1505,6 +1667,9 @@ def run_migrate_config(project_root: Path) -> Dict[str, Any]:
             # @cpt-begin:cpt-cypilot-flow-v2-v3-migration-migrate-config:p1:inst-parse-json
             data = json.loads(json_file.read_text(encoding="utf-8"))
             # @cpt-end:cpt-cypilot-flow-v2-v3-migration-migrate-config:p1:inst-parse-json
+            # Normalize known config files (key renaming, path updates)
+            if json_file.name == "pr-review.json":
+                data = _normalize_pr_review_data(data)
             # @cpt-begin:cpt-cypilot-flow-v2-v3-migration-migrate-config:p1:inst-write-toml
             toml_utils.dump(_strip_none(data), toml_file)
             # @cpt-end:cpt-cypilot-flow-v2-v3-migration-migrate-config:p1:inst-write-toml

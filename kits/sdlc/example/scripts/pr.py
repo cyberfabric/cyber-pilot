@@ -14,6 +14,14 @@ import re
 import subprocess
 import sys
 
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python < 3.11
+    try:
+        import tomli as tomllib  # type: ignore[no-redef]
+    except ModuleNotFoundError:
+        tomllib = None  # type: ignore[assignment]
+
 
 _CPT_MARKER = "@cpt:root-agents"
 
@@ -104,31 +112,41 @@ CYPILOT_PATH = os.path.join(ROOT, _CYPILOT_REL)
 
 
 def _load_pr_config():
-    """Load PR review config from {cypilot_path}/config/pr-review.json.
+    """Load PR review config from {cypilot_path}/config/pr-review.toml.
 
     Resolution order:
-    1. {project_root}/{cypilot_path}/config/pr-review.json
-    2. Legacy: {project_root}/.cypilot-adapter/pr-review.json
+    1. {cypilot_path}/config/pr-review.toml   (user-editable)
+    2. {cypilot_path}/.gen/kits/sdlc/scripts/pr-review.toml  (kit default)
+    3. {cypilot_path}/config/pr-review.json   (legacy JSON)
+    4. .cypilot-adapter/pr-review.json        (legacy v1)
     """
-    pr_cfg_path = os.path.join(
-        CYPILOT_PATH, "config", "pr-review.json",
-    )
-    if not os.path.exists(pr_cfg_path):
-        # Legacy fallback
-        pr_cfg_path = os.path.join(
-            ROOT, ".cypilot-adapter", "pr-review.json",
-        )
-    if not os.path.exists(pr_cfg_path):
-        return {}
-    with open(pr_cfg_path) as f:
-        return json.load(f)
+    # TOML candidates
+    candidates_toml = [
+        os.path.join(CYPILOT_PATH, "config", "pr-review.toml"),
+        os.path.join(CYPILOT_PATH, ".gen", "kits", "sdlc", "scripts", "pr-review.toml"),
+    ]
+    if tomllib is not None:
+        for p in candidates_toml:
+            if os.path.exists(p):
+                with open(p, "rb") as f:
+                    return tomllib.load(f)
+    # Legacy JSON fallback
+    candidates_json = [
+        os.path.join(CYPILOT_PATH, "config", "pr-review.json"),
+        os.path.join(ROOT, ".cypilot-adapter", "pr-review.json"),
+    ]
+    for p in candidates_json:
+        if os.path.exists(p):
+            with open(p) as f:
+                return json.load(f)
+    return {}
 
 
 _PR_CFG = _load_pr_config()
 
-# PR data directory (default .prs/, overridable in pr-review.json)
+# PR data directory (default .prs/, overridable via data_dir or legacy dataDir)
 PRS_DIR = os.path.join(
-    ROOT, _PR_CFG.get("dataDir", ".prs"),
+    ROOT, _PR_CFG.get("data_dir", _PR_CFG.get("dataDir", ".prs")),
 )
 # Local config path (exclude list, etc.)
 CONFIG_PATH = os.path.join(PRS_DIR, "config.yaml")

@@ -98,7 +98,7 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-update-cache
     if args and args[0] == "update":
-        if not skip_cache:
+        if not skip_cache and "--help" not in args and "-h" not in args:
             # Step 1: Update cache
             if source_dir is not None:
                 from cypilot_proxy.cache import copy_from_local
@@ -127,8 +127,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         sys.stderr.write("Updating project...\n")
         # Forward only 'update' + any remaining flags (strip version positional arg)
         update_args = ["update"]
-        if "--dry-run" in args:
-            update_args.append("--dry-run")
+        for flag in ("--dry-run", "--help", "-h"):
+            if flag in args:
+                update_args.append(flag)
         # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-return-cache-update
         return _forward_to_skill(skill_path, update_args)
         # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-return-cache-update

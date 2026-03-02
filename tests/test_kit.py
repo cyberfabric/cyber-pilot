@@ -614,5 +614,365 @@ class TestKitHelpers(unittest.TestCase):
             _register_kit_in_core_toml(config_dir, "nokit", "1", Path(td))
 
 
+# =========================================================================
+# _parse_segments / _three_way_merge_blueprint
+# =========================================================================
+
+class TestParseSegments(unittest.TestCase):
+    """Tests for the segment parser."""
+
+    def test_text_only(self):
+        from cypilot.commands.kit import _parse_segments
+        segs = _parse_segments("# Hello\n\nSome text.\n")
+        self.assertEqual(len(segs), 1)
+        self.assertEqual(segs[0].kind, "text")
+
+    def test_single_marker(self):
+        from cypilot.commands.kit import _parse_segments
+        text = "# Title\n\n`@cpt:blueprint`\n```toml\nkit = \"sdlc\"\n```\n`@/cpt:blueprint`\n\nEnd.\n"
+        segs = _parse_segments(text)
+        types = [s.kind for s in segs]
+        self.assertEqual(types, ["text", "marker", "text"])
+        self.assertEqual(segs[1].marker_type, "blueprint")
+        self.assertEqual(segs[1].marker_key, "blueprint#0")
+
+    def test_workflow_identity(self):
+        from cypilot.commands.kit import _parse_segments
+        text = (
+            '`@cpt:workflow`\n```toml\nname = "pr-review"\n```\ncontent\n`@/cpt:workflow`\n'
+            '`@cpt:workflow`\n```toml\nname = "pr-status"\n```\ncontent2\n`@/cpt:workflow`\n'
+        )
+        segs = _parse_segments(text)
+        markers = [s for s in segs if s.kind == "marker"]
+        self.assertEqual(len(markers), 2)
+        self.assertEqual(markers[0].marker_key, "workflow:pr-review#0")
+        self.assertEqual(markers[1].marker_key, "workflow:pr-status#0")
+
+    def test_heading_identity(self):
+        from cypilot.commands.kit import _parse_segments
+        text = '`@cpt:heading`\n```toml\nlevel = 1\ntemplate = "Context"\n```\n`@/cpt:heading`\n'
+        segs = _parse_segments(text)
+        markers = [s for s in segs if s.kind == "marker"]
+        self.assertEqual(markers[0].marker_key, "heading:L1#0")
+
+    def test_duplicate_keys_disambiguated(self):
+        from cypilot.commands.kit import _parse_segments
+        text = (
+            '`@cpt:heading`\n```toml\nlevel = 2\n```\n`@/cpt:heading`\n'
+            '`@cpt:heading`\n```toml\nlevel = 2\n```\n`@/cpt:heading`\n'
+        )
+        segs = _parse_segments(text)
+        markers = [s for s in segs if s.kind == "marker"]
+        self.assertEqual(len(markers), 2)
+        self.assertNotEqual(markers[0].marker_key, markers[1].marker_key)
+        self.assertIn("heading:L2#0", markers[0].marker_key)
+        self.assertIn("heading:L2#1", markers[1].marker_key)
+
+    def test_unclosed_marker_treated_as_text(self):
+        from cypilot.commands.kit import _parse_segments
+        text = '`@cpt:skill`\nSome content without close\n'
+        segs = _parse_segments(text)
+        self.assertEqual(len(segs), 1)
+        self.assertEqual(segs[0].kind, "text")
+
+
+class TestThreeWayMerge(unittest.TestCase):
+    """Tests for marker-level three-way merge."""
+
+    def test_unchanged_marker_gets_updated(self):
+        """If user didn't change a marker, it should be updated from new ref."""
+        from cypilot.commands.kit import _three_way_merge_blueprint
+        old_ref = '`@cpt:heading`\n```toml\ntemplate = "Title"\n```\nOld content\n`@/cpt:heading`\n'
+        new_ref = '`@cpt:heading`\n```toml\ntemplate = "Title"\n```\nNew content\n`@/cpt:heading`\n'
+        user = '`@cpt:heading`\n```toml\ntemplate = "Title"\n```\nOld content\n`@/cpt:heading`\n'
+        merged, report = _three_way_merge_blueprint(old_ref, new_ref, user)
+        self.assertIn("New content", merged)
+        self.assertNotIn("Old content", merged)
+        self.assertEqual(len(report["updated"]), 1)
+        self.assertEqual(len(report["skipped"]), 0)
+
+    def test_customized_marker_skipped(self):
+        """If user customized a marker, it should NOT be updated."""
+        from cypilot.commands.kit import _three_way_merge_blueprint
+        old_ref = '`@cpt:heading`\n```toml\ntemplate = "Title"\n```\nOriginal\n`@/cpt:heading`\n'
+        new_ref = '`@cpt:heading`\n```toml\ntemplate = "Title"\n```\nUpdated\n`@/cpt:heading`\n'
+        user = '`@cpt:heading`\n```toml\ntemplate = "Title"\n```\nMy custom text\n`@/cpt:heading`\n'
+        merged, report = _three_way_merge_blueprint(old_ref, new_ref, user)
+        self.assertIn("My custom text", merged)
+        self.assertNotIn("Updated", merged)
+        self.assertEqual(len(report["skipped"]), 1)
+        self.assertEqual(len(report["updated"]), 0)
+
+    def test_deleted_marker_not_readded(self):
+        """If user deleted a marker, it should NOT be re-added."""
+        from cypilot.commands.kit import _three_way_merge_blueprint
+        old_ref = (
+            'Intro\n'
+            '`@cpt:heading`\n```toml\ntemplate = "A"\n```\nContent A\n`@/cpt:heading`\n'
+            '`@cpt:heading`\n```toml\ntemplate = "B"\n```\nContent B\n`@/cpt:heading`\n'
+        )
+        new_ref = (
+            'Intro\n'
+            '`@cpt:heading`\n```toml\ntemplate = "A"\n```\nContent A v2\n`@/cpt:heading`\n'
+            '`@cpt:heading`\n```toml\ntemplate = "B"\n```\nContent B v2\n`@/cpt:heading`\n'
+        )
+        # User deleted marker B
+        user = (
+            'Intro\n'
+            '`@cpt:heading`\n```toml\ntemplate = "A"\n```\nContent A\n`@/cpt:heading`\n'
+        )
+        merged, report = _three_way_merge_blueprint(old_ref, new_ref, user)
+        self.assertIn("Content A v2", merged)
+        self.assertNotIn("Content B", merged)
+        self.assertEqual(len(report["updated"]), 1)
+
+    def test_text_between_markers_preserved(self):
+        """Non-marker text (prose) is always preserved."""
+        from cypilot.commands.kit import _three_way_merge_blueprint
+        old_ref = 'Intro text\n\n`@cpt:skill`\nOld skill\n`@/cpt:skill`\n\nFooter\n'
+        new_ref = 'Intro text\n\n`@cpt:skill`\nNew skill\n`@/cpt:skill`\n\nFooter\n'
+        user = 'Intro text\n\n`@cpt:skill`\nOld skill\n`@/cpt:skill`\n\nFooter\n'
+        merged, report = _three_way_merge_blueprint(old_ref, new_ref, user)
+        self.assertIn("Intro text", merged)
+        self.assertIn("New skill", merged)
+        self.assertIn("Footer", merged)
+
+    def test_mixed_updated_and_skipped(self):
+        """Some markers updated, some skipped (customized)."""
+        from cypilot.commands.kit import _three_way_merge_blueprint
+        old_ref = (
+            '`@cpt:blueprint`\n```toml\nkit = "x"\n```\n`@/cpt:blueprint`\n'
+            '`@cpt:skill`\nOld skill\n`@/cpt:skill`\n'
+        )
+        new_ref = (
+            '`@cpt:blueprint`\n```toml\nkit = "x"\nartifact = "Y"\n```\n`@/cpt:blueprint`\n'
+            '`@cpt:skill`\nNew skill\n`@/cpt:skill`\n'
+        )
+        # User customized blueprint, didn't touch skill
+        user = (
+            '`@cpt:blueprint`\n```toml\nkit = "x"\ncustom = true\n```\n`@/cpt:blueprint`\n'
+            '`@cpt:skill`\nOld skill\n`@/cpt:skill`\n'
+        )
+        merged, report = _three_way_merge_blueprint(old_ref, new_ref, user)
+        self.assertIn("custom = true", merged)  # customized — kept
+        self.assertIn("New skill", merged)       # unchanged — updated
+        self.assertEqual(report["skipped"], ["blueprint#0"])
+        self.assertEqual(report["updated"], ["skill#0"])
+
+    def test_no_changes_when_refs_identical(self):
+        """If old_ref == new_ref, nothing changes."""
+        from cypilot.commands.kit import _three_way_merge_blueprint
+        same = '`@cpt:skill`\nSame\n`@/cpt:skill`\n'
+        merged, report = _three_way_merge_blueprint(same, same, same)
+        self.assertEqual(report["updated"], [])
+        self.assertEqual(report["skipped"], [])
+        self.assertEqual(report["kept"], ["skill#0"])
+
+
+# =========================================================================
+# migrate_kit (core function)
+# =========================================================================
+
+class TestMigrateKit(unittest.TestCase):
+    """Tests for the migrate_kit function with marker-level merge."""
+
+    def _setup_kit(self, td_p, old_heading="Feature v1", new_heading="Feature v2",
+                   user_heading="Feature v1", ref_ver=2, user_ver=1, with_prev=True):
+        """Create a project with old ref (.prev/), new ref, and user config."""
+        root = td_p / "proj"
+        adapter = _bootstrap_project(root)
+        from cypilot.utils import toml_utils
+
+        bp_template = (
+            '`@cpt:blueprint`\n```toml\nkit = "sdlc"\nartifact = "FEAT"\n```\n`@/cpt:blueprint`\n\n'
+            '`@cpt:heading`\n```toml\nlevel = 1\ntemplate = "{heading}"\n```\n`@/cpt:heading`\n'
+        )
+
+        # New reference
+        ref_dir = adapter / "kits" / "sdlc"
+        ref_bp = ref_dir / "blueprints"
+        ref_bp.mkdir(parents=True)
+        (ref_bp / "FEAT.md").write_text(
+            bp_template.format(heading=new_heading), encoding="utf-8",
+        )
+        toml_utils.dump({"version": ref_ver}, ref_dir / "conf.toml")
+
+        # Old reference (.prev/)
+        if with_prev:
+            prev_bp = ref_dir / ".prev" / "blueprints"
+            prev_bp.mkdir(parents=True)
+            (prev_bp / "FEAT.md").write_text(
+                bp_template.format(heading=old_heading), encoding="utf-8",
+            )
+
+        # User config
+        config_kit = adapter / "config" / "kits" / "sdlc"
+        user_bp = config_kit / "blueprints"
+        user_bp.mkdir(parents=True)
+        (user_bp / "FEAT.md").write_text(
+            bp_template.format(heading=user_heading), encoding="utf-8",
+        )
+        toml_utils.dump({"version": user_ver}, config_kit / "conf.toml")
+
+        gen_kits = adapter / ".gen" / "kits"
+        return root, adapter, ref_dir, config_kit, gen_kits
+
+    def test_unchanged_marker_updated_via_prev(self):
+        """Marker unchanged by user → updated from new ref (three-way via .prev/)."""
+        from cypilot.commands.kit import migrate_kit
+        with TemporaryDirectory() as td:
+            _, _, ref_dir, config_kit, gen_kits = self._setup_kit(Path(td))
+            result = migrate_kit("sdlc", ref_dir, config_kit, gen_kits)
+            self.assertEqual(result["status"], "migrated")
+            bp = result["blueprints"][0]
+            self.assertEqual(bp["action"], "merged")
+            self.assertTrue(any("heading" in k for k in bp.get("markers_updated", [])))
+            user_text = (config_kit / "blueprints" / "FEAT.md").read_text()
+            self.assertIn("Feature v2", user_text)
+
+    def test_customized_marker_skipped(self):
+        """Marker customized by user → skipped during merge."""
+        from cypilot.commands.kit import migrate_kit
+        with TemporaryDirectory() as td:
+            _, _, ref_dir, config_kit, gen_kits = self._setup_kit(
+                Path(td), user_heading="My Custom Heading",
+            )
+            result = migrate_kit("sdlc", ref_dir, config_kit, gen_kits)
+            bp = result["blueprints"][0]
+            # blueprint marker is unchanged → updated; heading is customized → skipped
+            self.assertTrue(any("heading" in k for k in bp.get("markers_skipped", [])))
+            user_text = (config_kit / "blueprints" / "FEAT.md").read_text()
+            self.assertIn("My Custom Heading", user_text)
+
+    def test_no_migration_when_current(self):
+        from cypilot.commands.kit import migrate_kit
+        with TemporaryDirectory() as td:
+            _, _, ref_dir, config_kit, gen_kits = self._setup_kit(
+                Path(td), ref_ver=1, user_ver=1,
+            )
+            result = migrate_kit("sdlc", ref_dir, config_kit, gen_kits)
+            self.assertEqual(result["status"], "current")
+
+    def test_updates_conf_toml(self):
+        from cypilot.commands.kit import migrate_kit
+        import tomllib
+        with TemporaryDirectory() as td:
+            _, _, ref_dir, config_kit, gen_kits = self._setup_kit(Path(td))
+            migrate_kit("sdlc", ref_dir, config_kit, gen_kits)
+            with open(config_kit / "conf.toml", "rb") as f:
+                data = tomllib.load(f)
+            self.assertEqual(data["version"], 2)
+
+    def test_dry_run_does_not_write(self):
+        from cypilot.commands.kit import migrate_kit
+        with TemporaryDirectory() as td:
+            _, _, ref_dir, config_kit, gen_kits = self._setup_kit(Path(td))
+            result = migrate_kit("sdlc", ref_dir, config_kit, gen_kits, dry_run=True)
+            # Should report migration but not write
+            user_text = (config_kit / "blueprints" / "FEAT.md").read_text()
+            self.assertIn("Feature v1", user_text)
+
+    def test_fallback_without_prev(self):
+        """Without .prev/, falls back to two-way (conservative: user=old_ref)."""
+        from cypilot.commands.kit import migrate_kit
+        with TemporaryDirectory() as td:
+            _, _, ref_dir, config_kit, gen_kits = self._setup_kit(
+                Path(td), with_prev=False,
+            )
+            result = migrate_kit("sdlc", ref_dir, config_kit, gen_kits)
+            self.assertEqual(result["status"], "migrated")
+
+    def test_kit_version_drift(self):
+        from cypilot.commands.kit import migrate_kit
+        with TemporaryDirectory() as td:
+            _, _, ref_dir, config_kit, gen_kits = self._setup_kit(
+                Path(td), ref_ver=2, user_ver=2,
+                old_heading="Feature v2", new_heading="Feature v2", user_heading="Feature v2",
+            )
+            from cypilot.utils import toml_utils
+            toml_utils.dump({"version": 3}, ref_dir / "conf.toml")
+            toml_utils.dump({"version": 2}, config_kit / "conf.toml")
+            result = migrate_kit("sdlc", ref_dir, config_kit, gen_kits)
+            self.assertEqual(result["status"], "migrated")
+            self.assertIn("kit_version", result)
+
+    def test_prev_cleaned_after_migration(self):
+        from cypilot.commands.kit import migrate_kit
+        with TemporaryDirectory() as td:
+            _, _, ref_dir, config_kit, gen_kits = self._setup_kit(Path(td))
+            migrate_kit("sdlc", ref_dir, config_kit, gen_kits)
+            self.assertFalse((ref_dir / ".prev").exists())
+
+    def test_missing_ref_blueprint_file(self):
+        from cypilot.commands.kit import migrate_kit
+        from cypilot.utils import toml_utils
+        with TemporaryDirectory() as td:
+            td_p = Path(td)
+            root = td_p / "proj"
+            adapter = _bootstrap_project(root)
+            ref_dir = adapter / "kits" / "sdlc"
+            ref_dir.mkdir(parents=True)
+            (ref_dir / "blueprints").mkdir()
+            toml_utils.dump({"version": 2}, ref_dir / "conf.toml")
+            config_kit = adapter / "config" / "kits" / "sdlc"
+            config_kit.mkdir(parents=True)
+            toml_utils.dump({"version": 1}, config_kit / "conf.toml")
+            gen_kits = adapter / ".gen" / "kits"
+            result = migrate_kit("sdlc", ref_dir, config_kit, gen_kits)
+            # No .md files in ref blueprints dir → no blueprints migrated
+            self.assertEqual(result["status"], "migrated")
+            self.assertNotIn("blueprints", result)
+
+
+# =========================================================================
+# cmd_kit_migrate (CLI)
+# =========================================================================
+
+class TestCmdKitMigrate(unittest.TestCase):
+
+    def test_migrate_no_project_root(self):
+        from cypilot.commands.kit import cmd_kit_migrate
+        with TemporaryDirectory() as td:
+            cwd = os.getcwd()
+            try:
+                os.chdir(td)
+                buf = io.StringIO()
+                with redirect_stdout(buf):
+                    rc = cmd_kit_migrate([])
+                self.assertEqual(rc, 1)
+            finally:
+                os.chdir(cwd)
+
+    def test_migrate_no_kits(self):
+        from cypilot.commands.kit import cmd_kit_migrate
+        with TemporaryDirectory() as td:
+            root = Path(td) / "proj"
+            _bootstrap_project(root)
+            cwd = os.getcwd()
+            try:
+                os.chdir(str(root))
+                buf = io.StringIO()
+                with redirect_stdout(buf):
+                    rc = cmd_kit_migrate([])
+                self.assertEqual(rc, 2)
+            finally:
+                os.chdir(cwd)
+
+    def test_migrate_dispatched_from_cmd_kit(self):
+        from cypilot.commands.kit import cmd_kit
+        with TemporaryDirectory() as td:
+            root = Path(td) / "proj"
+            _bootstrap_project(root)
+            cwd = os.getcwd()
+            try:
+                os.chdir(str(root))
+                buf = io.StringIO()
+                with redirect_stdout(buf):
+                    rc = cmd_kit(["migrate"])
+                self.assertEqual(rc, 2)  # no kits → 2
+            finally:
+                os.chdir(cwd)
+
+
 if __name__ == "__main__":
     unittest.main()

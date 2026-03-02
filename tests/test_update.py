@@ -30,10 +30,10 @@ def _make_cache(cache_dir: Path, kit_version: int = 1) -> None:
     bp_dir = cache_dir / "kits" / "sdlc" / "blueprints"
     bp_dir.mkdir(parents=True, exist_ok=True)
     (bp_dir / "prd.md").write_text(
-        "<!-- @cpt:blueprint -->\n```toml\n"
-        f'artifact = "PRD"\nkit = "sdlc"\nversion = {kit_version}\n'
-        "```\n<!-- /@cpt:blueprint -->\n\n"
-        "<!-- @cpt:heading -->\n# Product Requirements\n<!-- /@cpt:heading -->\n",
+        '`@cpt:blueprint`\n```toml\n'
+        f'artifact = "PRD"\nkit = "sdlc"\n'
+        '```\n`@/cpt:blueprint`\n\n'
+        '`@cpt:heading`\n```toml\nlevel = 1\ntemplate = "Product Requirements"\n```\n`@/cpt:heading`\n',
         encoding="utf-8",
     )
     scripts_dir = cache_dir / "kits" / "sdlc" / "scripts"
@@ -41,8 +41,6 @@ def _make_cache(cache_dir: Path, kit_version: int = 1) -> None:
     (scripts_dir / "helper.py").write_text("# helper\n", encoding="utf-8")
     _write_toml(cache_dir / "kits" / "sdlc" / "conf.toml", {
         "version": kit_version,
-        "blueprints": {"prd": kit_version},
-        "scripts": {"helper": kit_version},
     })
 
 
@@ -132,59 +130,6 @@ class TestUpdateHelpers(unittest.TestCase):
             p = Path(td) / "conf.toml"
             _write_toml(p, {"other": "data"})
             self.assertEqual(_read_conf_version(p), 0)
-
-    def test_read_conf_section(self):
-        from cypilot.commands.update import _read_conf_section
-        with TemporaryDirectory() as td:
-            p = Path(td) / "conf.toml"
-            _write_toml(p, {"blueprints": {"prd": 2, "design": 1}})
-            result = _read_conf_section(p, "blueprints")
-            self.assertEqual(result, {"prd": 2, "design": 1})
-
-    def test_read_conf_section_missing_file(self):
-        from cypilot.commands.update import _read_conf_section
-        self.assertEqual(_read_conf_section(Path("/none"), "x"), {})
-
-    def test_read_conf_section_non_dict(self):
-        from cypilot.commands.update import _read_conf_section
-        with TemporaryDirectory() as td:
-            p = Path(td) / "conf.toml"
-            _write_toml(p, {"blueprints": "not a dict"})
-            self.assertEqual(_read_conf_section(p, "blueprints"), {})
-
-
-class TestCompareConfVersions(unittest.TestCase):
-    """Tests for _compare_conf_versions drift detection."""
-
-    def test_current_when_equal(self):
-        from cypilot.commands.update import _compare_conf_versions
-        result = _compare_conf_versions(1, 1, {"prd": 1}, {"prd": 1}, {}, {})
-        self.assertEqual(result["status"], "current")
-
-    def test_migration_needed_kit_version(self):
-        from cypilot.commands.update import _compare_conf_versions
-        result = _compare_conf_versions(2, 1, {}, {}, {}, {})
-        self.assertEqual(result["status"], "migration_needed")
-        self.assertIn("kit_version_drift", result)
-
-    def test_migration_needed_blueprint_drift(self):
-        from cypilot.commands.update import _compare_conf_versions
-        result = _compare_conf_versions(1, 1, {"prd": 2}, {"prd": 1}, {}, {})
-        self.assertEqual(result["status"], "migration_needed")
-        self.assertIn("blueprint_drift", result)
-        self.assertEqual(result["blueprint_drift"]["prd"]["cache"], 2)
-
-    def test_migration_needed_script_drift(self):
-        from cypilot.commands.update import _compare_conf_versions
-        result = _compare_conf_versions(1, 1, {}, {}, {"helper": 2}, {"helper": 1})
-        self.assertEqual(result["status"], "migration_needed")
-        self.assertIn("script_drift", result)
-
-    def test_new_blueprint_triggers_migration(self):
-        from cypilot.commands.update import _compare_conf_versions
-        result = _compare_conf_versions(1, 1, {"new": 1}, {}, {}, {})
-        self.assertEqual(result["status"], "migration_needed")
-        self.assertEqual(result["blueprint_drift"]["new"]["user"], 0)
 
 
 # =========================================================================
@@ -302,7 +247,7 @@ class TestCmdUpdatePipeline(unittest.TestCase):
                 self.assertIn(out["status"], ["PASS", "WARN"])
                 self.assertIn("actions", out)
                 self.assertIn("core_update", out["actions"])
-                self.assertIn("gen_kits", out["actions"])
+                self.assertIn("kits", out["actions"])
             finally:
                 os.chdir(cwd)
 
@@ -371,12 +316,13 @@ class TestCmdUpdatePipeline(unittest.TestCase):
                         rc = cmd_update([])
                 self.assertEqual(rc, 0)
                 out = json.loads(buf.getvalue())
-                # Should have warnings about migration needed
+                # Auto-migration should have run
                 stderr_text = err.getvalue()
-                self.assertIn("MIGRATION", stderr_text)
-                kit_versions = out["actions"].get("kit_versions", {})
-                sdlc_drift = kit_versions.get("sdlc", {})
-                self.assertEqual(sdlc_drift.get("status"), "migration_needed")
+                self.assertIn("migrated", stderr_text)
+                kits = out["actions"].get("kits", {})
+                sdlc_r = kits.get("sdlc", {})
+                ver = sdlc_r.get("version", {})
+                self.assertEqual(ver.get("status"), "migrated")
             finally:
                 os.chdir(cwd)
 
@@ -442,8 +388,9 @@ class TestCmdUpdatePipeline(unittest.TestCase):
                         rc = cmd_update([])
                 self.assertEqual(rc, 0)
                 out = json.loads(buf.getvalue())
-                kit_versions = out["actions"].get("kit_versions", {})
-                self.assertEqual(kit_versions.get("sdlc", {}).get("status"), "created")
+                kits = out["actions"].get("kits", {})
+                sdlc_r = kits.get("sdlc", {})
+                self.assertEqual(sdlc_r.get("version", {}).get("status"), "created")
                 # Blueprints should now exist
                 self.assertTrue(user_bp.is_dir())
             finally:
@@ -544,7 +491,7 @@ class TestUpdateWithRichBlueprints(unittest.TestCase):
 
 
 class TestUpdateHelperExceptions(unittest.TestCase):
-    """Cover exception paths in _read_conf_version/_read_conf_section."""
+    """Cover exception paths in _read_conf_version."""
 
     def test_read_conf_version_corrupt_toml(self):
         from cypilot.commands.update import _read_conf_version
@@ -552,13 +499,6 @@ class TestUpdateHelperExceptions(unittest.TestCase):
             p = Path(td) / "conf.toml"
             p.write_text("{{corrupt", encoding="utf-8")
             self.assertEqual(_read_conf_version(p), 0)
-
-    def test_read_conf_section_corrupt_toml(self):
-        from cypilot.commands.update import _read_conf_section
-        with TemporaryDirectory() as td:
-            p = Path(td) / "conf.toml"
-            p.write_text("{{corrupt", encoding="utf-8")
-            self.assertEqual(_read_conf_section(p, "blueprints"), {})
 
     def test_update_with_process_kit_errors(self):
         """When process_kit returns errors, update records them."""
