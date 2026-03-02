@@ -1315,14 +1315,27 @@ def run_migrate(
         # (artifacts.json and AGENTS.md are already handled above;
         #  this catches kit-specific configs like pr-review.json)
         adapter_dir_path = project_root / adapter_path
+        json_convert_failed: List[str] = []
         if adapter_dir_path.is_dir():
             primary_slug = next(iter(kit_slug_map.values()), _PR_REVIEW_DEFAULT_KIT_SLUG)
-            _migrate_adapter_json_configs(adapter_dir_path, config_dir, kit_slug=primary_slug)
+            _, json_convert_failed = _migrate_adapter_json_configs(
+                adapter_dir_path, config_dir, kit_slug=primary_slug,
+            )
+            if json_convert_failed:
+                all_warnings.extend(
+                    f"JSON conversion failed: {f}" for f in json_convert_failed
+                )
 
         # Step 8b: Clean up adapter directory (already backed up)
         # @cpt-begin:cpt-cypilot-flow-v2-v3-migration-migrate-project:p1:inst-cleanup-adapter
         if adapter_dir_path.is_dir():
-            shutil.rmtree(adapter_dir_path)
+            if json_convert_failed:
+                sys.stderr.write(
+                    f"WARNING: Preserving adapter dir — {len(json_convert_failed)} "
+                    f"JSON file(s) failed conversion: {json_convert_failed}\n"
+                )
+            else:
+                shutil.rmtree(adapter_dir_path)
         # Also remove v2 root config files
         for v2_root_file in (".cypilot-config.json", "cypilot-agents.json"):
             v2_path = project_root / v2_root_file
@@ -1619,7 +1632,7 @@ def _normalize_pr_review_entry(
         new_key = _PR_REVIEW_KEY_MAP.get(k, k)
         if isinstance(v, str) and new_key == "prompt_file":
             for old_pat, new_pat in rewrites:
-                if old_pat in v:
+                if old_pat in v and new_pat not in v:
                     v = v.replace(old_pat, new_pat)
                     break
         out[new_key] = v
@@ -1634,14 +1647,15 @@ def _migrate_adapter_json_configs(
     adapter_dir: Path,
     config_dir: Path,
     kit_slug: str = _PR_REVIEW_DEFAULT_KIT_SLUG,
-) -> List[str]:
+) -> Tuple[List[str], List[str]]:
     """Migrate remaining .json configs from adapter → config/ as .toml.
 
     Skips files already handled by other migration steps (artifacts.json, etc.).
     Applies file-specific normalization (e.g. pr-review.json key renaming).
-    Returns list of converted filenames.
+    Returns (converted_filenames, failed_filenames).
     """
     converted: List[str] = []
+    failed: List[str] = []
     config_dir.mkdir(parents=True, exist_ok=True)
     for json_file in sorted(adapter_dir.glob("*.json")):
         if json_file.name in _ALREADY_MIGRATED:
@@ -1655,9 +1669,12 @@ def _migrate_adapter_json_configs(
                 data = _normalize_pr_review_data(data, kit_slug=kit_slug)
             toml_utils.dump(_strip_none(data), toml_dest)
             converted.append(json_file.name)
-        except (json.JSONDecodeError, OSError, TypeError):
-            pass
-    return converted
+        except (json.JSONDecodeError, OSError, TypeError) as exc:
+            sys.stderr.write(
+                f"WARNING: Failed to convert {json_file.name}: {exc}\n"
+            )
+            failed.append(json_file.name)
+    return converted, failed
 
 
 def run_migrate_config(project_root: Path) -> Dict[str, Any]:
