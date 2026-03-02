@@ -137,9 +137,17 @@ def cmd_update(argv: List[str]) -> int:
                 continue
             kit_slug = kit_src.name
 
-            kit_r = update_kit(
-                kit_slug, kit_src, cypilot_dir, dry_run=args.dry_run,
-            )
+            try:
+                kit_r = update_kit(
+                    kit_slug, kit_src, cypilot_dir, dry_run=args.dry_run,
+                )
+            except Exception as exc:
+                kit_r = {
+                    "kit": kit_slug,
+                    "status": "ERROR",
+                    "error": str(exc),
+                }
+                errors.append({"path": kit_slug, "error": str(exc)})
             kit_results[kit_slug] = kit_r
 
             if args.dry_run:
