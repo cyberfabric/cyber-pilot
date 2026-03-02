@@ -13,7 +13,7 @@ import re
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-from ..constants import ARTIFACTS_REGISTRY_FILENAME, WORKSPACE_CONFIG_FILENAME
+from ..constants import ARTIFACTS_REGISTRY_FILENAME
 from . import toml_utils
 
 _MARKER_START = "<!-- @cpt:root-agents -->"

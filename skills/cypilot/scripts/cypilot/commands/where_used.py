@@ -22,6 +22,7 @@ def cmd_where_used(argv: List[str]) -> int:
 
     # Collect artifacts to scan: (artifact_path, artifact_kind)
     artifacts_to_scan: List[Tuple[Path, str]] = []
+    path_to_source: Dict[str, str] = {}
 
     if args.artifact:
         # Load context from artifact's location
@@ -65,14 +66,17 @@ def cmd_where_used(argv: List[str]) -> int:
         project_root = ctx.project_root
 
         # Scan all Cypilot artifacts
+        from ..utils.context import WorkspaceContext
         for artifact_meta, _system_node in meta.iter_all_artifacts():
-            artifact_path = (project_root / artifact_meta.path).resolve()
+            if isinstance(ctx, WorkspaceContext):
+                artifact_path = ctx.resolve_artifact_path(artifact_meta, project_root)
+            else:
+                artifact_path = (project_root / artifact_meta.path).resolve()
             if artifact_path.exists():
                 artifacts_to_scan.append((artifact_path, str(artifact_meta.kind)))
 
         # Workspace: also scan artifacts from remote sources
-        from ..utils.context import WorkspaceContext
-        if isinstance(ctx, WorkspaceContext):
+        if isinstance(ctx, WorkspaceContext) and ctx.cross_repo:
             for sc in ctx.sources.values():
                 if not sc.reachable or sc.meta is None:
                     continue
@@ -80,6 +84,7 @@ def cmd_where_used(argv: List[str]) -> int:
                     art_path = (sc.path / art.path).resolve()
                     if art_path.exists():
                         artifacts_to_scan.append((art_path, str(art.kind)))
+                    path_to_source[str(art_path)] = sc.name
 
     if not artifacts_to_scan:
         print(json.dumps({
@@ -91,16 +96,6 @@ def cmd_where_used(argv: List[str]) -> int:
         return 0
 
     # @cpt-begin:cpt-cypilot-flow-traceability-validation-query:p1:inst-if-where-used
-    # Build path-to-source mapping for workspace results
-    path_to_source: Dict[str, str] = {}
-    from ..utils.context import WorkspaceContext
-    if isinstance(ctx, WorkspaceContext):
-        for sc in ctx.sources.values():
-            if not sc.reachable or sc.meta is None:
-                continue
-            for art, _sys in sc.meta.iter_all_artifacts():
-                art_path = (sc.path / art.path).resolve()
-                path_to_source[str(art_path)] = sc.name
 
     # Search for references
     references: List[Dict[str, object]] = []

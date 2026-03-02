@@ -75,14 +75,25 @@ def cmd_list_ids(argv: List[str]) -> int:
         meta = ctx.meta
         project_root = ctx.project_root
 
-        for artifact_meta, _system_node in meta.iter_all_artifacts():
-            artifact_path = (project_root / artifact_meta.path).resolve()
-            if artifact_path.exists():
-                artifacts_to_scan.append((artifact_path, str(artifact_meta.kind)))
-
         # Workspace: also scan artifacts from remote sources
         from ..utils.context import WorkspaceContext
-        if isinstance(ctx, WorkspaceContext):
+        is_workspace = isinstance(ctx, WorkspaceContext)
+
+        if args.source and not is_workspace:
+            import sys
+            print(f"Warning: --source filter '{args.source}' ignored (not in workspace mode)", file=sys.stderr)
+
+        # Scan primary artifacts (skip when --source targets a specific remote source)
+        if not (args.source and is_workspace):
+            for artifact_meta, _system_node in meta.iter_all_artifacts():
+                if is_workspace:
+                    artifact_path = ctx.resolve_artifact_path(artifact_meta, project_root)
+                else:
+                    artifact_path = (project_root / artifact_meta.path).resolve()
+                if artifact_path.exists():
+                    artifacts_to_scan.append((artifact_path, str(artifact_meta.kind)))
+
+        if is_workspace and ctx.cross_repo:
             for sc in ctx.sources.values():
                 if not sc.reachable or sc.meta is None:
                     continue

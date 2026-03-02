@@ -57,35 +57,30 @@ Cypilot workspaces provide a **federation layer** for multi-repo projects. Each 
 
 ### Standalone File
 
-File: `.cypilot-workspace.json`
+File: `.cypilot-workspace.toml`
 
 Can be placed at a **super-root** (parent directory containing multiple repos) or anywhere reachable by the discovery algorithm.
 
-```json
-{
-  "version": "1.0",
-  "sources": {
-    "docs-repo": {
-      "path": "../docs-repo",
-      "adapter": "cypilot",
-      "role": "artifacts"
-    },
-    "code-repo": {
-      "path": "../code-repo",
-      "adapter": ".bootstrap",
-      "role": "codebase"
-    },
-    "shared-kits": {
-      "path": "../shared-kits",
-      "adapter": null,
-      "role": "kits"
-    }
-  },
-  "traceability": {
-    "cross_repo": true,
-    "resolve_remote_ids": true
-  }
-}
+```toml
+version = "1.0"
+
+[sources.docs-repo]
+path = "../docs-repo"
+adapter = "cypilot"
+role = "artifacts"
+
+[sources.code-repo]
+path = "../code-repo"
+adapter = ".bootstrap"
+role = "codebase"
+
+[sources.shared-kits]
+path = "../shared-kits"
+role = "kits"
+
+[traceability]
+cross_repo = true
+resolve_remote_ids = true
 ```
 
 ### Inline in Config
@@ -94,7 +89,7 @@ A repo can declare workspace participation from within its own `config/core.toml
 
 **Reference to external workspace file (in core.toml):**
 ```toml
-workspace = "../.cypilot-workspace.json"
+workspace = "../.cypilot-workspace.toml"
 ```
 
 **Inline workspace definition (in core.toml):**
@@ -116,7 +111,7 @@ Each source entry has the following fields:
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
 | `path` | string | Yes | — | Local filesystem path, resolved relative to workspace file location |
-| `adapter` | string\|null | No | null | Path to adapter directory within the source repo |
+| `adapter` | string | No | _(omitted)_ | Path to adapter directory within the source repo |
 | `role` | string | No | `"full"` | Constrains what the source contributes |
 
 ### Roles
@@ -135,10 +130,10 @@ Each source entry has the following fields:
 When Cypilot initializes, workspace configuration is discovered in this order:
 
 1. **Check `workspace` key** in `config/core.toml` (discovered via AGENTS.md `cypilot_path`)
-   - If string → treat as path to external `.cypilot-workspace.json`
-   - If table → treat as inline workspace definition
-2. **Walk up** from project root looking for `.cypilot-workspace.json`
-3. **Check parent directory** of project root for `.cypilot-workspace.json`
+   - If string → treat as path to external `.cypilot-workspace.toml` (resolved relative to project root)
+   - If table → treat as inline workspace definition (source paths resolve relative to project root)
+2. **Walk up** from project root looking for `.cypilot-workspace.toml`
+3. **Check parent directory** of project root for `.cypilot-workspace.toml`
 
 If no workspace configuration is found, Cypilot operates in single-repo mode (backward compatible).
 
@@ -146,7 +141,9 @@ If no workspace configuration is found, Cypilot operates in single-repo mode (ba
 
 ## Path Resolution
 
-- Source `path` values are resolved **relative to the workspace file location** (for standalone files) or **relative to the project root** (for inline definitions)
+- **External workspace file reference** (`workspace = "../.cypilot-workspace.toml"` in core.toml): the string is resolved **relative to the project root** (consistent with how other core.toml path values work)
+- **Source `path` values** in a **standalone** `.cypilot-workspace.toml`: resolved **relative to the workspace file's parent directory**
+- **Source `path` values** in an **inline** `[workspace]` definition in core.toml: resolved **relative to the project root**
 - Artifact `path` values with a `source` field are resolved relative to the named source's root
 - Artifact `path` values without a `source` field resolve locally (backward compatible)
 - Kit `path` values with a `source` field are resolved relative to the named source's root
@@ -168,32 +165,41 @@ Use `validate --local-only` to restrict validation to the current repo only.
 
 ## Artifacts Registry v1.2
 
-Artifacts.json v1.2 adds an optional `source` field to artifacts, codebase entries, and kits:
+Artifacts registry v1.2 (`artifacts.toml`) adds an optional `source` field to artifacts, codebase entries, and kits:
 
-```json
-{
-  "version": "1.2",
-  "systems": [{
-    "name": "MyApp",
-    "slug": "myapp",
-    "kit": "shared-sdlc",
-    "artifacts": [
-      { "path": "architecture/DESIGN.md", "kind": "DESIGN", "traceability": "FULL" },
-      { "path": "requirements/PRD.md", "kind": "PRD", "source": "docs-repo" }
-    ],
-    "codebase": [
-      { "name": "Backend", "path": "src", "extensions": [".rs"] },
-      { "name": "Frontend", "path": "src", "extensions": [".ts"], "source": "frontend-repo" }
-    ]
-  }],
-  "kits": {
-    "shared-sdlc": {
-      "format": "Cypilot",
-      "path": "kits/sdlc",
-      "source": "shared-kits"
-    }
-  }
-}
+```toml
+version = "1.2"
+
+[[systems]]
+name = "MyApp"
+slug = "myapp"
+kit = "shared-sdlc"
+
+[[systems.artifacts]]
+path = "architecture/DESIGN.md"
+kind = "DESIGN"
+traceability = "FULL"
+
+[[systems.artifacts]]
+path = "requirements/PRD.md"
+kind = "PRD"
+source = "docs-repo"
+
+[[systems.codebase]]
+name = "Backend"
+path = "src"
+extensions = [".rs"]
+
+[[systems.codebase]]
+name = "Frontend"
+path = "src"
+extensions = [".ts"]
+source = "frontend-repo"
+
+[kits.shared-sdlc]
+format = "Cypilot"
+path = "kits/sdlc"
+source = "shared-kits"
 ```
 
 When `source` is absent, paths resolve locally (backward compatible). v1.0/v1.1 registries remain fully valid.
@@ -204,7 +210,7 @@ When `source` is absent, paths resolve locally (backward compatible). v1.0/v1.1 
 
 | Command | Description |
 |---------|-------------|
-| `workspace-init` | Initialize workspace: scan sibling dirs, generate `.cypilot-workspace.json` |
+| `workspace-init` | Initialize workspace: scan sibling dirs, generate `.cypilot-workspace.toml` |
 | `workspace-init --inline` | Initialize workspace inline in `config/core.toml` |
 | `workspace-init --dry-run` | Preview without writing files |
 | `workspace-add --name N --path P` | Add source to standalone workspace file |
@@ -217,7 +223,7 @@ When `source` is absent, paths resolve locally (backward compatible). v1.0/v1.1 
 
 ## Backward Compatibility
 
-- No `.cypilot-workspace.json` and no `[workspace]` in core.toml = **exact current behavior**
+- No `.cypilot-workspace.toml` and no `[workspace]` in core.toml = **exact current behavior**
 - v1.0/v1.1 `artifacts.toml` without `source` fields = **no change**
 - All workspace imports are lazy (inside functions), matching existing patterns
 - The global context can be either `CypilotContext` or `WorkspaceContext`; `is_workspace()` tests this
@@ -269,7 +275,7 @@ Running `cypilot validate` from `code-repo/` will:
 
 ```
 parent/
-├── .cypilot-workspace.json
+├── .cypilot-workspace.toml
 ├── frontend/
 │   ├── AGENTS.md
 │   ├── .cypilot/

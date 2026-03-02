@@ -9,7 +9,7 @@ from typing import List
 
 
 def cmd_workspace_add(argv: List[str]) -> int:
-    """Add a source to an existing .cypilot-workspace.json."""
+    """Add a source to an existing .cypilot-workspace.toml."""
     p = argparse.ArgumentParser(
         prog="workspace-add",
         description="Add a source to an existing workspace config",
@@ -93,12 +93,22 @@ def cmd_workspace_add_inline(argv: List[str]) -> int:
     if not config_path.is_file():
         config_path = (project_root / cypilot_rel / "core.toml").resolve()
 
-    try:
-        existing = toml_utils.load(config_path) if config_path.is_file() else {}
-        if not isinstance(existing, dict):
-            existing = {}
-    except Exception:
-        existing = {}
+    existing: dict = {}
+    if config_path.is_file():
+        try:
+            existing = toml_utils.load(config_path)
+            if not isinstance(existing, dict):
+                print(json.dumps({
+                    "status": "ERROR",
+                    "message": f"Invalid config format in {config_path} (expected mapping)",
+                }, indent=2, ensure_ascii=False))
+                return 1
+        except (ValueError, OSError) as e:
+            print(json.dumps({
+                "status": "ERROR",
+                "message": f"Failed to parse {config_path}: {e}",
+            }, indent=2, ensure_ascii=False))
+            return 1
 
     # Get or create inline workspace
     ws = existing.get("workspace")

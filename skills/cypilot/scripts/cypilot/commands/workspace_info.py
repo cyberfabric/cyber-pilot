@@ -16,7 +16,7 @@ def cmd_workspace_info(argv: List[str]) -> int:
     )
     p.parse_args(argv)
 
-    from ..utils.context import get_context, is_workspace, WorkspaceContext
+    from ..utils.context import get_context, WorkspaceContext
     from ..utils.files import find_project_root
     from ..utils.workspace import find_workspace_config
 
@@ -30,10 +30,17 @@ def cmd_workspace_info(argv: List[str]) -> int:
 
     ws_cfg, ws_err = find_workspace_config(project_root)
     if ws_cfg is None:
-        msg = ws_err or "No workspace configuration found"
+        if ws_err:
+            # Parse/load error — surface it as an error, not "no workspace"
+            print(json.dumps({
+                "status": "ERROR",
+                "message": ws_err,
+                "project_root": str(project_root),
+            }, indent=2, ensure_ascii=False))
+            return 1
         print(json.dumps({
             "status": "NO_WORKSPACE",
-            "message": msg,
+            "message": "No workspace configuration found",
             "project_root": str(project_root),
             "hint": "Run 'workspace-init' to create a workspace, or add [workspace] section to config/core.toml",
         }, indent=2, ensure_ascii=False))

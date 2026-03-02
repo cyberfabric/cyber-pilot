@@ -12,13 +12,14 @@ Tests cover:
 - Cross-repo ID aggregation
 """
 
-import json
 import sys
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "cypilot" / "scripts"))
+
+from cypilot.utils import toml_utils
 
 from cypilot.utils.workspace import (
     SourceEntry,
@@ -145,11 +146,11 @@ class TestWorkspaceConfig:
 
     def test_load_valid_file(self):
         with TemporaryDirectory() as tmpdir:
-            ws_path = Path(tmpdir) / ".cypilot-workspace.json"
-            ws_path.write_text(json.dumps({
+            ws_path = Path(tmpdir) / ".cypilot-workspace.toml"
+            toml_utils.dump({
                 "version": "1.0",
                 "sources": {"test": {"path": "."}},
-            }), encoding="utf-8")
+            }, ws_path)
 
             cfg, err = WorkspaceConfig.load(ws_path)
             assert err is None
@@ -158,21 +159,21 @@ class TestWorkspaceConfig:
             assert "test" in cfg.sources
 
     def test_load_missing_file(self):
-        cfg, err = WorkspaceConfig.load(Path("/nonexistent/.cypilot-workspace.json"))
+        cfg, err = WorkspaceConfig.load(Path("/nonexistent/.cypilot-workspace.toml"))
         assert cfg is None
         assert "not found" in err.lower()
 
-    def test_load_invalid_json(self):
+    def test_load_invalid_toml(self):
         with TemporaryDirectory() as tmpdir:
-            ws_path = Path(tmpdir) / ".cypilot-workspace.json"
-            ws_path.write_text("not json", encoding="utf-8")
+            ws_path = Path(tmpdir) / ".cypilot-workspace.toml"
+            ws_path.write_text("[invalid\nbroken toml =", encoding="utf-8")
             cfg, err = WorkspaceConfig.load(ws_path)
             assert cfg is None
             assert err is not None
 
     def test_save_and_reload(self):
         with TemporaryDirectory() as tmpdir:
-            ws_path = Path(tmpdir) / ".cypilot-workspace.json"
+            ws_path = Path(tmpdir) / ".cypilot-workspace.toml"
             cfg = WorkspaceConfig(
                 sources={"docs": SourceEntry(name="docs", path="../docs", role="artifacts")},
                 workspace_file=ws_path,
@@ -187,7 +188,7 @@ class TestWorkspaceConfig:
 
     def test_resolve_source_path(self):
         with TemporaryDirectory() as tmpdir:
-            ws_file = Path(tmpdir) / ".cypilot-workspace.json"
+            ws_file = Path(tmpdir) / ".cypilot-workspace.toml"
             cfg = WorkspaceConfig(
                 sources={"repo": SourceEntry(name="repo", path="sub/repo")},
                 workspace_file=ws_file,
@@ -196,7 +197,7 @@ class TestWorkspaceConfig:
             assert resolved == (Path(tmpdir) / "sub" / "repo").resolve()
 
     def test_resolve_source_path_unknown(self):
-        cfg = WorkspaceConfig(workspace_file=Path("/tmp/ws.json"))
+        cfg = WorkspaceConfig(workspace_file=Path("/tmp/ws.toml"))
         assert cfg.resolve_source_path("nonexistent") is None
 
     def test_get_reachable_sources(self):
@@ -210,7 +211,7 @@ class TestWorkspaceConfig:
                     "real": SourceEntry(name="real", path="real"),
                     "missing": SourceEntry(name="missing", path="not-here"),
                 },
-                workspace_file=tmp / "ws.json",
+                workspace_file=tmp / "ws.toml",
             )
             reachable = cfg.get_reachable_sources()
             assert "real" in reachable
@@ -264,22 +265,47 @@ class TestFindWorkspaceConfig:
             assert cfg.is_inline is True
             assert "docs" in cfg.sources
 
+    def test_inline_workspace_resolves_relative_to_project_root(self):
+        """CR-2: Inline workspace source paths must resolve relative to project root,
+        not relative to core.toml's parent directory."""
+        with TemporaryDirectory() as tmpdir:
+            tmp = Path(tmpdir)
+            # Create sibling docs dir
+            docs_dir = tmp / "docs"
+            docs_dir.mkdir()
+
+            project_dir = tmp / "code"
+            project_dir.mkdir()
+            self._setup_v3_project(project_dir, {
+                "workspace": {
+                    "sources": {"docs": {"path": "../docs"}},
+                },
+            })
+
+            cfg, err = find_workspace_config(project_dir)
+            assert err is None
+            assert cfg is not None
+            assert cfg.is_inline is True
+            # Path should resolve relative to project root (code/), not core.toml parent
+            resolved = cfg.resolve_source_path("docs")
+            assert resolved == docs_dir.resolve()
+
     def test_string_ref_workspace(self):
         with TemporaryDirectory() as tmpdir:
             tmp = Path(tmpdir)
 
             # Create the workspace file one level up
-            ws_path = tmp / "workspace.json"
-            ws_path.write_text(json.dumps({
+            ws_path = tmp / "workspace.toml"
+            toml_utils.dump({
                 "version": "1.0",
                 "sources": {"code": {"path": "./code"}},
-            }), encoding="utf-8")
+            }, ws_path)
 
             # Create v3 project config referencing external workspace file
             project_dir = tmp / "code"
             project_dir.mkdir()
             self._setup_v3_project(project_dir, {
-                "workspace": "../workspace.json",
+                "workspace": "../workspace.toml",
             })
 
             cfg, err = find_workspace_config(project_dir)
@@ -293,11 +319,11 @@ class TestFindWorkspaceConfig:
             tmp = Path(tmpdir)
 
             # Create workspace file at root
-            ws_path = tmp / ".cypilot-workspace.json"
-            ws_path.write_text(json.dumps({
+            ws_path = tmp / ".cypilot-workspace.toml"
+            toml_utils.dump({
                 "version": "1.0",
                 "sources": {"backend": {"path": "./backend"}},
-            }), encoding="utf-8")
+            }, ws_path)
 
             # Project is nested below
             project_dir = tmp / "backend"
@@ -347,7 +373,7 @@ class TestWorkspaceContext:
 
             ws_cfg = WorkspaceConfig(
                 sources={"other": SourceEntry(name="other", path="other-repo")},
-                workspace_file=tmp / ".cypilot-workspace.json",
+                workspace_file=tmp / ".cypilot-workspace.toml",
             )
             mock_find.return_value = (ws_cfg, None)
 
@@ -363,7 +389,7 @@ class TestWorkspaceContext:
             tmp = Path(tmpdir)
             ws_cfg = WorkspaceConfig(
                 sources={"missing": SourceEntry(name="missing", path="does-not-exist")},
-                workspace_file=tmp / ".cypilot-workspace.json",
+                workspace_file=tmp / ".cypilot-workspace.toml",
             )
             mock_find.return_value = (ws_cfg, None)
 

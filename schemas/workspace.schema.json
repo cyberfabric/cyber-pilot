@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://example.com/cypilot/workspace.schema.json",
-  "title": "Cypilot Workspace Configuration (.cypilot-workspace.json)",
-  "description": "Federation layer for multi-repo workspace support. Maps named sources (repos) to local paths with roles.",
+  "title": "Cypilot Workspace Configuration (.cypilot-workspace.toml)",
+  "description": "Federation layer for multi-repo workspace support. Maps named sources (repos) to local paths with roles. Standalone file uses TOML format.",
   "type": "object",
   "additionalProperties": false,
   "required": ["version", "sources"],
@@ -12,17 +12,16 @@
       "sources": {
         "docs-repo": {
           "path": "../docs-repo",
-          "adapter": ".cypilot-adapter",
+          "adapter": ".bootstrap",
           "role": "artifacts"
         },
         "code-repo": {
           "path": "../code-repo",
-          "adapter": ".cypilot-adapter",
+          "adapter": ".bootstrap",
           "role": "codebase"
         },
         "shared-kits": {
           "path": "../shared-kits",
-          "adapter": null,
           "role": "kits"
         }
       },
@@ -61,8 +60,8 @@
           "description": "Local filesystem path to the source repo. Resolved relative to workspace file location."
         },
         "adapter": {
-          "type": ["string", "null"],
-          "description": "Path to adapter directory within the source repo (e.g., '.cypilot-adapter'). Null if repo has no adapter."
+          "type": "string",
+          "description": "Path to adapter directory within the source repo (e.g., '.bootstrap'). Omit if repo has no adapter."
         },
         "role": {
           "type": "string",

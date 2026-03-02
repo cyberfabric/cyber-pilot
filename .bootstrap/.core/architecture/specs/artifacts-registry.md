@@ -994,7 +994,7 @@ extensions = [".ts"]
 | # | Check | Required | How to Verify |
 |---|-------|----------|---------------|
 | S.1 | `source` field (if present) is non-empty string | CONDITIONAL | v1.2+: artifact/codebase/kit `source` is valid string |
-| S.2 | `source` references a name in workspace config | CONDITIONAL | Named source exists in `.cypilot-workspace.json` or inline workspace |
+| S.2 | `source` references a name in workspace config | CONDITIONAL | Named source exists in `.cypilot-workspace.toml` or inline workspace |
 | S.3 | Source repo path is reachable | CONDITIONAL | Directory exists at resolved path |
 | S.4 | `version` is "1.2" when `source` fields are used | CONDITIONAL | If any entry has `source`, version must be ≥ 1.2 |
 

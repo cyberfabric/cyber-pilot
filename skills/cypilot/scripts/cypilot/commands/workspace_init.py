@@ -12,7 +12,7 @@ def cmd_workspace_init(argv: List[str]) -> int:
     """Initialize a multi-repo workspace."""
     p = argparse.ArgumentParser(
         prog="workspace-init",
-        description="Initialize a new workspace: scan sibling dirs for repos with adapters, generate .cypilot-workspace.json",
+        description="Initialize a new workspace: scan sibling dirs for repos with adapters, generate .cypilot-workspace.toml",
     )
     p.add_argument(
         "--root", default=None,
@@ -20,7 +20,7 @@ def cmd_workspace_init(argv: List[str]) -> int:
     )
     p.add_argument(
         "--output", default=None,
-        help="Where to write .cypilot-workspace.json (default: scan root)",
+        help="Where to write .cypilot-workspace.toml (default: scan root)",
     )
     p.add_argument(
         "--inline", action="store_true",
@@ -154,13 +154,23 @@ def cmd_workspace_init(argv: List[str]) -> int:
         if not config_path.is_file():
             config_path = (project_root / cypilot_rel / "core.toml").resolve()
 
-        try:
-            from ..utils import toml_utils
-            existing = toml_utils.load(config_path) if config_path.is_file() else {}
-            if not isinstance(existing, dict):
-                existing = {}
-        except Exception:
-            existing = {}
+        from ..utils import toml_utils
+        existing: dict = {}
+        if config_path.is_file():
+            try:
+                existing = toml_utils.load(config_path)
+                if not isinstance(existing, dict):
+                    print(json.dumps({
+                        "status": "ERROR",
+                        "message": f"Invalid config format in {config_path} (expected mapping)",
+                    }, indent=2, ensure_ascii=False))
+                    return 1
+            except (ValueError, OSError) as e:
+                print(json.dumps({
+                    "status": "ERROR",
+                    "message": f"Failed to parse {config_path}: {e}",
+                }, indent=2, ensure_ascii=False))
+                return 1
 
         existing["workspace"] = {"sources": discovered}
         try:
@@ -180,12 +190,19 @@ def cmd_workspace_init(argv: List[str]) -> int:
             "sources": list(discovered.keys()),
         }, indent=2, ensure_ascii=False))
     else:
-        # Write standalone .cypilot-workspace.json
+        # Write standalone .cypilot-workspace.toml
+        from ..utils import toml_utils as _toml_utils
         output_path = Path(args.output).resolve() if args.output else (scan_root / WORKSPACE_CONFIG_FILENAME)
-        output_path.write_text(
-            json.dumps(workspace_data, indent=2, ensure_ascii=False) + "\n",
-            encoding="utf-8",
-        )
+        if output_path.is_dir():
+            output_path = output_path / WORKSPACE_CONFIG_FILENAME
+        try:
+            _toml_utils.dump(workspace_data, output_path)
+        except OSError as e:
+            print(json.dumps({
+                "status": "ERROR",
+                "message": f"Failed to write workspace config to {output_path}: {e}",
+            }, indent=2, ensure_ascii=False))
+            return 1
         print(json.dumps({
             "status": "CREATED",
             "message": f"Workspace config created at {output_path}",

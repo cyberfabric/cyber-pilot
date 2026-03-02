@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Union
 
-from .artifacts_meta import ArtifactsMeta, Kit, load_artifacts_meta
+from .artifacts_meta import Artifact, ArtifactsMeta, CodebaseEntry, Kit, load_artifacts_meta
 from .constraints import KitConstraints, error, load_constraints_toml
 
 
@@ -213,6 +213,8 @@ class WorkspaceContext:
     primary: CypilotContext
     sources: Dict[str, SourceContext] = field(default_factory=dict)
     workspace_file: Optional[Path] = None
+    cross_repo: bool = True  # From traceability.cross_repo in workspace config
+    resolve_remote_ids: bool = True  # From traceability.resolve_remote_ids
 
     @property
     def adapter_dir(self) -> Path:
@@ -245,6 +247,20 @@ class WorkspaceContext:
                 systems.update(sc.registered_systems)
         return systems
 
+    def resolve_artifact_path(self, artifact: Union[Artifact, CodebaseEntry, Kit], fallback_root: Path) -> Path:
+        """Resolve an artifact's filesystem path, routing through workspace source if set.
+
+        When ``artifact.source`` names a reachable workspace source, the path is
+        resolved relative to that source's root directory.  Otherwise falls back
+        to *fallback_root* (typically the primary project root).
+        """
+        src_name = getattr(artifact, "source", None)
+        if src_name and src_name in self.sources:
+            sc = self.sources[src_name]
+            if sc.reachable:
+                return (sc.path / artifact.path).resolve()
+        return (fallback_root / artifact.path).resolve()
+
     def get_all_artifact_ids(self) -> Set[str]:
         """Collect artifact IDs from all workspace sources (for cross-repo resolution)."""
         from .document import scan_cpt_ids
@@ -252,7 +268,7 @@ class WorkspaceContext:
         ids: Set[str] = set()
         # Primary source
         for art, _sys in self.primary.meta.iter_all_artifacts():
-            art_path = (self.primary.project_root / art.path).resolve()
+            art_path = self.resolve_artifact_path(art, self.primary.project_root)
             if art_path.exists():
                 try:
                     for h in scan_cpt_ids(art_path):
@@ -260,19 +276,20 @@ class WorkspaceContext:
                             ids.add(str(h["id"]))
                 except Exception:
                     continue
-        # Remote sources
-        for sc in self.sources.values():
-            if not sc.reachable or sc.meta is None:
-                continue
-            for art, _sys in sc.meta.iter_all_artifacts():
-                art_path = (sc.path / art.path).resolve()
-                if art_path.exists():
-                    try:
-                        for h in scan_cpt_ids(art_path):
-                            if h.get("type") == "definition" and h.get("id"):
-                                ids.add(str(h["id"]))
-                    except Exception:
-                        continue
+        # Remote sources (only when cross-repo traceability is enabled)
+        if self.cross_repo:
+            for sc in self.sources.values():
+                if not sc.reachable or sc.meta is None:
+                    continue
+                for art, _sys in sc.meta.iter_all_artifacts():
+                    art_path = (sc.path / art.path).resolve()
+                    if art_path.exists():
+                        try:
+                            for h in scan_cpt_ids(art_path):
+                                if h.get("type") == "definition" and h.get("id"):
+                                    ids.add(str(h["id"]))
+                        except Exception:
+                            continue
         return ids
 
     @classmethod
@@ -285,6 +302,9 @@ class WorkspaceContext:
 
         ws_cfg, ws_err = find_workspace_config(primary_ctx.project_root)
         if ws_cfg is None:
+            if ws_err:
+                import sys
+                print(f"Warning: workspace config error: {ws_err}", file=sys.stderr)
             return None
 
         sources: Dict[str, SourceContext] = {}
@@ -342,6 +362,8 @@ class WorkspaceContext:
             primary=primary_ctx,
             sources=sources,
             workspace_file=ws_cfg.workspace_file,
+            cross_repo=ws_cfg.traceability.cross_repo,
+            resolve_remote_ids=ws_cfg.traceability.resolve_remote_ids,
         )
 
 

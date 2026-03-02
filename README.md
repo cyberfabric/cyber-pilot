@@ -293,7 +293,7 @@ python3 cypilot/.core/skills/cypilot/scripts/cypilot.py workspace-add-inline --n
 The **current working directory** always determines the primary repo. Other repos contribute artifacts, code, and kits for cross-referencing. No adapter merging — each repo owns its configuration.
 
 **Workspace config** can be:
-- A standalone `.cypilot-workspace.json` file at a super-root directory
+- A standalone `.cypilot-workspace.toml` file at a super-root directory
 - Inline in any repo's `config/core.toml` under the `[workspace]` section
 - A reference from `core.toml` to an external workspace file
 

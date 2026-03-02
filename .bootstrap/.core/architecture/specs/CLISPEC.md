@@ -475,13 +475,13 @@ DESCRIPTION: Initialize a multi-repo workspace by scanning sibling directories f
 
 OPTIONS:
   --root     path   [default: parent of project root]  Directory to scan for sibling repos
-  --output   path   [default: scan root]  Where to write .cypilot-workspace.json
-  --inline   boolean  Write workspace inline into current repo's .cypilot-config.json
+  --output   path   [default: scan root]  Where to write .cypilot-workspace.toml
+  --inline   boolean  Write workspace inline into current repo's config/core.toml
   --dry-run  boolean  Print what would be generated without writing files
 
 EXIT CODES:
-  0  Success (workspace created or dry-run complete)
-  1  Error (no project root found)
+  0  Success (workspace created, dry-run complete, or no sources found)
+  1  Error (no project root, scan root missing, inline cypilot_path missing, config parse error, write failure)
 
 EXAMPLE:
   $ cypilot workspace-init --dry-run
@@ -493,7 +493,7 @@ EXAMPLE:
 ```
 COMMAND workspace-add
 SYNOPSIS: cypilot workspace-add --name <name> --path <path> [--role <role>] [--adapter <path>]
-DESCRIPTION: Add a source to an existing standalone .cypilot-workspace.json.
+DESCRIPTION: Add a source to an existing standalone .cypilot-workspace.toml.
 
 OPTIONS:
   --name     string   required  Human-readable source name
@@ -506,7 +506,7 @@ EXIT CODES:
   1  Error (no workspace found or save failed)
 
 EXAMPLE:
-  $ cypilot workspace-add --name hyperspot --path ../hyperspot --role full --adapter .cypilot-adapter
+  $ cypilot workspace-add --name hyperspot --path ../hyperspot --role full --adapter .bootstrap
 ```
 
 ---
@@ -514,7 +514,7 @@ EXAMPLE:
 ```
 COMMAND workspace-add-inline
 SYNOPSIS: cypilot workspace-add-inline --name <name> --path <path> [--role <role>] [--adapter <path>]
-DESCRIPTION: Add a source inline to the current repo's .cypilot-config.json workspace section.
+DESCRIPTION: Add a source inline to the current repo's config/core.toml workspace section.
 
 OPTIONS:
   --name     string   required  Human-readable source name
@@ -524,7 +524,7 @@ OPTIONS:
 
 EXIT CODES:
   0  Success (source added inline)
-  1  Error (no project root or external workspace ref)
+  1  Error (no project root, missing cypilot_path, config parse error, external workspace ref, write failure)
 
 EXAMPLE:
   $ cypilot workspace-add-inline --name docs --path ../docs-repo --role artifacts
@@ -539,7 +539,7 @@ DESCRIPTION: Display workspace configuration, list sources, show per-source stat
 
 EXIT CODES:
   0  Success (workspace info displayed, or no workspace found)
-  1  Error (no project root)
+  1  Error (no project root, workspace config parse error)
 
 EXAMPLE:
   $ cypilot workspace-info
@@ -551,7 +551,7 @@ EXAMPLE:
 
 - **v1.2** (2026-02): Workspace support
   - Workspace commands (workspace-init, workspace-add, workspace-add-inline, workspace-info)
-  - Cross-repo source references in artifacts.json
+  - Cross-repo source references in artifacts.toml
   - --source filter for list-ids
   - --local-only flag for validate
 - **v1.0** (2026-01): Initial specification

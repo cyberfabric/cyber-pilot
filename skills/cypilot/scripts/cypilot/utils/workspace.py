@@ -1,16 +1,15 @@
 """
 Cypilot Workspace - Multi-repo federation support.
 
-Loads and validates .cypilot-workspace.json (standalone or inline in core.toml).
+Loads and validates .cypilot-workspace.toml (standalone or inline in core.toml).
 Each source maps a named repo to a local path, optional adapter location, and a role.
 """
-
-import json
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 from ..constants import WORKSPACE_CONFIG_FILENAME
+from . import toml_utils
 
 # Valid source roles
 VALID_ROLES = {"artifacts", "codebase", "kits", "full"}
@@ -30,8 +29,8 @@ class SourceEntry:
         raw_path = str((data or {}).get("path", "")).strip()
         raw_adapter = (data or {}).get("adapter", None)
         adapter = str(raw_adapter).strip() if isinstance(raw_adapter, str) else None
-        # Explicit null in JSON means no adapter
-        if raw_adapter is None and "adapter" in (data or {}):
+        # Omitted key means no adapter (TOML has no null)
+        if raw_adapter is None:
             adapter = None
         raw_role = str((data or {}).get("role", "full")).strip().lower()
         role = raw_role if raw_role in VALID_ROLES else "full"
@@ -76,9 +75,17 @@ class WorkspaceConfig:
     traceability: TraceabilityConfig = field(default_factory=TraceabilityConfig)
     workspace_file: Optional[Path] = None  # Absolute path to the workspace file
     is_inline: bool = False  # True if loaded from core.toml inline workspace
+    resolution_base: Optional[Path] = None  # Override for source path resolution base directory
 
     @classmethod
-    def from_dict(cls, data: dict, *, workspace_file: Optional[Path] = None, is_inline: bool = False) -> "WorkspaceConfig":
+    def from_dict(
+        cls,
+        data: dict,
+        *,
+        workspace_file: Optional[Path] = None,
+        is_inline: bool = False,
+        resolution_base: Optional[Path] = None,
+    ) -> "WorkspaceConfig":
         version = str((data or {}).get("version", "1.0")).strip()
         sources: Dict[str, SourceEntry] = {}
         raw_sources = (data or {}).get("sources", {})
@@ -98,6 +105,7 @@ class WorkspaceConfig:
             traceability=traceability,
             workspace_file=workspace_file,
             is_inline=is_inline,
+            resolution_base=resolution_base,
         )
 
     def to_dict(self) -> dict:
@@ -111,10 +119,10 @@ class WorkspaceConfig:
 
     @classmethod
     def load(cls, workspace_path: Path) -> Tuple[Optional["WorkspaceConfig"], Optional[str]]:
-        """Load workspace config from a JSON file.
+        """Load workspace config from a TOML file.
 
         Args:
-            workspace_path: Absolute path to .cypilot-workspace.json
+            workspace_path: Absolute path to .cypilot-workspace.toml
 
         Returns:
             (WorkspaceConfig, None) on success or (None, error_message) on failure.
@@ -122,24 +130,28 @@ class WorkspaceConfig:
         if not workspace_path.is_file():
             return None, f"Workspace file not found: {workspace_path}"
         try:
-            raw = workspace_path.read_text(encoding="utf-8")
-            data = json.loads(raw)
+            data = toml_utils.load(workspace_path)
         except Exception as e:
             return None, f"Failed to read workspace file {workspace_path}: {e}"
         if not isinstance(data, dict):
-            return None, f"Invalid workspace file (expected JSON object): {workspace_path}"
+            return None, f"Invalid workspace file (expected TOML table): {workspace_path}"
         cfg = cls.from_dict(data, workspace_file=workspace_path.resolve(), is_inline=False)
         return cfg, None
 
     def resolve_source_path(self, source_name: str) -> Optional[Path]:
         """Resolve the absolute filesystem path for a named source.
 
-        Paths are resolved relative to the workspace file location.
+        For standalone workspace files, paths resolve relative to the file's
+        parent directory.  For inline workspaces (defined in core.toml),
+        paths resolve relative to the project root (set via resolution_base).
         """
         src = self.sources.get(source_name)
         if src is None:
             return None
-        base = self.workspace_file.parent if self.workspace_file else Path.cwd()
+        if self.resolution_base is not None:
+            base = self.resolution_base
+        else:
+            base = self.workspace_file.parent if self.workspace_file else Path.cwd()
         return (base / src.path).resolve()
 
     def resolve_source_adapter(self, source_name: str) -> Optional[Path]:
@@ -190,8 +202,7 @@ class WorkspaceConfig:
         if path is None:
             return "No target path specified for saving workspace config"
         try:
-            content = json.dumps(self.to_dict(), indent=2, ensure_ascii=False) + "\n"
-            path.write_text(content, encoding="utf-8")
+            toml_utils.dump(self.to_dict(), path)
             self.workspace_file = path.resolve()
             return None
         except Exception as e:
@@ -205,8 +216,7 @@ def find_workspace_config(project_root: Path) -> Tuple[Optional[WorkspaceConfig]
     1. Check 'workspace' key in project config (core.toml via AGENTS.md)
        - If string: treat as path to external workspace file
        - If dict: treat as inline workspace definition
-    2. Walk up from project_root looking for .cypilot-workspace.json
-    3. Check parent directory of project_root for .cypilot-workspace.json
+    2. Walk up from project_root looking for .cypilot-workspace.toml
 
     Args:
         project_root: The project root directory.
@@ -237,10 +247,11 @@ def find_workspace_config(project_root: Path) -> Tuple[Optional[WorkspaceConfig]
                 ws_value,
                 workspace_file=config_file,
                 is_inline=True,
+                resolution_base=project_root.resolve(),
             )
             return ws, None
 
-    # Step 2: Walk up looking for .cypilot-workspace.json
+    # Step 2: Walk up looking for .cypilot-workspace.toml
     current = project_root.resolve()
     for _ in range(10):
         ws_path = current / WORKSPACE_CONFIG_FILENAME
@@ -250,11 +261,6 @@ def find_workspace_config(project_root: Path) -> Tuple[Optional[WorkspaceConfig]
         if parent == current:
             break
         current = parent
-
-    # Step 3: Check parent directory of project_root
-    parent_ws = project_root.resolve().parent / WORKSPACE_CONFIG_FILENAME
-    if parent_ws.is_file():
-        return WorkspaceConfig.load(parent_ws)
 
     # No workspace found — not an error, just means single-repo mode
     return None, None
