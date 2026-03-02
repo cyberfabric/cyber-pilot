@@ -1592,8 +1592,9 @@ class TestMigrateAdapterJsonConfigs(unittest.TestCase):
             config = Path(d) / "config"
             pr_json = {"dataDir": ".prs", "prompts": [{"promptFile": "prompts/pr/code.md"}]}
             (adapter / "pr-review.json").write_text(json.dumps(pr_json))
-            result = _migrate_adapter_json_configs(adapter, config)
+            result, failed = _migrate_adapter_json_configs(adapter, config)
             self.assertIn("pr-review.json", result)
+            self.assertEqual(failed, [])
             toml_path = config / "pr-review.toml"
             self.assertTrue(toml_path.is_file())
             content = toml_path.read_text()
@@ -1609,8 +1610,9 @@ class TestMigrateAdapterJsonConfigs(unittest.TestCase):
             config = Path(d) / "config"
             pr_json = {"dataDir": ".prs", "prompts": [{"promptFile": "prompts/pr/code.md"}]}
             (adapter / "pr-review.json").write_text(json.dumps(pr_json))
-            result = _migrate_adapter_json_configs(adapter, config, kit_slug="custom")
+            result, failed = _migrate_adapter_json_configs(adapter, config, kit_slug="custom")
             self.assertIn("pr-review.json", result)
+            self.assertEqual(failed, [])
             content = (config / "pr-review.toml").read_text()
             self.assertIn(".gen/kits/custom/scripts/prompts/pr/", content)
             self.assertNotIn("sdlc", content)
@@ -1621,8 +1623,9 @@ class TestMigrateAdapterJsonConfigs(unittest.TestCase):
             adapter.mkdir()
             config = Path(d) / "config"
             (adapter / "artifacts.json").write_text('{"key": "val"}')
-            result = _migrate_adapter_json_configs(adapter, config)
+            result, failed = _migrate_adapter_json_configs(adapter, config)
             self.assertEqual(result, [])
+            self.assertEqual(failed, [])
             self.assertFalse((config / "artifacts.toml").exists())
 
     def test_skips_when_toml_exists(self):
@@ -1633,8 +1636,9 @@ class TestMigrateAdapterJsonConfigs(unittest.TestCase):
             config.mkdir()
             (adapter / "custom.json").write_text('{"a": 1}')
             (config / "custom.toml").write_text('a = 1\n')
-            result = _migrate_adapter_json_configs(adapter, config)
+            result, failed = _migrate_adapter_json_configs(adapter, config)
             self.assertEqual(result, [])
+            self.assertEqual(failed, [])
 
     def test_handles_broken_json(self):
         with TemporaryDirectory() as d:
@@ -1642,8 +1646,9 @@ class TestMigrateAdapterJsonConfigs(unittest.TestCase):
             adapter.mkdir()
             config = Path(d) / "config"
             (adapter / "broken.json").write_text("NOT JSON")
-            result = _migrate_adapter_json_configs(adapter, config)
+            result, failed = _migrate_adapter_json_configs(adapter, config)
             self.assertEqual(result, [])
+            self.assertIn("broken.json", failed)
 
     def test_converts_generic_json(self):
         with TemporaryDirectory() as d:
@@ -1651,8 +1656,9 @@ class TestMigrateAdapterJsonConfigs(unittest.TestCase):
             adapter.mkdir()
             config = Path(d) / "config"
             (adapter / "custom.json").write_text('{"key": "value"}')
-            result = _migrate_adapter_json_configs(adapter, config)
+            result, failed = _migrate_adapter_json_configs(adapter, config)
             self.assertIn("custom.json", result)
+            self.assertEqual(failed, [])
             self.assertTrue((config / "custom.toml").is_file())
 
 

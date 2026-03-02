@@ -779,8 +779,23 @@ def _three_way_merge_blueprint(
             merged_parts.append(seg.raw)
             skipped.append(key)
 
+    # Append markers that are truly new (in new_ref but NOT in old_ref).
+    # Markers that existed in old_ref but were removed by the user stay deleted.
+    inserted: List[str] = []
+    seen_keys = set(updated) | set(skipped) | set(kept)
+    for seg in new_segments:
+        if (seg.kind == "marker"
+                and seg.marker_key not in seen_keys
+                and seg.marker_key not in old_map):
+            merged_parts.append(seg.raw)
+            inserted.append(seg.marker_key)
+            seen_keys.add(seg.marker_key)
+
     merged_text = "".join(merged_parts)
-    report = {"updated": updated, "skipped": skipped, "kept": kept}
+    report = {
+        "updated": updated, "skipped": skipped,
+        "kept": kept, "inserted": inserted,
+    }
     return merged_text, report
 
 
@@ -998,8 +1013,14 @@ def migrate_kit(
     ref_conf = _read_conf_toml(ref_dir / "conf.toml")
     user_conf = _read_conf_toml(config_kit_dir / "conf.toml")
 
-    ref_kit_ver = int(ref_conf.get("version", 0))
-    user_kit_ver = int(user_conf.get("version", 0))
+    try:
+        ref_kit_ver = int(ref_conf.get("version", 0))
+    except (ValueError, TypeError):
+        ref_kit_ver = 0
+    try:
+        user_kit_ver = int(user_conf.get("version", 0))
+    except (ValueError, TypeError):
+        user_kit_ver = 0
 
     if ref_kit_ver <= user_kit_ver:
         return {"kit": kit_slug, "status": "current"}

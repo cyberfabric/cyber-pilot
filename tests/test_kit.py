@@ -732,7 +732,7 @@ class TestThreeWayMerge(unittest.TestCase):
         old_ref = 'Intro text\n\n`@cpt:skill`\nOld skill\n`@/cpt:skill`\n\nFooter\n'
         new_ref = 'Intro text\n\n`@cpt:skill`\nNew skill\n`@/cpt:skill`\n\nFooter\n'
         user = 'Intro text\n\n`@cpt:skill`\nOld skill\n`@/cpt:skill`\n\nFooter\n'
-        merged, report = _three_way_merge_blueprint(old_ref, new_ref, user)
+        merged, _ = _three_way_merge_blueprint(old_ref, new_ref, user)
         self.assertIn("Intro text", merged)
         self.assertIn("New skill", merged)
         self.assertIn("Footer", merged)
@@ -975,6 +975,122 @@ class TestCmdKitMigrate(unittest.TestCase):
                 with redirect_stdout(buf):
                     rc = cmd_kit(["migrate"])
                 self.assertEqual(rc, 2)  # no kits → 2
+            finally:
+                os.chdir(cwd)
+
+    def _setup_migrate_project(self, td: Path, *, ref_ver: int = 2, user_ver: int = 1):
+        """Set up a project with a kit that has version drift for migration."""
+        root = td / "proj"
+        adapter = _bootstrap_project(root)
+        kit_slug = "testkit"
+        ref_dir = adapter / "kits" / kit_slug
+        ref_bp = ref_dir / "blueprints"
+        ref_bp.mkdir(parents=True)
+        (ref_bp / "FEAT.md").write_text(
+            "<!-- @cpt:blueprint -->\n```toml\n"
+            f'artifact = "FEATURE"\nversion = {ref_ver}\n'
+            "```\n<!-- /@cpt:blueprint -->\n\n"
+            "<!-- @cpt:heading -->\n# Feature Spec\n<!-- /@cpt:heading -->\n",
+            encoding="utf-8",
+        )
+        from cypilot.utils import toml_utils
+        toml_utils.dump({"version": ref_ver}, ref_dir / "conf.toml")
+        config_kit = adapter / "config" / "kits" / kit_slug
+        config_kit.mkdir(parents=True)
+        toml_utils.dump({"version": user_ver}, config_kit / "conf.toml")
+        (adapter / ".gen" / "kits").mkdir(parents=True, exist_ok=True)
+        return root, adapter, kit_slug
+
+    def test_migrate_kit_slug_not_found(self):
+        from cypilot.commands.kit import cmd_kit_migrate
+        with TemporaryDirectory() as td:
+            root, adapter, _ = self._setup_migrate_project(Path(td))
+            cwd = os.getcwd()
+            try:
+                os.chdir(str(root))
+                buf = io.StringIO()
+                with redirect_stdout(buf):
+                    rc = cmd_kit_migrate(["--kit", "nonexistent"])
+                self.assertEqual(rc, 2)
+                out = json.loads(buf.getvalue())
+                self.assertEqual(out["status"], "FAIL")
+            finally:
+                os.chdir(cwd)
+
+    def test_migrate_all_kits_current(self):
+        from cypilot.commands.kit import cmd_kit_migrate
+        from cypilot.utils import toml_utils
+        with TemporaryDirectory() as td:
+            root, adapter, kit_slug = self._setup_migrate_project(Path(td), ref_ver=1, user_ver=1)
+            cwd = os.getcwd()
+            try:
+                os.chdir(str(root))
+                buf = io.StringIO()
+                with redirect_stdout(buf):
+                    rc = cmd_kit_migrate([])
+                self.assertEqual(rc, 0)
+                out = json.loads(buf.getvalue())
+                self.assertEqual(out["status"], "PASS")
+                self.assertEqual(out["kits_migrated"], 0)
+            finally:
+                os.chdir(cwd)
+
+    def test_migrate_with_regen(self):
+        from cypilot.commands.kit import cmd_kit_migrate
+        with TemporaryDirectory() as td:
+            root, adapter, kit_slug = self._setup_migrate_project(Path(td))
+            cwd = os.getcwd()
+            try:
+                os.chdir(str(root))
+                buf = io.StringIO()
+                with redirect_stdout(buf):
+                    rc = cmd_kit_migrate(["--kit", kit_slug])
+                self.assertEqual(rc, 0)
+                out = json.loads(buf.getvalue())
+                self.assertEqual(out["kits_migrated"], 1)
+                result = out["results"][0]
+                self.assertEqual(result["status"], "migrated")
+                self.assertIn("regenerated", result)
+            finally:
+                os.chdir(cwd)
+
+    def test_migrate_dry_run(self):
+        from cypilot.commands.kit import cmd_kit_migrate
+        with TemporaryDirectory() as td:
+            root, adapter, kit_slug = self._setup_migrate_project(Path(td))
+            cwd = os.getcwd()
+            try:
+                os.chdir(str(root))
+                buf = io.StringIO()
+                with redirect_stdout(buf):
+                    rc = cmd_kit_migrate(["--dry-run"])
+                self.assertEqual(rc, 0)
+                out = json.loads(buf.getvalue())
+                self.assertTrue(out.get("dry_run"))
+                # No regeneration on dry-run
+                for r in out["results"]:
+                    self.assertNotIn("regenerated", r)
+            finally:
+                os.chdir(cwd)
+
+    def test_migrate_regen_error_surfaces(self):
+        from cypilot.commands.kit import cmd_kit_migrate
+        with TemporaryDirectory() as td:
+            root, adapter, kit_slug = self._setup_migrate_project(Path(td))
+            cwd = os.getcwd()
+            try:
+                os.chdir(str(root))
+                buf = io.StringIO()
+                err_buf = io.StringIO()
+                with patch("cypilot.utils.blueprint.process_kit", side_effect=RuntimeError("boom")):
+                    with redirect_stdout(buf), redirect_stderr(err_buf):
+                        rc = cmd_kit_migrate(["--kit", kit_slug])
+                self.assertEqual(rc, 0)
+                out = json.loads(buf.getvalue())
+                self.assertEqual(out["status"], "FAIL")
+                result = out["results"][0]
+                self.assertEqual(result["status"], "FAIL")
+                self.assertIn("error", result.get("regenerated", {}))
             finally:
                 os.chdir(cwd)
 
