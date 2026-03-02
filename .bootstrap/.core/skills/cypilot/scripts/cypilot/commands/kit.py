@@ -10,6 +10,7 @@ Provides CLI handlers for kit install, kit update, and generate-resources.
 @cpt-dod:cpt-cypilot-dod-blueprint-system-kit-install:p1
 @cpt-dod:cpt-cypilot-dod-blueprint-system-kit-update:p1
 @cpt-dod:cpt-cypilot-dod-blueprint-system-validate-kits:p1
+@cpt-dod:cpt-cypilot-dod-blueprint-system-kit-migrate:p1
 @cpt-state:cpt-cypilot-state-blueprint-system-kit-install:p1
 """
 
@@ -29,6 +30,7 @@ KIT_COPY_SUBDIRS = ["blueprints", "scripts"]
 
 # ---------------------------------------------------------------------------
 # Config seeding — copy default .toml configs from kit scripts to config/
+# @cpt-algo:cpt-cypilot-algo-blueprint-system-seed-configs:p1
 # ---------------------------------------------------------------------------
 
 _CONFIG_EXTENSIONS = {".toml"}
@@ -45,16 +47,21 @@ def _seed_kit_config_files(
     user-editable config.
     """
     config_dir.mkdir(parents=True, exist_ok=True)
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-seed-configs:p1:inst-foreach-toml
     for src in gen_scripts_dir.iterdir():
         if src.is_file() and src.suffix in _CONFIG_EXTENSIONS:
             dst = config_dir / src.name
+            # @cpt-begin:cpt-cypilot-algo-blueprint-system-seed-configs:p1:inst-seed-if-missing
             if not dst.exists():
                 shutil.copy2(src, dst)
                 actions[f"config_{src.stem}"] = "seeded"
+            # @cpt-end:cpt-cypilot-algo-blueprint-system-seed-configs:p1:inst-seed-if-missing
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-seed-configs:p1:inst-foreach-toml
 
 
 # ---------------------------------------------------------------------------
 # Shared CLI helper — resolve project root + cypilot directory
+# @cpt-algo:cpt-cypilot-algo-blueprint-system-resolve-dir:p1
 # ---------------------------------------------------------------------------
 
 
@@ -65,22 +72,29 @@ def _resolve_cypilot_dir() -> Optional[tuple]:
     """
     from ..utils.files import find_project_root, _read_cypilot_var
 
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-resolve-dir:p1:inst-find-root
     project_root = find_project_root(Path.cwd())
     if project_root is None:
         print(json.dumps({"status": "ERROR", "message": "No project root found"}, ensure_ascii=False))
         return None
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-resolve-dir:p1:inst-find-root
 
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-resolve-dir:p1:inst-read-cypilot-var
     cypilot_rel = _read_cypilot_var(project_root)
     if not cypilot_rel:
         print(json.dumps({"status": "ERROR", "message": "No cypilot directory"}, ensure_ascii=False))
         return None
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-resolve-dir:p1:inst-read-cypilot-var
 
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-resolve-dir:p1:inst-resolve-abs
     cypilot_dir = (project_root / cypilot_rel).resolve()
     return project_root, cypilot_dir
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-resolve-dir:p1:inst-resolve-abs
 
 
 # ---------------------------------------------------------------------------
 # Shared helper — write per-kit SKILL.md + workflow files into .gen/
+# @cpt-algo:cpt-cypilot-algo-blueprint-system-write-gen-outputs:p1
 # ---------------------------------------------------------------------------
 
 
@@ -95,6 +109,7 @@ def _write_kit_gen_outputs(
     """
     result: Dict[str, Any] = {"skill_nav": "", "workflows_written": []}
 
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-write-gen-outputs:p1:inst-write-skill
     skill_content = summary.get("skill_content", "")
     if skill_content:
         art_kinds = [k.upper() for k in summary.get("artifact_kinds", []) if k]
@@ -119,7 +134,9 @@ def _write_kit_gen_outputs(
         result["skill_nav"] = (
             f"ALWAYS invoke `{{cypilot_path}}/.gen/kits/{kit_slug}/SKILL.md` FIRST"
         )
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-write-gen-outputs:p1:inst-write-skill
 
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-write-gen-outputs:p1:inst-write-workflow
     for wf in summary.get("workflows", []):
         wf_name = wf["name"]
         wf_path = gen_kits_dir / kit_slug / "workflows" / f"{wf_name}.md"
@@ -137,8 +154,11 @@ def _write_kit_gen_outputs(
             encoding="utf-8",
         )
         result["workflows_written"].append(wf_name)
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-write-gen-outputs:p1:inst-write-workflow
 
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-write-gen-outputs:p1:inst-return-gen-outputs
     return result
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-write-gen-outputs:p1:inst-return-gen-outputs
 
 
 # ---------------------------------------------------------------------------
@@ -608,6 +628,7 @@ def cmd_generate_resources(argv: List[str]) -> int:
 
 # ---------------------------------------------------------------------------
 # Kit Migrate — marker-level three-way merge
+# @cpt-algo:cpt-cypilot-algo-blueprint-system-three-way-merge:p1
 # ---------------------------------------------------------------------------
 
 # Regex mirrors blueprint.py parser
@@ -757,10 +778,13 @@ def _three_way_merge_blueprint(
         - skipped: list of marker keys skipped (user customized)
         - kept: list of marker keys kept as-is (no change in reference)
     """
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-three-way-merge:p1:inst-parse-three
     old_segments = _parse_segments(old_ref_text)
     new_segments = _parse_segments(new_ref_text)
     user_segments = _parse_segments(user_text)
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-three-way-merge:p1:inst-parse-three
 
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-three-way-merge:p1:inst-identify-changes
     # Build lookup maps: key → raw text
     old_map: Dict[str, str] = {}
     for seg in old_segments:
@@ -771,7 +795,9 @@ def _three_way_merge_blueprint(
     for seg in new_segments:
         if seg.kind == "marker":
             new_map[seg.marker_key] = seg.raw
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-three-way-merge:p1:inst-identify-changes
 
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-three-way-merge:p1:inst-apply-merge
     updated: List[str] = []
     skipped: List[str] = []
     kept: List[str] = []
@@ -787,6 +813,7 @@ def _three_way_merge_blueprint(
         old_raw = old_map.get(key)
         new_raw = new_map.get(key)
 
+        # @cpt-begin:cpt-cypilot-algo-blueprint-system-three-way-merge:p1:inst-respect-deletions
         if old_raw is None:
             # Marker not in old reference — user-added or unknown, keep as-is
             merged_parts.append((seg.raw, key))
@@ -795,6 +822,8 @@ def _three_way_merge_blueprint(
             # Marker removed in new reference — keep user's version
             merged_parts.append((seg.raw, key))
             kept.append(key)
+        # @cpt-end:cpt-cypilot-algo-blueprint-system-three-way-merge:p1:inst-respect-deletions
+        # @cpt-begin:cpt-cypilot-algo-blueprint-system-three-way-merge:p1:inst-update-unmodified
         elif seg.raw == old_raw:
             # User hasn't changed it — safe to update
             if new_raw != old_raw:
@@ -803,11 +832,16 @@ def _three_way_merge_blueprint(
             else:
                 merged_parts.append((seg.raw, key))
                 kept.append(key)
+        # @cpt-end:cpt-cypilot-algo-blueprint-system-three-way-merge:p1:inst-update-unmodified
         else:
+            # @cpt-begin:cpt-cypilot-algo-blueprint-system-three-way-merge:p1:inst-preserve-user
             # User customized this marker — skip update
             merged_parts.append((seg.raw, key))
             skipped.append(key)
+            # @cpt-end:cpt-cypilot-algo-blueprint-system-three-way-merge:p1:inst-preserve-user
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-three-way-merge:p1:inst-apply-merge
 
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-three-way-merge:p1:inst-insert-new
     # Insert markers that are truly new (in new_ref but NOT in old_ref)
     # at their correct position based on new_segments ordering.
     # Markers that existed in old_ref but were removed by the user stay deleted.
@@ -828,7 +862,7 @@ def _three_way_merge_blueprint(
                 break
 
         # Find anchor position in merged_parts and insert after it
-        insert_idx = 0
+        insert_idx = len(merged_parts)
         if anchor_key is not None:
             for mi in range(len(merged_parts) - 1, -1, -1):
                 if merged_parts[mi][1] == anchor_key:
@@ -838,22 +872,27 @@ def _three_way_merge_blueprint(
         merged_parts.insert(insert_idx, (seg.raw, seg.marker_key))
         inserted.append(seg.marker_key)
         seen_keys.add(seg.marker_key)
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-three-way-merge:p1:inst-insert-new
 
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-three-way-merge:p1:inst-return-merge
     merged_text = "".join(part[0] for part in merged_parts)
     report = {
         "updated": updated, "skipped": skipped,
         "kept": kept, "inserted": inserted,
     }
     return merged_text, report
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-three-way-merge:p1:inst-return-merge
 
 
 # ---------------------------------------------------------------------------
 # Kit Migrate — conf.toml helpers
+# @cpt-algo:cpt-cypilot-algo-blueprint-system-conf-toml-helpers:p1
 # ---------------------------------------------------------------------------
 
 
 def _read_conf_toml(conf_path: Path) -> Dict[str, Any]:
     """Read and parse a conf.toml file. Returns empty dict on failure."""
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-conf-toml-helpers:p1:inst-read-conf
     if not conf_path.is_file():
         return {}
     try:
@@ -862,10 +901,12 @@ def _read_conf_toml(conf_path: Path) -> Dict[str, Any]:
             return tomllib.load(f)
     except Exception:
         return {}
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-conf-toml-helpers:p1:inst-read-conf
 
 
 def _read_conf_version(conf_path: Path) -> int:
     """Read top-level 'version' from conf.toml. Returns 0 if missing."""
+    # @cpt-begin:cpt-cypilot-algo-blueprint-system-conf-toml-helpers:p1:inst-read-version
     if not conf_path.is_file():
         return 0
     try:
@@ -876,6 +917,7 @@ def _read_conf_version(conf_path: Path) -> int:
         return int(ver) if ver is not None else 0
     except Exception:
         return 0
+    # @cpt-end:cpt-cypilot-algo-blueprint-system-conf-toml-helpers:p1:inst-read-version
 
 
 def update_kit(
@@ -999,6 +1041,7 @@ def update_kit(
     return result
 
 
+# @cpt-flow:cpt-cypilot-flow-blueprint-system-kit-migrate:p1
 def migrate_kit(
     kit_slug: str,
     ref_dir: Path,
@@ -1130,6 +1173,7 @@ def cmd_kit_migrate(argv: List[str]) -> int:
     - Updates config conf.toml to match reference versions
     - Regenerates .gen/ from updated blueprints
     """
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-migrate:p1:inst-user-migrate
     p = argparse.ArgumentParser(
         prog="kit migrate",
         description="Migrate kit blueprints to latest versions",
@@ -1137,7 +1181,9 @@ def cmd_kit_migrate(argv: List[str]) -> int:
     p.add_argument("--kit", default=None, help="Kit slug to migrate (default: all)")
     p.add_argument("--dry-run", action="store_true", help="Show what would be done")
     args = p.parse_args(argv)
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-migrate:p1:inst-user-migrate
 
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-migrate:p1:inst-resolve-migrate-kits
     resolved = _resolve_cypilot_dir()
     if resolved is None:
         return 1
@@ -1165,7 +1211,9 @@ def cmd_kit_migrate(argv: List[str]) -> int:
             return 2
     else:
         kit_dirs = [d for d in sorted(kits_ref_dir.iterdir()) if d.is_dir()]
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-migrate:p1:inst-resolve-migrate-kits
 
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-migrate:p1:inst-foreach-migrate-kit
     gen_kits_dir = gen_dir / "kits"
     results: List[Dict[str, Any]] = []
 
@@ -1198,7 +1246,9 @@ def cmd_kit_migrate(argv: List[str]) -> int:
                     print(f"kit-migrate: regen failed for {kit_slug}: {err}",
                           file=sys.stderr)
         results.append(result)
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-migrate:p1:inst-foreach-migrate-kit
 
+    # @cpt-begin:cpt-cypilot-flow-blueprint-system-kit-migrate:p1:inst-return-migrate-ok
     migrated_count = sum(1 for r in results if r["status"] == "migrated")
     has_failures = any(r["status"] == "FAIL" for r in results)
     output: Dict[str, Any] = {
@@ -1212,6 +1262,7 @@ def cmd_kit_migrate(argv: List[str]) -> int:
 
     print(json.dumps(output, indent=2, ensure_ascii=False))
     return 0
+    # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-migrate:p1:inst-return-migrate-ok
 
 
 # ---------------------------------------------------------------------------

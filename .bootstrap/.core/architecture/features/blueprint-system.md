@@ -11,6 +11,7 @@
 - [2. Actor Flows (CDSL)](#2-actor-flows-cdsl)
   - [Kit Installation](#kit-installation)
   - [Kit Update](#kit-update)
+  - [Kit Migrate](#kit-migrate)
   - [Resource Generation](#resource-generation)
   - [Kit Structural Validation](#kit-structural-validation)
 - [3. Processes / Business Logic (CDSL)](#3-processes-business-logic-cdsl)
@@ -19,6 +20,10 @@
   - [Generate Per-Artifact Outputs](#generate-per-artifact-outputs)
   - [Generate Kit-Wide Constraints](#generate-kit-wide-constraints)
   - [Three-Way Merge](#three-way-merge)
+  - [Seed Kit Config Files](#seed-kit-config-files)
+  - [Resolve Cypilot Directory](#resolve-cypilot-directory)
+  - [Write Kit Gen Outputs](#write-kit-gen-outputs)
+  - [Conf.toml Helpers](#conftoml-helpers)
   - [Collect SKILL Extensions](#collect-skill-extensions)
   - [Generate Workflows](#generate-workflows)
 - [4. States (CDSL)](#4-states-cdsl)
@@ -29,6 +34,7 @@
   - [Kit-Wide Constraints Generation](#kit-wide-constraints-generation)
   - [Kit Installation and Registration](#kit-installation-and-registration)
   - [Kit Update](#kit-update-1)
+  - [Kit Migrate](#kit-migrate-1)
   - [Kit Structural Validation](#kit-structural-validation-1)
   - [Resource Regeneration](#resource-regeneration)
 - [6. Implementation Modules](#6-implementation-modules)
@@ -118,6 +124,26 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
 > **p2**: ELSE apply three-way merge using `cpt-cypilot-algo-blueprint-system-three-way-merge` (additive mode with conflict detection)
    5. [x] - `p1` - Update kit version in `{cypilot_path}/config/core.toml` - `inst-update-version`
 4. [x] - `p1` - **RETURN** update summary (kits updated, files regenerated, conflicts if any) - `inst-return-update-ok`
+
+### Kit Migrate
+
+- [x] `p1` - **ID**: `cpt-cypilot-flow-blueprint-system-kit-migrate`
+
+**Actor**: `cpt-cypilot-actor-user`
+
+**Success Scenarios**:
+- User runs `cypilot kit migrate` → version-drifted kits merged via three-way merge, outputs regenerated
+- User runs `cypilot kit migrate --dry-run` → shows what would be done without writing files
+
+**Error Scenarios**:
+- No kits installed → error with hint to install first
+- No version drift detected → report "current" status, skip migration
+
+**Steps**:
+1. [x] - `p1` - User invokes `cypilot kit migrate [--kit SLUG] [--dry-run]` - `inst-user-migrate`
+2. [x] - `p1` - Resolve target kits from `{cypilot_path}/kits/` (reference directory) - `inst-resolve-migrate-kits`
+3. [x] - `p1` - **FOR EACH** kit: call `migrate_kit` (three-way merge) then regenerate outputs - `inst-foreach-migrate-kit`
+4. [x] - `p1` - **RETURN** migration summary (kits migrated, blueprints merged, conflicts if any) - `inst-return-migrate-ok`
 
 ### Resource Generation
 
@@ -243,24 +269,71 @@ Eliminates resource duplication across kit artifacts. Without blueprints, every 
 
 ### Three-Way Merge
 
-- [ ] `p2` - **ID**: `cpt-cypilot-algo-blueprint-system-three-way-merge`
+- [x] `p1` - **ID**: `cpt-cypilot-algo-blueprint-system-three-way-merge`
 
-**Input**: Reference blueprint (old version in `{cypilot_path}/kits/{slug}/`), user blueprint (`{cypilot_path}/config/kits/{slug}/blueprints/`), new blueprint (from updated kit source)
+**Input**: Reference blueprint (old version in `{cypilot_path}/kits/{slug}/.prev/`), user blueprint (`{cypilot_path}/config/kits/{slug}/blueprints/`), new blueprint (current reference in `{cypilot_path}/kits/{slug}/`)
 
-**Output**: Merged blueprint content, or list of conflicts
+**Output**: Merged blueprint content and merge report (updated, skipped, kept, inserted markers)
 
 **Steps**:
-1. [ ] - `p2` - Parse all three versions into marker lists - `inst-parse-three`
-2. [ ] - `p2` - Identify marker-level changes: added markers (in new, not in reference), removed markers (in reference, not in new), modified markers (in both, content differs) - `inst-identify-changes`
-3. [ ] - `p2` - Identify user modifications: markers where user blueprint differs from reference - `inst-identify-user-mods`
-4. [ ] - `p2` - Apply merge rules - `inst-apply-merge`
-   1. [ ] - `p2` - Insert new markers (added by kit, not present in user) at appropriate positions - `inst-insert-new`
-   2. [ ] - `p2` - Preserve user-modified markers unchanged - `inst-preserve-user`
-   3. [ ] - `p2` - Update unmodified markers to new version - `inst-update-unmodified`
-   4. [ ] - `p2` - Respect user deletions: markers removed by user stay removed - `inst-respect-deletions`
-5. [ ] - `p2` - **IF** both user and kit modified the same marker - `inst-if-conflict`
-   1. [ ] - `p2` - Flag as conflict, include both versions - `inst-flag-conflict`
-6. [ ] - `p2` - **RETURN** merged content or conflict list - `inst-return-merge`
+1. [x] - `p1` - Parse all three versions into segment lists (text blocks and `@cpt:` markers with stable identity keys) - `inst-parse-three`
+2. [x] - `p1` - Build lookup maps: old_map (reference marker_key → raw), new_map (new marker_key → raw) - `inst-identify-changes`
+3. [x] - `p1` - Walk user segments, classify each marker, and apply merge rules - `inst-apply-merge`
+   1. [x] - `p1` - Preserve user-modified markers unchanged (user differs from old reference; reported as "skipped") - `inst-preserve-user`
+   2. [x] - `p1` - Update unmodified markers to new version (user matches old reference, new differs) - `inst-update-unmodified`
+   3. [x] - `p1` - Respect user deletions: markers present in old reference but removed by user stay removed - `inst-respect-deletions`
+4. [x] - `p1` - Insert new markers (in new reference but NOT in old reference) at anchor-relative positions; default to append when no anchor found - `inst-insert-new`
+5. [x] - `p1` - **RETURN** merged text and report {updated[], skipped[], kept[], inserted[]} - `inst-return-merge`
+
+### Seed Kit Config Files
+
+- [x] `p1` - **ID**: `cpt-cypilot-algo-blueprint-system-seed-configs`
+
+**Input**: Generated scripts directory (`{cypilot_path}/.gen/kits/{slug}/scripts/`), config directory (`{cypilot_path}/config/`)
+
+**Output**: Seeded `.toml` config files in `config/` (only if not already present)
+
+**Steps**:
+1. [x] - `p1` - **FOR EACH** top-level `.toml` file in generated scripts directory - `inst-foreach-toml`
+   1. [x] - `p1` - **IF** file does not exist in config directory, copy it (never overwrite user config) - `inst-seed-if-missing`
+
+### Resolve Cypilot Directory
+
+- [x] `p1` - **ID**: `cpt-cypilot-algo-blueprint-system-resolve-dir`
+
+**Input**: Current working directory
+
+**Output**: Tuple of (project_root, cypilot_dir) or None with JSON error printed
+
+**Steps**:
+1. [x] - `p1` - Find project root from CWD using `find_project_root` - `inst-find-root`
+2. [x] - `p1` - Read `cypilot_path` variable from root `AGENTS.md` - `inst-read-cypilot-var`
+3. [x] - `p1` - Resolve absolute path and **RETURN** (project_root, cypilot_dir) - `inst-resolve-abs`
+
+### Write Kit Gen Outputs
+
+- [x] `p1` - **ID**: `cpt-cypilot-algo-blueprint-system-write-gen-outputs`
+
+**Input**: Kit slug, process_kit summary, gen_kits_dir
+
+**Output**: Per-kit `SKILL.md` and workflow `.md` files written to `.gen/kits/{slug}/`
+
+**Steps**:
+1. [x] - `p1` - **IF** summary contains `skill_content`, write `{cypilot_path}/.gen/kits/{slug}/SKILL.md` with YAML frontmatter and build skill navigation rule - `inst-write-skill`
+2. [x] - `p1` - **FOR EACH** workflow in summary, write `{cypilot_path}/.gen/kits/{slug}/workflows/{name}.md` with YAML frontmatter - `inst-write-workflow`
+3. [x] - `p1` - **RETURN** {skill_nav, workflows_written[]} - `inst-return-gen-outputs`
+
+### Conf.toml Helpers
+
+- [x] `p1` - **ID**: `cpt-cypilot-algo-blueprint-system-conf-toml-helpers`
+
+**Input**: Path to `conf.toml` file
+
+**Output**: Parsed config data or kit version string
+
+**Steps**:
+1. [x] - `p1` - `_read_conf_toml`: Read and parse `conf.toml` using `tomllib`; return empty dict on failure - `inst-read-conf`
+2. [x] - `p1` - `_read_conf_version`: Extract `version` field as integer from `conf.toml`; return 0 if missing - `inst-read-version`
 
 ### Collect SKILL Extensions
 
@@ -381,6 +454,24 @@ The system **MUST** provide `cypilot kit update [--force] [--kit SLUG]`. Force m
 **Implements**:
 - `cpt-cypilot-flow-blueprint-system-kit-update`
 - `cpt-cypilot-algo-blueprint-system-three-way-merge`
+
+**Covers (PRD)**:
+- `cpt-cypilot-fr-core-kits`
+
+**Covers (DESIGN)**:
+- `cpt-cypilot-component-kit-manager`
+- `cpt-cypilot-principle-no-manual-maintenance`
+
+### Kit Migrate
+
+- [x] `p1` - **ID**: `cpt-cypilot-dod-blueprint-system-kit-migrate`
+
+The system **MUST** provide `cypilot kit migrate [--kit SLUG] [--dry-run]` that detects kit-level version drift between reference and config `conf.toml`, applies marker-level three-way merge to all `.md` blueprints, updates the config `conf.toml` to match reference, cleans up `.prev/`, and regenerates `.gen/` outputs. Kits with no version drift **MUST** be skipped with "current" status.
+
+**Implements**:
+- `cpt-cypilot-flow-blueprint-system-kit-migrate`
+- `cpt-cypilot-algo-blueprint-system-three-way-merge`
+- `cpt-cypilot-algo-blueprint-system-conf-toml-helpers`
 
 **Covers (PRD)**:
 - `cpt-cypilot-fr-core-kits`

@@ -1470,6 +1470,7 @@ def run_migrate(
     # @cpt-end:cpt-cypilot-flow-v2-v3-migration-migrate-project:p1:inst-return-success
 
 
+# @cpt-algo:cpt-cypilot-algo-v2-v3-migration-regenerate-gen:p1
 def _regenerate_gen_from_config(config_dir: Path, gen_dir: Path) -> None:
     """Process migrated blueprints to populate .gen/kits/.
 
@@ -1492,6 +1493,7 @@ def _regenerate_gen_from_config(config_dir: Path, gen_dir: Path) -> None:
 
     all_errors: List[str] = []
 
+    # @cpt-begin:cpt-cypilot-algo-v2-v3-migration-regenerate-gen:p1:inst-foreach-kit-regen
     for kit_dir in sorted(config_kits_dir.iterdir()):
         bp_dir = kit_dir / "blueprints"
         if not bp_dir.is_dir():
@@ -1516,16 +1518,21 @@ def _regenerate_gen_from_config(config_dir: Path, gen_dir: Path) -> None:
 
         # Write per-kit SKILL.md + workflow files
         _write_kit_gen_outputs(kit_slug, summary, gen_kits_dir)
+    # @cpt-end:cpt-cypilot-algo-v2-v3-migration-regenerate-gen:p1:inst-foreach-kit-regen
 
+    # @cpt-begin:cpt-cypilot-algo-v2-v3-migration-regenerate-gen:p1:inst-raise-regen-errors
     if all_errors:
         raise RuntimeError(
             f"Generation from config failed with {len(all_errors)} error(s):\n"
             + "\n".join(all_errors)
         )
+    # @cpt-end:cpt-cypilot-algo-v2-v3-migration-regenerate-gen:p1:inst-raise-regen-errors
 
 
+# @cpt-algo:cpt-cypilot-algo-v2-v3-migration-write-gen-agents:p1
 def _write_gen_agents(gen_dir: Path, project_name: str) -> None:
     """Write .gen/AGENTS.md with generated navigation rules."""
+    # @cpt-begin:cpt-cypilot-algo-v2-v3-migration-write-gen-agents:p1:inst-compose-agents
     kit_id = "cypilot-sdlc"
     artifacts_when = (
         f"ALWAYS open and follow `{{cypilot_path}}/config/artifacts.toml` "
@@ -1544,12 +1551,16 @@ def _write_gen_agents(gen_dir: Path, project_name: str) -> None:
         artifacts_when,
         "",
     ])
+    # @cpt-end:cpt-cypilot-algo-v2-v3-migration-write-gen-agents:p1:inst-compose-agents
+    # @cpt-begin:cpt-cypilot-algo-v2-v3-migration-write-gen-agents:p1:inst-write-agents
     gen_dir.mkdir(parents=True, exist_ok=True)
     (gen_dir / "AGENTS.md").write_text(content, encoding="utf-8")
+    # @cpt-end:cpt-cypilot-algo-v2-v3-migration-write-gen-agents:p1:inst-write-agents
 
 
 # ===========================================================================
 # Migrate Config Flow (JSON → TOML)
+# @cpt-algo:cpt-cypilot-algo-v2-v3-migration-normalize-pr-review:p1
 # ===========================================================================
 
 # Key mapping for pr-review.json → pr-review.toml migration
@@ -1580,6 +1591,13 @@ def _normalize_pr_review_data(
     - Renames camelCase keys to snake_case (dataDir → data_dir, promptFile → prompt_file)
     - Rewrites prompt file paths from v2 locations to .gen/kits/{kit_slug}/scripts/prompts/pr/
     """
+    # @cpt-begin:cpt-cypilot-algo-v2-v3-migration-normalize-pr-review:p1:inst-validate-input
+    if not isinstance(data, dict):
+        raise TypeError(
+            f"pr-review.json root must be a dict, got {type(data).__name__}"
+        )
+    # @cpt-end:cpt-cypilot-algo-v2-v3-migration-normalize-pr-review:p1:inst-validate-input
+    # @cpt-begin:cpt-cypilot-algo-v2-v3-migration-normalize-pr-review:p1:inst-rename-keys
     out: Dict[str, Any] = {}
     for k, v in data.items():
         new_key = _PR_REVIEW_KEY_MAP.get(k, k)
@@ -1587,7 +1605,10 @@ def _normalize_pr_review_data(
             out[new_key] = [_normalize_pr_review_entry(entry, kit_slug=kit_slug) for entry in v]
         else:
             out[new_key] = v
+    # @cpt-end:cpt-cypilot-algo-v2-v3-migration-normalize-pr-review:p1:inst-rename-keys
+    # @cpt-begin:cpt-cypilot-algo-v2-v3-migration-normalize-pr-review:p1:inst-return-normalized
     return out
+    # @cpt-end:cpt-cypilot-algo-v2-v3-migration-normalize-pr-review:p1:inst-return-normalized
 
 
 def _normalize_pr_review_entry(
@@ -1614,6 +1635,7 @@ def _normalize_pr_review_entry(
 _ALREADY_MIGRATED = {"artifacts.json", "constraints.json"}
 
 
+# @cpt-algo:cpt-cypilot-algo-v2-v3-migration-migrate-adapter-json:p1
 def _migrate_adapter_json_configs(
     adapter_dir: Path,
     config_dir: Path,
@@ -1628,6 +1650,7 @@ def _migrate_adapter_json_configs(
     converted: List[str] = []
     failed: List[str] = []
     config_dir.mkdir(parents=True, exist_ok=True)
+    # @cpt-begin:cpt-cypilot-algo-v2-v3-migration-migrate-adapter-json:p1:inst-foreach-json
     for json_file in sorted(adapter_dir.glob("*.json")):
         if json_file.name in _ALREADY_MIGRATED:
             continue
@@ -1645,7 +1668,10 @@ def _migrate_adapter_json_configs(
                 f"WARNING: Failed to convert {json_file.name}: {exc}\n"
             )
             failed.append(json_file.name)
+    # @cpt-end:cpt-cypilot-algo-v2-v3-migration-migrate-adapter-json:p1:inst-foreach-json
+    # @cpt-begin:cpt-cypilot-algo-v2-v3-migration-migrate-adapter-json:p1:inst-return-results
     return converted, failed
+    # @cpt-end:cpt-cypilot-algo-v2-v3-migration-migrate-adapter-json:p1:inst-return-results
 
 
 def run_migrate_config(project_root: Path) -> Dict[str, Any]:
@@ -1656,6 +1682,18 @@ def run_migrate_config(project_root: Path) -> Dict[str, Any]:
     """
     converted: List[str] = []
     skipped: List[Dict[str, str]] = []
+    primary_slug = _PR_REVIEW_DEFAULT_KIT_SLUG
+
+    core_toml = project_root / "config" / "core.toml"
+    if core_toml.is_file():
+        try:
+            core_data = toml_utils.load(core_toml)
+            primary_slug = (
+                ((core_data.get("system") or {}).get("kit"))  # type: ignore[union-attr]
+                or primary_slug
+            )
+        except Exception:
+            pass
 
     # @cpt-begin:cpt-cypilot-flow-v2-v3-migration-migrate-config:p1:inst-scan-json-files
     scan_dirs = []
@@ -1686,7 +1724,7 @@ def run_migrate_config(project_root: Path) -> Dict[str, Any]:
             # @cpt-end:cpt-cypilot-flow-v2-v3-migration-migrate-config:p1:inst-parse-json
             # Normalize known config files (key renaming, path updates)
             if json_file.name == "pr-review.json":
-                data = _normalize_pr_review_data(data)
+                data = _normalize_pr_review_data(data, kit_slug=primary_slug)
             # @cpt-begin:cpt-cypilot-flow-v2-v3-migration-migrate-config:p1:inst-write-toml
             toml_utils.dump(_strip_none(data), toml_file)
             # @cpt-end:cpt-cypilot-flow-v2-v3-migration-migrate-config:p1:inst-write-toml

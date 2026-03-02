@@ -22,6 +22,10 @@
   - [Generate core.toml](#generate-coretoml)
   - [Inject Root AGENTS.md Managed Block](#inject-root-agentsmd-managed-block)
   - [Validate Migration Completeness](#validate-migration-completeness)
+  - [Regenerate Gen from Config](#regenerate-gen-from-config)
+  - [Write Gen AGENTS.md](#write-gen-agentsmd)
+  - [Normalize PR-Review Data](#normalize-pr-review-data)
+  - [Migrate Adapter JSON Configs](#migrate-adapter-json-configs)
 - [4. States (CDSL)](#4-states-cdsl)
   - [Migration State Machine](#migration-state-machine)
 - [5. Definitions of Done](#5-definitions-of-done)
@@ -380,6 +384,55 @@ This feature addresses the need for a seamless upgrade path from Cypilot v2 to v
     1. [x] - `p1` - Record issue with severity, file path, and remediation — `inst-record-issue`
 12. [x] - `p1` - **RETURN** {passed: issues.length == 0, issues} — `inst-return-validation-result`
 
+### Regenerate Gen from Config
+
+- [x] `p1` - **ID**: `cpt-cypilot-algo-v2-v3-migration-regenerate-gen`
+
+**Input**: Config directory (`{cypilot_path}/config/`), gen directory (`{cypilot_path}/.gen/`)
+
+**Output**: Populated `.gen/kits/` with processed blueprint outputs
+
+**Steps**:
+1. [x] - `p1` - **FOR EACH** kit in `config/kits/` with `blueprints/`: copy scripts, run `process_kit`, write per-kit outputs - `inst-foreach-kit-regen`
+2. [x] - `p1` - **IF** any kit produces errors **RAISE** RuntimeError with aggregated error list - `inst-raise-regen-errors`
+
+### Write Gen AGENTS.md
+
+- [x] `p1` - **ID**: `cpt-cypilot-algo-v2-v3-migration-write-gen-agents`
+
+**Input**: Gen directory (`{cypilot_path}/.gen/`), project name
+
+**Output**: `{cypilot_path}/.gen/AGENTS.md` written with generated navigation rules
+
+**Steps**:
+1. [x] - `p1` - Compose AGENTS.md content with project heading, navigation rules, and artifact WHEN clause - `inst-compose-agents`
+2. [x] - `p1` - Create `.gen/` directory if absent and write `AGENTS.md` - `inst-write-agents`
+
+### Normalize PR-Review Data
+
+- [x] `p1` - **ID**: `cpt-cypilot-algo-v2-v3-migration-normalize-pr-review`
+
+**Input**: Parsed `pr-review.json` data (dict), kit slug
+
+**Output**: Normalized dict with renamed keys and rewritten prompt paths
+
+**Steps**:
+1. [x] - `p1` - Validate input is a dict; raise `TypeError` if not - `inst-validate-input`
+2. [x] - `p1` - **FOR EACH** key: rename camelCase to snake_case, normalize nested prompts entries via `_normalize_pr_review_entry` - `inst-rename-keys`
+3. [x] - `p1` - **RETURN** normalized dict - `inst-return-normalized`
+
+### Migrate Adapter JSON Configs
+
+- [x] `p1` - **ID**: `cpt-cypilot-algo-v2-v3-migration-migrate-adapter-json`
+
+**Input**: Adapter directory path, config directory path, kit slug
+
+**Output**: Tuple of (converted filenames, failed filenames)
+
+**Steps**:
+1. [x] - `p1` - **FOR EACH** `.json` file (excluding already-migrated): parse, normalize if needed, write as `.toml` to config; catch errors per file - `inst-foreach-json`
+2. [x] - `p1` - **RETURN** (converted[], failed[]) - `inst-return-results`
+
 ## 4. States (CDSL)
 
 ### Migration State Machine
@@ -629,6 +682,10 @@ The system **MUST** provide `cypilot migrate-config` to convert remaining JSON c
 
 **Implements**:
 - `cpt-cypilot-flow-v2-v3-migration-migrate-config`
+- `cpt-cypilot-algo-v2-v3-migration-migrate-adapter-json`
+- `cpt-cypilot-algo-v2-v3-migration-normalize-pr-review`
+- `cpt-cypilot-algo-v2-v3-migration-regenerate-gen`
+- `cpt-cypilot-algo-v2-v3-migration-write-gen-agents`
 
 **Touches**:
 - Entities: `Config`

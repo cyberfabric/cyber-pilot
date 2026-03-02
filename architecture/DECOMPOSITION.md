@@ -155,6 +155,7 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
 - **API**:
   - `cypilot kit install <path>`
   - `cypilot kit update [--force]`
+  - `cypilot kit migrate [--kit SLUG] [--dry-run]`
   - `cypilot validate --blueprints`
 
 - **Sequences**:
