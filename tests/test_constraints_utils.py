@@ -629,6 +629,34 @@ def test_validate_artifact_file_id_system_unrecognized(tmp_path: Path):
     assert EC.ID_SYSTEM_UNRECOGNIZED in codes
 
 
+def test_validate_artifact_file_registered_system_with_hyphenated_subsystem_kind_parse(tmp_path: Path):
+    """When registered root system is used, hyphenated subsystem must not become id kind."""
+    kc, errs = parse_kit_constraints({
+        "PRD": {
+            "identifiers": {
+                "actor": {"required": False},
+                "fr": {"required": False},
+            }
+        }
+    })
+    assert errs == []
+
+    p = tmp_path / "PRD.md"
+    p.write_text(
+        "**ID**: `cpt-cf-errors-actor-ci-pipeline`\n",
+        encoding="utf-8",
+    )
+
+    rep = validate_artifact_file(
+        artifact_path=p,
+        artifact_kind="PRD",
+        constraints=kc.by_kind["PRD"],
+        registered_systems={"cf"},
+    )
+    kind_errors = [e for e in (rep.get("errors") or []) if e.get("code") == EC.ID_KIND_NOT_ALLOWED]
+    assert kind_errors == [], f"Unexpected kind parsing errors: {kind_errors}"
+
+
 def test_cross_validate_no_registered_systems_compound_system(tmp_path: Path):
     """cross_validate with registered_systems=None handles compound system names."""
     kc, errs = parse_kit_constraints({
@@ -656,6 +684,23 @@ def test_cross_validate_no_registered_systems_compound_system(tmp_path: Path):
     # Should NOT have ref-no-definition (system must be "my-design", not "my")
     ref_no_def = [e for e in errs if e.get("code") == EC.REF_NO_DEFINITION]
     assert ref_no_def == [], f"Unexpected ref-no-definition: {ref_no_def}"
+
+
+def test_cross_validate_registered_system_with_hyphenated_subsystem_kind_parse(tmp_path: Path):
+    kc, errs = parse_kit_constraints({
+        "PRD": {"identifiers": {"actor": {"required": False}}},
+    })
+    assert errs == []
+
+    prd = tmp_path / "PRD.md"
+    prd.write_text("**ID**: `cpt-cf-errors-actor-ci-pipeline`\n", encoding="utf-8")
+
+    arts = [
+        ArtifactRecord(path=prd, artifact_kind="PRD", constraints=kc.by_kind["PRD"]),
+    ]
+    rep = cross_validate_artifacts(arts, registered_systems={"cf"}, known_kinds={"actor"})
+    kind_errors = [e for e in (rep.get("errors") or []) if e.get("code") == EC.ID_KIND_NOT_ALLOWED]
+    assert kind_errors == [], f"Unexpected cross-validate kind errors: {kind_errors}"
 
 
 def test_cross_validate_reference_done_but_definition_not_done(tmp_path: Path):

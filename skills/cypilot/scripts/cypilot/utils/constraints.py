@@ -609,6 +609,28 @@ def validate_artifact_file(
                 pp = p.strip().lower()
                 if pp in nested_kinds and pp != base:
                     return pp
+
+        # Standard IDs are cpt-{system}-{kind}-{slug}. In practice, when a
+        # registered root system is used (e.g. "cf"), authors may include a
+        # hyphenated subsystem segment before kind (e.g. "cf-errors").
+        # In that case, the first token in remainder is not the kind.
+        # Prefer explicit kind-token markers in remainder.
+        kind_tokens = {str(k).strip().lower() for k in _all_kind_tokens if str(k).strip()}
+        if base in kind_tokens:
+            return base
+
+        rem_l = remainder.lower()
+        best_pos: Optional[int] = None
+        best_kind: Optional[str] = None
+        for kt in kind_tokens:
+            marker = f"-{kt}-"
+            idx = rem_l.find(marker)
+            if idx > 0 and (best_pos is None or idx < best_pos):
+                best_pos = idx
+                best_kind = kt
+
+        if best_kind is not None:
+            return best_kind
         return base
 
     defs_by_kind: Dict[str, List[Dict[str, object]]] = {}
@@ -912,6 +934,25 @@ def cross_validate_artifacts(
                 pp = p.strip().lower()
                 if pp in nested_kinds and pp != base:
                     return pp
+
+        # Handle IDs like cpt-cf-errors-actor-ci-pipeline where "cf" is the
+        # registered system and "errors" is a subsystem segment.
+        kind_tokens = {str(k).strip().lower() for k in _cross_all_kind_tokens if str(k).strip()}
+        if base in kind_tokens:
+            return base
+
+        rem_l = remainder.lower()
+        best_pos: Optional[int] = None
+        best_kind: Optional[str] = None
+        for kt in kind_tokens:
+            marker = f"-{kt}-"
+            idx = rem_l.find(marker)
+            if idx > 0 and (best_pos is None or idx < best_pos):
+                best_pos = idx
+                best_kind = kt
+
+        if best_kind is not None:
+            return best_kind
         return base
 
     def is_external_system_ref(cpt: str) -> bool:
