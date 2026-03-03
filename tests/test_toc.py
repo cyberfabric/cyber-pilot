@@ -282,6 +282,32 @@ class TestParseHeadingsUnified:
         result = parse_headings(lines)
         assert result == [(2, "Before"), (2, "After")]
 
+    def test_fence_with_info_string_not_a_closer(self):
+        """A line like '```python' inside a fence must NOT close it (CommonMark §4.5)."""
+        lines = [
+            "## Before",
+            "```python",
+            "## Inside code",
+            "```python",       # NOT a closer — has info string
+            "## Still inside",
+            "```",             # real closer
+            "## After",
+        ]
+        result = parse_headings(lines)
+        assert result == [(2, "Before"), (2, "After")]
+
+    def test_fence_closer_with_trailing_spaces_ok(self):
+        """Closing fence with trailing whitespace is valid."""
+        lines = [
+            "## Before",
+            "```",
+            "## Inside",
+            "```   ",          # valid closer — only whitespace after
+            "## After",
+        ]
+        result = parse_headings(lines)
+        assert result == [(2, "Before"), (2, "After")]
+
 
 # ---------------------------------------------------------------------------
 # Unified module: build_toc (numbered mode)

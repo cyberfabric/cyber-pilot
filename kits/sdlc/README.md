@@ -61,11 +61,15 @@ All resources below are **generated from blueprints** in `config/kits/sdlc/bluep
 - **Workflows** (`workflows/`) — kit-specific workflows (PR review, PR status), generated from `@cpt:workflow` markers
 - **Skill Extensions** — kit-specific skill content injected into `.gen/SKILL.md`, from `@cpt:skill` markers
 
+## Generated Output
+
+After running `cpt update`, `cpt kit migrate`, or `cpt generate-resources`, the generated kit output is available here: **[.bootstrap/.gen/kits/sdlc/](../../.bootstrap/.gen/kits/sdlc/)** (in other projects: `{cypilot_path}/.gen/kits/sdlc/`).
+
 ## References
 
 - [Rules Specification](../../architecture/specs/kit/rules.md) — how to structure rules.md files
 - [Identifiers & Traceability](../../architecture/specs/traceability.md) — ID formats, naming, and code traceability
-- [Code Quality Checklist](example/codebase/checklist.md) — code review criteria
+- [Code Quality Checklist](../../.bootstrap/.gen/kits/sdlc/codebase/checklist.md) — code review criteria
 - [CDSL Specification](../../architecture/specs/CDSL.md) — behavior description language for FEATURE artifacts
 - [Prompt Engineering](../../requirements/prompt-engineering.md) — 9-layer methodology
 - [Blueprint Constraints](guides/constraints.md) — heading and ID constraint format

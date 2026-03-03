@@ -936,6 +936,20 @@ class TestMigrateKit(unittest.TestCase):
             user_text = (config_kit / "blueprints" / "FEAT.md").read_text()
             self.assertIn("Feature v1", user_text)
 
+    def test_declined_does_not_bump_conf_toml(self):
+        """Declining all changes must NOT bump conf.toml version (re-prompt on next update)."""
+        from cypilot.commands.kit import migrate_kit
+        from unittest.mock import patch
+        import tomllib
+        with TemporaryDirectory() as td:
+            _, _, ref_dir, config_kit, _ = self._setup_kit(Path(td))
+            with patch("builtins.input", return_value="n"):
+                result = migrate_kit("sdlc", ref_dir, config_kit, interactive=True)
+            # conf.toml must still have old version
+            with open(config_kit / "conf.toml", "rb") as f:
+                data = tomllib.load(f)
+            self.assertEqual(data["version"], 1, "conf.toml version should NOT be bumped when all declined")
+
     def test_interactive_all_auto_approves(self):
         """Interactive mode: user says 'all' → all files auto-approved."""
         from cypilot.commands.kit import migrate_kit

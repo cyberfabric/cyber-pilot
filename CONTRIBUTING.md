@@ -91,7 +91,7 @@ cypilot/                          # Project root
 The `make update` command runs `cpt update --source . --force`, which:
 1. Copies canonical sources into `.bootstrap/.core/`
 2. Regenerates `.bootstrap/.gen/` from user blueprints in `.bootstrap/config/`
-3. Syncs `.gen/kits/sdlc/` example outputs into `kits/sdlc/example/`
+3. Generated outputs are available in `.bootstrap/.gen/kits/sdlc/`
 
 ---
 

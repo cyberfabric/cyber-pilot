@@ -1719,14 +1719,17 @@ def migrate_kit(
 
             bp_results.append(bp_report)
 
-    # Check if any changes were detected (merged, created, or declined)
-    has_content_changes = any(
-        r.get("action") in ("merged", "created", "declined")
+    # Check if any changes were actually applied
+    has_applied_changes = any(
+        r.get("action") in ("merged", "created")
         for r in bp_results
     )
+    all_declined = bp_results and not has_applied_changes and any(
+        r.get("action") == "declined" for r in bp_results
+    )
 
-    if not has_content_changes and not version_bump:
-        # No content changes and no version bump — clean up .prev/ and return current
+    if not has_applied_changes and not version_bump:
+        # No applied changes and no version bump — clean up .prev/ and return current
         if not dry_run:
             prev_dir = ref_dir / ".prev"
             if prev_dir.is_dir():
@@ -1735,8 +1738,9 @@ def migrate_kit(
 
     kit_ver_label = f"v{user_kit_ver} → v{ref_kit_ver}"
 
-    # Update config conf.toml only on version bump
-    if version_bump and not dry_run:
+    # Update config conf.toml only on version bump with real applied changes;
+    # don't bump version if user declined all changes (re-prompt on next update)
+    if version_bump and not dry_run and not all_declined:
         ref_conf_file = ref_dir / "conf.toml"
         user_conf_file = config_kit_dir / "conf.toml"
         if ref_conf_file.is_file():

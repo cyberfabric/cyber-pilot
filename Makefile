@@ -122,8 +122,6 @@ check-versions:
 # Update .bootstrap from local source
 update:
 	$(CPT) update --source . --force
-	rsync -a --delete --exclude='scripts/' .bootstrap/.gen/kits/sdlc/ kits/sdlc/example/
-	@echo "Synced .gen/kits/sdlc/ → kits/sdlc/example/"
 
 # Validate core methodology spec
 validate:

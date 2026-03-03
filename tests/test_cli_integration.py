@@ -187,7 +187,7 @@ class TestCLIValidateCommand(unittest.TestCase):
             # Minimal SDLC kit with constraints
             (root / "kits" / "sdlc").mkdir(parents=True)
             import shutil
-            src_constraints = Path(__file__).parent.parent / "kits" / "sdlc" / "example" / "constraints.toml"
+            src_constraints = Path(__file__).parent.parent / ".bootstrap" / ".gen" / "kits" / "sdlc" / "constraints.toml"
             shutil.copy2(src_constraints, root / "kits" / "sdlc" / "constraints.toml")
 
             # Create markerless DESIGN artifact defining a principle (DESIGN/principle prohibits PRD/ADR refs)

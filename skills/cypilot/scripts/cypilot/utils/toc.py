@@ -43,15 +43,19 @@ def _fence_update(
     Returns:
         None when outside a fence, ``(char, length)`` when inside.
     """
-    m = _FENCE_RE.match(line.strip())
+    stripped = line.rstrip("\n")
+    m = _FENCE_RE.match(stripped.lstrip())
     if not m:
         return state
     opener = m.group(1)
     char, length = opener[0], len(opener)
     if state is None:
         return (char, length)
+    # Closing fence must use same char, be at least as long, and have no
+    # info string — only optional whitespace after the fence token (§4.5).
     if char == state[0] and length >= state[1]:
-        return None
+        if stripped.lstrip()[m.end():].strip() == "":
+            return None
     return state
 
 
