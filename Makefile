@@ -1,5 +1,5 @@
 # @cpt-algo:cpt-cypilot-spec-init-structure-change-infrastructure:p1
-.PHONY: test test-verbose test-quick test-coverage validate validate-examples validate-feature validate-code validate-code-feature self-check vulture vulture-ci install install-pipx install-proxy clean help check-pytest check-pytest-cov check-pipx check-vulture check-versions update
+.PHONY: test test-verbose test-quick test-coverage validate validate-examples validate-feature validate-code validate-code-feature self-check vulture vulture-ci install install-pipx install-proxy clean help check-pytest check-pytest-cov check-pipx check-vulture check-versions update spec-coverage
 
 PYTHON ?= python3
 PIPX ?= pipx
@@ -22,6 +22,7 @@ help:
 	@echo "  make validate                      - Validate core methodology spec"
 	@echo "  make self-check                    - Validate SDLC examples against their templates"
 	@echo "  make check-versions                - Check version consistency across components"
+	@echo "  make spec-coverage                 - Check spec coverage (≥80% overall, ≥70% per file)"
 	@echo "  make vulture                       - Scan python code for dead code (report only, does not fail)"
 	@echo "  make vulture-ci                    - Scan python code for dead code (fails if findings)"
 	@echo "  make install                       - Install Python dependencies"
@@ -114,6 +115,12 @@ vulture: check-vulture
 vulture-ci: check-vulture
 	@echo "Running vulture dead-code scan (CI mode, fails if findings)..."
 	$(VULTURE_PIPX) skills/cypilot/scripts/cypilot vulture_whitelist.py --min-confidence $(VULTURE_MIN_CONF)
+
+# Spec coverage check (Cypilot system only, ≥80% overall, ≥70% per file)
+spec-coverage:
+	@echo "Checking spec coverage (Cypilot system, ≥80% overall, ≥70% per file)..."
+	$(PYTHON) .bootstrap/.core/skills/cypilot/scripts/cypilot.py spec-coverage --system cypilot --min-coverage 50
+	# $(PYTHON) .bootstrap/.core/skills/cypilot/scripts/cypilot.py spec-coverage --system cypilot --min-coverage 80 --min-file-coverage 70
 
 # Check version consistency
 check-versions:

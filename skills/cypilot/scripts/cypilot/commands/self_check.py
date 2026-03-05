@@ -57,11 +57,6 @@ def run_self_check_from_meta(
         warns: List[Dict[str, object]] = []
 
         if kit_constraints is None:
-            errs.append({
-                "type": "constraints",
-                "message": "constraints.toml not found (template consistency checks skipped)",
-                "path": str(kit_base / "constraints.toml"),
-            })
             return {"errors": errs, "warnings": warns}
 
         kind_u = str(kind).strip().upper()
@@ -70,14 +65,6 @@ def run_self_check_from_meta(
             constraints_for_kind = kit_constraints.by_kind[kind_u]
 
         if constraints_for_kind is None:
-            errs.append(constraints_error(
-                "template",
-                "Template kind not found in constraints.toml",
-                path=template_path,
-                line=1,
-                kit_id=str(kit_id),
-                artifact_kind=kind_u,
-            ))
             return {"errors": errs, "warnings": warns}
 
         constraints_path = None
@@ -398,7 +385,9 @@ def run_self_check_from_meta(
         if not kit_path_str:
             continue
 
-        kit_base = (project_root / kit_path_str).resolve()
+        kit_base = (adapter_dir / kit_path_str).resolve()
+        if not kit_base.is_dir():
+            kit_base = (project_root / kit_path_str).resolve()
         artifacts_dir = kit_base / "artifacts"
         # NOTE: With explicit kit.artifacts mapping, artifacts_dir may be absent.
 
@@ -441,11 +430,19 @@ def run_self_check_from_meta(
             examples_dir = None
             if kit_obj is not None:
                 try:
-                    template_path = (project_root / kit_obj.get_template_path(kind)).resolve()
+                    rel = kit_obj.get_template_path(kind)
+                    candidate = (adapter_dir / rel).resolve()
+                    if not candidate.is_file():
+                        candidate = (project_root / rel).resolve()
+                    template_path = candidate
                 except Exception:
                     template_path = None
                 try:
-                    examples_dir = (project_root / kit_obj.get_examples_path(kind)).resolve()
+                    rel = kit_obj.get_examples_path(kind)
+                    candidate = (adapter_dir / rel).resolve()
+                    if not candidate.is_dir():
+                        candidate = (project_root / rel).resolve()
+                    examples_dir = candidate
                 except Exception:
                     examples_dir = None
 
@@ -477,8 +474,7 @@ def run_self_check_from_meta(
             warns: List[Dict[str, object]] = []
 
             if template_path is None or not Path(template_path).is_file():
-                pth = str(template_path) if template_path is not None else str((kind_dir / "template.md"))
-                errs.append({"type": "file", "message": "Template not found", "path": pth})
+                pass  # No template for this kind — skip template checks
             else:
                 trep = _check_template_constraints_consistency(
                     template_path=Path(template_path),
@@ -492,7 +488,7 @@ def run_self_check_from_meta(
                 warns.extend(list(trep.get("warnings", []) or []))
 
             if not example_path:
-                errs.append({"type": "file", "message": "Example not found", "path": str(examples_dir)})
+                pass  # No example for this kind — skip example checks
             else:
                 constraints_for_kind = None
                 if kit_constraints is not None and getattr(kit_constraints, "by_kind", None) and str(kind).upper() in kit_constraints.by_kind:

@@ -3,21 +3,35 @@
 ## Table of Contents
 
 1. [1. Architecture Overview](#1-architecture-overview)
+   - [1.1 Architectural Vision](#11-architectural-vision)
+   - [1.2 Architecture Drivers](#12-architecture-drivers)
+   - [1.3 Architecture Layers](#13-architecture-layers)
 2. [2. Principles & Constraints](#2-principles-constraints)
+   - [2.1 Design Principles](#21-design-principles)
+   - [2.2 Constraints](#22-constraints)
 3. [3. Technical Architecture](#3-technical-architecture)
+   - [3.1 Domain Model](#31-domain-model)
+   - [3.2 Component Model](#32-component-model)
+   - [3.3 API Contracts](#33-api-contracts)
+   - [3.4 Internal Dependencies](#34-internal-dependencies)
+   - [3.5 External Dependencies](#35-external-dependencies)
+   - [3.6 Interactions & Sequences](#36-interactions-sequences)
+   - [3.7 Database schemas & tables](#37-database-schemas-tables)
+   - [3.6: Topology (optional)](#36-topology-optional)
+   - [3.7: Tech stack (optional)](#37-tech-stack-optional)
 4. [4. Additional Context](#4-additional-context)
 
 ## 1. Architecture Overview
 
-### Architectural Vision
+### 1.1 Architectural Vision
 
 TaskFlow uses a layered architecture with clear separation of concerns: React SPA frontend, Node.js REST API, and PostgreSQL database. WebSocket connections enable real-time updates for collaborative task management.
 
 The architecture prioritizes simplicity and developer productivity while supporting real-time collaboration. System boundaries are clearly defined between presentation, business logic, and data persistence layers.
 
-### Architecture drivers
+### 1.2 Architecture Drivers
 
-#### Product requirements
+#### Functional Drivers
 
 ##### Task Management
 
@@ -30,6 +44,8 @@ The architecture prioritizes simplicity and developer productivity while support
 - [ ] `p1` - `cpt-ex-task-flow-fr-notifications`
 
 **Solution**: WebSocket push with Redis PubSub for real-time notification delivery.
+
+#### NFR Allocation
 
 ##### Security
 
@@ -51,7 +67,7 @@ The architecture prioritizes simplicity and developer productivity while support
 
 Use PostgreSQL for durable task storage. Chosen for strong ACID guarantees, relational query support, and team expertise. Trade-off: requires separate DB server vs embedded SQLite.
 
-### Architecture Layers
+### 1.3 Architecture Layers
 
 | Layer | Responsibility | Technology |
 |-------|---------------|------------|
@@ -104,10 +120,25 @@ graph LR
 
 - [ ] `p1` - **ID**: `cpt-ex-task-flow-component-api-server`
 
-- Responsibilities: Handle HTTP requests, enforce authorization, coordinate business logic
-- Boundaries: Exposes REST API and WebSocket endpoint, no direct database access from handlers
-- Dependencies: Express, pg-pool, ioredis
+##### Why this component exists
+
+Centralises request handling and business logic coordination so that the frontend and database remain decoupled.
+
+##### Responsibility scope
+
+- Handle HTTP requests, enforce authorization, coordinate business logic
 - Key interfaces: TaskController, AuthMiddleware, WebSocketManager
+
+##### Responsibility boundaries
+
+- Exposes REST API and WebSocket endpoint; no direct database access from handlers
+- Does NOT own UI rendering or database schema migrations
+
+##### Related components (by ID)
+
+- `cpt-ex-task-flow-component-postgresql` — owns data for task persistence
+- `cpt-ex-task-flow-component-redis-pubsub` — publishes to for real-time events
+- `cpt-ex-task-flow-component-react-spa` — calls API Server via REST/WS
 
 ### 3.3 API Contracts
 

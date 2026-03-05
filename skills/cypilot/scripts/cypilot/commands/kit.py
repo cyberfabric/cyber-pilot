@@ -28,10 +28,8 @@ from typing import Any, Dict, List, Optional
 
 from ..utils.ui import ui
 
-
 # Subdirectories to copy from kit source (reference + install)
 KIT_COPY_SUBDIRS = ["blueprints", "scripts"]
-
 
 # ---------------------------------------------------------------------------
 # Config seeding — copy default .toml configs from kit scripts to config/
@@ -39,7 +37,6 @@ KIT_COPY_SUBDIRS = ["blueprints", "scripts"]
 # ---------------------------------------------------------------------------
 
 _CONFIG_EXTENSIONS = {".toml"}
-
 
 def _seed_kit_config_files(
     gen_scripts_dir: Path,
@@ -63,12 +60,10 @@ def _seed_kit_config_files(
             # @cpt-end:cpt-cypilot-algo-blueprint-system-seed-configs:p1:inst-seed-if-missing
     # @cpt-end:cpt-cypilot-algo-blueprint-system-seed-configs:p1:inst-foreach-toml
 
-
 # ---------------------------------------------------------------------------
 # Shared CLI helper — resolve project root + cypilot directory
 # @cpt-algo:cpt-cypilot-algo-blueprint-system-resolve-dir:p1
 # ---------------------------------------------------------------------------
-
 
 def _resolve_cypilot_dir() -> Optional[tuple]:
     """Resolve project root and cypilot directory from CWD.
@@ -96,12 +91,10 @@ def _resolve_cypilot_dir() -> Optional[tuple]:
     return project_root, cypilot_dir
     # @cpt-end:cpt-cypilot-algo-blueprint-system-resolve-dir:p1:inst-resolve-abs
 
-
 # ---------------------------------------------------------------------------
 # Shared helper — write per-kit SKILL.md + workflow files into .gen/
 # @cpt-algo:cpt-cypilot-algo-blueprint-system-write-gen-outputs:p1
 # ---------------------------------------------------------------------------
-
 
 def _write_kit_gen_outputs(
     kit_slug: str,
@@ -168,7 +161,6 @@ def _write_kit_gen_outputs(
     return result
     # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-workflows:p2:inst-return-workflows
     # @cpt-end:cpt-cypilot-algo-blueprint-system-write-gen-outputs:p1:inst-return-gen-outputs
-
 
 # ---------------------------------------------------------------------------
 # Core kit installation logic (used by both cmd_kit_install and init)
@@ -295,7 +287,6 @@ def install_kit(
         "sysprompt_content": summary.get("sysprompt_content", ""),
         "actions": actions,
     }
-
 
 # ---------------------------------------------------------------------------
 # Kit Install CLI
@@ -427,7 +418,6 @@ def cmd_kit_install(argv: List[str]) -> int:
     # @cpt-end:cpt-cypilot-state-blueprint-system-kit-install:p1:inst-install-complete
     # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-install:p1:inst-return-install-ok
 
-
 def _human_kit_install(data: dict) -> None:
     status = data.get("status", "")
     kit_slug = data.get("kit", "?")
@@ -470,7 +460,6 @@ def _human_kit_install(data: dict) -> None:
     else:
         ui.info(f"Status: {status}")
     ui.blank()
-
 
 # ---------------------------------------------------------------------------
 # Kit Update
@@ -586,7 +575,6 @@ def cmd_kit_update(argv: List[str]) -> int:
     # @cpt-end:cpt-cypilot-state-blueprint-system-kit-install:p1:inst-update-complete
     # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-update:p1:inst-return-update-ok
 
-
 def _human_kit_update(data: dict) -> None:
     status = data.get("status", "")
     n = data.get("kits_updated", 0)
@@ -619,7 +607,6 @@ def _human_kit_update(data: dict) -> None:
     else:
         ui.info(f"Status: {status}")
     ui.blank()
-
 
 # ---------------------------------------------------------------------------
 # Generate Resources
@@ -700,7 +687,6 @@ def cmd_generate_resources(argv: List[str]) -> int:
     return 0
     # @cpt-end:cpt-cypilot-flow-blueprint-system-generate-resources:p1:inst-return-gen-ok
 
-
 def _human_generate_resources(data: dict) -> None:
     status = data.get("status", "")
     n = data.get("kits_processed", 0)
@@ -729,7 +715,6 @@ def _human_generate_resources(data: dict) -> None:
         ui.info(f"Status: {status}")
     ui.blank()
 
-
 # ---------------------------------------------------------------------------
 # Kit Migrate — marker-level three-way merge
 # @cpt-algo:cpt-cypilot-algo-blueprint-system-three-way-merge:p1
@@ -742,7 +727,6 @@ _MIG_CLOSE_RE = re.compile(r"^`@/cpt:(\w[\w-]*)(?::(\w[\w-]*))?` *$")
 
 _SINGLETON_MARKERS = frozenset({"blueprint", "skill", "system-prompt", "rules", "checklist"})
 
-
 @dataclass
 class _Segment:
     """A contiguous block inside a blueprint: either plain text or a @cpt: marker."""
@@ -751,7 +735,6 @@ class _Segment:
     marker_type: str = ""   # e.g. "heading", "workflow", "skill" (empty for text)
     marker_key: str = ""    # stable identity key
     explicit_id: str = ""   # ID from named syntax @cpt:TYPE:ID (empty for legacy)
-
 
 def _marker_identity_key(marker_type: str, raw_content: str, explicit_id: str = "") -> str:
     """Derive a stable identity key for a marker from its type and TOML data.
@@ -795,7 +778,6 @@ def _marker_identity_key(marker_type: str, raw_content: str, explicit_id: str = 
 
     # 4. Fallback to type (caller appends positional index)
     return marker_type
-
 
 def _parse_segments(text: str) -> List[_Segment]:
     """Parse blueprint text into ordered segments (text and marker blocks).
@@ -876,7 +858,6 @@ def _parse_segments(text: str) -> List[_Segment]:
     return segments
 # @cpt-end:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-derive-identity-key
 
-
 def _kebab_safe(value: str) -> str:
     """Normalize a string to a safe kebab-case token for marker IDs.
 
@@ -884,7 +865,6 @@ def _kebab_safe(value: str) -> str:
     """
     result = re.sub(r"[^a-z0-9]+", "-", value.lower())
     return result.strip("-")
-
 
 def _derive_marker_id(marker_type: str, raw_content: str, preceding_heading_id: str = "") -> str:
     """Derive a kebab-case ID for a legacy marker based on its type and TOML content.
@@ -930,7 +910,6 @@ def _derive_marker_id(marker_type: str, raw_content: str, preceding_heading_id: 
     # @cpt-end:cpt-cypilot-algo-blueprint-system-three-way-merge:p2:inst-upgrade-prompt-example
     return ""
     # @cpt-end:cpt-cypilot-algo-blueprint-system-three-way-merge:p2:inst-upgrade-legacy
-
 
 def _upgrade_legacy_tags(merged_parts: List[tuple]) -> tuple:
     """Rewrite legacy @cpt:TYPE tags to @cpt:TYPE:ID in merged output.
@@ -1013,7 +992,6 @@ def _upgrade_legacy_tags(merged_parts: List[tuple]) -> tuple:
 
     return result, upgraded, upgraded_details
 
-
 def _normalize_legacy_to_named(text: str, reference_text: str = "") -> tuple:
     """Upgrade legacy @cpt:TYPE tags to @cpt:TYPE:ID in text for merge normalization.
 
@@ -1085,7 +1063,6 @@ def _normalize_legacy_to_named(text: str, reference_text: str = "") -> tuple:
 
     return "".join(result_parts), norm_details
 
-
 def _prompt_confirm(message: str, state: Dict[str, bool], *, allow_modify: bool = False) -> str:
     """Interactive prompt returning 'y', 'n', or 'm' (when allow_modify=True).
 
@@ -1110,13 +1087,11 @@ def _prompt_confirm(message: str, state: Dict[str, bool], *, allow_modify: bool 
         return "m"
     return "y" if response == "y" else "n"
 
-
 def _show_marker_content(raw: str, color: str = "red") -> None:
     """Show marker content lines in a single color (red=removed, green=added)."""
     code = "\033[31m" if color == "red" else "\033[32m"
     for line in raw.splitlines():
         sys.stderr.write(f"        {code}{line}\033[0m\n")
-
 
 def _show_marker_diff(key: str, user_raw: str, new_raw: str) -> None:
     """Show compact unified diff between user and reference marker content."""
@@ -1142,14 +1117,11 @@ def _show_marker_diff(key: str, user_raw: str, new_raw: str) -> None:
         elif line_s.startswith("@@"):
             sys.stderr.write(f"        \033[36m{line_s}\033[0m\n")
 
-
 _EDITOR_SEPARATOR = "# ── edit below this line ──────────────────────────────────────"
-
 
 def _get_editor() -> str:
     """Return the user's preferred editor, git-style: $VISUAL → $EDITOR → vi."""
     return os.environ.get("VISUAL") or os.environ.get("EDITOR") or "vi"
-
 
 def _open_editor_for_marker(
     key: str,
@@ -1252,7 +1224,6 @@ def _open_editor_for_marker(
         return None
 
     return result
-
 
 def _three_way_merge_blueprint(
     old_ref_text: str,
@@ -1488,12 +1459,10 @@ def _three_way_merge_blueprint(
     return merged_text, report
     # @cpt-end:cpt-cypilot-algo-blueprint-system-three-way-merge:p1:inst-return-merge
 
-
 # ---------------------------------------------------------------------------
 # Kit Migrate — conf.toml helpers
 # @cpt-algo:cpt-cypilot-algo-blueprint-system-conf-toml-helpers:p1
 # ---------------------------------------------------------------------------
-
 
 def _read_conf_toml(conf_path: Path) -> Dict[str, Any]:
     """Read and parse a conf.toml file. Returns empty dict on failure."""
@@ -1507,7 +1476,6 @@ def _read_conf_toml(conf_path: Path) -> Dict[str, Any]:
     except Exception:
         return {}
     # @cpt-end:cpt-cypilot-algo-blueprint-system-conf-toml-helpers:p1:inst-read-conf
-
 
 def _read_conf_version(conf_path: Path) -> int:
     """Read top-level 'version' from conf.toml. Returns 0 if missing."""
@@ -1523,7 +1491,6 @@ def _read_conf_version(conf_path: Path) -> int:
     except Exception:
         return 0
     # @cpt-end:cpt-cypilot-algo-blueprint-system-conf-toml-helpers:p1:inst-read-version
-
 
 def _read_whatsnew(conf_path: Path) -> Dict[int, Dict[str, str]]:
     """Read [whatsnew] section from conf.toml.
@@ -1544,7 +1511,6 @@ def _read_whatsnew(conf_path: Path) -> Dict[int, Dict[str, str]]:
                 "details": str(entry.get("details", "")),
             }
     return result
-
 
 def _show_whatsnew(
     kit_slug: str,
@@ -1587,7 +1553,6 @@ def _show_whatsnew(
     except EOFError:
         return False
     return response != "q"
-
 
 def update_kit(
     kit_slug: str,
@@ -1716,7 +1681,6 @@ def update_kit(
         result["gen"] = {"files_written": 0, "artifact_kinds": []}
 
     return result
-
 
 # @cpt-flow:cpt-cypilot-flow-blueprint-system-kit-migrate:p1
 def migrate_kit(
@@ -2052,7 +2016,6 @@ def migrate_kit(
         result["blueprints"] = bp_results
     return result
 
-
 def cmd_kit_migrate(argv: List[str]) -> int:
     """Migrate kit blueprints to latest versions from reference.
 
@@ -2156,7 +2119,6 @@ def cmd_kit_migrate(argv: List[str]) -> int:
     return 0
     # @cpt-end:cpt-cypilot-flow-blueprint-system-kit-migrate:p1:inst-return-migrate-ok
 
-
 def _human_kit_migrate(data: dict) -> None:
     status = data.get("status", "")
     dry = data.get("dry_run", False)
@@ -2229,7 +2191,6 @@ def _human_kit_migrate(data: dict) -> None:
         ui.info(f"Status: {status}")
     ui.blank()
 
-
 # ---------------------------------------------------------------------------
 # Kit CLI dispatcher (handles `cypilot kit <subcommand>`)
 # ---------------------------------------------------------------------------
@@ -2256,7 +2217,6 @@ def cmd_kit(argv: List[str]) -> int:
         ui.result({"status": "ERROR", "message": f"Unknown kit subcommand: {subcmd}", "subcommands": ["install", "update", "migrate"]})
         return 1
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -2273,7 +2233,6 @@ def _read_kit_version(conf_path: Path) -> str:
     except Exception:
         pass
     return ""
-
 
 def _register_kit_in_core_toml(
     config_dir: Path,

@@ -1,6 +1,5 @@
 # Feature: Spec Coverage
 
-
 <!-- toc -->
 
 - [1. Feature Context](#1-feature-context)

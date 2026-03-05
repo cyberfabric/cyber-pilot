@@ -7,7 +7,6 @@ from typing import Dict, List, Tuple
 from ..utils.document import scan_cpt_ids
 from ..utils.ui import ui
 
-
 # @cpt-flow:cpt-cypilot-flow-traceability-validation-query:p1
 def cmd_where_defined(argv: List[str]) -> int:
     """Find where a Cypilot ID is defined."""
@@ -104,7 +103,6 @@ def cmd_where_defined(argv: List[str]) -> int:
     ui.result({"status": status, "id": target_id, "artifacts_scanned": len(artifacts_to_scan), "count": len(definitions), "definitions": definitions}, human_fn=lambda d: _human_where_defined(d))
     # @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-if-where-def
     return 0 if status == "FOUND" else 2
-
 
 def _human_where_defined(data: dict) -> None:
     target = data.get("id", "?")

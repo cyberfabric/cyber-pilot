@@ -6,15 +6,23 @@
 
 ## Table of Contents
 
-1. [Feature Context](#feature-context)
-2. [Actor Flows](#actor-flows)
-3. [Processes / Business Logic](#processes-business-logic)
-4. [States](#states)
-5. [Definitions of Done](#definitions-of-done)
-6. [Acceptance Criteria](#acceptance-criteria)
+1. [1. Feature Context](#1-feature-context)
+   - [1. Overview](#1-overview)
+   - [2. Purpose](#2-purpose)
+   - [3. Actors](#3-actors)
+   - [4. References](#4-references)
+2. [2. Actor Flows (CDSL)](#2-actor-flows-cdsl)
+   - [Create Task](#create-task)
+3. [3. Processes / Business Logic (CDSL)](#3-processes-business-logic-cdsl)
+   - [Validate Task](#validate-task)
+4. [4. States (CDSL)](#4-states-cdsl)
+   - [Task Status](#task-status)
+5. [5. Definitions of Done](#5-definitions-of-done)
+   - [Task Creation](#task-creation)
+6. [6. Acceptance Criteria](#6-acceptance-criteria)
 7. [Additional Context (optional)](#additional-context-optional)
 
-## Feature Context
+## 1. Feature Context
 
 ### 1. Overview
 
@@ -41,7 +49,7 @@ Success criteria: Users can create, view, update, and delete tasks within 500ms 
 - ADRs: `cpt-ex-task-flow-adr-postgres-storage`
 - Related feature: [Notifications](../notifications.md)
 
-## Actor Flows
+## 2. Actor Flows (CDSL)
 
 ### Create Task
 
@@ -60,7 +68,7 @@ Success criteria: Users can create, view, update, and delete tasks within 500ms 
 7. [ ] - `p2` - DB: INSERT task_assignees(task_id, assignee_id) - `inst-db-assign-insert`
 8. [x] - `p1` - API: RETURN 201 Created (task_id, status=BACKLOG) - `inst-return-created`
 
-## Processes / Business Logic
+## 3. Processes / Business Logic (CDSL)
 
 ### Validate Task
 
@@ -73,7 +81,7 @@ Success criteria: Users can create, view, update, and delete tasks within 500ms 
 5. [ ] - `p2` - **IF** duplicate exists **RETURN** error - `inst-return-duplicate`
 6. [x] - `p1` - **RETURN** valid - `inst-return-valid`
 
-## States
+## 4. States (CDSL)
 
 ### Task Status
 
@@ -83,7 +91,7 @@ Success criteria: Users can create, view, update, and delete tasks within 500ms 
 2. [ ] - `p2` - **FROM** IN_PROGRESS **TO** DONE **WHEN** user completes - `inst-complete`
 3. [ ] - `p2` - **FROM** DONE **TO** BACKLOG **WHEN** user reopens - `inst-reopen`
 
-## Definitions of Done
+## 5. Definitions of Done
 
 ### Task Creation
 
@@ -112,7 +120,7 @@ Users can create tasks with title, description, priority, and due date. The syst
 - `cpt-ex-task-flow-seq-task-creation`
 - `cpt-ex-task-flow-dbtable-tasks`
 
-## Acceptance Criteria
+## 6. Acceptance Criteria
 
 - [ ] The feature supports task creation and assignment flow end-to-end
 - [ ] Validation rules reject invalid titles, priorities, and past due dates

@@ -20,7 +20,6 @@ from ..constants import ARTIFACTS_REGISTRY_FILENAME
 # Slug validation pattern: lowercase letters, numbers, hyphens (no leading/trailing hyphens)
 SLUG_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
-
 @dataclass
 class Kit:
     """A kit package defining format and path to templates/rules."""
@@ -92,7 +91,6 @@ class Kit:
         # Backward compatible default: {path}/artifacts/{KIND}/examples
         return f"{self.path.rstrip('/')}/artifacts/{kind}/examples"
 
-
 @dataclass
 class Artifact:
     """A registered artifact (document)."""
@@ -118,7 +116,6 @@ class Artifact:
             traceability=str(data.get("traceability", "DOCS-ONLY")),
             name=str(name) if name else None,
         )
-
 
 @dataclass
 class CodebaseEntry:
@@ -161,7 +158,6 @@ class CodebaseEntry:
             multi_line_comments=mlc,
         )
 
-
 @dataclass
 class IgnoreBlock:
     """Global ignore rule block."""
@@ -178,7 +174,6 @@ class IgnoreBlock:
             patterns = [str(p).strip() for p in raw_patterns if isinstance(p, str) and str(p).strip()]
         return cls(reason=reason, patterns=patterns)
 
-
 @dataclass
 class AutodetectArtifactPattern:
     pattern: str
@@ -192,7 +187,6 @@ class AutodetectArtifactPattern:
             traceability=str((data or {}).get("traceability", "FULL") or "FULL").strip(),
             required=bool((data or {}).get("required", True)),
         )
-
 
 @dataclass
 class AutodetectRule:
@@ -249,7 +243,6 @@ class AutodetectRule:
             validation=validation,
             children=children,
         )
-
 
 @dataclass
 class SystemNode:
@@ -335,7 +328,6 @@ class SystemNode:
                     node.autodetect.append(AutodetectRule.from_dict(r))
 
         return node
-
 
 class ArtifactsMeta:
     """
@@ -992,7 +984,6 @@ class ArtifactsMeta:
                 errors.append(error)
         return errors
 
-
 # @cpt-begin:cpt-cypilot-algo-core-infra-registry-parsing:p1:inst-reg-locate
 def load_artifacts_meta(adapter_dir: Path) -> Tuple[Optional[ArtifactsMeta], Optional[str]]:
     """
@@ -1057,7 +1048,6 @@ def load_artifacts_meta(adapter_dir: Path) -> Tuple[Optional[ArtifactsMeta], Opt
     except Exception as e:
         return None, f"Failed to load artifacts registry {path}: {e}"
 
-
 def create_backup(path: Path) -> Optional[Path]:
     """Create a timestamped backup of a file or directory.
 
@@ -1085,7 +1075,6 @@ def create_backup(path: Path) -> Optional[Path]:
         return backup_path
     except Exception:
         return None
-
 
 def extract_system_slug_candidates(cpt_id: str, parent_prefix: str, kind_tokens: Set[str]) -> List[str]:
     """Extract system slug candidates from a cpt ID.
@@ -1127,7 +1116,6 @@ def extract_system_slug_candidates(cpt_id: str, parent_prefix: str, kind_tokens:
     slug = remainder[:first_pos]
     return [slug]
 
-
 def generate_slug(name: str) -> str:
     """Generate a valid slug from a name.
 
@@ -1144,7 +1132,6 @@ def generate_slug(name: str) -> str:
     # Collapse multiple hyphens
     slug = re.sub(r"-+", "-", slug)
     return slug if slug else "unnamed"
-
 
 def generate_default_registry(
     project_name: str,
@@ -1170,7 +1157,6 @@ def generate_default_registry(
             },
         ],
     }
-
 
 __all__ = [
     "ArtifactsMeta",

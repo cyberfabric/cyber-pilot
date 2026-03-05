@@ -27,7 +27,6 @@ GITHUB_REPO = "cyber-pilot"
 GITHUB_API_BASE = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}"
 USER_AGENT = "cypilot-proxy/3.0"
 
-
 def _resolve_api_base(url: str) -> str:
     """
     Resolve GitHub API base URL from a custom repo URL or owner/repo shorthand.
@@ -50,7 +49,6 @@ def _resolve_api_base(url: str) -> str:
         # owner/repo shorthand
         return f"https://api.github.com/repos/{url}"
     return url
-
 
 def resolve_latest_version(
     api_base: Optional[str] = None,
@@ -91,7 +89,6 @@ def resolve_latest_version(
     # Fallback: use the source tarball
     tarball_url = data.get("tarball_url")
     return tag, tarball_url
-
 
 def copy_from_local(
     source_dir: str,
@@ -156,7 +153,6 @@ def copy_from_local(
         f"  from: {source}\n"
         f"  to:   {cache_dir}"
     )
-
 
 def download_and_cache(
     version: Optional[str] = None,
@@ -276,7 +272,6 @@ def download_and_cache(
     )
     # @cpt-end:cpt-cypilot-algo-core-infra-cache-skill:p1:inst-return-cache-path-new
 
-
 def _find_common_prefix(members: list) -> str:
     """Find common top-level directory prefix in tar members."""
     names = [m.name for m in members if m.name and "/" in m.name]
@@ -286,7 +281,6 @@ def _find_common_prefix(members: list) -> str:
     if len(first_parts) == 1:
         return first_parts.pop() + "/"
     return ""
-
 
 def _extract_stripped(
     tf: tarfile.TarFile,
@@ -316,7 +310,6 @@ def _extract_stripped(
             if f is not None:
                 target.write_bytes(f.read())
 
-
 def _find_zip_prefix(members: list) -> str:
     """Find common top-level directory prefix in zip members."""
     dirs = [m for m in members if "/" in m]
@@ -326,7 +319,6 @@ def _find_zip_prefix(members: list) -> str:
     if len(first_parts) == 1:
         return first_parts.pop() + "/"
     return ""
-
 
 def _extract_zip_stripped(
     zf: zipfile.ZipFile,

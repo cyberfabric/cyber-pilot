@@ -20,7 +20,6 @@ CORE_SUBDIR = ".core"
 GEN_SUBDIR = ".gen"
 DEFAULT_INSTALL_DIR = "cypilot"
 
-
 def _copy_from_cache(cache_dir: Path, target_dir: Path, force: bool = False) -> Dict[str, str]:
     """Copy tool directories from cache into project cypilot/.core/ dir.
 
@@ -55,7 +54,6 @@ def _copy_from_cache(cache_dir: Path, target_dir: Path, force: bool = False) -> 
 
     return results
 
-
 def _core_readme() -> str:
     """README.md content for .core/ directory."""
     return (
@@ -75,7 +73,6 @@ def _core_readme() -> str:
         "To update these files, run `cpt init --force` or `cpt kit update`.\n"
         "Any manual changes **will be overwritten** on the next update.\n"
     )
-
 
 def _gen_readme() -> str:
     """README.md content for .gen/ directory."""
@@ -99,7 +96,6 @@ def _gen_readme() -> str:
         "To regenerate: `cpt generate-resources`.\n"
         "Any manual changes **will be overwritten** on the next generation.\n"
     )
-
 
 def _config_readme() -> str:
     """README.md content for config/ directory."""
@@ -127,7 +123,6 @@ def _config_readme() -> str:
         "- Changes to blueprints take effect after running `cpt generate-resources`.\n"
     )
 
-
 def _default_core_toml(system_name: str, system_slug: str) -> dict:
     """Build default core.toml data for a new project."""
     return {
@@ -146,7 +141,6 @@ def _default_core_toml(system_name: str, system_slug: str) -> dict:
         },
     }
 
-
 def _prompt_path(question: str, default: Optional[str]) -> str:
     prompt = f"{question}"
     if default is not None and str(default).strip():
@@ -162,18 +156,15 @@ def _prompt_path(question: str, default: Optional[str]) -> str:
         return ans
     return default or ""
 
-
 def _resolve_user_path(raw: str, base: Path) -> Path:
     p = Path(raw)
     if not p.is_absolute():
         p = base / p
     return p.resolve()
 
-
 def _slug_to_pascal_case(slug: str) -> str:
     """Convert a slug like 'my-app' to PascalCase like 'MyApp'."""
     return "".join(word.capitalize() for word in slug.split("-")) if slug else "Unnamed"
-
 
 def _define_root_system(project_root: Path) -> Dict[str, str]:
     """
@@ -197,11 +188,9 @@ def _define_root_system(project_root: Path) -> Dict[str, str]:
     return {"name": name, "slug": slug}
     # @cpt-end:cpt-cypilot-algo-core-infra-define-root-system:p1:inst-return-system-def
 
-
 _TOML_FENCE_RE = re.compile(r"```toml\s*\n(.*?)```", re.DOTALL)
 MARKER_START = "<!-- @cpt:root-agents -->"
 MARKER_END = "<!-- /@cpt:root-agents -->"
-
 
 def _read_existing_install(project_root: Path) -> Optional[str]:
     """
@@ -231,7 +220,6 @@ def _read_existing_install(project_root: Path) -> Optional[str]:
             continue
     return None
 
-
 def _compute_managed_block(install_dir: str) -> str:
     # @cpt-begin:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-compute-block
     return (
@@ -255,7 +243,6 @@ def _compute_managed_block(install_dir: str) -> str:
         f"{MARKER_END}"
     )
     # @cpt-end:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-compute-block
-
 
 def _inject_managed_block(target_file: Path, install_dir: str, dry_run: bool = False) -> str:
     """Inject or update a managed block into *target_file*. Returns action taken."""
@@ -299,11 +286,9 @@ def _inject_managed_block(target_file: Path, install_dir: str, dry_run: bool = F
     return "updated"
     # @cpt-end:cpt-cypilot-algo-core-infra-inject-root-agents:p1:inst-return-agents-path
 
-
 def _inject_root_agents(project_root: Path, install_dir: str, dry_run: bool = False) -> str:
     """Inject or update root AGENTS.md managed block. Returns action taken."""
     return _inject_managed_block(project_root / "AGENTS.md", install_dir, dry_run)
-
 
 def _compute_claude_block() -> str:
     return (
@@ -311,7 +296,6 @@ def _compute_claude_block() -> str:
         f"STOP and READ `AGENTS.md` in project root before ANY tool calls or skill invocation\n"
         f"{MARKER_END}"
     )
-
 
 def _inject_root_claude(project_root: Path, install_dir: str, dry_run: bool = False) -> str:
     """Inject or update root CLAUDE.md managed block. Returns action taken."""
@@ -338,7 +322,6 @@ def _inject_root_claude(project_root: Path, install_dir: str, dry_run: bool = Fa
     if not dry_run:
         claude_file.write_text(new_content, encoding="utf-8")
     return "updated"
-
 
 def cmd_init(argv: List[str]) -> int:
     # @cpt-dod:cpt-cypilot-dod-core-infra-init-config:p1
@@ -679,7 +662,6 @@ def cmd_init(argv: List[str]) -> int:
     # @cpt-end:cpt-cypilot-state-core-infra-project-install:p1:inst-init-complete
     # @cpt-end:cpt-cypilot-flow-core-infra-project-init:p1:inst-return-init-ok
 
-
 # ---------------------------------------------------------------------------
 # Human-friendly formatters
 # ---------------------------------------------------------------------------
@@ -727,7 +709,6 @@ def _human_init_ok(
         ui.hint("2. Review config:    open " + install_rel + "/config/core.toml")
         ui.hint("3. Start using:      type '/cypilot' in your IDE chat")
     ui.blank()
-
 
 def _human_init_error(data: Dict[str, object]) -> None:
     ui.error("Initialization failed")

@@ -7,14 +7,12 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 from . import error_codes as EC
 
-
 @dataclass(frozen=True)
 class ReferenceRule:
     coverage: Optional[bool] = None  # True=required, False=prohibited, None=optional
     task: Optional[bool] = None  # True=required, False=prohibited, None=allowed
     priority: Optional[bool] = None  # True=required, False=prohibited, None=allowed
     headings: Optional[List[str]] = None
-
 
 @dataclass(frozen=True)
 class HeadingConstraint:
@@ -29,7 +27,6 @@ class HeadingConstraint:
     next: Optional[str] = None
     pointer: Optional[str] = None
 
-
 @dataclass(frozen=True)
 class IdConstraint:
     kind: str
@@ -43,7 +40,6 @@ class IdConstraint:
     to_code: Optional[bool] = None
     headings: Optional[List[str]] = None
     references: Optional[Dict[str, ReferenceRule]] = None
-
 
 def _parse_optional_bool(
     v: object, field: str,
@@ -61,7 +57,6 @@ def _parse_optional_bool(
         return v, None
     return None, f"Constraint field '{field}' must be boolean, got {type(v).__name__}"
 
-
 @dataclass(frozen=True)
 class ArtifactKindConstraints:
     name: Optional[str]
@@ -70,11 +65,9 @@ class ArtifactKindConstraints:
     headings: Optional[List[HeadingConstraint]] = None
     toc: bool = True
 
-
 @dataclass(frozen=True)
 class KitConstraints:
     by_kind: Dict[str, ArtifactKindConstraints]
-
 
 def error(kind: str, message: str, *, path: Path | str, line: int = 1, code: Optional[str] = None, **extra) -> Dict[str, object]:
     out: Dict[str, object] = {"type": kind, "message": message, "line": int(line)}
@@ -86,7 +79,6 @@ def error(kind: str, message: str, *, path: Path | str, line: int = 1, code: Opt
     extra = {k: v for k, v in extra.items() if v is not None}
     out.update(extra)
     return out
-
 
 def heading_constraint_ids_by_line(path: Path, heading_constraints: Sequence[HeadingConstraint]) -> List[List[str]]:
     """Return active heading constraint ids for each line (1-indexed).
@@ -228,13 +220,11 @@ def heading_constraint_ids_by_line(path: Path, heading_constraints: Sequence[Hea
         out[line_no] = [hid for _, hid in stack]
     return out
 
-
 @dataclass(frozen=True)
 class ParsedCypilotId:
     system: str
     kind: str
     slug: str
-
 
 def parse_cpt(
     cpt: str,
@@ -296,13 +286,11 @@ def parse_cpt(
 
     return ParsedCypilotId(system=system, kind=expected_kind, slug=slug)
 
-
 @dataclass(frozen=True)
 class ArtifactRecord:
     path: Path
     artifact_kind: str
     constraints: Optional[ArtifactKindConstraints] = None
-
 
 # @cpt-algo:cpt-cypilot-algo-traceability-validation-validate-structure:p1
 def validate_artifact_file(
@@ -353,9 +341,7 @@ def validate_artifact_file(
         _toc_lines = _read_text_safe(artifact_path)
         if _toc_lines is not None:
             _toc_content = "\n".join(_toc_lines)
-            _max_hl = 6
-            if getattr(constraints, "headings", None):
-                _max_hl = max((h.level for h in constraints.headings), default=6)
+            _max_hl = 3
             _toc_result = _validate_toc(
                 _toc_content,
                 artifact_path=artifact_path,
@@ -810,7 +796,6 @@ def validate_artifact_file(
     # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-return-structure
     return {"errors": errors, "warnings": warnings}
     # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-return-structure
-
 
 # @cpt-algo:cpt-cypilot-algo-traceability-validation-cross-validate:p1
 def cross_validate_artifacts(
@@ -1403,14 +1388,12 @@ def cross_validate_artifacts(
     return {"errors": errors, "warnings": warnings}
     # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-return-cross
 
-
 def _parse_examples(v: object) -> Tuple[Optional[List[object]], Optional[str]]:
     if v is None:
         return None, None
     if not isinstance(v, list):
         return None, "Constraint field 'examples' must be a list"
     return list(v), None
-
 
 def _parse_reference_rule(obj: object) -> Tuple[Optional[ReferenceRule], Optional[str]]:
     if not isinstance(obj, dict):
@@ -1440,7 +1423,6 @@ def _parse_reference_rule(obj: object) -> Tuple[Optional[ReferenceRule], Optiona
         priority=priority,
         headings=headings,
     ), None
-
 
 def _parse_heading_constraint(obj: object, *, pointer: Optional[str] = None) -> Tuple[Optional[HeadingConstraint], Optional[str]]:
     if not isinstance(obj, dict):
@@ -1510,13 +1492,11 @@ def _parse_heading_constraint(obj: object, *, pointer: Optional[str] = None) -> 
         pointer=(pointer.strip() if isinstance(pointer, str) and pointer.strip() else None),
     ), None
 
-
 def _slugify_heading_constraint_id(v: str) -> str:
     s = str(v or "").strip().lower()
     s = re.sub(r"[^a-z0-9]+", "-", s)
     s = s.strip("-")
     return s
-
 
 def _parse_references(v: object) -> Tuple[Optional[Dict[str, ReferenceRule]], Optional[str]]:
     if v is None:
@@ -1533,7 +1513,6 @@ def _parse_references(v: object) -> Tuple[Optional[Dict[str, ReferenceRule]], Op
         if rule is not None:
             out[k.strip().upper()] = rule
     return out, None
-
 
 def _parse_id_constraint(obj: object) -> Tuple[Optional[IdConstraint], Optional[str]]:
     if not isinstance(obj, dict):
@@ -1607,7 +1586,6 @@ def _parse_id_constraint(obj: object) -> Tuple[Optional[IdConstraint], Optional[
         ),
         None,
     )
-
 
 def parse_kit_constraints(data: object) -> Tuple[Optional[KitConstraints], List[str]]:
     if data is None:
@@ -1768,7 +1746,6 @@ def parse_kit_constraints(data: object) -> Tuple[Optional[KitConstraints], List[
         return None, errors
     return KitConstraints(by_kind=out), []
 
-
 def load_constraints_toml(kit_root: Path) -> Tuple[Optional[KitConstraints], List[str]]:
     path = (kit_root / "constraints.toml").resolve()
     if not path.is_file():
@@ -1786,7 +1763,6 @@ def load_constraints_toml(kit_root: Path) -> Tuple[Optional[KitConstraints], Lis
         return None, errs
     return constraints, []
 
-
 __all__ = [
     "ReferenceRule",
     "HeadingConstraint",
@@ -1803,10 +1779,8 @@ __all__ = [
     "validate_artifact_file",
 ]
 
-
 _HEADING_LINE_RE = re.compile(r"^\s*(#{1,6})\s+(.+?)\s*$")
 _HEADING_NUMBER_PREFIX_RE = re.compile(r"^(?P<prefix>\d+(?:\.\d+)*)(?:\.)?\s+(?P<title>.+)$")
-
 
 def _scan_headings(path: Path) -> List[Dict[str, object]]:
     from .document import read_text_safe
@@ -1852,7 +1826,6 @@ def _scan_headings(path: Path) -> List[Dict[str, object]]:
             "number_parts": number_parts,
         })
     return out
-
 
 def validate_headings_contract(
     *,

@@ -2728,7 +2728,7 @@ pattern = "Feature Context"
 # Human description of this heading's purpose
 description = "Feature context section."
 # Example heading texts showing correct usage
-examples = ["## Feature Context"]
+examples = ["## 1. Feature Context"]
 ```
 `@/cpt:heading:feature-context`
 
@@ -2930,7 +2930,7 @@ pattern = "Actor Flows (CDSL)"
 # Human description of this heading's purpose
 description = "Actor flows section."
 # Example heading texts showing correct usage
-examples = ["## Actor Flows"]
+examples = ["## 2. Actor Flows (CDSL)"]
 ```
 `@/cpt:heading:feature-actor-flows`
 
@@ -3055,7 +3055,7 @@ pattern = "Processes / Business Logic (CDSL)"
 # Human description of this heading's purpose
 description = "Processes / business logic section."
 # Example heading texts showing correct usage
-examples = ["## Processes / Business Logic"]
+examples = ["## 3. Processes / Business Logic (CDSL)"]
 ```
 `@/cpt:heading:feature-processes`
 
@@ -3172,7 +3172,7 @@ pattern = "States (CDSL)"
 # Human description of this heading's purpose
 description = "States section."
 # Example heading texts showing correct usage
-examples = ["## States"]
+examples = ["## 4. States (CDSL)"]
 ```
 `@/cpt:heading:feature-states`
 
@@ -3278,7 +3278,7 @@ pattern = "Definitions of Done"
 # Human description of this heading's purpose
 description = "Definitions of done section."
 # Example heading texts showing correct usage
-examples = ["## Definitions of Done"]
+examples = ["## 5. Definitions of Done"]
 ```
 `@/cpt:heading:feature-dod`
 
@@ -3405,7 +3405,7 @@ pattern = "Acceptance Criteria"
 # Human description of this heading's purpose
 description = "Acceptance criteria for the feature."
 # Example heading texts showing correct usage
-examples = ["## Acceptance Criteria"]
+examples = ["## 6. Acceptance Criteria"]
 ```
 `@/cpt:heading:feature-acceptance-criteria`
 

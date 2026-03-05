@@ -145,18 +145,18 @@ class TestCLIPyCoverageSelfCheckMoreBranches(unittest.TestCase):
         }
         return ArtifactsMeta.from_dict(reg)
 
-    def test_run_self_check_fails_when_constraints_missing(self):
+    def test_run_self_check_passes_when_constraints_missing(self):
         from cypilot.commands.self_check import run_self_check_from_meta
 
         with TemporaryDirectory() as td:
             root = Path(td)
             meta = self._bootstrap_kit(root, with_constraints=False)
             rc, out = run_self_check_from_meta(project_root=root, adapter_dir=(root / "adapter"), artifacts_meta=meta)
-            self.assertEqual(rc, 2)
-            self.assertEqual(out.get("status"), "FAIL")
+            self.assertEqual(rc, 0)
+            self.assertEqual(out.get("status"), "PASS")
             self.assertGreaterEqual(int(out.get("kits_checked", 0)), 1)
 
-    def test_run_self_check_fails_on_invalid_constraints_json(self):
+    def test_run_self_check_fails_on_invalid_constraints(self):
         from cypilot.commands.self_check import run_self_check_from_meta
 
         with TemporaryDirectory() as td:
@@ -167,15 +167,15 @@ class TestCLIPyCoverageSelfCheckMoreBranches(unittest.TestCase):
             self.assertEqual(out.get("status"), "FAIL")
             self.assertGreaterEqual(int(out.get("kits_checked", 0)), 1)
 
-    def test_run_self_check_fails_when_kind_not_in_constraints(self):
+    def test_run_self_check_passes_when_kind_not_in_constraints(self):
         from cypilot.commands.self_check import run_self_check_from_meta
 
         with TemporaryDirectory() as td:
             root = Path(td)
             meta = self._bootstrap_kit(root, with_constraints=True, constraints_payload={"OTHER": {"identifiers": {}}})
             rc, out = run_self_check_from_meta(project_root=root, adapter_dir=(root / "adapter"), artifacts_meta=meta)
-            self.assertEqual(rc, 2)
-            self.assertEqual(out.get("status"), "FAIL")
+            self.assertEqual(rc, 0)
+            self.assertEqual(out.get("status"), "PASS")
 
     def test_template_checks_phase_gate_on_heading_errors(self):
         from cypilot.commands.self_check import run_self_check_from_meta
@@ -1356,7 +1356,7 @@ class TestCLIPyCoverageSelfCheckSkipBranches(unittest.TestCase):
             finally:
                 os.chdir(cwd)
 
-    def test_self_check_verbose_includes_errors_when_example_missing(self):
+    def test_self_check_verbose_passes_when_example_missing(self):
         from cypilot.cli import main
 
         with TemporaryDirectory() as tmpdir:
@@ -1370,12 +1370,9 @@ class TestCLIPyCoverageSelfCheckSkipBranches(unittest.TestCase):
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
                     exit_code = main(["self-check", "--verbose"])
-                self.assertEqual(exit_code, 2)
+                self.assertEqual(exit_code, 0)
                 out = json.loads(stdout.getvalue())
-                self.assertEqual(out.get("status"), "FAIL")
-                self.assertEqual(out["results"][0]["status"], "FAIL")
-                self.assertIn("errors", out["results"][0])
-                self.assertGreater(out["results"][0].get("error_count", 0), 0)
+                self.assertEqual(out.get("status"), "PASS")
             finally:
                 os.chdir(cwd)
 

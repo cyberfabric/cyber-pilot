@@ -3115,7 +3115,7 @@ numbered = true
 # multiple: omitted = allowed (can repeat)
 template = "{Feature Area / Priority Tier}"
 description = "Feature area or priority tier grouping."
-examples = []
+examples = ["### 5.1 Core Features"]
 ```
 `@/cpt:heading:prd-fr-group`
 
@@ -3130,7 +3130,7 @@ numbered = false
 # multiple: omitted = allowed (can repeat)
 template = "{Requirement Name}"
 description = "Individual functional requirement entry."
-examples = []
+examples = ["#### Task Management"]
 ```
 `@/cpt:heading:prd-fr-entry`
 
@@ -3156,8 +3156,6 @@ The system **MUST** {do something specific and verifiable}.
 
 `@cpt:example:prd-fr-entry`
 ```markdown
-### FR-001 Task Management
-
 - [ ] `p1` - **ID**: `cpt-ex-task-flow-fr-task-management`
 
 The system MUST allow creating, editing, and deleting tasks. The system MUST allow assigning tasks to team members. The system MUST allow setting due dates and priorities. Tasks should support rich text descriptions and file attachments.
@@ -3166,7 +3164,7 @@ The system MUST allow creating, editing, and deleting tasks. The system MUST all
 
 `cpt-ex-task-flow-actor-member`, `cpt-ex-task-flow-actor-lead`
 
-### FR-002 Notifications
+#### Notifications
 
 - [ ] `p1` - **ID**: `cpt-ex-task-flow-fr-notifications`
 

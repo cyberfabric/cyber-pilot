@@ -17,7 +17,6 @@ from typing import List
 from ..utils.toc import validate_toc
 from ..utils.ui import ui
 
-
 def cmd_validate_toc(argv: List[str]) -> int:
     """Validate Table of Contents in markdown files."""
     # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-toc:p1:inst-toc-parse-args
@@ -33,8 +32,8 @@ def cmd_validate_toc(argv: List[str]) -> int:
     p.add_argument(
         "--max-level",
         type=int,
-        default=6,
-        help="Maximum heading level to include (default: 6)",
+        default=3,
+        help="Maximum heading level to include (default: 3)",
     )
     p.add_argument(
         "--verbose",
@@ -112,7 +111,6 @@ def cmd_validate_toc(argv: List[str]) -> int:
         return 2
     return 0
     # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-toc:p1:inst-toc-return
-
 
 def _human_validate_toc(data: dict) -> None:
     ui.header("Validate TOC")

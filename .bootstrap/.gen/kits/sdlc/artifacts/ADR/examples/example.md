@@ -13,7 +13,12 @@ date: 2026-02-16
 2. [Decision Drivers](#decision-drivers)
 3. [Considered Options](#considered-options)
 4. [Decision Outcome](#decision-outcome)
+   - [Consequences](#consequences)
+   - [Confirmation](#confirmation)
 5. [Pros and Cons of the Options](#pros-and-cons-of-the-options)
+   - [PostgreSQL](#postgresql)
+   - [MongoDB](#mongodb)
+   - [SQLite](#sqlite)
 6. [More Information](#more-information)
 
 ## Context and Problem Statement

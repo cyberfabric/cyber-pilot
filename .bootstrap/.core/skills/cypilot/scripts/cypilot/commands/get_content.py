@@ -7,7 +7,6 @@ from ..utils.codebase import CodeFile
 from ..utils.document import get_content_scoped
 from ..utils.ui import ui
 
-
 # @cpt-flow:cpt-cypilot-flow-traceability-validation-query:p1
 def cmd_get_content(argv: List[str]) -> int:
     """Get best-effort content block for a specific Cypilot ID."""
@@ -98,7 +97,6 @@ def cmd_get_content(argv: List[str]) -> int:
     }, human_fn=lambda d: _human_get_content(d))
     # @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-if-get-content
     return 0
-
 
 def _human_get_content(data: dict) -> None:
     status = data.get("status", "")

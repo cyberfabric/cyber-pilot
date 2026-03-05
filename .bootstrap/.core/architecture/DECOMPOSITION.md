@@ -29,7 +29,7 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
 - Features grouped by architectural layer and functional cohesion (related components together)
 - Dependencies minimize coupling between features — each feature is independently implementable given its dependencies
 - p1 features (F1–F6, F10) cover all p1 functional requirements; p2 features (F7–F9) cover p2/p3 FRs
-- 100% coverage of all DESIGN elements verified: 9 components, 6 sequences, 27 FRs, 4 NFRs, 12 principles, 4 constraints
+- 100% coverage of all DESIGN elements verified: 9 components, 6 sequences, 29 FRs, 4 NFRs, 12 principles, 4 constraints
 
 
 ## 2. Entries
@@ -50,7 +50,7 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
   - Global CLI proxy with local cache (`~/.cypilot/cache/`), automatic skill bundle download from GitHub on first run, command routing, background version checks
   - Skill engine: command dispatch, JSON output serialization, exit code conventions (0/1/2)
   - Config manager: `{cypilot_path}/config/core.toml` CRUD, schema validation, deterministic TOML serialization
-  - Project initialization: interactive bootstrapper, root system definition (name/slug from directory), `{cypilot_path}/config/core.toml` creation, `{cypilot_path}/config/artifacts.toml` with default autodetect rules, root `AGENTS.md` injection, `{cypilot_path}/config/AGENTS.md` with default WHEN rules
+  - Project initialization: interactive bootstrapper, root system definition (name/slug from directory), per-kit config output directory selection, `{cypilot_path}/config/core.toml` creation (with kit config paths), `{cypilot_path}/config/artifacts.toml` with default autodetect rules, `{cypilot_path}/kits/` directory creation, root `AGENTS.md` injection, `{cypilot_path}/config/AGENTS.md` with default WHEN rules
 
 - **Out of scope**:
   - Kit installation logic (Feature 2)
@@ -107,15 +107,17 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
 
 - [ ] `p1` - **ID**: `cpt-cypilot-feature-blueprint-system`
 
-- **Purpose**: Enable single-source-of-truth blueprint files that generate all kit resources, with a reference-based update model preserving user customizations.
+- **Purpose**: Enable single-source-of-truth blueprint files that generate all kit resources, with hash-based customization detection and interactive diff preserving user edits.
 
 - **Depends On**: `cpt-cypilot-feature-core-infra`
 
 - **Scope**:
   - Blueprint Processor: parse `@cpt:` markers, extract TOML/Markdown content blocks
   - Resource generation: `rules.md`, `checklist.md`, `template.md`, `example.md`, `constraints.toml`, `workflows/*.md`, `codebase/rules.md`, `codebase/checklist.md`
-  - Kit Manager: install kits (save to `{cypilot_path}/kits/{slug}/`, copy blueprints to `{cypilot_path}/config/kits/{slug}/blueprints/`), register in `core.toml`
-  - Update model: force mode (full overwrite) and additive mode (three-way diff using reference)
+  - Kit Manager: install kits (copy blueprints to `{cypilot_path}/kits/{slug}/blueprints/`, generate outputs into kit config directory, compute SHA-256 hashes), register in `core.toml`
+  - Update model: force mode (full overwrite) and smart mode (hash-based customization detection — unmodified blueprints auto-update, customized trigger interactive diff)
+  - Resource Diff Engine: interactive conflict resolution for both blueprint updates and generated resource regeneration (`accept-file`, `reject-file`, `accept-all`, `reject-all`, `modify` with git-style conflict markers)
+  - Kit config relocation: `cpt kit move-config <slug>` moves kit output directory, updates `core.toml`
   - SKILL composition: collect `@cpt:skill` sections and write to `{cypilot_path}/config/SKILL.md`
   - System prompt composition: collect `@cpt:system-prompt` sections and append to `{cypilot_path}/config/AGENTS.md`
   - Workflow registration: generate workflow files from `@cpt:workflow` markers
@@ -129,6 +131,7 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
 
   - [ ] `p1` - `cpt-cypilot-fr-core-blueprint`
   - [ ] `p1` - `cpt-cypilot-fr-core-kits`
+  - [ ] `p1` - `cpt-cypilot-fr-core-resource-diff`
 
 - **Design Principles Covered**:
 
@@ -155,7 +158,7 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
 - **API**:
   - `cypilot kit install <path>`
   - `cypilot kit update [--force]`
-  - `cypilot kit migrate [--kit SLUG] [--dry-run]`
+  - `cypilot kit move-config <slug>`
   - `cpt validate --blueprints`
 
 - **Sequences**:
@@ -163,11 +166,14 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
   None (blueprint processing is invoked internally by kit install/update)
 
 - **Data**:
-  - `{cypilot_path}/kits/{slug}/` — reference kit copies
-  - `{cypilot_path}/config/kits/{slug}/blueprints/` — user-editable blueprint copies
-  - `{cypilot_path}/.gen/kits/{slug}/constraints.toml` — kit-wide structural constraints
-  - `{cypilot_path}/.gen/kits/{slug}/artifacts/{KIND}/` — generated per-artifact outputs
-  - `{cypilot_path}/.gen/kits/{slug}/workflows/` — generated workflow files
+  - `{cypilot_path}/kits/{slug}/blueprints/` — user-editable blueprint copies
+  - `{cypilot_path}/kits/{slug}/conf.toml` — kit version metadata and blueprint hash registry
+  - `{cypilot_path}/config/kits/{slug}/SKILL.md` — per-kit skill (generated, user-editable)
+  - `{cypilot_path}/config/kits/{slug}/constraints.toml` — kit-wide structural constraints (generated, user-editable)
+  - `{cypilot_path}/config/kits/{slug}/artifacts/{KIND}/` — generated per-artifact outputs (user-editable)
+  - `{cypilot_path}/config/kits/{slug}/codebase/` — generated codebase rules and checklist (user-editable)
+  - `{cypilot_path}/config/kits/{slug}/workflows/` — generated workflow files (user-editable)
+  - `{cypilot_path}/config/kits/{slug}/scripts/` — kit scripts and prompts (user-editable)
 
 
 ### 2.3 [Traceability & Validation](features/traceability-validation.md) ⏳ HIGH
@@ -287,8 +293,9 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
   None (SDLC kit provides blueprints; processing handled by Feature 2)
 
 - **Data**:
-  - `kits/sdlc/blueprints/` — source blueprint files
-  - `{cypilot_path}/config/kits/sdlc/` — installed kit config and generated outputs
+  - `kits/sdlc/blueprints/` — source blueprint files (canonical, in repo root)
+  - `{cypilot_path}/kits/sdlc/blueprints/` — installed user-editable blueprint copies
+  - `{cypilot_path}/config/kits/sdlc/` — generated outputs (user-editable)
 
 
 ### 2.5 [Agent Integration & Workflows](features/agent-integration.md) ✅ DONE
@@ -405,7 +412,8 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
 - **Depends On**: `cpt-cypilot-feature-core-infra`, `cpt-cypilot-feature-blueprint-system`
 
 - **Scope**:
-  - Update command: copy cached skill to project, migrate `{cypilot_path}/config/core.toml`, invoke kit migration scripts, regenerate agent entry points
+  - Update command: copy cached skill to project, detect and auto-restructure old directory layout, migrate `{cypilot_path}/config/core.toml`, update kits via hash-based customization detection, regenerate kit outputs with interactive diff, regenerate agent entry points, run automatic self-check to verify kit integrity
+  - Layout restructuring: automatically detect old directory layout during `cpt update` and restructure (move blueprints from `config/kits/` to `kits/`, move generated outputs from `.gen/kits/` to `config/kits/`, compute initial hashes, remove reference copies)
   - Config migration: backup before applying, preserve all user settings across versions
   - CLI config interface: `config system add/remove`, dry-run mode
   - Schema validation before all config writes
@@ -418,6 +426,7 @@ Cypilot DESIGN is decomposed into 10 features organized around architectural lay
 - **Requirements Covered**:
 
   - [ ] `p2` - `cpt-cypilot-fr-core-version`
+  - [ ] `p1` - `cpt-cypilot-fr-core-layout-migration`
   - [ ] `p2` - `cpt-cypilot-fr-core-cli-config`
   - [x] `p1` - `cpt-cypilot-nfr-reliability-recoverability`
 

@@ -2,7 +2,7 @@
 # Bump `version` when any blueprint or script changes.
 # Migration is triggered by kit-level version drift only.
 
-version = 5
+version = 6
 slug = "sdlc"
 name = "Cypilot SDLC Kit"
 
@@ -37,4 +37,13 @@ details = """\
 summary = "Fix legacy checklist_epilogue marker in CODEBASE blueprint"
 details = """\
 - Renamed `@cpt:checklist_epilogue` → `@cpt:checklist_epilogue:default` for stable merge identity\
+"""
+
+[whatsnew.6]
+summary = "Blueprint example consistency and TOC depth fix"
+details = """\
+- Fixed TOC generator and validator to use consistent max_heading_level=3
+- PRD: restructured FR examples with group (level 3) + entry (level 4) pattern
+- FEATURE: added numbering and (CDSL) suffix to section heading examples
+- DESIGN: added Functional Drivers/NFR Allocation examples, expanded component sub-headings\
 """

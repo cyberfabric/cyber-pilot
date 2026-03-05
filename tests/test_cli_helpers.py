@@ -239,8 +239,8 @@ class TestCliCommandCoverage(unittest.TestCase):
                         buf = io.StringIO()
                         with contextlib.redirect_stdout(buf):
                             code = cypilot_cli._cmd_self_check(["--root", td])
-        # FAIL when no examples exist (missing example is an error)
-        self.assertEqual(code, 2)
+        # PASS when no examples exist (missing example/template is not an error)
+        self.assertEqual(code, 0)
 
     def test_init_yes_dry_run(self):
         with TemporaryDirectory() as td:

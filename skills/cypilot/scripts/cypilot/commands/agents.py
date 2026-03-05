@@ -26,13 +26,11 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 from ..utils.files import core_subpath, gen_subpath, find_project_root, _is_cypilot_root, _read_cypilot_var, load_project_config
 from ..utils.ui import ui
 
-
 def _safe_relpath(path: Path, base: Path) -> str:
     try:
         return path.relative_to(base).as_posix()
     except ValueError:
         return path.as_posix()
-
 
 def _target_path_from_root(target: Path, project_root: Path, cypilot_root: Optional[Path] = None) -> str:
     """Return agent-instruction path using ``{cypilot_path}/`` variable prefix.
@@ -58,7 +56,6 @@ def _target_path_from_root(target: Path, project_root: Path, cypilot_root: Optio
         )
         return target.as_posix()
 
-
 # Directories and files to copy when cypilot is external to the project.
 _COPY_DIRS = ["workflows", "requirements", "schemas", "templates", "prompts", "kits", "architecture", "skills"]
 _COPY_ROOT_DIRS: list[str] = []
@@ -67,7 +64,6 @@ _CORE_SUBDIR = ".core"
 _COPY_IGNORE = shutil.ignore_patterns(
     "__pycache__", "*.pyc", ".git", ".venv", "tests", ".pytest_cache", ".coverage", "coverage.json",
 )
-
 
 def _ensure_cypilot_local(
     cypilot_root: Path, project_root: Path, dry_run: bool,
@@ -135,7 +131,6 @@ def _ensure_cypilot_local(
     except Exception as exc:
         return cypilot_root, {"action": "error", "message": str(exc)}
 
-
 def _load_json_file(path: Path) -> Optional[dict]:
     if not path.is_file():
         return None
@@ -145,7 +140,6 @@ def _load_json_file(path: Path) -> Optional[dict]:
         return data if isinstance(data, dict) else None
     except (json.JSONDecodeError, OSError, IOError):
         return None
-
 
 # @cpt-begin:cpt-cypilot-algo-agent-integration-discover-agents:p1:inst-define-registry
 def _default_agents_config() -> dict:
@@ -377,7 +371,6 @@ def _default_agents_config() -> dict:
     }
 # @cpt-end:cpt-cypilot-algo-agent-integration-discover-agents:p1:inst-define-registry
 
-
 def _parse_frontmatter(file_path: Path) -> Dict[str, str]:
     """Parse YAML frontmatter from markdown file. Returns dict with name, description, etc."""
     result: Dict[str, str] = {}
@@ -409,7 +402,6 @@ def _parse_frontmatter(file_path: Path) -> Dict[str, str]:
 
     return result
 
-
 def _strip_wrapping_yaml_quotes(value: str) -> str:
     v = str(value).strip()
     if len(v) >= 2 and ((v[0] == v[-1] == '"') or (v[0] == v[-1] == "'")):
@@ -421,14 +413,12 @@ def _strip_wrapping_yaml_quotes(value: str) -> str:
         return inner
     return v
 
-
 def _yaml_double_quote(value: str) -> str:
     v = str(value)
     v = v.replace("\\", "\\\\")
     v = v.replace('"', "\\\"")
     v = v.replace("\r", "\\r").replace("\n", "\\n").replace("\t", "\\t")
     return f'"{v}"'
-
 
 def _ensure_frontmatter_description_quoted(content: str) -> str:
     lines = content.splitlines()
@@ -465,7 +455,6 @@ def _ensure_frontmatter_description_quoted(content: str) -> str:
 
     return "\n".join(lines).rstrip() + "\n"
 
-
 def _render_template(lines: List[str], variables: Dict[str, str]) -> str:
     out: List[str] = []
     for line in lines:
@@ -475,7 +464,6 @@ def _render_template(lines: List[str], variables: Dict[str, str]) -> str:
             raise SystemExit(f"Missing template variable: {e}")
     rendered = "\n".join(out).rstrip() + "\n"
     return _ensure_frontmatter_description_quoted(rendered)
-
 
 def _resolve_gen_kits(cypilot_root: Path, project_root: Optional[Path] = None) -> Path:
     """Resolve .gen/kits/ directory, with fallback to adapter dir for source repos.
@@ -494,7 +482,6 @@ def _resolve_gen_kits(cypilot_root: Path, project_root: Optional[Path] = None) -
                 return adapter_gen_kits
     return gen_kits
 
-
 def _registered_kit_dirs(project_root: Optional[Path]) -> Optional[Set[str]]:
     """Return set of kit directory names registered in core.toml, or None if config unavailable."""
     if project_root is None:
@@ -512,7 +499,6 @@ def _registered_kit_dirs(project_root: Optional[Path]) -> Optional[Set[str]]:
             if path:
                 dirs.add(Path(path).name)
     return dirs if dirs else None
-
 
 # @cpt-begin:cpt-cypilot-algo-agent-integration-list-workflows:p1:inst-scan-core-workflows
 def _list_workflow_files(cypilot_root: Path, project_root: Optional[Path] = None) -> List[Tuple[str, Path]]:
@@ -565,9 +551,7 @@ def _list_workflow_files(cypilot_root: Path, project_root: Optional[Path] = None
     return out
 # @cpt-end:cpt-cypilot-algo-agent-integration-list-workflows:p1:inst-scan-core-workflows
 
-
 _ALL_RECOGNIZED_AGENTS = ["windsurf", "cursor", "claude", "copilot", "openai"]
-
 
 # @cpt-begin:cpt-cypilot-algo-agent-integration-generate-shims:p1:inst-create-proxy
 def _process_single_agent(
@@ -906,7 +890,6 @@ def _process_single_agent(
     }
 # @cpt-end:cpt-cypilot-algo-agent-integration-generate-shims:p1:inst-create-proxy
 
-
 def _resolve_agents_context(argv: List[str], prog: str, description: str, *, allow_yes: bool = False) -> Optional[tuple]:
     """Shared argument parsing and project resolution for agents commands.
 
@@ -992,7 +975,6 @@ def _resolve_agents_context(argv: List[str], prog: str, description: str, *, all
 
     return args, agents_to_process, project_root, cypilot_root, copy_report, cfg_path, cfg
 
-
 def cmd_agents(argv: List[str]) -> int:
     """Read-only command: list generated agent integration files."""
     ctx = _resolve_agents_context(argv, prog="agents", description="Show generated agent integration files")
@@ -1017,7 +999,6 @@ def cmd_agents(argv: List[str]) -> int:
         human_fn=lambda d: _human_agents_list(d, agents_to_process, results, project_root),
     )
     return 0
-
 
 def cmd_generate_agents(argv: List[str]) -> int:
     """Generate/update agent-specific workflow proxies and skill outputs."""
@@ -1099,7 +1080,6 @@ def cmd_generate_agents(argv: List[str]) -> int:
     # @cpt-end:cpt-cypilot-flow-agent-integration-generate:p1:inst-return-report
     return 0 if not has_errors else 1
 
-
 def _build_result(
     results: Dict[str, Any],
     agents_to_process: List[str],
@@ -1120,7 +1100,6 @@ def _build_result(
         "cypilot_copy": copy_report,
         "results": results,
     }
-
 
 # ---------------------------------------------------------------------------
 # Human-friendly formatters
@@ -1167,7 +1146,6 @@ def _human_agents_list(
         ui.hint("To regenerate agent files:  cpt generate-agents")
     ui.blank()
 
-
 def _human_generate_agents_preview(
     agents_to_process: List[str],
     results: Dict[str, Any],
@@ -1199,7 +1177,6 @@ def _human_generate_agents_preview(
         for path in updated_sk:
             ui.file_action(path, "updated")
     ui.blank()
-
 
 def _human_generate_agents_ok(
     data: Dict[str, Any],

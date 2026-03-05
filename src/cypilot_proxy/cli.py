@@ -25,7 +25,6 @@ from cypilot_proxy.resolve import (
     resolve_skill,
 )
 
-
 def _extract_version_param(args: List[str]) -> Optional[str]:
     """
     Extract and remove --version VERSION from args list.
@@ -34,7 +33,6 @@ def _extract_version_param(args: List[str]) -> Optional[str]:
     Mutates args in place, returns the version string or None.
     """
     return _extract_named_param(args, "--version")
-
 
 def _extract_named_param(args: List[str], name: str) -> Optional[str]:
     """
@@ -55,7 +53,6 @@ def _extract_named_param(args: List[str], name: str) -> Optional[str]:
             return value
         i += 1
     return None
-
 
 def main(argv: Optional[List[str]] = None) -> int:
     """
@@ -233,7 +230,6 @@ def main(argv: Optional[List[str]] = None) -> int:
     return result
     # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-return-exit
 
-
 def _forward_to_skill(skill_path: Path, args: List[str]) -> int:
     """
     Forward command to the resolved skill engine via subprocess.
@@ -260,7 +256,6 @@ def _forward_to_skill(skill_path: Path, args: List[str]) -> int:
         return 1
     # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-forward-cache
     # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-forward-project
-
 
 def _background_version_check(project_skill_path: Path) -> None:
     """

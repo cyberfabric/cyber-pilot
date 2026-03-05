@@ -217,9 +217,9 @@ Validates example artifacts against their templates (template QA). Ensures templ
 
 #### spec-coverage
 ```bash
-spec-coverage [--min-coverage <N>] [--min-granularity <N>] [--verbose] [--output <path>]
+spec-coverage [--system <slug>] [--min-coverage <N>] [--min-file-coverage <N>] [--min-granularity <N>] [--verbose] [--output <path>]
 ```
-Measures CDSL marker coverage in codebase files. Reports coverage percentage, granularity score, and per-file details.
+Measures CDSL marker coverage in codebase files. Reports coverage percentage, granularity score, per-file details, and uncovered line ranges. Use `--system` to limit to specific system slug(s). Use `--min-file-coverage` to enforce per-file minimum.
 
 ### Search Commands
 

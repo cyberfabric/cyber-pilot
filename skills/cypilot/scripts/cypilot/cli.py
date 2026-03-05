@@ -14,37 +14,30 @@ import json
 from pathlib import Path
 from typing import List, Optional
 
-
 def _cmd_self_check(argv: List[str]) -> int:
     from .commands.self_check import cmd_self_check
     return cmd_self_check(argv)
-
 
 def _cmd_agents(argv: List[str]) -> int:
     from .commands.agents import cmd_agents
     return cmd_agents(argv)
 
-
 def _cmd_generate_agents(argv: List[str]) -> int:
     from .commands.agents import cmd_generate_agents
     return cmd_generate_agents(argv)
-
 
 def _cmd_init(argv: List[str]) -> int:
     from .commands.init import cmd_init
     return cmd_init(argv)
 
-
 def _cmd_update(argv: List[str]) -> int:
     from .commands.update import cmd_update
     return cmd_update(argv)
-
 
 # =============================================================================
 def _cmd_validate(argv: List[str]) -> int:
     from .commands.validate import cmd_validate
     return cmd_validate(argv)
-
 
 # =============================================================================
 # SEARCH COMMANDS
@@ -54,26 +47,21 @@ def _cmd_list_ids(argv: List[str]) -> int:
     from .commands.list_ids import cmd_list_ids
     return cmd_list_ids(argv)
 
-
 def _cmd_list_id_kinds(argv: List[str]) -> int:
     from .commands.list_id_kinds import cmd_list_id_kinds
     return cmd_list_id_kinds(argv)
-
 
 def _cmd_get_content(argv: List[str]) -> int:
     from .commands.get_content import cmd_get_content
     return cmd_get_content(argv)
 
-
 def _cmd_where_defined(argv: List[str]) -> int:
     from .commands.where_defined import cmd_where_defined
     return cmd_where_defined(argv)
 
-
 def _cmd_where_used(argv: List[str]) -> int:
     from .commands.where_used import cmd_where_used
     return cmd_where_used(argv)
-
 
 # =============================================================================
 # KIT VALIDATION COMMAND
@@ -83,7 +71,6 @@ def _cmd_validate_kits(argv: List[str]) -> int:
     from .commands.validate_kits import cmd_validate_kits
     return cmd_validate_kits(argv)
 
-
 # =============================================================================
 # KIT MANAGEMENT COMMANDS
 # =============================================================================
@@ -92,11 +79,9 @@ def _cmd_kit(argv: List[str]) -> int:
     from .commands.kit import cmd_kit
     return cmd_kit(argv)
 
-
 def _cmd_generate_resources(argv: List[str]) -> int:
     from .commands.kit import cmd_generate_resources
     return cmd_generate_resources(argv)
-
 
 # =============================================================================
 # TOC COMMANDS
@@ -106,16 +91,13 @@ def _cmd_toc(argv: List[str]) -> int:
     from .commands.toc import cmd_toc
     return cmd_toc(argv)
 
-
 def _cmd_validate_toc(argv: List[str]) -> int:
     from .commands.validate_toc import cmd_validate_toc
     return cmd_validate_toc(argv)
 
-
 def _cmd_spec_coverage(argv: List[str]) -> int:
     from .commands.spec_coverage import cmd_spec_coverage
     return cmd_spec_coverage(argv)
-
 
 # =============================================================================
 # ADAPTER COMMAND
@@ -125,16 +107,13 @@ def _cmd_cypilot_info(argv: List[str]) -> int:
     from .commands.adapter_info import cmd_adapter_info
     return cmd_adapter_info(argv)
 
-
 def _cmd_migrate(argv: List[str]) -> int:
     from .commands.migrate import cmd_migrate
     return cmd_migrate(argv)
 
-
 def _cmd_migrate_config(argv: List[str]) -> int:
     from .commands.migrate import cmd_migrate_config
     return cmd_migrate_config(argv)
-
 
 # =============================================================================
 # MAIN ENTRY POINT
@@ -329,9 +308,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     # @cpt-end:cpt-cypilot-algo-core-infra-route-command:p1:inst-parse-args
     # @cpt-end:cpt-cypilot-algo-core-infra-route-command:p1:inst-lookup-handler
 
-
 if __name__ == "__main__":
     raise SystemExit(main())
-
 
 __all__ = ["main"]

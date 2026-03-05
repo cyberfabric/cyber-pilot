@@ -1,6 +1,5 @@
 # Feature: Traceability & Validation
 
-
 <!-- toc -->
 
 - [1. Feature Context](#1-feature-context)

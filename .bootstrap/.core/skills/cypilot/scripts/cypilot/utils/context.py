@@ -20,14 +20,12 @@ from typing import Dict, List, Optional, Set
 from .artifacts_meta import ArtifactsMeta, Kit, load_artifacts_meta
 from .constraints import KitConstraints, error, load_constraints_toml
 
-
 @dataclass
 class LoadedKit:
     """A kit with all its templates loaded."""
     kit: Kit
     templates: Dict[str, object]  # kind -> template-like (unused)
     constraints: Optional[KitConstraints] = None
-
 
 @dataclass
 class CypilotContext:
@@ -189,21 +187,17 @@ class CypilotContext:
                         kinds.add(str(c.kind).strip().lower())
         return kinds
 
-
 # Global context instance (set by CLI on startup)
 _global_context: Optional[CypilotContext] = None
-
 
 def get_context() -> Optional[CypilotContext]:
     """Get the global Cypilot context."""
     return _global_context
 
-
 def set_context(ctx: Optional[CypilotContext]) -> None:
     """Set the global Cypilot context."""
     global _global_context
     _global_context = ctx
-
 
 def ensure_context(start_path: Optional[Path] = None) -> Optional[CypilotContext]:
     """Ensure context is loaded, loading if necessary."""
@@ -211,7 +205,6 @@ def ensure_context(start_path: Optional[Path] = None) -> Optional[CypilotContext
     if _global_context is None:
         _global_context = CypilotContext.load(start_path)
     return _global_context
-
 
 __all__ = [
     "CypilotContext",

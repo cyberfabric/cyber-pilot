@@ -2614,7 +2614,7 @@ pattern = "Architectural Vision"
 # Human description of this heading's purpose
 description = "High-level architectural vision."
 # Example heading texts showing correct usage
-examples = ["### Architectural Vision"]
+examples = ["### 1.1 Architectural Vision"]
 ```
 `@/cpt:heading:design-arch-overview-vision`
 
@@ -2655,7 +2655,7 @@ pattern = "Architecture Drivers"
 # Human description of this heading's purpose
 description = "Architecture drivers: requirements, constraints, and ADR links."
 # Example heading texts showing correct usage
-examples = []
+examples = ["### 1.2 Architecture Drivers"]
 ```
 `@/cpt:heading:design-arch-overview-drivers`
 
@@ -2688,7 +2688,7 @@ pattern = "Functional Drivers"
 # Human description of this heading's purpose
 description = "Functional drivers table mapping PRD requirements to design responses."
 # Example heading texts showing correct usage
-examples = []
+examples = ["#### Functional Drivers"]
 ```
 `@/cpt:heading:design-arch-overview-drivers-functional`
 
@@ -2701,6 +2701,21 @@ examples = []
 | `cpt-{system}-fr-{slug}` | {How architecture addresses this requirement} |
 ```
 `@/cpt:prompt:design-arch-overview-drivers-functional`
+`@cpt:example:design-arch-overview-drivers-functional`
+```markdown
+##### Task Management
+
+- [ ] `p1` - `cpt-ex-task-flow-fr-task-management`
+
+**Solution**: REST API with idempotent endpoints and PostgreSQL persistence for task CRUD.
+
+##### Notifications
+
+- [ ] `p1` - `cpt-ex-task-flow-fr-notifications`
+
+**Solution**: WebSocket push with Redis PubSub for real-time notification delivery.
+```
+`@/cpt:example:design-arch-overview-drivers-functional`
 
 > **`@cpt:heading`** — Heading constraint. Defines required/optional heading in the artifact structure. Output: `constraints.toml` + `{cypilot_path}/.gen/kits/sdlc/artifacts/DESIGN/template.md`.
 
@@ -2721,7 +2736,7 @@ pattern = "NFR Allocation"
 # Human description of this heading's purpose
 description = "NFR allocation table mapping non-functional requirements to design elements."
 # Example heading texts showing correct usage
-examples = []
+examples = ["#### NFR Allocation"]
 ```
 `@/cpt:heading:design-arch-overview-drivers-nfr`
 
@@ -2741,22 +2756,6 @@ This table maps non-functional requirements from PRD to specific design/architec
 
 `@cpt:example:design-arch-overview-drivers-nfr`
 ```markdown
-### Architecture drivers
-
-#### Product requirements
-
-##### Task Management
-
-- [ ] `p1` - `cpt-ex-task-flow-fr-task-management`
-
-**Solution**: REST API with idempotent endpoints and PostgreSQL persistence for task CRUD.
-
-##### Notifications
-
-- [ ] `p1` - `cpt-ex-task-flow-fr-notifications`
-
-**Solution**: WebSocket push with Redis PubSub for real-time notification delivery.
-
 ##### Security
 
 - [ ] `p1` - `cpt-ex-task-flow-nfr-security`
@@ -2798,7 +2797,7 @@ pattern = "Architecture Layers"
 # Human description of this heading's purpose
 description = "Architecture layering and responsibilities."
 # Example heading texts showing correct usage
-examples = ["### Architecture Layers"]
+examples = ["### 1.3 Architecture Layers"]
 ```
 `@/cpt:heading:design-arch-overview-layers`
 
@@ -3391,10 +3390,25 @@ examples = []
 
 - [ ] `p1` - **ID**: `cpt-ex-task-flow-component-api-server`
 
-- Responsibilities: Handle HTTP requests, enforce authorization, coordinate business logic
-- Boundaries: Exposes REST API and WebSocket endpoint, no direct database access from handlers
-- Dependencies: Express, pg-pool, ioredis
+##### Why this component exists
+
+Centralises request handling and business logic coordination so that the frontend and database remain decoupled.
+
+##### Responsibility scope
+
+- Handle HTTP requests, enforce authorization, coordinate business logic
 - Key interfaces: TaskController, AuthMiddleware, WebSocketManager
+
+##### Responsibility boundaries
+
+- Exposes REST API and WebSocket endpoint; no direct database access from handlers
+- Does NOT own UI rendering or database schema migrations
+
+##### Related components (by ID)
+
+- `cpt-ex-task-flow-component-postgresql` — owns data for task persistence
+- `cpt-ex-task-flow-component-redis-pubsub` — publishes to for real-time events
+- `cpt-ex-task-flow-component-react-spa` — calls API Server via REST/WS
 ```
 `@/cpt:example:design-component-related`
 

@@ -8,7 +8,6 @@ from ..utils.codebase import CodeFile
 from ..utils.document import scan_cpt_ids
 from ..utils.ui import ui
 
-
 # @cpt-flow:cpt-cypilot-flow-traceability-validation-query:p1
 def cmd_list_ids(argv: List[str]) -> int:
     """List Cypilot IDs from artifacts.
@@ -229,7 +228,6 @@ def cmd_list_ids(argv: List[str]) -> int:
     ui.result(result, human_fn=lambda d: _human_list_ids(d))
     return 0
     # @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-return-query
-
 
 def _human_list_ids(data: dict) -> None:
     count = data.get("count", 0)

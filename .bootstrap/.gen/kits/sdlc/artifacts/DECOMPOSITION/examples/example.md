@@ -4,6 +4,8 @@
 
 1. [1. Overview](#1-overview)
 2. [2. Entries](#2-entries)
+   - [2.1 Task CRUD ⏳ HIGH](#21-task-crud-high)
+   - [2.2 Notifications ⏳ MEDIUM](#22-notifications-medium)
 3. [3. Feature Dependencies](#3-feature-dependencies)
 
 ## 1. Overview

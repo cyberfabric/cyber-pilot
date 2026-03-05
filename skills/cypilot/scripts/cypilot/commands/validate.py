@@ -10,7 +10,6 @@ from ..utils.document import scan_cdsl_instructions, scan_cpt_ids
 from ..utils.fixing import enrich_issues
 from ..utils.ui import ui
 
-
 # @cpt-flow:cpt-cypilot-flow-traceability-validation-validate:p1
 def cmd_validate(argv: List[str]) -> int:
     """Validate Cypilot artifacts and code traceability.
@@ -645,7 +644,6 @@ def cmd_validate(argv: List[str]) -> int:
     # @cpt-end:cpt-cypilot-state-traceability-validation-report:p1:inst-fail
     # @cpt-end:cpt-cypilot-flow-traceability-validation-validate:p1:inst-return-report
 
-
 def _enrich_target_artifact_paths(
     issues: List[Dict[str, object]],
     *,
@@ -696,7 +694,6 @@ def _enrich_target_artifact_paths(
             issue["target_artifact_suggested_path"] = suggested
         # else: neither set → fixing.py will ask user
 
-
 def _find_artifact_in_system(node: object, target_kind: str, project_root: Path) -> Optional[str]:
     """Search system node and its children for an existing artifact of target_kind.
 
@@ -716,7 +713,6 @@ def _find_artifact_in_system(node: object, target_kind: str, project_root: Path)
         if found:
             return found
     return None
-
 
 def _suggest_path_from_autodetect(node: object, target_kind: str) -> Optional[str]:
     """Derive a suggested file path from autodetect rules for a missing artifact.
@@ -763,7 +759,6 @@ def _suggest_path_from_autodetect(node: object, target_kind: str) -> Optional[st
         return suggested
 
     return None
-
 
 # ---------------------------------------------------------------------------
 # Human-friendly formatter
@@ -812,7 +807,6 @@ def _human_validate(data: dict) -> None:
         ui.info(f"Status: {status}")
     ui.blank()
 
-
 def _issue_location(issue: dict) -> str:
     """Extract display location from an issue dict, relative to cwd."""
     loc = str(issue.get("location") or "")
@@ -828,7 +822,6 @@ def _issue_location(issue: dict) -> str:
         if parts[1].isdigit():
             return f"{ui.relpath(parts[0])}:{parts[1]}"
     return ui.relpath(loc)
-
 
 def _format_issue(issue: object, *, is_error: bool) -> None:
     """Format a single error/warning with all available fields.

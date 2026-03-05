@@ -26,7 +26,6 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from cypilot.utils.toc import insert_toc_heading as _insert_toc
 
-
 # ---------------------------------------------------------------------------
 # Data structures
 # ---------------------------------------------------------------------------
@@ -42,7 +41,6 @@ class Marker:
     line_start: int = 0
     line_end: int = 0
 
-
 @dataclass
 class ParsedBlueprint:
     """Result of parsing a single blueprint .md file."""
@@ -54,7 +52,6 @@ class ParsedBlueprint:
     toc: bool = True              # from @cpt:blueprint 'toc' key (default: True)
     errors: List[str] = field(default_factory=list)
 
-
 # Regex for opening/closing marker tags (backtick-delimited)
 # Supports both legacy @cpt:TYPE and named @cpt:TYPE:ID syntax
 _OPEN_RE = re.compile(r"^`@cpt:(\w[\w-]*)(?::(\w[\w-]*))?` *$")
@@ -65,7 +62,6 @@ _SINGLETON_MARKERS = frozenset({"blueprint", "skill", "system-prompt", "syspromp
 # Regex for fenced code blocks inside marker content (3+ backticks)
 _FENCE_OPEN_RE = re.compile(r"^(`{3,})(\w+)\s*$")
 # _FENCE_CLOSE_RE is dynamic — must match >= opening backtick count
-
 
 # ---------------------------------------------------------------------------
 # Blueprint Parser
@@ -186,7 +182,6 @@ def parse_blueprint(path: Path) -> ParsedBlueprint:
     return result
     # @cpt-end:cpt-cypilot-algo-blueprint-system-parse-blueprint:p1:inst-return-parsed
 
-
 def _extract_fenced_blocks(
     content_lines: List[str],
     toml_data: Dict[str, Any],
@@ -236,7 +231,6 @@ def _extract_fenced_blocks(
 
         i = j + 1
 
-
 def _extract_markdown_block(content_lines: List[str]) -> str:
     """Extract the first ```markdown (or ````markdown, etc.) fenced block from content lines."""
     i = 0
@@ -253,8 +247,6 @@ def _extract_markdown_block(content_lines: List[str]) -> str:
                 j += 1
         i += 1
     return ""
-
-
 
 # ---------------------------------------------------------------------------
 # Per-Artifact Output Generators
@@ -333,7 +325,7 @@ def generate_artifact_outputs(
         example_content = _collect_example(bp)
         if example_content:
             if bp.toc:
-                example_content = _insert_toc(example_content, max_heading_level=2)
+                example_content = _insert_toc(example_content, max_heading_level=3)
             examples_dir = target_dir / "examples"
             if not dry_run:
                 examples_dir.mkdir(parents=True, exist_ok=True)
@@ -348,10 +340,8 @@ def generate_artifact_outputs(
     return written, errors
     # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-artifact-outputs:p1:inst-return-outputs
 
-
 # NOTE: _insert_toc is now imported from cypilot.utils.toc (insert_toc_heading)
 # and provides the same interface: _insert_toc(content, *, max_heading_level=2)
-
 
 def _collect_skill_blocks(bp: ParsedBlueprint) -> str:
     """Extract markdown content from @cpt:skill markers."""
@@ -361,7 +351,6 @@ def _collect_skill_blocks(bp: ParsedBlueprint) -> str:
             parts.append(mk.markdown_content.strip())
     return "\n\n".join(parts)
 
-
 def _collect_sysprompt_blocks(bp: ParsedBlueprint) -> str:
     """Extract markdown content from @cpt:system-prompt / @cpt:sysprompt markers."""
     parts: List[str] = []
@@ -369,7 +358,6 @@ def _collect_sysprompt_blocks(bp: ParsedBlueprint) -> str:
         if mk.marker_type in ("system-prompt", "sysprompt") and mk.markdown_content.strip():
             parts.append(mk.markdown_content.strip())
     return "\n\n".join(parts)
-
 
 def _collect_workflow_blocks(bp: ParsedBlueprint) -> List[Dict[str, str]]:
     """Extract workflow definitions from @cpt:workflow markers.
@@ -401,7 +389,6 @@ def _collect_workflow_blocks(bp: ParsedBlueprint) -> List[Dict[str, str]]:
         # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-workflows:p2:inst-parse-workflow
     # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-workflows:p2:inst-foreach-workflow
     return workflows
-
 
 def _collect_rules(bp: ParsedBlueprint) -> str:
     """Build rules.md from @cpt:rules skeleton + @cpt:rule entries.
@@ -568,7 +555,6 @@ def _collect_rules(bp: ParsedBlueprint) -> str:
     if len(parts) <= 8:  # Only header, no sections
         return ""
     return "\n".join(parts)
-
 
 def _collect_checklist(bp: ParsedBlueprint) -> str:
     """Build checklist.md from @cpt:checklist skeleton + @cpt:check entries.
@@ -791,7 +777,6 @@ def _collect_checklist(bp: ParsedBlueprint) -> str:
 
     return "\n".join(parts)
 
-
 def _append_validation_epilogue(
     parts: List[str], domain_abbrs: List[str], artifact_kind: str
 ) -> None:
@@ -918,7 +903,6 @@ def _append_validation_epilogue(
     parts.append("- [ ] I am ready to iterate on the proposals and re-review after changes")
     parts.append("")
 
-
 def _emit_check_item(parts: List[str], item: Dict[str, Any]) -> None:
     """Emit a single MUST HAVE check item (H3 format with ID prefix)."""
     parts.append(f"### {item['id']}: {item['title']}")
@@ -928,7 +912,6 @@ def _emit_check_item(parts: List[str], item: Dict[str, Any]) -> None:
     parts.append("")
     parts.append(item["content"])
     parts.append("")
-
 
 def _collect_template(bp: ParsedBlueprint) -> str:
     """Build template.md from @cpt:heading markers.
@@ -1030,7 +1013,6 @@ def _collect_template(bp: ParsedBlueprint) -> str:
     result = "\n".join(parts).rstrip("\n") + "\n"
     return result
 
-
 def _collect_example(bp: ParsedBlueprint) -> str:
     """Build example.md from @cpt:heading 'examples' arrays and @cpt:example blocks.
 
@@ -1090,8 +1072,6 @@ def _collect_example(bp: ParsedBlueprint) -> str:
     if not parts:
         return ""
     return "\n".join(parts) + "\n"
-
-
 
 # ---------------------------------------------------------------------------
 # Kit-Wide Constraints Generator
@@ -1284,7 +1264,6 @@ def generate_constraints(
     # @cpt-begin:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-return-constraints
     return output_path.as_posix(), errors
     # @cpt-end:cpt-cypilot-algo-blueprint-system-generate-constraints:p1:inst-return-constraints
-
 
 # ---------------------------------------------------------------------------
 # Process Kit (orchestrator)

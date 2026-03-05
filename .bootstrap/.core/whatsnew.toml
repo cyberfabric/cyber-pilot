@@ -68,3 +68,16 @@ details = """\
 - V2→V3 migration: fixed agent generation — now actually writes agent files (was read-only listing)
 - `cpt update` now auto-regenerates agent configs when core or kits are updated\
 """
+
+["v3.0.9-beta"]
+summary = "Spec coverage, self-check fixes, and full CDSL traceability"
+details = """\
+- New `spec-coverage` command with `--system`, `--min-coverage`, `--min-file-coverage`, `--json`
+- Added `@cpt-begin`/`@cpt-end` wrapping blocks to all 42 source files (97.7% spec coverage)
+- `--min-file-coverage` skips files with 0 effective lines (empty __init__.py)
+- TOC `--max-level` default changed from 6 to 3 in `toc` and `validate-toc` commands
+- Regenerated TOCs in architecture specs to match max-level 3
+- Added missing `inst-*-impl` steps to FEATURE specs (blueprint-system, core-infra, spec-coverage, traceability-validation)
+- Added `Validate Kits` algo definition to blueprint-system FEATURE spec
+- All 8 artifact templates and examples now pass self-check
+"""

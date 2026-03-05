@@ -8,7 +8,6 @@ from pathlib import Path
 import re
 from typing import Dict, List, Optional, Tuple
 
-
 _CPT_ID_RE = re.compile(r"(cpt-[a-z0-9][a-z0-9-]+)")
 _HEADING_RE = re.compile(r"^\s*(#{1,6})\s+(.+?)\s*$")
 _CODE_FENCE_RE = re.compile(r"^\s*```")
@@ -35,7 +34,6 @@ _CDSL_LINE_RE = re.compile(
 )
 _CDSL_PHASE_NUM_RE = re.compile(r"^(?:p|ph-)(?P<num>\d+)$")
 
-
 def _normalize_cpt_id_from_line(line: str) -> Optional[str]:
     stripped = line.strip()
     if not stripped:
@@ -55,7 +53,6 @@ def _normalize_cpt_id_from_line(line: str) -> Optional[str]:
 
     matches = _CPT_ID_RE.findall(stripped)
     return matches[0] if matches else None
-
 
 # @cpt-algo:cpt-cypilot-algo-traceability-validation-scan-ids:p1
 def scan_cpt_ids(path: Path) -> List[Dict[str, object]]:
@@ -146,7 +143,6 @@ def scan_cpt_ids(path: Path) -> List[Dict[str, object]]:
     return hits
     # @cpt-end:cpt-cypilot-algo-traceability-validation-scan-ids:p1:inst-return-hits
 
-
 def headings_by_line(path: Path) -> List[List[str]]:
     """Return active markdown heading titles for each line (1-indexed).
 
@@ -175,7 +171,6 @@ def headings_by_line(path: Path) -> List[List[str]]:
                 stack.append((level, title))
         out[line_no] = [t for _, t in stack]
     return out
-
 
 # @cpt-algo:cpt-cypilot-algo-traceability-validation-scan-cdsl:p1
 def scan_cdsl_instructions(path: Path) -> List[Dict[str, object]]:
@@ -253,7 +248,6 @@ def scan_cdsl_instructions(path: Path) -> List[Dict[str, object]]:
     # @cpt-begin:cpt-cypilot-algo-traceability-validation-scan-cdsl:p1:inst-return-cdsl
     return hits
     # @cpt-end:cpt-cypilot-algo-traceability-validation-scan-cdsl:p1:inst-return-cdsl
-
 
 def get_content_scoped(
     path: Path,
@@ -415,7 +409,6 @@ def get_content_scoped(
 
     return None
 
-
 def iter_text_files(
     root: Path,
     *,
@@ -483,7 +476,6 @@ def iter_text_files(
     
     return out
 
-
 def read_text_safe(path: Path) -> Optional[List[str]]:
     """
     Safely read text file to lines.
@@ -514,7 +506,6 @@ def read_text_safe(path: Path) -> Optional[List[str]]:
 
     return text.splitlines()
 
-
 def to_relative_posix(path: Path, root: Path) -> str:
     """
     Convert path to relative POSIX string from root.
@@ -531,7 +522,6 @@ def to_relative_posix(path: Path, root: Path) -> str:
     except Exception:
         return path.as_posix()
     return rel.as_posix()
-
 
 __all__ = [
     "iter_text_files",

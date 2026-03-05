@@ -2,6 +2,7 @@
 Validate Kits Command — validate kit structural correctness.
 
 @cpt-flow:cpt-cypilot-flow-blueprint-system-validate-kits:p1
+@cpt-algo:cpt-cypilot-algo-blueprint-system-validate-kits:p1
 @cpt-dod:cpt-cypilot-dod-blueprint-system-validate-kits:p1
 """
 
@@ -12,7 +13,6 @@ from typing import Dict, List
 
 from ..utils.constraints import error as constraints_error
 from ..utils.ui import ui
-
 
 def cmd_validate_kits(argv: List[str]) -> int:
     """Validate Cypilot kit packages.
@@ -112,7 +112,6 @@ def cmd_validate_kits(argv: List[str]) -> int:
     ui.result(result, human_fn=lambda d: _human_validate_kits(d))
     # @cpt-end:cpt-cypilot-flow-blueprint-system-validate-kits:p1:inst-return-validate-ok
     return 0 if overall_status == "PASS" else 2
-
 
 def _human_validate_kits(data: dict) -> None:
     ui.header("Validate Kits")

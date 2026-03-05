@@ -21,7 +21,6 @@ from typing import Dict, List, Optional, Set, Tuple
 from .codebase import CodeFile, _SCOPE_MARKER_RE, _BLOCK_BEGIN_RE, _BLOCK_END_RE
 from .language_config import EXTENSION_COMMENT_DEFAULTS
 
-
 # ---------------------------------------------------------------------------
 # Data structures
 # ---------------------------------------------------------------------------
@@ -41,7 +40,6 @@ class FileCoverage:
     coverage_pct: float
     granularity: float
 
-
 @dataclass
 class CoverageReport:
     """Aggregated coverage report."""
@@ -54,7 +52,6 @@ class CoverageReport:
     granularity_score: float
     per_file: List[FileCoverage]
     flagged_files: List[str]  # files with granularity < 0.5
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -85,7 +82,6 @@ def _is_blank_or_comment(line: str, ext: str) -> bool:
             return True
 
     return False
-
 
 # ---------------------------------------------------------------------------
 # Scan a single file
@@ -205,7 +201,6 @@ def scan_file_coverage(path: Path) -> Optional[FileCoverage]:
     )
     # @cpt-end:cpt-cypilot-algo-spec-coverage-scan:p1:inst-scan-return
 
-
 def _build_ranges(sorted_lines: List[int]) -> List[Tuple[int, int]]:
     """Build contiguous ranges from sorted line numbers."""
     if not sorted_lines:
@@ -222,7 +217,6 @@ def _build_ranges(sorted_lines: List[int]) -> List[Tuple[int, int]]:
             end = ln
     ranges.append((start, end))
     return ranges
-
 
 # ---------------------------------------------------------------------------
 # Aggregate metrics
@@ -292,7 +286,6 @@ def calculate_metrics(file_coverages: List[FileCoverage]) -> CoverageReport:
     )
     # @cpt-end:cpt-cypilot-algo-spec-coverage-metrics:p1:inst-metrics-return
 
-
 # ---------------------------------------------------------------------------
 # Report generation (coverage.py JSON format)
 # ---------------------------------------------------------------------------
@@ -340,12 +333,13 @@ def generate_report(report: CoverageReport, *, verbose: bool = False, project_ro
         if fc.has_scope_only:
             entry["scope_only"] = True
 
+        if fc.uncovered_ranges:
+            entry["uncovered_ranges"] = [[s, e] for s, e in fc.uncovered_ranges]
+
         # @cpt-begin:cpt-cypilot-algo-spec-coverage-report:p1:inst-report-verbose
         if verbose:
             entry["scope_markers"] = fc.scope_marker_count
             entry["block_markers"] = fc.block_marker_count
-            if fc.uncovered_ranges:
-                entry["uncovered_ranges"] = [[s, e] for s, e in fc.uncovered_ranges]
             if fc.covered_ranges:
                 entry["covered_ranges"] = [[s, e] for s, e in fc.covered_ranges]
         # @cpt-end:cpt-cypilot-algo-spec-coverage-report:p1:inst-report-verbose

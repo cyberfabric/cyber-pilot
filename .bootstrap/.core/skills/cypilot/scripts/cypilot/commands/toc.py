@@ -17,7 +17,6 @@ from cypilot.utils.toc import (
 )
 from ..utils.ui import ui
 
-
 def cmd_toc(argv: List[str]) -> int:
     """Generate/update Table of Contents in markdown files."""
     # @cpt-begin:cpt-cypilot-flow-developer-experience-toc:p1:inst-toc-gen-parse-args
@@ -33,8 +32,8 @@ def cmd_toc(argv: List[str]) -> int:
     p.add_argument(
         "--max-level",
         type=int,
-        default=6,
-        help="Maximum heading level to include (default: 6)",
+        default=3,
+        help="Maximum heading level to include (default: 3)",
     )
     p.add_argument(
         "--indent",
@@ -116,7 +115,6 @@ def cmd_toc(argv: List[str]) -> int:
         return 2
     # @cpt-end:cpt-cypilot-flow-developer-experience-toc:p1:inst-toc-gen-return
     return 1 if output["status"] == "ERROR" else 0
-
 
 def _human_toc(data: dict) -> None:
     ui.header("Table of Contents")

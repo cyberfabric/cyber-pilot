@@ -7,7 +7,6 @@ from typing import Dict, List, Tuple
 from ..utils.document import scan_cpt_ids
 from ..utils.ui import ui
 
-
 # @cpt-flow:cpt-cypilot-flow-traceability-validation-query:p1
 def cmd_where_used(argv: List[str]) -> int:
     """Find all references to a Cypilot ID."""
@@ -104,7 +103,6 @@ def cmd_where_used(argv: List[str]) -> int:
     # @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-if-where-used
     ui.result({"id": target_id, "artifacts_scanned": len(artifacts_to_scan), "count": len(references), "references": references}, human_fn=lambda d: _human_where_used(d))
     return 0
-
 
 def _human_where_used(data: dict) -> None:
     target = data.get("id", "?")

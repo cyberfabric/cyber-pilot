@@ -15,6 +15,7 @@ Pipeline:
 3. Compare blueprint versions: skip same, warn if migration needed
 4. Regenerate .gen/ from user's blueprints
 5. Ensure config/ scaffold files exist (create only if missing)
+6. Run self-check to verify kit integrity
 
 @cpt-flow:cpt-cypilot-flow-version-config-update:p1
 @cpt-algo:cpt-cypilot-algo-version-config-update-pipeline:p1
@@ -41,7 +42,6 @@ from .init import (
     _inject_root_claude,
 )
 from ..utils.ui import ui
-
 
 def cmd_update(argv: List[str]) -> int:
     """Update an existing Cypilot installation.
@@ -316,6 +316,32 @@ def cmd_update(argv: List[str]) -> int:
         if agents_regen:
             actions["agents_regenerated"] = agents_regen
 
+    # @cpt-begin:cpt-cypilot-flow-version-config-update:p1:inst-self-check
+    # ── Run self-check to verify kit integrity after update ──────────────
+    self_check_result: Optional[Dict[str, Any]] = None
+    if not args.dry_run:
+        try:
+            from ..utils.artifacts_meta import load_artifacts_meta
+            from .self_check import run_self_check_from_meta
+
+            meta, meta_err = load_artifacts_meta(cypilot_dir)
+            if meta and not meta_err:
+                sc_rc, sc_report = run_self_check_from_meta(
+                    project_root=project_root,
+                    adapter_dir=cypilot_dir,
+                    artifacts_meta=meta,
+                )
+                self_check_result = sc_report
+                sc_status = str(sc_report.get("status", ""))
+                if sc_rc != 0 or sc_status != "PASS":
+                    warnings.append(f"self-check: {sc_status}")
+                    ui.warn(f"Self-check: {sc_status}")
+                else:
+                    ui.step("Self-check: PASS")
+        except Exception as exc:
+            warnings.append(f"self-check failed to run: {exc}")
+    # @cpt-end:cpt-cypilot-flow-version-config-update:p1:inst-self-check
+
     # @cpt-begin:cpt-cypilot-flow-version-config-update:p1:inst-return-report
     # ── Report ───────────────────────────────────────────────────────────
     status = "PASS" if not errors and not warnings else "WARN"
@@ -330,11 +356,12 @@ def cmd_update(argv: List[str]) -> int:
         update_result["errors"] = errors
     if warnings:
         update_result["warnings"] = warnings
+    if self_check_result is not None:
+        update_result["self_check"] = self_check_result
 
     ui.result(update_result, human_fn=_human_update_ok)
     # @cpt-end:cpt-cypilot-flow-version-config-update:p1:inst-return-report
     return 0
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -347,7 +374,6 @@ def _ensure_file(path: Path, content: str, actions: Dict, key: str) -> None:
     else:
         path.write_text(content, encoding="utf-8")
         actions[key] = "created"
-
 
 def _config_readme_content() -> str:
     """README.md content for config/ directory."""
@@ -371,7 +397,6 @@ def _config_readme_content() -> str:
         "**These files are never overwritten by `cpt update`.**\n"
     )
 
-
 def _read_project_name(config_dir: Path) -> Optional[str]:
     """Read project name from core.toml."""
     core_toml = config_dir / "core.toml"
@@ -389,7 +414,6 @@ def _read_project_name(config_dir: Path) -> Optional[str]:
     except Exception:
         pass
     return None
-
 
 def _maybe_regenerate_agents(
     copy_results: Dict[str, str],
@@ -457,10 +481,8 @@ def _maybe_regenerate_agents(
 
     return regenerated
 
-
 # Re-exported from kit.py — tests import it from here
 from .kit import _read_conf_version as _read_conf_version  # noqa: F401
-
 
 def _read_core_whatsnew(path: Path) -> Dict[str, Dict[str, str]]:
     """Read a standalone whatsnew.toml file.
@@ -483,7 +505,6 @@ def _read_core_whatsnew(path: Path) -> Dict[str, Dict[str, str]]:
                 "details": str(entry.get("details", "")),
             }
     return result
-
 
 def _show_core_whatsnew(
     ref_whatsnew: Dict[str, Dict[str, str]],
@@ -524,7 +545,6 @@ def _show_core_whatsnew(
     except EOFError:
         return False
     return response != "q"
-
 
 # ---------------------------------------------------------------------------
 # Human-friendly formatter

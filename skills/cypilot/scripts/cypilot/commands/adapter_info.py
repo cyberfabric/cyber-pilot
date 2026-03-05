@@ -20,7 +20,6 @@ from ..utils.files import (
 )
 from ..utils.ui import ui
 
-
 def _load_json_file(path: Path) -> Optional[dict]:
     if not path.is_file():
         return None
@@ -30,7 +29,6 @@ def _load_json_file(path: Path) -> Optional[dict]:
         return data if isinstance(data, dict) else None
     except (json.JSONDecodeError, OSError, IOError):
         return None
-
 
 def _read_kit_conf(conf_path: Path) -> dict:
     """Read kit conf.toml and return key fields."""
@@ -45,7 +43,6 @@ def _read_kit_conf(conf_path: Path) -> dict:
         return out
     except Exception:
         return {}
-
 
 def cmd_adapter_info(argv: list[str]) -> int:
     """Discover and display Cypilot project configuration."""
@@ -336,7 +333,6 @@ def cmd_adapter_info(argv: list[str]) -> int:
     ui.result(config, human_fn=_human_info)
     return 0
     # @cpt-end:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-return-ok
-
 
 def _human_info(data: dict) -> None:
     """Human-friendly formatter for the info command."""
