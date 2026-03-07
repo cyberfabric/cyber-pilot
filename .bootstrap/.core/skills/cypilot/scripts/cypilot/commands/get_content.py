@@ -1,3 +1,4 @@
+# @cpt-begin:cpt-cypilot-flow-traceability-validation-query:p1:inst-query-imports
 import argparse
 import json
 from pathlib import Path
@@ -6,7 +7,7 @@ from typing import Dict, List, Optional
 from ..utils.codebase import CodeFile
 from ..utils.document import get_content_scoped
 from ..utils.ui import ui
-
+# @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-query-imports
 
 # @cpt-flow:cpt-cypilot-flow-traceability-validation-query:p1
 def cmd_get_content(argv: List[str]) -> int:
@@ -99,7 +100,7 @@ def cmd_get_content(argv: List[str]) -> int:
     # @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-if-get-content
     return 0
 
-
+# @cpt-begin:cpt-cypilot-flow-traceability-validation-query:p1:inst-query-format
 def _human_get_content(data: dict) -> None:
     status = data.get("status", "")
     cid = data.get("id", "?")
@@ -151,3 +152,4 @@ def _human_get_content(data: dict) -> None:
         ui.divider()
 
     ui.blank()
+# @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-query-format

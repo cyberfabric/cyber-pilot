@@ -3,8 +3,10 @@
 @cpt-flow:cpt-cypilot-flow-spec-coverage-report:p1
 @cpt-dod:cpt-cypilot-dod-spec-coverage-percentage:p1
 @cpt-dod:cpt-cypilot-dod-spec-coverage-granularity:p1
+@cpt-state:cpt-cypilot-state-spec-coverage-report:p1
 @cpt-dod:cpt-cypilot-dod-spec-coverage-report:p1
 """
+# @cpt-begin:cpt-cypilot-flow-spec-coverage-report:p1:inst-coverage-imports
 import argparse
 import json
 from pathlib import Path
@@ -12,7 +14,7 @@ from typing import List
 
 from ..utils.coverage import FileCoverage, calculate_metrics, generate_report, scan_file_coverage
 from ..utils.ui import ui
-
+# @cpt-end:cpt-cypilot-flow-spec-coverage-report:p1:inst-coverage-imports
 
 def cmd_spec_coverage(argv: List[str]) -> int:
     """Run spec coverage analysis on registered codebase files."""
@@ -24,8 +26,11 @@ def cmd_spec_coverage(argv: List[str]) -> int:
         description="Measure CDSL marker coverage in codebase files",
     )
     p.add_argument("--min-coverage", type=float, default=None, help="Minimum coverage percentage (0-100). Exit 2 if below.")
+    p.add_argument("--min-file-coverage", type=float, default=None, help="Minimum per-file coverage percentage (0-100). Exit 2 if any file is below.")
     p.add_argument("--min-granularity", type=float, default=None, help="Minimum granularity score (0-1). Exit 2 if below.")
-    p.add_argument("--verbose", action="store_true", help="Include per-file marker details and line ranges")
+    p.add_argument("--min-file-granularity", type=float, default=None, help="Minimum per-file granularity score (0-1). Exit 2 if any covered file is below.")
+    p.add_argument("--system", action="append", default=None, dest="systems", help="Limit to system slug(s). Can be repeated. Default: all systems.")
+    p.add_argument("--verbose", action="store_true", help="Include per-file marker details and covered ranges")
     p.add_argument("--output", default=None, help="Write report to file instead of stdout")
     args = p.parse_args(argv)
     # @cpt-end:cpt-cypilot-flow-spec-coverage-report:p1:inst-user-spec-coverage
@@ -64,7 +69,18 @@ def cmd_spec_coverage(argv: List[str]) -> int:
         for child in getattr(system_node, "children", []):
             collect_codebase_files(child)
 
+    system_slugs = set(args.systems) if args.systems else None
+
+    def _matches_system_filter(node: object) -> bool:
+        """Check if a system node (or any ancestor) matches the --system filter."""
+        if system_slugs is None:
+            return True
+        slug = getattr(node, "slug", "")
+        return slug in system_slugs
+
     for system_node in meta.systems:
+        if not _matches_system_filter(system_node):
+            continue
         collect_codebase_files(system_node)
 
     filtered_files: List[Path] = []
@@ -78,6 +94,7 @@ def cmd_spec_coverage(argv: List[str]) -> int:
         filtered_files.append(fp)
     # @cpt-end:cpt-cypilot-flow-spec-coverage-report:p1:inst-resolve-code-files
 
+    # @cpt-begin:cpt-cypilot-flow-spec-coverage-report:p1:inst-coverage-helpers
     if not filtered_files:
         out = {
             "status": "PASS",
@@ -91,6 +108,7 @@ def cmd_spec_coverage(argv: List[str]) -> int:
         }
         _output(out, args)
         return 0
+    # @cpt-end:cpt-cypilot-flow-spec-coverage-report:p1:inst-coverage-helpers
 
     # @cpt-begin:cpt-cypilot-flow-spec-coverage-report:p1:inst-foreach-file
     file_coverages: List[FileCoverage] = []
@@ -113,6 +131,9 @@ def cmd_spec_coverage(argv: List[str]) -> int:
     # @cpt-end:cpt-cypilot-flow-spec-coverage-report:p1:inst-gen-report
 
     # @cpt-begin:cpt-cypilot-flow-spec-coverage-report:p1:inst-if-threshold
+    # @cpt-begin:cpt-cypilot-state-spec-coverage-report:p1:inst-state-covered
+    # @cpt-begin:cpt-cypilot-state-spec-coverage-report:p1:inst-state-partial
+    # @cpt-begin:cpt-cypilot-state-spec-coverage-report:p1:inst-state-uncovered
     status = "PASS"
     threshold_failures: List[str] = []
 
@@ -120,13 +141,36 @@ def cmd_spec_coverage(argv: List[str]) -> int:
         status = "FAIL"
         threshold_failures.append(f"coverage {report.coverage_pct:.2f}% < {args.min_coverage:.2f}%")
 
+    if args.min_file_coverage is not None:
+        for fc in report.per_file:
+            if fc.total_lines == 0:
+                continue
+            if fc.coverage_pct < args.min_file_coverage:
+                status = "FAIL"
+                rel = _rel_path(fc.path, project_root)
+                threshold_failures.append(f"file {rel} coverage {fc.coverage_pct:.2f}% < {args.min_file_coverage:.2f}%")
+
     if args.min_granularity is not None and report.granularity_score < args.min_granularity:
         status = "FAIL"
         threshold_failures.append(f"granularity {report.granularity_score:.4f} < {args.min_granularity:.4f}")
 
+    if args.min_file_granularity is not None:
+        for fc in report.per_file:
+            if fc.effective_lines == 0:
+                continue
+            if fc.covered_lines == 0:
+                continue
+            if fc.granularity < args.min_file_granularity:
+                status = "FAIL"
+                rel = _rel_path(fc.path, project_root)
+                threshold_failures.append(f"file {rel} granularity {fc.granularity:.4f} < {args.min_file_granularity:.4f}")
+
     json_report["status"] = status
     if threshold_failures:
         json_report["threshold_failures"] = threshold_failures
+    # @cpt-end:cpt-cypilot-state-spec-coverage-report:p1:inst-state-uncovered
+    # @cpt-end:cpt-cypilot-state-spec-coverage-report:p1:inst-state-partial
+    # @cpt-end:cpt-cypilot-state-spec-coverage-report:p1:inst-state-covered
     # @cpt-end:cpt-cypilot-flow-spec-coverage-report:p1:inst-if-threshold
 
     # @cpt-begin:cpt-cypilot-flow-spec-coverage-report:p1:inst-return-report
@@ -135,6 +179,13 @@ def cmd_spec_coverage(argv: List[str]) -> int:
     return 0 if status == "PASS" else 2
     # @cpt-end:cpt-cypilot-flow-spec-coverage-report:p1:inst-return-report
 
+# @cpt-begin:cpt-cypilot-flow-spec-coverage-report:p1:inst-coverage-helpers
+def _rel_path(p: str, project_root: Path) -> str:
+    """Return path relative to project_root, or original if not possible."""
+    try:
+        return str(Path(p).relative_to(project_root))
+    except ValueError:
+        return p
 
 def _output(data: dict, args: argparse.Namespace) -> None:
     """Output report to stdout (JSON or human) or file."""
@@ -144,6 +195,14 @@ def _output(data: dict, args: argparse.Namespace) -> None:
         return
     ui.result(data, human_fn=lambda d: _human_spec_coverage(d))
 
+def _format_ranges(ranges: list) -> str:
+    """Format [[start, end], ...] as 'start-end, start-end, ...'."""
+    parts = []
+    for r in ranges:
+        if isinstance(r, (list, tuple)) and len(r) == 2:
+            s, e = r
+            parts.append(str(s) if s == e else f"{s}-{e}")
+    return ", ".join(parts)
 
 def _human_spec_coverage(data: dict) -> None:
     summary = data.get("summary", {})
@@ -165,7 +224,11 @@ def _human_spec_coverage(data: dict) -> None:
             for path, e in covered.items():
                 lines = e.get("total_lines", 0)
                 cov = e.get("coverage_pct", 0)
-                ui.substep(f"  {path}  {cov:.0f}% ({lines} lines)")
+                gran = e.get("granularity", 0)
+                ui.substep(f"  {path}  {cov:.0f}% g={gran:.2f} ({lines} lines)")
+                uncov_ranges = e.get("uncovered_ranges", [])
+                if uncov_ranges:
+                    ui.substep(f"    uncovered: {_format_ranges(uncov_ranges)}")
 
         if uncovered:
             ui.blank()
@@ -186,3 +249,4 @@ def _human_spec_coverage(data: dict) -> None:
     else:
         ui.info(f"Status: {status}")
     ui.blank()
+# @cpt-end:cpt-cypilot-flow-spec-coverage-report:p1:inst-coverage-helpers

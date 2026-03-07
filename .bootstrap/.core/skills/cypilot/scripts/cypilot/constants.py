@@ -7,10 +7,10 @@ Extracted for easier maintenance and modification by both humans and AI agents.
 @cpt-algo:cpt-cypilot-algo-core-infra-config-management:p1
 @cpt-algo:cpt-cypilot-algo-traceability-validation-validate-structure:p1
 """
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-check-headings
 
 import re
 
-# @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-check-headings
 # === PROJECT CONFIGURATION ===
 
 ARTIFACTS_REGISTRY_FILENAME = "artifacts.toml"

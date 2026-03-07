@@ -5,6 +5,7 @@ List ID Kinds Command — list all ID kind tokens found in artifacts.
 @cpt-dod:cpt-cypilot-dod-traceability-validation-queries:p1
 """
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-list-id-kinds:p1:inst-kinds-imports
 import argparse
 import json
 from pathlib import Path
@@ -12,6 +13,7 @@ from typing import Dict, List, Optional, Set, Tuple
 
 from ..utils.document import scan_cpt_ids
 from ..utils.ui import ui
+# @cpt-end:cpt-cypilot-algo-traceability-validation-list-id-kinds:p1:inst-kinds-imports
 
 
 def cmd_list_id_kinds(argv: List[str]) -> int:
@@ -172,6 +174,7 @@ def cmd_list_id_kinds(argv: List[str]) -> int:
     return 0
 
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-list-id-kinds:p1:inst-kinds-format
 def _human_list_id_kinds(data: dict) -> None:
     ui.header("ID Kinds")
 
@@ -213,3 +216,4 @@ def _human_list_id_kinds(data: dict) -> None:
             ui.substep(f"  {tpl}: {', '.join(tpl_kinds)}")
 
     ui.blank()
+# @cpt-end:cpt-cypilot-algo-traceability-validation-list-id-kinds:p1:inst-kinds-format

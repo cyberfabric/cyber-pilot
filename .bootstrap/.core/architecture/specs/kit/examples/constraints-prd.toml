@@ -1,5 +1,5 @@
 # Full constraints.toml example for an SDLC kit (showing PRD constraints)
-# Auto-generated from all kit blueprints — do not edit manually
+# Kit-wide structural constraints
 
 kit = "sdlc"
 

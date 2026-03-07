@@ -11,7 +11,7 @@ cypilot_path = ".bootstrap"
 
 ALWAYS open and follow `{cypilot_path}/.gen/AGENTS.md` FIRST
 
-ALWAYS open and follow `{cypilot_path}/config/AGENTS.md` WHEN it exists
+ALWAYS open and follow `{cypilot_path}/config/AGENTS.md` FIRST
 
 ALWAYS invoke `{cypilot_path}/.core/skills/cypilot/SKILL.md` WHEN user asks to do something with Cypilot
 

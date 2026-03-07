@@ -1,3 +1,5 @@
+> **DEPRECATED per `cpt-cypilot-adr-remove-blueprint-system`**: Blueprint files are no longer used. Kits are now direct file packages. This example is preserved for legacy reference only.
+
 PRD Blueprint Example (SDLC Kit) — a representative PRD blueprint showing
 skills, workflows, rules, checklist, and template markers in use.
 

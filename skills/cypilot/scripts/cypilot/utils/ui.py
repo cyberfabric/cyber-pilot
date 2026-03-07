@@ -1,6 +1,8 @@
 """
 Cypilot CLI output utilities — dual-mode (human / JSON) rendering.
 
+@cpt-algo:cpt-cypilot-algo-core-infra-display-info:p1
+
 Default mode (no flag): human-friendly output with colors, progress, explanations.
 With ``--json``: machine-readable JSON on stdout (for AI agents).
 

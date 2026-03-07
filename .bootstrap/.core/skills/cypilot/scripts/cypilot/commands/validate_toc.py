@@ -9,6 +9,7 @@ covered, and the TOC is not stale.  Thin CLI wrapper around
 @cpt-dod:cpt-cypilot-dod-traceability-validation-structure:p1
 """
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-toc:p1:inst-toc-imports
 import argparse
 import json
 from pathlib import Path
@@ -16,7 +17,7 @@ from typing import List
 
 from ..utils.toc import validate_toc
 from ..utils.ui import ui
-
+# @cpt-end:cpt-cypilot-algo-traceability-validation-validate-toc:p1:inst-toc-imports
 
 def cmd_validate_toc(argv: List[str]) -> int:
     """Validate Table of Contents in markdown files."""
@@ -33,8 +34,8 @@ def cmd_validate_toc(argv: List[str]) -> int:
     p.add_argument(
         "--max-level",
         type=int,
-        default=6,
-        help="Maximum heading level to include (default: 6)",
+        default=3,
+        help="Maximum heading level to include (default: 3)",
     )
     p.add_argument(
         "--verbose",
@@ -113,7 +114,7 @@ def cmd_validate_toc(argv: List[str]) -> int:
     return 0
     # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-toc:p1:inst-toc-return
 
-
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-toc:p1:inst-toc-format
 def _human_validate_toc(data: dict) -> None:
     ui.header("Validate TOC")
     for r in data.get("results", []):
@@ -140,3 +141,4 @@ def _human_validate_toc(data: dict) -> None:
     else:
         ui.warn(f"{n} file(s) validated ({overall}).")
     ui.blank()
+# @cpt-end:cpt-cypilot-algo-traceability-validation-validate-toc:p1:inst-toc-format

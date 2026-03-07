@@ -1,4 +1,5 @@
 [run]
+source = skills/cypilot/scripts/cypilot
 omit =
     */cypilot/__main__.py
     */__main__.py

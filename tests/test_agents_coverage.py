@@ -36,35 +36,35 @@ class TestEnsureFrontmatterDescriptionQuoted(unittest.TestCase):
         self.assertIn("# a comment", result)
 
 
-class TestResolveGenKits(unittest.TestCase):
-    """Cover lines 484, 490 in agents.py."""
+class TestResolveConfigKits(unittest.TestCase):
+    """Cover _resolve_config_kits in agents.py."""
 
-    def test_fallback_to_adapter_gen_kits(self):
-        from cypilot.commands.agents import _resolve_gen_kits
+    def test_fallback_to_adapter_config_kits(self):
+        from cypilot.commands.agents import _resolve_config_kits
 
         with TemporaryDirectory() as tmpdir:
             project_root = Path(tmpdir)
             cypilot_root = project_root / "somedir"
             cypilot_root.mkdir()
-            # No .gen/kits at cypilot_root level
-            # Create adapter gen kits
+            # No config/kits at cypilot_root level
+            # Create adapter config kits
             (project_root / "AGENTS.md").write_text(
                 '<!-- @cpt:root-agents -->\n```toml\ncypilot_path = "myadapter"\n```\n',
                 encoding="utf-8",
             )
-            adapter_gen_kits = project_root / "myadapter" / ".gen" / "kits"
-            adapter_gen_kits.mkdir(parents=True)
+            adapter_config_kits = project_root / "myadapter" / "config" / "kits"
+            adapter_config_kits.mkdir(parents=True)
 
-            result = _resolve_gen_kits(cypilot_root, project_root)
-            self.assertEqual(result.resolve(), adapter_gen_kits.resolve())
+            result = _resolve_config_kits(cypilot_root, project_root)
+            self.assertEqual(result.resolve(), adapter_config_kits.resolve())
 
     def test_no_adapter_returns_default(self):
-        from cypilot.commands.agents import _resolve_gen_kits
+        from cypilot.commands.agents import _resolve_config_kits
 
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            result = _resolve_gen_kits(root, root)
-            # Returns the default .gen/kits path even if it doesn't exist
+            result = _resolve_config_kits(root, root)
+            # Returns the default config/kits path even if it doesn't exist
             self.assertTrue(str(result).endswith("kits"))
 
 
@@ -132,10 +132,10 @@ class TestEnsureCypilotLocal(unittest.TestCase):
             self.assertIn("denied", report["message"])
 
 
-class TestListWorkflowFilesGenKits(unittest.TestCase):
-    """Cover lines 552-558 in agents.py."""
+class TestListWorkflowFilesConfigKits(unittest.TestCase):
+    """Cover kit workflow scanning in agents.py."""
 
-    def test_scans_gen_kit_workflows(self):
+    def test_scans_config_kit_workflows(self):
         from cypilot.commands.agents import _list_workflow_files
 
         with TemporaryDirectory() as tmpdir:
@@ -148,10 +148,10 @@ class TestListWorkflowFilesGenKits(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            # Create gen kit workflows
-            gen_kit_wf = root / ".gen" / "kits" / "sdlc" / "workflows"
-            gen_kit_wf.mkdir(parents=True)
-            (gen_kit_wf / "pr-review.md").write_text(
+            # Create config kit workflows (new layout)
+            config_kit_wf = root / "config" / "kits" / "sdlc" / "workflows"
+            config_kit_wf.mkdir(parents=True)
+            (config_kit_wf / "pr-review.md").write_text(
                 "---\ntype: workflow\ndescription: pr review\n---\nContent\n",
                 encoding="utf-8",
             )
@@ -161,7 +161,7 @@ class TestListWorkflowFilesGenKits(unittest.TestCase):
             self.assertIn("analyze.md", names)
             self.assertIn("pr-review.md", names)
 
-    def test_gen_kit_iterdir_exception_is_handled(self):
+    def test_config_kit_iterdir_exception_is_handled(self):
         from cypilot.commands.agents import _list_workflow_files
         from unittest.mock import patch
 
@@ -170,13 +170,13 @@ class TestListWorkflowFilesGenKits(unittest.TestCase):
             core_wf = root / ".core" / "workflows"
             core_wf.mkdir(parents=True)
 
-            gen_kits = root / ".gen" / "kits"
-            gen_kits.mkdir(parents=True)
+            config_kits = root / "config" / "kits"
+            config_kits.mkdir(parents=True)
 
             original_iterdir = Path.iterdir
 
             def _boom(self):
-                if "kits" in str(self) and ".gen" in str(self):
+                if "kits" in str(self) and "config" in str(self):
                     raise OSError("boom")
                 return original_iterdir(self)
 

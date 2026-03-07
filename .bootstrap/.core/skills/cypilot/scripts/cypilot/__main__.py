@@ -2,6 +2,8 @@
 Cypilot Validator - CLI Entry Point
 
 Allows running the package as: python -m cypilot
+
+@cpt-flow:cpt-cypilot-flow-core-infra-cli-invocation:p1
 """
 
 import sys

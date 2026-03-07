@@ -270,7 +270,7 @@ class TestGenerateReport(unittest.TestCase):
         self.assertIn("covered_ranges", entry)
         self.assertIn("uncovered_ranges", entry)
 
-    def test_non_verbose_excludes_ranges(self):
+    def test_non_verbose_excludes_verbose_only_fields(self):
         fc = FileCoverage(
             path="/tmp/test.py",
             total_lines=20, effective_lines=15, covered_lines=10,
@@ -283,6 +283,8 @@ class TestGenerateReport(unittest.TestCase):
         entry = result["files"]["/tmp/test.py"]
         self.assertNotIn("scope_markers", entry)
         self.assertNotIn("covered_ranges", entry)
+        # uncovered_ranges is always included (not verbose-only)
+        self.assertIn("uncovered_ranges", entry)
 
     def test_scope_only_flag(self):
         fc = FileCoverage(

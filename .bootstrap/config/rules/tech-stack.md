@@ -21,30 +21,37 @@ version: 1.0
 
 ## Languages
 
-- **Python 3.8+** - Primary language for CLI and tooling
+- **Python 3.11+** — Primary language (uses `tomllib` from stdlib)
 
 ## Frameworks & Libraries
 
-- **argparse** - CLI argument parsing
-- **dataclasses** - Data structures
-- **pathlib** - File system operations
-- **json** - Configuration and data serialization
-- **re** - Regex-based parsing
-- **tomllib** - TOML configuration parsing (stdlib, Python 3.11+)
+Zero third-party runtime dependencies — stdlib only:
+
+- **argparse** — CLI argument parsing
+- **dataclasses** — Data structures
+- **pathlib** — File system operations
+- **json** — Data serialization
+- **re** — Regex-based parsing
+- **tomllib** — TOML config parsing (stdlib, Python 3.11+)
+- **hashlib** — Blueprint hash computation
+- **difflib** — Three-way merge for kit migration
 
 ## Testing
 
-- **pytest** - Test framework
-- **pytest-cov** - Coverage reporting
-- **unittest.mock** - Mocking for unit tests
+- **pytest** — Test framework (via pipx)
+- **pytest-cov** — Coverage reporting (via pipx)
+- **unittest.mock** — Mocking for unit tests
 
 ## Build & Development
 
-- **Makefile** - Build automation
-- **pipx** - Isolated tool execution
-- **.venv** - Virtual environment
+- **Makefile** — Build automation
+- **pipx** — Isolated tool execution (no venv required)
+- **Docker** — Container runtime for local CI
+- **[act](https://github.com/nektos/act)** — Run GitHub Actions locally in Docker
+- **[actionlint](https://github.com/rhysd/actionlint)** — Lint GitHub Actions workflow files
 
 ## Code Quality
 
 - **Coverage threshold**: 90% per file
 - **Type hints**: Used throughout codebase
+- **[vulture](https://github.com/jendrikseipp/vulture)** — Dead code detection (via pipx)

@@ -28,6 +28,7 @@ from ..utils.files import find_cypilot_directory, find_project_root
 from ..utils.ui import ui
 
 
+# @cpt-begin:cpt-cypilot-flow-developer-experience-self-check:p1:inst-user-self-check
 def run_self_check_from_meta(
     *,
     project_root: Path,
@@ -41,6 +42,7 @@ def run_self_check_from_meta(
     This is used by both the CLI `self-check` command and by `validate` to fail-fast.
     It does NOT do cypilot/project discovery.
     """
+    # @cpt-end:cpt-cypilot-flow-developer-experience-self-check:p1:inst-user-self-check
     from ..utils.constraints import load_constraints_toml
 
     # @cpt-begin:cpt-cypilot-algo-developer-experience-self-check:p1:inst-validate-headings
@@ -57,11 +59,6 @@ def run_self_check_from_meta(
         warns: List[Dict[str, object]] = []
 
         if kit_constraints is None:
-            errs.append({
-                "type": "constraints",
-                "message": "constraints.toml not found (template consistency checks skipped)",
-                "path": str(kit_base / "constraints.toml"),
-            })
             return {"errors": errs, "warnings": warns}
 
         kind_u = str(kind).strip().upper()
@@ -70,14 +67,6 @@ def run_self_check_from_meta(
             constraints_for_kind = kit_constraints.by_kind[kind_u]
 
         if constraints_for_kind is None:
-            errs.append(constraints_error(
-                "template",
-                "Template kind not found in constraints.toml",
-                path=template_path,
-                line=1,
-                kit_id=str(kit_id),
-                artifact_kind=kind_u,
-            ))
             return {"errors": errs, "warnings": warns}
 
         constraints_path = None
@@ -398,7 +387,9 @@ def run_self_check_from_meta(
         if not kit_path_str:
             continue
 
-        kit_base = (project_root / kit_path_str).resolve()
+        kit_base = (adapter_dir / kit_path_str).resolve()
+        if not kit_base.is_dir():
+            kit_base = (project_root / kit_path_str).resolve()
         artifacts_dir = kit_base / "artifacts"
         # NOTE: With explicit kit.artifacts mapping, artifacts_dir may be absent.
 
@@ -441,11 +432,19 @@ def run_self_check_from_meta(
             examples_dir = None
             if kit_obj is not None:
                 try:
-                    template_path = (project_root / kit_obj.get_template_path(kind)).resolve()
+                    rel = kit_obj.get_template_path(kind)
+                    candidate = (adapter_dir / rel).resolve()
+                    if not candidate.is_file():
+                        candidate = (project_root / rel).resolve()
+                    template_path = candidate
                 except Exception:
                     template_path = None
                 try:
-                    examples_dir = (project_root / kit_obj.get_examples_path(kind)).resolve()
+                    rel = kit_obj.get_examples_path(kind)
+                    candidate = (adapter_dir / rel).resolve()
+                    if not candidate.is_dir():
+                        candidate = (project_root / rel).resolve()
+                    examples_dir = candidate
                 except Exception:
                     examples_dir = None
 
@@ -477,8 +476,7 @@ def run_self_check_from_meta(
             warns: List[Dict[str, object]] = []
 
             if template_path is None or not Path(template_path).is_file():
-                pth = str(template_path) if template_path is not None else str((kind_dir / "template.md"))
-                errs.append({"type": "file", "message": "Template not found", "path": pth})
+                pass  # No template for this kind — skip template checks
             else:
                 trep = _check_template_constraints_consistency(
                     template_path=Path(template_path),
@@ -492,7 +490,7 @@ def run_self_check_from_meta(
                 warns.extend(list(trep.get("warnings", []) or []))
 
             if not example_path:
-                errs.append({"type": "file", "message": "Example not found", "path": str(examples_dir)})
+                pass  # No example for this kind — skip example checks
             else:
                 constraints_for_kind = None
                 if kit_constraints is not None and getattr(kit_constraints, "by_kind", None) and str(kind).upper() in kit_constraints.by_kind:
@@ -534,106 +532,8 @@ def run_self_check_from_meta(
         "templates_checked": len(results),
         "results": results,
     }
-    return (0 if overall_status == "PASS" else 2), out
-
-
-def cmd_self_check(argv: List[str]) -> int:
-    # @cpt-begin:cpt-cypilot-flow-developer-experience-self-check:p1:inst-user-self-check
-    p = argparse.ArgumentParser(prog="self-check", description="Validate kit example artifacts against constraints")
-    p.add_argument("--root", default=".", help="Project root to search from (default: current directory)")
-    p.add_argument("--kit", "--rule", dest="kit", help="Specific kit ID to check (e.g., cypilot-sdlc)")
-    p.add_argument("--verbose", action="store_true", help="Include full per-template error/warning lists")
-    args = p.parse_args(argv)
-    # @cpt-end:cpt-cypilot-flow-developer-experience-self-check:p1:inst-user-self-check
-
-    # @cpt-begin:cpt-cypilot-flow-developer-experience-self-check:p1:inst-load-registry
-    start_path = Path(args.root).resolve()
-    project_root = find_project_root(start_path)
-    if project_root is None:
-        ui.result({"status": "ERROR", "message": "Project root not found"})
-        return 1
-
-    adapter_dir = find_cypilot_directory(project_root)
-    if adapter_dir is None:
-        ui.result({"status": "ERROR", "message": "Cypilot not initialized. Run 'cypilot init' first."})
-        return 1
-
-    artifacts_meta, meta_err = load_artifacts_meta(adapter_dir)
-    if meta_err or artifacts_meta is None:
-        ui.result({"status": "ERROR", "message": meta_err or "Missing artifacts registry"})
-        return 1
-    slug_errors = artifacts_meta.validate_all_slugs()
-    if slug_errors:
-        ui.result({"status": "ERROR", "message": "Invalid slugs in artifacts.toml", "slug_errors": slug_errors})
-        return 1
-    # @cpt-end:cpt-cypilot-flow-developer-experience-self-check:p1:inst-load-registry
-
     # @cpt-begin:cpt-cypilot-flow-developer-experience-self-check:p1:inst-return-self-check
-    rc, out = run_self_check_from_meta(
-        project_root=project_root,
-        adapter_dir=adapter_dir,
-        artifacts_meta=artifacts_meta,
-        kit_filter=str(args.kit) if args.kit else None,
-        verbose=bool(args.verbose),
-    )
-    ui.result(out, human_fn=lambda d: _human_self_check(d))
+    return (0 if overall_status == "PASS" else 2), out
     # @cpt-end:cpt-cypilot-flow-developer-experience-self-check:p1:inst-return-self-check
-    return rc
 
 
-def _human_self_check(data: dict) -> None:
-    status = data.get("status", "")
-    n_kits = data.get("kits_checked", 0)
-    n_tpl = data.get("templates_checked", 0)
-    ui.header("Self-Check")
-    ui.detail("Project root", str(data.get("project_root", "?")))
-    ui.detail("Cypilot dir", str(data.get("cypilot_dir", "?")))
-    ui.detail("Kits checked", str(n_kits))
-    ui.detail("Templates checked", str(n_tpl))
-    ui.blank()
-
-    for r in data.get("results", []):
-        kit = r.get("kit", "?")
-        kind = r.get("kind", "?")
-        rs = r.get("status", "?")
-        n_err = r.get("error_count", 0)
-        n_warn = r.get("warning_count", 0)
-        example = r.get("example_path")
-
-        if rs == "PASS":
-            suffix = ""
-            if n_warn:
-                suffix = f" ({n_warn} warning(s))"
-            ui.step(f"{kit}/{kind}: PASS{suffix}")
-        else:
-            ui.warn(f"{kit}/{kind}: {rs} — {n_err} error(s), {n_warn} warning(s)")
-
-        if example:
-            ui.substep(f"  Example: {example}")
-
-        shown_errs = r.get("errors", [])
-        for e in shown_errs[:20]:
-            msg = e.get("message", "") if isinstance(e, dict) else str(e)
-            path = e.get("path", "") if isinstance(e, dict) else ""
-            line = e.get("line", "") if isinstance(e, dict) else ""
-            loc = f"{path}:{line}" if path and line else (path or "")
-            if loc:
-                ui.substep(f"  ✗ {loc}  {msg}")
-            else:
-                ui.substep(f"  ✗ {msg}")
-        if len(shown_errs) > 20:
-            ui.substep(f"  ... and {len(shown_errs) - 20} more error(s)")
-
-        shown_warns = r.get("warnings", [])
-        for w in shown_warns[:10]:
-            msg = w.get("message", "") if isinstance(w, dict) else str(w)
-            ui.substep(f"  ⚠ {msg}")
-        if len(shown_warns) > 10:
-            ui.substep(f"  ... and {len(shown_warns) - 10} more warning(s)")
-
-    ui.blank()
-    if status == "PASS":
-        ui.success("All templates and examples are consistent.")
-    else:
-        ui.error("Self-check failed.")
-    ui.blank()

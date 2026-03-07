@@ -4,10 +4,10 @@ Cypilot Validator - Document Utilities
 Functions for working with documents and file paths.
 """
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-scan-ids:p1:inst-scan-ids-datamodel
 from pathlib import Path
 import re
 from typing import Dict, List, Optional, Tuple
-
 
 _CPT_ID_RE = re.compile(r"(cpt-[a-z0-9][a-z0-9-]+)")
 _HEADING_RE = re.compile(r"^\s*(#{1,6})\s+(.+?)\s*$")
@@ -30,11 +30,12 @@ _ID_REF_RE = re.compile(
 )
 _BACKTICK_ID_RE = re.compile(r"`(cpt-[a-z0-9][a-z0-9-]+)`")
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-scan-cdsl:p1:inst-scan-cdsl-datamodel
 _CDSL_LINE_RE = re.compile(
     r"^\s*(?:\d+\.\s+|-\s+)\[\s*(?P<check>[xX ])\s*\]\s*-\s*`(?P<phase>(?:p\d+|ph-\d+))`\s*-\s*.+\s*-\s*`inst-(?P<inst>[a-z0-9-]+)`\s*$"
 )
 _CDSL_PHASE_NUM_RE = re.compile(r"^(?:p|ph-)(?P<num>\d+)$")
-
+# @cpt-end:cpt-cypilot-algo-traceability-validation-scan-cdsl:p1:inst-scan-cdsl-datamodel
 
 def _normalize_cpt_id_from_line(line: str) -> Optional[str]:
     stripped = line.strip()
@@ -55,7 +56,7 @@ def _normalize_cpt_id_from_line(line: str) -> Optional[str]:
 
     matches = _CPT_ID_RE.findall(stripped)
     return matches[0] if matches else None
-
+# @cpt-end:cpt-cypilot-algo-traceability-validation-scan-ids:p1:inst-scan-ids-datamodel
 
 # @cpt-algo:cpt-cypilot-algo-traceability-validation-scan-ids:p1
 def scan_cpt_ids(path: Path) -> List[Dict[str, object]]:
@@ -146,7 +147,7 @@ def scan_cpt_ids(path: Path) -> List[Dict[str, object]]:
     return hits
     # @cpt-end:cpt-cypilot-algo-traceability-validation-scan-ids:p1:inst-return-hits
 
-
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-scan-ids:p1:inst-scan-ids-headings
 def headings_by_line(path: Path) -> List[List[str]]:
     """Return active markdown heading titles for each line (1-indexed).
 
@@ -175,7 +176,7 @@ def headings_by_line(path: Path) -> List[List[str]]:
                 stack.append((level, title))
         out[line_no] = [t for _, t in stack]
     return out
-
+# @cpt-end:cpt-cypilot-algo-traceability-validation-scan-ids:p1:inst-scan-ids-headings
 
 # @cpt-algo:cpt-cypilot-algo-traceability-validation-scan-cdsl:p1
 def scan_cdsl_instructions(path: Path) -> List[Dict[str, object]]:
@@ -254,7 +255,7 @@ def scan_cdsl_instructions(path: Path) -> List[Dict[str, object]]:
     return hits
     # @cpt-end:cpt-cypilot-algo-traceability-validation-scan-cdsl:p1:inst-return-cdsl
 
-
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-scan-ids:p1:inst-scan-ids-get-content
 def get_content_scoped(
     path: Path,
     *,
@@ -414,8 +415,9 @@ def get_content_scoped(
         return emit(lines[start : end + 1], start, end)
 
     return None
+# @cpt-end:cpt-cypilot-algo-traceability-validation-scan-ids:p1:inst-scan-ids-get-content
 
-
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-scan-ids:p1:inst-scan-ids-file-utils
 def iter_text_files(
     root: Path,
     *,
@@ -483,7 +485,6 @@ def iter_text_files(
     
     return out
 
-
 def read_text_safe(path: Path) -> Optional[List[str]]:
     """
     Safely read text file to lines.
@@ -514,7 +515,6 @@ def read_text_safe(path: Path) -> Optional[List[str]]:
 
     return text.splitlines()
 
-
 def to_relative_posix(path: Path, root: Path) -> str:
     """
     Convert path to relative POSIX string from root.
@@ -532,7 +532,6 @@ def to_relative_posix(path: Path, root: Path) -> str:
         return path.as_posix()
     return rel.as_posix()
 
-
 __all__ = [
     "iter_text_files",
     "read_text_safe",
@@ -542,3 +541,4 @@ __all__ = [
     "scan_cdsl_instructions",
     "headings_by_line",
 ]
+# @cpt-end:cpt-cypilot-algo-traceability-validation-scan-ids:p1:inst-scan-ids-file-utils

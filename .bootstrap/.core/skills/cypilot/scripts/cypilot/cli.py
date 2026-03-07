@@ -9,42 +9,33 @@ IMPORTANT: This module MUST NOT contain business logic.
 - All validation, scanning, and transformation logic MUST live in dedicated modules under cypilot.utils or command modules.
 """
 
+# @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-route-helpers
 import sys
 import json
 from pathlib import Path
 from typing import List, Optional
 
 
-def _cmd_self_check(argv: List[str]) -> int:
-    from .commands.self_check import cmd_self_check
-    return cmd_self_check(argv)
-
-
 def _cmd_agents(argv: List[str]) -> int:
     from .commands.agents import cmd_agents
     return cmd_agents(argv)
-
 
 def _cmd_generate_agents(argv: List[str]) -> int:
     from .commands.agents import cmd_generate_agents
     return cmd_generate_agents(argv)
 
-
 def _cmd_init(argv: List[str]) -> int:
     from .commands.init import cmd_init
     return cmd_init(argv)
-
 
 def _cmd_update(argv: List[str]) -> int:
     from .commands.update import cmd_update
     return cmd_update(argv)
 
-
 # =============================================================================
 def _cmd_validate(argv: List[str]) -> int:
     from .commands.validate import cmd_validate
     return cmd_validate(argv)
-
 
 # =============================================================================
 # SEARCH COMMANDS
@@ -54,26 +45,21 @@ def _cmd_list_ids(argv: List[str]) -> int:
     from .commands.list_ids import cmd_list_ids
     return cmd_list_ids(argv)
 
-
 def _cmd_list_id_kinds(argv: List[str]) -> int:
     from .commands.list_id_kinds import cmd_list_id_kinds
     return cmd_list_id_kinds(argv)
-
 
 def _cmd_get_content(argv: List[str]) -> int:
     from .commands.get_content import cmd_get_content
     return cmd_get_content(argv)
 
-
 def _cmd_where_defined(argv: List[str]) -> int:
     from .commands.where_defined import cmd_where_defined
     return cmd_where_defined(argv)
 
-
 def _cmd_where_used(argv: List[str]) -> int:
     from .commands.where_used import cmd_where_used
     return cmd_where_used(argv)
-
 
 # =============================================================================
 # KIT VALIDATION COMMAND
@@ -83,7 +69,6 @@ def _cmd_validate_kits(argv: List[str]) -> int:
     from .commands.validate_kits import cmd_validate_kits
     return cmd_validate_kits(argv)
 
-
 # =============================================================================
 # KIT MANAGEMENT COMMANDS
 # =============================================================================
@@ -92,11 +77,13 @@ def _cmd_kit(argv: List[str]) -> int:
     from .commands.kit import cmd_kit
     return cmd_kit(argv)
 
-
 def _cmd_generate_resources(argv: List[str]) -> int:
-    from .commands.kit import cmd_generate_resources
-    return cmd_generate_resources(argv)
-
+    import sys as _sys
+    _sys.stderr.write(
+        "WARNING: 'generate-resources' is deprecated.\n"
+        "         Kits are direct file packages — use 'cpt kit update <path>' instead.\n"
+    )
+    return 1
 
 # =============================================================================
 # TOC COMMANDS
@@ -106,16 +93,13 @@ def _cmd_toc(argv: List[str]) -> int:
     from .commands.toc import cmd_toc
     return cmd_toc(argv)
 
-
 def _cmd_validate_toc(argv: List[str]) -> int:
     from .commands.validate_toc import cmd_validate_toc
     return cmd_validate_toc(argv)
 
-
 def _cmd_spec_coverage(argv: List[str]) -> int:
     from .commands.spec_coverage import cmd_spec_coverage
     return cmd_spec_coverage(argv)
-
 
 # =============================================================================
 # ADAPTER COMMAND
@@ -125,21 +109,20 @@ def _cmd_cypilot_info(argv: List[str]) -> int:
     from .commands.adapter_info import cmd_adapter_info
     return cmd_adapter_info(argv)
 
-
 def _cmd_migrate(argv: List[str]) -> int:
     from .commands.migrate import cmd_migrate
     return cmd_migrate(argv)
 
-
 def _cmd_migrate_config(argv: List[str]) -> int:
     from .commands.migrate import cmd_migrate_config
     return cmd_migrate_config(argv)
-
+# @cpt-end:cpt-cypilot-algo-core-infra-route-command:p1:inst-route-helpers
 
 # =============================================================================
 # MAIN ENTRY POINT
 # =============================================================================
 
+# @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-route-helpers
 def main(argv: Optional[List[str]] = None) -> int:
     argv_list = list(argv) if argv is not None else sys.argv[1:]
 
@@ -159,7 +142,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     # Define all available commands
     analysis_commands = ["validate", "validate-kits", "validate-toc", "spec-coverage"]
     legacy_aliases = ["validate-code", "validate-rules"]
-    kit_commands = ["kit", "generate-resources"]
+    kit_commands = ["kit"]
     utility_commands = ["toc"]
     migration_commands = ["migrate", "migrate-config"]
     search_commands = [
@@ -168,7 +151,6 @@ def main(argv: Optional[List[str]] = None) -> int:
         "get-content",
         "where-defined", "where-used",
         "info",
-        "self-check",
         "agents",
         "generate-agents",
     ]
@@ -179,13 +161,12 @@ def main(argv: Optional[List[str]] = None) -> int:
         from .utils.ui import ui, is_json_mode
         _cmd_descriptions = {
             "validate": "Validate artifacts and code traceability",
-            "validate-kits": "Validate kit configuration and blueprints",
+            "validate-kits": "Validate kit structure, templates, and examples",
             "validate-toc": "Validate Table of Contents in Markdown files",
             "spec-coverage": "Measure CDSL marker coverage in code",
-            "kit": "Kit management (install, update, migrate)",
-            "generate-resources": "Regenerate .gen/ outputs from blueprints",
+            "kit": "Kit management (install, update)",
             "init": "Initialize Cypilot in a project",
-            "update": "Update .core/ and regenerate .gen/",
+            "update": "Update Cypilot to the latest version",
             "agents": "Show generated agent integration status",
             "generate-agents": "Generate/update IDE agent integration files",
             "list-ids": "List all Cypilot IDs from artifacts",
@@ -194,16 +175,15 @@ def main(argv: Optional[List[str]] = None) -> int:
             "where-defined": "Find where an ID is defined",
             "where-used": "Find all references to an ID",
             "info": "Show project Cypilot configuration",
-            "self-check": "Validate kit examples against templates",
             "toc": "Generate/update Table of Contents",
             "migrate": "Migrate v2 project to v3",
             "migrate-config": "Convert JSON configs to TOML",
         }
         _sections = [
             ("Setup & Configuration", ["init", "update", "info", "generate-agents", "agents"]),
-            ("Validation", ["validate", "validate-kits", "validate-toc", "self-check", "spec-coverage"]),
+            ("Validation", ["validate", "validate-kits", "validate-toc", "spec-coverage"]),
             ("Search & Navigation", ["list-ids", "list-id-kinds", "get-content", "where-defined", "where-used"]),
-            ("Kit Management", ["kit", "generate-resources"]),
+            ("Kit Management", ["kit"]),
             ("Utility", ["toc"]),
             ("Migration", ["migrate", "migrate-config"]),
         ]
@@ -228,9 +208,10 @@ def main(argv: Optional[List[str]] = None) -> int:
             sys.stderr.write(f"      {'--json':<22} Machine-readable JSON output (for AI agents)\n")
             ui.blank()
             ui.hint("Run 'cpt <command> --help' for command-specific options.")
-            ui.hint("Legacy aliases: validate-code → validate, validate-rules → validate-kits")
+            ui.hint("Legacy aliases: validate-code → validate, validate-rules/self-check → validate-kits")
             ui.blank()
         return 0
+    # @cpt-end:cpt-cypilot-algo-core-infra-route-command:p1:inst-route-helpers
 
     # @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-parse-command
     # Backward compatibility: if first arg starts with --, assume validate command
@@ -270,7 +251,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     elif cmd == "validate-code":
         # Legacy alias: keep for compatibility.
         return _cmd_validate(rest)
-    elif cmd in ("validate-kits", "validate-rules"):
+    elif cmd in ("validate-kits", "validate-rules", "self-check"):
         return _cmd_validate_kits(rest)
     elif cmd == "init":
         return _cmd_init(rest)
@@ -288,8 +269,6 @@ def main(argv: Optional[List[str]] = None) -> int:
         return _cmd_where_used(rest)
     elif cmd == "info":
         return _cmd_cypilot_info(rest)
-    elif cmd == "self-check":
-        return _cmd_self_check(rest)
     elif cmd == "agents":
         return _cmd_agents(rest)
     elif cmd == "generate-agents":
@@ -329,9 +308,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     # @cpt-end:cpt-cypilot-algo-core-infra-route-command:p1:inst-parse-args
     # @cpt-end:cpt-cypilot-algo-core-infra-route-command:p1:inst-lookup-handler
 
-
+# @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-route-helpers
 if __name__ == "__main__":
     raise SystemExit(main())
 
-
 __all__ = ["main"]
+# @cpt-end:cpt-cypilot-algo-core-infra-route-command:p1:inst-route-helpers

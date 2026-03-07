@@ -17,12 +17,12 @@ Features:
 @cpt-flow:cpt-cypilot-flow-developer-experience-self-check:p1
 """
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-datamodel
 from __future__ import annotations
 
 import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
-
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -30,7 +30,6 @@ from typing import Any, Dict, List, Optional, Tuple
 
 _HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
 _FENCE_RE = re.compile(r"^(`{3,}|~{3,})")
-
 
 def _fence_update(
     line: str, state: Optional[Tuple[str, int]],
@@ -61,12 +60,10 @@ def _fence_update(
             return None
     return state
 
-
 TOC_MARKER_START = "<!-- toc -->"
 TOC_MARKER_END = "<!-- /toc -->"
 
 _TOC_HEADING_NAMES = frozenset({"table of contents", "toc"})
-
 
 # ---------------------------------------------------------------------------
 # Anchor / slug
@@ -80,7 +77,7 @@ def github_anchor(text: str) -> str:
     - Remove inline formatting (bold, italic, code backticks, strikethrough)
     - Lowercase
     - Keep word chars (unicode), spaces, hyphens
-    - Spaces → hyphens, collapse consecutive hyphens
+    - Spaces → hyphens (consecutive hyphens preserved, matching GitHub)
     """
     text = text.strip().lower()
     # Remove markdown links but keep link text
@@ -89,12 +86,10 @@ def github_anchor(text: str) -> str:
     text = re.sub(r"\*\*|__|[*_`~]", "", text)
     # Keep only word chars, spaces, hyphens
     text = re.sub(r"[^\w\s\-]", "", text)
-    # Spaces → hyphens
-    text = re.sub(r"\s+", "-", text)
-    # Collapse consecutive hyphens
-    text = re.sub(r"-{2,}", "-", text)
+    # Each space → hyphen individually (GitHub preserves consecutive hyphens)
+    text = re.sub(r"\s", "-", text)
     return text.strip("-")
-
+# @cpt-end:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-datamodel
 
 # ---------------------------------------------------------------------------
 # Heading parsing
@@ -152,7 +147,6 @@ def parse_headings(
 
     return headings
 # @cpt-end:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-parse-headings
-
 
 # ---------------------------------------------------------------------------
 # TOC building
@@ -221,7 +215,7 @@ def build_toc(
     return "\n".join(toc_lines)
 # @cpt-end:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-build-toc
 
-
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-helpers
 def _next_heading_or_separator(
     lines: List[str], start: int,
 ) -> Optional[int]:
@@ -238,7 +232,6 @@ def _next_heading_or_separator(
             return j
     return None
 
-
 def _unique_slug(text: str, slug_counts: Dict[str, int]) -> str:
     """Return a unique GitHub-compatible slug, tracking duplicates."""
     slug = github_anchor(text)
@@ -248,7 +241,7 @@ def _unique_slug(text: str, slug_counts: Dict[str, int]) -> str:
     else:
         slug_counts[slug] = 0
         return slug
-
+# @cpt-end:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-helpers
 
 # ---------------------------------------------------------------------------
 # TOC insertion — marker-based (for CLI ``cypilot toc``)
@@ -314,7 +307,6 @@ def insert_toc_markers(
 
     return "\n".join(new_lines)
 # @cpt-end:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-insert-markers
-
 
 # ---------------------------------------------------------------------------
 # TOC insertion — heading-based (for blueprint-generated content)
@@ -421,11 +413,11 @@ def insert_toc_heading(
     return f"{toc_section}\n\n{content}"
 # @cpt-end:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-insert-heading
 
-
 # ---------------------------------------------------------------------------
 # File-level processing (for CLI command)
 # ---------------------------------------------------------------------------
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-helpers
 def _strip_manual_toc(content: str) -> Tuple[str, bool]:
     """Remove a standalone ``## Table of Contents`` section not inside markers.
 
@@ -477,7 +469,7 @@ def _strip_manual_toc(content: str) -> Tuple[str, bool]:
 
     new_lines = lines[:start] + lines[end:]
     return "\n".join(new_lines), True
-
+# @cpt-end:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-helpers
 
 # @cpt-begin:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-process-file
 def process_file(
@@ -525,14 +517,13 @@ def process_file(
     return result
 # @cpt-end:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-process-file
 
-
 # ---------------------------------------------------------------------------
 # TOC validation
 # ---------------------------------------------------------------------------
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-helpers
 # Regex to extract markdown links from TOC entries: ``[text](#anchor)``
 _TOC_LINK_RE = re.compile(r"\[([^\]]+)\]\(#([^)]+)\)")
-
 
 def _find_toc_section(
     lines: List[str],
@@ -571,7 +562,6 @@ def _find_toc_section(
 
     return None
 
-
 def _extract_toc_entries(
     lines: List[str],
     toc_start: int,
@@ -587,7 +577,6 @@ def _extract_toc_entries(
             entries.append((display.strip(), anchor.strip(), i + 1))
     return entries
 
-
 def _build_expected_anchors(
     headings: List[Tuple[int, str]],
 ) -> Dict[str, str]:
@@ -601,7 +590,7 @@ def _build_expected_anchors(
         slug = _unique_slug(text, slug_counts)
         result[slug] = text
     return result
-
+# @cpt-end:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-helpers
 
 # @cpt-begin:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-validate
 def validate_toc(
@@ -735,7 +724,7 @@ def validate_toc(
     return {"errors": errors, "warnings": warnings}
 # @cpt-end:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-validate
 
-
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-helpers
 def _find_heading_line(lines: List[str], heading_text: str) -> int:
     """Find the 1-based line number of a heading by its text."""
     fence: Optional[Tuple[str, int]] = None
@@ -750,3 +739,4 @@ def _find_heading_line(lines: List[str], heading_text: str) -> int:
         if m and m.group(2).strip() == heading_text:
             return i + 1
     return 1
+# @cpt-end:cpt-cypilot-algo-traceability-validation-toc-utils:p1:inst-toc-util-helpers

@@ -8,6 +8,7 @@ File I/O, project root discovery, cypilot detection, path resolution.
 @cpt-dod:cpt-cypilot-dod-core-infra-init-config:p1
 """
 
+# @cpt-begin:cpt-cypilot-algo-core-infra-project-root-detection:p1:inst-root-datamodel
 import json
 import re
 from pathlib import Path
@@ -19,7 +20,6 @@ from . import toml_utils
 _MARKER_START = "<!-- @cpt:root-agents -->"
 _CORE_SUBDIR = ".core"
 _GEN_SUBDIR = ".gen"
-
 
 def core_subpath(cypilot_root: Path, *parts: str) -> Path:
     """Resolve a subpath within a cypilot root, checking .core/ first.
@@ -34,16 +34,14 @@ def core_subpath(cypilot_root: Path, *parts: str) -> Path:
         return core.joinpath(*parts)
     return cypilot_root.joinpath(*parts)
 
+def config_subpath(cypilot_root: Path, *parts: str) -> Path:
+    """Resolve a subpath within the config/ directory.
 
-def gen_subpath(cypilot_root: Path, *parts: str) -> Path:
-    """Resolve a subpath within the .gen/ directory.
+    Layout: cypilot/config/kits/sdlc/SKILL.md
 
-    Layout: cypilot/.gen/kits/sdlc/SKILL.md
-
-    Returns the .gen/ path unconditionally (generated dir always uses .gen/).
+    In v3 layout, generated kit outputs live in config/kits/{slug}/.
     """
-    return (cypilot_root / _GEN_SUBDIR).joinpath(*parts)
-
+    return (cypilot_root / "config").joinpath(*parts)
 
 def cfg_get_str(cfg: object, *keys: str) -> Optional[str]:
     """Extract first non-empty string value from config dict for given keys."""
@@ -54,7 +52,7 @@ def cfg_get_str(cfg: object, *keys: str) -> Optional[str]:
         if isinstance(v, str) and v.strip():
             return v.strip()
     return None
-
+# @cpt-end:cpt-cypilot-algo-core-infra-project-root-detection:p1:inst-root-datamodel
 
 # @cpt-begin:cpt-cypilot-algo-core-infra-project-root-detection:p1:inst-root-walk-up
 def find_project_root(start: Path) -> Optional[Path]:
@@ -92,7 +90,6 @@ def find_project_root(start: Path) -> Optional[Path]:
     # @cpt-end:cpt-cypilot-algo-core-infra-project-root-detection:p1:inst-root-not-found
 # @cpt-end:cpt-cypilot-algo-core-infra-project-root-detection:p1:inst-root-walk-up
 
-
 # @cpt-begin:cpt-cypilot-algo-core-infra-config-management:p1:inst-cfg-read-var
 def _read_cypilot_var(project_root: Path) -> Optional[str]:
     """Read ``cypilot_path`` (or legacy ``cypilot``) variable from root AGENTS.md TOML block."""
@@ -109,7 +106,6 @@ def _read_cypilot_var(project_root: Path) -> Optional[str]:
     val = data.get("cypilot_path") or data.get("cypilot")
     return val.strip() if isinstance(val, str) and val.strip() else None
 # @cpt-end:cpt-cypilot-algo-core-infra-config-management:p1:inst-cfg-read-var
-
 
 # @cpt-begin:cpt-cypilot-algo-core-infra-config-management:p1:inst-cfg-load-core
 def load_project_config(project_root: Path) -> Optional[dict]:
@@ -129,7 +125,7 @@ def load_project_config(project_root: Path) -> Optional[dict]:
         return None
 # @cpt-end:cpt-cypilot-algo-core-infra-config-management:p1:inst-cfg-load-core
 
-
+# @cpt-begin:cpt-cypilot-algo-core-infra-config-management:p1:inst-cfg-helpers
 def cypilot_root_from_project_config() -> Optional[Path]:
     """Get Cypilot core path from config core.toml [paths] section."""
     project_root = find_project_root(Path.cwd())
@@ -150,7 +146,7 @@ def cypilot_root_from_project_config() -> Optional[Path]:
     if _is_cypilot_root(core):
         return core
     return None
-
+# @cpt-end:cpt-cypilot-algo-core-infra-config-management:p1:inst-cfg-helpers
 
 # @cpt-begin:cpt-cypilot-algo-core-infra-config-management:p1:inst-cfg-find-dir
 def find_cypilot_directory(start: Path, cypilot_root: Optional[Path] = None) -> Optional[Path]:
@@ -268,7 +264,6 @@ def find_cypilot_directory(start: Path, cypilot_root: Optional[Path] = None) -> 
     return search_recursive(project_root)
 # @cpt-end:cpt-cypilot-algo-core-infra-config-management:p1:inst-cfg-find-dir
 
-
 # @cpt-begin:cpt-cypilot-algo-core-infra-config-management:p1:inst-cfg-load-config
 def load_cypilot_config(adapter_dir: Path) -> Dict[str, object]:
     """
@@ -305,7 +300,6 @@ def load_cypilot_config(adapter_dir: Path) -> Dict[str, object]:
     return config
 # @cpt-end:cpt-cypilot-algo-core-infra-config-management:p1:inst-cfg-load-config
 
-
 # @cpt-begin:cpt-cypilot-algo-core-infra-config-management:p1:inst-cfg-load-registry
 def load_artifacts_registry(adapter_dir: Path) -> Tuple[Optional[dict], Optional[str]]:
     path = adapter_dir / ARTIFACTS_REGISTRY_FILENAME
@@ -335,7 +329,7 @@ def load_artifacts_registry(adapter_dir: Path) -> Tuple[Optional[dict], Optional
     return cfg, None
 # @cpt-end:cpt-cypilot-algo-core-infra-config-management:p1:inst-cfg-load-registry
 
-
+# @cpt-begin:cpt-cypilot-algo-core-infra-config-management:p1:inst-cfg-helpers
 def iter_registry_entries(registry: dict) -> List[dict]:
     items = registry.get("artifacts")
     if not isinstance(items, list):
@@ -345,7 +339,6 @@ def iter_registry_entries(registry: dict) -> List[dict]:
         if isinstance(it, dict):
             out.append(it)
     return out
-
 
 def _is_cypilot_root(path: Path) -> bool:
     """Check if *path* looks like a cypilot root (flat or .core/ layout)."""
@@ -361,7 +354,6 @@ def _is_cypilot_root(path: Path) -> bool:
     ):
         return True
     return False
-
 
 def cypilot_root_from_this_file() -> Path:
     """
@@ -387,7 +379,6 @@ def cypilot_root_from_this_file() -> Path:
     # Fallback to old behavior if markers not found
     return Path(__file__).resolve().parents[6]
 
-
 def load_text(path: Path) -> Tuple[str, Optional[str]]:
     """
     Load text from file, returning (content, error_message).
@@ -401,3 +392,4 @@ def load_text(path: Path) -> Tuple[str, Optional[str]]:
         return path.read_text(encoding="utf-8"), None
     except Exception as e:
         return "", f"Failed to read {path}: {e}"
+# @cpt-end:cpt-cypilot-algo-core-infra-config-management:p1:inst-cfg-helpers

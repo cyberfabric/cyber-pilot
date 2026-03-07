@@ -11,6 +11,7 @@ All actual logic lives in the skill engine — this proxy only routes.
 @cpt-state:cpt-cypilot-state-core-infra-project-install:p1
 """
 
+# @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-cli-proxy-helpers
 import json
 import subprocess
 import sys
@@ -25,7 +26,6 @@ from cypilot_proxy.resolve import (
     resolve_skill,
 )
 
-
 def _extract_version_param(args: List[str]) -> Optional[str]:
     """
     Extract and remove --version VERSION from args list.
@@ -34,7 +34,6 @@ def _extract_version_param(args: List[str]) -> Optional[str]:
     Mutates args in place, returns the version string or None.
     """
     return _extract_named_param(args, "--version")
-
 
 def _extract_named_param(args: List[str], name: str) -> Optional[str]:
     """
@@ -55,7 +54,7 @@ def _extract_named_param(args: List[str], name: str) -> Optional[str]:
             return value
         i += 1
     return None
-
+# @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-cli-proxy-helpers
 
 def main(argv: Optional[List[str]] = None) -> int:
     """
@@ -65,6 +64,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     args = argv if argv is not None else sys.argv[1:]
     # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-user-invokes
 
+    # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-cli-proxy-helpers
     # Handle --version with no value: show version info
     if args and args[0] == "--version" and len(args) == 1:
         from cypilot_proxy import __version__
@@ -95,6 +95,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         if "--no-cache" in args:
             skip_cache = True
             args.remove("--no-cache")
+    # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-cli-proxy-helpers
 
     # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-update-cache
     if args and args[0] == "update":
@@ -135,30 +136,41 @@ def main(argv: Optional[List[str]] = None) -> int:
         # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-return-cache-update
     # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-update-cache
 
+    # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-cli-proxy-helpers
     # Re-add --force to args for init (skill needs it for config overwrite)
     if force_update and args and args[0] == "init":
         args.append("--force")
 
-    # For init with --version: update cache first, then forward init to skill
-    if target_version is not None:
-        from cypilot_proxy.cache import download_and_cache
+    # For init: always update cache first, then forward to cached skill
+    if args and args[0] == "init" and not skip_cache and "--help" not in args and "-h" not in args:
+        if source_dir is not None:
+            from cypilot_proxy.cache import copy_from_local
 
-        sys.stderr.write(f"Updating cache to version {target_version}...\n")
-        success, message = download_and_cache(version=target_version, force=force_update)
+            sys.stderr.write("Updating cache from local source...\n")
+            success, message = copy_from_local(source_dir=source_dir, force=force_update)
+        else:
+            from cypilot_proxy.cache import download_and_cache
+
+            if target_version:
+                sys.stderr.write(f"Updating cache to version {target_version}...\n")
+            else:
+                sys.stderr.write("Updating cache to latest version...\n")
+            success, message = download_and_cache(version=target_version, force=force_update, url=custom_url)
         sys.stderr.write(f"{message}\n")
         if not success:
             return 1
+    # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-cli-proxy-helpers
 
     # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-check-project-skill
     # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-project-skill
     # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-else-no-project
     # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-check-cache
     # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-cache
-    # For init --force / --version: use cached skill to avoid chicken-and-egg
-    # (old project skill would run init that copies new code, but old code is in memory)
+    # For init: always use cached skill (we just updated cache above)
     use_cache_for_init = (
         args and args[0] == "init"
-        and (force_update or target_version is not None)
+        and not skip_cache
+        and "--help" not in args and "-h" not in args
     )
     if use_cache_for_init:
         skill_path = find_cached_skill()
@@ -233,7 +245,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     return result
     # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-return-exit
 
-
+# @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-cli-proxy-helpers
 def _forward_to_skill(skill_path: Path, args: List[str]) -> int:
     """
     Forward command to the resolved skill engine via subprocess.
@@ -260,7 +272,6 @@ def _forward_to_skill(skill_path: Path, args: List[str]) -> int:
         return 1
     # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-forward-cache
     # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-forward-project
-
 
 def _background_version_check(project_skill_path: Path) -> None:
     """
@@ -292,3 +303,4 @@ def _background_version_check(project_skill_path: Path) -> None:
         # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-if-version-mismatch
     except Exception:
         pass  # Never fail the actual command for a version check
+# @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-cli-proxy-helpers

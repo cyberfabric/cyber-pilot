@@ -27,19 +27,24 @@ def _make_cache(cache_dir: Path, kit_version: int = 1) -> None:
     for d in ("architecture", "requirements", "schemas", "workflows", "skills"):
         (cache_dir / d).mkdir(parents=True, exist_ok=True)
         (cache_dir / d / "README.md").write_text(f"# {d}\n", encoding="utf-8")
-    bp_dir = cache_dir / "kits" / "sdlc" / "blueprints"
-    bp_dir.mkdir(parents=True, exist_ok=True)
-    (bp_dir / "prd.md").write_text(
-        '`@cpt:blueprint`\n```toml\n'
-        'artifact = "PRD"\nkit = "sdlc"\n'
-        '```\n`@/cpt:blueprint`\n\n'
-        '`@cpt:heading`\n```toml\nlevel = 1\ntemplate = "Product Requirements"\n```\n`@/cpt:heading`\n',
-        encoding="utf-8",
+    # Kit as direct file package (no blueprints)
+    kit_dir = cache_dir / "kits" / "sdlc"
+    kit_dir.mkdir(parents=True, exist_ok=True)
+    (kit_dir / "artifacts" / "PRD").mkdir(parents=True)
+    (kit_dir / "artifacts" / "PRD" / "template.md").write_text(
+        "# Product Requirements\n", encoding="utf-8",
     )
-    scripts_dir = cache_dir / "kits" / "sdlc" / "scripts"
+    (kit_dir / "workflows").mkdir(exist_ok=True)
+    scripts_dir = kit_dir / "scripts"
     scripts_dir.mkdir(parents=True, exist_ok=True)
     (scripts_dir / "helper.py").write_text("# helper\n", encoding="utf-8")
-    _write_toml(cache_dir / "kits" / "sdlc" / "conf.toml", {
+    (kit_dir / "SKILL.md").write_text(
+        "# Kit sdlc\nKit skill instructions.\n", encoding="utf-8",
+    )
+    (kit_dir / "constraints.toml").write_text(
+        "[naming]\npattern = 'sdlc-*'\n", encoding="utf-8",
+    )
+    _write_toml(kit_dir / "conf.toml", {
         "version": kit_version,
     })
 
@@ -93,26 +98,6 @@ class TestUpdateHelpers(unittest.TestCase):
         self.assertIn("config", content.lower())
         self.assertIn("core.toml", content)
 
-    def test_read_project_name_from_core_toml(self):
-        from cypilot.commands.update import _read_project_name
-        with TemporaryDirectory() as td:
-            config_dir = Path(td)
-            _write_toml(config_dir / "core.toml", {
-                "system": {"name": "MyProject", "slug": "myproject"},
-            })
-            self.assertEqual(_read_project_name(config_dir), "MyProject")
-
-    def test_read_project_name_missing(self):
-        from cypilot.commands.update import _read_project_name
-        with TemporaryDirectory() as td:
-            self.assertIsNone(_read_project_name(Path(td)))
-
-    def test_read_project_name_corrupt(self):
-        from cypilot.commands.update import _read_project_name
-        with TemporaryDirectory() as td:
-            (Path(td) / "core.toml").write_text("{{invalid", encoding="utf-8")
-            self.assertIsNone(_read_project_name(Path(td)))
-
     def test_read_conf_version(self):
         from cypilot.commands.update import _read_conf_version
         with TemporaryDirectory() as td:
@@ -138,6 +123,14 @@ class TestUpdateHelpers(unittest.TestCase):
 
 class TestCmdUpdateErrors(unittest.TestCase):
     """Error handling in cmd_update."""
+
+    def setUp(self):
+        from cypilot.utils.ui import set_json_mode
+        set_json_mode(True)
+
+    def tearDown(self):
+        from cypilot.utils.ui import set_json_mode
+        set_json_mode(False)
 
     def test_no_project_root(self):
         from cypilot.commands.update import cmd_update
@@ -224,6 +217,14 @@ class TestCmdUpdateErrors(unittest.TestCase):
 class TestCmdUpdatePipeline(unittest.TestCase):
     """Full update pipeline: init then update."""
 
+    def setUp(self):
+        from cypilot.utils.ui import set_json_mode
+        set_json_mode(True)
+
+    def tearDown(self):
+        from cypilot.utils.ui import set_json_mode
+        set_json_mode(False)
+
     def test_update_after_init(self):
         """Update on a freshly initialized project succeeds."""
         from cypilot.commands.update import cmd_update
@@ -292,8 +293,8 @@ class TestCmdUpdatePipeline(unittest.TestCase):
                     rc = cmd_update(["--project-root", str(root)])
             self.assertEqual(rc, 0)
 
-    def test_update_version_drift_warns(self):
-        """When cache has newer kit version, update warns about migration."""
+    def test_update_version_drift(self):
+        """When cache has newer kit version, update applies file-level diff."""
         from cypilot.commands.update import cmd_update
         with TemporaryDirectory() as td:
             root = Path(td) / "proj"
@@ -316,11 +317,11 @@ class TestCmdUpdatePipeline(unittest.TestCase):
                         rc = cmd_update([])
                 self.assertEqual(rc, 0)
                 out = json.loads(buf.getvalue())
-                # Auto-migration should have run (verified via JSON output)
                 kits = out["actions"].get("kits", {})
                 sdlc_r = kits.get("sdlc", {})
                 ver = sdlc_r.get("version", {})
-                self.assertEqual(ver.get("status"), "migrated")
+                # Version drift runs the diff; if file content is identical, status is "current"
+                self.assertIn(ver.get("status"), ["created", "updated", "current"])
             finally:
                 os.chdir(cwd)
 
@@ -357,8 +358,8 @@ class TestCmdUpdatePipeline(unittest.TestCase):
             finally:
                 os.chdir(cwd)
 
-    def test_update_first_install_blueprints(self):
-        """Update copies blueprints on first install (no user blueprints yet)."""
+    def test_update_first_install_kit_content(self):
+        """Update copies kit content on first install (no user kit yet)."""
         from cypilot.commands.update import cmd_update
         with TemporaryDirectory() as td:
             root = Path(td) / "proj"
@@ -367,14 +368,10 @@ class TestCmdUpdatePipeline(unittest.TestCase):
             _make_cache(cache)
             adapter = _init_project(root, cache)
 
-            # Remove user blueprints to simulate first install scenario
-            user_bp = adapter / "config" / "kits" / "sdlc" / "blueprints"
-            if user_bp.exists():
-                shutil.rmtree(user_bp)
-            # Also remove conf.toml
-            user_conf = adapter / "config" / "kits" / "sdlc" / "conf.toml"
-            if user_conf.exists():
-                user_conf.unlink()
+            # Remove kit content to simulate first install scenario
+            config_kit = adapter / "config" / "kits" / "sdlc"
+            if config_kit.exists():
+                shutil.rmtree(config_kit)
 
             cwd = os.getcwd()
             try:
@@ -389,103 +386,12 @@ class TestCmdUpdatePipeline(unittest.TestCase):
                 kits = out["actions"].get("kits", {})
                 sdlc_r = kits.get("sdlc", {})
                 self.assertEqual(sdlc_r.get("version", {}).get("status"), "created")
-                # Blueprints should now exist
-                self.assertTrue(user_bp.is_dir())
+                # Kit content should now exist in config/kits/sdlc/
+                self.assertTrue(config_kit.is_dir())
             finally:
                 os.chdir(cwd)
 
 
-def _make_rich_cache(cache_dir: Path) -> None:
-    """Cache with blueprints that have @cpt:skill, @cpt:sysprompt, @cpt:workflow markers."""
-    for d in ("architecture", "requirements", "schemas", "workflows", "skills"):
-        (cache_dir / d).mkdir(parents=True, exist_ok=True)
-        (cache_dir / d / "README.md").write_text(f"# {d}\n", encoding="utf-8")
-    bp_dir = cache_dir / "kits" / "rich" / "blueprints"
-    bp_dir.mkdir(parents=True, exist_ok=True)
-    (bp_dir / "feature.md").write_text(
-        "<!-- @cpt:blueprint -->\n```toml\n"
-        'artifact = "FEATURE"\nkit = "rich"\nversion = 1\n'
-        "```\n<!-- /@cpt:blueprint -->\n\n"
-        "<!-- @cpt:heading -->\n# Feature Spec\n<!-- /@cpt:heading -->\n\n"
-        "<!-- @cpt:skill -->\nUse this kit for feature specs.\n<!-- /@cpt:skill -->\n\n"
-        "<!-- @cpt:sysprompt -->\nYou are a feature assistant.\n<!-- /@cpt:sysprompt -->\n\n"
-        "<!-- @cpt:workflow -->\n```toml\n"
-        'name = "feature-review"\ndescription = "Review features"\n'
-        'version = "1.0"\npurpose = "QA"\n'
-        "```\n\nReview the feature.\n<!-- /@cpt:workflow -->\n",
-        encoding="utf-8",
-    )
-    _write_toml(cache_dir / "kits" / "rich" / "conf.toml", {
-        "version": 1, "blueprints": {"feature": 1},
-    })
-
-
-class TestUpdateWithRichBlueprints(unittest.TestCase):
-    """Update with skill/sysprompt/workflow content to cover gen lines 242-283."""
-
-    def test_update_generates_skill_sysprompt_workflow(self):
-        """Mock process_kit to return rich content → covers gen lines 242-283."""
-        from cypilot.commands.update import cmd_update
-        with TemporaryDirectory() as td:
-            root = Path(td) / "proj"
-            root.mkdir()
-            cache = Path(td) / "cache"
-            _make_cache(cache)
-            _init_project(root, cache)
-
-            fake_summary = {
-                "files_written": 1,
-                "artifact_kinds": ["PRD"],
-                "files": ["prd.md"],
-                "skill_content": "## PRD\n\nUse this kit for PRDs.",
-                "sysprompt_content": "You are a requirements assistant.",
-                "workflows": [
-                    {"name": "review", "description": "Review docs",
-                     "version": "1.0", "purpose": "QA", "content": "Review the doc."},
-                ],
-            }
-
-            cwd = os.getcwd()
-            try:
-                os.chdir(str(root))
-                with patch("cypilot.commands.update.CACHE_DIR", cache):
-                    with patch("cypilot.utils.blueprint.process_kit",
-                               return_value=(fake_summary, [])):
-                        buf = io.StringIO()
-                        err = io.StringIO()
-                        with redirect_stdout(buf), redirect_stderr(err):
-                            rc = cmd_update([])
-                self.assertEqual(rc, 0)
-                out = json.loads(buf.getvalue())
-                self.assertIn(out["status"], ["PASS", "WARN"])
-
-                adapter = root / "cypilot"
-                gen_dir = adapter / ".gen"
-                # SKILL.md should reference the kit
-                skill_md = gen_dir / "SKILL.md"
-                self.assertTrue(skill_md.is_file())
-                skill_text = skill_md.read_text(encoding="utf-8")
-                self.assertIn("sdlc", skill_text)
-
-                # AGENTS.md should have sysprompt content
-                agents_md = gen_dir / "AGENTS.md"
-                self.assertTrue(agents_md.is_file())
-                agents_text = agents_md.read_text(encoding="utf-8")
-                self.assertIn("requirements assistant", agents_text)
-
-                # Workflow file should exist
-                wf_dir = gen_dir / "kits" / "sdlc" / "workflows"
-                self.assertTrue(wf_dir.is_dir())
-                wf_files = list(wf_dir.glob("*.md"))
-                self.assertGreater(len(wf_files), 0)
-                wf_text = wf_files[0].read_text(encoding="utf-8")
-                self.assertIn("cypilot: true", wf_text)
-                self.assertIn("type: workflow", wf_text)
-                self.assertIn("description: Review docs", wf_text)
-                self.assertIn("version: 1.0", wf_text)
-                self.assertIn("purpose: QA", wf_text)
-            finally:
-                os.chdir(cwd)
 
 
 class TestUpdateHelperExceptions(unittest.TestCase):
@@ -498,34 +404,6 @@ class TestUpdateHelperExceptions(unittest.TestCase):
             p.write_text("{{corrupt", encoding="utf-8")
             self.assertEqual(_read_conf_version(p), 0)
 
-    def test_update_with_process_kit_errors(self):
-        """When process_kit returns errors, update records them."""
-        from cypilot.commands.update import cmd_update
-        with TemporaryDirectory() as td:
-            root = Path(td) / "proj"
-            root.mkdir()
-            cache = Path(td) / "cache"
-            _make_cache(cache)
-            _init_project(root, cache)
-
-            cwd = os.getcwd()
-            try:
-                os.chdir(str(root))
-                fake_summary = {"files_written": 0, "artifact_kinds": []}
-                fake_errors = ["blueprint parse error"]
-                with patch("cypilot.commands.update.CACHE_DIR", cache):
-                    with patch("cypilot.utils.blueprint.process_kit",
-                               return_value=(fake_summary, fake_errors)):
-                        buf = io.StringIO()
-                        err = io.StringIO()
-                        with redirect_stdout(buf), redirect_stderr(err):
-                            rc = cmd_update([])
-                self.assertEqual(rc, 0)
-                out = json.loads(buf.getvalue())
-                self.assertEqual(out["status"], "WARN")
-                self.assertTrue(out.get("errors"))
-            finally:
-                os.chdir(cwd)
 
     def test_update_non_dir_in_kits_cache_skipped(self):
         """Files (non-dirs) in kits cache dir are skipped."""
@@ -672,6 +550,14 @@ class TestShowCoreWhatsnew(unittest.TestCase):
 
 
 class TestCmdUpdateWhatsnew(unittest.TestCase):
+
+    def setUp(self):
+        from cypilot.utils.ui import set_json_mode
+        set_json_mode(True)
+
+    def tearDown(self):
+        from cypilot.utils.ui import set_json_mode
+        set_json_mode(False)
     """Integration tests for core whatsnew in cmd_update pipeline."""
 
     def test_update_shows_whatsnew_and_copies_to_core(self):
@@ -810,6 +696,14 @@ class TestCmdUpdateWhatsnew(unittest.TestCase):
 
 class TestMaybeRegenerateAgents(unittest.TestCase):
     """Tests for auto-regeneration of agent files during update."""
+
+    def setUp(self):
+        from cypilot.utils.ui import set_json_mode
+        set_json_mode(True)
+
+    def tearDown(self):
+        from cypilot.utils.ui import set_json_mode
+        set_json_mode(False)
 
     def _make_project_with_agents(self, root: Path, cache: Path) -> Path:
         """Create a project with init + generate-agents for one agent."""
@@ -959,6 +853,141 @@ class TestMaybeRegenerateAgents(unittest.TestCase):
             self.assertIn("cursor", result)
             # windsurf has no files → not regenerated
             self.assertNotIn("windsurf", result)
+
+
+class TestHumanUpdateOk(unittest.TestCase):
+    """Cover _human_update_ok display branches."""
+
+    def setUp(self):
+        from cypilot.utils.ui import set_json_mode
+        set_json_mode(False)
+
+    def test_basic_pass(self):
+        from cypilot.commands.update import _human_update_ok
+        buf = io.StringIO()
+        with redirect_stderr(buf):
+            _human_update_ok({
+                "status": "PASS",
+                "project_root": "/tmp/proj",
+                "cypilot_dir": "/tmp/proj/cypilot",
+                "dry_run": False,
+                "actions": {},
+            })
+        out = buf.getvalue()
+        self.assertIn("Update complete", out)
+
+    def test_dry_run(self):
+        from cypilot.commands.update import _human_update_ok
+        buf = io.StringIO()
+        with redirect_stderr(buf):
+            _human_update_ok({
+                "status": "PASS",
+                "project_root": "/tmp/proj",
+                "cypilot_dir": "/tmp/proj/cypilot",
+                "dry_run": True,
+                "actions": {},
+            })
+        out = buf.getvalue()
+        self.assertIn("dry-run", out.lower())
+
+    def test_with_errors_and_warnings(self):
+        from cypilot.commands.update import _human_update_ok
+        buf = io.StringIO()
+        with redirect_stderr(buf):
+            _human_update_ok({
+                "status": "WARN",
+                "project_root": "/tmp/proj",
+                "cypilot_dir": "/tmp/proj/cypilot",
+                "dry_run": False,
+                "actions": {},
+                "errors": [{"path": "kit.py", "error": "bad"}, "plain error"],
+                "warnings": ["warn1"],
+            })
+        out = buf.getvalue()
+        self.assertIn("bad", out)
+        self.assertIn("warn1", out)
+        self.assertIn("warnings", out.lower())
+
+    def test_with_kits_data(self):
+        from cypilot.commands.update import _human_update_ok
+        buf = io.StringIO()
+        with redirect_stderr(buf):
+            _human_update_ok({
+                "status": "PASS",
+                "project_root": "/tmp/proj",
+                "cypilot_dir": "/tmp/proj/cypilot",
+                "dry_run": False,
+                "actions": {
+                    "kits": {
+                        "sdlc": {
+                            "version": {"status": "created"},
+                            "gen": {"files_written": 10, "artifact_kinds": ["DESIGN"]},
+                            "reference": "installed",
+                        },
+                        "bad": "string_value",
+                    },
+                },
+            })
+        out = buf.getvalue()
+        self.assertIn("sdlc", out)
+        self.assertIn("Kits", out)
+
+    def test_with_core_update(self):
+        from cypilot.commands.update import _human_update_ok
+        buf = io.StringIO()
+        with redirect_stderr(buf):
+            _human_update_ok({
+                "status": "PASS",
+                "project_root": "/tmp/proj",
+                "cypilot_dir": "/tmp/proj/cypilot",
+                "dry_run": False,
+                "actions": {
+                    "core_update": {"architecture/": "updated", "skills/": "created"},
+                    "file.md": "created",
+                    "other.md": "updated",
+                    "keep.md": "unchanged",
+                },
+            })
+        out = buf.getvalue()
+        self.assertIn("Core", out)
+        self.assertIn("Created", out)
+        self.assertIn("Updated", out)
+
+    def test_with_agents_regenerated(self):
+        from cypilot.commands.update import _human_update_ok
+        buf = io.StringIO()
+        with redirect_stderr(buf):
+            _human_update_ok({
+                "status": "PASS",
+                "project_root": "/tmp/proj",
+                "cypilot_dir": "/tmp/proj/cypilot",
+                "dry_run": False,
+                "actions": {
+                    "agents_regenerated": ["cursor", "windsurf"],
+                },
+            })
+        out = buf.getvalue()
+        self.assertIn("cursor", out)
+
+    def test_with_dict_and_list_actions(self):
+        from cypilot.commands.update import _human_update_ok
+        buf = io.StringIO()
+        with redirect_stderr(buf):
+            _human_update_ok({
+                "status": "PASS",
+                "project_root": "/tmp/proj",
+                "cypilot_dir": "/tmp/proj/cypilot",
+                "dry_run": False,
+                "actions": {
+                    "layout_migration": {"sdlc": "migrated"},
+                    "extra_list": ["item1", "item2"],
+                },
+            })
+        out = buf.getvalue()
+        self.assertIn("layout_migration", out)
+        self.assertIn("sdlc", out)
+        self.assertIn("extra_list", out)
+        self.assertIn("item1", out)
 
 
 if __name__ == "__main__":

@@ -11,6 +11,7 @@ Measures two metrics:
 @cpt-algo:cpt-cypilot-algo-spec-coverage-granularity:p1
 @cpt-algo:cpt-cypilot-algo-spec-coverage-report:p1
 """
+# @cpt-begin:cpt-cypilot-algo-spec-coverage-scan:p1:inst-scan-datamodel
 from __future__ import annotations
 
 import re
@@ -20,7 +21,6 @@ from typing import Dict, List, Optional, Set, Tuple
 
 from .codebase import CodeFile, _SCOPE_MARKER_RE, _BLOCK_BEGIN_RE, _BLOCK_END_RE
 from .language_config import EXTENSION_COMMENT_DEFAULTS
-
 
 # ---------------------------------------------------------------------------
 # Data structures
@@ -41,7 +41,6 @@ class FileCoverage:
     coverage_pct: float
     granularity: float
 
-
 @dataclass
 class CoverageReport:
     """Aggregated coverage report."""
@@ -54,16 +53,30 @@ class CoverageReport:
     granularity_score: float
     per_file: List[FileCoverage]
     flagged_files: List[str]  # files with granularity < 0.5
-
+# @cpt-end:cpt-cypilot-algo-spec-coverage-scan:p1:inst-scan-datamodel
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+# @cpt-begin:cpt-cypilot-algo-spec-coverage-scan:p1:inst-scan-helpers
+def _is_blank_or_comment(line: str, ext: str, state: Optional[Dict[str, Any]] = None) -> bool:
+    """Check if a line is blank or a comment for the given file extension.
 
-def _is_blank_or_comment(line: str, ext: str) -> bool:
-    """Check if a line is blank or a comment for the given file extension."""
+    When *state* is provided it must be a dict (e.g. ``{"in_block": False,
+    "end_marker": ""}``).  The function uses it to track whether the current
+    line is inside a multi-line comment block so that continuation lines are
+    correctly classified as comments.
+    """
     stripped = line.strip()
     if not stripped:
+        return True
+
+    # Inside a multi-line comment block? (stateful tracking)
+    if state is not None and state.get("in_block"):
+        end_marker = state["end_marker"]
+        if end_marker in stripped:
+            state["in_block"] = False
+            state["end_marker"] = ""
         return True
 
     comment_info = EXTENSION_COMMENT_DEFAULTS.get(ext)
@@ -82,15 +95,37 @@ def _is_blank_or_comment(line: str, ext: str) -> bool:
 
     for mlc in multi_line:
         if stripped.startswith(mlc["start"]):
+            # Check if block closes on same line
+            rest = stripped[len(mlc["start"]):]
+            if mlc["end"] not in rest and state is not None:
+                state["in_block"] = True
+                state["end_marker"] = mlc["end"]
             return True
 
     return False
 
+def _build_ranges(sorted_lines: List[int]) -> List[Tuple[int, int]]:
+    """Build contiguous ranges from sorted line numbers."""
+    if not sorted_lines:
+        return []
+    ranges: List[Tuple[int, int]] = []
+    start = sorted_lines[0]
+    end = start
+    for ln in sorted_lines[1:]:
+        if ln == end + 1:
+            end = ln
+        else:
+            ranges.append((start, end))
+            start = ln
+            end = ln
+    ranges.append((start, end))
+    return ranges
+# @cpt-end:cpt-cypilot-algo-spec-coverage-scan:p1:inst-scan-helpers
 
 # ---------------------------------------------------------------------------
 # Scan a single file
 # ---------------------------------------------------------------------------
-
+# @cpt-begin:cpt-cypilot-algo-spec-coverage-scan:p1:inst-scan-init
 def scan_file_coverage(path: Path) -> Optional[FileCoverage]:
     """Scan a code file and calculate its coverage metrics.
 
@@ -104,13 +139,15 @@ def scan_file_coverage(path: Path) -> Optional[FileCoverage]:
     lines = text.splitlines()
     total_lines = len(lines)
     ext = path.suffix.lower()
+    # @cpt-end:cpt-cypilot-algo-spec-coverage-scan:p1:inst-scan-init
 
     # @cpt-begin:cpt-cypilot-algo-spec-coverage-scan:p1:inst-scan-count-lines
     effective_lines = 0
     effective_line_set: Set[int] = set()
+    comment_state: Dict[str, Any] = {"in_block": False, "end_marker": ""}
     for idx, line in enumerate(lines):
         line_no = idx + 1
-        if not _is_blank_or_comment(line, ext):
+        if not _is_blank_or_comment(line, ext, comment_state):
             effective_lines += 1
             effective_line_set.add(line_no)
     # @cpt-end:cpt-cypilot-algo-spec-coverage-scan:p1:inst-scan-count-lines
@@ -205,25 +242,6 @@ def scan_file_coverage(path: Path) -> Optional[FileCoverage]:
     )
     # @cpt-end:cpt-cypilot-algo-spec-coverage-scan:p1:inst-scan-return
 
-
-def _build_ranges(sorted_lines: List[int]) -> List[Tuple[int, int]]:
-    """Build contiguous ranges from sorted line numbers."""
-    if not sorted_lines:
-        return []
-    ranges: List[Tuple[int, int]] = []
-    start = sorted_lines[0]
-    end = start
-    for ln in sorted_lines[1:]:
-        if ln == end + 1:
-            end = ln
-        else:
-            ranges.append((start, end))
-            start = ln
-            end = ln
-    ranges.append((start, end))
-    return ranges
-
-
 # ---------------------------------------------------------------------------
 # Aggregate metrics
 # ---------------------------------------------------------------------------
@@ -292,11 +310,11 @@ def calculate_metrics(file_coverages: List[FileCoverage]) -> CoverageReport:
     )
     # @cpt-end:cpt-cypilot-algo-spec-coverage-metrics:p1:inst-metrics-return
 
-
 # ---------------------------------------------------------------------------
 # Report generation (coverage.py JSON format)
 # ---------------------------------------------------------------------------
 
+# @cpt-begin:cpt-cypilot-algo-spec-coverage-report:p1:inst-report-datamodel
 def generate_report(report: CoverageReport, *, verbose: bool = False, project_root: Optional[Path] = None) -> Dict:
     """Generate JSON report matching coverage.py structure."""
     def _rel(p: str) -> str:
@@ -306,6 +324,7 @@ def generate_report(report: CoverageReport, *, verbose: bool = False, project_ro
             except ValueError:
                 pass
         return p
+    # @cpt-end:cpt-cypilot-algo-spec-coverage-report:p1:inst-report-datamodel
 
     # @cpt-begin:cpt-cypilot-algo-spec-coverage-report:p1:inst-report-summary
     summary = {
@@ -340,12 +359,13 @@ def generate_report(report: CoverageReport, *, verbose: bool = False, project_ro
         if fc.has_scope_only:
             entry["scope_only"] = True
 
+        if fc.uncovered_ranges:
+            entry["uncovered_ranges"] = [[s, e] for s, e in fc.uncovered_ranges]
+
         # @cpt-begin:cpt-cypilot-algo-spec-coverage-report:p1:inst-report-verbose
         if verbose:
             entry["scope_markers"] = fc.scope_marker_count
             entry["block_markers"] = fc.block_marker_count
-            if fc.uncovered_ranges:
-                entry["uncovered_ranges"] = [[s, e] for s, e in fc.uncovered_ranges]
             if fc.covered_ranges:
                 entry["covered_ranges"] = [[s, e] for s, e in fc.covered_ranges]
         # @cpt-end:cpt-cypilot-algo-spec-coverage-report:p1:inst-report-verbose

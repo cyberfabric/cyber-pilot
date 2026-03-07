@@ -6,11 +6,11 @@ version: 1.0
 purpose: Define blueprint format, marker syntax, marker reference, placeholder syntax, parsing algorithm, update model, validation rules, and examples
 drivers:
   - cpt-cypilot-fr-core-blueprint
-  - cpt-cypilot-component-blueprint-processor
 ---
 
 # Blueprint Specification
 
+> **DEPRECATED per `cpt-cypilot-adr-remove-blueprint-system`**: The blueprint system has been removed. Kits are now direct file packages — all kit files (rules.md, template.md, checklist.md, examples/, constraints.toml, workflows/, SKILL.md) are authored and maintained directly by kit authors, not generated from blueprint markers. This specification is preserved solely as a reference for legacy v2/early-v3 installations that used the blueprint system. New kit development should follow [kit.md](kit.md) instead.
 
 <!-- toc -->
 
@@ -24,12 +24,8 @@ drivers:
 - [Marker Reference](#marker-reference)
   - [cpt:blueprint](#cptblueprint)
   - [cpt:skill](#cptskill)
-  - [PRD Commands](#prd-commands)
-  - [PRD Workflows](#prd-workflows)
   - [cpt:system-prompt](#cptsystem-prompt)
   - [cpt:workflow](#cptworkflow)
-- [Prerequisites](#prerequisites)
-- [Steps](#steps)
   - [cpt:rules](#cptrules)
   - [cpt:rule](#cptrule)
   - [cpt:checklist](#cptchecklist)
@@ -49,8 +45,6 @@ drivers:
   - [Reference Principle](#reference-principle)
   - [Initial Installation](#initial-installation)
   - [Update Modes](#update-modes)
-    - [Force Update](#force-update)
-    - [Additive Update (default)](#additive-update-default)
   - [Conflict Resolution](#conflict-resolution)
 - [Blueprint Examples](#blueprint-examples)
 - [Error Handling](#error-handling)
@@ -304,7 +298,7 @@ name: Cypilot PR Review
 description: Review a GitHub PR against configurable checklists and prompts
 ---
 
-Follow the workflow defined in `{cypilot_path}/.gen/kits/sdlc/workflows/pr-review.md`
+Follow the workflow defined in `{cypilot_path}/config/kits/sdlc/workflows/pr-review.md`
 ```
 
 Agent entry points are fully overwritten on every `cpt generate-agents` run. Kit workflow files are regenerated from blueprints on `cpt init`.
@@ -810,8 +804,9 @@ When a kit is installed (`cpt init` or `cypilot kit install`):
 
 1. The tool saves the kit source to `{cypilot_path}/kits/{slug}/` (reference copy).
 2. Blueprints are copied from `{cypilot_path}/kits/{slug}/blueprints/` to `{cypilot_path}/config/kits/{slug}/blueprints/` (user-editable).
-3. All output files are generated from the user blueprints.
-4. The kit version is recorded in `{cypilot_path}/config/core.toml`.
+3. SHA-256 hashes are computed for all blueprint files and stored in `{cypilot_path}/kits/{slug}/conf.toml` as the known-default baseline.
+4. All output files are generated from the user blueprints.
+5. The kit is registered in `{cypilot_path}/config/core.toml` with slug and config output path.
 
 ### Update Modes
 
@@ -828,11 +823,21 @@ Overwrites all user blueprints from the reference and regenerates all outputs. U
 
 Use when: starting fresh, after breaking edits, or when you want to fully sync with the upstream kit.
 
-#### Additive Update (default)
+#### Smart Update (default)
 
 **Command**: `cypilot kit update`
 
-Three-way merge using stable **identity keys** for marker matching across versions:
+Smart update uses **hash-based customization detection** as a pre-step before three-way merge:
+
+1. Compute SHA-256 of each user blueprint in `config/kits/{slug}/blueprints/`.
+2. Compare against known default hashes stored in `{cypilot_path}/kits/{slug}/conf.toml`.
+3. **If hash matches** known default → blueprint is unmodified, auto-update silently (overwrite from new reference).
+4. **If hash differs** → blueprint has been customized by user, apply three-way merge at marker level.
+5. After all blueprints are processed, update hash registry in `conf.toml` with new defaults.
+6. Regenerate all `.gen/` output files from updated user blueprints.
+7. Interactive diff review: compare regenerated output against pre-update snapshot. In interactive mode (`--no-interactive` not set), prompt user per modified generated file (accept/reject/modify). In non-interactive mode, accept all changes.
+
+The three-way merge (step 4) uses stable **identity keys** for marker matching across versions:
 
 ```
 {cypilot_path}/kits/{slug}/.prev/  ── old reference (saved before update)
@@ -865,7 +870,7 @@ All three versions are parsed into segment lists with stable identity keys (see 
 
 ### Conflict Resolution
 
-When conflicts are detected during additive update:
+When conflicts are detected during smart update (three-way merge path):
 
 1. The tool writes a `<KIND>.md.conflicts` file listing all conflicts with both versions.
 2. The tool outputs a warning with conflict count and file path.
@@ -898,7 +903,7 @@ When conflicts are detected during additive update:
 | `BLUEPRINT_DUPLICATE_MARKER_ID` | Two markers of the same type with the same explicit ID in a blueprint | Use unique IDs per marker type |
 | `BLUEPRINT_TAG_MISMATCH` | Closing tag TYPE:ID does not match opening tag | Fix closing tag to match opening |
 | `BLUEPRINT_LEGACY_MARKER` | Non-singleton marker without explicit ID (deprecation warning) | Add explicit ID: `` `@cpt:rule:my-id` `` |
-| `BLUEPRINT_UPDATE_CONFLICT` | Both user and kit modified the same section during additive update | Resolve conflicts in `<KIND>.md.conflicts`, then run `cpt generate-resources` |
+| `BLUEPRINT_UPDATE_CONFLICT` | Both user and kit modified the same section during smart update | Resolve conflicts in `<KIND>.md.conflicts`, then run `cpt generate-resources` |
 
 ---
 

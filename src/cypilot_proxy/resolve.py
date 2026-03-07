@@ -6,6 +6,7 @@ Walks directory tree to find project-installed skill, falls back to cache.
 @cpt-algo:cpt-cypilot-algo-core-infra-resolve-skill:p1
 """
 
+# @cpt-begin:cpt-cypilot-algo-core-infra-resolve-skill:p1:inst-resolve-helpers
 import re
 import sys
 import tomllib
@@ -26,7 +27,6 @@ _OLD_NAV_RE = re.compile(
     r"ALWAYS open and follow `@/([^`/]+)/config/AGENTS\.md`"
 )
 
-
 def find_project_root(start_dir: Optional[Path] = None) -> Optional[Path]:
     """Find the project root by walking up looking for AGENTS.md with @cpt:root-agents marker."""
     current = (start_dir or Path.cwd()).resolve()
@@ -41,7 +41,6 @@ def find_project_root(start_dir: Optional[Path] = None) -> Optional[Path]:
                 return parent
     return None
 
-
 def _parse_toml_from_markdown(text: str) -> Dict[str, Any]:
     """Extract and merge all ``toml`` fenced code blocks from markdown."""
     merged: Dict[str, Any] = {}
@@ -52,7 +51,6 @@ def _parse_toml_from_markdown(text: str) -> Dict[str, Any]:
         except Exception:
             continue
     return merged
-
 
 def read_cypilot_path(project_root: Path) -> Optional[str]:
     """
@@ -89,7 +87,6 @@ def read_cypilot_path(project_root: Path) -> Optional[str]:
 
     return None
 
-
 def find_install_dir(project_root: Path) -> Optional[str]:
     """
     Determine the Cypilot install directory relative to project root.
@@ -118,17 +115,17 @@ def find_install_dir(project_root: Path) -> Optional[str]:
             return candidate
 
     return None
+# @cpt-end:cpt-cypilot-algo-core-infra-resolve-skill:p1:inst-resolve-helpers
 
-
+# @cpt-begin:cpt-cypilot-algo-core-infra-resolve-skill:p1:inst-resolve-helpers
 def get_cache_dir() -> Path:
     """Return the global Cypilot cache directory: ~/.cypilot/cache/"""
     return Path.home() / ".cypilot" / "cache"
 
-
 def get_version_file() -> Path:
     """Return the version marker file path."""
     return get_cache_dir() / ".version"
-
+# @cpt-end:cpt-cypilot-algo-core-infra-resolve-skill:p1:inst-resolve-helpers
 
 def find_project_skill(start_dir: Optional[Path] = None) -> Optional[Path]:
     """
@@ -168,7 +165,6 @@ def find_project_skill(start_dir: Optional[Path] = None) -> Optional[Path]:
 
     return None
 
-
 def find_cached_skill() -> Optional[Path]:
     """
     Check for cached skill at ~/.cypilot/cache/.
@@ -184,7 +180,6 @@ def find_cached_skill() -> Optional[Path]:
         # @cpt-end:cpt-cypilot-algo-core-infra-resolve-skill:p1:inst-return-cache-path
     # @cpt-end:cpt-cypilot-algo-core-infra-resolve-skill:p1:inst-check-global-cache
     return None
-
 
 def resolve_skill(start_dir: Optional[Path] = None) -> Tuple[Optional[Path], str]:
     """
@@ -209,14 +204,13 @@ def resolve_skill(start_dir: Optional[Path] = None) -> Tuple[Optional[Path], str
     return None, "none"
     # @cpt-end:cpt-cypilot-algo-core-infra-resolve-skill:p1:inst-return-not-found
 
-
+# @cpt-begin:cpt-cypilot-algo-core-infra-resolve-skill:p1:inst-resolve-helpers
 def get_cached_version() -> Optional[str]:
     """Read the cached skill version from .version marker file."""
     version_file = get_version_file()
     if version_file.is_file():
         return version_file.read_text(encoding="utf-8").strip()
     return None
-
 
 def get_project_version(skill_path: Path) -> Optional[str]:
     """Read version from project-installed skill's __init__.py."""
@@ -232,3 +226,4 @@ def get_project_version(skill_path: Path) -> Optional[str]:
     except (OSError, ValueError):
         pass
     return None
+# @cpt-end:cpt-cypilot-algo-core-infra-resolve-skill:p1:inst-resolve-helpers

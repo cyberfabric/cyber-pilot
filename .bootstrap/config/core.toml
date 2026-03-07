@@ -9,6 +9,8 @@ slug = "cypilot"
 kit = "cypilot-sdlc"
 
 [kits]
-[kits.cypilot-sdlc]
+[kits.sdlc]
 format = "Cypilot"
-path = ".gen/kits/sdlc"
+path = "config/kits/sdlc"
+version = "1.0.0"
+source = "github:cyberfabric/cyber-pilot-kit-sdlc"

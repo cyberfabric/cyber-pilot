@@ -1,3 +1,4 @@
+# @cpt-begin:cpt-cypilot-flow-traceability-validation-query:p1:inst-query-imports
 import argparse
 import json
 import sys
@@ -6,9 +7,10 @@ from typing import Dict, List, Tuple
 
 from ..utils.document import scan_cpt_ids
 from ..utils.ui import ui
-
+# @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-query-imports
 
 # @cpt-flow:cpt-cypilot-flow-traceability-validation-query:p1
+# @cpt-begin:cpt-cypilot-flow-traceability-validation-query:p1:inst-query-resolve
 def cmd_where_defined(argv: List[str]) -> int:
     """Find where a Cypilot ID is defined."""
     p = argparse.ArgumentParser(prog="where-defined", description="Find where an Cypilot ID is defined")
@@ -77,6 +79,7 @@ def cmd_where_defined(argv: List[str]) -> int:
     if not artifacts_to_scan:
         ui.result({"status": "NOT_FOUND", "id": target_id, "artifacts_scanned": 0, "count": 0, "definitions": []}, human_fn=lambda d: _human_where_defined(d))
         return 0
+    # @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-query-resolve
 
     # @cpt-begin:cpt-cypilot-flow-traceability-validation-query:p1:inst-if-where-def
     # Search for definitions
@@ -105,7 +108,7 @@ def cmd_where_defined(argv: List[str]) -> int:
     # @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-if-where-def
     return 0 if status == "FOUND" else 2
 
-
+# @cpt-begin:cpt-cypilot-flow-traceability-validation-query:p1:inst-query-format
 def _human_where_defined(data: dict) -> None:
     target = data.get("id", "?")
     status = data.get("status", "")
@@ -136,3 +139,4 @@ def _human_where_defined(data: dict) -> None:
         ui.step(f"{art}{loc}  ({art_type}){suffix}")
 
     ui.blank()
+# @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-query-format

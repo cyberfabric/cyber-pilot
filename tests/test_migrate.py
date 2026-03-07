@@ -43,6 +43,8 @@ from cypilot.commands.migrate import (
     _copy_tree_contents,
     _normalize_pr_review_data,
     _migrate_adapter_json_configs,
+    _cleanup_old_adapter_agent_files,
+    _install_default_kit_from_cache,
 )
 
 
@@ -126,20 +128,25 @@ def _make_cache(cache_dir: Path) -> None:
     for d in ("architecture", "requirements", "schemas", "workflows", "skills"):
         (cache_dir / d).mkdir(parents=True, exist_ok=True)
         (cache_dir / d / "README.md").write_text(f"# {d}\n", encoding="utf-8")
-    bp_dir = cache_dir / "kits" / "sdlc" / "blueprints"
-    bp_dir.mkdir(parents=True, exist_ok=True)
-    (bp_dir / "prd.md").write_text(
-        "<!-- @cpt:blueprint -->\n```toml\n"
-        'artifact = "PRD"\nkit = "sdlc"\nversion = 1\n'
-        "```\n<!-- /@cpt:blueprint -->\n\n"
-        "<!-- @cpt:heading -->\n# Product Requirements\n<!-- /@cpt:heading -->\n",
-        encoding="utf-8",
+    # Kit as direct file package (no blueprints)
+    kit_dir = cache_dir / "kits" / "sdlc"
+    kit_dir.mkdir(parents=True, exist_ok=True)
+    (kit_dir / "artifacts" / "PRD").mkdir(parents=True)
+    (kit_dir / "artifacts" / "PRD" / "template.md").write_text(
+        "# Product Requirements\n", encoding="utf-8",
     )
-    scripts_dir = cache_dir / "kits" / "sdlc" / "scripts"
+    (kit_dir / "workflows").mkdir(exist_ok=True)
+    scripts_dir = kit_dir / "scripts"
     scripts_dir.mkdir(parents=True, exist_ok=True)
     (scripts_dir / "helper.py").write_text("# helper\n", encoding="utf-8")
+    (kit_dir / "SKILL.md").write_text(
+        "# Kit sdlc\nKit skill instructions.\n", encoding="utf-8",
+    )
+    (kit_dir / "constraints.toml").write_text(
+        "[naming]\npattern = 'sdlc-*'\n", encoding="utf-8",
+    )
     from cypilot.utils import toml_utils
-    toml_utils.dump({"version": 1, "blueprints": {"prd": 1}}, cache_dir / "kits" / "sdlc" / "conf.toml")
+    toml_utils.dump({"version": 1}, kit_dir / "conf.toml")
     # Skill source needed by cmd_agents during migration
     skill_src = cache_dir / "skills" / "cypilot" / "SKILL.md"
     skill_src.parent.mkdir(parents=True, exist_ok=True)
@@ -847,6 +854,14 @@ class TestRunMigrateConfig(unittest.TestCase):
 # ===========================================================================
 
 class TestCmdMigrate(unittest.TestCase):
+    def setUp(self):
+        from cypilot.utils.ui import set_json_mode
+        set_json_mode(True)
+
+    def tearDown(self):
+        from cypilot.utils.ui import set_json_mode
+        set_json_mode(False)
+
     def test_help(self):
         with self.assertRaises(SystemExit) as ctx:
             cmd_migrate(["--help"])
@@ -874,6 +889,14 @@ class TestCmdMigrate(unittest.TestCase):
 
 
 class TestCmdMigrateConfig(unittest.TestCase):
+    def setUp(self):
+        from cypilot.utils.ui import set_json_mode
+        set_json_mode(True)
+
+    def tearDown(self):
+        from cypilot.utils.ui import set_json_mode
+        set_json_mode(False)
+
     def test_help(self):
         with self.assertRaises(SystemExit) as ctx:
             cmd_migrate_config(["--help"])
@@ -1585,8 +1608,8 @@ class TestNormalizePrReviewData(unittest.TestCase):
             ],
         }
         result = _normalize_pr_review_data(data)
-        self.assertIn(".gen/kits/sdlc/scripts/prompts/pr/code-review.md", result["prompts"][0]["prompt_file"])
-        self.assertIn(".gen/kits/sdlc/scripts/prompts/pr/prd-review.md", result["prompts"][1]["prompt_file"])
+        self.assertIn("config/kits/sdlc/scripts/prompts/pr/code-review.md", result["prompts"][0]["prompt_file"])
+        self.assertIn("config/kits/sdlc/scripts/prompts/pr/prd-review.md", result["prompts"][1]["prompt_file"])
 
     def test_empty_data(self):
         self.assertEqual(_normalize_pr_review_data({}), {})
@@ -1604,8 +1627,8 @@ class TestNormalizePrReviewData(unittest.TestCase):
             ],
         }
         result = _normalize_pr_review_data(data, kit_slug="mykit")
-        self.assertIn(".gen/kits/mykit/scripts/prompts/pr/code-review.md", result["prompts"][0]["prompt_file"])
-        self.assertIn(".gen/kits/mykit/scripts/prompts/pr/prd-review.md", result["prompts"][1]["prompt_file"])
+        self.assertIn("config/kits/mykit/scripts/prompts/pr/code-review.md", result["prompts"][0]["prompt_file"])
+        self.assertIn("config/kits/mykit/scripts/prompts/pr/prd-review.md", result["prompts"][1]["prompt_file"])
         # Ensure default slug is NOT present
         self.assertNotIn("sdlc", result["prompts"][0]["prompt_file"])
         self.assertNotIn("sdlc", result["prompts"][1]["prompt_file"])
@@ -1628,7 +1651,7 @@ class TestMigrateAdapterJsonConfigs(unittest.TestCase):
             self.assertIn("data_dir", content)
             self.assertNotIn("dataDir", content)
             self.assertIn("prompt_file", content)
-            self.assertIn(".gen/kits/sdlc/scripts/prompts/pr/", content)
+            self.assertIn("config/kits/sdlc/scripts/prompts/pr/", content)
 
     def test_converts_pr_review_json_custom_slug(self):
         with TemporaryDirectory() as d:
@@ -1641,7 +1664,7 @@ class TestMigrateAdapterJsonConfigs(unittest.TestCase):
             self.assertIn("pr-review.json", result)
             self.assertEqual(failed, [])
             content = (config / "pr-review.toml").read_text()
-            self.assertIn(".gen/kits/custom/scripts/prompts/pr/", content)
+            self.assertIn("config/kits/custom/scripts/prompts/pr/", content)
             self.assertNotIn("sdlc", content)
 
     def test_skips_artifacts_json(self):
@@ -1712,7 +1735,7 @@ class TestRunMigrateConfigPrReview(unittest.TestCase):
             self.assertNotIn("dataDir", content)
             self.assertIn("prompt_file", content)
             self.assertNotIn("promptFile", content)
-            self.assertIn(".gen/kits/sdlc/scripts/prompts/pr/", content)
+            self.assertIn("config/kits/sdlc/scripts/prompts/pr/", content)
 
 
 # ===========================================================================
@@ -1720,6 +1743,14 @@ class TestRunMigrateConfigPrReview(unittest.TestCase):
 # ===========================================================================
 
 class TestCmdMigrateExitCodes(unittest.TestCase):
+    def setUp(self):
+        from cypilot.utils.ui import set_json_mode
+        set_json_mode(True)
+
+    def tearDown(self):
+        from cypilot.utils.ui import set_json_mode
+        set_json_mode(False)
+
     def test_cancelled_returns_0(self):
         with TemporaryDirectory() as d:
             root = Path(d)
@@ -1888,66 +1919,54 @@ class TestRegenerateGenFromConfig(unittest.TestCase):
     """Cover lines 1549-1583 in _regenerate_gen_from_config."""
 
     def test_no_config_kits_dir(self):
-        """config/kits/ doesn't exist → early return (line 1550)."""
+        """kits/ doesn't exist → early return."""
         from cypilot.commands.migrate import _regenerate_gen_from_config
         with TemporaryDirectory() as td:
-            config_dir = Path(td) / "config"
+            cypilot_dir = Path(td)
+            config_dir = cypilot_dir / "config"
             config_dir.mkdir()
-            gen_dir = Path(td) / ".gen"
-            _regenerate_gen_from_config(config_dir, gen_dir)
-            # Should not crash, gen_dir created
-            self.assertTrue(gen_dir.is_dir())
+            gen_dir = cypilot_dir / ".gen"
+            _regenerate_gen_from_config(config_dir, gen_dir, cypilot_dir=cypilot_dir)
+            # Should not crash
 
-    def test_processes_kit_with_blueprints(self):
-        """Kit with blueprints/ is processed (lines 1559-1578)."""
+    def test_processes_kit_content(self):
+        """Kit with content in config/kits/{slug}/ is processed."""
         from cypilot.commands.migrate import _regenerate_gen_from_config
         with TemporaryDirectory() as td:
-            config_dir = Path(td) / "config"
-            bp_dir = config_dir / "kits" / "testkit" / "blueprints"
-            bp_dir.mkdir(parents=True)
-            (bp_dir / "FEAT.md").write_text(
-                '`@cpt:blueprint`\n```toml\nartifact = "FEAT"\nkit = "testkit"\n```\n`@/cpt:blueprint`\n\n'
-                '`@cpt:heading`\n```toml\nlevel = 1\ntemplate = "Feature"\n```\n`@/cpt:heading`\n',
-                encoding="utf-8",
+            cypilot_dir = Path(td)
+            config_dir = cypilot_dir / "config"
+            config_dir.mkdir(parents=True)
+            # Create kit content in config/kits/ (new model)
+            kit_dir = config_dir / "kits" / "testkit"
+            kit_dir.mkdir(parents=True)
+            (kit_dir / "SKILL.md").write_text(
+                "# Kit testkit\nInstructions.\n", encoding="utf-8",
             )
-            gen_dir = Path(td) / ".gen"
-            _regenerate_gen_from_config(config_dir, gen_dir)
-            # Should create gen output
-            self.assertTrue((gen_dir / "kits" / "testkit").is_dir())
+            gen_dir = cypilot_dir / ".gen"
+            _regenerate_gen_from_config(config_dir, gen_dir, cypilot_dir=cypilot_dir)
+            # Kit dir should still exist in config/kits/
+            self.assertTrue((config_dir / "kits" / "testkit").is_dir())
 
-    def test_copies_scripts(self):
-        """Kit with scripts/ gets them copied to .gen/ (lines 1562-1568)."""
+    def test_scripts_stay_in_config(self):
+        """Scripts in config/kits/ are preserved (no copy to .gen/)."""
         from cypilot.commands.migrate import _regenerate_gen_from_config
         with TemporaryDirectory() as td:
-            config_dir = Path(td) / "config"
-            kit_dir = config_dir / "kits" / "skit"
-            bp_dir = kit_dir / "blueprints"
+            cypilot_dir = Path(td)
+            config_dir = cypilot_dir / "config"
+            bp_dir = cypilot_dir / "kits" / "skit" / "blueprints"
             bp_dir.mkdir(parents=True)
             (bp_dir / "X.md").write_text(
                 '`@cpt:blueprint`\n```toml\nartifact = "X"\n```\n`@/cpt:blueprint`\n',
                 encoding="utf-8",
             )
-            scripts_dir = kit_dir / "scripts"
-            scripts_dir.mkdir()
+            scripts_dir = config_dir / "kits" / "skit" / "scripts"
+            scripts_dir.mkdir(parents=True)
             (scripts_dir / "helper.py").write_text("# h\n", encoding="utf-8")
-            gen_dir = Path(td) / ".gen"
-            _regenerate_gen_from_config(config_dir, gen_dir)
-            self.assertTrue((gen_dir / "kits" / "skit" / "scripts" / "helper.py").is_file())
+            gen_dir = cypilot_dir / ".gen"
+            _regenerate_gen_from_config(config_dir, gen_dir, cypilot_dir=cypilot_dir)
+            # Scripts stay in config/kits/, not copied to .gen/
+            self.assertTrue((config_dir / "kits" / "skit" / "scripts" / "helper.py").is_file())
 
-    def test_process_kit_errors_raise(self):
-        """Errors from process_kit raise RuntimeError (line 1583)."""
-        from cypilot.commands.migrate import _regenerate_gen_from_config
-        with TemporaryDirectory() as td:
-            config_dir = Path(td) / "config"
-            bp_dir = config_dir / "kits" / "badkit" / "blueprints"
-            bp_dir.mkdir(parents=True)
-            (bp_dir / "BAD.md").write_text("not a valid blueprint", encoding="utf-8")
-            gen_dir = Path(td) / ".gen"
-            with patch("cypilot.utils.blueprint.process_kit",
-                       return_value=({"files_written": 0}, ["parse error"])):
-                with self.assertRaises(RuntimeError) as ctx:
-                    _regenerate_gen_from_config(config_dir, gen_dir)
-                self.assertIn("parse error", str(ctx.exception))
 
 
 # ===========================================================================
@@ -2356,6 +2375,134 @@ class TestRunMigrateRemovesV2RootFiles(unittest.TestCase):
             self.assertIn(result["status"], ("PASS", "VALIDATION_FAILED"))
             self.assertFalse((root / ".cypilot-config.json").exists())
             self.assertFalse((root / "cypilot-agents.json").exists())
+
+
+# ===========================================================================
+# Test: _cleanup_old_adapter_agent_files
+# ===========================================================================
+
+class TestCleanupOldAdapterAgentFiles(unittest.TestCase):
+    """Cover _cleanup_old_adapter_agent_files — removes v2 adapter proxies."""
+
+    def test_removes_cypilot_adapter_workflow(self):
+        """cypilot-adapter.md pointing to adapter.md is removed."""
+        with TemporaryDirectory() as d:
+            root = Path(d)
+            wf = root / ".windsurf" / "workflows"
+            wf.mkdir(parents=True)
+            (wf / "cypilot-adapter.md").write_text(
+                "# /cypilot-adapter\n\n\nALWAYS open and follow `../../.cypilot/workflows/adapter.md`\n"
+            )
+            # Keep a non-adapter workflow
+            (wf / "cypilot-analyze.md").write_text(
+                "# /cypilot-analyze\n\n\nALWAYS open and follow `../../.cypilot/workflows/analyze.md`\n"
+            )
+            removed = _cleanup_old_adapter_agent_files(root, ".cypilot-adapter", ".cypilot")
+            self.assertEqual(len(removed), 1)
+            self.assertIn("cypilot-adapter.md", removed[0])
+            self.assertFalse((wf / "cypilot-adapter.md").exists())
+            self.assertTrue((wf / "cypilot-analyze.md").exists())
+
+    def test_removes_adapter_from_all_agents(self):
+        """cypilot-adapter.md removed from windsurf, cursor, claude."""
+        with TemporaryDirectory() as d:
+            root = Path(d)
+            content = "# /cypilot-adapter\n\nALWAYS open and follow `../../.cypilot/workflows/adapter.md`\n"
+            for rel in (".windsurf/workflows", ".cursor/commands", ".claude/commands"):
+                p = root / rel
+                p.mkdir(parents=True)
+                (p / "cypilot-adapter.md").write_text(content)
+            removed = _cleanup_old_adapter_agent_files(root, ".cypilot-adapter", ".cypilot")
+            self.assertEqual(len(removed), 3)
+            for rel in (".windsurf/workflows", ".cursor/commands", ".claude/commands"):
+                self.assertFalse((root / rel / "cypilot-adapter.md").exists())
+
+    def test_removes_claude_skill_dir(self):
+        """Claude .claude/skills/cypilot-adapter/ directory is removed."""
+        with TemporaryDirectory() as d:
+            root = Path(d)
+            skill_dir = root / ".claude" / "skills" / "cypilot-adapter"
+            skill_dir.mkdir(parents=True)
+            (skill_dir / "SKILL.md").write_text(
+                "---\nname: cypilot-adapter\n---\n\n"
+                "ALWAYS open and follow `../../../.cypilot/workflows/adapter.md`\n"
+            )
+            removed = _cleanup_old_adapter_agent_files(root, ".cypilot-adapter", ".cypilot")
+            self.assertTrue(any("cypilot-adapter" in r for r in removed))
+            self.assertFalse(skill_dir.exists())
+
+    def test_removes_adapter_dir_refs(self):
+        """Files referencing .cypilot-adapter/ directory are removed."""
+        with TemporaryDirectory() as d:
+            root = Path(d)
+            wf = root / ".windsurf" / "workflows"
+            wf.mkdir(parents=True)
+            (wf / "some-proxy.md").write_text(
+                "# /some\n\nALWAYS open and follow `.cypilot-adapter/AGENTS.md`\n"
+            )
+            removed = _cleanup_old_adapter_agent_files(root, ".cypilot-adapter", ".cypilot")
+            self.assertEqual(len(removed), 1)
+            self.assertFalse((wf / "some-proxy.md").exists())
+
+    def test_no_crash_on_missing_dirs(self):
+        """No error when agent dirs don't exist."""
+        with TemporaryDirectory() as d:
+            root = Path(d)
+            removed = _cleanup_old_adapter_agent_files(root, ".cypilot-adapter", ".cypilot")
+            self.assertEqual(removed, [])
+
+    def test_preserves_non_proxy_files(self):
+        """Non-proxy .md files are preserved."""
+        with TemporaryDirectory() as d:
+            root = Path(d)
+            wf = root / ".windsurf" / "workflows"
+            wf.mkdir(parents=True)
+            (wf / "my-custom.md").write_text("# My custom workflow\nDo stuff\n")
+            removed = _cleanup_old_adapter_agent_files(root, ".cypilot-adapter", ".cypilot")
+            self.assertEqual(removed, [])
+            self.assertTrue((wf / "my-custom.md").exists())
+
+
+# ===========================================================================
+# Test: _install_default_kit_from_cache
+# ===========================================================================
+
+class TestInstallDefaultKitFromCache(unittest.TestCase):
+    """Cover _install_default_kit_from_cache — installs default kit if none present."""
+
+    def test_installs_when_no_kits(self):
+        """Default kit installed when config/kits/ is empty."""
+        with TemporaryDirectory() as d:
+            cypilot_dir = Path(d) / "cypilot"
+            cypilot_dir.mkdir()
+            (cypilot_dir / "config").mkdir()
+            cache = Path(d) / "cache"
+            _make_cache(cache)
+            result = _install_default_kit_from_cache(cypilot_dir, cache)
+            self.assertIsNotNone(result)
+            self.assertEqual(result["kit"], "sdlc")
+            # Kit content should be installed in config/kits/
+            self.assertTrue((cypilot_dir / "config" / "kits" / "sdlc").is_dir())
+
+    def test_skips_when_kits_exist(self):
+        """Returns None when config/kits/ already has content."""
+        with TemporaryDirectory() as d:
+            cypilot_dir = Path(d) / "cypilot"
+            (cypilot_dir / "config" / "kits" / "mykit").mkdir(parents=True)
+            cache = Path(d) / "cache"
+            _make_cache(cache)
+            result = _install_default_kit_from_cache(cypilot_dir, cache)
+            self.assertIsNone(result)
+
+    def test_skips_when_cache_has_no_kit(self):
+        """Returns None when cache doesn't have default kit."""
+        with TemporaryDirectory() as d:
+            cypilot_dir = Path(d) / "cypilot"
+            cypilot_dir.mkdir()
+            cache = Path(d) / "cache"
+            cache.mkdir()
+            result = _install_default_kit_from_cache(cypilot_dir, cache)
+            self.assertIsNone(result)
 
 
 if __name__ == "__main__":

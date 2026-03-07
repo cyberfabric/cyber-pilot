@@ -187,7 +187,7 @@ class TestCLIValidateCommand(unittest.TestCase):
             # Minimal SDLC kit with constraints
             (root / "kits" / "sdlc").mkdir(parents=True)
             import shutil
-            src_constraints = Path(__file__).parent.parent / ".bootstrap" / ".gen" / "kits" / "sdlc" / "constraints.toml"
+            src_constraints = Path(__file__).parent.parent / ".bootstrap" / "config" / "kits" / "sdlc" / "constraints.toml"
             shutil.copy2(src_constraints, root / "kits" / "sdlc" / "constraints.toml")
 
             # Create markerless DESIGN artifact defining a principle (DESIGN/principle prohibits PRD/ADR refs)
@@ -3569,7 +3569,10 @@ class TestCLISelfCheckCommand(unittest.TestCase):
                 os.chdir(cwd)
 
     def test_self_check_missing_rules(self):
-        """Test self-check when rules are missing from registry."""
+        """Test self-check (routed to validate-kits) when no kits are defined.
+
+        With no kits, validate-kits correctly reports PASS with 0 kits validated.
+        """
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             # Bootstrap with empty rules
@@ -3581,9 +3584,10 @@ class TestCLISelfCheckCommand(unittest.TestCase):
                 stdout = io.StringIO()
                 with redirect_stdout(stdout):
                     exit_code = main(["self-check"])
-                self.assertNotEqual(exit_code, 0)
+                self.assertEqual(exit_code, 0)
                 out = json.loads(stdout.getvalue())
-                self.assertEqual(out.get("status"), "ERROR")
+                self.assertEqual(out.get("status"), "PASS")
+                self.assertEqual(out.get("kits_validated"), 0)
             finally:
                 os.chdir(cwd)
 

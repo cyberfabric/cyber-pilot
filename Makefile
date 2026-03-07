@@ -1,5 +1,16 @@
 # @cpt-algo:cpt-cypilot-spec-init-structure-change-infrastructure:p1
-.PHONY: test test-verbose test-quick test-coverage validate validate-examples validate-feature validate-code validate-code-feature self-check vulture vulture-ci install install-pipx install-proxy clean help check-pytest check-pytest-cov check-pipx check-vulture check-versions update
+.PHONY: test test-verbose test-quick test-coverage validate validate-examples validate-feature validate-code validate-code-feature self-check validate-kits validate-kits-sdlc vulture vulture-ci install install-pipx install-proxy clean help check-pytest check-pytest-cov check-pipx check-vulture check-versions update spec-coverage ci lint-ci
+
+# Detect container architecture for act (arm64 on Apple Silicon, amd64 otherwise)
+UNAME_M := $(shell uname -m)
+ifeq ($(UNAME_M),arm64)
+  ACT_ARCH := linux/arm64
+else ifeq ($(UNAME_M),aarch64)
+  ACT_ARCH := linux/arm64
+else
+  ACT_ARCH := linux/amd64
+endif
+ACT_FLAGS ?= --container-architecture $(ACT_ARCH)
 
 PYTHON ?= python3
 PIPX ?= pipx
@@ -21,9 +32,14 @@ help:
 	@echo "  make validate-examples             - Validate requirements examples under examples/requirements"
 	@echo "  make validate                      - Validate core methodology spec"
 	@echo "  make self-check                    - Validate SDLC examples against their templates"
+	@echo "  make validate-kits                 - Validate all registered kits"
+	@echo "  make validate-kits-sdlc            - Validate kits/sdlc kit by path"
 	@echo "  make check-versions                - Check version consistency across components"
+	@echo "  make spec-coverage                 - Check spec coverage (≥90% overall, ≥60% per file)"
 	@echo "  make vulture                       - Scan python code for dead code (report only, does not fail)"
 	@echo "  make vulture-ci                    - Scan python code for dead code (fails if findings)"
+	@echo "  make ci                            - Run full CI pipeline locally"
+	@echo "  make lint-ci                       - Lint GitHub Actions workflow files"
 	@echo "  make install                       - Install Python dependencies"
 	@echo "  make install-proxy                 - Reinstall cpt proxy from local source"
 	@echo "  make update                        - Update .bootstrap from local source"
@@ -115,6 +131,11 @@ vulture-ci: check-vulture
 	@echo "Running vulture dead-code scan (CI mode, fails if findings)..."
 	$(VULTURE_PIPX) skills/cypilot/scripts/cypilot vulture_whitelist.py --min-confidence $(VULTURE_MIN_CONF)
 
+# Spec coverage check (Cypilot system only)
+spec-coverage:
+	@echo "Checking spec coverage (Cypilot system)..."
+	$(PYTHON) .bootstrap/.core/skills/cypilot/scripts/cypilot.py spec-coverage --system cypilot --min-coverage 90 --min-file-coverage 60 --min-granularity 0.45
+
 # Check version consistency
 check-versions:
 	@$(PYTHON) scripts/check_versions.py
@@ -125,12 +146,22 @@ update:
 
 # Validate core methodology spec
 validate:
-	$(CPT) validate --json
+	$(CPT) validate
 
 # Validate SDLC examples against templates
 self-check:
 	@echo "Running self-check: validating SDLC examples against templates..."
 	$(CPT) self-check
+
+# Validate all registered kits
+validate-kits:
+	@echo "Validating all registered kits..."
+	$(CPT) validate-kits
+
+# Validate kits/sdlc kit by path
+validate-kits-sdlc:
+	@echo "Validating kits/sdlc..."
+	$(CPT) validate-kits kits/sdlc
 
 # Install Python dependencies
 install-pipx: check-pipx
@@ -144,6 +175,22 @@ install: install-pipx
 # Reinstall cpt/cypilot proxy from local source
 install-proxy: check-pipx
 	$(PIPX) install --force .
+
+# Lint CI workflow files
+lint-ci:
+	@echo "Linting GitHub Actions workflows..."
+	actionlint
+
+# Run CI via act in Docker (mirrors .github/workflows/ci.yml exactly)
+# Runs jobs sequentially — stops on first failure.
+# Auto-detects arm64/amd64. Override: make ci ACT_FLAGS="--your-flags"
+ci: lint-ci
+	@for job in $$(act push --list $(ACT_FLAGS) 2>/dev/null | tail -n +2 | awk '{print $$2}'); do \
+		echo "▶ Running job: $$job"; \
+		act push -j $$job $(ACT_FLAGS) || exit 1; \
+	done
+	@echo ""
+	@echo "✓ All CI jobs passed."
 
 # Clean Python cache
 clean:

@@ -68,3 +68,28 @@ details = """\
 - V2→V3 migration: fixed agent generation — now actually writes agent files (was read-only listing)
 - `cpt update` now auto-regenerates agent configs when core or kits are updated\
 """
+
+["v3.0.9-beta"]
+summary = "Blueprint removal, direct file kits, TOC-aware diffs, CI pipeline"
+details = """\
+- **ADR-0001: Blueprint system removed** — kits are now direct file packages; no `process_kit`, no three-way merge, no hash registries
+- **`cpt init` auto-downloads latest** before initialization (no manual `cpt update` needed first)
+- **Kit version in core.toml** — single source of truth; `conf.toml` no longer copied into installed kit
+- **`cpt kit update <path>`** — takes explicit source path instead of resolving from cache
+- **`cpt kit install`** simplified — delegates to `install_kit()` + `regenerate_gen_aggregates()`
+- **Centralized `.gen/` aggregation** — `regenerate_gen_aggregates()` in kit.py replaces scattered logic
+- **TOC-aware kit diffs** — TOC sections stripped before comparison; optional TOC regeneration after file write
+- **Version check in `update_kit`** — skips update if installed version matches source (use `--force` to override)
+- **`cpt kit migrate` deprecated** — returns error with hint to use `kit update <path>`
+- **Kit slug simplified** — `cypilot-sdlc` → `sdlc` in core.toml and artifacts.toml
+- **`constraints.toml` in kit source root** — ready file, no longer auto-generated from blueprints
+- **Resource diff engine** (`utils/diff_engine.py`): file-level diffs for regenerated resources with accept/reject/modify modes
+- **Self-check integrated into `cpt update`**: runs automatically after kit update, reports PASS/WARN
+- **GitHub Actions CI pipeline**: validate-kits job added; 6 parallel jobs (test, coverage, vulture, versions, spec-coverage, validate)
+- **Local CI via act**: `make ci` runs the same workflow in Docker; auto-detects arm64/amd64; sequential fail-fast
+- New `spec-coverage` command with `--system`, `--min-coverage`, `--min-file-coverage`, `--json`
+- Added `@cpt-begin`/`@cpt-end` wrapping blocks to all 42 source files (97.7% spec coverage)
+- TOC `--max-level` default changed from 6 to 3 in `toc` and `validate-toc` commands
+- `config/AGENTS.md` loading changed from `WHEN it exists` → `FIRST`
+- `_show_whatsnew` now compares against installed version number instead of key-set diff\
+"""

@@ -7,6 +7,7 @@ Functions for parsing markdown structure, extracting sections, and analyzing con
 @cpt-algo:cpt-cypilot-algo-traceability-validation-validate-structure:p1
 """
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-parsing-utils:p1:inst-parse-datamodel
 import re
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -16,6 +17,7 @@ from ..constants import (
     HEADING_ID_RE,
     FIELD_HEADER_RE,
 )
+# @cpt-end:cpt-cypilot-algo-traceability-validation-parsing-utils:p1:inst-parse-datamodel
 
 
 # @cpt-begin:cpt-cypilot-algo-traceability-validation-parsing-utils:p1:inst-parse-required-sections
@@ -109,6 +111,7 @@ def split_by_section_letter_with_offsets(
 # @cpt-end:cpt-cypilot-algo-traceability-validation-parsing-utils:p1:inst-parse-split-sections
 
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-parsing-utils:p1:inst-parse-datamodel
 def _is_field_header_terminator(line: str) -> bool:
     """Check if line should terminate a field block.
     
@@ -144,6 +147,7 @@ def _is_field_header_terminator(line: str) -> bool:
     
     # Short values in list-style are treated as field headers
     return True
+# @cpt-end:cpt-cypilot-algo-traceability-validation-parsing-utils:p1:inst-parse-datamodel
 
 
 # @cpt-begin:cpt-cypilot-algo-traceability-validation-parsing-utils:p1:inst-parse-field-block
@@ -173,9 +177,11 @@ def field_block(lines: List[str], field_name: str) -> Optional[Dict[str, object]
 # @cpt-end:cpt-cypilot-algo-traceability-validation-parsing-utils:p1:inst-parse-field-block
 
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-parsing-utils:p1:inst-parse-datamodel
 def has_list_item(lines: List[str]) -> bool:
     """Check if any line in list is a markdown list item (starts with - or *)."""
     return any(re.match(r"^\s*[-*]\s+\S+", l) for l in lines)
+# @cpt-end:cpt-cypilot-algo-traceability-validation-parsing-utils:p1:inst-parse-datamodel
 
 
 # @cpt-begin:cpt-cypilot-algo-traceability-validation-parsing-utils:p1:inst-parse-extract-ids

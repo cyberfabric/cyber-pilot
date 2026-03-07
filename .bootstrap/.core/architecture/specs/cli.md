@@ -15,68 +15,56 @@ drivers:
   - cpt-cypilot-fr-core-hooks
   - cpt-cypilot-fr-core-completions
   - cpt-cypilot-fr-core-traceability
-  - cpt-cypilot-fr-core-blueprint
+  - cpt-cypilot-fr-core-kits
   - cpt-cypilot-interface-cli-json
 ---
 
 # Cypilot CLI Specification
 
+
+<!-- toc -->
+
+- [Overview](#overview)
+- [Installation](#installation)
+- [Invocation Model](#invocation-model)
+- [Global Conventions](#global-conventions)
+  - [Output](#output)
+  - [Exit Codes](#exit-codes)
+  - [Common Options](#common-options)
+- [Core Commands](#core-commands)
+  - [init](#init)
+  - [update](#update)
+  - [validate](#validate)
+  - [list-ids](#list-ids)
+  - [where-defined](#where-defined)
+  - [where-used](#where-used)
+  - [get-content](#get-content)
+  - [list-id-kinds](#list-id-kinds)
+  - [info](#info)
+  - [generate-agents](#generate-agents)
+  - [generate-resources](#generate-resources)
+  - [doctor](#doctor)
+  - [self-check](#self-check)
+  - [config](#config)
+  - [hook](#hook)
+  - [completions](#completions)
+- [Kit Commands](#kit-commands)
+  - [SDLC Kit Commands](#sdlc-kit-commands)
+- [Output Format](#output-format)
+- [Exit Codes](#exit-codes-1)
+- [Environment Variables](#environment-variables)
+- [File System Layout](#file-system-layout)
+  - [Global (per user)](#global-per-user)
+  - [Project (per repository)](#project-per-repository)
+  - [Agent Entry Points (generated)](#agent-entry-points-generated)
+- [Error Handling](#error-handling)
+  - [Common Errors](#common-errors)
+  - [Error Output](#error-output)
+- [Version Negotiation](#version-negotiation)
+
+<!-- /toc -->
+
 ---
-
-## Table of Contents
-
-- [Cypilot CLI Specification](#cypilot-cli-specification)
-  - [Table of Contents](#table-of-contents)
-  - [Overview](#overview)
-  - [Installation](#installation)
-  - [Invocation Model](#invocation-model)
-  - [Global Conventions](#global-conventions)
-    - [Output](#output)
-    - [Exit Codes](#exit-codes)
-    - [Common Options](#common-options)
-  - [Core Commands](#core-commands)
-    - [init](#init)
-    - [update](#update)
-    - [validate](#validate)
-    - [list-ids](#list-ids)
-    - [where-defined](#where-defined)
-    - [where-used](#where-used)
-    - [get-content](#get-content)
-    - [list-id-kinds](#list-id-kinds)
-    - [info](#info)
-    - [generate-agents](#generate-agents)
-    - [generate-resources](#generate-resources)
-    - [doctor](#doctor)
-    - [self-check](#self-check)
-    - [config](#config)
-      - [config show](#config-show)
-      - [config system add](#config-system-add)
-      - [config system remove](#config-system-remove)
-      - [config system rename](#config-system-rename)
-      - [config ignore add](#config-ignore-add)
-      - [config ignore remove](#config-ignore-remove)
-      - [config kit install](#config-kit-install)
-    - [hook](#hook)
-    - [completions](#completions)
-  - [Kit Commands](#kit-commands)
-    - [SDLC Kit Commands](#sdlc-kit-commands)
-      - [sdlc autodetect show](#sdlc-autodetect-show)
-      - [sdlc autodetect add-artifact](#sdlc-autodetect-add-artifact)
-      - [sdlc autodetect add-codebase](#sdlc-autodetect-add-codebase)
-      - [sdlc pr-review](#sdlc-pr-review)
-      - [sdlc pr-status](#sdlc-pr-status)
-  - [Output Format](#output-format)
-  - [Exit Codes](#exit-codes-1)
-  - [Environment Variables](#environment-variables)
-  - [File System Layout](#file-system-layout)
-    - [Global (per user)](#global-per-user)
-    - [Project (per repository)](#project-per-repository)
-    - [Agent Entry Points (generated)](#agent-entry-points-generated)
-  - [Error Handling](#error-handling)
-    - [Common Errors](#common-errors)
-    - [Error Output](#error-output)
-  - [Version Negotiation](#version-negotiation)
-
 ---
 
 ## Overview
@@ -179,7 +167,7 @@ cpt init [--dir DIR] [--agents AGENTS]
    - Autodetect rules for standard artifact kinds: `PRD.md`, `DESIGN.md`, `ADR/*.md`, `DECOMPOSITION.md`, `features/*.md` — all with default traceability levels and glob patterns
    - Default codebase entry: `path = "src"`, common extensions
    - Default ignore patterns: `vendor/*`, `node_modules/*`, `.git/*`
-7. Install all available kits. Each kit generates its config in `{cypilot_path}/config/kits/<slug>/` — blueprints, constraints, artifacts, workflows.
+7. Install all available kits by copying kit files into `{cypilot_path}/config/kits/<slug>/` (constraints, artifacts, workflows, SKILL.md) and registering in `core.toml`.
 8. Generate agent entry points for selected agents.
 9. Inject root `AGENTS.md` entry: insert managed `<!-- @cpt:root-agents -->` block at the beginning of `{project_root}/AGENTS.md` (create file if absent).
 10. Create `{cypilot_path}/config/AGENTS.md` with default WHEN rules for standard system prompts.
@@ -207,34 +195,41 @@ cpt init [--dir DIR] [--agents AGENTS]
 Update project skill to the cached version.
 
 ```
-cpt update [--check] [--force]
+cpt update [--project-root P] [--dry-run] [--no-interactive] [-y/--yes]
 ```
 
 | Option | Description |
 |--------|-------------|
-| `--check` | Show available updates without applying |
-| `--force` | Force update even if versions match |
+| `--project-root P` | Project root directory (default: auto-detect from cwd) |
+| `--dry-run` | Show what would be done without writing |
+| `--no-interactive` | Disable interactive prompts (auto-skip customized markers) |
+| `-y`, `--yes` | Auto-approve all prompts (no interaction) |
 
 **Behavior**:
-1. If `--check` → compare versions, output diff, exit.
-2. If cache is outdated → download latest release from GitHub first.
-3. Copy cached skill into project install directory.
-4. Migrate `{cypilot_path}/config/core.toml` to new schema version (preserve all user settings).
-5. Invoke each kit's migration script for kit config files.
-6. Update blueprints via reference-based three-way diff.
-7. Regenerate all resources from updated blueprints.
-8. Regenerate agent entry points.
+1. Resolve project root and cypilot directory.
+2. Replace `.core/` from cache (always force-overwrite).
+3. For each kit in cache: compare kit version (skip same, file-level diff if newer, copy on first install), update kit files in `config/kits/{slug}/` via interactive diff prompts.
+4. Write aggregate `.gen/AGENTS.md` and `.gen/SKILL.md` from collected kit parts.
+5. Ensure `config/` scaffold files exist (create only if missing).
+6. Re-inject root `AGENTS.md` and `CLAUDE.md` managed blocks.
+7. Auto-regenerate agent integration files if real changes happened.
+8. Run self-check to verify kit integrity; include result in report (WARN if failed).
+9. Return update report.
 
 **Output** (JSON):
 ```json
 {
-  "status": "ok",
-  "previous_version": "0.5.0",
-  "new_version": "0.6.0",
-  "kits_migrated": ["sdlc"],
-  "blueprints_updated": 5,
-  "blueprints_conflicts": 0,
-  "agent_entry_points_regenerated": true
+  "status": "PASS",
+  "project_root": "/path/to/project",
+  "cypilot_dir": "/path/to/project/.bootstrap",
+  "dry_run": false,
+  "actions": {
+    "core_update": {"architecture": "updated", "skills": "updated", "...": "..."},
+    "kits": {"sdlc": {"kit": "sdlc", "version": {"status": "current"}, "gen": {"files_written": 25}}},
+    "gen_agents": "updated",
+    "gen_skill": "updated"
+  },
+  "self_check": {"status": "PASS", "kits_checked": 1, "templates_checked": 9}
 }
 ```
 
@@ -247,7 +242,7 @@ cpt update [--check] [--force]
 Validate artifacts.
 
 ```
-cpt validate [--artifact PATH] [--system SYSTEM] [--kind KIND] [--strict] [--blueprints]
+cpt validate [--artifact PATH] [--system SYSTEM] [--kind KIND] [--strict]
 ```
 
 | Option | Description |
@@ -256,7 +251,6 @@ cpt validate [--artifact PATH] [--system SYSTEM] [--kind KIND] [--strict] [--blu
 | `--system SYSTEM` | Validate all artifacts for a system |
 | `--kind KIND` | Filter by artifact kind (PRD, DESIGN, etc.) |
 | `--strict` | Enable strict validation (all checklist items) |
-| `--blueprints` | Validate all blueprint files instead of artifacts |
 
 **Without arguments**: validate all registered artifacts across all systems.
 
@@ -273,18 +267,6 @@ cpt validate [--artifact PATH] [--system SYSTEM] [--kind KIND] [--strict] [--blu
    c. All ID references resolve to definitions.
 4. Output score breakdown with actionable issues (file path, line number, severity).
 
-**Behavior (blueprint validation, `--blueprints`)**:
-1. Discover all blueprint files in `{cypilot_path}/config/kits/<slug>/blueprints/*.md` across installed kits.
-2. For each blueprint:
-   a. **Header check** — `cpt:blueprint` marker present and is the first marker.
-   b. **Block closure** — all block markers (`cpt:skill`, `cpt:check`, `cpt:prompt`, `cpt:rule`, etc.) have matching `@/cpt:...` close tags.
-   c. **No nesting** — no block markers inside other block markers.
-   d. **Known markers** — all marker types are registered by core or a loaded kit.
-   e. **Attribute validity** — required attributes present, values in expected ranges.
-   f. **Unique IDs** — heading IDs and check IDs unique within the blueprint.
-   g. **Heading order** — `cpt:heading` markers appear in a valid document order (by level hierarchy).
-   h. **Version compatibility** — blueprint version supported by current processor.
-3. Output issues per blueprint with file path, line number, and error code.
 
 **Output** (JSON):
 ```json
@@ -493,7 +475,7 @@ cpt generate-agents [--agent AGENT]
 **Without `--agent`**: regenerate for all agents.
 
 **Behavior**:
-1. Collect `cpt:skill` extension sections from all loaded blueprints.
+1. Collect `SKILL.md` extensions from all installed kits.
 2. Compose the main SKILL.md from core commands + collected extensions.
 3. Generate workflow entry points in each agent's native format.
 4. Generate skill shims referencing the composed SKILL.md.
@@ -514,36 +496,7 @@ cpt generate-agents [--agent AGENT]
 
 ### generate-resources
 
-Generate all kit resources from blueprints.
-
-```
-cpt generate-resources [--kit KIT] [--artifact-kind KIND] [--dry-run]
-```
-
-| Option | Description |
-|--------|-------------|
-| `--kit KIT` | Generate for a specific kit only |
-| `--artifact-kind KIND` | Generate for a specific artifact kind only |
-| `--dry-run` | Show what would be generated without writing |
-
-**Behavior**:
-1. Load all blueprints for target kits/artifact kinds.
-2. Parse `@cpt:` markers.
-3. Invoke core output generators per marker type.
-4. Write output files (template.md, rules.md, checklist.md, example.md per artifact; constraints.toml kit-wide; codebase/ for non-artifact blueprints).
-5. Generation is deterministic: same blueprint → same output.
-
-**Output** (JSON):
-```json
-{
-  "status": "ok",
-  "generated": [
-    {"blueprint": "config/kits/sdlc/blueprints/PRD.md", "outputs": ["template.md", "rules.md", "checklist.md"]},
-    {"blueprint": "config/kits/sdlc/blueprints/DESIGN.md", "outputs": ["template.md", "rules.md", "checklist.md"]}
-  ],
-  "constraints_toml_updated": true
-}
-```
+> **DEPRECATED per `cpt-cypilot-adr-remove-blueprint-system`**: This command has been removed. Kit files are now authored directly and installed/updated via `cpt kit install` / `cpt kit update`. No generation step is needed.
 
 **Exit**: 0 on success, 1 on error.
 
@@ -567,7 +520,7 @@ cpt doctor
 | Config integrity | `{cypilot_path}/config/core.toml` exists and parses, schema valid |
 | Skill version | project skill matches or is newer than cache |
 | Kit structure | all registered kits have valid entry points |
-| Blueprint integrity | all blueprints in `{cypilot_path}/config/kits/<slug>/blueprints/` parse successfully, reference kits in `{cypilot_path}/kits/` present |
+| Kit file integrity | all kit files in `{cypilot_path}/config/kits/<slug>/` present and valid (conf.toml, constraints.toml, artifacts/, SKILL.md) |
 
 **Output** (JSON):
 ```json
@@ -590,15 +543,24 @@ cpt doctor
 Validate example artifacts against their templates.
 
 ```
-cpt self-check [--strict] [--kit KIT]
+cpt self-check [--kit KIT] [--verbose]
 ```
 
-**Behavior**:
-1. For each artifact kind in each kit, locate example artifacts.
-2. Validate each example against its template structure.
-3. If `--strict`, apply full checklist validation.
+| Option | Description |
+|--------|-------------|
+| `--kit KIT` | Validate only a specific kit (e.g., `cypilot-sdlc`) |
+| `--verbose` | Include full per-template error/warning lists |
 
-**Exit**: 0=PASS, 2=FAIL.
+**Behavior**:
+1. Load installed kits from artifacts registry.
+2. For each kit, load `constraints.toml` and locate template/example files.
+3. Validate each template against constraints (heading contract, ID placeholders, cross-artifact references).
+4. Validate each example artifact against its template structure and constraints.
+5. Report per-kit, per-kind PASS/FAIL with error details.
+
+> **Note**: `self-check` is also invoked automatically at the end of `cpt update`. If it fails, the update status becomes WARN and the self-check report is included in the update output.
+
+**Exit**: 0=PASS, 2=FAIL, 1=ERROR.
 
 ---
 
@@ -820,26 +782,10 @@ CI pipelines should check for exit code 2 to detect validation failures.
     workflows/              # Core workflows (generate.md, analyze.md)
     requirements/           # Core requirement specs
     schemas/                # JSON schemas
-  .gen/                     # Auto-generated files (do not edit)
+  .gen/                     # Auto-generated aggregate files (do not edit)
     AGENTS.md               # Generated WHEN rules + system prompt content
     SKILL.md                # Navigation hub routing to per-kit skills
-    kits/
-      sdlc/
-        SKILL.md            # Per-kit skill from @cpt:skill blocks
-        constraints.toml    # Generated from @cpt:heading/@cpt:id markers
-        artifacts/          # Generated outputs per artifact kind
-          PRD/
-            template.md
-            rules.md
-            checklist.md
-            example.md
-          DESIGN/
-            ...
-        codebase/           # Generated from blueprints without artifact key
-          rules.md
-          checklist.md
-        workflows/          # Generated from @cpt:workflow markers
-        scripts/            # Copied from kit source
+    README.md               # Generated README
   config/                   # User-editable configuration
     AGENTS.md               # Project-level navigation (WHEN → sysprompt)
     SKILL.md                # User-editable skill extensions
@@ -848,16 +794,13 @@ CI pipelines should check for exit code 2 to detect validation failures.
     sysprompts/             # Project-specific system prompts
     kits/
       sdlc/
-        blueprints/         # User-editable blueprint copies
-          PRD.md
-          DESIGN.md
-          ...
         conf.toml           # Kit version metadata
-  kits/                     # Reference kit copies (read-only, for three-way diff)
-    sdlc/
-      blueprints/           # Reference blueprints
-      scripts/              # Reference scripts
-      conf.toml             # Kit version metadata
+        SKILL.md            # Per-kit skill instructions
+        constraints.toml    # Structural validation rules
+        artifacts/          # Per-artifact files (rules, template, checklist, examples)
+        codebase/           # Codebase review files
+        workflows/          # Workflow definitions
+        scripts/            # Kit-specific scripts
 ```
 
 ### Agent Entry Points (generated)
@@ -884,7 +827,7 @@ CI pipelines should check for exit code 2 to detect validation failures.
 | `SCHEMA_VALIDATION` | Config file does not match schema | Run `cpt doctor` for details |
 | `GH_CLI_NOT_FOUND` | `gh` CLI not installed (PR commands only) | Install `gh` CLI |
 | `GH_NOT_AUTHENTICATED` | `gh` CLI not authenticated | Run `gh auth login` |
-| `BLUEPRINT_UPDATE_CONFLICT` | User and kit both modified the same section during additive update | Resolve conflicts in `<KIND>.md.conflicts`, then run `cpt generate-resources` |
+| `KIT_UPDATE_CONFLICT` | User declined all file updates during kit update | Re-run `cpt kit update` to review changes |
 | `CACHE_EMPTY` | No cached skill and download failed | Check network, retry |
 
 ### Error Output

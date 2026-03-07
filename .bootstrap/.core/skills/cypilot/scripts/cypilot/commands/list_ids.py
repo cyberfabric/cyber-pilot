@@ -1,3 +1,4 @@
+# @cpt-begin:cpt-cypilot-flow-traceability-validation-query:p1:inst-query-imports
 import argparse
 import json
 import re
@@ -7,7 +8,7 @@ from typing import Dict, List, Optional, Set, Tuple
 from ..utils.codebase import CodeFile
 from ..utils.document import scan_cpt_ids
 from ..utils.ui import ui
-
+# @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-query-imports
 
 # @cpt-flow:cpt-cypilot-flow-traceability-validation-query:p1
 def cmd_list_ids(argv: List[str]) -> int:
@@ -139,6 +140,7 @@ def cmd_list_ids(argv: List[str]) -> int:
             hits.append(h)
     # @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-scan-all
 
+    # @cpt-begin:cpt-cypilot-flow-traceability-validation-query:p1:inst-if-list-code
     # Scan code files if requested
     code_files_scanned = 0
     if args.include_code and not args.artifact and ctx:
@@ -188,6 +190,7 @@ def cmd_list_ids(argv: List[str]) -> int:
                     if ref.inst:
                         h["inst"] = ref.inst
                     hits.append(h)
+    # @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-if-list-code
 
     # @cpt-begin:cpt-cypilot-flow-traceability-validation-query:p1:inst-if-list
     # Apply filters
@@ -230,7 +233,7 @@ def cmd_list_ids(argv: List[str]) -> int:
     return 0
     # @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-return-query
 
-
+# @cpt-begin:cpt-cypilot-flow-traceability-validation-query:p1:inst-query-format
 def _human_list_ids(data: dict) -> None:
     count = data.get("count", 0)
     n_art = data.get("artifacts_scanned", 0)
@@ -269,3 +272,4 @@ def _human_list_ids(data: dict) -> None:
             ui.substep(f"  {cid}  ({htype}, {art_label}{loc})")
 
     ui.blank()
+# @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-query-format

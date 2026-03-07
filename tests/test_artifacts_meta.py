@@ -359,7 +359,12 @@ class TestArtifactsMeta(unittest.TestCase):
             ],
         }
         meta = ArtifactsMeta.from_dict(data)
-        names = [n.name for n in meta.iter_all_systems() if n.name]
+        def _all_names(systems):
+            for s in systems:
+                if s.name:
+                    yield s.name
+                yield from _all_names(s.children)
+        names = list(_all_names(meta.systems))
         self.assertIn("myapp", names)
         self.assertIn("account-server", names)
         self.assertIn("billing", names)
@@ -379,7 +384,12 @@ class TestArtifactsMeta(unittest.TestCase):
             ],
         }
         meta = ArtifactsMeta.from_dict(data)
-        names = {str(n.name).lower() for n in meta.iter_all_systems() if n.name}
+        def _all_names(systems):
+            for s in systems:
+                if s.name:
+                    yield s.name
+                yield from _all_names(s.children)
+        names = {str(n).lower() for n in _all_names(meta.systems)}
         self.assertIsInstance(names, set)
         self.assertIn("myapp", names)
         self.assertIn("account-server", names)
@@ -524,40 +534,10 @@ class TestSystemNodeHierarchy(unittest.TestCase):
             ],
         }
         meta = ArtifactsMeta.from_dict(data)
-        # Find the auth node
-        auth_node = None
-        for node in meta.iter_all_systems():
-            if node.slug == "auth":
-                auth_node = node
-                break
-        self.assertIsNotNone(auth_node)
+        # Find the auth node via direct traversal
+        auth_node = meta.systems[0].children[0].children[0]
+        self.assertEqual(auth_node.slug, "auth")
         self.assertEqual(auth_node.get_hierarchy_prefix(), "platform-core-auth")
-
-    def test_validate_slug_valid(self):
-        """Cover validate_slug method with valid slug."""
-        node = SystemNode(name="Test", slug="valid-slug", kit="test")
-        result = node.validate_slug()
-        self.assertIsNone(result)
-
-    def test_validate_slug_missing(self):
-        """Cover validate_slug method with missing slug."""
-        # Grouping nodes may omit slug (no direct artifacts/codebase)
-        grouping = SystemNode(name="Test", slug="", kit="test")
-        self.assertIsNone(grouping.validate_slug())
-
-        # But systems that directly own artifacts/codebase must have a slug
-        node = SystemNode(name="Test", slug="", kit="test")
-        node.artifacts.append(Artifact(path="a.md", kind="PRD", traceability="FULL"))
-        result = node.validate_slug()
-        self.assertIsNotNone(result)
-        self.assertIn("Missing slug", result)
-
-    def test_validate_slug_invalid_format(self):
-        """Cover validate_slug method with invalid slug format."""
-        node = SystemNode(name="Test", slug="Invalid_Slug!", kit="test")
-        result = node.validate_slug()
-        self.assertIsNotNone(result)
-        self.assertIn("Invalid slug", result)
 
 
 class TestArtifactsMetaIterators(unittest.TestCase):
@@ -593,40 +573,8 @@ class TestArtifactsMetaIterators(unittest.TestCase):
         self.assertIn("src/parent", paths)
         self.assertIn("src/child", paths)
 
-    def test_iter_all_systems_with_children(self):
-        """Cover iter_all_systems with nested children."""
-        data = {
-            "version": "1.0",
-            "project_root": "..",
-            "kits": {},
-            "systems": [
-                {
-                    "name": "Root",
-                    "slug": "root",
-                    "kit": "cypilot-sdlc",
-                    "children": [
-                        {
-                            "name": "Child1",
-                            "slug": "child1",
-                            "kit": "cypilot-sdlc",
-                            "children": [
-                                {"name": "Grandchild", "slug": "grandchild", "kit": "cypilot-sdlc"}
-                            ],
-                        }
-                    ],
-                }
-            ],
-        }
-        meta = ArtifactsMeta.from_dict(data)
-        systems = list(meta.iter_all_systems())
-        self.assertEqual(len(systems), 3)
-        slugs = [s.slug for s in systems]
-        self.assertIn("root", slugs)
-        self.assertIn("child1", slugs)
-        self.assertIn("grandchild", slugs)
-
     def test_get_system_by_slug(self):
-        """Cover get_system_by_slug method."""
+        """Cover system node traversal via direct access."""
         data = {
             "version": "1.0",
             "project_root": "..",
@@ -641,32 +589,9 @@ class TestArtifactsMetaIterators(unittest.TestCase):
             ],
         }
         meta = ArtifactsMeta.from_dict(data)
-        node = None
-        for n in meta.iter_all_systems():
-            if n.slug == "module":
-                node = n
-                break
-        self.assertIsNotNone(node)
+        node = meta.systems[0].children[0]
+        self.assertEqual(node.slug, "module")
         self.assertEqual(node.name, "Module")
-        # Test not found
-        self.assertIsNone(next((n for n in meta.iter_all_systems() if n.slug == "nonexistent"), None))
-
-    def test_validate_all_slugs(self):
-        """Cover validate_all_slugs method."""
-        data = {
-            "version": "1.0",
-            "project_root": "..",
-            "kits": {},
-            "systems": [
-                {"name": "Valid", "slug": "valid", "kit": "cypilot-sdlc"},
-                {"name": "Invalid", "slug": "Invalid_Slug!", "kit": "cypilot-sdlc"},
-            ],
-        }
-        meta = ArtifactsMeta.from_dict(data)
-        errors = meta.validate_all_slugs()
-        self.assertEqual(len(errors), 1)
-        self.assertIn("Invalid slug", errors[0])
-
 
 class TestAutodetectRuleFromDict(unittest.TestCase):
     """Tests for AutodetectRule.from_dict edge cases."""

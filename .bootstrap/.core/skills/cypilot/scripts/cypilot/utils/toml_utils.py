@@ -8,6 +8,7 @@ TOML utilities for Cypilot config files.
 @cpt-algo:cpt-cypilot-algo-core-infra-config-management:p1
 """
 
+# @cpt-begin:cpt-cypilot-algo-core-infra-toml-utils:p1:inst-toml-datamodel
 import re
 import tomllib
 from pathlib import Path
@@ -20,6 +21,7 @@ _TOML_FENCE_RE = re.compile(
     r"```toml\s*\n(.*?)```",
     re.DOTALL,
 )
+# @cpt-end:cpt-cypilot-algo-core-infra-toml-utils:p1:inst-toml-datamodel
 
 
 # ---------------------------------------------------------------------------
@@ -64,6 +66,7 @@ def parse_toml_from_markdown(text: str) -> TomlData:
 # @cpt-end:cpt-cypilot-algo-core-infra-toml-utils:p1:inst-toml-from-markdown
 
 
+# @cpt-begin:cpt-cypilot-algo-core-infra-toml-utils:p1:inst-toml-datamodel
 def _deep_merge(base: TomlData, override: TomlData) -> None:
     """Merge *override* into *base* in place (nested dicts are merged)."""
     for key, val in override.items():
@@ -71,6 +74,7 @@ def _deep_merge(base: TomlData, override: TomlData) -> None:
             _deep_merge(base[key], val)
         else:
             base[key] = val
+# @cpt-end:cpt-cypilot-algo-core-infra-toml-utils:p1:inst-toml-datamodel
 
 
 # ---------------------------------------------------------------------------

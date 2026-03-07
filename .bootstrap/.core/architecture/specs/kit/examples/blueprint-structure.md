@@ -1,3 +1,5 @@
+> **DEPRECATED per `cpt-cypilot-adr-remove-blueprint-system`**: Blueprint files are no longer used. Kits are now direct file packages. This example is preserved for legacy reference only.
+
 Blueprint File Structure Example — illustrates the ordering and structure of all
 marker types in a single blueprint file. This text is outside any marker block
 and is ignored by the processor. It serves as human-readable documentation.

@@ -50,25 +50,42 @@ pytest tests/test_cli_integration.py::TestValidateCommand -v
 
 ## Test File Organization
 
+35 test modules in `tests/`:
+
 | File | Coverage Area |
 |------|---------------|
-| `test_cli_integration.py` | CLI command integration |
-| `test_template_utils.py` | Template parsing and validation |
-| `test_codebase.py` | Code file parsing, markers |
-| `test_parse_sid.py` | Cypilot ID parsing |
+| `test_adapter_info.py` | Adapter discovery |
+| `test_agents_coverage.py` | Agent integration coverage |
+| `test_ai_navigate_when.py` | WHEN clause parsing |
 | `test_artifacts_meta.py` | artifacts.toml parsing |
-| `test_files_utils.py` | File operations |
+| `test_blueprint_coverage.py` | Blueprint system coverage |
 | `test_cli_helpers.py` | CLI helper functions |
+| `test_cli_integration.py` | CLI command integration |
+| `test_cli_py_coverage.py` | Coverage gap tests |
+| `test_codebase.py` | Code file parsing, markers |
+| `test_constraints_utils.py` | constraints.toml parsing |
 | `test_context.py` | CypilotContext, LoadedKit |
 | `test_core_structure.py` | Project structure validation |
-| `test_cli_py_coverage.py` | Coverage gap tests |
-| `test_language_config.py` | Language configuration |
-| `test_parsing_utils.py` | Markdown parsing |
-| `test_validate.py` | Validation utilities |
-| `test_adapter_info.py` | Adapter discovery |
-| `test_workflow_parsing.py` | Workflow file parsing |
+| `test_coverage_utils.py` | Coverage utility functions |
+| `test_cypilot_package_init.py` | Package init, version |
 | `test_design_validation.py` | DESIGN.md validation |
-| `test_ai_navigate_when.py` | WHEN clause parsing |
+| `test_diff_engine.py` | Three-way merge diff engine |
+| `test_files_utils.py` | File operations |
+| `test_fixing.py` | Auto-fix utilities |
+| `test_hash_detection.py` | Blueprint hash detection |
+| `test_kit.py` | Kit install/update/migrate |
+| `test_language_config.py` | Language configuration |
+| `test_migrate.py` | v2→v3 migration |
+| `test_overwork_alert_*.py` | Example project tests (4 files) |
+| `test_parse_sid.py` | Cypilot ID parsing |
+| `test_parsing_utils.py` | Markdown parsing |
+| `test_quickstart_bootstrap.py` | Bootstrap quickstart flow |
+| `test_spec_coverage.py` | Spec coverage measurement |
+| `test_toc.py` | TOC generation/validation |
+| `test_ui_human_mode.py` | Human-friendly output mode |
+| `test_update.py` | Update pipeline |
+| `test_validate.py` | Validation utilities |
+| `test_workflow_parsing.py` | Workflow file parsing |
 
 ## Test Patterns
 

@@ -1,3 +1,4 @@
+# @cpt-begin:cpt-cypilot-flow-traceability-validation-query:p1:inst-query-imports
 import argparse
 import json
 import sys
@@ -6,9 +7,10 @@ from typing import Dict, List, Tuple
 
 from ..utils.document import scan_cpt_ids
 from ..utils.ui import ui
-
+# @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-query-imports
 
 # @cpt-flow:cpt-cypilot-flow-traceability-validation-query:p1
+# @cpt-begin:cpt-cypilot-flow-traceability-validation-query:p1:inst-query-resolve
 def cmd_where_used(argv: List[str]) -> int:
     """Find all references to a Cypilot ID."""
     p = argparse.ArgumentParser(prog="where-used", description="Find all references to an Cypilot ID")
@@ -78,6 +80,7 @@ def cmd_where_used(argv: List[str]) -> int:
     if not artifacts_to_scan:
         ui.result({"id": target_id, "artifacts_scanned": 0, "count": 0, "references": []}, human_fn=lambda d: _human_where_used(d))
         return 0
+    # @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-query-resolve
 
     # @cpt-begin:cpt-cypilot-flow-traceability-validation-query:p1:inst-if-where-used
     # Search for references
@@ -105,7 +108,7 @@ def cmd_where_used(argv: List[str]) -> int:
     ui.result({"id": target_id, "artifacts_scanned": len(artifacts_to_scan), "count": len(references), "references": references}, human_fn=lambda d: _human_where_used(d))
     return 0
 
-
+# @cpt-begin:cpt-cypilot-flow-traceability-validation-query:p1:inst-query-format
 def _human_where_used(data: dict) -> None:
     target = data.get("id", "?")
     refs = data.get("references", [])
@@ -134,3 +137,4 @@ def _human_where_used(data: dict) -> None:
         ui.step(f"{art}{loc}  ({ref_type}, {art_type}){suffix}")
 
     ui.blank()
+# @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-query-format

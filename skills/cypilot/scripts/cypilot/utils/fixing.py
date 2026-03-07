@@ -5,12 +5,14 @@ instruction that an LLM agent can follow to resolve the issue.  The prompt
 includes the clickable ``location`` (PATH:LINE), the affected ID, and relevant
 constraint context (SYSTEM, KIND, template).
 """
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-fixing-prompts:p1:inst-fix-datamodel
 from __future__ import annotations
 
 from pathlib import Path
 from typing import Dict, List, Optional
 
 from . import error_codes as EC
+# @cpt-end:cpt-cypilot-algo-traceability-validation-fixing-prompts:p1:inst-fix-datamodel
 
 
 # ---------------------------------------------------------------------------
@@ -245,6 +247,7 @@ _REASONS: Dict[str, List[str]] = {
 # @cpt-end:cpt-cypilot-algo-traceability-validation-fixing-prompts:p1:inst-fix-define-reasons
 
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-fixing-prompts:p1:inst-fix-datamodel
 class _SafeDict(dict):
     """dict subclass that returns '{key}' for missing keys in str.format_map()."""
     def __missing__(self, key: str) -> str:
@@ -255,6 +258,7 @@ def _resolve_reasons(templates: List[str], issue: Dict[str, object]) -> List[str
     """Render reason templates with actual issue field values."""
     ctx = _SafeDict({k: v for k, v in issue.items() if v is not None})
     return [tpl.format_map(ctx) for tpl in templates]
+# @cpt-end:cpt-cypilot-algo-traceability-validation-fixing-prompts:p1:inst-fix-datamodel
 
 
 # ---------------------------------------------------------------------------
@@ -288,6 +292,7 @@ def enrich_issues(issues: List[Dict[str, object]], project_root: Optional[Path] 
 # Helpers
 # ---------------------------------------------------------------------------
 
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-fixing-prompts:p1:inst-fix-datamodel
 def _rel_loc(issue: Dict[str, object], project_root: Optional[Path] = None) -> str:
     """Return a relative location string (``rel/path:line``)."""
     loc = str(issue.get("location") or f"{issue.get('path')}:{issue.get('line', 1)}")
@@ -351,6 +356,7 @@ def _rel_path_str(abs_path: str, project_root: Optional[Path]) -> str:
         elif tp.startswith(prefix):
             tp = tp[len(prefix):]
     return tp
+# @cpt-end:cpt-cypilot-algo-traceability-validation-fixing-prompts:p1:inst-fix-datamodel
 
 
 # ---------------------------------------------------------------------------

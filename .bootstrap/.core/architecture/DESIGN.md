@@ -6,122 +6,22 @@
 - [1. Architecture Overview](#1-architecture-overview)
   - [1.1 Architectural Vision](#11-architectural-vision)
   - [1.2 Architecture Drivers](#12-architecture-drivers)
-    - [Functional Drivers](#functional-drivers)
-      - [Global CLI Installer](#global-cli-installer)
-      - [Project Initialization](#project-initialization)
-      - [Config Directory](#config-directory)
-      - [Deterministic Skill Engine](#deterministic-skill-engine)
-      - [Generic Workflows](#generic-workflows)
-      - [Multi-Agent Integration](#multi-agent-integration)
-      - [Extensible Kit System](#extensible-kit-system)
-      - [ID and Traceability System](#id-and-traceability-system)
-      - [Cypilot DSL (CDSL)](#cypilot-dsl-cdsl)
-      - [SDLC Kit](#sdlc-kit)
-      - [Artifact Validation](#artifact-validation)
-      - [PR Review Workflow](#pr-review-workflow)
-      - [Version Detection and Updates](#version-detection-and-updates)
-      - [CLI Configuration Interface](#cli-configuration-interface)
-      - [VS Code Plugin](#vs-code-plugin)
-      - [Artifact Pipeline](#artifact-pipeline)
-      - [Artifact Blueprint](#artifact-blueprint)
-      - [Cross-Artifact Validation](#cross-artifact-validation)
-      - [PR Status Workflow](#pr-status-workflow)
-      - [Code Generation from Design](#code-generation-from-design)
-      - [Brownfield Support](#brownfield-support)
-      - [Feature Lifecycle Management](#feature-lifecycle-management)
-      - [PR Review Configuration](#pr-review-configuration)
-      - [Quickstart Guides](#quickstart-guides)
-      - [Utility Commands](#utility-commands)
-      - [Spec Coverage](#spec-coverage)
-    - [NFR Allocation](#nfr-allocation)
   - [1.3 Architecture Layers](#13-architecture-layers)
 - [2. Principles & Constraints](#2-principles-constraints)
   - [2.1 Design Principles](#21-design-principles)
-    - [Determinism First](#determinism-first)
-    - [Kit-Centric](#kit-centric)
-    - [Traceability by Design](#traceability-by-design)
-    - [Plugin Extensibility](#plugin-extensibility)
-    - [Machine-Readable Output](#machine-readable-output)
-    - [Tool-Managed Config](#tool-managed-config)
-    - [Skill-Documented](#skill-documented)
-    - [DRY (Don't Repeat Yourself)](#dry-dont-repeat-yourself)
-    - [Occam's Razor](#occams-razor)
-    - [CI & Automation First, LLM Last Resort](#ci-automation-first-llm-last-resort)
-    - [Zero Harm, Only Benefits](#zero-harm-only-benefits)
-    - [No Manual Maintenance](#no-manual-maintenance)
   - [2.2 Constraints](#22-constraints)
-    - [Python Standard Library Only](#python-standard-library-only)
-    - [Markdown as Contract](#markdown-as-contract)
-    - [Git Project Heuristics](#git-project-heuristics)
-    - [Cross-Platform Native Support](#cross-platform-native-support)
-    - [No Weakening of Rules](#no-weakening-of-rules)
 - [3. Technical Architecture](#3-technical-architecture)
   - [3.1 Domain Model](#31-domain-model)
   - [3.2 Component Model](#32-component-model)
-    - [CLI Proxy](#cli-proxy)
-      - [Why this component exists](#why-this-component-exists)
-      - [Responsibility scope](#responsibility-scope)
-      - [Responsibility boundaries](#responsibility-boundaries)
-      - [Related components (by ID)](#related-components-by-id)
-    - [Blueprint Processor](#blueprint-processor)
-      - [Why this component exists](#why-this-component-exists-1)
-      - [Responsibility scope](#responsibility-scope-1)
-      - [Responsibility boundaries](#responsibility-boundaries-1)
-      - [Related components (by ID)](#related-components-by-id-1)
-    - [Skill Engine](#skill-engine)
-      - [Why this component exists](#why-this-component-exists-2)
-      - [Responsibility scope](#responsibility-scope-2)
-      - [Responsibility boundaries](#responsibility-boundaries-2)
-      - [Related components (by ID)](#related-components-by-id-2)
-    - [Validator](#validator)
-      - [Why this component exists](#why-this-component-exists-3)
-      - [Responsibility scope](#responsibility-scope-3)
-      - [Responsibility boundaries](#responsibility-boundaries-3)
-      - [Related components (by ID)](#related-components-by-id-3)
-    - [Traceability Engine](#traceability-engine)
-      - [Why this component exists](#why-this-component-exists-4)
-      - [Responsibility scope](#responsibility-scope-4)
-      - [Responsibility boundaries](#responsibility-boundaries-4)
-      - [Related components (by ID)](#related-components-by-id-4)
-    - [Config Manager](#config-manager)
-      - [Why this component exists](#why-this-component-exists-5)
-      - [Responsibility scope](#responsibility-scope-5)
-      - [Responsibility boundaries](#responsibility-boundaries-5)
-      - [Related components (by ID)](#related-components-by-id-5)
-    - [Kit Manager](#kit-manager)
-      - [Why this component exists](#why-this-component-exists-6)
-      - [Responsibility scope](#responsibility-scope-6)
-      - [Responsibility boundaries](#responsibility-boundaries-6)
-      - [Related components (by ID)](#related-components-by-id-6)
-    - [Agent Generator](#agent-generator)
-      - [Why this component exists](#why-this-component-exists-7)
-      - [Responsibility scope](#responsibility-scope-7)
-      - [Responsibility boundaries](#responsibility-boundaries-7)
-      - [Related components (by ID)](#related-components-by-id-7)
-    - [SDLC Kit](#sdlc-kit-1)
-      - [Why this component exists](#why-this-component-exists-8)
-      - [Responsibility scope](#responsibility-scope-8)
-      - [Responsibility boundaries](#responsibility-boundaries-8)
-      - [Related components (by ID)](#related-components-by-id-8)
   - [3.3 API Contracts](#33-api-contracts)
   - [3.4 Internal Dependencies](#34-internal-dependencies)
   - [3.5 External Dependencies](#35-external-dependencies)
-    - [GitHub API (via `gh` CLI)](#github-api-via-gh-cli)
-    - [Python Runtime](#python-runtime)
-    - [pipx (recommended)](#pipx-recommended)
   - [3.6 Interactions & Sequences](#36-interactions-sequences)
-    - [Project Initialization](#project-initialization-1)
-    - [Artifact Validation](#artifact-validation-1)
-    - [Agent Workflow Execution (Generate)](#agent-workflow-execution-generate)
-    - [PR Review](#pr-review)
-    - [Version Update](#version-update)
-    - [ID Resolution Query](#id-resolution-query)
   - [3.7 Database schemas & tables](#37-database-schemas-tables)
 - [4. Additional context](#4-additional-context)
   - [Performance Considerations](#performance-considerations)
   - [Extensibility Model](#extensibility-model)
   - [Migration Strategy](#migration-strategy)
-    - [JSON → TOML Format Migration](#json-toml-format-migration)
   - [Testing Approach](#testing-approach)
   - [Non-Applicable Design Domains](#non-applicable-design-domains)
 - [5. Traceability](#5-traceability)
@@ -135,9 +35,9 @@
 
 Cypilot uses a layered architecture with a thin global CLI proxy at the top, a deterministic skill engine at the core, and a kit system for domain-specific functionality. The architecture maximizes determinism: all validation, scanning, and transformation is handled by Python scripts with JSON output; LLMs are reserved only for reasoning tasks within agent workflows.
 
-The system separates concerns into five layers: Global CLI Proxy (installation, caching, version management), Core Skill Engine (command routing, deterministic execution), Kit System (domain-specific blueprints, generated templates, rules, validation), Config Management (structured config directory, schema validation), and Agent Integration (multi-agent entry point generation). Each layer has clear boundaries and communicates through well-defined interfaces.
+The system separates concerns into five layers: Global CLI Proxy (installation, caching, version management), Core Skill Engine (command routing, deterministic execution), Kit System (GitHub-based kit installation, domain-specific file packages: rules, templates, checklists, constraints, workflows), Config Management (structured config directory, schema validation), and Agent Integration (multi-agent entry point generation). Each layer has clear boundaries and communicates through well-defined interfaces.
 
-Each kit is a blueprint package: a `blueprints/` directory containing one `.md` file per artifact kind. During installation, blueprints are copied into `{cypilot_path}/config/kits/<slug>/blueprints/` (user-editable) and all resources (templates, checklists, rules, constraints, examples, workflows) are generated from them. The core knows about kits through registration in `{cypilot_path}/config/core.toml`. A plugin system for custom markers and CLI subcommands is planned for p2.
+Each kit is a file package: a collection of artifact definitions (rules, checklists, templates, examples, constraints, workflows, scripts) installable from GitHub repositories and copied into the kit's config directory (default: `{cypilot_path}/config/kits/<slug>/`) during installation. Kit updates use file-level diff: each file in the new kit version is compared against the user's installed copy, and changed files are presented as unified diffs with interactive accept/decline/modify prompts. All kit files are user-editable and preserved across updates via interactive diff. The core knows about kits through registration in `{cypilot_path}/config/core.toml` (with `source` and `version` fields tracking the GitHub origin). Cypilot core does not bundle any domain-specific kits — all kits are external packages. During `cpt init`, the user is prompted to install the SDLC kit (`cyberfabric/cyber-pilot-kit-sdlc`) with `[a]ccept / [d]ecline`. A plugin system for custom hooks and CLI subcommands is planned for p2.
 
 ### 1.2 Architecture Drivers
 
@@ -145,45 +45,45 @@ Each kit is a blueprint package: a `blueprints/` directory containing one `.md` 
 
 ##### Global CLI Installer
 
-- [ ] `p1` - `cpt-cypilot-fr-core-installer`
+- [x] `p1` - `cpt-cypilot-fr-core-installer`
 
 **Design Response**: Thin proxy shell with local cache at `~/.cypilot/cache/`. On every invocation the proxy ensures a cached skill bundle exists, routes commands to the project-installed or cached skill, and performs non-blocking background version checks. The proxy contains zero skill logic.
 
 ##### Project Initialization
 
-- [ ] `p1` - `cpt-cypilot-fr-core-init`
+- [x] `p1` - `cpt-cypilot-fr-core-init`
 
-**Design Response**: Interactive bootstrapper that copies the skill from cache into the project, creates the `config/` directory structure, and generates agent entry points. Installed kits populate their own config directories with baseline autodetect rules.
+**Design Response**: Interactive bootstrapper that copies the skill from cache into the project, creates the `config/` and `.gen/` directory structure, and generates agent entry points. The dialog asks for install directory, agent selection, and per-kit config output directory. Installed kits copy all kit files (rules, templates, checklists, examples, constraints, workflows, scripts) into the kit's config directory.
 
 ##### Config Directory
 
-- [ ] `p1` - `cpt-cypilot-fr-core-config`
+- [x] `p1` - `cpt-cypilot-fr-core-config`
 
-**Design Response**: `{cypilot_path}/config/core.toml` holds system definitions, kit registrations, and ignore lists. `{cypilot_path}/config/kits/<slug>/` directories hold per-kit blueprints, generated artifacts, and workflows. All config files use TOML format with deterministic serialization. Cypilot core manages `core.toml` and the Blueprint Processor manages generated outputs.
+**Design Response**: The config directory (`{cypilot_path}/config/`) holds all project configuration. `core.toml` stores the project root, system definition (name, slug, kit), and kit registrations (format, path, version). `artifacts.toml` stores the artifact registry: system autodetect rules, ignore patterns, and codebase definitions. `AGENTS.md` and `SKILL.md` are user-editable extension points for agent navigation rules and skill instructions respectively. `{cypilot_path}/config/kits/<slug>/` directories hold all kit files — artifacts, workflows, per-kit SKILL.md, constraints, and scripts (all user-editable). Kit-specific config files (e.g., `pr-review.toml`) also live in `config/`. `{cypilot_path}/.gen/` holds only auto-generated aggregate files (`AGENTS.md`, `SKILL.md`, `README.md`) assembled from installed kits. All TOML config files use deterministic serialization. Kit files are user-editable and preserved across updates via interactive diff.
 
 ##### Deterministic Skill Engine
 
-- [ ] `p1` - `cpt-cypilot-fr-core-skill-engine`
+- [x] `p1` - `cpt-cypilot-fr-core-skill-engine`
 
 **Design Response**: Python command router that dispatches to command handlers. All commands output JSON. Exit codes follow the convention: 0=PASS, 1=filesystem error, 2=FAIL. SKILL.md serves as the agent entry point with command reference and execution protocol.
 
 ##### Generic Workflows
 
-- [ ] `p1` - `cpt-cypilot-fr-core-workflows`
+- [x] `p1` - `cpt-cypilot-fr-core-workflows`
 
 **Design Response**: Two universal Markdown workflows (generate and analyze) with a common execution protocol. Workflows are loaded and interpreted by AI agents, not by the tool itself. The tool provides deterministic commands that workflows invoke.
 
 ##### Multi-Agent Integration
 
-- [ ] `p1` - `cpt-cypilot-fr-core-agents`
+- [x] `p1` - `cpt-cypilot-fr-core-agents`
 
 **Design Response**: Agent Generator component produces entry points in each agent's native format: `.windsurf/workflows/`, `.cursor/rules/`, `.claude/commands/`, `.github/prompts/`. All entry points reference the core SKILL.md. The `agents` command fully overwrites entry points on each invocation.
 
 ##### Extensible Kit System
 
-- [ ] `p1` - `cpt-cypilot-fr-core-kits`
+- [x] `p1` - `cpt-cypilot-fr-core-kits`
 
-**Design Response**: Kit Manager handles kit lifecycle: installation (saving kit source to `{cypilot_path}/kits/{slug}/`, copying blueprints to `{cypilot_path}/config/kits/{slug}/blueprints/`), registration in `core.toml`, resource generation, version tracking, and migration. Each kit is a `blueprints/` directory with one `.md` per artifact kind. A plugin system for custom CLI subcommands and hooks is planned for p2.
+**Design Response**: Kit Manager handles kit lifecycle: installation from GitHub repositories (`cpt kit install --github <owner/repo>`), copying kit files into the kit's config directory, registration in `core.toml` (with config path, GitHub source, and version), and version tracking via GitHub tags. Each kit is a collection of ready-to-use files (rules, templates, checklists, examples, constraints, workflows, scripts). Kit updates download the new version from GitHub and use file-level diff: each file in the new version is compared against the user's installed copy, and all changed files are presented as unified diffs with interactive accept/decline/accept-all/decline-all/modify prompts. `cpt kit move-config <slug>` relocates a kit's config output directory. Cypilot core bundles no kits — all kits are external GitHub packages. A plugin system for custom CLI subcommands and hooks is planned for p2.
 
 ##### ID and Traceability System
 
@@ -197,29 +97,15 @@ Each kit is a blueprint package: a `blueprints/` directory containing one `.md` 
 
 **Design Response**: CDSL is a plain English specification language embedded in Markdown. The tool parses CDSL instruction markers (`- [ ] Inst-label:`) for implementation tracking. CDSL validation is part of the Validator component's template compliance checks.
 
-##### SDLC Kit
+##### SDLC Kit & Related Requirements (EXTRACTED — External Package)
 
-- [ ] `p2` - `cpt-cypilot-fr-sdlc-plugin`
-
-**Design Response**: The SDLC kit is a blueprint package providing artifact definitions for PRD, DESIGN, ADR, DECOMPOSITION, and FEATURE. The Blueprint Processor deterministically generates all kit resources (templates, examples, rules, checklists, constraints, workflows) from the blueprints in `kits/sdlc/blueprints/`. Kit-specific CLI subcommands for managing autodetect rules and artifact patterns are planned for p2.
-
-##### Artifact Validation
-
-- [x] `p1` - `cpt-cypilot-fr-sdlc-validation`
-
-**Design Response**: Validator component performs single-pass scanning of artifact files: template structure compliance, ID format validation, priority marker presence, placeholder detection, and constraint enforcement. Cross-artifact validation checks covered_by references, checked consistency, and ID resolution across all registered artifacts.
-
-##### PR Review Workflow
-
-- [ ] `p1` - `cpt-cypilot-fr-sdlc-pr-review`
-
-**Design Response**: PR review uses `gh` CLI to fetch PR data (diffs, metadata, comments), then delegates analysis to the AI agent with configurable prompts and checklists. The workflow is read-only (no local working tree modifications) and always re-fetches data on each invocation.
+> **EXTRACTED per `cpt-cypilot-adr-extract-sdlc-kit`**: The SDLC kit has been moved to a separate GitHub repository (`cyberfabric/cyber-pilot-kit-sdlc`). All SDLC-specific design responses (kit plugin, artifact validation, PR review workflow) are now owned by the kit's own repository. Cypilot core prompts to install this kit during `cpt init` with `[a]ccept / [d]ecline`. The core Validator component provides generic structural and cross-artifact validation for any installed kit's artifacts.
 
 ##### Version Detection and Updates
 
 - [ ] `p2` - `cpt-cypilot-fr-core-version`
 
-**Design Response**: The `update` command copies the cached skill into the project, migrates `{cypilot_path}/config/core.toml`, invokes each kit's migration script, and regenerates agent entry points. Config migration preserves all user settings. Version information is accessible via `--version`.
+**Design Response**: The `update` command copies the cached skill into the project, detects directory layout and automatically restructures if the old layout is detected, migrates `{cypilot_path}/config/core.toml`, migrates bundled kit references to GitHub sources for projects upgrading from versions < 3.0.8 (see `cpt-cypilot-adr-extract-sdlc-kit`), and regenerates agent entry points. The update command does NOT update kit files — kit updates are a separate operation via `cpt kit update`. Config migration preserves all user settings. Version information is accessible via `--version`.
 
 ##### CLI Configuration Interface
 
@@ -233,73 +119,39 @@ Each kit is a blueprint package: a `blueprints/` directory containing one `.md` 
 
 **Design Response**: VS Code extension delegates all validation to the installed Cypilot skill (`cpt validate`). The plugin reads config from the project's install directory, provides ID syntax highlighting, go-to-definition, real-time validation, autocompletion, hover info, CodeLens, traceability tree view, and quick fixes.
 
-##### Artifact Pipeline
+##### Artifact Pipeline (EXTRACTED — External Package)
 
-- [ ] `p1` - `cpt-cypilot-fr-sdlc-pipeline`
+> **EXTRACTED per `cpt-cypilot-adr-extract-sdlc-kit`**: The SDLC artifact pipeline is now defined by the SDLC kit (`cyberfabric/cyber-pilot-kit-sdlc`). Cypilot core provides generic generate/analyze workflows that work with any installed kit.
 
-**Design Response**: The SDLC kit defines an artifact-first pipeline: PRD → DESIGN → ADR → DECOMPOSITION → FEATURE → CODE. Each artifact kind has a single Artifact Blueprint from which all resources (template, checklist, rules, constraints) are generated. Artifacts are usable independently (no forced sequence). The generate and analyze workflows handle both greenfield and brownfield entry points.
+##### Artifact Blueprint (DEPRECATED)
 
-##### Artifact Blueprint
+- [x] `p1` - ~~cpt-cypilot-fr-core-blueprint~~ (DEPRECATED)
 
-- [ ] `p1` - `cpt-cypilot-fr-core-blueprint`
+> **DEPRECATED per `cpt-cypilot-adr-remove-blueprint-system`**: The Blueprint Processor and blueprint files have been removed. Kits are now direct file packages — all kit resources (rules, templates, checklists, examples, constraints, workflows, scripts, SKILL.md) are maintained as ready-to-use files in `{cypilot_path}/config/kits/<slug>/`. There is no generation step. Kit updates use file-level diff (see `cpt-cypilot-fr-core-resource-diff`).
 
-**Design Response**: The Blueprint Processor is a core component that defines the blueprint contract and executes generation. Each artifact kind has one blueprint file (`<KIND>.md` in `blueprints/`) — a Markdown file that IS the template enriched with backtick-delimited `@cpt:` markers. Markers support two syntax forms: **named** (`` `@cpt:type:id` `` / `` `@/cpt:type:id` ``) where `id` is a kebab-case slug providing stable identity for merge, and **legacy** (`` `@cpt:type` `` / `` `@/cpt:type` ``) for backward compatibility. Named syntax is required for new blueprints; legacy syntax triggers a deprecation warning. The content between markers consists of fenced code blocks (` ```toml ` for config, ` ```markdown ` for content). `@cpt:blueprint` is the identity marker (first in file); `@cpt:heading` markers define the template structure; metadata markers (`@cpt:rule`, `@cpt:check`, `@cpt:skill`, `@cpt:system-prompt`, `@cpt:workflow`, `@cpt:id`) are stripped when generating `template.md`; `@cpt:prompt` content is kept — it appears under headings as writing instructions. All markers are flat (no nesting); free text outside markers is ignored and can serve as documentation. The core defines the format, the reference-based update model, and built-in marker types: `@cpt:blueprint` (identity + metadata), `@cpt:skill` (SKILL.md extensions), `@cpt:system-prompt` (agent context extensions), `@cpt:workflow` (workflow command registrations → AGENTS.md).
+**Kit file structure**: Each kit is a directory containing per-artifact subdirectories (`artifacts/<KIND>/rules.md`, `artifacts/<KIND>/template.md`, `artifacts/<KIND>/checklist.md`, `artifacts/<KIND>/examples/example.md`), kit-wide files (`constraints.toml`, `conf.toml`, `SKILL.md`), and optional directories (`workflows/`, `scripts/`, `codebase/`). All files are user-editable and preserved across updates via interactive diff.
 
-**Marker identity**: Each marker has a **stable identity key** used by the three-way merge to match markers across versions. Resolution chain: (1) explicit syntax ID from `` `@cpt:TYPE:ID` `` → key = `TYPE:ID`; (2) TOML-derived key for structured markers (`heading:{id}`, `id:{kind}`, `workflow:{name}`); (3) positional index fallback for legacy unnamed markers (`TYPE#N`). Singleton markers (`blueprint`, `skill`, `system-prompt`, `rules`, `checklist`) use their type as the key.
+**SKILL extensions**: Kit `SKILL.md` files in `{cypilot_path}/config/kits/<slug>/SKILL.md` are aggregated into `{cypilot_path}/config/SKILL.md` during init/kit-install. The main SKILL.md navigates to `{cypilot_path}/config/SKILL.md`, ensuring AI agents discover kit capabilities.
 
-Blueprints use **placeholder syntax** `{descriptive text}` in `@cpt:heading` TOML `template` keys — the text inside `{...}` serves as the writing prompt. From each heading the processor derives: `template.md` gets the heading text with placeholders, `constraints.toml` gets the `pattern` regex (if specified) for validation, and `example.md` gets the first value from the `examples` array. Body-level examples are provided via `@cpt:example` blocks.
+**System prompt extensions**: Kit `AGENTS.md` content is appended to `{cypilot_path}/config/AGENTS.md` during init/kit-install. Loaded via Protocol Guard, directives are automatically active.
 
-All outputs are **core-defined** — the Blueprint Processor owns all marker types and output generators. Per-artifact outputs: `rules.md` (from `@cpt:rules` + `@cpt:rule`), `checklist.md` (from `@cpt:checklist` + `@cpt:check`), `template.md` (headings from `@cpt:heading` + writing instructions from `@cpt:prompt`), `example.md` (from `@cpt:heading` examples + `@cpt:example`). Kit-wide output: `constraints.toml` (aggregated from `@cpt:heading` + `@cpt:id` across all artifact blueprints, placed at `{cypilot_path}/.gen/kits/<slug>/constraints.toml`). Codebase outputs: `codebase/rules.md` and `codebase/checklist.md` (from blueprints without `artifact` key). Custom marker types and output generators are planned for p2.
+**Workflow registrations**: Kit workflow files in `{cypilot_path}/config/kits/<slug>/workflows/{name}.md` are registered with the Agent Generator, which creates entry points in each agent's native format (e.g., `.windsurf/workflows/cypilot-{name}.md`).
 
-**Update model**: The **installed kit** in `{cypilot_path}/kits/{slug}/` serves as the reference for all update operations. Two modes: **force** (`cypilot kit update --force`) updates the reference, overwrites all user blueprints, and regenerates all outputs; **additive** (`cypilot kit update`, default) computes a three-way merge using the old reference (`{cypilot_path}/kits/{slug}/.prev/`) vs. the user's blueprint (`{cypilot_path}/config/kits/{slug}/blueprints/`) vs. the new reference. Markers are matched across all three versions by their **stable identity key** (see Marker identity above). Merge rules: markers unchanged by the user are updated to the new version; user-modified markers are preserved (skipped); truly new markers (in new reference but not in old) are inserted at anchor-relative positions — nearest preceding known marker as anchor, forward search when anchor deleted, append as last resort; markers deleted by the user stay deleted (not re-inserted even if present in new reference). As a final merge step, **legacy marker upgrade** rewrites any remaining unnamed markers (`@cpt:TYPE`) to named syntax (`@cpt:TYPE:ID`) using the derived identity key — `heading:{id}`, `id:{kind}`, `workflow:{name}`, `check:{id}` (lowercased), `rule:{kind}-{section}` (with `-{N}` suffix for duplicates), `prompt`/`example` keyed to nearest heading ID. Singleton markers are skipped. This ensures migrated blueprints gain stable explicit IDs. After a successful merge, the reference is replaced with the new version.
+##### Generated Resource Editing & Interactive Diff
 
-**SKILL extensions**: blueprints may contain `@cpt:skill` blocks that are aggregated across all blueprints and written to `{cypilot_path}/config/SKILL.md` during init/kit-install. The main SKILL.md has a navigation rule to `{cypilot_path}/config/SKILL.md`, ensuring AI agents discover kit capabilities automatically.
+- [x] `p1` - `cpt-cypilot-fr-core-resource-diff`
 
-**System prompt extensions**: blueprints may contain `@cpt:system-prompt` blocks that are aggregated and appended to `{cypilot_path}/config/AGENTS.md` during init/kit-install. Since `{cypilot_path}/config/AGENTS.md` is loaded via the Protocol Guard, these directives are automatically active for the corresponding artifact kinds.
+**Design Response**: The Resource Diff Engine handles interactive conflict resolution for kit file updates and generated resource regeneration. The engine compares source files against the user's installed copies. If content differs, it presents a unified diff (similar to `git diff`) and an interactive CLI prompt with five modes: `[a]ccept` (overwrite with new), `[d]ecline` (keep current), `[A]ccept-all` (overwrite all remaining), `[D]ecline-all` (keep all remaining), `[m]odify` (open the file in the user's editor for manual resolution). Before iterating per-file, the engine displays a summary of all changes (added, removed, modified, unchanged counts). The same engine is used for both kit updates and generated resource regeneration.
 
-**Workflow registrations**: blueprints may contain `@cpt:workflow` blocks (TOML header with `name` and `description`, plus Markdown content with workflow steps). The Blueprint Processor generates a workflow `.md` file in `{cypilot_path}/.gen/kits/<slug>/workflows/{name}.md`. During `cpt generate-agents`, the Agent Generator creates entry points in each agent's native format (e.g., `.windsurf/workflows/cypilot-{name}.md`) that reference the kit workflow file. This allows kits to register workflows discoverable by all supported agents without manual agent-specific configuration.
+##### Directory Layout Migration
 
-##### Cross-Artifact Validation
+- [ ] `p1` - `cpt-cypilot-fr-core-layout-migration`
 
-- [x] `p1` - `cpt-cypilot-fr-sdlc-cross-artifact`
+**Design Response**: The Layout Migrator is a component in the Kit Manager that detects the old directory layout and performs automatic restructuring (generated outputs from `.gen/kits/` to `config/kits/`). This is an internal v3 restructuring, not a version bump. Detection: if `{cypilot_path}/.gen/kits/{slug}/` exists → old layout. Migration steps: (1) backup affected directories, (2) move `.gen/kits/{slug}/` → `config/kits/{slug}/` (generated outputs), (3) remove old `kits/{slug}/` reference copies if present, (4) remove `.gen/kits/` directory (preserve `.gen/AGENTS.md`, `.gen/SKILL.md`, `.gen/README.md`), (5) update `core.toml` kit registrations. Rollback: if any step fails, restore from backup and report error. Runs automatically during `cpt update`.
 
-**Design Response**: The Validator component performs cross-artifact checks by loading all registered artifacts for a system and comparing ID definitions against references. Checks include: covered_by reference completeness per constraints.toml rules, checked-ref-implies-checked-def consistency, and ID resolution across artifact boundaries. Cross-artifact validation runs as part of `cpt validate` (no separate command).
+##### Remaining SDLC Requirements (EXTRACTED — External Package)
 
-##### PR Status Workflow
-
-- [ ] `p1` - `cpt-cypilot-fr-sdlc-pr-status`
-
-**Design Response**: PR status reuses the same `gh` CLI integration as PR review. The workflow fetches comments, CI status, and merge conflict state, then classifies unreplied comments by severity. Output is a structured JSON report. Shares the SDLC kit's PR configuration (prompts, exclude lists).
-
-##### Code Generation from Design
-
-- [ ] `p2` - `cpt-cypilot-fr-sdlc-code-gen`
-
-**Design Response**: Code generation is an agent-driven workflow (not a deterministic command). The generate workflow loads FEATURE artifacts, reads project system prompts (domain model, API contracts) when present, and instructs the agent to produce code with `@cpt-*` traceability tags. The tool validates tags after generation via the Traceability Engine.
-
-##### Brownfield Support
-
-- [ ] `p2` - `cpt-cypilot-fr-sdlc-brownfield`
-
-**Design Response**: Brownfield entry uses `cpt init` with existing code detection. The SDLC kit's autodetect rules scan for existing documentation and code structure. The generate workflow supports reverse-engineering mode: agents analyze existing code and produce artifacts (PRD, DESIGN) that describe the current state. Incremental adoption is supported — start with config, add artifacts gradually.
-
-##### Feature Lifecycle Management
-
-- [ ] `p2` - `cpt-cypilot-fr-sdlc-lifecycle`
-
-**Design Response**: Feature status (NOT_STARTED → IN_DESIGN → DESIGNED → READY → IN_PROGRESS → DONE) is tracked via checkbox state on FEATURE artifact ID definitions. The Validator enforces status transition rules and dependency blocking. Status queries use the Traceability Engine's ID scanning.
-
-##### PR Review Configuration
-
-- [ ] `p2` - `cpt-cypilot-fr-sdlc-pr-config`
-
-**Design Response**: PR review configuration is stored in `{cypilot_path}/config/kits/sdlc/`. Configuration includes prompt selection, checklist mapping, domain-specific review criteria, template variables, and PR exclude lists. Config changes are validated against the schema before writing. Kit-specific CLI subcommands for PR config management are planned for p2.
-
-##### Quickstart Guides
-
-- [ ] `p2` - `cpt-cypilot-fr-sdlc-guides`
-
-**Design Response**: Quickstart guides are SDLC kit resources generated alongside templates and examples. Guides use progressive disclosure: human-facing overview docs with copy-paste prompts, and AI-facing navigation rules embedded in SKILL.md and agent entry points.
+> **EXTRACTED per `cpt-cypilot-adr-extract-sdlc-kit`**: All remaining SDLC-specific requirements (cross-artifact validation, PR status, code generation, brownfield support, feature lifecycle, PR config, quickstart guides) have been moved to the SDLC kit repository (`cyberfabric/cyber-pilot-kit-sdlc`). The core Validator provides generic cross-artifact validation for any installed kit.
 
 ##### Utility Commands
 
@@ -325,6 +177,29 @@ All outputs are **core-defined** — the Blueprint Processor owns all marker typ
 | `cpt-cypilot-nfr-security-integrity` | No untrusted code execution, deterministic results, no secrets in config | `cpt-cypilot-component-config-manager`, `cpt-cypilot-component-validator` | Validator reads files as text only — no eval/exec. Config Manager rejects files containing known secret patterns. All commands are pure functions of input state | Determinism test: same repo state → same validation output |
 | `cpt-cypilot-nfr-reliability-recoverability` | Actionable failure guidance, no settings loss on migration | `cpt-cypilot-component-config-manager`, `cpt-cypilot-component-skill-engine` | Config migration creates backup before applying changes. All error messages include file path, line number, and remediation steps | Migration test: upgrade config across 3 versions, verify no settings lost |
 | `cpt-cypilot-nfr-adoption-usability` | ≤ 5 decisions in init, ≤ 3 clarifying questions per workflow | `cpt-cypilot-component-cli-proxy`, `cpt-cypilot-component-skill-engine` | Init uses sensible defaults (all agents, all kits). CLI provides `--help` with usage examples for every command | Count decisions in init flow; count agent questions per workflow |
+| `cpt-cypilot-nfr-dry` | Every rule configured in exactly one place; no duplication | `cpt-cypilot-component-config-manager`, `cpt-cypilot-component-kit-manager` | Config is the single source of truth; kit constraints reference config, never duplicate it. Kit files are user-editable originals, not copies | Review config + constraints for duplicate rule definitions |
+| `cpt-cypilot-nfr-simplicity` | No unnecessary abstractions; minimal dependencies | All components | Python stdlib-only (see `cpt-cypilot-adr-python-stdlib-only`). Each component has a single responsibility. New abstractions require explicit justification | Dependency audit; component responsibility review |
+| `cpt-cypilot-nfr-ci-automation-first` | CLI tool usable in CI without human interaction; deterministic operations | `cpt-cypilot-component-skill-engine`, `cpt-cypilot-component-validator` | All validation and scanning commands are deterministic pure functions. Exit codes follow convention (0=PASS, 2=FAIL). Machine-readable output for all commands | CI integration test: run validation in non-interactive mode |
+| `cpt-cypilot-nfr-zero-harm` | No process imposition; lint pattern; no breakage | `cpt-cypilot-component-validator`, `cpt-cypilot-component-skill-engine` | Validator is advisory — never modifies files. Workflows are opt-in. Kit rules are configurable. Tool never touches code, builds, or tests | Verify no file mutations during validation; verify custom kit support |
+| `cpt-cypilot-nfr-upgradability` | Single-command upgrade; backward compatible; user edits preserved | `cpt-cypilot-component-kit-manager`, `cpt-cypilot-component-config-manager` | Kit updates use file-level diff with interactive prompts. Config migration creates backup and preserves all user settings. `.core/` replaced atomically | Upgrade test: modify kit files, upgrade, verify edits preserved |
+
+#### Architecture Decisions
+
+The following architecture decision records (ADRs) drive the design:
+
+- `cpt-cypilot-adr-remove-blueprint-system` — replace blueprint system with direct file package model
+- `cpt-cypilot-adr-python-stdlib-only` — Python 3.11+ with standard library only
+- `cpt-cypilot-adr-pipx-distribution` — pipx as global CLI distribution
+- `cpt-cypilot-adr-toml-json-formats` — TOML for config, dual-mode CLI output
+- `cpt-cypilot-adr-markdown-contract` — Markdown as universal contract format
+- `cpt-cypilot-adr-gh-cli-integration` — GitHub CLI for GitHub integration
+- `cpt-cypilot-adr-proxy-cli-pattern` — stateless proxy pattern for global CLI
+- `cpt-cypilot-adr-three-directory-layout` — three-directory layout (.core/.gen/config)
+- `cpt-cypilot-adr-two-workflow-model` — two-workflow model (generate/analyze)
+- `cpt-cypilot-adr-skill-md-entry-point` — SKILL.md as single agent entry point
+- `cpt-cypilot-adr-structured-id-format` — structured cpt-* ID format with @cpt-* code tags
+- `cpt-cypilot-adr-git-style-conflict-markers` — git-style conflict markers for interactive merge
+- `cpt-cypilot-adr-extract-sdlc-kit` — extract SDLC kit to separate GitHub repository
 
 ### 1.3 Architecture Layers
 
@@ -336,7 +211,7 @@ The **Global CLI Proxy layer** (`cypilot` / `cpt`, installed via pipx) is a thin
 
 Below the proxy is the **Core Skill Engine layer** — the heart of the system. It owns the command router, JSON output serialization, SKILL.md, workflows, and the execution protocol. Three core components live here: the **Validator** (deterministic structural and cross-artifact checks), the **Traceability Engine** (ID scanning, resolution, and coverage analysis), and the **Config Manager** (schema-validated JSON config read/write with migration support).
 
-At the bottom is the **Kit layer**. The **Kit Manager** handles kit installation (copying blueprints into `{cypilot_path}/config/kits/<slug>/`), registration, and migration. Each kit is a blueprint package — the **SDLC Kit** being the primary one, providing blueprints for PRD, DESIGN, ADR, DECOMPOSITION, and FEATURE from which all resources (templates, checklists, rules, examples, constraints, workflows) are generated. A plugin system for custom hooks and CLI subcommands is planned for p2.
+At the bottom is the **Kit layer**. The **Kit Manager** handles kit installation from GitHub repositories, registration (with source and version tracking), file-level diff updates, kit config relocation, and layout migration. Each kit is an independently installable file package. Cypilot core bundles no kits — during `cpt init`, the user is prompted to install the SDLC kit (`cyberfabric/cyber-pilot-kit-sdlc`) with `[a]ccept / [d]ecline`. A plugin system for custom hooks and CLI subcommands is planned for p2.
 
 - [ ] `p3` - **ID**: `cpt-cypilot-tech-python-stdlib`
 
@@ -344,7 +219,7 @@ At the bottom is the **Kit layer**. The **Kit Manager** handles kit installation
 |-------|---------------|------------|
 | Global CLI Proxy | Installation entry point, cache management, version checks, command routing | Python (pipx-installable package) |
 | Core Skill Engine | Command dispatch, JSON output, deterministic execution, workflow loading | Python 3.11+ stdlib |
-| Kit System | Domain-specific blueprints, generated resources (templates, rules, checklists, workflows) | Blueprint `.md` files, Blueprint Processor |
+| Kit System | Domain-specific file packages (rules, templates, checklists, constraints, workflows) | Markdown + TOML files, Kit Manager |
 | Config Management | Config directory operations, schema validation, deterministic serialization | TOML, Python stdlib (tomllib 3.11+) |
 | Agent Integration | Entry point generation in native agent formats | Python, Markdown templates |
 
@@ -360,9 +235,9 @@ Everything that can be validated, checked, or enforced without an LLM MUST be ha
 
 #### Kit-Centric
 
-- [ ] `p1` - **ID**: `cpt-cypilot-principle-kit-centric`
+- [x] `p1` - **ID**: `cpt-cypilot-principle-kit-centric`
 
-All domain-specific value is delivered by kits. Kits bring blueprints from which templates, checklists, rules, examples, constraints, and workflows are generated. Core provides infrastructure (ID system, workflows, config, agent integration, Blueprint Processor); kits provide the content and semantics. This separation ensures that new domains can be supported by adding a new kit with its `blueprints/` directory.
+All domain-specific value is delivered by kits. Kits are file packages containing rules, templates, checklists, examples, constraints, and workflows. Core provides infrastructure (ID system, workflows, config, agent integration, Kit Manager); kits provide the content and semantics. This separation ensures that new domains can be supported by adding a new kit as a directory of ready-to-use files.
 
 #### Traceability by Design
 
@@ -372,9 +247,9 @@ All design elements use structured `cpt-*` IDs following the format `cpt-{system
 
 #### Plugin Extensibility
 
-- [ ] `p1` - **ID**: `cpt-cypilot-principle-plugin-extensibility`
+- [x] `p1` - **ID**: `cpt-cypilot-principle-plugin-extensibility`
 
-Kits are blueprint packages that define artifact kinds via `blueprints/*.md` files. All resources are generated from blueprints by the Blueprint Processor. Core does not interpret kit-specific semantics — it only knows that a kit is registered and where its blueprints and generated outputs live. User customizations (edits to blueprints in `{cypilot_path}/config/kits/<slug>/blueprints/`) are preserved across kit updates through the reference-based three-way diff mechanism. A plugin system for custom markers and hooks is planned for p2.
+Kits are file packages that provide artifact definitions (rules, templates, checklists, examples, constraints, workflows). Core does not interpret kit-specific semantics — it only knows that a kit is registered and where its files live. User customizations to kit files are preserved across updates through file-level diff — all changed files are presented as unified diffs with interactive accept/decline/modify prompts. Generated resources in the kit's config directory are also user-editable with interactive diff on regeneration. A plugin system for custom markers and hooks is planned for p2.
 
 #### Machine-Readable Output
 
@@ -384,25 +259,25 @@ All CLI commands output JSON to stdout. Config files use TOML with deterministic
 
 #### Tool-Managed Config
 
-- [ ] `p2` - **ID**: `cpt-cypilot-principle-tool-managed-config`
+- [x] `p2` - **ID**: `cpt-cypilot-principle-tool-managed-config`
 
 Config files are edited exclusively by the tool, never manually. All changes go through CLI commands that validate against schemas before writing. This prevents configuration drift, ensures schema compliance, and enables reliable migration between versions.
 
 #### Skill-Documented
 
-- [ ] `p2` - **ID**: `cpt-cypilot-principle-skill-documented`
+- [x] `p2` - **ID**: `cpt-cypilot-principle-skill-documented`
 
 All tool capabilities MUST be fully documented in the agent-facing SKILL.md. SKILL.md is the single entry point for AI agents — it enumerates all commands, workflows, and integration points so agents can discover and use the tool's full functionality without external documentation.
 
 #### DRY (Don't Repeat Yourself)
 
-- [ ] `p1` - **ID**: `cpt-cypilot-principle-dry`
+- [x] `p1` - **ID**: `cpt-cypilot-principle-dry`
 
 Every piece of knowledge — a template, a rule, a checklist criterion, a config schema — MUST have exactly one authoritative source. Kits generate resources from a single definition; agent entry points are generated from one template per agent; validation rules live in constraints.toml, not duplicated across code. If something needs to change, it changes in one place.
 
 #### Occam's Razor
 
-- [ ] `p1` - **ID**: `cpt-cypilot-principle-occams-razor`
+- [x] `p1` - **ID**: `cpt-cypilot-principle-occams-razor`
 
 The simplest solution that satisfies the requirements is the correct one. No abstraction layers, extension points, or generalization beyond what is needed today. Prefer flat structures over nested, single-pass algorithms over multi-phase, plain functions over class hierarchies. Complexity must be justified by a concrete requirement, not by speculative future needs.
 
@@ -414,39 +289,39 @@ Every check, validation, and enforcement MUST be implementable as a deterministi
 
 #### Zero Harm, Only Benefits
 
-- [ ] `p1` - **ID**: `cpt-cypilot-principle-zero-harm`
+- [x] `p1` - **ID**: `cpt-cypilot-principle-zero-harm`
 
 Adopting Cypilot MUST NOT impose costs on the development workflow. No mandatory file renames, no forced directory structures outside the Cypilot install directory and `config/`, no blocking CI gates by default, no slowdowns to existing processes. Every feature is opt-in and additive. If a team removes Cypilot, their project continues to work exactly as before — only the `{cypilot_path}/` directory and generated agent files are left behind.
 
 #### No Manual Maintenance
 
-- [ ] `p2` - **ID**: `cpt-cypilot-principle-no-manual-maintenance`
+- [x] `p2` - **ID**: `cpt-cypilot-principle-no-manual-maintenance`
 
-Nothing that can be generated MUST require manual upkeep. Agent entry points are regenerated on `update`. Kit resources are regenerated from blueprints. Config migrations run automatically. Shell completions are generated from command definitions. If a human must remember to update something after a version change, that is a bug in the tool.
+Nothing that can be automated MUST require manual upkeep. Agent entry points are regenerated on `update`. Kit files are updated via file-level diff. Config migrations run automatically. Shell completions are generated from command definitions. If a human must remember to update something after a version change, that is a bug in the tool.
 
 ### 2.2 Constraints
 
 #### Python Standard Library Only
 
-- [ ] `p1` - **ID**: `cpt-cypilot-constraint-python-stdlib`
+- [x] `p1` - **ID**: `cpt-cypilot-constraint-python-stdlib`
 
-Core skill engine uses Python 3.11+ standard library only (requires `tomllib` from stdlib). No third-party dependencies in core. This ensures the tool works in any Python 3.11+ environment without dependency conflicts. Kits may declare their own dependencies, managed separately.
+Core skill engine uses Python 3.11+ standard library only (requires `tomllib` from stdlib). No third-party dependencies in core. This ensures the tool works in any Python 3.11+ environment without dependency conflicts. Kits may declare their own dependencies, managed separately. See `cpt-cypilot-adr-python-stdlib-only` for decision rationale.
 
 #### Markdown as Contract
 
-- [ ] `p1` - **ID**: `cpt-cypilot-constraint-markdown-contract`
+- [x] `p1` - **ID**: `cpt-cypilot-constraint-markdown-contract`
 
-Artifacts are Markdown files with structured `cpt-*` IDs. Markdown is the contract format between humans, agents, and the tool. Workflows, templates, checklists, and rules are all Markdown. This leverages the universal readability of Markdown while enabling deterministic parsing of structured elements.
+Artifacts are Markdown files with structured `cpt-*` IDs. Markdown is the contract format between humans, agents, and the tool. Workflows, templates, checklists, and rules are all Markdown. This leverages the universal readability of Markdown while enabling deterministic parsing of structured elements. See `cpt-cypilot-adr-markdown-contract` for decision rationale.
 
 #### Git Project Heuristics
 
-- [ ] `p2` - **ID**: `cpt-cypilot-constraint-git-project-heuristics`
+- [x] `p2` - **ID**: `cpt-cypilot-constraint-git-project-heuristics`
 
 Git is the primary project detection mechanism (`.git` directory provides project root detection and version control integration). Non-Git projects are supported but without Git-based heuristics — the tool falls back to the current working directory as project root.
 
 #### Cross-Platform Native Support
 
-- [ ] `p1` - **ID**: `cpt-cypilot-constraint-cross-platform`
+- [x] `p1` - **ID**: `cpt-cypilot-constraint-cross-platform`
 
 CLI proxy and skill engine must work natively on Linux, Windows, and macOS without platform-specific workarounds or conditional dependencies. File paths use `pathlib`, subprocess calls avoid shell-specific syntax, and no OS-specific system calls are used. This constraint applies to all core components and kits.
 
@@ -472,9 +347,9 @@ Validation rules cannot be bypassed or weakened in STRICT mode. The deterministi
 
 **Specifications** (see [specs/](./specs/) for full documents):
 - **CLI**: [cli.md](./specs/cli.md) — complete CLI interface specification
-- **Kit specification**: [kit/](./specs/kit/) — kit structure, blueprint format, generated outputs, constraint semantics, validation
+- **Kit specification**: [kit/](./specs/kit/) — kit structure, file package format, constraint semantics, validation
   - [kit.md](./specs/kit/kit.md) — kit overview, directory structure, taxonomy, extension protocol
-  - [blueprint.md](./specs/kit/blueprint.md) — blueprint format, markers, parsing, update model
+  - [blueprint.md](./specs/kit/blueprint.md) — DEPRECATED: blueprint format documentation (kept for reference)
   - [rules.md](./specs/kit/rules.md) — generated rules.md format
   - [checklist.md](./specs/kit/checklist.md) — generated checklist.md format
   - [template.md](./specs/kit/template.md) — generated template.md format
@@ -491,23 +366,22 @@ Validation rules cannot be bypassed or weakened in STRICT mode. The deterministi
 |--------|-------------|--------|
 | System | A named project or subsystem with slug, kit assignment, and autodetect rules | `{cypilot_path}/config/core.toml` → systems[] |
 | Artifact | A Markdown file of a specific kind (PRD, DESIGN, ADR, etc.) belonging to a system | Filesystem, registered via autodetect |
-| Kit | A blueprint package with `blueprints/*.md` source files; installed into `{cypilot_path}/config/kits/<slug>/` with generated outputs | `{cypilot_path}/config/core.toml` → kits{}, `{cypilot_path}/config/kits/<slug>/` |
+| Kit | A file package with artifact definitions (rules, templates, checklists, examples, constraints, workflows); all files in kit config directory | `{cypilot_path}/config/core.toml` → kits{}, `{cypilot_path}/config/kits/<slug>/` |
 | Identifier | A `cpt-*` ID with kind, slug, definition location (file + line), and references | Scanned from artifact Markdown |
 | Config | Structured TOML in `config/` directory — core.toml + per-kit configs | Filesystem |
 | AgentEntryPoint | Generated file in an agent's native format (workflow proxy, skill shim, or rule file) | Generated into `.windsurf/`, `.cursor/`, etc. |
-| Blueprint | Single-source-of-truth Markdown file per artifact kind with embedded `@cpt:` metadata markers; generates all kit resources | Source: `kits/<slug>/blueprints/<KIND>.md`, Installed: `{cypilot_path}/config/kits/<slug>/blueprints/<KIND>.md` |
-| Constraint | Kit-wide rules for ID kinds, headings, and cross-artifact references | Generated from `@cpt:heading`/`@cpt:id` markers across all artifact blueprints → `{cypilot_path}/.gen/kits/<slug>/constraints.toml` |
+| Blueprint | DEPRECATED per `cpt-cypilot-adr-remove-blueprint-system` — removed from architecture. Kit resources are now maintained as direct files. | N/A |
+| Constraint | Kit-wide rules for ID kinds, headings, and cross-artifact references | `{cypilot_path}/config/kits/<slug>/constraints.toml` |
 | Workflow | A Markdown file with frontmatter, phases, and validation criteria | `{cypilot_path}/.core/workflows/` |
 
 **Relationships**:
 - System → Kit: each system is assigned to exactly one kit (by slug)
 - System → Artifact[]: a system contains zero or more artifacts, discovered via autodetect rules
 - System → Codebase[]: a system tracks zero or more codebase directories
-- Kit → Config: each kit owns config files in `{cypilot_path}/config/kits/<slug>/`
-- Kit → Blueprint[]: each kit has one blueprint per artifact kind it defines
-- Blueprint → Resource[]: each blueprint generates rules.md (mandatory) + kit-specific outputs (template, checklist, constraints, etc.)
-- Blueprint → Constraint: blueprint `cpt:heading`/`cpt:id` markers generate constraint definitions
-- Blueprint → SKILL extension: blueprint `cpt:skill` sections compose into the main SKILL.md
+- Kit → Files: each kit owns its files in its config directory (default: `{cypilot_path}/config/kits/<slug>/`, relocatable)
+- Kit → Artifact Resources: each kit has per-artifact resource files (rules.md, template.md, checklist.md, examples/) for each artifact kind it defines
+- Kit → Constraints: kit-wide `constraints.toml` defines allowed/required ID kinds per artifact kind
+- Kit → SKILL extension: kit `SKILL.md` composes into the main SKILL.md
 - Artifact → Identifier[]: each artifact contains zero or more ID definitions and references
 - Identifier → Identifier: cross-references between definitions and references across artifacts
 - Constraint → Identifier: constraints define which ID kinds are allowed/required per artifact kind
@@ -522,16 +396,16 @@ graph TD
 
     subgraph "Core Skill Engine"
         SE["Skill Engine<br/>command dispatch · JSON output · exit codes · SKILL.md"]
-        BP["Blueprint Processor<br/>parse markers · generate resources · dual-ownership"]
         V["Validator<br/>structure · IDs · constraints · cross-refs"]
         TE["Traceability Engine<br/>ID scan · resolve · query"]
         CM["Config Manager<br/>core.toml · schema validation · migration"]
-        KM["Kit Manager<br/>install · register · migrate"]
+        KM["Kit Manager<br/>install · update · file-level diff"]
         AG["Agent Generator<br/>entry points + SKILL composition"]
+        DE["Resource Diff Engine<br/>unified diff · interactive prompts"]
     end
 
-    subgraph "Kits"
-        SDLC["SDLC Kit<br/>blueprints: PRD DESIGN ADR DECOMPOSITION FEATURE<br/>markers: @cpt:heading @cpt:check @cpt:id"]
+    subgraph "Kits (External Packages)"
+        SDLC["Installed Kits<br/><i>e.g. SDLC Kit from GitHub</i><br/>rules · templates · checklists · constraints"]
     end
 
     subgraph "Filesystem"
@@ -541,20 +415,16 @@ graph TD
     end
 
     CLI -->|proxies to| SE
-    SE --> BP
     SE --> V
     SE --> TE
     SE --> CM
     SE --> KM
     SE --> AG
-    BP -->|generates| ART
-    BP -->|generates constraints| CFG
-    SDLC -->|provides blueprints| BP
-    AG -->|collects cpt:skill sections| BP
+    KM -->|file-level diff| DE
     V -->|uses ID data| TE
     V -->|reads config| CM
     TE -->|reads config| CM
-    KM -->|installs| SDLC
+    KM -->|installs/updates| SDLC
     KM -->|updates| CM
     SDLC -.->|p2: registers hooks| V
     V -->|reads| ART
@@ -566,7 +436,7 @@ graph TD
 
 #### CLI Proxy
 
-- [ ] `p1` - **ID**: `cpt-cypilot-component-cli-proxy`
+- [x] `p1` - **ID**: `cpt-cypilot-component-cli-proxy`
 
 ##### Why this component exists
 
@@ -587,43 +457,9 @@ Does NOT contain any skill logic, workflow logic, or command implementations. Do
 
 - `cpt-cypilot-component-skill-engine` — proxies all commands to this component
 
-#### Blueprint Processor
-
-- [ ] `p1` - **ID**: `cpt-cypilot-component-blueprint-processor`
-
-##### Why this component exists
-
-Eliminates resource duplication across kit artifacts. Without this component, every artifact kind requires separate manually-maintained files (template, rules, checklist, constraints) that duplicate structural knowledge and drift apart over time.
-
-##### Responsibility scope
-
-- Define the blueprint contract: Markdown file with backtick-delimited `@cpt:` markers supporting two syntax forms — named (`` `@cpt:TYPE:ID` ``) and legacy (`` `@cpt:TYPE` ``)
-- Parse blueprints: scan for `` `@cpt:` `` prefix, extract markers by type, derive stable identity key per marker (explicit syntax ID → TOML-derived key → positional index fallback)
-- Save kit source to `{cypilot_path}/kits/{slug}/` (reference); copy blueprints to `{cypilot_path}/config/kits/{slug}/blueprints/` (user-editable)
-- Enforce mandatory output: generate `rules.md` from `@cpt:rules` + `@cpt:rule` markers for every blueprint
-- Per-artifact generation: invoke output generators per marker type, write output files to `{cypilot_path}/.gen/kits/<slug>/artifacts/<KIND>/` deterministically
-- Kit-wide constraints: aggregate `@cpt:heading` + `@cpt:id` markers from all artifact blueprints into `{cypilot_path}/.gen/kits/<slug>/constraints.toml`
-- Codebase generation: for blueprints without `artifact` key, generate `{cypilot_path}/.gen/kits/<slug>/codebase/rules.md` and `codebase/checklist.md`
-- Workflow generation: generate `{cypilot_path}/.gen/kits/<slug>/workflows/{name}.md` from `@cpt:workflow` markers
-- Update model: force mode (update reference + full overwrite of user blueprints) and additive mode (identity-key-based three-way merge using `{cypilot_path}/kits/{slug}/.prev/` as old reference — match markers by stable identity key, update unmodified markers, preserve user-modified markers, insert new markers at anchor-relative positions, respect user deletions)
-- SKILL composition: collect `@cpt:skill` sections from all loaded blueprints and write to `{cypilot_path}/config/SKILL.md`
-- System prompt composition: collect `@cpt:system-prompt` sections from all loaded blueprints and append to `{cypilot_path}/config/AGENTS.md`
-- Kit marker registry (p2): accept custom marker type registrations with corresponding output generators
-
-##### Responsibility boundaries
-
-Does NOT validate generated outputs — delegates to Validator. Does NOT define kit-specific marker types in p1 — all SDLC markers are built-in; custom marker registration is planned for p2.
-
-##### Related components (by ID)
-
-- `cpt-cypilot-component-skill-engine` — receives `generate-resources` command
-- `cpt-cypilot-component-sdlc-plugin` — provides blueprints with SDLC-specific markers (`@cpt:heading`, `@cpt:id`, `@cpt:check`)
-- `cpt-cypilot-component-agent-generator` — consumes collected `cpt:skill` sections for SKILL.md composition
-- `cpt-cypilot-component-kit-manager` — triggers blueprint processing during kit install/update
-
 #### Skill Engine
 
-- [ ] `p1` - **ID**: `cpt-cypilot-component-skill-engine`
+- [x] `p1` - **ID**: `cpt-cypilot-component-skill-engine`
 
 ##### Why this component exists
 
@@ -644,7 +480,6 @@ Does NOT execute workflows (workflows are interpreted by AI agents). Does NOT co
 ##### Related components (by ID)
 
 - `cpt-cypilot-component-cli-proxy` — receives commands from proxy
-- `cpt-cypilot-component-blueprint-processor` — delegates resource generation commands
 - `cpt-cypilot-component-validator` — delegates validation commands
 - `cpt-cypilot-component-traceability-engine` — delegates ID query commands
 - `cpt-cypilot-component-config-manager` — delegates config commands
@@ -667,7 +502,6 @@ Provides the deterministic quality gate that ensures artifacts meet structural r
 - Placeholder detection (TODO, TBD, FIXME)
 - Cross-reference validation (covered_by, checked consistency)
 - Constraint enforcement from `constraints.toml` (headings scoping, reference rules)
-- Blueprint validation: verify `cpt:blueprint` header present, all block markers closed, no nested blocks, all marker types registered, heading IDs unique
 - TOC validation (`validate-toc`): verify anchors resolve, all headings covered, TOC not stale
 - Stable error codes (`error_codes.py`): machine-readable codes for all validation issues, used by fixing prompts and downstream consumers
 - Fixing prompt generation (`fixing.py`): enrich errors with actionable prompts for LLM agents
@@ -675,15 +509,14 @@ Provides the deterministic quality gate that ensures artifacts meet structural r
 
 ##### Responsibility boundaries
 
-Does NOT perform semantic validation (checklist review is done by AI agents). Does NOT modify artifacts or blueprints — read-only analysis. Does NOT validate code files directly. Does NOT generate resources from blueprints — delegates to Blueprint Processor.
+Does NOT perform semantic validation (checklist review is done by AI agents). Does NOT modify artifacts — read-only analysis. Does NOT validate code files directly.
 
 ##### Related components (by ID)
 
 - `cpt-cypilot-component-skill-engine` — receives validation commands
-- `cpt-cypilot-component-blueprint-processor` — delegates blueprint parsing for structural validation
 - `cpt-cypilot-component-traceability-engine` — uses ID scanning results
 - `cpt-cypilot-component-config-manager` — reads config for system/artifact resolution
-- `cpt-cypilot-component-sdlc-plugin` — p2: SDLC kit registers validation hooks
+- Installed kits may register validation hooks via constraints.toml
 
 #### Traceability Engine
 
@@ -715,7 +548,7 @@ Does NOT define which ID kinds are valid — that comes from kit constraints. Do
 
 #### Config Manager
 
-- [ ] `p1` - **ID**: `cpt-cypilot-component-config-manager`
+- [x] `p1` - **ID**: `cpt-cypilot-component-config-manager`
 
 ##### Why this component exists
 
@@ -733,7 +566,7 @@ Ensures config integrity by centralizing all config file operations behind schem
 
 ##### Responsibility boundaries
 
-Does NOT manage kit blueprints or generated outputs — delegates to Blueprint Processor. Does NOT interpret kit-specific semantics.
+Does NOT manage kit file content. Does NOT interpret kit-specific semantics.
 
 ##### Related components (by ID)
 
@@ -743,31 +576,32 @@ Does NOT manage kit blueprints or generated outputs — delegates to Blueprint P
 
 #### Kit Manager
 
-- [ ] `p1` - **ID**: `cpt-cypilot-component-kit-manager`
+- [x] `p1` - **ID**: `cpt-cypilot-component-kit-manager`
 
 ##### Why this component exists
 
-Manages the kit lifecycle — installing, registering, updating, and migrating kits. Enables the extensible architecture where new domains can be added by providing a new kit with a `blueprints/` directory.
+Manages the kit lifecycle — installing, registering, and updating kits. Enables the extensible architecture where new domains can be added by providing a new kit as a directory of ready-to-use files.
 
 ##### Responsibility scope
 
-- Kit installation: save kit source to `{cypilot_path}/kits/{slug}/` (reference), copy blueprints to `{cypilot_path}/config/kits/{slug}/blueprints/` (user-editable), trigger Blueprint Processor to generate outputs
-- Kit registration: add kit entry to `{cypilot_path}/config/core.toml`
-- Version tracking: store kit version in kit registration
-- Update modes: force (`--force`) updates reference + overwrites all user blueprints and regenerates; additive (default) uses `{cypilot_path}/kits/{slug}/` as reference for three-way diff, preserving user modifications
-- Kit structural validation (`validate-kits` command): verify `blueprints/` directory exists with valid blueprint files
+- Kit installation from GitHub: download kit from GitHub repository (`cpt kit install --github <owner/repo>`), copy all kit files from source into `{cypilot_path}/config/kits/{slug}/`, register in `core.toml` with GitHub source and version, regenerate `.gen/AGENTS.md` and `.gen/SKILL.md` to include the new kit's navigation and skill routing. All files in the kit's config directory are user-editable and preserved across updates via interactive diff
+- Kit registration: add kit entry to `{cypilot_path}/config/core.toml` with config output path, GitHub source (`github:<owner>/<repo>`), and version (GitHub tag)
+- Version tracking: store kit version in `{cypilot_path}/config/kits/{slug}/conf.toml`; kit source and version also tracked in `core.toml`
+- Update modes: force (`--force`) overwrites all kit files; interactive (default) uses file-level diff — compares each file in the new version against user's installed copy, shows unified diffs, prompts with accept/decline/accept-all/decline-all/modify via Resource Diff Engine
+- Kit config relocation: `cpt kit move-config <slug>` moves the kit's config directory to a new location, updates `core.toml`
+- Layout restructuring: detect old directory layout and automatically restructure (move generated outputs from `.gen/kits/` to `config/kits/`, clean up `.gen/kits/`)
+- Kit structural validation (`validate-kits` command): verify kit directory exists with required files (`conf.toml`, `constraints.toml`, `artifacts/` directory)
 - Plugin loading (p2): discover and load kit Python entry points at runtime
 
 ##### Responsibility boundaries
 
-Does NOT own kit resources (templates, checklists, rules) — delegates generation to Blueprint Processor. Does NOT interpret kit-specific marker semantics. Does NOT perform kit-specific validation.
+Does NOT own kit resource content — kit files are maintained directly. Does NOT perform kit-specific validation beyond structural checks.
 
 ##### Related components (by ID)
 
 - `cpt-cypilot-component-skill-engine` — receives kit management commands
 - `cpt-cypilot-component-config-manager` — updates core.toml during kit registration
-- `cpt-cypilot-component-blueprint-processor` — processes blueprints during install/update
-- `cpt-cypilot-component-sdlc-plugin` — primary kit that is installed
+- Installed kits (e.g., SDLC kit from `cyberfabric/cyber-pilot-kit-sdlc`) — managed by this component
 
 #### Agent Generator
 
@@ -779,8 +613,8 @@ Bridges the gap between Cypilot's unified skill system and the diverse file form
 
 ##### Responsibility scope
 
-- Generate workflow entry points in each agent's native format from `@cpt:workflow`-generated kit workflow files (e.g., `.windsurf/workflows/cypilot-{name}.md` → `kits/<kit>/workflows/{name}.md`)
-- Compose SKILL.md: collect `@cpt:skill` extension sections from Blueprint Processor and assemble them into the main SKILL.md alongside core commands
+- Generate workflow entry points in each agent's native format from kit workflow files (e.g., `.windsurf/workflows/cypilot-{name}.md` → `config/kits/<slug>/workflows/{name}.md`)
+- Compose SKILL.md: collect kit SKILL.md extensions and assemble them into the main SKILL.md alongside core commands
 - Generate skill shims that reference the composed SKILL.md
 - Support 5 agents: Windsurf (`.windsurf/workflows/`), Cursor (`.cursor/rules/`), Claude (`.claude/commands/`), Copilot (`.github/prompts/`), OpenAI
 - Full overwrite on each invocation (no merge with existing files)
@@ -788,40 +622,19 @@ Bridges the gap between Cypilot's unified skill system and the diverse file form
 
 ##### Responsibility boundaries
 
-Does NOT maintain agent-specific state. Does NOT define SKILL extension content — collects from blueprints. Does NOT persist agent selection in config.
+Does NOT maintain agent-specific state. Does NOT define SKILL extension content — collects from kit files. Does NOT persist agent selection in config.
 
 ##### Related components (by ID)
 
 - `cpt-cypilot-component-skill-engine` — receives `agents` command
-- `cpt-cypilot-component-blueprint-processor` — provides `cpt:skill` sections for SKILL.md composition
+- `cpt-cypilot-component-kit-manager` — provides kit SKILL.md extensions for composition
 - `cpt-cypilot-component-config-manager` — reads config for project context
 
-#### SDLC Kit
+#### External Kits
 
-- [ ] `p1` - **ID**: `cpt-cypilot-component-sdlc-plugin`
+The following kits are external packages that can be installed and managed by the Kit Manager:
 
-##### Why this component exists
-
-Provides the artifact-first development methodology that is Cypilot's primary use case. Without this kit, Cypilot would be a generic ID system without domain-specific value.
-
-##### Responsibility scope
-
-- Blueprint authoring: provide blueprint `.md` files in `kits/sdlc/blueprints/` for each artifact kind (PRD, DESIGN, ADR, DECOMPOSITION, FEATURE) with SDLC-specific markers, placeholder syntax (`{name}`), `@cpt:example` blocks, `@cpt:skill` extensions, `@cpt:system-prompt` sections, and `@cpt:workflow` definitions
-- Generated outputs (via Blueprint Processor): `@cpt:heading` + `@cpt:id` → `constraints.toml` (kit-wide); `@cpt:check` → `checklist.md`; `@cpt:rules` + `@cpt:rule` → `rules.md`; `@cpt:example` → `example.md`; `@cpt:heading` + `@cpt:prompt` → `template.md`; `@cpt:workflow` → `workflows/*.md`; codebase blueprints → `codebase/rules.md` + `codebase/checklist.md`
-- PR review/status workflows: fetch PR data via `gh` CLI, analyze against configurable prompts
-
-##### Responsibility boundaries
-
-Does NOT own the blueprint contract or processor — uses core Blueprint Processor. Does NOT own the ID system — uses core traceability engine. Does NOT manage `core.toml` — only its generated outputs in `{cypilot_path}/config/kits/sdlc/`. Does NOT manage update logic — the core Blueprint Processor handles reference-based diffing and user modification preservation.
-
-> Custom marker registration and CLI subcommands (`sdlc` namespace) are planned for p2.
-
-##### Related components (by ID)
-
-- `cpt-cypilot-component-blueprint-processor` — processes SDLC blueprints and generates outputs
-- `cpt-cypilot-component-kit-manager` — installs and manages kit lifecycle
-- `cpt-cypilot-component-validator` — validates generated artifacts
-- `cpt-cypilot-component-config-manager` — reads core config for system/artifact context
+* SDLC Kit (`cyberfabric/cyber-pilot-kit-sdlc`): provides SDLC-specific workflows and validation rules
 
 ### 3.3 API Contracts
 
@@ -837,7 +650,6 @@ Does NOT own the blueprint contract or processor — uses core Blueprint Process
 |---------|-------------|-----------|
 | `validate --artifact <path>` | Validate single artifact | 0=PASS, 2=FAIL |
 | `validate` | Validate all registered artifacts | 0=PASS, 2=FAIL |
-| `validate --blueprints` | Validate all blueprint files | 0=PASS, 2=FAIL |
 | `list-ids [--kind K] [--pattern P]` | List IDs matching criteria | 0 |
 | `where-defined --id <id>` | Find where an ID is defined | 0=found, 2=not found |
 | `where-used --id <id>` | Find where an ID is referenced | 0 |
@@ -856,18 +668,21 @@ Does NOT own the blueprint contract or processor — uses core Blueprint Process
 | `validate-toc` | Validate table of contents consistency | 0=PASS, 2=FAIL |
 | `list-id-kinds` | List all known ID kind tokens | 0 |
 | `validate-kits` | Validate kit structural correctness | 0=PASS, 2=FAIL |
-| `generate-resources` | Regenerate kit outputs from blueprints | 0 |
-| `kit install/update` | Install or update a kit | 0 |
+| `kit install` | Install a kit (copy files, register in core.toml) | 0 |
+| `kit update [--force]` | Update kit files (interactive: file-level diff; force: overwrite) | 0 |
+| `kit move-config <slug>` | Relocate a kit's config output directory | 0 |
 
-**Kit Commands (SDLC)**:
+**Kit Commands (SDLC) — EXTRACTED**:
+
+> **EXTRACTED per `cpt-cypilot-adr-extract-sdlc-kit`**: Kit-specific CLI subcommands are owned by their respective kits. The following commands are provided by the SDLC kit (`cyberfabric/cyber-pilot-kit-sdlc`) when installed:
 
 | Command | Description | Exit Code |
 |---------|-------------|-----------|
-| `sdlc autodetect show --system S` | Show autodetect rules for a system | 0 |
-| `sdlc autodetect add-artifact` | Add artifact autodetect rule | 0 |
-| `sdlc autodetect add-codebase` | Add codebase definition | 0 |
-| `sdlc pr-review <number>` | Review a PR | 0 |
-| `sdlc pr-status <number>` | Check PR status | 0 |
+| ~~`sdlc autodetect show --system S`~~ | Show autodetect rules for a system | 0 |
+| ~~`sdlc autodetect add-artifact`~~ | Add artifact autodetect rule | 0 |
+| ~~`sdlc autodetect add-codebase`~~ | Add codebase definition | 0 |
+| ~~`sdlc pr-review <number>`~~ | Review a PR | 0 |
+| ~~`sdlc pr-status <number>`~~ | Check PR status | 0 |
 
 - [ ] `p2` - **ID**: `cpt-cypilot-interface-github-gh-cli`
 
@@ -941,21 +756,32 @@ sequenceDiagram
         Skill Engine->>User: "Which agents?" (default: all)
         User-->>Skill Engine: selects agents
         Skill Engine->>Skill Engine: define root system (name/slug from directory)
-        Skill Engine->>Config Manager: create config/ directory
-        Config Manager->>Config Manager: write core.toml (root system, kit registrations)
+        Skill Engine->>Config Manager: create config/, .gen/ directories
+        Config Manager->>Config Manager: write core.toml (root system, no kits)
         Config Manager->>Config Manager: write artifacts.toml (root system, autodetect defaults)
-        Skill Engine->>Kit Manager: install all available kits
-        Kit Manager->>SDLC Plugin: generate kit config + resources
-        SDLC Plugin->>Config Manager: write config/kits/sdlc/
+        Skill Engine->>Skill Engine: regenerate .gen/AGENTS.md, .gen/SKILL.md
         Skill Engine->>Agent Generator: generate entry points
         Agent Generator->>Agent Generator: write .windsurf/, .cursor/, etc.
         Skill Engine->>Skill Engine: inject root AGENTS.md entry
         Config Manager->>Config Manager: write config/AGENTS.md (default WHEN rules)
-        Skill Engine-->>User: "Cypilot initialized"
+        Skill Engine->>User: "Install SDLC kit? [a]ccept [d]ecline"
+        alt user accepts
+            User-->>Skill Engine: [a]ccept
+            Skill Engine->>Kit Manager: install kit from github:cyberfabric/cyber-pilot-kit-sdlc
+            Kit Manager->>Kit Manager: download, copy files to config/kits/sdlc/
+            Kit Manager->>Config Manager: register kit in core.toml with source + version
+            Kit Manager->>Kit Manager: compose SKILL.md and AGENTS.md extensions
+            Skill Engine->>Skill Engine: regenerate .gen/AGENTS.md, .gen/SKILL.md
+            Skill Engine->>Agent Generator: regenerate entry points (include kit workflows)
+            Skill Engine-->>User: "Cypilot initialized with SDLC kit"
+        else user declines
+            User-->>Skill Engine: [d]ecline
+            Skill Engine-->>User: "Cypilot initialized. Install kits later: cpt kit install --github <owner/repo>"
+        end
     end
 ```
 
-**Description**: User initializes Cypilot in a project. The skill engine defines a **root system** (name and slug derived from the project directory name), creates full configs (`core.toml` with root system and kit registrations, `artifacts.toml` with default SDLC autodetect rules for standard artifact kinds), installs kits, generates agent entry points, and sets up `{cypilot_path}/config/AGENTS.md` with default WHEN rules.
+**Description**: User initializes Cypilot in a project. The skill engine asks for install directory and agent selection. It defines a **root system** (name and slug derived from the project directory name), creates core configs (`core.toml` with root system, `artifacts.toml` with default autodetect rules), generates agent entry points, and sets up `{cypilot_path}/config/AGENTS.md` with default WHEN rules. After core setup, the tool prompts `Install SDLC kit? [a]ccept [d]ecline`. If accepted, the kit is downloaded from GitHub and installed inline. If declined, the user can install kits later via `cpt kit install`.
 
 **Root AGENTS.md injection**: During initialization (and verified on every CLI invocation), the engine ensures the project root `AGENTS.md` file contains a managed block that points agents to the Cypilot navigation entry:
 
@@ -1076,16 +902,22 @@ sequenceDiagram
     CLI Proxy->>CLI Proxy: refresh cache if needed
     CLI Proxy->>Skill Engine: update command
     Skill Engine->>Skill Engine: copy cached skill to project
+    Skill Engine->>Kit Manager: detect directory layout version
+    alt old layout detected
+        Kit Manager->>Kit Manager: backup + restructure layout
+        Kit Manager->>Kit Manager: move .gen/kits/→config/kits/
+        Kit Manager->>Kit Manager: clean up .gen/kits/
+    end
     Skill Engine->>Config Manager: migrate core.toml
     Config Manager->>Config Manager: backup + migrate
-    Skill Engine->>Kit Manager: invoke kit migrations
-    Kit Manager->>SDLC Plugin: migrate config/kits/sdlc/
-    SDLC Plugin-->>Kit Manager: migration result
+    Skill Engine->>Kit Manager: migrate bundled kit refs to GitHub sources
+    Kit Manager->>Kit Manager: add source field to kits without one
+    Skill Engine->>Skill Engine: regenerate .gen/AGENTS.md, .gen/SKILL.md
     Skill Engine->>Agent Generator: regenerate entry points
-    Skill Engine-->>User: "Updated to {version}"
+    Skill Engine-->>User: "Updated to {version}. Run 'cpt kit update' for kit updates."
 ```
 
-**Description**: Update copies the cached skill into the project, migrates config files (with backup), invokes kit migration scripts, and regenerates agent entry points for compatibility.
+**Description**: Update copies the cached skill into the project, detects directory layout (triggering automatic restructuring if old layout detected), migrates config files (with backup), migrates bundled kit references to GitHub sources (for projects upgrading from versions < 3.0.8), and regenerates agent entry points for compatibility. Kit file updates are a separate operation via `cpt kit update`.
 
 #### ID Resolution Query
 
@@ -1111,11 +943,12 @@ sequenceDiagram
 
 Not applicable — Cypilot does not use a database. All persistent state is stored in the filesystem:
 
-- **`{cypilot_path}/config/core.toml`** — core config (system definitions, kit registrations, ignore lists)
-- **`{cypilot_path}/config/kits/<slug>/*.toml`** — per-kit config files (autodetect rules, constraints, settings)
+- **`{cypilot_path}/config/core.toml`** — core config (system definitions, kit registrations with config paths, ignore lists)
+- **`{cypilot_path}/config/artifacts.toml`** — artifact registry (systems, artifacts, codebases)
+- **`{cypilot_path}/config/kits/<slug>/`** — per-kit files (conf.toml, SKILL.md, constraints.toml, artifacts/, codebase/, workflows/, scripts/) — all user-editable, path configurable per kit, preserved via interactive diff on update
+- **`{cypilot_path}/.gen/`** — top-level auto-generated files only (AGENTS.md, SKILL.md, README.md)
 - **`~/.cypilot/cache/`** — global skill bundle cache
 - **Markdown artifacts** — source of truth for design (PRD.md, DESIGN.md, etc.)
-- **`{cypilot_path}/config/artifacts.toml`** — artifact registry (systems, artifacts, codebases)
 
 ## 4. Additional context
 
@@ -1127,8 +960,8 @@ The validator uses single-pass scanning to meet the ≤ 3 second requirement. Ar
 
 The kit plugin system is designed for extension at three levels:
 
-1. **Kit-level**: New kits can be created for entirely new domains (e.g., API design, infrastructure-as-code). Each kit is a self-contained package.
-2. **Artifact-level**: Within a kit, new artifact kinds can be added via config. The SDLC kit supports adding custom artifact types through its plugin CLI.
+1. **Kit-level**: New kits can be created for entirely new domains (e.g., API design, infrastructure-as-code). Each kit is a self-contained package installable from GitHub.
+2. **Artifact-level**: Within a kit, new artifact kinds can be added via config. Kits may support adding custom artifact types through plugin CLI commands.
 3. **Resource-level**: Within an artifact kind, users can override templates, extend checklists, modify rules, and embed custom prompts. Overrides are preserved across updates.
 
 ### Migration Strategy
@@ -1136,9 +969,23 @@ The kit plugin system is designed for extension at three levels:
 Config migration follows a forward-only strategy:
 1. Each version of `core.toml` has a schema version field
 2. Migration scripts transform config from version N to N+1
-3. Kit plugins provide their own migration scripts for `{cypilot_path}/config/kits/<slug>/`
+3. Kit plugins provide their own migration scripts
 4. Before any migration, a backup is created
 5. If migration fails, the backup is restored and the user is notified
+
+#### Directory Layout Restructuring
+
+The new layout consolidates all kit files into `config/kits/`, removes reference copies (replaced by file-level diff), and moves generated outputs from `.gen/kits/` to `config/kits/`. This is an internal v3 restructuring that runs automatically during `cpt update`. The Layout Migrator (part of Kit Manager) performs this:
+
+| Source (old) | Destination (new) | Action |
+|-------------|------------------|--------|
+| `.gen/kits/{slug}/` | `config/kits/{slug}/` | Move (generated outputs) |
+| `kits/{slug}/` (reference copies) | — | Remove (replaced by file-level diff) |
+| `.gen/kits/` | — | Remove directory (top-level `.gen/` files preserved) |
+
+**Detection**: Old layout is detected when `{cypilot_path}/.gen/kits/{slug}/` exists.
+
+**Triggers**: Automatically during `cpt update` when old layout is detected.
 
 #### JSON → TOML Format Migration
 
@@ -1148,10 +995,10 @@ All configuration and constraint files are migrating from JSON to TOML:
 |------------|------------|-------|
 | `config/core.json` | `{cypilot_path}/config/core.toml` | Config Manager |
 | `{cypilot_path}/config/kits/<slug>/*.json` | `{cypilot_path}/config/kits/<slug>/*.toml` | Kit plugins |
-| `constraints.json` | `constraints.toml` | Blueprint Processor (generated) |
+| `constraints.json` | `constraints.toml` | Kit Manager |
 | `.cypilot-adapter/artifacts.toml` | `{cypilot_path}/config/artifacts.toml` | Config Manager |
 
-**Rationale**: TOML is human-readable, supports comments, and aligns with the blueprint marker format (which already uses TOML for all `@cpt:` block configurations). JSON remains the CLI output format (stdout).
+**Rationale**: TOML is human-readable, supports comments, and is used consistently for all Cypilot configuration files. JSON remains the CLI output format (stdout).
 
 **Migrator** (`cpt migrate-config`):
 1. Detect existing `.json` config files in `config/` and `.cypilot-adapter/`
@@ -1160,7 +1007,7 @@ All configuration and constraint files are migrating from JSON to TOML:
 3. Validate the new `.toml` file against the schema
 4. If validation passes: remove the `.json` file
 5. If validation fails: keep `.json`, report error, skip that file
-6. Generated files (`constraints.toml`) are re-generated from blueprints — no migration needed
+6. `constraints.toml` is a kit file — updated via file-level diff during kit update
 7. The migrator runs automatically during `cpt update` when upgrading from a JSON-based version
 8. Manual trigger: `cpt migrate-config` for explicit migration
 
@@ -1195,15 +1042,27 @@ The following design domains are not applicable to Cypilot and are explicitly ex
 ## 5. Traceability
 
 - **PRD**: [PRD.md](./PRD.md)
-- **ADRs**: none created yet
-- **Features**: [features/](./features/) — `core-infra.md`, `blueprint-system.md`, `traceability-validation.md`, `sdlc-kit.md`, `agent-integration.md`, `pr-workflows.md`, `version-config.md`, `developer-experience.md`, `spec-coverage.md`, `v2-v3-migration.md`
+- **ADRs**: [ADR/](./ADR/):
+  - `cpt-cypilot-adr-remove-blueprint-system` — replace blueprint system with direct file package model
+  - `cpt-cypilot-adr-python-stdlib-only` — Python 3.11+ with standard library only
+  - `cpt-cypilot-adr-pipx-distribution` — pipx as global CLI distribution
+  - `cpt-cypilot-adr-toml-json-formats` — TOML for config, JSON for CLI output
+  - `cpt-cypilot-adr-markdown-contract` — Markdown as universal contract format
+  - `cpt-cypilot-adr-gh-cli-integration` — GitHub CLI for GitHub integration
+  - `cpt-cypilot-adr-proxy-cli-pattern` — stateless proxy pattern for global CLI
+  - `cpt-cypilot-adr-three-directory-layout` — three-directory layout (.core/.gen/config)
+  - `cpt-cypilot-adr-two-workflow-model` — two-workflow model (generate/analyze)
+  - `cpt-cypilot-adr-skill-md-entry-point` — SKILL.md as single agent entry point
+  - `cpt-cypilot-adr-structured-id-format` — structured cpt-* ID format with @cpt-* code tags
+  - `cpt-cypilot-adr-git-style-conflict-markers` — git-style conflict markers for interactive merge
+- **Features**: [features/](./features/) — `core-infra.md`, `kit-management.md`, `traceability-validation.md`, `agent-integration.md`, `version-config.md`, `developer-experience.md`, `spec-coverage.md`, `v2-v3-migration.md`
 
 ### Specifications
 
 | Spec | File | Drives |
 |------|------|--------|
 | CLI Interface | [specs/cli.md](./specs/cli.md) | `cpt-cypilot-interface-cli-json`, `cpt-cypilot-fr-core-installer`, `cpt-cypilot-fr-core-init`, `cpt-cypilot-fr-core-cli-config` |
-| Kit Specification | [specs/kit/](./specs/kit/) | `cpt-cypilot-fr-core-blueprint`, `cpt-cypilot-fr-core-kits`, `cpt-cypilot-component-blueprint-processor`, `cpt-cypilot-component-validator` |
+| Kit Specification | [specs/kit/](./specs/kit/) | `cpt-cypilot-fr-core-kits`, `cpt-cypilot-component-kit-manager`, `cpt-cypilot-component-validator` |
 | Identifiers & Traceability | [specs/traceability.md](./specs/traceability.md) | `cpt-cypilot-fr-core-traceability`, `cpt-cypilot-component-traceability-engine` |
 | CDSL | [specs/CDSL.md](./specs/CDSL.md) | `cpt-cypilot-fr-core-cdsl` |
 | Artifacts Registry | [specs/artifacts-registry.md](./specs/artifacts-registry.md) | `cpt-cypilot-fr-core-config`, `cpt-cypilot-component-config-manager` |

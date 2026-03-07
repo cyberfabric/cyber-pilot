@@ -1,6 +1,5 @@
 # Feature: Spec Coverage
 
-
 <!-- toc -->
 
 - [1. Feature Context](#1-feature-context)
@@ -10,13 +9,11 @@
   - [4. References](#4-references)
 - [2. Actor Flows (CDSL)](#2-actor-flows-cdsl)
   - [Run Spec Coverage Report](#run-spec-coverage-report)
-  - [Reverse-Engineer Feature Specs](#reverse-engineer-feature-specs)
 - [3. Processes / Business Logic (CDSL)](#3-processes-business-logic-cdsl)
   - [Scan Code Coverage](#scan-code-coverage)
   - [Calculate Coverage Metrics](#calculate-coverage-metrics)
   - [Calculate Granularity Score](#calculate-granularity-score)
   - [Generate Coverage Report](#generate-coverage-report)
-  - [Place CDSL Markers](#place-cdsl-markers)
 - [4. States (CDSL)](#4-states-cdsl)
   - [Coverage Report Lifecycle](#coverage-report-lifecycle)
 - [5. Definitions of Done](#5-definitions-of-done)
@@ -28,7 +25,7 @@
 
 <!-- /toc -->
 
-- [ ] `p1` - **ID**: `cpt-cypilot-featstatus-spec-coverage`
+- [x] `p1` - **ID**: `cpt-cypilot-featstatus-spec-coverage`
 
 ## 1. Feature Context
 
@@ -68,37 +65,26 @@ Without spec coverage, teams have no visibility into which parts of the codebase
 - User runs `cpt spec-coverage` → all registered codebase files scanned, coverage report generated with per-file and summary statistics
 - User runs `cpt spec-coverage --min-coverage 80` → same as above, exit code 2 if coverage below threshold
 - User runs `cpt spec-coverage --min-granularity 0.7` → same as above, exit code 2 if granularity below threshold
+- User runs `cpt spec-coverage --min-file-granularity 0.3` → same as above, exit code 2 if any covered file granularity below threshold
 
 **Error Scenarios**:
 - No codebase entries registered → ERROR with hint to configure artifacts.toml
 - No code files found → report with 0% coverage
 
 **Steps**:
-1. [x] - `p1` - User invokes `cpt spec-coverage [--min-coverage N] [--min-granularity N] [--verbose]` - `inst-user-spec-coverage`
+1. [x] - `p1` - User invokes `cpt spec-coverage [--min-coverage N] [--min-file-coverage N] [--min-granularity N] [--min-file-granularity N] [--verbose]` - `inst-user-spec-coverage`
 2. [x] - `p1` - Load project context: cypilot config, registry, systems, codebase entries - `inst-load-context`
 3. [x] - `p1` - Resolve all code files from registered codebase entries - `inst-resolve-code-files`
 4. [x] - `p1` - **FOR EACH** code file, scan for `@cpt-*` markers using `cpt-cypilot-algo-spec-coverage-scan` - `inst-foreach-file`
 5. [x] - `p1` - Calculate coverage metrics using `cpt-cypilot-algo-spec-coverage-metrics` - `inst-calc-metrics`
 6. [x] - `p1` - Calculate granularity scores using `cpt-cypilot-algo-spec-coverage-granularity` - `inst-calc-granularity`
 7. [x] - `p1` - Generate report using `cpt-cypilot-algo-spec-coverage-report` - `inst-gen-report`
-8. [x] - `p1` - **IF** `--min-coverage` set AND coverage < threshold → exit code 2 - `inst-if-threshold`
+8. [x] - `p1` - **IF** any threshold flag set AND metric below threshold → exit code 2 - `inst-if-threshold`
 9. [x] - `p1` - **RETURN** JSON report (summary, per-file stats, uncovered files) - `inst-return-report`
 
-### Reverse-Engineer Feature Specs
-
-- [ ] `p2` - **ID**: `cpt-cypilot-flow-spec-coverage-reverse-engineer`
-
-**Actor**: `cpt-cypilot-actor-ai-agent`
-
-**Success Scenarios**:
-- Agent invokes reverse-engineering workflow → unspecified code identified, CDSL markers placed in code, feature specs generated from code structure
-
-**Steps**:
-1. [ ] - `p2` - Agent runs `cpt spec-coverage` to identify uncovered code - `inst-re-identify-gaps`
-2. [ ] - `p2` - Agent analyzes uncovered code to identify logical function groups - `inst-re-analyze-code`
-3. [ ] - `p2` - Agent places `@cpt-begin`/`@cpt-end` markers in code with instruction slugs - `inst-re-place-markers`
-4. [ ] - `p2` - Agent generates FEATURE spec from placed markers, mapping instructions to CDSL steps - `inst-re-generate-spec`
-5. [ ] - `p2` - Agent runs `cpt validate` to verify consistency between new spec and markers - `inst-re-validate`
+**Supporting**:
+- [x] - `p1` - Imports and module setup for spec-coverage command - `inst-coverage-imports`
+- [x] - `p1` - Helper functions: relative path formatting, output routing, range formatting, human-friendly report display - `inst-coverage-helpers`
 
 ## 3. Processes / Business Logic (CDSL)
 
@@ -116,6 +102,9 @@ Without spec coverage, teams have no visibility into which parts of the codebase
 3. [x] - `p1` - Scan for `@cpt-begin`/`@cpt-end` block markers (range-level coverage) - `inst-scan-block-markers`
 4. [x] - `p1` - Calculate covered line ranges: lines between block marker pairs are covered; file-level scope markers cover all lines - `inst-scan-calc-ranges`
 5. [x] - `p1` - **RETURN** file coverage record with ranges and marker counts - `inst-scan-return`
+6. [x] - `p1` - Define coverage data model: FileCoverage and CoverageReport dataclasses, imports - `inst-scan-datamodel`
+7. [x] - `p1` - Helper functions: blank/comment line detection, contiguous range building - `inst-scan-helpers`
+8. [x] - `p1` - File scan initialization: read file, detect markers in loop, count scope/block markers - `inst-scan-init`
 
 ### Calculate Coverage Metrics
 
@@ -164,32 +153,21 @@ A file with good granularity has approximately 1 CDSL instruction (`@cpt-begin`/
 3. [x] - `p1` - **IF** verbose, include marker details per file - `inst-report-verbose`
 4. [x] - `p1` - **RETURN** formatted JSON report - `inst-report-return`
 
-### Place CDSL Markers
-
-- [ ] `p2` - **ID**: `cpt-cypilot-algo-spec-coverage-place-markers`
-
-**Input**: Code file path, target algo/flow ID, function boundaries
-
-**Output**: Modified code file with `@cpt-begin`/`@cpt-end` markers inserted
-
-**Steps**:
-1. [ ] - `p2` - Parse code file to identify function/method boundaries - `inst-place-parse`
-2. [ ] - `p2` - Generate instruction slugs from function names (kebab-case) - `inst-place-slugs`
-3. [ ] - `p2` - Insert `@cpt-begin` before function body and `@cpt-end` after function body - `inst-place-insert`
-4. [ ] - `p2` - **RETURN** list of placed markers with file path and line numbers - `inst-place-return`
+**Supporting**:
+- [x] - `p1` - Report function signature and relative path helper - `inst-report-datamodel`
 
 ## 4. States (CDSL)
 
 ### Coverage Report Lifecycle
 
-- [ ] `p1` - **ID**: `cpt-cypilot-state-spec-coverage-report`
+- [x] `p1` - **ID**: `cpt-cypilot-state-spec-coverage-report`
 
 **States**: NOT_RUN, COVERED, PARTIAL, UNCOVERED
 
 **Transitions**:
-1. [ ] - `p1` - **FROM** NOT_RUN **TO** COVERED **WHEN** coverage ≥ threshold AND granularity ≥ threshold - `inst-state-covered`
-2. [ ] - `p1` - **FROM** NOT_RUN **TO** PARTIAL **WHEN** coverage > 0 but below threshold OR granularity below threshold - `inst-state-partial`
-3. [ ] - `p1` - **FROM** NOT_RUN **TO** UNCOVERED **WHEN** no CDSL markers found in any code file - `inst-state-uncovered`
+1. [x] - `p1` - **FROM** NOT_RUN **TO** COVERED **WHEN** coverage ≥ threshold AND granularity ≥ threshold - `inst-state-covered`
+2. [x] - `p1` - **FROM** NOT_RUN **TO** PARTIAL **WHEN** coverage > 0 but below threshold OR granularity below threshold - `inst-state-partial`
+3. [x] - `p1` - **FROM** NOT_RUN **TO** UNCOVERED **WHEN** no CDSL markers found in any code file - `inst-state-uncovered`
 
 ## 5. Definitions of Done
 
@@ -253,13 +231,15 @@ The system **MUST** output a JSON report with: summary (total files, covered fil
 
 ## 7. Acceptance Criteria
 
-- [ ] `cpt spec-coverage` scans all registered codebase files and produces JSON report
-- [ ] Coverage percentage correctly identifies lines within `@cpt-begin`/`@cpt-end` blocks
-- [ ] Scope-only files (no block markers) are reported with granularity 0.0
-- [ ] Granularity metric correctly penalizes files with few instructions relative to their size
-- [ ] `--min-coverage N` flag causes exit code 2 when coverage is below threshold
-- [ ] `--min-granularity N` flag causes exit code 2 when granularity is below threshold
-- [ ] `--verbose` flag includes per-file marker details in report
-- [ ] Report format mirrors `coverage.py` JSON structure (summary + per-file)
-- [ ] Scanning completes in ≤ 5 seconds for typical repositories
-- [ ] All output is valid JSON to stdout with exit codes 0/1/2
+- [x] `cpt spec-coverage` scans all registered codebase files and produces JSON report
+- [x] Coverage percentage correctly identifies lines within `@cpt-begin`/`@cpt-end` blocks
+- [x] Scope-only files (no block markers) are reported with granularity 0.0
+- [x] Granularity metric correctly penalizes files with few instructions relative to their size
+- [x] `--min-coverage N` flag causes exit code 2 when coverage is below threshold
+- [x] `--min-granularity N` flag causes exit code 2 when granularity is below threshold
+- [x] `--min-file-granularity N` flag causes exit code 2 when any covered file's granularity is below threshold
+- [x] `--min-file-coverage N` flag causes exit code 2 when any file's coverage is below threshold
+- [x] `--verbose` flag includes per-file marker details in report
+- [x] Report format mirrors `coverage.py` JSON structure (summary + per-file)
+- [x] Scanning completes in ≤ 5 seconds for typical repositories
+- [x] All output is valid JSON to stdout with exit codes 0/1/2

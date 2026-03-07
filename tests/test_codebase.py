@@ -496,6 +496,101 @@ class TestCrossValidationEdgeCases:
         assert len(result["errors"]) == 0
 
 
+class TestCrossValidateForbiddenAndInstances:
+    """Test forbidden_code_ids and artifact_instances branches."""
+
+    def test_forbidden_code_id_emits_task_unchecked(self, tmp_path: Path):
+        """forbidden_code_ids with a matching ref but no instructions → error."""
+        code = "# @cpt-flow:cpt-myapp-feat-login:p1\ndef login(): pass\n"
+        (tmp_path / "app.py").write_text(code)
+        cf, _ = CodeFile.from_path(tmp_path / "app.py")
+
+        artifact_ids = {"cpt-myapp-feat-login"}
+        to_code_ids = set()
+        forbidden = {"cpt-myapp-feat-login"}
+
+        result = cross_validate_code(
+            [cf], artifact_ids, to_code_ids,
+            forbidden_code_ids=forbidden,
+        )
+        task_unchecked = [e for e in result["errors"] if e.get("code") == EC.CODE_TASK_UNCHECKED]
+        assert len(task_unchecked) == 1
+        assert "cpt-myapp-feat-login" in task_unchecked[0]["message"]
+
+    def test_forbidden_code_id_skipped_when_instructions_incomplete(self, tmp_path: Path):
+        """forbidden_code_ids skips error when artifact has uncovered instructions."""
+        code = (
+            "# @cpt-begin:cpt-myapp-feat-login:p1:inst-parse\n"
+            "def parse(): pass\n"
+            "# @cpt-end:cpt-myapp-feat-login:p1:inst-parse\n"
+        )
+        (tmp_path / "app.py").write_text(code)
+        cf, _ = CodeFile.from_path(tmp_path / "app.py")
+
+        artifact_ids = {"cpt-myapp-feat-login"}
+        to_code_ids = set()
+        forbidden = {"cpt-myapp-feat-login"}
+        # Artifact defines two instructions but code only has one → skip error
+        all_insts = {"cpt-myapp-feat-login": {"parse", "execute"}}
+
+        result = cross_validate_code(
+            [cf], artifact_ids, to_code_ids,
+            forbidden_code_ids=forbidden,
+            artifact_instances_all=all_insts,
+        )
+        task_unchecked = [e for e in result["errors"] if e.get("code") == EC.CODE_TASK_UNCHECKED]
+        assert len(task_unchecked) == 0
+
+    def test_artifact_instances_missing_instruction(self, tmp_path: Path):
+        """artifact_instances with missing code instruction → CODE_INST_MISSING error."""
+        code = (
+            "# @cpt-begin:cpt-myapp-feat-login:p1:inst-parse\n"
+            "def parse(): pass\n"
+            "# @cpt-end:cpt-myapp-feat-login:p1:inst-parse\n"
+        )
+        (tmp_path / "app.py").write_text(code)
+        cf, _ = CodeFile.from_path(tmp_path / "app.py")
+
+        artifact_ids = {"cpt-myapp-feat-login"}
+        to_code_ids = {"cpt-myapp-feat-login"}
+        # Artifact expects both "parse" and "execute", code only has "parse"
+        instances = {"cpt-myapp-feat-login": {"parse", "execute"}}
+
+        result = cross_validate_code(
+            [cf], artifact_ids, to_code_ids,
+            artifact_instances=instances,
+        )
+        missing = [e for e in result["errors"] if e.get("code") == EC.CODE_INST_MISSING]
+        assert len(missing) == 1
+        assert "execute" in missing[0]["message"]
+
+    def test_artifact_instances_orphan_instruction(self, tmp_path: Path):
+        """Code has instruction not defined in artifact → CODE_INST_ORPHAN error."""
+        code = (
+            "# @cpt-begin:cpt-myapp-feat-login:p1:inst-parse\n"
+            "def parse(): pass\n"
+            "# @cpt-end:cpt-myapp-feat-login:p1:inst-parse\n"
+            "# @cpt-begin:cpt-myapp-feat-login:p1:inst-extra\n"
+            "def extra(): pass\n"
+            "# @cpt-end:cpt-myapp-feat-login:p1:inst-extra\n"
+        )
+        (tmp_path / "app.py").write_text(code)
+        cf, _ = CodeFile.from_path(tmp_path / "app.py")
+
+        artifact_ids = {"cpt-myapp-feat-login"}
+        to_code_ids = {"cpt-myapp-feat-login"}
+        # Artifact only expects "parse", but code also has "extra"
+        instances = {"cpt-myapp-feat-login": {"parse"}}
+
+        result = cross_validate_code(
+            [cf], artifact_ids, to_code_ids,
+            artifact_instances=instances,
+        )
+        orphan = [e for e in result["errors"] if e.get("code") == EC.CODE_INST_ORPHAN]
+        assert len(orphan) == 1
+        assert "extra" in orphan[0]["message"]
+
+
 class TestErrorFunction:
     """Test the error helper function."""
 

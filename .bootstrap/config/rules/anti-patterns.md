@@ -17,6 +17,7 @@ version: 1.0
 - [Hardcoded Layout Paths](#hardcoded-layout-paths)
 - [Non-JSON Stdout](#non-json-stdout)
 - [Blocking Imports in cli.py](#blocking-imports-in-clipy)
+- [Silent Exception Swallowing](#silent-exception-swallowing)
 
 <!-- /toc -->
 
@@ -57,3 +58,9 @@ Project-specific things NOT to do, based on patterns observed in the Cypilot cod
 **Don't**: Import command modules at the top of `cli.py`.
 **Why**: Slows startup for every invocation, even `--version`.
 **Do**: Use lazy imports inside command thunk functions (`_cmd_{name}`).
+
+## Silent Exception Swallowing
+
+**Don't**: Use bare `except Exception: return {}`, `except Exception: pass`, or any pattern that catches an exception without handling and logging it.
+**Why**: Silent swallowing hides bugs, makes debugging impossible, and produces incorrect results without any trace.
+**Do**: Always log the exception (e.g., `logger.exception(...)` or `stderr`) and handle it explicitly — return a meaningful error, re-raise, or include the error in the result.

@@ -1,3 +1,4 @@
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-structure-datamodel
 from __future__ import annotations
 
 import re
@@ -7,14 +8,12 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 from . import error_codes as EC
 
-
 @dataclass(frozen=True)
 class ReferenceRule:
     coverage: Optional[bool] = None  # True=required, False=prohibited, None=optional
     task: Optional[bool] = None  # True=required, False=prohibited, None=allowed
     priority: Optional[bool] = None  # True=required, False=prohibited, None=allowed
     headings: Optional[List[str]] = None
-
 
 @dataclass(frozen=True)
 class HeadingConstraint:
@@ -29,7 +28,6 @@ class HeadingConstraint:
     next: Optional[str] = None
     pointer: Optional[str] = None
 
-
 @dataclass(frozen=True)
 class IdConstraint:
     kind: str
@@ -43,7 +41,6 @@ class IdConstraint:
     to_code: Optional[bool] = None
     headings: Optional[List[str]] = None
     references: Optional[Dict[str, ReferenceRule]] = None
-
 
 def _parse_optional_bool(
     v: object, field: str,
@@ -61,7 +58,6 @@ def _parse_optional_bool(
         return v, None
     return None, f"Constraint field '{field}' must be boolean, got {type(v).__name__}"
 
-
 @dataclass(frozen=True)
 class ArtifactKindConstraints:
     name: Optional[str]
@@ -70,11 +66,9 @@ class ArtifactKindConstraints:
     headings: Optional[List[HeadingConstraint]] = None
     toc: bool = True
 
-
 @dataclass(frozen=True)
 class KitConstraints:
     by_kind: Dict[str, ArtifactKindConstraints]
-
 
 def error(kind: str, message: str, *, path: Path | str, line: int = 1, code: Optional[str] = None, **extra) -> Dict[str, object]:
     out: Dict[str, object] = {"type": kind, "message": message, "line": int(line)}
@@ -86,8 +80,9 @@ def error(kind: str, message: str, *, path: Path | str, line: int = 1, code: Opt
     extra = {k: v for k, v in extra.items() if v is not None}
     out.update(extra)
     return out
+# @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-structure-datamodel
 
-
+# @cpt-algo:cpt-cypilot-algo-traceability-validation-headings-contract:p1
 def heading_constraint_ids_by_line(path: Path, heading_constraints: Sequence[HeadingConstraint]) -> List[List[str]]:
     """Return active heading constraint ids for each line (1-indexed).
 
@@ -97,6 +92,7 @@ def heading_constraint_ids_by_line(path: Path, heading_constraints: Sequence[Hea
 
     Matching uses the same level/pattern rules as validate_headings_contract.
     """
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-headings-contract:p1:inst-resolve-scope
     from .document import read_text_safe
 
     lines = read_text_safe(path)
@@ -227,14 +223,15 @@ def heading_constraint_ids_by_line(path: Path, heading_constraints: Sequence[Hea
                 stack.append((lvl, hid))
         out[line_no] = [hid for _, hid in stack]
     return out
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-headings-contract:p1:inst-resolve-scope
 
-
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-structure-datamodel
 @dataclass(frozen=True)
 class ParsedCypilotId:
     system: str
     kind: str
     slug: str
-
+# @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-structure-datamodel
 
 def parse_cpt(
     cpt: str,
@@ -243,6 +240,7 @@ def parse_cpt(
     where_defined: Optional[callable] = None,
     known_kinds: Optional[Iterable[str]] = None,
 ) -> Optional[ParsedCypilotId]:
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-scan-ids:p1:inst-parse-cpt
     if not cpt or not str(cpt).lower().startswith("cpt-"):
         return None
 
@@ -295,14 +293,15 @@ def parse_cpt(
         return None
 
     return ParsedCypilotId(system=system, kind=expected_kind, slug=slug)
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-scan-ids:p1:inst-parse-cpt
 
-
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-structure-datamodel
 @dataclass(frozen=True)
 class ArtifactRecord:
     path: Path
     artifact_kind: str
     constraints: Optional[ArtifactKindConstraints] = None
-
+# @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-structure-datamodel
 
 # @cpt-algo:cpt-cypilot-algo-traceability-validation-validate-structure:p1
 def validate_artifact_file(
@@ -353,9 +352,7 @@ def validate_artifact_file(
         _toc_lines = _read_text_safe(artifact_path)
         if _toc_lines is not None:
             _toc_content = "\n".join(_toc_lines)
-            _max_hl = 6
-            if getattr(constraints, "headings", None):
-                _max_hl = max((h.level for h in constraints.headings), default=6)
+            _max_hl = 3
             _toc_result = _validate_toc(
                 _toc_content,
                 artifact_path=artifact_path,
@@ -811,8 +808,8 @@ def validate_artifact_file(
     return {"errors": errors, "warnings": warnings}
     # @cpt-end:cpt-cypilot-algo-traceability-validation-validate-structure:p1:inst-return-structure
 
-
 # @cpt-algo:cpt-cypilot-algo-traceability-validation-cross-validate:p1
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-cross-datamodel
 def cross_validate_artifacts(
     artifacts: Sequence[ArtifactRecord],
     registered_systems: Optional[Iterable[str]] = None,
@@ -975,6 +972,7 @@ def cross_validate_artifacts(
                 continue
             out.append({"id": hs, "description": km.get(hs)})
         return out
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-cross-datamodel
 
     # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-build-index
     # Index scan results
@@ -1403,7 +1401,7 @@ def cross_validate_artifacts(
     return {"errors": errors, "warnings": warnings}
     # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-return-cross
 
-
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-load-constraints:p1:inst-constraints-helpers
 def _parse_examples(v: object) -> Tuple[Optional[List[object]], Optional[str]]:
     if v is None:
         return None, None
@@ -1411,8 +1409,8 @@ def _parse_examples(v: object) -> Tuple[Optional[List[object]], Optional[str]]:
         return None, "Constraint field 'examples' must be a list"
     return list(v), None
 
-
 def _parse_reference_rule(obj: object) -> Tuple[Optional[ReferenceRule], Optional[str]]:
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-load-constraints:p1:inst-parse-ref-rule
     if not isinstance(obj, dict):
         return None, "Reference rule must be an object"
     coverage, cov_err = _parse_optional_bool(obj.get("coverage"), "references.coverage")
@@ -1440,9 +1438,10 @@ def _parse_reference_rule(obj: object) -> Tuple[Optional[ReferenceRule], Optiona
         priority=priority,
         headings=headings,
     ), None
-
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-load-constraints:p1:inst-parse-ref-rule
 
 def _parse_heading_constraint(obj: object, *, pointer: Optional[str] = None) -> Tuple[Optional[HeadingConstraint], Optional[str]]:
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-load-constraints:p1:inst-parse-heading
     if not isinstance(obj, dict):
         return None, "Heading constraint must be an object"
 
@@ -1509,14 +1508,13 @@ def _parse_heading_constraint(obj: object, *, pointer: Optional[str] = None) -> 
         next=next_s,
         pointer=(pointer.strip() if isinstance(pointer, str) and pointer.strip() else None),
     ), None
-
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-load-constraints:p1:inst-parse-heading
 
 def _slugify_heading_constraint_id(v: str) -> str:
     s = str(v or "").strip().lower()
     s = re.sub(r"[^a-z0-9]+", "-", s)
     s = s.strip("-")
     return s
-
 
 def _parse_references(v: object) -> Tuple[Optional[Dict[str, ReferenceRule]], Optional[str]]:
     if v is None:
@@ -1533,9 +1531,10 @@ def _parse_references(v: object) -> Tuple[Optional[Dict[str, ReferenceRule]], Op
         if rule is not None:
             out[k.strip().upper()] = rule
     return out, None
-
+# @cpt-end:cpt-cypilot-algo-traceability-validation-load-constraints:p1:inst-constraints-helpers
 
 def _parse_id_constraint(obj: object) -> Tuple[Optional[IdConstraint], Optional[str]]:
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-load-constraints:p1:inst-parse-id-constraint
     if not isinstance(obj, dict):
         return None, "Constraint entry must be an object"
     kind = obj.get("kind")
@@ -1607,9 +1606,11 @@ def _parse_id_constraint(obj: object) -> Tuple[Optional[IdConstraint], Optional[
         ),
         None,
     )
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-load-constraints:p1:inst-parse-id-constraint
 
-
+# @cpt-algo:cpt-cypilot-algo-traceability-validation-load-constraints:p1
 def parse_kit_constraints(data: object) -> Tuple[Optional[KitConstraints], List[str]]:
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-load-constraints:p1:inst-parse-kit
     if data is None:
         return None, []
     if not isinstance(data, dict):
@@ -1767,9 +1768,10 @@ def parse_kit_constraints(data: object) -> Tuple[Optional[KitConstraints], List[
     if errors:
         return None, errors
     return KitConstraints(by_kind=out), []
-
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-load-constraints:p1:inst-parse-kit
 
 def load_constraints_toml(kit_root: Path) -> Tuple[Optional[KitConstraints], List[str]]:
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-load-constraints:p1:inst-load-toml
     path = (kit_root / "constraints.toml").resolve()
     if not path.is_file():
         return None, []
@@ -1785,8 +1787,9 @@ def load_constraints_toml(kit_root: Path) -> Tuple[Optional[KitConstraints], Lis
     if errs:
         return None, errs
     return constraints, []
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-load-constraints:p1:inst-load-toml
 
-
+# @cpt-begin:cpt-cypilot-algo-traceability-validation-headings-contract:p1:inst-headings-datamodel
 __all__ = [
     "ReferenceRule",
     "HeadingConstraint",
@@ -1803,12 +1806,12 @@ __all__ = [
     "validate_artifact_file",
 ]
 
-
 _HEADING_LINE_RE = re.compile(r"^\s*(#{1,6})\s+(.+?)\s*$")
 _HEADING_NUMBER_PREFIX_RE = re.compile(r"^(?P<prefix>\d+(?:\.\d+)*)(?:\.)?\s+(?P<title>.+)$")
-
+# @cpt-end:cpt-cypilot-algo-traceability-validation-headings-contract:p1:inst-headings-datamodel
 
 def _scan_headings(path: Path) -> List[Dict[str, object]]:
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-headings-contract:p1:inst-scan-headings
     from .document import read_text_safe
 
     lines = read_text_safe(path)
@@ -1852,7 +1855,7 @@ def _scan_headings(path: Path) -> List[Dict[str, object]]:
             "number_parts": number_parts,
         })
     return out
-
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-headings-contract:p1:inst-scan-headings
 
 def validate_headings_contract(
     *,
@@ -1870,6 +1873,7 @@ def validate_headings_contract(
     - Enforces multiple/prohibited/required counts for each constraint.
     - Enforces numbered required/prohibited for matched headings.
     """
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-headings-contract:p1:inst-validate-init
     from .document import scan_cpt_ids
 
     errors: List[Dict[str, object]] = []
@@ -1914,7 +1918,9 @@ def validate_headings_contract(
         }
 
     headings = _scan_headings(path)
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-headings-contract:p1:inst-validate-init
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-headings-contract:p1:inst-check-numbering
     def _check_numbering_sequence() -> None:
         # If the document uses numbered headings, enforce that sibling sections under the same
         # numeric parent progress consecutively (e.g., 3.6 -> 3.7, not 3.8).
@@ -1964,7 +1970,9 @@ def validate_headings_contract(
             last_prefix_by_key[key] = prefix
 
     _check_numbering_sequence()
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-headings-contract:p1:inst-check-numbering
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-headings-contract:p1:inst-match-headings
     def _is_regex_pattern(pat: str) -> bool:
         # Note: ( ) are excluded — they commonly appear in natural heading text.
         return any(ch in pat for ch in ".^$*+?{}[]\\|")
@@ -2125,4 +2133,5 @@ def validate_headings_contract(
                     **_source_fields(hc, idx),
                 ))
 
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-headings-contract:p1:inst-match-headings
     return {"errors": errors, "warnings": warnings}

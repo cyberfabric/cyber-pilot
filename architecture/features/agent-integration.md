@@ -27,11 +27,11 @@
 
 <!-- /toc -->
 
-- [ ] `p1` - **ID**: `cpt-cypilot-featstatus-agent-integration`
+- [x] `p1` - **ID**: `cpt-cypilot-featstatus-agent-integration`
 
 ## 1. Feature Context
 
-- [ ] `p1` - `cpt-cypilot-feature-agent-integration`
+- [x] `p1` - `cpt-cypilot-feature-agent-integration`
 
 ### 1. Overview
 
@@ -88,7 +88,7 @@ Without this feature, users would need to manually create and maintain agent-spe
 
 ### Execute Generic Workflow
 
-- [ ] `p1` - **ID**: `cpt-cypilot-flow-agent-integration-workflow`
+- [x] `p1` - **ID**: `cpt-cypilot-flow-agent-integration-workflow`
 
 **Actor**: `cpt-cypilot-actor-ai-agent`
 
@@ -110,6 +110,8 @@ Without this feature, users would need to manually create and maintain agent-spe
 1. [x] - `p1` - Define agent registry: windsurf (`.windsurf/`), cursor (`.cursor/`), claude (`.claude/`), copilot (`.github/prompts/`), openai - `inst-define-registry`
 2. - `p1` - **IF** `--agent` flag provided, filter to single agent - `inst-if-filter`
 3. - `p1` - **RETURN** list of agents to generate for - `inst-return-agents`
+4. [x] - `p1` - Resolve config/kits/ directory and registered kit dirs from core.toml for workflow/skill discovery - `inst-resolve-kits`
+5. [x] - `p1` - Parse CLI arguments, resolve project root, cypilot root, load agent config (shared context for agents commands) - `inst-resolve-context`
 
 ### Generate Agent Shims
 
@@ -118,6 +120,11 @@ Without this feature, users would need to manually create and maintain agent-spe
 1. [x] - `p1` - For each workflow, create agent-native proxy file referencing the workflow path - `inst-create-proxy`
 2. - `p1` - For each agent, create skill shim referencing composed SKILL.md - `inst-create-skill-shim`
 3. - `p1` - Use `@/` project-root-relative paths in all references - `inst-use-relative-paths`
+4. [x] - `p1` - Path helpers: compute `{cypilot_path}/`-prefixed relative paths and safe relpath for agent instructions - `inst-path-helpers`
+5. [x] - `p1` - Ensure cypilot files are local: copy relevant subset into project when cypilot root is external - `inst-ensure-local-copy`
+6. [x] - `p1` - Parse YAML frontmatter, strip/quote values, render agent-native templates with variable substitution - `inst-parse-frontmatter`
+7. [x] - `p1` - Read-only `cmd_agents` command: list generated agent integration files per agent - `inst-cmd-agents-list`
+8. [x] - `p1` - Build result dict and human-friendly formatters for generate-agents and agents commands - `inst-format-output`
 
 ### Compose SKILL.md
 
@@ -139,7 +146,7 @@ Without this feature, users would need to manually create and maintain agent-spe
 
 ### Agent Entry Point State
 
-- [ ] `p1` - **ID**: `cpt-cypilot-state-agent-integration-entry-points`
+- [x] `p1` - **ID**: `cpt-cypilot-state-agent-integration-entry-points`
 
 ```
 [NOT_GENERATED] --agents--> [GENERATED] --agents--> [REGENERATED]

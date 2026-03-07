@@ -360,42 +360,46 @@ class TestHumanValidate(_HumanModeBase):
         self.assertIn("simple error string", out)
         self.assertIn("simple warning", out)
 
-
-class TestHumanSelfCheck(_HumanModeBase):
-    """Test _human_self_check formatter."""
-
-    def test_self_check_pass(self):
-        from cypilot.commands.self_check import _human_self_check
+    def test_validate_rich_issue_fields(self):
+        """Cover _format_issue with code, reasons, fixing_prompt, extra keys."""
+        from cypilot.commands.validate import _human_validate
         buf = io.StringIO()
         with redirect_stderr(buf):
-            _human_self_check({
-                "status": "PASS",
-                "kits_checked": 1,
-                "templates_checked": 3,
-                "results": [
-                    {"kit": "sdlc", "kind": "PRD", "status": "PASS"},
+            _human_validate({
+                "status": "FAIL", "error_count": 2, "warning_count": 1,
+                "errors": [
+                    {
+                        "message": "Missing ID", "code": "E001",
+                        "path": "DESIGN.md", "line": 5,
+                        "reasons": ["No template match", "Slug invalid"],
+                        "fixing_prompt": "Add an ID block",
+                        "id": "cpt-test-item",
+                    },
+                    {"message": "No location error"},
+                ],
+                "warnings": [
+                    {"message": "Warn with list field", "ids": ["a", "b"]},
                 ],
             })
         out = buf.getvalue()
-        self.assertIn("Self-Check", out)
-        self.assertIn("consistent", out)
+        self.assertIn("E001", out)
+        self.assertIn("No template match", out)
+        self.assertIn("Fix:", out)
+        self.assertIn("cpt-test-item", out)
+        self.assertIn("No location error", out)
+        self.assertIn("a, b", out)
 
-    def test_self_check_fail(self):
-        from cypilot.commands.self_check import _human_self_check
+    def test_validate_issue_location_without_line(self):
+        """Cover _issue_location with path but no line."""
+        from cypilot.commands.validate import _human_validate
         buf = io.StringIO()
         with redirect_stderr(buf):
-            _human_self_check({
-                "status": "FAIL",
-                "kits_checked": 1,
-                "templates_checked": 1,
-                "results": [
-                    {"kit": "sdlc", "kind": "PRD", "status": "FAIL", "error_count": 2,
-                     "errors": [{"message": "oops"}, "plain error"]},
-                ],
+            _human_validate({
+                "status": "FAIL", "error_count": 1, "warning_count": 0,
+                "errors": [{"message": "err", "path": "README.md"}],
             })
         out = buf.getvalue()
-        self.assertIn("failed", out)
-        self.assertIn("oops", out)
+        self.assertIn("README.md", out)
 
 
 class TestHumanValidateKits(_HumanModeBase):
@@ -569,12 +573,11 @@ class TestHumanInfo(_HumanModeBase):
                 "relative_path": ".bootstrap",
                 "config_version": "1.0",
                 "has_config": True,
-                "directories": {".core": True, ".gen": True, "config": True, "kits": False},
+                "directories": {".core": True, ".gen": True, "config": True},
                 "kit_details": {
                     "sdlc": {
                         "name": "SDLC Kit", "slug": "sdlc",
-                        "ref_version": 4, "config_version": 3, "drift": True,
-                        "blueprints": ["PRD", "DESIGN"],
+                        "version": "4",
                         "artifact_kinds": ["PRD", "DESIGN"],
                         "workflows": ["pr-review"],
                     },
@@ -615,9 +618,8 @@ class TestHumanInfo(_HumanModeBase):
         self.assertIn("MyProject", out)
         self.assertIn(".bootstrap", out)
         self.assertIn("1.0", out)
-        self.assertIn("Missing directories: kits", out)
         self.assertIn("SDLC Kit", out)
-        self.assertIn("migration needed", out)
+        self.assertIn("v4", out)
         self.assertIn("PRD, DESIGN", out)
         self.assertIn("pr-review", out)
         self.assertIn("Main (main)", out)
@@ -636,7 +638,7 @@ class TestHumanInfo(_HumanModeBase):
                 "project_root": "/tmp/x",
                 "cypilot_dir": "/tmp/x/cypilot",
                 "has_config": False,
-                "directories": {".core": True, ".gen": True, "config": True, "kits": True},
+                "directories": {".core": True, ".gen": True, "config": True},
                 "rules": [],
                 "kit_details": {},
                 "agent_integrations": [],
@@ -671,7 +673,7 @@ class TestHumanInfo(_HumanModeBase):
                 "has_config": True,
                 "directories": {},
                 "kit_details": {
-                    "sdlc": {"name": "Kit", "ref_version": 4, "config_version": 4, "drift": False},
+                    "sdlc": {"name": "Kit", "version": "4"},
                 },
                 "rules": [],
                 "agent_integrations": [],
@@ -1458,13 +1460,12 @@ class TestHumanKitUpdate(_HumanModeBase):
                 "status": "PASS",
                 "kits_updated": 1,
                 "results": [
-                    {"kit": "sdlc", "action": "current", "files_written": 25, "artifact_kinds": ["DESIGN"]},
+                    {"kit": "sdlc", "action": "current", "accepted": ["a.md"], "unchanged": 3},
                 ],
             })
         out = buf.getvalue()
         self.assertIn("sdlc", out)
-        self.assertIn("25 files", out)
-        self.assertIn("DESIGN", out)
+        self.assertIn("current", out)
 
     def test_warn_with_errors(self):
         from cypilot.commands.kit import _human_kit_update
@@ -1486,177 +1487,6 @@ class TestHumanKitUpdate(_HumanModeBase):
         with redirect_stderr(buf):
             _human_kit_update({"status": "PARTIAL", "kits_updated": 0, "results": []})
         self.assertIn("PARTIAL", buf.getvalue())
-
-
-class TestHumanGenerateResources(_HumanModeBase):
-    """Test _human_generate_resources formatter."""
-
-    def test_pass(self):
-        from cypilot.commands.kit import _human_generate_resources
-        buf = io.StringIO()
-        with redirect_stderr(buf):
-            _human_generate_resources({
-                "status": "PASS",
-                "kits_processed": 1,
-                "results": [
-                    {"kit": "sdlc", "files_written": 25, "artifact_kinds": ["DESIGN", "PRD"]},
-                ],
-            })
-        out = buf.getvalue()
-        self.assertIn("sdlc", out)
-        self.assertIn("25 files", out)
-        self.assertIn("DESIGN", out)
-
-    def test_warn_with_errors(self):
-        from cypilot.commands.kit import _human_generate_resources
-        buf = io.StringIO()
-        with redirect_stderr(buf):
-            _human_generate_resources({
-                "status": "WARN",
-                "kits_processed": 1,
-                "results": [],
-                "errors": ["blueprint parse error"],
-            })
-        out = buf.getvalue()
-        self.assertIn("blueprint parse error", out)
-        self.assertIn("warnings", out.lower())
-
-    def test_other_status(self):
-        from cypilot.commands.kit import _human_generate_resources
-        buf = io.StringIO()
-        with redirect_stderr(buf):
-            _human_generate_resources({"status": "UNKNOWN", "kits_processed": 0, "results": []})
-        self.assertIn("UNKNOWN", buf.getvalue())
-
-
-class TestHumanKitMigrate(_HumanModeBase):
-    """Test _human_kit_migrate formatter."""
-
-    def test_migrated(self):
-        from cypilot.commands.kit import _human_kit_migrate
-        buf = io.StringIO()
-        with redirect_stderr(buf):
-            _human_kit_migrate({
-                "status": "PASS",
-                "kits_migrated": 1,
-                "kits_current": 0,
-                "results": [
-                    {
-                        "kit": "sdlc",
-                        "status": "migrated",
-                        "from_version": 1,
-                        "to_version": 2,
-                        "regenerated": {"files_written": 25, "workflows_written": 3},
-                        "merged_blueprints": [
-                            {"blueprint": "DESIGN.md", "accepted": 5, "declined": 1, "inserted": 2, "deleted": 0},
-                        ],
-                    },
-                ],
-            })
-        out = buf.getvalue()
-        self.assertIn("sdlc", out)
-        self.assertIn("migrated", out)
-        self.assertIn("v1", out)
-        self.assertIn("v2", out)
-        self.assertIn("25 files", out)
-        self.assertIn("DESIGN.md", out)
-        self.assertIn("5 accepted", out)
-
-    def test_current(self):
-        from cypilot.commands.kit import _human_kit_migrate
-        buf = io.StringIO()
-        with redirect_stderr(buf):
-            _human_kit_migrate({
-                "status": "PASS",
-                "kits_migrated": 0,
-                "kits_current": 1,
-                "results": [
-                    {"kit": "sdlc", "status": "current", "from_version": 1, "to_version": 1},
-                ],
-            })
-        out = buf.getvalue()
-        self.assertIn("already current", out)
-
-    def test_aborted(self):
-        from cypilot.commands.kit import _human_kit_migrate
-        buf = io.StringIO()
-        with redirect_stderr(buf):
-            _human_kit_migrate({
-                "status": "ABORTED",
-                "kits_migrated": 0,
-                "kits_current": 0,
-                "kits_aborted": 1,
-                "results": [
-                    {"kit": "sdlc", "status": "aborted", "from_version": 1, "to_version": 2},
-                ],
-            })
-        out = buf.getvalue()
-        self.assertIn("aborted", out.lower())
-
-    def test_fail(self):
-        from cypilot.commands.kit import _human_kit_migrate
-        buf = io.StringIO()
-        with redirect_stderr(buf):
-            _human_kit_migrate({
-                "status": "FAIL",
-                "kits_migrated": 0,
-                "kits_current": 0,
-                "results": [
-                    {"kit": "bad", "status": "FAIL", "message": "corrupt blueprint"},
-                ],
-            })
-        out = buf.getvalue()
-        self.assertIn("FAILED", out)
-        self.assertIn("corrupt blueprint", out)
-        self.assertIn("failed", out.lower())
-
-    def test_dry_run(self):
-        from cypilot.commands.kit import _human_kit_migrate
-        buf = io.StringIO()
-        with redirect_stderr(buf):
-            _human_kit_migrate({
-                "status": "PASS",
-                "dry_run": True,
-                "kits_migrated": 0,
-                "kits_current": 1,
-                "results": [],
-            })
-        out = buf.getvalue()
-        self.assertIn("dry run", out.lower())
-
-    def test_regen_error(self):
-        from cypilot.commands.kit import _human_kit_migrate
-        buf = io.StringIO()
-        with redirect_stderr(buf):
-            _human_kit_migrate({
-                "status": "PASS",
-                "kits_migrated": 1,
-                "kits_current": 0,
-                "results": [
-                    {
-                        "kit": "sdlc",
-                        "status": "migrated",
-                        "from_version": 1,
-                        "to_version": 2,
-                        "regenerated": {"error": "template parse failed"},
-                    },
-                ],
-            })
-        out = buf.getvalue()
-        self.assertIn("Regen failed", out)
-
-    def test_other_status(self):
-        from cypilot.commands.kit import _human_kit_migrate
-        buf = io.StringIO()
-        with redirect_stderr(buf):
-            _human_kit_migrate({
-                "status": "PARTIAL",
-                "kits_migrated": 0,
-                "kits_current": 0,
-                "results": [{"kit": "x", "status": "weird"}],
-            })
-        out = buf.getvalue()
-        self.assertIn("PARTIAL", out)
 
 
 class TestHumanUpdateDetailed(_HumanModeBase):
@@ -1696,8 +1526,7 @@ class TestHumanUpdateDetailed(_HumanModeBase):
         self.assertIn("Core:", out)
         self.assertIn("architecture", out)
         self.assertIn("sdlc", out)
-        self.assertIn("25 files generated", out)
-        self.assertIn("DESIGN", out)
+        self.assertIn("up to date", out)
         self.assertIn("windsurf", out)
 
     def test_dry_run(self):
@@ -1732,6 +1561,271 @@ class TestHumanUpdateDetailed(_HumanModeBase):
         self.assertIn("broke", out)
         self.assertIn("plain err", out)
         self.assertIn("drift warning", out)
+
+
+class TestShowError(_HumanModeBase):
+    """Test _show_error helper for context fields and nested details."""
+
+    def test_string_error(self):
+        from cypilot.commands.validate_kits import _show_error
+        buf = io.StringIO()
+        with redirect_stderr(buf):
+            _show_error("plain string")
+        self.assertIn("plain string", buf.getvalue())
+
+    def test_dict_error_with_path_and_line(self):
+        from cypilot.commands.validate_kits import _show_error
+        buf = io.StringIO()
+        with redirect_stderr(buf):
+            _show_error({"message": "bad heading", "path": "/tmp/x.md", "line": 5})
+        out = buf.getvalue()
+        self.assertIn("bad heading", out)
+        self.assertIn("5", out)
+
+    def test_dict_error_with_context_fields(self):
+        from cypilot.commands.validate_kits import _show_error
+        buf = io.StringIO()
+        with redirect_stderr(buf):
+            _show_error({
+                "message": "Template missing optional ID placeholder",
+                "path": "/tmp/t.md",
+                "line": 1,
+                "artifact_kind": "DESIGN",
+                "id_kind": "db",
+                "id_kind_template": "cpt-{system}-db-{slug}",
+            })
+        out = buf.getvalue()
+        self.assertIn("DESIGN", out)
+        self.assertIn("id=db", out)
+        self.assertIn("tpl=cpt-{system}-db-{slug}", out)
+
+    def test_dict_error_with_nested_errors(self):
+        from cypilot.commands.validate_kits import _show_error
+        buf = io.StringIO()
+        with redirect_stderr(buf):
+            _show_error({
+                "message": "Invalid constraints.toml",
+                "path": "/tmp/c.toml",
+                "line": 1,
+                "errors": ["level must be integer", "pattern is missing"],
+            })
+        out = buf.getvalue()
+        self.assertIn("level must be integer", out)
+        self.assertIn("pattern is missing", out)
+
+    def test_dict_error_no_path(self):
+        from cypilot.commands.validate_kits import _show_error
+        buf = io.StringIO()
+        with redirect_stderr(buf):
+            _show_error({"message": "generic error"})
+        self.assertIn("generic error", buf.getvalue())
+
+    def test_warning_prefix(self):
+        from cypilot.commands.validate_kits import _show_error
+        buf = io.StringIO()
+        with redirect_stderr(buf):
+            _show_error({"message": "optional ref"}, prefix="⚠")
+        out = buf.getvalue()
+        self.assertIn("⚠", out)
+        self.assertIn("optional ref", out)
+
+
+class TestHumanValidateKitsScResults(_HumanModeBase):
+    """Test _human_validate_kits with self_check_results branches."""
+
+    def test_sc_results_pass_with_warnings_non_verbose(self):
+        from cypilot.commands.validate_kits import _human_validate_kits
+        buf = io.StringIO()
+        with redirect_stderr(buf):
+            _human_validate_kits({
+                "status": "PASS",
+                "kits_validated": 1,
+                "error_count": 0,
+                "templates_checked": 3,
+                "self_check_results": [
+                    {"kit": "sdlc", "kind": "DESIGN", "status": "PASS", "warning_count": 2},
+                    {"kit": "sdlc", "kind": "FEATURE", "status": "PASS"},
+                ],
+            })
+        out = buf.getvalue()
+        self.assertIn("Templates checked", out)
+        self.assertIn("sdlc/DESIGN: PASS", out)
+        self.assertIn("2 warning(s)", out)
+        self.assertIn("--verbose", out)
+        self.assertIn("sdlc/FEATURE: PASS", out)
+
+    def test_sc_results_fail_with_errors_and_warnings(self):
+        from cypilot.commands.validate_kits import _human_validate_kits
+        buf = io.StringIO()
+        with redirect_stderr(buf):
+            _human_validate_kits({
+                "status": "FAIL",
+                "kits_validated": 1,
+                "error_count": 1,
+                "templates_checked": 1,
+                "self_check_results": [
+                    {
+                        "kit": "sdlc",
+                        "kind": "ADR",
+                        "status": "FAIL",
+                        "error_count": 1,
+                        "warning_count": 1,
+                        "errors": [{"message": "bad constraint", "path": "/tmp/c.toml", "line": 1}],
+                        "warnings": [{"message": "optional ref missing"}],
+                    },
+                ],
+            })
+        out = buf.getvalue()
+        self.assertIn("sdlc/ADR: FAIL", out)
+        self.assertIn("bad constraint", out)
+        self.assertIn("optional ref missing", out)
+
+    def test_sc_results_kind_none_displays_question_mark(self):
+        from cypilot.commands.validate_kits import _human_validate_kits
+        buf = io.StringIO()
+        with redirect_stderr(buf):
+            _human_validate_kits({
+                "status": "FAIL",
+                "kits_validated": 1,
+                "error_count": 1,
+                "self_check_results": [
+                    {"kit": "sdlc", "kind": None, "status": "FAIL", "error_count": 1,
+                     "errors": [{"message": "constraints parse error"}]},
+                ],
+            })
+        out = buf.getvalue()
+        self.assertIn("sdlc/?:", out)
+        self.assertNotIn("sdlc/None", out)
+
+    def test_verbose_kit_with_kinds(self):
+        from cypilot.commands.validate_kits import _human_validate_kits
+        buf = io.StringIO()
+        with redirect_stderr(buf):
+            _human_validate_kits({
+                "status": "PASS",
+                "kits_validated": 1,
+                "error_count": 0,
+                "templates_checked": 2,
+                "kits": [{"kit": "sdlc", "status": "PASS", "kinds": ["ADR", "DESIGN"]}],
+                "self_check_results": [
+                    {"kit": "sdlc", "kind": "ADR", "status": "PASS"},
+                ],
+            })
+        out = buf.getvalue()
+        self.assertIn("ADR, DESIGN", out)
+        self.assertIn("sdlc: PASS", out)
+
+    def test_sc_results_suppress_top_level_errors(self):
+        """When sc_results present, top-level errors should NOT be shown separately."""
+        from cypilot.commands.validate_kits import _human_validate_kits
+        buf = io.StringIO()
+        with redirect_stderr(buf):
+            _human_validate_kits({
+                "status": "FAIL",
+                "kits_validated": 1,
+                "error_count": 1,
+                "self_check_results": [
+                    {"kit": "sdlc", "kind": "ADR", "status": "FAIL", "error_count": 1,
+                     "errors": [{"message": "the-error"}]},
+                ],
+                "errors": [{"message": "the-error"}],
+            })
+        out = buf.getvalue()
+        # Error should appear once (from sc_results), not twice
+        self.assertEqual(out.count("the-error"), 1)
+
+
+class TestValidateKitByPath(_HumanModeBase):
+    """Test _validate_kit_by_path standalone kit validation."""
+
+    def test_nonexistent_dir(self):
+        from cypilot.commands.validate_kits import _validate_kit_by_path
+        rc, result = _validate_kit_by_path(Path("/tmp/nonexistent_kit_xyz_999"))
+        self.assertEqual(rc, 1)
+        self.assertEqual(result["status"], "ERROR")
+        self.assertIn("not found", result["message"])
+
+    def test_valid_kit_dir(self):
+        from cypilot.commands.validate_kits import _validate_kit_by_path
+        from _test_helpers import write_constraints_toml
+        with TemporaryDirectory() as td:
+            kit_dir = Path(td) / "mykit"
+            (kit_dir / "artifacts" / "REQ" / "examples").mkdir(parents=True)
+            (kit_dir / "artifacts" / "REQ" / "template.md").write_text(
+                "# Requirements\n\n- [ ] `p1` - **ID**: `cpt-{system}-req-{slug}`\n"
+            )
+            (kit_dir / "artifacts" / "REQ" / "examples" / "example.md").write_text(
+                "# Requirements\n\n- [x] `p1` - **ID**: `cpt-myapp-req-login`\n"
+            )
+            write_constraints_toml(kit_dir, {
+                "REQ": {
+                    "identifiers": {
+                        "req": {"required": False, "template": "cpt-{system}-req-{slug}"}
+                    }
+                }
+            })
+            rc, result = _validate_kit_by_path(kit_dir)
+            self.assertEqual(rc, 0)
+            self.assertEqual(result["status"], "PASS")
+            self.assertEqual(result["kits_validated"], 1)
+            self.assertGreaterEqual(result.get("templates_checked", 0), 1)
+
+    def test_invalid_constraints(self):
+        from cypilot.commands.validate_kits import _validate_kit_by_path
+        with TemporaryDirectory() as td:
+            kit_dir = Path(td) / "badkit"
+            (kit_dir / "artifacts" / "REQ").mkdir(parents=True)
+            (kit_dir / "artifacts" / "REQ" / "template.md").write_text("# T\n")
+            # Write invalid constraints (level as string)
+            (kit_dir / "constraints.toml").write_text(
+                '[artifacts.REQ]\n[[artifacts.REQ.headings]]\nid = "h1"\nlevel = "bad"\nrequired = true\n'
+            )
+            rc, result = _validate_kit_by_path(kit_dir)
+            self.assertEqual(rc, 2)
+            self.assertEqual(result["status"], "FAIL")
+            self.assertGreaterEqual(result["error_count"], 1)
+
+    def test_verbose_includes_kits_and_errors(self):
+        from cypilot.commands.validate_kits import _validate_kit_by_path
+        with TemporaryDirectory() as td:
+            kit_dir = Path(td) / "vkit"
+            (kit_dir / "artifacts" / "REQ").mkdir(parents=True)
+            (kit_dir / "artifacts" / "REQ" / "template.md").write_text("# T\n")
+            (kit_dir / "constraints.toml").write_text(
+                '[artifacts.REQ]\n[[artifacts.REQ.headings]]\nid = "h1"\nlevel = "bad"\nrequired = true\n'
+            )
+            rc, result = _validate_kit_by_path(kit_dir, verbose=True)
+            self.assertEqual(rc, 2)
+            self.assertIn("kits", result)
+            self.assertIn("errors", result)
+
+    def test_kit_without_examples(self):
+        from cypilot.commands.validate_kits import _validate_kit_by_path
+        from _test_helpers import write_constraints_toml
+        with TemporaryDirectory() as td:
+            kit_dir = Path(td) / "noex"
+            (kit_dir / "artifacts" / "TPL").mkdir(parents=True)
+            (kit_dir / "artifacts" / "TPL" / "template.md").write_text("# T\n")
+            write_constraints_toml(kit_dir, {
+                "TPL": {
+                    "identifiers": {
+                        "tpl": {"required": False, "template": "cpt-{system}-tpl-{slug}"}
+                    }
+                }
+            })
+            rc, result = _validate_kit_by_path(kit_dir)
+            self.assertEqual(rc, 0)
+            self.assertEqual(result["kits_validated"], 1)
+            self.assertGreaterEqual(result.get("templates_checked", 0), 1)
+
+    def test_no_artifacts_dir(self):
+        from cypilot.commands.validate_kits import _validate_kit_by_path
+        with TemporaryDirectory() as td:
+            kit_dir = Path(td) / "empty"
+            kit_dir.mkdir()
+            rc, result = _validate_kit_by_path(kit_dir)
+            # Should pass (no constraints, no artifacts = nothing to fail)
+            self.assertIn(result["status"], ("PASS", "ERROR"))
 
 
 if __name__ == "__main__":

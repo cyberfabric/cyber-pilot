@@ -10,11 +10,7 @@
   - [1.4 Glossary](#14-glossary)
 - [2. Actors](#2-actors)
   - [2.1 Human Actors](#21-human-actors)
-    - [User](#user)
   - [2.2 System Actors](#22-system-actors)
-    - [AI Agent](#ai-agent)
-    - [CI/CD Pipeline](#cicd-pipeline)
-    - [Cypilot CLI](#cypilot-cli)
 - [3. Operational Concept & Environment](#3-operational-concept-environment)
   - [3.1 Module-Specific Environment Constraints](#31-module-specific-environment-constraints)
 - [4. Scope](#4-scope)
@@ -22,48 +18,13 @@
   - [4.2 Out of Scope](#42-out-of-scope)
 - [5. Functional Requirements](#5-functional-requirements)
   - [5.1 Core](#51-core)
-    - [Global CLI Installer](#global-cli-installer)
-    - [Project Initialization](#project-initialization)
-    - [Config Directory](#config-directory)
-    - [Deterministic Skill Engine](#deterministic-skill-engine)
-    - [Generic Workflows](#generic-workflows)
-    - [Multi-Agent Integration](#multi-agent-integration)
-    - [Extensible Kit System](#extensible-kit-system)
-    - [Artifact Blueprint](#artifact-blueprint)
-    - [ID and Traceability System](#id-and-traceability-system)
-    - [Cypilot DSL (CDSL)](#cypilot-dsl-cdsl)
-    - [Version Detection and Updates](#version-detection-and-updates)
-    - [CLI Configuration Interface](#cli-configuration-interface)
-    - [Template Quality Assurance](#template-quality-assurance)
-    - [Table of Contents Management](#table-of-contents-management)
-    - [Environment Diagnostics](#environment-diagnostics)
-    - [Pre-Commit Hook Integration](#pre-commit-hook-integration)
-    - [Shell Completions](#shell-completions)
-    - [VS Code Plugin](#vs-code-plugin)
-  - [5.2 SDLC Kit](#52-sdlc-kit)
-    - [Artifact Pipeline](#artifact-pipeline)
-    - [SDLC Kit](#sdlc-kit)
-    - [Artifact Validation](#artifact-validation)
-    - [Cross-Artifact Validation](#cross-artifact-validation)
-    - [Code Generation from Design](#code-generation-from-design)
-    - [Brownfield Support](#brownfield-support)
-    - [Feature Lifecycle Management](#feature-lifecycle-management)
-    - [Quickstart Guides](#quickstart-guides)
-    - [PR Review Workflow](#pr-review-workflow)
-    - [PR Status Workflow](#pr-status-workflow)
-    - [PR Review Configuration](#pr-review-configuration)
+  - [5.2 SDLC Kit (EXTRACTED — External Package)](#52-sdlc-kit-extracted-external-package)
 - [6. Non-Functional Requirements](#6-non-functional-requirements)
   - [6.1 Module-Specific NFRs](#61-module-specific-nfrs)
-    - [Validation Performance](#validation-performance)
-    - [Security and Integrity](#security-and-integrity)
-    - [Reliability and Recoverability](#reliability-and-recoverability)
-    - [Adoption and Usability](#adoption-and-usability)
   - [6.2 NFR Exclusions](#62-nfr-exclusions)
 - [7. Public Library Interfaces](#7-public-library-interfaces)
   - [7.1 Public API Surface](#71-public-api-surface)
-    - [Cypilot CLI](#cypilot-cli-1)
   - [7.2 External Integration Contracts](#72-external-integration-contracts)
-    - [GitHub API (via `gh` CLI)](#github-api-via-gh-cli)
 - [8. Use Cases](#8-use-cases)
   - [UC-001 Install Cypilot Globally](#uc-001-install-cypilot-globally)
   - [UC-002 Initialize Project](#uc-002-initialize-project)
@@ -89,12 +50,13 @@
 
 ### 1.1 Purpose
 
-Cypilot is a deterministic agent tool that embeds into AI coding assistants and CI pipelines to provide structured workflows, artifact validation, and design-to-code traceability. Cypilot maximizes determinism: everything that can be validated, checked, or enforced without an LLM is handled by deterministic scripts; the LLM is reserved only for tasks that require reasoning, creativity, or natural language understanding.
+Cypilot is a deterministic agent tool that embeds into AI coding assistants and CI pipelines to provide structured workflows, artifact validation, and design-to-code traceability. Cypilot maximizes determinism: everything that can be validated, checked, or enforced without an LLM is handled deterministically; the LLM is reserved only for tasks that require reasoning, creativity, or natural language understanding.
 
-The system consists of two layers:
+The system is a single-layer generic engine:
 
-- **Core** — deterministic skill engine, generic workflows (generate/analyze), multi-agent integrations, global CLI, config directory management, extensible kit system, ID/traceability infrastructure, and Cypilot DSL (CDSL) for behavioral specifications
-- **SDLC Kit** — artifact-first development pipeline (PRD → DESIGN → ADR → DECOMPOSITION → FEATURE → CODE) with templates, checklists, examples, deterministic validation, cross-artifact consistency checks, and GitHub PR review/status workflows with configurable prompts, severity assessment, and resolved-comment audit
+- **Core** — deterministic command engine, generic workflows (generate/analyze), multi-agent integrations, global CLI, project configuration management, extensible kit system with GitHub-based kit installation, ID/traceability infrastructure, and Cypilot DSL (CDSL) for behavioral specifications
+
+Domain-specific value is delivered by independently installable kits. The recommended SDLC kit (`cyberfabric/cyber-pilot-kit-sdlc`) provides an artifact-first development pipeline (PRD → DESIGN → ADR → DECOMPOSITION → FEATURE → CODE) with templates, checklists, examples, deterministic validation, cross-artifact consistency checks, and GitHub PR review/status workflows. Kits are external packages — Cypilot core contains no domain-specific content.
 
 ### 1.2 Background / Problem Statement
 
@@ -114,10 +76,10 @@ The system consists of two layers:
 ### 1.3 Goals (Business Outcomes)
 
 **Success Criteria**:
-- A new user can install Cypilot globally and initialize a project (`pipx install cypilot && cpt init`) in ≤ 5 minutes. (Baseline: not measured; Target: v2.0)
+- A new user can install Cypilot globally and initialize a project in ≤ 5 minutes. (Baseline: not measured; Target: v2.0)
 - Deterministic validation of any single artifact completes in ≤ 3 seconds on a typical developer laptop. (Baseline: ~1s current; Target: v2.0)
-- 100% of `cpt-*` IDs defined in artifacts are resolvable via deterministic search (`cpt where-defined`) without ambiguity. (Baseline: 100% current; Target: v2.0)
-- Agent workflow entry points for all supported agents are generated in ≤ 10 seconds via `cpt generate-agents`. (Baseline: ~5s current; Target: v2.0)
+- 100% of `cpt-*` IDs defined in artifacts are resolvable via deterministic search without ambiguity. (Baseline: 100% current; Target: v2.0)
+- Agent integration files for all supported agents are generated in ≤ 10 seconds. (Baseline: ~5s current; Target: v2.0)
 - PR review workflow produces a structured review report within 2 minutes of invocation. (Baseline: not measured; Target: v2.0)
 
 **Capabilities**:
@@ -133,12 +95,12 @@ The system consists of two layers:
 | Term | Definition |
 |------|------------|
 | Cypilot | Deterministic agent tool: global CLI + project-installed skill + kits + workflows |
-| Skill | The core Python package installed in a project's `{cypilot_path}/` directory (default: `cypilot/`), containing all commands, validation logic, and utilities |
-| Kit | Extensible package of templates, checklists, rules, examples, and constraints for a domain (e.g., SDLC) |
-| Config | `config/` directory inside the install directory containing `core.toml` and per-kit configs in `kits/<slug>/`, managed exclusively by the tool |
+| Skill | The core package installed in a project's install directory, containing all commands, validation logic, and utilities |
+| Kit | Independently installable package of templates, checklists, rules, examples, and constraints for a domain (e.g., SDLC); installed from GitHub repositories |
+| Config | Tool-managed configuration directory inside the install directory, containing project settings and per-kit configs |
 | CDSL | Cypilot DSL — plain English behavioral specification language for actor flows and algorithms |
-| Traceability | Linking design elements to code via `cpt-*` IDs and `@cpt-*` code tags |
-| System Prompt | Project-specific context file in `{cypilot_path}/config/sysprompts/` (tech-stack, conventions, domain model) loaded by workflows via config/AGENTS.md WHEN rules |
+| Traceability | Linking design elements to code via unique identifiers and code tags |
+| System Prompt | Project-specific context file (tech-stack, conventions, domain model) loaded by workflows conditionally |
 | Agent Entry Point | Agent-specific file (workflow proxy, skill shim, or rule file) generated in the agent's native format |
 
 ---
@@ -151,7 +113,7 @@ The system consists of two layers:
 
 **ID**: `cpt-cypilot-actor-user`
 
-**Role**: Primary user of Cypilot. Uses the tool through AI agent chats and CLI to: create and validate artifacts, implement features with traceability, configure the project (`cpt init`, kits, autodetect rules), review PRs against configurable checklists, and manage project conventions.
+**Role**: Primary user of Cypilot. Uses the tool through AI agent chats and CLI to: create and validate artifacts, implement features with traceability, configure the project, review PRs against configurable checklists, and manage project conventions.
 
 ### 2.2 System Actors
 
@@ -171,7 +133,7 @@ The system consists of two layers:
 
 **ID**: `cpt-cypilot-actor-cypilot-cli`
 
-**Role**: Global command-line tool installed via `pipx`. Provides `init` for bootstrapping and delegates all other commands to the project-installed skill. Detects version mismatches and proposes updates.
+**Role**: Global command-line tool installable with a single command. Provides project initialization, version management, and access to all Cypilot commands. Detects version mismatches and proposes updates.
 
 ---
 
@@ -179,10 +141,10 @@ The system consists of two layers:
 
 ### 3.1 Module-Specific Environment Constraints
 
-- Python 3.11+ required for the CLI tool and skill engine (requires `tomllib` from stdlib)
-- Git required for project detection, version control, and skill installation
-- `gh` CLI required for PR review/status workflows (GitHub integration)
-- `pipx` recommended for global CLI installation (isolation from project dependencies)
+- The tool MUST run cross-platform (Linux, macOS, Windows) with minimal runtime dependencies
+- Git required for project detection and version control
+- GitHub integration required for PR review/status workflows
+- Global installation MUST be achievable with a single command
 
 ---
 
@@ -190,20 +152,22 @@ The system consists of two layers:
 
 ### 4.1 In Scope
 
-- Global CLI tool with `pipx` installation and project-specific command delegation
-- Interactive project initialization with directory, agent, and kit selection
-- Config directory (`config/`) with core and per-kit configs, managed exclusively by the tool
-- Deterministic skill engine with JSON output for all commands
-- Generic workflows (generate/analyze) with execution protocol
+- Global CLI tool with single-command installation and project-specific command delegation
+- Interactive project initialization with directory, agent, kit selection
+- Tool-managed configuration directory with core configs and per-kit outputs (user-editable)
+- Kit files — all user-editable, preserved via interactive diff on update
+- Deterministic skill engine with machine-readable output for all commands
+- Structured workflows for write and read operations with execution protocol
 - Multi-agent integration (Windsurf, Cursor, Claude, Copilot, OpenAI)
-- Extensible kit system with registration, extension, and custom kit creation
+- Extensible kit system with GitHub-based installation, registration, extension, and custom kit creation
 - ID and traceability system with code tags, search, and validation
 - CDSL behavioral specification language
-- SDLC artifact pipeline with templates, checklists, cross-artifact validation, and PR review/status workflows
-- Version detection, update proposals, and config directory migration
+- Version detection, update proposals (tool-only), config directory migration, and kit config relocation
+- Interactive diff for kit file updates with conflict resolution
+- Kit prompt during project initialization (SDLC kit offered with accept/decline)
 - Rich CLI for configuration management (autodetect, artifacts, ignore lists, kits, constraints)
-- Environment diagnostics (`cpt doctor`)
-- Pre-commit hook integration (`cpt hook install`)
+- Environment diagnostics
+- Pre-commit hook integration
 
 ### 4.2 Out of Scope
 
@@ -221,108 +185,121 @@ The system consists of two layers:
 
 #### Global CLI Installer
 
-- [ ] `p1` - **ID**: `cpt-cypilot-fr-core-installer`
+- [x] `p1` - **ID**: `cpt-cypilot-fr-core-installer`
 
-The system MUST provide a global CLI tool installable via `pipx install git+https://github.com/cyberfabric/cyber-pilot.git`. The tool MUST be available as both `cypilot` and the short alias `cpt`. The global tool MUST have zero built-in commands — it is a pure proxy shell. On every invocation the tool MUST:
+The system MUST provide a global CLI tool installable with a single command. The tool MUST be available as both `cypilot` and the short alias `cpt`. The tool MUST:
 
-1. **Ensure cache** — maintain a local skill bundle cache (`~/.cypilot/cache/`). If no cache exists, download the latest skill bundle from the GitHub repository before proceeding. The tool MUST NOT require git as a runtime dependency.
-2. **Resolve command target** — if the current directory is inside a project with an installed skill (`{cypilot_path}/` directory, default: `cypilot/`), proxy the command to the project-installed skill. Otherwise, proxy the command to the cached skill.
-3. **Version check (non-blocking)** — on every invocation, check for newer versions in the background. The check MUST NOT block or delay the main command execution. Concurrent checks MUST be prevented. A newly available version becomes visible on the next invocation.
-4. **Version highlight** — if the cached version is newer than the project-installed version, display a notice: "Cypilot {cached_version} available (project has {project_version}). Run `cpt update` to upgrade."
-
-The tool MUST NOT contain any skill logic, workflow logic, or command implementations. All functionality comes from the cached or project-installed skill bundle.
+1. Work both inside and outside projects.
+2. Work offline after initial setup.
+3. Perform non-blocking version checks — never delay command execution. Propose updates when a newer version is available.
 
 **Actors**:
 `cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
 
 #### Project Initialization
 
-- [ ] `p1` - **ID**: `cpt-cypilot-fr-core-init`
+- [x] `p1` - **ID**: `cpt-cypilot-fr-core-init`
 
-The system MUST provide an interactive `cpt init` command that bootstraps Cypilot in a project. Before proceeding, the command MUST check whether Cypilot is already installed in the project. If an existing installation is detected, the command MUST NOT overwrite it — instead it MUST inform the user and propose `cpt update` if a newer version is available. The dialog MUST ask: (1) installation directory (default: `.cypilot`), (2) which agents to support (default: all available — windsurf, cursor, claude, copilot, openai). All available kits MUST be enabled by default. The command MUST create the full directory structure including skills (copied from the cache), kits, workflows, prompts, schemas, and agent-specific entry points. The command MUST define a **root system** — deriving the project name and slug from the project directory name. The command MUST create `{cypilot_path}/config/core.toml` (containing project root, root system definition, kit registrations) and `{cypilot_path}/config/artifacts.toml` with a fully populated root system entry including default SDLC autodetect rules for standard artifact kinds (`PRD.md`, `DESIGN.md`, `ADR/*.md`, `DECOMPOSITION.md`, `features/*.md`), default codebase entries, and ignore patterns. Installed kits MUST generate their full config in `{cypilot_path}/config/kits/<slug>/` — blueprints, constraints, per-artifact outputs, and workflows. The command MUST inject a managed `<!-- @cpt:root-agents -->` block at the beginning of the project root `AGENTS.md` (creating the file if absent) containing `ALWAYS open @/{install_dir}/config/AGENTS.md FIRST`. The command MUST create `{cypilot_path}/config/AGENTS.md` with default WHEN rules for standard system prompts. Every subsequent CLI invocation MUST verify the root AGENTS.md block exists and is correct, silently re-injecting it if missing or stale. After completion, the command MUST display a prompt suggestion: `cypilot on` or `cypilot help`.
+The system MUST provide an interactive project initialization command that bootstraps Cypilot in a project. The command MUST:
+
+1. Check for existing installation and refuse to overwrite — propose updating instead.
+2. Ask for: installation directory, which agents to support (default: all), and per-kit config output directory.
+3. Enable all available kits by default.
+4. Set up the project directory structure.
+5. Define a **root system** — deriving the project name and slug from the project directory name.
+6. Create project configuration with default artifact discovery rules for all registered kit artifact kinds.
+7. Install all available kits by copying kit files into their config directories.
+8. Generate agent entry points for all selected agents.
+9. Inject a managed navigation block into the project root `AGENTS.md` (creating the file if absent) so that AI agents are automatically routed to Cypilot. Every subsequent CLI invocation MUST verify this block exists and is correct.
+10. Support non-interactive mode for CI/scripting. After completion, display a prompt suggestion.
 
 **Actors**:
 `cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
 
 #### Config Directory
 
-- [ ] `p1` - **ID**: `cpt-cypilot-fr-core-config`
+- [x] `p1` - **ID**: `cpt-cypilot-fr-core-config`
 
-The system MUST maintain a `config/` directory inside the Cypilot install directory. All config files MUST be edited exclusively by the tool — never by humans directly. All config files MUST be TOML format with deterministic serialization (sorted keys, consistent formatting). The directory structure MUST be:
+The system MUST maintain a structured project configuration. The system MUST:
 
-- **`{cypilot_path}/config/core.toml`** — core Cypilot config containing: project root, kit registrations (slug → path mapping), system definitions (name, slug, kit assignment), ignore lists. The core config MUST be versioned with a schema version field. The system MUST support migration of `core.toml` between versions automatically when the skill is updated.
-- **`{cypilot_path}/config/kits/<slug>/`** — per-kit directory containing: `blueprints/` (user-editable copies of source blueprints), `constraints.toml` (kit-wide structural constraints aggregated from all artifact blueprints), `artifacts/<KIND>/` (generated per-artifact outputs: template.md, rules.md, checklist.md, example.md), `codebase/` (generated from blueprints without `artifact` key: rules.md, checklist.md), and `workflows/` (generated from `@cpt:workflow` markers). Cypilot core MUST NOT interpret kit-specific semantics — it only knows that a kit is registered and where its blueprints and generated outputs live. Autodetect rules MUST support complex nested structures: per-system root paths, per-system artifact roots with glob patterns and traceability levels, per-system codebase definitions with paths and file extensions. Autodetect MUST support hierarchical monorepos where systems can be nested (e.g., `{project_root}/examples/$system`).
-
-Cypilot core's domain is: artifact awareness (knows artifacts exist, how to locate them via kit-provided autodetect rules), ID and traceability (format, scanning, cross-references), and kit routing (which kit owns which artifact kind).
+1. Store all configuration in human-readable format. Config files MUST be edited exclusively by the tool — never by humans directly. Config changes MUST produce clean version-control diffs.
+2. Provide per-kit file directories (path configurable per kit) containing all kit files — all user-editable. On update, changed files MUST be presented via interactive diff (see `cpt-cypilot-fr-core-resource-diff`).
+3. Support automatic config migration between versions when the tool is updated.
+4. Support artifact discovery rules for hierarchical monorepos where systems can be nested.
 
 **Actors**:
 `cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
 
 #### Deterministic Skill Engine
 
-- [ ] `p1` - **ID**: `cpt-cypilot-fr-core-skill-engine`
+- [x] `p1` - **ID**: `cpt-cypilot-fr-core-skill-engine`
 
-The system MUST provide a Python-based deterministic skill engine as the core command executor. All commands MUST output JSON. All validation, scanning, and transformation logic MUST be deterministic (same input → same output). Exit codes MUST follow the convention: 0=PASS, 1=filesystem error, 2=FAIL. The skill MUST be self-contained and importable from the project's install directory. The skill MUST provide SKILL.md as the agent entry point with execution protocol, workflow routing, and command reference.
+The system MUST provide a deterministic command engine. All validation, scanning, and transformation logic MUST be deterministic (same input → same output). All commands MUST support both human-readable and machine-readable output for CI integration.
 
 **Actors**:
 `cpt-cypilot-actor-ai-agent`, `cpt-cypilot-actor-ci-pipeline`, `cpt-cypilot-actor-cypilot-cli`
 
 #### Generic Workflows
 
-- [ ] `p1` - **ID**: `cpt-cypilot-fr-core-workflows`
+- [x] `p1` - **ID**: `cpt-cypilot-fr-core-workflows`
 
-The system MUST provide exactly two universal workflows: generate (write: create, edit, fix, update, implement) and analyze (read: validate, review, check, inspect, audit). Both workflows MUST execute a common execution protocol before their specific logic. Workflows MUST be Markdown files with frontmatter metadata, structured phases, and validation criteria. Workflows MUST support execution logging with context and message format for agent transparency. Workflows MUST NOT hardcode repository paths — all paths MUST be resolved from the config and adapter.
+The system MUST provide structured workflows for write operations (create, edit, fix, update, implement) and read operations (validate, review, check, inspect, audit). Workflows MUST be portable across projects without hardcoded paths. Workflows MUST support transparent execution logging so users can observe agent reasoning.
 
 **Actors**:
 `cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`
 
 #### Multi-Agent Integration
 
-- [ ] `p1` - **ID**: `cpt-cypilot-fr-core-agents`
+- [x] `p1` - **ID**: `cpt-cypilot-fr-core-agents`
 
-The system MUST provide a unified `agents` command that generates agent-specific entry points for all supported AI coding assistants. Supported agents MUST include Windsurf, Cursor, Claude, Copilot, and OpenAI. The command MUST generate workflow entry points in each agent's native format (`.windsurf/workflows/`, `.cursor/rules/`, `.claude/commands/`, `.github/prompts/`) and skill entry points that reference the core SKILL.md. Agent selection MUST NOT be persisted in the config. The command MUST accept an optional `--agent` argument to regenerate entry points for a specific agent; without `--agent`, the command MUST regenerate entry points for all supported agents. The command always fully overwrites agent entry points on each invocation.
+The system MUST provide a command that generates integration files for all supported AI coding assistants so each agent can access Cypilot workflows. Supported agents MUST include Windsurf, Cursor, Claude, Copilot, and OpenAI. The command MUST support regenerating integration files for a specific agent or for all agents at once. The command always fully regenerates integration files on each invocation.
 
 **Actors**:
 `cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`, `cpt-cypilot-actor-cypilot-cli`
 
 #### Extensible Kit System
 
-- [ ] `p1` - **ID**: `cpt-cypilot-fr-core-kits`
+- [x] `p1` - **ID**: `cpt-cypilot-fr-core-kits`
 
-The system MUST support extensible kit packages. Each kit is a blueprint package with the following minimum required structure:
+The system MUST support extensible kit packages installable from GitHub repositories. Each kit is a file package containing:
 
-1. **Blueprints directory** — each kit MUST provide a `blueprints/` directory containing one `.md` file per artifact kind. The filename (without `.md`) becomes the artifact kind slug (e.g., `PRD.md` → artifact kind `PRD`). This is the single source of truth for all kit resources.
-2. **Installation** — during installation, the tool MUST save the kit source to `{cypilot_path}/kits/{slug}/` (reference copy) and copy blueprints to `{cypilot_path}/config/kits/{slug}/blueprints/` (user-editable). The Blueprint Processor MUST then generate all outputs into `{cypilot_path}/.gen/kits/{slug}/artifacts/<KIND>/` and `{cypilot_path}/.gen/kits/{slug}/workflows/`.
-3. **Versioning** — each kit MUST have its own version (independent of the core Cypilot version). The version MUST be stored in the kit's `@cpt:blueprint` marker metadata.
-4. **Migration** — the tool MUST support two update modes: **force** (`cypilot kit update --force`) updates the reference in `{cypilot_path}/kits/{slug}/`, overwrites all user blueprints, and regenerates outputs; **additive** (`cypilot kit update`, default) uses the reference (`{cypilot_path}/kits/{slug}/`) for a three-way diff, preserving user modifications. New markers are inserted; deleted markers stay deleted; user-modified sections are preserved. After merge, the reference is updated.
-5. **SKILL extensions** — a kit MAY include `@cpt:skill` markers in blueprints that extend the core SKILL.md with kit-specific commands and workflows.
-6. **System prompt extensions** — a kit MAY include `@cpt:system-prompt` markers in blueprints that are automatically loaded when the kit's artifacts or workflows are used.
-7. **Workflow registrations** — a kit MAY include `@cpt:workflow` markers in blueprints that generate workflow files and agent entry points.
+1. **Kit files** — per-artifact directories with rules, templates, checklists, and examples, plus kit-wide constraint definitions, version metadata, and optional directories for workflows, scripts, and codebase rules. All files are user-editable.
+2. **Installation from GitHub** — the tool MUST support installing kits from GitHub repositories. The tool MUST ask the user for the kit config output directory. The tool MUST copy all kit files from the downloaded source and register the kit in project configuration with the GitHub source and version.
+3. **GitHub-based versioning** — each kit MUST be versioned via GitHub tags/releases. The kit's source (`github:<owner>/<repo>`) and version (GitHub tag) MUST be stored in `core.toml` kit section.
+4. **Update with file-level diff** — the tool MUST support two update modes: **force** (overwrites all kit files) and **interactive** (default, uses file-level diff with resolution modes — see `cpt-cypilot-fr-core-resource-diff`). Kit updates download the new version from GitHub.
+5. **SKILL extensions** — a kit MAY extend the core agent entry point with kit-specific commands and workflows.
+6. **System prompt extensions** — a kit MAY include agent configuration content that is automatically loaded when the kit's artifacts or workflows are used.
+7. **Workflow registrations** — a kit MAY include workflow files that generate agent entry points.
+8. **Kit config relocation** — the system MUST provide a command to move a kit's config directory to a new location, update project configuration, and preserve all user edits.
+9. **Kit prompt during init** — during project initialization, the tool MUST offer to install the recommended SDLC kit with an accept/decline prompt. If accepted, the kit is downloaded and installed inline. If declined, the user can install it later. In non-interactive mode, the prompt is skipped.
 
-**User extensibility**: users MUST be able to edit blueprints in `{cypilot_path}/config/kits/{slug}/blueprints/` and regenerate outputs with `cpt generate-resources`. User modifications MUST be preserved across additive kit updates using the reference in `{cypilot_path}/kits/{slug}/` for three-way diff.
+**User extensibility**: users MUST be able to edit any kit file. User modifications MUST be preserved across interactive kit updates via file-level diff.
 
-Kit installation MUST register the kit in `{cypilot_path}/config/core.toml`, create the kit's directory structure in `{cypilot_path}/config/kits/<slug>/`, and generate all resources. The system MUST provide CLI commands to: install kits, update kits, and create new custom kits. The `validate-kits` command MUST validate that kit packages are structurally correct (have a `blueprints/` directory with valid blueprint files).
-
-> **Plugin system** (Python entry points, custom CLI subcommands, validation hooks, generation hooks) is planned for p2.
+The system MUST provide CLI commands to: install kits from GitHub, update kits, move kit config, create new custom kits, and validate kit structure. The tool MUST NOT bundle any domain-specific kits.
 
 **Actors**:
 `cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
 
-#### Artifact Blueprint
+#### Generated Resource Editing & Interactive Diff
 
-- [ ] `p1` - **ID**: `cpt-cypilot-fr-core-blueprint`
+- [x] `p1` - **ID**: `cpt-cypilot-fr-core-resource-diff`
 
-The system MUST provide an **Artifact Blueprint** — a core contract defining a single-source-of-truth file per artifact kind from which all kit resources are generated. The blueprint MUST serve as both the artifact template and the specification for that artifact kind. The core MUST define the blueprint format, provide a blueprint processor, and enforce the contract across all kits.
+All kit files in the kit's config directory MUST be user-editable. Users MAY freely modify any kit file at any time. On kit update, the system MUST compare the new version of each file against the user's installed copy. **IF** the content is identical → no action needed. **IF** the content differs → the system MUST present an interactive diff allowing the user to accept, reject, or manually merge each change. The system MUST support batch accept/reject for all remaining files. The system MUST NOT accept a file with unresolved conflicts.
 
-The core blueprint contract MUST require only one mandatory output: `rules.md` (agent instructions for generate and analyze workflows). All other outputs are kit-defined — each kit registers its own generation targets (e.g., the SDLC kit registers template, checklist, constraints; another kit may register different file types). The core MUST provide an extension point for kits to register custom blueprint marker types and their corresponding output generators.
+**Actors**:
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
 
-The tool MUST generate the initial blueprint and MUST be able to update it on kit upgrades. The tool MUST detect which parts of the blueprint the user has modified and MUST NOT overwrite those modifications. New markers added by the tool MUST be inserted without affecting user content. Markers deleted by the user MUST NOT be re-added. Users MUST be able to customize any part of the blueprint and all customizations MUST be preserved across updates. New artifact kinds MUST be creatable by adding a new blueprint.
+#### Directory Layout Migration
 
-The blueprint MUST support optional **SKILL extensions** — sections that extend the main SKILL.md with kit-specific commands, workflows, and capabilities. When a kit's blueprint defines a SKILL extension, it MUST be automatically integrated into the agent-facing SKILL.md so that AI agents discover kit capabilities without additional configuration.
+- [ ] `p1` - **ID**: `cpt-cypilot-fr-core-layout-migration`
 
-The blueprint MUST support optional **system prompt extensions** — sections that provide additional context or instructions to AI agents when working with that artifact kind. These extensions MUST be automatically loaded by the generate and analyze workflows when processing the corresponding artifact.
+The system MUST automatically restructure the directory layout during updates when an old layout is detected. The migration MUST:
 
-The blueprint MUST support optional **workflow registrations** — structured definitions of workflows that agents can execute. Each workflow declared in a blueprint MUST be generated as a workflow `.md` file in the kit's `workflows/` directory. During agent entry point generation (`cpt generate-agents`), each workflow MUST get an entry point in every supported agent's native format (e.g., `.windsurf/workflows/cypilot-{name}.md`) that references the kit workflow file. Workflow names MUST be unique across all blueprints.
+1. Move kit files from old locations to the current layout structure.
+2. Remove obsolete directories.
+3. Update project configuration with new paths.
+
+The migration MUST NOT lose any user modifications to kit files. The migration MUST create a backup before proceeding. If migration fails, the backup MUST be restored and the user notified with actionable guidance.
 
 **Actors**:
 `cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
@@ -331,7 +308,13 @@ The blueprint MUST support optional **workflow registrations** — structured de
 
 - [x] `p1` - **ID**: `cpt-cypilot-fr-core-traceability`
 
-The system MUST provide a unique ID system for all design elements using structured format `cpt-{system-slug}-{kind}-{slug}`. This is the core domain of Cypilot: the core knows that artifacts exist, knows how to locate them (via autodetect rules provided by kits), knows which kit owns which artifact kind, and owns the ID format, scanning, and cross-reference resolution. The system MUST support code tags (`@cpt-*`) linking implementation to design. Traceability validation MUST be configurable per artifact (FULL or DOCS-ONLY). The system MUST provide commands: `list-ids`, `list-id-kinds`, `get-content`, `where-defined`, `where-used`. IDs MAY be versioned by appending `-vN` suffix. When an ID is replaced, references MUST be updated across all artifacts and code. Cross-artifact validation MUST check: covered_by references resolve, checked references imply checked definitions, and all ID references resolve to definitions. Artifact-specific validation logic (template compliance, structural rules) is delegated to the owning kit's plugin.
+The system MUST provide a unique identifier system for all design elements with search, validation, and cross-reference resolution. The system MUST:
+
+1. Support code tags linking implementation to design for bidirectional traceability.
+2. Provide configurable traceability validation levels per artifact.
+3. Provide search and query commands: list IDs, list ID kinds, get content, find definitions, find usages.
+4. Support ID versioning — when an ID is replaced, references MUST be updated across all artifacts and code.
+5. Validate cross-artifact consistency: all cross-references resolve, and checked references imply checked definitions.
 
 **Actors**:
 `cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`, `cpt-cypilot-actor-ci-pipeline`
@@ -340,7 +323,7 @@ The system MUST provide a unique ID system for all design elements using structu
 
 - [x] `p1` - **ID**: `cpt-cypilot-fr-core-cdsl`
 
-The system MUST define a plain English behavioral specification language (CDSL) for actor flows, algorithms, and state descriptions. CDSL MUST use structured numbered lists with bold keywords (**IF**, **ELSE**, **WHILE**, **FOR EACH**, **AND**, **OR**, **NOT**, **MUST**, **REQUIRED**, **OPTIONAL**). CDSL MUST support instruction markers with checkboxes (`- [ ] Inst-label: description`) and phase-based organization (`p1`, `p2`, etc.) for implementation tracking. CDSL MUST be readable by non-programmers for validation and review. CDSL MUST translate directly to code with traceability tags. CDSL MUST be actor-centric (steps start with **Actor** or **System**).
+The system MUST define a plain English behavioral specification language (CDSL) for actor flows, algorithms, and state descriptions. CDSL MUST be readable by non-programmers for validation and review. CDSL MUST translate directly to code with traceability tags. CDSL MUST be actor-centric. CDSL MUST support implementation tracking so teams can monitor progress per specification.
 
 **Actors**:
 `cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`
@@ -349,7 +332,14 @@ The system MUST define a plain English behavioral specification language (CDSL) 
 
 - [ ] `p2` - **ID**: `cpt-cypilot-fr-core-version`
 
-The `cpt update` command MUST update the project-installed skill to the version currently in the cache (`~/.cypilot/cache/`). The update MUST automatically migrate `{cypilot_path}/config/core.toml` between versions, preserving all user settings. Each kit's migration script MUST be invoked to migrate its own config files. The update MUST regenerate agent entry points for compatibility. If the cache is outdated, the update MUST first download the latest release archive from GitHub before applying. Version information MUST be accessible via `cpt --version` (shows both cache and project versions). The system MUST support `cpt update --check` to show available updates without applying them.
+The system MUST provide a project update command that updates the project tool (skill) to the latest available version. The update MUST:
+
+1. Automatically migrate project configuration between versions, preserving all user settings.
+2. Detect the directory layout version and trigger layout migration if needed (see `cpt-cypilot-fr-core-layout-migration`).
+3. Regenerate agent integration files for compatibility.
+4. Migrate bundled kit references to GitHub sources for projects upgrading from versions < 3.0.8.
+
+The update command MUST NOT update kit files — kit updates are a separate operation. Version information MUST be accessible via a version query. The system MUST support checking for available updates without applying them.
 
 **Actors**:
 `cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
@@ -358,7 +348,7 @@ The `cpt update` command MUST update the project-installed skill to the version 
 
 - [ ] `p2` - **ID**: `cpt-cypilot-fr-core-cli-config`
 
-The system MUST provide rich CLI commands for project configuration without manual file editing. Core CLI commands MUST support: managing system definitions in `{cypilot_path}/config/core.toml` (add/remove/rename systems, assign kits), managing the ignore list (add/remove patterns with reasons), and registering/installing kits. Kit-specific config changes MUST be delegated to the kit's plugin CLI commands. For example, the SDLC kit plugin provides commands for managing autodetect rules per system (artifact patterns, traceability levels, codebase paths, file extensions) — the core CLI does not interpret these structures. All config changes MUST go through the tool to maintain config integrity and versioning. The CLI MUST provide dry-run mode for config changes. The CLI MUST support reading current config values (e.g., `cpt config show`, `cpt sdlc autodetect show --system cypilot`).
+The system MUST provide rich CLI commands for project configuration without manual file editing. Core CLI commands MUST support: managing system definitions (add/remove/rename systems, assign kits), managing the ignore list (add/remove patterns with reasons), and registering/installing kits. Kit-specific config changes MUST be delegated to the kit's plugin CLI commands. All config changes MUST go through the tool to maintain config integrity and versioning. The CLI MUST provide dry-run mode for config changes and support reading current config values.
 
 **Actors**:
 `cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
@@ -367,7 +357,7 @@ The system MUST provide rich CLI commands for project configuration without manu
 
 - [ ] `p2` - **ID**: `cpt-cypilot-fr-core-template-qa`
 
-The system MUST provide a `self-check` command that validates example artifacts against their templates. When validation level is STRICT, the self-check command MUST validate that the example artifact passes all template validation rules. This ensures that templates and examples remain synchronized and that templates are valid.
+The system MUST provide a template quality assurance capability that validates example artifacts against their templates. The validation MUST ensure that the example artifact passes all template validation rules. This ensures that templates and examples remain synchronized and that templates are valid.
 
 **Actors**:
 `cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
@@ -376,7 +366,7 @@ The system MUST provide a `self-check` command that validates example artifacts 
 
 - [x] `p1` - **ID**: `cpt-cypilot-fr-core-toc`
 
-The system MUST provide `cpt toc` and `cpt validate-toc` commands for Markdown table of contents management. `cpt toc` MUST generate or update `<!-- toc -->` blocks with GitHub-compatible anchor slugs, fenced code block awareness, and configurable heading level ranges. `cpt validate-toc` MUST verify that TOC exists, anchors point to real headings, all headings are covered, and the TOC is not stale. Both commands MUST support batch processing of multiple files and output JSON results. The TOC engine is also used internally by the Blueprint Processor for generated artifact templates.
+The system MUST provide table of contents generation and validation for Markdown files. TOC generation MUST create or update table of contents blocks with configurable heading level ranges. TOC validation MUST verify that TOC exists, anchors point to real headings, all headings are covered, and the TOC is not stale. Both operations MUST support batch processing of multiple files.
 
 **Actors**:
 `cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
@@ -385,7 +375,7 @@ The system MUST provide `cpt toc` and `cpt validate-toc` commands for Markdown t
 
 - [ ] `p2` - **ID**: `cpt-cypilot-fr-core-doctor`
 
-The system MUST provide a `cpt doctor` command that checks environment health: Python version compatibility, git availability, `gh` CLI authentication status, agent detection (which supported agents are present), config directory integrity validation, skill version status, and kit structural correctness. The command MUST output a clear pass/fail report with actionable remediation steps for each failed check.
+The system MUST provide an environment diagnostics command that checks environment health: runtime prerequisites, git availability, GitHub integration status, agent detection (which supported agents are present), config integrity validation, installed version status, and kit structural correctness. The command MUST output a clear pass/fail report with actionable remediation steps for each failed check.
 
 **Actors**:
 `cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
@@ -394,7 +384,7 @@ The system MUST provide a `cpt doctor` command that checks environment health: P
 
 - [ ] `p3` - **ID**: `cpt-cypilot-fr-core-hooks`
 
-The system MUST provide a `cpt hook install` command that installs a git pre-commit hook running lightweight validation (`cypilot lint`) on changed artifacts before commit. The hook MUST be fast (≤ 5 seconds for typical changes). The hook MUST be removable via `cpt hook uninstall`.
+The system MUST provide a pre-commit hook that runs lightweight validation on changed artifacts before commit. The hook MUST be fast (≤ 5 seconds for typical changes). The system MUST support installing and uninstalling the hook.
 
 **Actors**:
 `cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
@@ -403,7 +393,7 @@ The system MUST provide a `cpt hook install` command that installs a git pre-com
 
 - [ ] `p3` - **ID**: `cpt-cypilot-fr-core-completions`
 
-The system MUST provide shell completion scripts for bash, zsh, and fish. Completions MUST cover all commands, subcommands, and common options. Completions MUST be installable via `cpt completions install`.
+The system MUST provide shell completion scripts for bash, zsh, and fish. Completions MUST cover all commands, subcommands, and common options. The system MUST support installing completions for the user's shell.
 
 **Actors**:
 `cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
@@ -416,134 +406,76 @@ The system MUST provide a VS Code extension (compatible with VS Code, Cursor, Wi
 
 1. **ID Syntax Highlighting** — `cpt-*` identifiers MUST be visually distinguished in Markdown files (definitions, references, and code tags `@cpt-*`) with configurable color scheme.
 2. **Go to Definition / Find References** — clicking a `cpt-*` reference MUST navigate to its definition; clicking a definition MUST show all references across the workspace (equivalent to `where-defined` / `where-used`).
-3. **Real-Time Validation** — artifact documents MUST be validated on save (or on keystroke with debounce) against their template structure; validation issues MUST appear as VS Code diagnostics (errors, warnings) with inline squiggles and Problems panel entries.
+3. **Real-Time Validation** — artifact documents MUST be validated on save (or on keystroke with debounce) against their template structure; validation issues MUST appear inline in the editor with a summary in the problems panel.
 4. **ID Autocompletion** — typing `cpt-` MUST trigger autocompletion with all known IDs from the project registry, grouped by kind (actor, fr, nfr, usecase, etc.).
 5. **Hover Information** — hovering over a `cpt-*` ID MUST show a tooltip with: definition location, artifact kind, priority, checked/unchecked status, and first line of content.
-6. **Cross-Artifact Link Lens** — CodeLens annotations above ID definitions MUST show reference count and covered_by status (e.g., "3 references · covered by DESIGN, DECOMPOSITION").
+6. **Cross-Artifact Link Lens** — annotations above ID definitions MUST show reference count and coverage status (e.g., "3 references · covered by DESIGN, DECOMPOSITION").
 7. **Traceability Tree View** — a sidebar panel MUST display the traceability tree: PRD → DESIGN → DECOMPOSITION → FEATURE → CODE, with checked/unchecked status per ID and click-to-navigate.
 8. **Validation Status Bar** — the status bar MUST show current artifact validation status (PASS/FAIL with error count) and click to run full validation.
-9. **Quick Fix Actions** — common validation issues (missing priority marker, placeholder detected, duplicate ID) MUST offer quick fix suggestions via VS Code Quick Fix API.
+9. **Quick Fix Actions** — common validation issues (missing priority marker, placeholder detected, duplicate ID) MUST offer quick fix suggestions inline.
 10. **Config-Aware** — the plugin MUST read the Cypilot config from the project's install directory to resolve systems, kits, autodetect rules, and ignore lists. The plugin MUST NOT require separate configuration.
 
-The plugin MUST delegate all validation logic to the installed Cypilot skill (`cpt validate`) to ensure consistency between CLI and IDE results. The plugin MUST support workspace with multiple systems.
+The plugin MUST delegate all validation logic to the installed Cypilot CLI to ensure consistency between CLI and IDE results. The plugin MUST support workspaces with multiple systems.
 
 **Actors**:
 `cpt-cypilot-actor-user`
 
-### 5.2 SDLC Kit
+### 5.2 SDLC Kit (EXTRACTED — External Package)
 
-#### Artifact Pipeline
-
-- [ ] `p1` - **ID**: `cpt-cypilot-fr-sdlc-pipeline`
-
-The SDLC kit MUST provide an artifact-first development pipeline: PRD → DESIGN → ADR → DECOMPOSITION → FEATURE → CODE. Each artifact kind MUST have a template, checklist, rules, and at least one example. Each artifact kind MUST be usable independently (no forced sequence). The kit MUST support both greenfield (design-first) and brownfield (code-first) projects.
-
-**Actors**:
-`cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`
-
-#### SDLC Kit
-
-- [ ] `p2` - **ID**: `cpt-cypilot-fr-sdlc-plugin`
-
-The SDLC kit MUST provide a blueprint package with artifact definitions for PRD, DESIGN, ADR, DECOMPOSITION, and FEATURE in `kits/sdlc/blueprints/`. The Blueprint Processor generates all outputs from these blueprints using the core Artifact Blueprint contract (`cpt-cypilot-fr-core-blueprint`). The SDLC kit MUST:
-
-1. **Blueprint definitions** — provide blueprints using SDLC-specific marker types: `@cpt:heading` and `@cpt:id` (→ kit-wide `constraints.toml`), `@cpt:check` (→ `checklist.md`), `@cpt:prompt` (→ `template.md` writing instructions), `@cpt:rule` (→ `rules.md`), `@cpt:example` (→ `example.md`). The `@cpt:heading` + `@cpt:prompt` markers generate `template.md`. Codebase blueprints (without `artifact` key) generate `codebase/rules.md` and `codebase/checklist.md`.
-2. **Artifact type control** — the kit owns and controls all its artifact types via blueprints. New artifact types MAY be added by creating a new blueprint `.md` file in the kit's `blueprints/` directory.
-3. **SKILL extensions** — blueprints MUST include `@cpt:skill` sections so that SDLC-specific commands and workflows are discoverable by AI agents via the main SKILL.md.
-4. **Workflow registrations** — blueprints MUST include `@cpt:workflow` sections that generate workflow files and agent entry points for generate, analyze, and review operations.
-5. **Update compatibility** — user customizations in blueprints (in `{cypilot_path}/config/kits/sdlc/blueprints/`) MUST be preserved across kit version updates via the reference-based three-way diff. Conflicts between user changes and kit updates MUST be flagged for manual resolution.
-
-> Kit-specific CLI subcommands, validation hooks, and config extensibility are planned for p2.
-
-**Actors**:
-`cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
-
-#### Artifact Validation
-
-- [x] `p1` - **ID**: `cpt-cypilot-fr-sdlc-validation`
-
-The SDLC kit MUST provide deterministic structural and semantic validation for all artifact kinds. Validation MUST include: template structure compliance, ID format validation, priority marker presence, placeholder detection (TODO, TBD, FIXME), and cross-reference validation. Validation MUST produce a score breakdown with actionable issues including file paths and line numbers. Pass/fail thresholds MUST be configurable per artifact kind.
-
-**Actors**:
-`cpt-cypilot-actor-ai-agent`, `cpt-cypilot-actor-ci-pipeline`
-
-#### Cross-Artifact Validation
-
-- [x] `p1` - **ID**: `cpt-cypilot-fr-sdlc-cross-artifact`
-
-The SDLC kit MUST validate cross-artifact relationships when multiple artifacts are validated together. ID blocks with `covered_by` attributes MUST have at least one reference in artifacts whose kind matches the covered_by list. All ID references MUST resolve to a definition in some artifact. When a reference is marked as checked (`[x]`), the corresponding definition MUST also be marked as checked. Cross-artifact validation MUST be deterministic and report all consistency violations with line numbers and artifact paths.
-
-**Actors**:
-`cpt-cypilot-actor-ai-agent`, `cpt-cypilot-actor-ci-pipeline`
-
-#### Code Generation from Design
-
-- [ ] `p2` - **ID**: `cpt-cypilot-fr-sdlc-code-gen`
-
-The SDLC kit MUST provide an implementation workflow that is system-prompt-aware and works with any programming language. The workflow MUST use project system prompts (domain model, API contracts) when present. The workflow MUST add traceability tags when traceability is enabled for the relevant artifacts. The workflow MUST prefer TDD where feasible and follow SOLID principles.
-
-**Actors**:
-`cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`
-
-#### Brownfield Support
-
-- [ ] `p2` - **ID**: `cpt-cypilot-fr-sdlc-brownfield`
-
-The SDLC kit MUST support adding Cypilot to existing projects without disruption. The system MUST auto-detect existing architecture from code and configs. The system MUST support reverse-engineering artifacts from existing documentation and code. The system MUST support incremental adoption (start with config, add artifacts gradually).
-
-**Actors**:
-`cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`
-
-#### Feature Lifecycle Management
-
-- [ ] `p2` - **ID**: `cpt-cypilot-fr-sdlc-lifecycle`
-
-The SDLC kit MUST track feature status from NOT_STARTED through IN_DESIGN, DESIGNED, READY, IN_PROGRESS to DONE. Feature dependency management MUST detect blocking relationships. Status transition validation MUST prevent skipping states.
-
-**Actors**:
-`cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`
-
-#### Quickstart Guides
-
-- [ ] `p2` - **ID**: `cpt-cypilot-fr-sdlc-guides`
-
-The SDLC kit MUST provide quickstart guides with copy-paste prompts for common workflows. Documentation MUST use progressive disclosure: human-facing overview docs and AI navigation rules for agents.
-
-**Actors**:
-`cpt-cypilot-actor-user`
-
-#### PR Review Workflow
-
-- [ ] `p1` - **ID**: `cpt-cypilot-fr-sdlc-pr-review`
-
-The SDLC kit MUST provide a PR review workflow that fetches PR diffs and metadata from GitHub, analyzes changes against configurable prompts and checklists, and produces structured review reports. The workflow MUST always re-fetch data from scratch on each invocation (no caching). Reviews MUST be read-only (no local working tree modifications). The workflow MUST support reviewing a single PR or all open PRs. Reviews MUST include a reviewer comment analysis section assessing existing feedback.
-
-**Actors**:
-`cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`
-
-#### PR Status Workflow
-
-- [ ] `p1` - **ID**: `cpt-cypilot-fr-sdlc-pr-status`
-
-The SDLC kit MUST provide a PR status workflow that generates reports with: severity assessment of unreplied comments (CRITICAL/HIGH/MEDIUM/LOW), resolved-comment audit with suspicious resolution detection, CI and merge conflict status. The workflow MUST auto-fetch latest data before generating each report. The workflow MUST support single PR and ALL modes. Unreplied comments MUST be reordered by severity.
-
-**Actors**:
-`cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`
-
-#### PR Review Configuration
-
-- [ ] `p2` - **ID**: `cpt-cypilot-fr-sdlc-pr-config`
-
-The SDLC kit MUST support per-project PR review configuration with: prompt selection (code review, design review, ADR review, etc.), checklist mapping per review type, domain-specific review criteria, and template variables for project-specific paths. The kit MUST support an exclude list for PRs that should be skipped. Configuration MUST be stored in the kit's config directory (`{cypilot_path}/config/kits/sdlc/`).
-
-**Actors**:
-`cpt-cypilot-actor-user`
+> **EXTRACTED**: The SDLC kit has been extracted to a separate GitHub repository (`cyberfabric/cyber-pilot-kit-sdlc`). See ADR-0013 for details. All SDLC-specific functional requirements are now owned by the kit's own repository. Cypilot core knows only that the SDLC kit exists and is offered for installation during project initialization.
+>
+> All `cpt-cypilot-fr-sdlc-*` requirement IDs (pipeline, plugin, validation, cross-artifact, code-gen, brownfield, lifecycle, guides, pr-review, pr-status, pr-config) have been moved to the kit repository.
 
 ---
 
 ## 6. Non-Functional Requirements
 
 ### 6.1 Module-Specific NFRs
+
+#### DRY Configuration
+
+- [x] `p1` - **ID**: `cpt-cypilot-nfr-dry`
+
+- Every rule or pattern MUST be configured in exactly one place — never duplicated across files or sections.
+- Similar rules MUST be merged into more generic ones when they share the same intent.
+- Kit constraints, templates, and rules MUST NOT repeat information already captured in the config.
+
+#### Simplicity (Occam's Razor)
+
+- [x] `p1` - **ID**: `cpt-cypilot-nfr-simplicity`
+
+- The system MUST NOT introduce new rules or abstractions if the problem can be solved by an existing one.
+- Installation dependencies MUST be minimal.
+- Configuration syntax MUST be intuitive and readable without documentation.
+
+#### CI & Automation First
+
+- [x] `p1` - **ID**: `cpt-cypilot-nfr-ci-automation-first`
+
+- The system MUST be a CLI tool with a config file — usable in CI pipelines without human interaction.
+- All typical operations (validation, scanning, reporting) MUST be deterministic and automatable.
+- LLM-based reasoning MUST be the last resort — used only for tasks that require creativity or natural language understanding.
+
+#### Zero Harm
+
+- [x] `p1` - **ID**: `cpt-cypilot-nfr-zero-harm`
+
+- The tool MUST support custom SDLC pipelines and artifacts — not impose a single process.
+- The tool MUST allow people to continue maintaining their artifacts manually if they choose.
+- Low cognitive load: a new user MUST be able to configure everything in ≤ 5 minutes.
+- Self-troubleshooting: a user MUST be able to diagnose any problem in ≤ 5 minutes.
+- The tool MUST follow the lint pattern: harmless, configurable, advisory.
+- The tool MUST NOT break code, builds, or tests under any circumstances.
+- The tool MUST NOT define a process — it helps automate the user's existing process.
+- The tool MAY offer best practices for users who don't have an existing process.
+
+#### No Manual Maintenance
+
+- [x] `p1` - **ID**: `cpt-cypilot-nfr-upgradability`
+
+- The tool MUST be upgradeable with a single command.
+- Upgrades MUST be backward compatible — no user action required beyond running the update command.
+- User customizations to kit files MUST be preserved across upgrades (see `cpt-cypilot-fr-core-resource-diff`).
 
 #### Validation Performance
 
@@ -573,9 +505,9 @@ The SDLC kit MUST support per-project PR review configuration with: prompt selec
 
 - [x] `p2` - **ID**: `cpt-cypilot-nfr-adoption-usability`
 
-- `cpt init` MUST complete interactive setup with ≤ 5 user decisions.
+- Project initialization MUST complete interactive setup with ≤ 5 user decisions.
 - Workflow instructions MUST be executable by a new user without prior Cypilot context, with ≤ 3 clarifying questions per workflow on average.
-- All CLI commands MUST provide `--help` with usage examples.
+- All CLI commands MUST provide built-in help with usage examples.
 
 ### 6.2 NFR Exclusions
 
@@ -587,7 +519,7 @@ The SDLC kit MUST support per-project PR review configuration with: prompt selec
 - **Regulatory/Legal** (COMPL-PRD-001/002/003): Not applicable — Cypilot is a methodology tool with no user data or regulated industry context.
 - **Data Ownership/Lifecycle** (DATA-PRD-001/003): Not applicable — Cypilot does not persist user data; artifacts are owned by the project.
 - **Support Requirements** (MAINT-PRD-002): Not applicable — open-source tool; support is community-driven.
-- **Deployment/Monitoring** (OPS-PRD-001/002): Not applicable — installed locally via pipx; no server deployment or monitoring required.
+- **Deployment/Monitoring** (OPS-PRD-001/002): Not applicable — installed locally; no server deployment or monitoring required.
 - **Safety** (SAFE-PRD-001/002): Not applicable — pure information/development tool with no physical interaction or harm potential.
 
 ---
@@ -604,21 +536,21 @@ The SDLC kit MUST support per-project PR review configuration with: prompt selec
 
 **Stability**: stable
 
-**Description**: Global `cypilot` command with subcommands delegated to the project-installed skill. All commands output JSON. The CLI is the primary interface for both humans and CI pipelines.
+**Description**: Global `cypilot` command with subcommands for all Cypilot operations. All commands support both human-readable and machine-readable output. The CLI is the primary interface for both humans and CI pipelines.
 
-**Breaking Change Policy**: Major version bump required for CLI argument changes; JSON output schema changes require migration period.
+**Breaking Change Policy**: Backward-incompatible changes require a major version bump with a migration period.
 
 ### 7.2 External Integration Contracts
 
-#### GitHub API (via `gh` CLI)
+#### GitHub API Integration
 
 - [ ] `p2` - **ID**: `cpt-cypilot-contract-github`
 
 **Direction**: required from client
 
-**Protocol/Format**: GitHub REST/GraphQL API accessed through `gh` CLI
+**Protocol/Format**: GitHub API
 
-**Compatibility**: Requires `gh` CLI v2.0+; adapts to GitHub API changes through `gh` abstraction layer.
+**Compatibility**: Adapts to GitHub API changes through an abstraction layer.
 
 ---
 
@@ -631,19 +563,19 @@ The SDLC kit MUST support per-project PR review configuration with: prompt selec
 **Actors**:
 `cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
 
-**Preconditions**: Python 3.11+ and pipx installed
+**Preconditions**: Runtime prerequisites met
 
 **Flow**:
 
-1. User runs `pipx install git+https://github.com/cyberfabric/cyber-pilot.git`
-2. Cypilot CLI proxy is installed globally and available as `cypilot` and `cpt` commands
-3. User runs `cpt --version` — tool downloads the latest release archive from GitHub into `~/.cypilot/cache/` on first run, then displays version
+1. User installs Cypilot globally with a single command
+2. Cypilot CLI is available as `cypilot` and `cpt` commands
+3. User verifies installation — tool sets up on first run, then displays version
 
 **Alternative Flows**:
-- **Download fails**: Tool displays error with HTTP status and retries up to 3 times. If all retries fail, displays: "Failed to download skill bundle. Check network connection and try again."
-- **Python version incompatible**: Tool displays: "Python 3.11+ required (found {version})." and exits.
+- **Download fails**: Tool displays error and retries. If all retries fail, displays actionable error message.
+- **Runtime incompatible**: Tool displays requirements and exits.
 
-**Postconditions**: `cypilot`/`cpt` commands are available globally; skill bundle cached; all commands are proxied to the cached or project-installed skill
+**Postconditions**: `cypilot`/`cpt` commands are available globally; all Cypilot commands are functional
 
 ---
 
@@ -658,24 +590,18 @@ The SDLC kit MUST support per-project PR review configuration with: prompt selec
 
 **Flow**:
 
-1. User runs `cpt init` in the project root
+1. User runs project initialization in the project root
 2. Tool checks whether Cypilot is already installed in the project
-3. Tool uses default install directory `cypilot` (configurable via `--install-dir` flag)
-4. Tool copies the skill from the cache (`~/.cypilot/cache/`) into the install directory, installs all available kits (uses capability `cpt-cypilot-fr-core-init`)
-5. Tool creates directory structure: `.core/`, `.gen/`, `config/` inside the install directory
-6. Tool defines root system — derives name and slug from project directory name (uses capability `cpt-cypilot-fr-core-init`)
-7. Tool creates `{cypilot_path}/config/core.toml` with project root, root system definition, and kit registrations (uses capability `cpt-cypilot-fr-core-config`)
-8. Tool creates `{cypilot_path}/config/artifacts.toml` with fully populated root system entry: default SDLC autodetect rules for standard artifact kinds, codebase entries, and ignore patterns (uses capability `cpt-cypilot-fr-core-config`, `cpt-cypilot-fr-core-kits`)
-9. Tool installs all available kits — each kit generates full config in `{cypilot_path}/config/kits/<slug>/` (uses capability `cpt-cypilot-fr-core-kits`)
-10. Tool generates agent entry points for all supported agents (uses capability `cpt-cypilot-fr-core-agents`)
-11. Tool injects `<!-- @cpt:root-agents -->` managed block into project root `AGENTS.md` (creates file if absent) (uses capability `cpt-cypilot-fr-core-init`)
-12. Tool creates `{cypilot_path}/config/AGENTS.md` with default WHEN rules for standard system prompts
-13. Tool displays: "Cypilot initialized. Start with: `cypilot on` or `cypilot help`"
+3. Tool asks for install directory and which agents to support
+4. Tool sets up the project: creates configuration, generates agent integration files
+5. Tool injects navigation block into project root `AGENTS.md` so AI agents discover Cypilot automatically
+6. Tool prompts: `Install SDLC kit? [a]ccept [d]ecline` — if accepted, downloads and installs the kit inline
+7. Tool displays prompt suggestion for next steps
 
 **Alternative Flows**:
-- **Existing installation detected**: Tool displays "Cypilot is already installed at {path} (version {version})." and proposes `cpt update` if a newer version is available. Does NOT overwrite or modify the existing installation.
+- **Existing installation detected**: Tool displays current installation info and proposes updating if a newer version is available. Does NOT overwrite or modify the existing installation.
 
-**Postconditions**: Project has `{cypilot_path}/` with full structure (`.core/`, `.gen/`, `config/`), agent entry points, and root `AGENTS.md` entry; ready for artifact workflows
+**Postconditions**: Project is set up with configuration and agent integration; SDLC kit installed if user accepted the prompt
 
 ---
 
@@ -691,14 +617,12 @@ The SDLC kit MUST support per-project PR review configuration with: prompt selec
 **Flow**:
 
 1. User types `cypilot on` in agent chat
-2. AI Agent loads SKILL.md, sets `{cypilot_mode}` = `on` (uses capability `cpt-cypilot-fr-core-skill-engine`)
-3. AI Agent runs Protocol Guard: checks submodule status, runs `info`
-4. AI Agent loads config/AGENTS.md and applicable project config
-5. AI Agent announces: "Cypilot Mode Enabled. Config: FOUND at {path}"
+2. AI Agent activates Cypilot mode: loads project configuration and verifies installation health
+3. AI Agent announces: "Cypilot Mode Enabled. Config: FOUND at {path}"
 
 **Alternative Flows**:
-- **`{cypilot_path}/` not found**: AI Agent announces: "Cypilot not initialized. Run `cpt init` first." and exits Cypilot mode.
-- **SKILL.md or config missing/corrupt**: AI Agent announces: "Cypilot installation incomplete. Run `cpt doctor` for diagnostics."
+- **Cypilot not initialized**: AI Agent announces that Cypilot is not initialized and exits Cypilot mode.
+- **Installation incomplete or corrupt**: AI Agent announces that the installation is incomplete and suggests running diagnostics.
 
 **Postconditions**: AI Agent follows Cypilot workflows for subsequent requests; execution logging is active
 
@@ -716,13 +640,13 @@ The SDLC kit MUST support per-project PR review configuration with: prompt selec
 **Flow**:
 
 1. User requests artifact creation (e.g., "create PRD", "generate DESIGN")
-2. AI Agent executes generate workflow: loads execution protocol, resolves kit, loads rules/template/checklist/example (uses capability `cpt-cypilot-fr-core-workflows`)
+2. AI Agent loads the appropriate template, checklist, and examples for the requested artifact kind (uses capability `cpt-cypilot-fr-core-workflows`)
 3. AI Agent collects information via batch questions with proposals
 4. User approves or modifies proposals
 5. AI Agent generates artifact content following template structure and checklist criteria
 6. AI Agent presents summary and asks for confirmation
 7. User confirms; AI Agent writes file and updates config (uses capability `cpt-cypilot-fr-core-config`)
-8. AI Agent runs deterministic validation automatically (uses capability `cpt-cypilot-fr-sdlc-validation`)
+8. AI Agent runs deterministic validation automatically (uses capability `cpt-cypilot-fr-core-traceability`)
 
 **Alternative Flows**:
 - **Kit not registered for requested kind**: AI Agent displays available artifact kinds from registered kits and asks user to choose.
@@ -743,9 +667,9 @@ The SDLC kit MUST support per-project PR review configuration with: prompt selec
 
 **Flow**:
 
-1. User or CI runs validation (via agent chat or `cpt validate`)
-2. System runs deterministic structural validation: template compliance, ID formats, placeholders (uses capability `cpt-cypilot-fr-sdlc-validation`)
-3. System runs cross-artifact validation: covered_by references, checked consistency (uses capability `cpt-cypilot-fr-sdlc-cross-artifact`)
+1. User or CI runs validation (via agent chat or CLI)
+2. System runs deterministic structural validation: template compliance, ID formats, placeholders (uses capability `cpt-cypilot-fr-core-traceability`)
+3. System runs cross-artifact validation: cross-references, checked consistency (uses capability `cpt-cypilot-fr-core-traceability`)
 4. System reports PASS/FAIL with score breakdown and actionable issues
 
 **Postconditions**: Validation report with file paths, line numbers, and remediation guidance
@@ -768,7 +692,7 @@ The SDLC kit MUST support per-project PR review configuration with: prompt selec
 
 1. User requests implementation of a feature
 2. AI Agent loads FEATURE artifact and extracts implementation scope (uses capability `cpt-cypilot-fr-core-cdsl`)
-3. AI Agent reads project config for language-specific patterns and conventions (uses capability `cpt-cypilot-fr-sdlc-code-gen`)
+3. AI Agent reads project config for language-specific patterns and conventions (SDLC kit capability)
 4. AI Agent generates code with traceability tags where enabled (uses capability `cpt-cypilot-fr-core-traceability`)
 5. User reviews and iterates on generated code
 6. AI Agent validates traceability coverage
@@ -788,21 +712,21 @@ The SDLC kit MUST support per-project PR review configuration with: prompt selec
 **Actors**:
 `cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`
 
-**Preconditions**: `gh` CLI authenticated; PR exists on GitHub
+**Preconditions**: GitHub integration authenticated; PR exists on GitHub
 
 **Flow**:
 
 1. User requests PR review (e.g., "review PR 123")
-2. AI Agent fetches latest PR data: diff, metadata, comments (uses capability `cpt-cypilot-fr-sdlc-pr-review`)
-3. AI Agent selects review prompt and checklist based on PR content (uses capability `cpt-cypilot-fr-sdlc-pr-config`)
+2. AI Agent fetches latest PR data: diff, metadata, comments (SDLC kit capability)
+3. AI Agent selects review prompt and checklist based on PR content (SDLC kit capability)
 4. AI Agent analyzes changes against checklist criteria
 5. AI Agent analyzes existing reviewer comments for validity and resolution status
-6. AI Agent writes structured review report to `.prs/{ID}/review.md`
+6. AI Agent writes structured review report
 7. AI Agent presents summary with findings and verdict
 
 **Alternative Flows**:
-- **`gh` CLI not authenticated**: AI Agent displays: "GitHub CLI not authenticated. Run `gh auth login` first." and stops.
-- **PR not found**: AI Agent displays: "PR #{number} not found in {owner}/{repo}." and stops.
+- **GitHub integration not authenticated**: AI Agent displays authentication guidance and stops.
+- **PR not found**: AI Agent displays error with PR number and repository and stops.
 
 **Postconditions**: Structured review report saved; user has actionable findings
 
@@ -815,18 +739,18 @@ The SDLC kit MUST support per-project PR review configuration with: prompt selec
 **Actors**:
 `cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`
 
-**Preconditions**: `gh` CLI authenticated; PR exists on GitHub
+**Preconditions**: GitHub integration authenticated; PR exists on GitHub
 
 **Flow**:
 
 1. User requests PR status (e.g., "PR status 123")
-2. AI Agent fetches latest PR data and generates status report (uses capability `cpt-cypilot-fr-sdlc-pr-status`)
+2. AI Agent fetches latest PR data and generates status report (SDLC kit capability)
 3. AI Agent assesses severity of unreplied comments (CRITICAL/HIGH/MEDIUM/LOW)
 4. AI Agent audits resolved comments: checks code for actual fixes, detects suspicious resolutions
 5. AI Agent reorders report by severity and presents summary
 
 **Alternative Flows**:
-- **`gh` CLI not authenticated or PR not found**: Same as UC-007 alternative flows.
+- **GitHub integration not authenticated or PR not found**: Same as UC-007 alternative flows.
 
 **Postconditions**: Status report with severity distribution, suspicious resolutions flagged, actionable next steps
 
@@ -843,9 +767,9 @@ The SDLC kit MUST support per-project PR review configuration with: prompt selec
 
 **Flow**:
 
-1. User uses CLI to modify configuration. Core commands manage `core.toml` (e.g., `cpt config system add --name "Backend" --slug backend --kit sdlc`). Kit-specific config commands (p2) will manage kit config (e.g., `cpt sdlc autodetect add-artifact --system backend --kind API --pattern "api/**/*.yaml" --traceability DOCS-ONLY`)
+1. User uses CLI to modify configuration. Core commands manage project settings (e.g., add/remove systems, assign kits). Kit-specific config commands (p2) will manage kit-specific settings (e.g., artifact discovery rules, traceability levels)
 2. Tool validates the change against the config schema (uses capability `cpt-cypilot-fr-core-cli-config`)
-3. Tool applies the change to the appropriate config file in `config/` (uses capability `cpt-cypilot-fr-core-config`)
+3. Tool applies the change to the appropriate config file (uses capability `cpt-cypilot-fr-core-config`)
 4. Tool confirms the change with a summary of what was modified
 
 **Alternative Flows**:
@@ -867,18 +791,19 @@ The SDLC kit MUST support per-project PR review configuration with: prompt selec
 
 **Flow**:
 
-1. User installs a new kit or extends an existing one (e.g., `cypilot kit install sdlc`)
-2. Tool saves kit source to `{cypilot_path}/kits/{slug}/` (reference copy)
-3. Tool copies blueprints from `{cypilot_path}/kits/{slug}/blueprints/` to `{cypilot_path}/config/kits/{slug}/blueprints/` (user-editable)
-4. Blueprint Processor generates all outputs into `{cypilot_path}/.gen/kits/{slug}/artifacts/` and `{cypilot_path}/.gen/kits/{slug}/workflows/`
-5. Tool registers the kit in `{cypilot_path}/config/core.toml`
+1. User installs a kit from GitHub (e.g., cyberfabric/cyber-pilot-kit-sdlc)
+2. Tool downloads the kit from the GitHub repository at the specified or latest version
+3. Tool asks for kit config output directory
+4. Tool copies all kit files from the downloaded source into the kit's config directory
+5. Tool registers the kit in project configuration with GitHub source and version (uses capability `cpt-cypilot-fr-core-kits`)
 6. Tool validates kit structural correctness
 
 **Alternative Flows**:
-- **Kit invalid**: Tool displays structural validation errors (missing `blueprints/` directory, invalid blueprint files) and does NOT register the kit. Suggests `cpt doctor` for diagnostics.
+- **Kit invalid**: Tool displays structural validation errors (missing required files) and does NOT register the kit. Suggests running diagnostics.
 - **Kit already installed**: Tool displays current version and offers to update or skip.
+- **Kit config relocation**: User requests to move an installed kit's config output directory to a new location.
 
-**Postconditions**: Kit registered/extended and available for workflows
+**Postconditions**: Kit registered and available for workflows; all kit files in config directory; source and version tracked in `core.toml`
 
 ---
 
@@ -893,17 +818,22 @@ The SDLC kit MUST support per-project PR review configuration with: prompt selec
 
 **Flow**:
 
-1. On any command invocation, the proxy displays: "Cypilot {cached_version} available (project has {project_version}). Run `cpt update` to upgrade." (uses capability `cpt-cypilot-fr-core-installer`)
-2. User runs `cpt update`
-3. Tool refreshes cache from the latest GitHub release if needed, then copies the cached skill into the project (uses capability `cpt-cypilot-fr-core-version`)
-4. Tool migrates `{cypilot_path}/config/core.toml` preserving all user settings; invokes each kit's migration script for `{cypilot_path}/config/kits/<slug>/` (uses capability `cpt-cypilot-fr-core-config`, `cpt-cypilot-fr-core-kits`)
-5. Tool regenerates agent entry points for compatibility (uses capability `cpt-cypilot-fr-core-agents`)
+1. Tool notifies user when a newer version is available (uses capability `cpt-cypilot-fr-core-installer`)
+2. User runs the update command
+3. Tool downloads and applies the latest tool version (uses capability `cpt-cypilot-fr-core-version`)
+4. Tool migrates directory layout if needed (uses capability `cpt-cypilot-fr-core-layout-migration`)
+5. Tool migrates project configuration preserving all user settings (uses capability `cpt-cypilot-fr-core-config`)
+6. Tool migrates bundled kit references to GitHub sources for projects upgrading from versions < 3.0.8 (uses capability `cpt-cypilot-fr-core-kits`)
+7. Tool regenerates agent integration files for compatibility (uses capability `cpt-cypilot-fr-core-agents`)
+8. Tool recommends updating each installed kit if newer versions are available
 
 **Alternative Flows**:
-- **Cache download fails**: Tool displays network error and suggests retrying or using `cpt update --check` to verify availability.
-- **Config migration conflict**: Tool preserves a backup of the previous config, applies migration, and reports any settings that could not be automatically migrated.
+- **Download fails**: Tool displays network error and suggests retrying.
+- **Config migration conflict**: Tool preserves a backup, applies migration, and reports any settings that could not be automatically migrated.
+- **Layout restructuring fails**: Tool restores backup and notifies user with actionable guidance.
+- **Bundled kit detected**: Tool automatically migrates kit reference to GitHub source (versions < 3.0.8).
 
-**Postconditions**: Project skill updated to cached version; config migrated; agent entry points refreshed
+**Postconditions**: Project tool updated to latest version; layout migrated if needed; bundled kit references migrated to GitHub sources; agent integration refreshed. Kit file updates are a separate operation
 
 ---
 
@@ -918,8 +848,8 @@ The SDLC kit MUST support per-project PR review configuration with: prompt selec
 
 **Flow**:
 
-1. User runs `cpt init` in existing project (uses capability `cpt-cypilot-fr-core-init`)
-2. Tool detects existing code (brownfield) and offers reverse-engineering scan (uses capability `cpt-cypilot-fr-sdlc-brownfield`)
+1. User runs project initialization in existing project (uses capability `cpt-cypilot-fr-core-init`)
+2. Tool detects existing code (brownfield) and offers reverse-engineering scan (SDLC kit capability)
 3. AI Agent analyzes code structure, configs, and documentation
 4. AI Agent proposes project config (tech stack, conventions, domain model)
 5. User reviews and approves proposed specs
@@ -936,10 +866,10 @@ The SDLC kit MUST support per-project PR review configuration with: prompt selec
 
 ## 9. Acceptance Criteria
 
-- [ ] `cpt init` completes interactive setup and creates a working `{cypilot_path}/` directory (default: `cypilot/`) in ≤ 5 minutes
+- [ ] Project initialization completes interactive setup and creates a working install directory in ≤ 5 minutes
 - [ ] Deterministic validation output is actionable (clear file/line/pointer for every issue)
-- [ ] All supported agents receive correct entry points after `cpt generate-agents`
-- [ ] `cpt doctor` reports environment health with pass/fail per check
+- [ ] All supported agents receive correct integration files after agent generation
+- [ ] Environment diagnostics reports environment health with pass/fail per check
 - [ ] Config is never manually edited — all changes go through the CLI tool
 - [ ] PR review workflow produces a structured report matching the template format
 
@@ -947,18 +877,18 @@ The SDLC kit MUST support per-project PR review configuration with: prompt selec
 
 | Dependency | Description | Criticality |
 |------------|-------------|-------------|
-| Python 3.11+ | Runtime for CLI tool and skill engine (requires `tomllib` from stdlib) | p1 |
-| Git | Project detection, skill installation, version control | p1 |
-| pipx | Global CLI installation (recommended) | p2 |
-| gh CLI | GitHub API access for PR review/status workflows | p2 |
+| Runtime platform | Cross-platform runtime for CLI tool and command engine | p1 |
+| Git | Project detection, version control | p1 |
+| Global installer | Single-command global CLI installation | p2 |
+| GitHub integration | API access for PR review/status workflows | p2 |
 
 ## 11. Assumptions
 
 - AI coding assistants (Windsurf, Cursor, Claude, Copilot) can follow structured markdown workflows with embedded instructions.
-- Developers have access to Python 3.11+ for running the Cypilot CLI tool.
+- Developers have the required runtime platform available.
 - Projects use Git for version control (project detection relies on `.git` directory).
 - Teams are willing to maintain design artifacts as part of their development workflow.
-- The `pipx` package manager is available or installable for global CLI installation.
+- Global CLI installation prerequisites are available.
 - GitHub is the primary VCS platform for PR review workflows (other platforms may be supported later).
 
 ### Open Questions
@@ -973,4 +903,4 @@ No open questions remain at this time — all architectural questions (config di
 | Adoption resistance | Teams bypass the workflow or skip validation | Incremental adoption via brownfield support; immediate value from validation and PR review |
 | Kit rigidity | Templates don't fit all project types | Kit extension system allows custom overrides; custom kits can be created from scratch |
 | Version fragmentation | Different team members have different skill versions | Version detection on every invocation; config migration ensures backward compatibility |
-| Git dependency for skill updates | Network required for skill installation and updates | Skill is installed once and works offline; updates are optional and explicit |
+| Network dependency for updates | Network required for installation and updates | Tool is installed once and works offline; updates are optional and explicit |

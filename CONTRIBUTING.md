@@ -17,6 +17,7 @@
   - [Retroactive sign-off](#retroactive-sign-off)
   - [Why DCO?](#why-dco)
 - [CI Pipeline](#ci-pipeline)
+  - [Running CI Locally](#running-ci-locally)
   - [Makefile Targets](#makefile-targets)
   - [GitHub Actions](#github-actions)
 - [Making Changes](#making-changes)
@@ -38,6 +39,9 @@ Thank you for your interest in contributing to Cypilot! This guide covers the de
 - **Git**
 - **pipx** (recommended for global CLI and test tooling)
 - **make**
+- **Docker** (for local CI via `act`)
+- **[act](https://github.com/nektos/act)** (runs GitHub Actions locally)
+- **[actionlint](https://github.com/rhysd/actionlint)** (lints workflow files)
 
 ## Development Setup
 
@@ -52,11 +56,8 @@ make install-proxy
 # Bootstrap: sync .bootstrap/ from local source
 make update
 
-# Run all checks
-make test-coverage
-make vulture-ci
-make validate
-make self-check
+# Run full CI locally (mirrors GitHub Actions exactly)
+make ci
 ```
 
 ---
@@ -216,12 +217,30 @@ The project uses Apache-2.0 license. DCO certifies that you wrote the contributi
 
 ## CI Pipeline
 
+### Running CI Locally
+
+`make ci` runs the **exact same workflow** as GitHub Actions, locally via [act](https://github.com/nektos/act) in Docker. Single source of truth — `.github/workflows/ci.yml`.
+
+```bash
+# Run full CI (auto-detects arm64/amd64)
+make ci
+
+# Override act flags if needed
+make ci ACT_FLAGS="--container-architecture linux/amd64"
+```
+
+Jobs run sequentially and stop on first failure. On Apple Silicon, containers run natively as arm64. Matrix jobs are limited to Python 3.13 by default to avoid Docker resource exhaustion.
+
+`make lint-ci` lints the workflow files with `actionlint` (also runs as part of `make ci`).
+
 ### Makefile Targets
 
 All CI is driven through `make`. No virtual environment required — tools run via `pipx`.
 
 | Target | What it does | CI? |
 |--------|-------------|-----|
+| `make ci` | Run full CI locally via act (mirrors GitHub Actions) | — |
+| `make lint-ci` | Lint GitHub Actions workflow files | — |
 | `make test` | Run full test suite via `pipx run pytest` | Yes |
 | `make test-verbose` | Tests with verbose output | — |
 | `make test-quick` | Fast tests only (skip `@pytest.mark.slow`) | — |
@@ -229,6 +248,7 @@ All CI is driven through `make`. No virtual environment required — tools run v
 | `make validate` | Run `cpt validate` — deterministic artifact validation | Yes |
 | `make self-check` | Validate SDLC kit examples against their own templates | Yes |
 | `make check-versions` | Check version consistency across components | Yes |
+| `make spec-coverage` | Check spec coverage (≥80% overall, ≥70% per file) | Yes |
 | `make vulture` | Dead code scan (report only) | — |
 | `make vulture-ci` | Dead code scan (fails on findings) | Yes |
 | `make install` | Install pytest + pytest-cov via pipx | — |
@@ -238,15 +258,16 @@ All CI is driven through `make`. No virtual environment required — tools run v
 
 ### GitHub Actions
 
-CI runs on every push to `main` and every PR targeting `main`. Five parallel jobs:
+CI runs on every push to `main` and every PR targeting `main`. Six parallel jobs:
 
 1. **Test** — `make test` on Python 3.11, 3.12, 3.13, 3.14
 2. **Coverage** — `make test-coverage` on Python 3.14 (≥90% gate)
 3. **Vulture** — `make vulture-ci` dead code scan
 4. **Versions** — `make check-versions` (proxy sync, bootstrap sync, kit version bumps)
-5. **Validate** — `make validate` + `make self-check` on Python 3.11–3.14
+5. **Spec Coverage** — `make spec-coverage` (≥80% overall, ≥70% per file)
+6. **Validate** — `make validate` + `make self-check` on Python 3.11–3.14
 
-All five must pass before merge.
+All six must pass before merge.
 
 ---
 
@@ -279,12 +300,7 @@ All five must pass before merge.
 
 1. Ensure all CI checks pass locally:
    ```bash
-   make test
-   make test-coverage
-   make check-versions
-   make vulture-ci
-   make validate
-   make self-check
+   make ci
    ```
 
 2. Every commit is signed off (DCO):

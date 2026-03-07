@@ -4,7 +4,6 @@ Cypilot Validator - Artifacts Metadata Registry
 Parses and provides access to artifacts.toml with the hierarchical system structure.
 
 @cpt-flow:cpt-cypilot-flow-core-infra-cli-invocation:p1
-@cpt-algo:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1
 """
 
 import fnmatch
@@ -17,9 +16,9 @@ from typing import Callable, Dict, Iterator, List, Optional, Set, Tuple
 
 from ..constants import ARTIFACTS_REGISTRY_FILENAME
 
+# @cpt-begin:cpt-cypilot-algo-core-infra-registry-parsing:p1:inst-reg-dataclasses
 # Slug validation pattern: lowercase letters, numbers, hyphens (no leading/trailing hyphens)
 SLUG_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
-
 
 @dataclass
 class Kit:
@@ -92,7 +91,6 @@ class Kit:
         # Backward compatible default: {path}/artifacts/{KIND}/examples
         return f"{self.path.rstrip('/')}/artifacts/{kind}/examples"
 
-
 @dataclass
 class Artifact:
     """A registered artifact (document)."""
@@ -118,7 +116,6 @@ class Artifact:
             traceability=str(data.get("traceability", "DOCS-ONLY")),
             name=str(name) if name else None,
         )
-
 
 @dataclass
 class CodebaseEntry:
@@ -161,7 +158,6 @@ class CodebaseEntry:
             multi_line_comments=mlc,
         )
 
-
 @dataclass
 class IgnoreBlock:
     """Global ignore rule block."""
@@ -178,7 +174,6 @@ class IgnoreBlock:
             patterns = [str(p).strip() for p in raw_patterns if isinstance(p, str) and str(p).strip()]
         return cls(reason=reason, patterns=patterns)
 
-
 @dataclass
 class AutodetectArtifactPattern:
     pattern: str
@@ -192,7 +187,6 @@ class AutodetectArtifactPattern:
             traceability=str((data or {}).get("traceability", "FULL") or "FULL").strip(),
             required=bool((data or {}).get("required", True)),
         )
-
 
 @dataclass
 class AutodetectRule:
@@ -250,7 +244,6 @@ class AutodetectRule:
             children=children,
         )
 
-
 @dataclass
 class SystemNode:
     """A node in the system hierarchy (system, subsystem, component, module, etc.)."""
@@ -277,21 +270,6 @@ class SystemNode:
                 parts.append(node.slug)
             node = node.parent
         return "-".join(reversed(parts))
-
-    def validate_slug(self) -> Optional[str]:
-        """Validate the slug format. Returns error message if invalid, None if valid."""
-        if not self.slug:
-            # Allow grouping nodes (no slug) only if they don't directly own artifacts/codebase.
-            if (self.artifacts or []) or (self.codebase or []):
-                return f"Missing slug for system '{self.name}'"
-            return None
-        if not SLUG_PATTERN.match(self.slug):
-            return (
-                f"Invalid slug '{self.slug}' for system '{self.name}'. "
-                "Slug must be lowercase letters, numbers, and hyphens only "
-                "(no leading/trailing hyphens, no spaces)."
-            )
-        return None
 
     @classmethod
     def from_dict(cls, data: dict, parent: Optional["SystemNode"] = None) -> "SystemNode":
@@ -335,7 +313,6 @@ class SystemNode:
                     node.autodetect.append(AutodetectRule.from_dict(r))
 
         return node
-
 
 class ArtifactsMeta:
     """
@@ -454,6 +431,7 @@ class ArtifactsMeta:
     def get_kit(self, kit_id: str) -> Optional[Kit]:
         """Get a kit definition by ID."""
         return (self.kits or {}).get(str(kit_id))
+    # @cpt-end:cpt-cypilot-algo-core-infra-registry-parsing:p1:inst-reg-dataclasses
 
     # @cpt-begin:cpt-cypilot-algo-core-infra-registry-parsing:p1:inst-reg-expand-autodetect
     def expand_autodetect(
@@ -872,50 +850,38 @@ class ArtifactsMeta:
     # @cpt-end:cpt-cypilot-algo-core-infra-registry-parsing:p1:inst-reg-expand-autodetect
 
     # === Pipeline Resolution ===
-    # @cpt-begin:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-define-ordering
     PIPELINE_ORDER = ["PRD", "DESIGN", "ADR", "DECOMPOSITION", "FEATURE"]
-    # @cpt-end:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-define-ordering
 
     def resolve_pipeline(self, system_slug: str) -> dict:  # noqa: vulture
         """Resolve pipeline position for a system."""
-        # @cpt-begin:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-classify-artifacts
         present_kinds: set = set()
         for art, node in self.iter_all_artifacts():
             if node.slug == system_slug or system_slug in node.get_hierarchy_prefix():
                 present_kinds.add(str(art.kind).upper())
-        # @cpt-end:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-classify-artifacts
 
-        # @cpt-begin:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-identify-present-missing
         missing_kinds = [k for k in self.PIPELINE_ORDER if k not in present_kinds]
-        # @cpt-end:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-identify-present-missing
 
-        # @cpt-begin:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-foreach-missing
+        # (greenfield/brownfield detection deferred to agent workflow;
+        #  resolve_pipeline returns missing kinds for agent to decide)
+
         recommendation = None
         for kind in missing_kinds:
-            # @cpt-begin:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-check-dependencies
             idx = self.PIPELINE_ORDER.index(kind)
             deps_satisfied = all(d in present_kinds for d in self.PIPELINE_ORDER[:idx])
-            # @cpt-end:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-check-dependencies
-            # @cpt-begin:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-if-deps-satisfied
             if deps_satisfied:
                 recommendation = kind
                 break
-            # @cpt-end:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-if-deps-satisfied
-        # @cpt-end:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-foreach-missing
 
-        # @cpt-begin:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-if-all-present
         if not missing_kinds:
             recommendation = "CODE"
-        # @cpt-end:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-if-all-present
 
-        # @cpt-begin:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-return-status
         return {
             "present": sorted(present_kinds),
             "missing": missing_kinds,
             "recommendation": recommendation,
         }
-        # @cpt-end:cpt-cypilot-algo-sdlc-kit-resolve-pipeline:p1:inst-return-status
 
+    # @cpt-begin:cpt-cypilot-algo-core-infra-registry-parsing:p1:inst-reg-query-methods
     # === Kit Methods ===
 
     def get_kit(self, kit_id: str) -> Optional[Kit]:
@@ -973,25 +939,7 @@ class ArtifactsMeta:
         """Get a set of all system prefixes (normalized to lowercase)."""
         return {p.lower() for p in self.iter_all_system_prefixes()}
 
-    def iter_all_systems(self) -> Iterator[SystemNode]:
-        """Iterate over all system nodes in the registry (including nested children)."""
-        def _iter_system(node: SystemNode) -> Iterator[SystemNode]:
-            yield node
-            for child in node.children:
-                yield from _iter_system(child)
-
-        for system in self.systems:
-            yield from _iter_system(system)
-
-    def validate_all_slugs(self) -> List[str]:
-        """Validate all slugs in the registry. Returns list of error messages."""
-        errors = []
-        for node in self.iter_all_systems():
-            error = node.validate_slug()
-            if error:
-                errors.append(error)
-        return errors
-
+    # @cpt-end:cpt-cypilot-algo-core-infra-registry-parsing:p1:inst-reg-query-methods
 
 # @cpt-begin:cpt-cypilot-algo-core-infra-registry-parsing:p1:inst-reg-locate
 def load_artifacts_meta(adapter_dir: Path) -> Tuple[Optional[ArtifactsMeta], Optional[str]]:
@@ -1057,7 +1005,7 @@ def load_artifacts_meta(adapter_dir: Path) -> Tuple[Optional[ArtifactsMeta], Opt
     except Exception as e:
         return None, f"Failed to load artifacts registry {path}: {e}"
 
-
+# @cpt-begin:cpt-cypilot-algo-core-infra-registry-parsing:p1:inst-reg-utilities
 def create_backup(path: Path) -> Optional[Path]:
     """Create a timestamped backup of a file or directory.
 
@@ -1085,7 +1033,6 @@ def create_backup(path: Path) -> Optional[Path]:
         return backup_path
     except Exception:
         return None
-
 
 def extract_system_slug_candidates(cpt_id: str, parent_prefix: str, kind_tokens: Set[str]) -> List[str]:
     """Extract system slug candidates from a cpt ID.
@@ -1127,7 +1074,6 @@ def extract_system_slug_candidates(cpt_id: str, parent_prefix: str, kind_tokens:
     slug = remainder[:first_pos]
     return [slug]
 
-
 def generate_slug(name: str) -> str:
     """Generate a valid slug from a name.
 
@@ -1144,7 +1090,6 @@ def generate_slug(name: str) -> str:
     # Collapse multiple hyphens
     slug = re.sub(r"-+", "-", slug)
     return slug if slug else "unnamed"
-
 
 def generate_default_registry(
     project_name: str,
@@ -1170,7 +1115,7 @@ def generate_default_registry(
             },
         ],
     }
-
+# @cpt-end:cpt-cypilot-algo-core-infra-registry-parsing:p1:inst-reg-utilities
 
 __all__ = [
     "ArtifactsMeta",

@@ -60,7 +60,11 @@ ALWAYS open and follow `CONTRIBUTING.md#versioning` WHEN bumping versions, relea
 
 ALWAYS open and follow `CONTRIBUTING.md#commit-requirements-dco` WHEN committing code or preparing commits
 
-ALWAYS open and follow `CONTRIBUTING.md#ci-pipeline` WHEN running CI checks, make targets, or debugging build failures
+ALWAYS open and follow `CONTRIBUTING.md#running-ci-locally` WHEN running CI checks locally via act or debugging CI failures
+
+ALWAYS open and follow `CONTRIBUTING.md#makefile-targets` WHEN looking up available make commands
+
+ALWAYS open and follow `CONTRIBUTING.md#github-actions` WHEN modifying CI workflow or understanding CI jobs
 
 ALWAYS open and follow `CONTRIBUTING.md#making-changes` WHEN making code changes, architecture changes, or kit blueprint changes
 

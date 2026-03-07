@@ -139,10 +139,22 @@ Validates artifacts against templates and traceability rules.
 |---------|-------------|
 | `init` | Initialize Cypilot config and adapter |
 | `info` | Show adapter discovery information |
-| `validate` | Validate artifact against template |
-| `validate-kits` | Validate kit templates |
+| `validate` | Validate artifacts and code (structure, cross-refs, traceability) |
+| `validate-kits` | Validate kit templates and blueprint integrity |
+| `validate-toc` | Validate Table of Contents in Markdown files |
+| `self-check` | Validate kit examples against their templates |
+| `spec-coverage` | Measure CDSL marker coverage in codebase |
 | `list-ids` | Scan and list all Cypilot IDs |
+| `list-id-kinds` | List ID kinds with counts and template mappings |
+| `get-content` | Retrieve content block for a specific Cypilot ID |
 | `where-defined` | Find where an ID is defined |
-| `where-used` | Find where an ID is referenced |
-| `self-check` | Validate kit package integrity |
-| `update` | Update skill cache from GitHub or local source |
+| `where-used` | Find all references to an ID |
+| `toc` | Generate/update Table of Contents in Markdown files |
+| `kit install` | Install a kit from source directory |
+| `kit update` | Update kit reference copies and regenerate outputs |
+| `kit migrate` | Three-way merge of kit blueprints for version upgrade |
+| `generate-resources` | Regenerate `.gen/` outputs from user blueprints |
+| `agents` | Generate agent-specific workflow proxies (windsurf, cursor, claude, copilot, openai) |
+| `update` | Update `.core/` from cache, update kits, regenerate `.gen/` |
+| `migrate` | Migrate Cypilot v2 project to v3 layout |
+| `migrate-config` | Convert legacy JSON config to TOML |

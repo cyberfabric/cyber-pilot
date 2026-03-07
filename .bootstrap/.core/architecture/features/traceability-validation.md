@@ -1,6 +1,5 @@
 # Feature: Traceability & Validation
 
-
 <!-- toc -->
 
 - [1. Feature Context](#1-feature-context)
@@ -23,6 +22,8 @@
   - [TOC Utilities](#toc-utilities)
   - [Markdown Parsing Utilities](#markdown-parsing-utilities)
   - [Fixing Prompt Enrichment](#fixing-prompt-enrichment)
+  - [Headings Contract Validation](#headings-contract-validation)
+  - [Load Constraints](#load-constraints)
   - [Language Configuration](#language-configuration)
 - [4. States (CDSL)](#4-states-cdsl)
   - [Validation Report Lifecycle](#validation-report-lifecycle)
@@ -37,7 +38,7 @@
 
 <!-- /toc -->
 
-- [ ] `p1` - **ID**: `cpt-cypilot-featstatus-traceability-validation`
+- [x] `p1` - **ID**: `cpt-cypilot-featstatus-traceability-validation`
 
 ## 1. Feature Context
 
@@ -49,7 +50,7 @@ Deterministic quality gate that scans artifacts for ID definitions and reference
 
 ### 2. Purpose
 
-Catches structural and traceability issues that AI agents miss or hallucinate â€” without relying on an LLM. Ensures that every design element has a unique ID, every reference resolves to a definition, every checked reference implies a checked definition, and every `to_code` ID has a matching code marker. Addresses PRD requirements for ID and traceability (`cpt-cypilot-fr-core-traceability`), CDSL instruction tracking (`cpt-cypilot-fr-core-cdsl`), artifact validation (`cpt-cypilot-fr-sdlc-validation`), and cross-artifact consistency (`cpt-cypilot-fr-sdlc-cross-artifact`).
+Catches structural and traceability issues that AI agents miss or hallucinate â€” without relying on an LLM. Ensures that every design element has a unique ID, every reference resolves to a definition, every checked reference implies a checked definition, and every `to_code` ID has a matching code marker. Addresses PRD requirements for ID and traceability (`cpt-cypilot-fr-core-traceability`) and CDSL instruction tracking (`cpt-cypilot-fr-core-cdsl`). Artifact validation and cross-artifact consistency capabilities are provided generically by the core Validator for any installed kit.
 
 ### 3. Actors
 
@@ -61,7 +62,7 @@ Catches structural and traceability issues that AI agents miss or hallucinate â€
 
 ### 4. References
 
-- **PRD**: [PRD.md](../PRD.md) â€” `cpt-cypilot-fr-core-traceability`, `cpt-cypilot-fr-core-cdsl`, `cpt-cypilot-fr-sdlc-validation`, `cpt-cypilot-fr-sdlc-cross-artifact`
+- **PRD**: [PRD.md](../PRD.md) â€” `cpt-cypilot-fr-core-traceability`, `cpt-cypilot-fr-core-cdsl`
 - **Design**: [DESIGN.md](../DESIGN.md) â€” `cpt-cypilot-component-validator`, `cpt-cypilot-component-traceability-engine`
 - **Specs**: [traceability.md](../specs/traceability.md), [CDSL.md](../specs/CDSL.md), [constraints.md](../specs/kit/constraints.md)
 - **Dependencies**: `cpt-cypilot-feature-core-infra`
@@ -88,15 +89,21 @@ Catches structural and traceability issues that AI agents miss or hallucinate â€
 1. [x] - `p1` - User invokes `cpt validate [--artifact <path>] [--skip-code] [--verbose]` - `inst-user-validate`
 2. [x] - `p1` - Load project context: cypilot config, registry, systems, kits, constraints - `inst-load-context`
 3. [x] - `p1` - Resolve artifacts to validate: if `--artifact` specified resolve single artifact from registry, otherwise collect all registered Cypilot-format artifacts - `inst-resolve-artifacts`
-4. [x] - `p1` - Run self-check: validate kit examples against templates to ensure kit integrity - `inst-self-check`
-5. [x] - `p1` - **FOR EACH** artifact to validate - `inst-foreach-artifact`
+4. [x] - `p1` - **IF** registry-level errors detected **RETURN** FAIL report immediately - `inst-if-registry-fail`
+5. [x] - `p1` - Run self-check: validate kit examples against templates to ensure kit integrity - `inst-self-check`
+6. [x] - `p1` - **FOR EACH** artifact to validate - `inst-foreach-artifact`
    1. [x] - `p1` - Load kind-specific constraints from kit - `inst-load-constraints`
    2. [x] - `p1` - Validate artifact structure using `cpt-cypilot-algo-traceability-validation-validate-structure` - `inst-validate-structure`
-6. [x] - `p1` - **IF** per-artifact errors exist **RETURN** FAIL report (stop before cross-validation) - `inst-if-structure-fail`
-7. [x] - `p1` - Cross-validate references across all artifacts using `cpt-cypilot-algo-traceability-validation-cross-validate` - `inst-cross-validate`
-8. [x] - `p1` - **IF** `--skip-code` is not set, validate code traceability using `cpt-cypilot-algo-traceability-validation-cross-validate-code` - `inst-if-code`
-9. [x] - `p1` - Enrich errors with fixing prompts for LLM agents - `inst-enrich-errors`
-10. [x] - `p1` - **RETURN** JSON report (status, artifact count, error/warning counts, coverage stats, next step hint) - `inst-return-report`
+7. [x] - `p1` - **IF** per-artifact errors exist **RETURN** FAIL report (stop before cross-validation) - `inst-if-structure-fail`
+8. [x] - `p1` - Cross-validate references across all artifacts using `cpt-cypilot-algo-traceability-validation-cross-validate` - `inst-cross-validate`
+9. [x] - `p1` - **IF** `--skip-code` is not set, validate code traceability using `cpt-cypilot-algo-traceability-validation-cross-validate-code` - `inst-if-code`
+10. [x] - `p1` - Enrich errors with fixing prompts for LLM agents - `inst-enrich-errors`
+11. [x] - `p1` - **RETURN** JSON report (status, artifact count, error/warning counts, coverage stats, next step hint) - `inst-return-report`
+
+**Supporting**:
+- [x] - `p1` - Imports and module setup for validate command - `inst-validate-imports`
+- [x] - `p1` - Internal helpers: attach issue to artifact report, enrich target artifact paths, find artifact in system, suggest path from autodetect - `inst-validate-helpers`
+- [x] - `p1` - Human-friendly formatter: issue location, issue formatting, validate report display - `inst-validate-format`
 
 ### Query Traceability
 
@@ -117,11 +124,17 @@ Catches structural and traceability issues that AI agents miss or hallucinate â€
 1. [x] - `p1` - User invokes one of: `list-ids [--kind K] [--pattern P]`, `where-defined --id <id>`, `where-used --id <id>`, `get-content --id <id>` - `inst-user-query`
 2. [x] - `p1` - Load project context and resolve all registered artifacts - `inst-query-load-context`
 3. [x] - `p1` - Scan all artifacts using `cpt-cypilot-algo-traceability-validation-scan-ids` to build ID index - `inst-scan-all`
-4. [x] - `p1` - **IF** `list-ids`: filter index by `--kind` and `--pattern`, return definitions - `inst-if-list`
-5. [x] - `p1` - **IF** `where-defined`: find definition entries for the given ID - `inst-if-where-def`
-6. [x] - `p1` - **IF** `where-used`: find reference entries for the given ID across artifacts and code - `inst-if-where-used`
-7. [x] - `p1` - **IF** `get-content`: locate ID definition, extract content block from heading scope - `inst-if-get-content`
-8. [x] - `p1` - **RETURN** JSON result - `inst-return-query`
+4. [x] - `p1` - **IF** `list-ids --include-code`: scan codebase files for marker references - `inst-if-list-code`
+5. [x] - `p1` - **IF** `list-ids`: filter index by `--kind` and `--pattern`, return definitions - `inst-if-list`
+6. [x] - `p1` - **IF** `where-defined`: find definition entries for the given ID - `inst-if-where-def`
+7. [x] - `p1` - **IF** `where-used`: find reference entries for the given ID across artifacts and code - `inst-if-where-used`
+8. [x] - `p1` - **IF** `get-content`: locate ID definition, extract content block from heading scope - `inst-if-get-content`
+9. [x] - `p1` - **RETURN** JSON result - `inst-return-query`
+
+**Supporting**:
+- [x] - `p1` - Imports and module setup for query commands (list-ids, where-defined, where-used) - `inst-query-imports`
+- [x] - `p1` - Argument parsing, context resolution, and artifact collection for query commands - `inst-query-resolve`
+- [x] - `p1` - Human-friendly formatters for list-ids, where-defined, and where-used output - `inst-query-format`
 
 ## 3. Processes / Business Logic (CDSL)
 
@@ -141,6 +154,13 @@ Catches structural and traceability issues that AI agents miss or hallucinate â€
    3. [x] - `p1` - **ELSE** match standalone reference pattern: `\`cpt-...\`` with optional checkbox - `inst-match-ref`
    4. [x] - `p1` - **ELSE** scan for inline backticked `cpt-*` references - `inst-match-inline`
 3. [x] - `p1` - **RETURN** ordered list of hits - `inst-return-hits`
+4. [x] - `p1` - Parse a `cpt-{system}-{kind}-{slug}` identifier: extract system, kind, slug with composite ID support - `inst-parse-cpt`
+
+**Supporting**:
+- [x] - `p1` - Imports, regex constants (ID definition, reference, backtick, heading, fence patterns), and ID normalization helper - `inst-scan-ids-datamodel`
+- [x] - `p1` - Heading-by-line index builder for document scope resolution - `inst-scan-ids-headings`
+- [x] - `p1` - Content scoped extraction: hash-fence blocks, heading scopes, ID-definition scopes - `inst-scan-ids-get-content`
+- [x] - `p1` - File I/O utilities: safe text reader, text file iterator, relative path converter - `inst-scan-ids-file-utils`
 
 ### Scan CDSL Instructions
 
@@ -157,6 +177,9 @@ Catches structural and traceability issues that AI agents miss or hallucinate â€
    1. [x] - `p1` - Extract checked status, priority, instruction slug - `inst-extract-inst`
    2. [x] - `p1` - Associate with current parent ID - `inst-associate-parent`
 4. [x] - `p1` - **RETURN** list of instruction records - `inst-return-cdsl`
+
+**Supporting**:
+- [x] - `p1` - CDSL line regex and phase number parsing constants - `inst-scan-cdsl-datamodel`
 
 ### Validate Artifact Structure
 
@@ -179,6 +202,9 @@ Catches structural and traceability issues that AI agents miss or hallucinate â€
 7. [x] - `p1` - Validate ID format and heading scoping per constraints - `inst-validate-id-format`
 8. [x] - `p1` - **RETURN** accumulated errors and warnings - `inst-return-structure`
 
+**Supporting**:
+- [x] - `p1` - Imports, dataclasses (ReferenceRule, HeadingConstraint, IdConstraint, ArtifactKindConstraints, KitConstraints, ArtifactRecord, ParsedCypilotId), error factory, and optional-bool parser - `inst-structure-datamodel`
+
 ### Cross-Validate Artifacts
 
 - [x] `p1` - **ID**: `cpt-cypilot-algo-traceability-validation-cross-validate`
@@ -197,6 +223,9 @@ Catches structural and traceability issues that AI agents miss or hallucinate â€
    1. [x] - `p1` - **IF** any task-tracked reference is unchecked, emit error: def done but ref not done - `inst-if-def-done-ref-not`
 5. [x] - `p1` - Enforce coverage rules from constraints (required cross-references between artifact kinds) - `inst-enforce-coverage`
 6. [x] - `p1` - **RETURN** accumulated errors and warnings - `inst-return-cross`
+
+**Supporting**:
+- [x] - `p1` - Setup helpers: system matcher, kind extractor, external-system detector, heading-info builder, constraint indexing - `inst-cross-datamodel`
 
 ### Scan Code Markers
 
@@ -217,6 +246,9 @@ Catches structural and traceability issues that AI agents miss or hallucinate â€
    2. [x] - `p1` - **IF** no matching begin or id/inst mismatch, emit structural error - `inst-if-mismatch`
 5. [x] - `p1` - **IF** unclosed blocks remain on stack, emit errors - `inst-if-unclosed`
 6. [x] - `p1` - **RETURN** parsed code file with markers and structural errors - `inst-return-code`
+7. [x] - `p1` - Define code data model: regex patterns, ScopeMarker, BlockMarker, CodeReference, CodeFile dataclasses, error factory - `inst-code-datamodel`
+8. [x] - `p1` - Query and validation methods: list_ids, get by ID/inst, validate duplicate scopes - `inst-code-query-validate`
+9. [x] - `p1` - Convenience wrappers: load_code_file, validate_code_file entry points - `inst-code-wrappers`
 
 ### Cross-Validate Code
 
@@ -257,6 +289,10 @@ Catches structural and traceability issues that AI agents miss or hallucinate â€
 6. [x] - `p1` - Aggregate kind counts and kindâ†”template mappings - `inst-kinds-aggregate`
 7. [x] - `p1` - **RETURN** JSON: `{kinds, kind_counts, kind_to_templates, template_to_kinds}` - `inst-kinds-return`
 
+**Supporting**:
+- [x] - `p1` - Imports and module setup for list-id-kinds command - `inst-kinds-imports`
+- [x] - `p1` - Human-friendly formatter for list-id-kinds output - `inst-kinds-format`
+
 ### Validate TOC
 
 - [x] `p1` - **ID**: `cpt-cypilot-algo-traceability-validation-validate-toc`
@@ -275,6 +311,10 @@ Catches structural and traceability issues that AI agents miss or hallucinate â€
    4. [x] - `p1` - **IF** mismatch, record error with diff details - `inst-toc-if-mismatch`
 4. [x] - `p1` - **RETURN** JSON: `{status, files_checked, errors}` - `inst-toc-return`
 
+**Supporting**:
+- [x] - `p1` - Imports and module setup for validate-toc command - `inst-toc-imports`
+- [x] - `p1` - Human-friendly formatter for validate-toc output - `inst-toc-format`
+
 ### TOC Utilities
 
 - [x] `p1` - **ID**: `cpt-cypilot-algo-traceability-validation-toc-utils`
@@ -284,9 +324,13 @@ Catches structural and traceability issues that AI agents miss or hallucinate â€
 1. [x] - `p1` - Parse headings from markdown lines (respecting fenced code blocks, min/max level, skip options) - `inst-toc-util-parse-headings`
 2. [x] - `p1` - Build TOC string from heading tuples (numbered or bulleted, GitHub-compatible anchors) - `inst-toc-util-build-toc`
 3. [x] - `p1` - Insert/update TOC using HTML markers (`<!-- toc -->`) for CLI command - `inst-toc-util-insert-markers`
-4. [x] - `p1` - Insert/update TOC using heading-based insertion (`## Table of Contents`) for blueprint generator - `inst-toc-util-insert-heading`
+4. [x] - `p1` - Insert/update TOC using heading-based insertion (`## Table of Contents`) for kit file generator - `inst-toc-util-insert-heading`
 5. [x] - `p1` - Process file: strip manual TOC, insert marker-based TOC, write if changed - `inst-toc-util-process-file`
 6. [x] - `p1` - Validate TOC: check existence, anchor validity, completeness, staleness - `inst-toc-util-validate`
+
+**Supporting**:
+- [x] - `p1` - Imports, constants, fence tracking, GitHub anchor slug generation - `inst-toc-util-datamodel`
+- [x] - `p1` - Internal helpers: unique slug, next heading finder, manual TOC stripping, TOC section finder, entry extraction, anchor building, heading line finder - `inst-toc-util-helpers`
 
 ### Markdown Parsing Utilities
 
@@ -300,6 +344,9 @@ Catches structural and traceability issues that AI agents miss or hallucinate â€
 4. [x] - `p1` - Extract field blocks from markdown (`**Field Name**: value` patterns) - `inst-parse-field-block`
 5. [x] - `p1` - Extract backticked IDs matching a pattern from text - `inst-parse-extract-ids`
 
+**Supporting**:
+- [x] - `p1` - Imports, constants, field header termination heuristic, and list item detection helper - `inst-parse-datamodel`
+
 ### Fixing Prompt Enrichment
 
 - [x] `p1` - **ID**: `cpt-cypilot-algo-traceability-validation-fixing-prompts`
@@ -310,6 +357,45 @@ Catches structural and traceability issues that AI agents miss or hallucinate â€
 2. [x] - `p1` - Build actionable fixing prompt per error code with location, ID, and constraint context - `inst-fix-build-prompt`
 3. [x] - `p1` - Enrich each issue in-place: resolve reasons, attach fixing prompt, normalize location - `inst-fix-enrich`
 
+**Supporting**:
+- [x] - `p1` - Imports, SafeDict formatter, reason resolver, and prompt helper functions (location, kind context, headings hint, relative path) - `inst-fix-datamodel`
+
+### Headings Contract Validation
+
+- [x] `p1` - **ID**: `cpt-cypilot-algo-traceability-validation-headings-contract`
+
+**Input**: Artifact path, artifact kind constraints (headings list), registered systems
+
+**Output**: `{errors, warnings}` lists
+
+**Steps**:
+1. [x] - `p1` - Resolve heading constraint IDs by line: match each document heading to a constraint pattern, build per-line active scope stack - `inst-resolve-scope`
+2. [x] - `p1` - Scan headings from markdown lines: parse level, title, numbering prefix (respecting fenced code blocks) - `inst-scan-headings`
+3. [x] - `p1` - Initialize validation context: load heading constraints, build helper lookups, scan document headings - `inst-validate-init`
+4. [x] - `p1` - Check numbering sequence: enforce that sibling sections under the same numeric parent progress consecutively - `inst-check-numbering`
+5. [x] - `p1` - Match headings against constraints: hierarchical scope matching, required/multiple/numbered enforcement, emit errors for missing/duplicate/misnumbered headings - `inst-match-headings`
+
+**Supporting**:
+- [x] - `p1` - Heading line regex, number prefix regex, and module exports - `inst-headings-datamodel`
+
+### Load Constraints
+
+- [x] `p1` - **ID**: `cpt-cypilot-algo-traceability-validation-load-constraints`
+
+**Input**: Kit root path or raw TOML data
+
+**Output**: `KitConstraints` object or list of parse errors
+
+**Steps**:
+1. [x] - `p1` - Load `constraints.toml` from kit root, parse TOML, delegate to `parse_kit_constraints` - `inst-load-toml`
+2. [x] - `p1` - Parse kit constraints: iterate artifact kinds, parse headings, identifiers, TOC flag, normalize heading IDs and prev/next references - `inst-parse-kit`
+3. [x] - `p1` - Parse individual ID constraint: validate kind, required, name, template, examples, task, priority, to_code, headings, references - `inst-parse-id-constraint`
+4. [x] - `p1` - Parse heading constraint: validate level, pattern, description, required, multiple, numbered, id, prev/next, pointer - `inst-parse-heading`
+5. [x] - `p1` - Parse reference rule: validate coverage, task, priority, headings fields - `inst-parse-ref-rule`
+
+**Supporting**:
+- [x] - `p1` - Examples parser, heading-constraint ID slugifier, and references map parser - `inst-constraints-helpers`
+
 ### Language Configuration
 
 - [x] `p1` - **ID**: `cpt-cypilot-algo-traceability-validation-language-config`
@@ -319,6 +405,9 @@ Catches structural and traceability issues that AI agents miss or hallucinate â€
 1. [x] - `p1` - Define extension-based comment format defaults for all supported languages - `inst-lang-define-defaults`
 2. [x] - `p1` - Load language config from project core.toml `codeScanning` section (with fallback to defaults) - `inst-lang-load-config`
 3. [x] - `p1` - Build regex patterns for `@cpt-begin`/`@cpt-end` markers using language-specific comment syntax - `inst-lang-build-regex`
+
+**Supporting**:
+- [x] - `p1` - Imports, default constants, LanguageConfig class, default config factory, and extension-based comment merging helper - `inst-lang-datamodel`
 
 ## 4. States (CDSL)
 
@@ -348,7 +437,7 @@ The system **MUST** validate each artifact against its kit-defined constraints: 
 - `cpt-cypilot-algo-traceability-validation-validate-structure`
 
 **Covers (PRD)**:
-- `cpt-cypilot-fr-sdlc-validation`
+- `cpt-cypilot-fr-core-traceability`
 
 **Covers (DESIGN)**:
 - `cpt-cypilot-component-validator`
@@ -356,7 +445,7 @@ The system **MUST** validate each artifact against its kit-defined constraints: 
 
 ### Cross-Artifact Reference Validation
 
-- [ ] `p1` - **ID**: `cpt-cypilot-dod-traceability-validation-cross-refs`
+- [x] `p1` - **ID**: `cpt-cypilot-dod-traceability-validation-cross-refs`
 
 The system **MUST** validate cross-artifact relationships: every ID reference resolves to a definition, checked references imply checked definitions, checked definitions imply checked references, and coverage rules from `constraints.toml` are enforced (required cross-references between artifact kinds). All consistency violations **MUST** include line numbers and artifact paths.
 
@@ -364,7 +453,7 @@ The system **MUST** validate cross-artifact relationships: every ID reference re
 - `cpt-cypilot-algo-traceability-validation-cross-validate`
 
 **Covers (PRD)**:
-- `cpt-cypilot-fr-sdlc-cross-artifact`
+- `cpt-cypilot-fr-core-traceability`
 
 **Covers (DESIGN)**:
 - `cpt-cypilot-component-validator`
@@ -410,7 +499,7 @@ The system **MUST** provide CLI commands for navigating the ID graph: `list-ids 
 
 ### CDSL Instruction Tracking
 
-- [ ] `p1` - **ID**: `cpt-cypilot-dod-traceability-validation-cdsl`
+- [x] `p1` - **ID**: `cpt-cypilot-dod-traceability-validation-cdsl`
 
 The system **MUST** scan CDSL instruction markers (`inst-{slug}` suffixes in numbered list items) from FEATURE artifacts, associate each instruction with its parent ID, track checked/unchecked status, and cross-validate against `@cpt-begin/@cpt-end` block markers in code. Missing implementations and orphaned code blocks **MUST** both produce errors.
 
@@ -445,16 +534,16 @@ The system **MUST** scan CDSL instruction markers (`inst-{slug}` suffixes in num
 
 ## 7. Acceptance Criteria
 
-- [ ] `cpt validate` validates all registered artifacts and produces JSON report with PASS/FAIL status
-- [ ] `cpt validate --artifact <path>` validates a single artifact against its constraints
-- [ ] Heading contract validation catches missing required sections and wrong heading levels
-- [ ] ID format validation catches malformed `cpt-*` identifiers with line numbers
-- [ ] Cross-artifact validation catches undefined references, checked/unchecked mismatches, and coverage gaps
-- [ ] Code traceability validation catches orphaned markers, missing `to_code` markers, and unchecked-task markers
-- [ ] CDSL instruction tracking catches missing `@cpt-begin/@cpt-end` blocks and orphaned code blocks
-- [ ] DOCS-ONLY mode prohibits all `@cpt-*` code markers
-- [ ] `cpt list-ids`, `where-defined`, `where-used`, `get-content` return correct JSON results
-- [ ] Validation of a single artifact completes in â‰¤ 3 seconds
-- [ ] Full project validation (all artifacts + code) completes in â‰¤ 10 seconds for typical repositories
-- [ ] All validation errors include file path, line number, and actionable fixing prompt
-- [ ] All commands output JSON to stdout and use exit codes 0/1/2
+- [x] `cpt validate` validates all registered artifacts and produces JSON report with PASS/FAIL status
+- [x] `cpt validate --artifact <path>` validates a single artifact against its constraints
+- [x] Heading contract validation catches missing required sections and wrong heading levels
+- [x] ID format validation catches malformed `cpt-*` identifiers with line numbers
+- [x] Cross-artifact validation catches undefined references, checked/unchecked mismatches, and coverage gaps
+- [x] Code traceability validation catches orphaned markers, missing `to_code` markers, and unchecked-task markers
+- [x] CDSL instruction tracking catches missing `@cpt-begin/@cpt-end` blocks and orphaned code blocks
+- [x] DOCS-ONLY mode prohibits all `@cpt-*` code markers
+- [x] `cpt list-ids`, `where-defined`, `where-used`, `get-content` return correct JSON results
+- [x] Validation of a single artifact completes in â‰¤ 3 seconds
+- [x] Full project validation (all artifacts + code) completes in â‰¤ 10 seconds for typical repositories
+- [x] All validation errors include file path, line number, and actionable fixing prompt
+- [x] All commands output JSON to stdout and use exit codes 0/1/2

@@ -374,7 +374,7 @@ def validate_credentials(user, password):
 
 ## References
 
-- **Kit specification**: `specs/kit/` — blueprint format, constraint definitions, validation semantics
+- **Kit specification**: `specs/kit/` — kit structure, constraint definitions, validation semantics
 - **CDSL**: `{cypilot_path}/.core/architecture/specs/CDSL.md` — behavioral specification language
 - **Artifacts registry**: `{cypilot_path}/config/artifacts.toml` — system, artifact, codebase definitions
 - **CLI**: `{cypilot_path}/.core/architecture/specs/cli.md` — `validate`, `validate-code`, `list-ids`, `where-defined`, `where-used` commands

@@ -11,16 +11,17 @@ version: 1.0
 
 <!-- toc -->
 
-- [Source Layout](#source-layout)
-- [Two-Package Design](#two-package-design)
-- [Context Singleton](#context-singleton)
-- [Path Resolution](#path-resolution)
-- [Registry as Source of Truth](#registry-as-source-of-truth)
-- [Architecture Patterns](#architecture-patterns)
-  - [Template-Centric Architecture](#template-centric-architecture)
-  - [Adaptive Workflow Model](#adaptive-workflow-model)
-  - [Kit Package Pattern](#kit-package-pattern)
-- [Critical Files](#critical-files)
+- [Architecture](#architecture)
+  - [Source Layout](#source-layout)
+  - [Two-Package Design](#two-package-design)
+  - [Context Singleton](#context-singleton)
+  - [Path Resolution](#path-resolution)
+  - [Registry as Source of Truth](#registry-as-source-of-truth)
+  - [Architecture Patterns](#architecture-patterns)
+    - [Template-Centric Architecture](#template-centric-architecture)
+    - [Adaptive Workflow Model](#adaptive-workflow-model)
+    - [Kit Package Pattern](#kit-package-pattern)
+  - [Critical Files](#critical-files)
 
 <!-- /toc -->
 
@@ -29,18 +30,18 @@ System design, module boundaries, and key abstractions of the Cypilot project.
 ## Source Layout
 
 ```
-src/cypilot_proxy/          # Proxy package (5 files, ~730 LOC)
+src/cypilot_proxy/          # Proxy package (5 files, ~875 LOC)
   cli.py                    # Entry point: main() → resolve → forward
   resolve.py                # Skill target resolution (project → cache)
   cache.py                  # GitHub release download + extraction
 
-skills/cypilot/scripts/cypilot/   # Skill engine (~34 files)
+skills/cypilot/scripts/cypilot/   # Skill engine (~39 files)
   cli.py                    # Command dispatch (lazy imports per command)
   constants.py              # Shared regex patterns and constants
-  commands/                 # One module per CLI subcommand
-  utils/                    # Shared utility modules
+  commands/                 # One module per CLI subcommand (17 modules)
+  utils/                    # Shared utility modules (16 modules)
 
-tests/                      # 26 test modules, pytest + conftest
+tests/                      # 35 test modules, pytest + conftest
 ```
 
 ## Two-Package Design
@@ -83,5 +84,5 @@ Validation rules and templates are packaged as "kits" (`kits/{kit-id}/`) reusabl
 | `skills/cypilot/scripts/cypilot/commands/init.py` | Init flow — copies cache → .core/, creates config/ |
 | `src/cypilot_proxy/resolve.py` | Skill resolution — touch when changing install layout |
 | `src/cypilot_proxy/cache.py` | GitHub download — touch when changing release format |
-| `cypilot/config/artifacts.toml` | Source of truth for systems, artifacts, codebases |
+| `.bootstrap/config/artifacts.toml` | Source of truth for systems, artifacts, codebases |
 | `tests/conftest.py` | sys.path setup — must include all source roots |

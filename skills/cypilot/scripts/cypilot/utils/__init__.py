@@ -2,6 +2,8 @@
 Cypilot Validator - Utility Functions
 
 Utility modules for file operations and markdown parsing.
+
+@cpt-algo:cpt-cypilot-algo-core-infra-config-management:p1
 """
 
 from .files import (

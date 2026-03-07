@@ -22,77 +22,76 @@ version: 1.0
 
 ```
 ./
-├── cypilot/                   # Cypilot directory (v3 layout)
+├── .bootstrap/                # Cypilot adapter directory (cypilot_path = ".bootstrap")
 │   ├── .core/                # Read-only core (from cache, do not edit)
 │   │   ├── architecture/
 │   │   ├── requirements/
 │   │   ├── schemas/
 │   │   ├── skills/
 │   │   └── workflows/
-│   ├── .gen/                 # Auto-generated (do not edit)
+│   ├── .gen/                 # Auto-generated aggregates only (do not edit)
 │   │   ├── AGENTS.md
 │   │   ├── SKILL.md
-│   │   └── kits/sdlc/
-│   └── config/               # User-editable configuration
-│       ├── AGENTS.md         # Custom navigation rules
-│       ├── SKILL.md          # Custom skill extensions
-│       ├── core.toml         # Project config
-│       ├── artifacts.toml    # Artifacts registry
-│       ├── rules/            # Project rules (per-topic)
-│       └── kits/sdlc/blueprints/
+│   │   └── README.md
+│   ├── config/               # User-editable configuration + generated kit outputs
+│   │   ├── AGENTS.md         # Custom navigation rules
+│   │   ├── SKILL.md          # Custom skill extensions
+│   │   ├── core.toml         # Project config
+│   │   ├── artifacts.toml    # Artifacts registry
+│   │   ├── rules/            # Project rules (per-topic, auto-config)
+│   │   └── kits/sdlc/        # Generated kit outputs (constraints, artifacts/, scripts/)
+│   └── kits/sdlc/            # User-editable kit data
+│       ├── blueprints/       # User-editable blueprints
+│       └── conf.toml         # Kit version metadata
+│
+├── .github/
+│   └── workflows/ci.yml      # GitHub Actions CI (single source of truth)
 │
 ├── AGENTS.md                 # Root navigation rules
+├── CONTRIBUTING.md           # Development guide
 ├── README.md                 # Project documentation
-├── Makefile                  # Build automation
-├── LICENSE                   # License file
+├── Makefile                  # Build automation + local CI
+├── pyproject.toml            # PyPI package config
 │
 ├── architecture/             # Design artifacts
 │   ├── PRD.md
 │   ├── DESIGN.md
 │   ├── DECOMPOSITION.md
-│   └── specs/
+│   ├── features/             # Feature specs
+│   └── specs/                # Technical specs (CDSL, CLISPEC, etc.)
 │
-├── kits/                     # Kit packages (source)
+├── kits/                     # Kit packages (canonical source)
 │   └── sdlc/
 │       ├── blueprints/
 │       ├── guides/
-│       └── scripts/
+│       ├── scripts/
+│       └── blueprint_hashes.toml
 │
-├── workflows/                # Cypilot workflows (source)
-│   ├── generate.md
-│   └── analyze.md
-│
-├── requirements/             # Cypilot requirements specs (source)
-│   ├── execution-protocol.md
-│   ├── auto-config.md
-│   └── ...
-│
-├── schemas/                  # JSON schemas (source)
-│   ├── artifacts.schema.json
-│   └── core-config.schema.json
-│
-├── skills/                   # Cypilot skills (source)
+├── skills/                   # Cypilot skills (canonical source)
 │   └── cypilot/
 │       ├── SKILL.md
-│       └── scripts/cypilot/  # CLI package
+│       └── scripts/cypilot/  # CLI package (skill engine)
 │
-├── src/                      # Proxy package (source)
+├── src/                      # Proxy package (canonical source)
 │   └── cypilot_proxy/
 │       ├── cli.py
 │       ├── resolve.py
 │       └── cache.py
 │
-├── tests/                    # Test suite
+├── tests/                    # Test suite (35 test modules)
 │   ├── test_*.py
-│   └── conftest.py
+│   ├── conftest.py
+│   └── _test_helpers.py
 │
 ├── scripts/                  # Utility scripts
 │   ├── check_coverage.py
+│   ├── check_versions.py
 │   └── score_comparison_matrix.py
 │
 └── guides/                   # User guides
     ├── STORY.md
-    └── TAXONOMY.md
+    ├── TAXONOMY.md
+    └── MIGRATION.md
 ```
 
 ## CLI Package Structure
@@ -151,8 +150,9 @@ kits/sdlc/
 
 | File | Purpose |
 |------|---------|
-| `cypilot/config/artifacts.toml` | Artifact registry |
-| `cypilot/config/AGENTS.md` | Custom navigation rules |
-| `cypilot/.gen/AGENTS.md` | Generated navigation rules |
+| `.bootstrap/config/artifacts.toml` | Artifact registry |
+| `.bootstrap/config/AGENTS.md` | Custom navigation rules |
+| `.bootstrap/.gen/AGENTS.md` | Generated navigation rules |
+| `.github/workflows/ci.yml` | CI pipeline (single source of truth) |
 | `AGENTS.md` | Root navigation (routes to above) |
-| `Makefile` | Build/test commands |
+| `Makefile` | Build/test/CI commands |
