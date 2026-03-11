@@ -101,3 +101,12 @@ details = """\
 - **`cpt update` respects core.toml** — no longer installs kits that aren't registered
 - **E2E upgrade tests auto-generated** — `_VERSION_TAGS` populated from git tags; no manual maintenance needed\
 """
+
+["v3.0.11-beta"]
+summary = "Kit update respects resource bindings"
+details = """\
+- **`cpt kit update` honors resource bindings** — files are updated at their registered paths from `core.toml`, not default `config/kits/{slug}/` paths
+- **Directory resource support** — directory resources correctly compute relative paths within the bound directory
+- **Backward compatible** — files without bindings still go to default paths
+- **New `build_source_to_resource_mapping()`** — maps source file paths to resource IDs for manifest-driven kits\
+"""

@@ -1534,6 +1534,20 @@ def update_kit(
                 )
     # @cpt-end:cpt-cypilot-algo-kit-update:p1:inst-legacy-manifest-migration
 
+    # @cpt-begin:cpt-cypilot-algo-kit-update:p1:inst-resolve-resource-bindings
+    # Build source-to-resource-id mapping and resolve resource bindings
+    _resource_bindings = None
+    _source_to_resource_id = None
+    _resource_info = None
+    if _manifest is not None:
+        from ..utils.manifest import (
+            build_source_to_resource_mapping,
+            resolve_resource_bindings,
+        )
+        _source_to_resource_id, _resource_info = build_source_to_resource_mapping(source_dir)
+        _resource_bindings = resolve_resource_bindings(config_dir, kit_slug, cypilot_dir)
+    # @cpt-end:cpt-cypilot-algo-kit-update:p1:inst-resolve-resource-bindings
+
     # @cpt-begin:cpt-cypilot-algo-kit-update:p1:inst-first-install
     # ── 1. First-install or file-level update ────────────────────────
     if not config_kit_dir.is_dir():
@@ -1563,6 +1577,9 @@ def update_kit(
             auto_approve=auto_approve,
             content_dirs=_KIT_CONTENT_DIRS,
             content_files=_KIT_CONTENT_FILES,
+            resource_bindings=_resource_bindings,
+            source_to_resource_id=_source_to_resource_id,
+            resource_info=_resource_info,
         )
         accepted = report.get("accepted", [])
         declined = report.get("declined", [])
