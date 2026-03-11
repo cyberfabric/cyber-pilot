@@ -31,6 +31,7 @@
   - [Manifest-Driven Installation](#manifest-driven-installation)
   - [Manifest Legacy Migration](#manifest-legacy-migration)
   - [Manifest Resource Resolution](#manifest-resource-resolution)
+  - [Manifest Source Path Mapping](#manifest-source-path-mapping)
 - [4. States (CDSL)](#4-states-cdsl)
   - [Kit Installation State](#kit-installation-state)
 - [5. Definitions of Done](#5-definitions-of-done)
@@ -206,32 +207,35 @@ Enables users to install, update, and validate kit packages with interactive fil
 3. [x] - `p1` - Read source version from `conf.toml` - `inst-read-source-version`
 4. [x] - `p1` - **IF** not force and version matches installed: return "current" status with metadata - `inst-version-check`
 5. [x] - `p1` - **IF** source has `manifest.toml` and kit has no `resources` in core.toml: trigger `migrate_legacy_kit_to_manifest` - `inst-legacy-manifest-migration`
-6. [x] - `p1` - **IF** config/kits/{slug}/ does not exist: first-install via `_copy_kit_content`, seed configs, register in core.toml - `inst-first-install`
-7. [x] - `p1` - **ELSE**: existing kit — delegate to `file_level_kit_update` for interactive diff - `inst-file-level-diff`
-8. [x] - `p1` - Update version in `core.toml` from source version - `inst-update-core-toml`
-9. [x] - `p1` - Collect metadata for `.gen/` aggregation - `inst-collect-metadata`
-10. [x] - `p1` - **RETURN** result with kit, version, gen, accepted/declined files - `inst-return-result`
+6. [x] - `p1` - **IF** source has `manifest.toml`: build source-path-to-resource-id mapping from manifest, resolve resource bindings from `core.toml` via `cpt-cypilot-algo-kit-manifest-resolve` - `inst-resolve-resource-bindings`
+7. [x] - `p1` - **IF** config/kits/{slug}/ does not exist: first-install via `_copy_kit_content`, seed configs, register in core.toml - `inst-first-install`
+8. [x] - `p1` - **ELSE**: existing kit — delegate to `file_level_kit_update` for interactive diff, passing `resource_bindings`, `source_to_resource_id`, and `resource_info` for manifest-driven kits - `inst-file-level-diff`
+9. [x] - `p1` - Update version in `core.toml` from source version - `inst-update-core-toml`
+10. [x] - `p1` - Collect metadata for `.gen/` aggregation - `inst-collect-metadata`
+11. [x] - `p1` - **RETURN** result with kit, version, gen, accepted/declined files - `inst-return-result`
 
 ### File-Level Kit Update
 
 - [x] `p1` - **ID**: `cpt-cypilot-algo-kit-file-update`
 
-**Input**: Source dir, user dir, flags (interactive, auto_approve, force, dry_run, content_dirs, content_files)
+**Input**: Source dir, user dir, flags (interactive, auto_approve, force, dry_run, content_dirs, content_files), optional resource_bindings (Dict[str, Path]), optional source_to_resource_id (Dict[str, str]), optional resource_info (Dict[str, {"type": str, "source_base": str}])
 
 **Output**: Dict with status, added/removed/modified/unchanged, accepted/declined paths
 
 **Steps**:
 1. [x] - `p1` - Enumerate source and user kit files via `_enumerate_kit_files` - `inst-enumerate-files`
-2. [x] - `p1` - Strip TOC from both sides for cleaner diff comparison, record `toc_formats` per file - `inst-strip-toc`
-3. [x] - `p1` - Classify changes between source and user via `_classify_kit_files` - `inst-classify-changes`
-4. [x] - `p1` - **IF** no changes: return "current" status early - `inst-check-no-changes`
-5. [x] - `p1` - Show update summary with colored counts (added/removed/modified/unchanged) - `inst-show-summary`
-6. [x] - `p1` - **FOR EACH** changed file: display context (new file, deleted, or unified diff) - `inst-show-change-context`
-7. [x] - `p1` - **FOR EACH** changed file: get user decision via `_prompt_kit_file` or auto-accept/decline per flags - `inst-prompt-decision`
-8. [x] - `p1` - **IF** decision is "modify": open editor for manual merge via `_open_editor_for_file` - `inst-editor-merge`
-9. [x] - `p1` - Apply accepted changes: write new/modified files, delete removed files - `inst-apply-changes`
-10. [x] - `p1` - **IF** file had TOC and was written: prompt/auto-regenerate TOC, handle errors with rollback - `inst-toc-regen`
-11. [x] - `p1` - **RETURN** result with all entries, accepted/declined paths - `inst-build-result`
+2. [x] - `p1` - **IF** `resource_bindings` provided: build target path mapping for each source file using `source_to_resource_id` lookup. For file resources, target is `resource_bindings[resource_id]`. For directory resources, target is `resource_bindings[resource_id] / relative_path_within_directory`. For files without binding, target is `user_dir / rel_path` (default behavior) - `inst-build-target-mapping`
+3. [x] - `p1` - **IF** `resource_bindings` provided: enumerate user files from all bound target paths (files directly, directories recursively) to correctly detect modifications - `inst-enumerate-bound-user-files`
+4. [x] - `p1` - Strip TOC from both sides for cleaner diff comparison, record `toc_formats` per file - `inst-strip-toc`
+5. [x] - `p1` - Classify changes between source and user via `_classify_kit_files` - `inst-classify-changes`
+6. [x] - `p1` - **IF** no changes: return "current" status early - `inst-check-no-changes`
+7. [x] - `p1` - Show update summary with colored counts (added/removed/modified/unchanged); for redirected files, show both source path and target path - `inst-show-summary`
+8. [x] - `p1` - **FOR EACH** changed file: display context (new file, deleted, or unified diff) - `inst-show-change-context`
+9. [x] - `p1` - **FOR EACH** changed file: get user decision via `_prompt_kit_file` or auto-accept/decline per flags - `inst-prompt-decision`
+10. [x] - `p1` - **IF** decision is "modify": open editor for manual merge via `_open_editor_for_file` - `inst-editor-merge`
+11. [x] - `p1` - Apply accepted changes: write new/modified files to target paths (using target mapping for bound resources), delete removed files from their target paths - `inst-apply-changes`
+12. [x] - `p1` - **IF** file had TOC and was written: prompt/auto-regenerate TOC, handle errors with rollback - `inst-toc-regen`
+13. [x] - `p1` - **RETURN** result with all entries, accepted/declined paths - `inst-build-result`
 
 **Supporting**:
 - [x] - `p1` - Result list initialization and changed file aggregation helpers - `inst-update-datamodel`
@@ -438,6 +442,25 @@ Enables users to install, update, and validate kit packages with interactive fil
 2. [x] - `p1` - **FOR EACH** binding: resolve relative path against `{cypilot_path}` (adapter directory) to absolute path; paths may contain `..` for resources outside the adapter tree - `inst-resolve-to-absolute`
 3. [x] - `p1` - **RETURN** identifier → absolute path dict - `inst-resolve-return`
 
+### Manifest Source Path Mapping
+
+- [x] `p1` - **ID**: `cpt-cypilot-algo-kit-manifest-source-mapping`
+
+**Input**: Kit source directory (containing `manifest.toml`)
+
+**Output**: Tuple of:
+- `source_to_resource_id`: Dict of `{source_rel_path: resource_id}` for all files (including files inside directory resources)
+- `resource_info`: Dict of `{resource_id: {"type": "file"|"directory", "source_base": str}}` — for directory resources, `source_base` is the directory path in source kit (e.g., `"artifacts/ADR"`)
+
+**Steps**:
+1. [x] - `p1` - Load `manifest.toml` from kit source directory - `inst-load-manifest`
+2. [x] - `p1` - **FOR EACH** resource in manifest: record resource info (type, source_base) - `inst-record-resource-info`
+3. [x] - `p1` - **FOR EACH** file resource: map `resource.source` → `resource.id` directly - `inst-map-file-resources`
+4. [x] - `p1` - **FOR EACH** directory resource: recursively enumerate all files under `source` path, map each file's full relative path (e.g., `artifacts/ADR/template.md`) to the resource id - `inst-expand-directories`
+5. [x] - `p1` - **RETURN** (source_to_resource_id, resource_info) - `inst-return-mapping`
+
+**Note**: When resolving target path for a file inside a directory resource, compute `relative_path_within_directory = source_rel_path.removeprefix(resource_info[resource_id]["source_base"] + "/")`, then target is `resource_bindings[resource_id] / relative_path_within_directory`.
+
 ---
 
 ## 4. States (CDSL)
@@ -476,6 +499,8 @@ Enables users to install, update, and validate kit packages with interactive fil
 3. [x] - `p1` - User can accept/decline/modify per file, or bulk accept/decline all
 4. [x] - `p1` - TOC sections are stripped for diff comparison and regenerated post-write
 5. [x] - `p1` - Editor merge uses git-style conflict markers
+6. [x] - `p1` - **IF** manifest-driven kit with resource bindings: files are updated at their registered paths, not default `config/kits/{slug}/` paths
+7. [x] - `p1` - **IF** manifest-driven kit: new resources (in manifest but not in `core.toml` bindings) trigger path prompt and are registered
 
 ### Kit Validate Checks Integrity
 
@@ -492,7 +517,8 @@ Enables users to install, update, and validate kit packages with interactive fil
 
 | Module | Algorithms Implemented |
 |--------|----------------------|
-| `skills/cypilot/scripts/cypilot/commands/kit.py` | `cpt-cypilot-algo-kit-content-mgmt`, `cpt-cypilot-algo-kit-regen-gen`, `cpt-cypilot-algo-kit-install`, `cpt-cypilot-algo-kit-update`, `cpt-cypilot-algo-kit-config-helpers`, `cpt-cypilot-algo-kit-manifest-install`, `cpt-cypilot-algo-kit-manifest-legacy-migration`, `cpt-cypilot-algo-kit-manifest-resolve`, `cpt-cypilot-flow-kit-install-cli`, `cpt-cypilot-flow-kit-update-cli`, `cpt-cypilot-flow-kit-dispatch` |
+| `skills/cypilot/scripts/cypilot/commands/kit.py` | `cpt-cypilot-algo-kit-content-mgmt`, `cpt-cypilot-algo-kit-regen-gen`, `cpt-cypilot-algo-kit-install`, `cpt-cypilot-algo-kit-update`, `cpt-cypilot-algo-kit-config-helpers`, `cpt-cypilot-algo-kit-manifest-install`, `cpt-cypilot-algo-kit-manifest-legacy-migration`, `cpt-cypilot-flow-kit-install-cli`, `cpt-cypilot-flow-kit-update-cli`, `cpt-cypilot-flow-kit-dispatch` |
+| `skills/cypilot/scripts/cypilot/utils/manifest.py` | `cpt-cypilot-algo-kit-manifest-resolve`, `cpt-cypilot-algo-kit-manifest-source-mapping` |
 | `skills/cypilot/scripts/cypilot/utils/diff_engine.py` | `cpt-cypilot-algo-kit-file-update`, `cpt-cypilot-algo-kit-file-enumerate`, `cpt-cypilot-algo-kit-file-classify`, `cpt-cypilot-algo-kit-interactive-review`, `cpt-cypilot-algo-kit-diff-display`, `cpt-cypilot-algo-kit-conflict-merge`, `cpt-cypilot-algo-kit-toc-handling`, `cpt-cypilot-algo-kit-snapshot` |
 | `skills/cypilot/scripts/cypilot/commands/validate_kits.py` | `cpt-cypilot-algo-kit-validate`, `cpt-cypilot-algo-kit-validate-by-path`, `cpt-cypilot-flow-kit-validate-cli` |
 
@@ -504,6 +530,7 @@ Enables users to install, update, and validate kit packages with interactive fil
 - [ ] `p1` - `cpt kit install` with manifest: validates `manifest.toml`, prompts for `user_modifiable` paths, copies resources to resolved paths, registers bindings in `core.toml`
 - [ ] `p1` - `cpt kit update <path>` shows interactive diff and applies accepted changes
 - [ ] `p1` - `cpt kit update` with manifest on legacy install: auto-populates resource bindings from existing kit root + manifest defaults
+- [ ] `p1` - `cpt kit update` with resource bindings: updates files at their registered paths (not default `config/kits/{slug}/` paths); new resources without bindings go to default paths
 - [ ] `p1` - `cpt validate-kits` validates all registered kits (constraints + templates); for manifest kits, verifies registered resource paths exist
 - [ ] `p1` - `.gen/AGENTS.md` and `.gen/SKILL.md` are regenerated after install/update
 - [ ] `p1` - File-level diff correctly handles TOC stripping, conflict merging, and editor integration

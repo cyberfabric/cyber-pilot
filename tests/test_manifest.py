@@ -421,3 +421,201 @@ class TestValidateAgainstSchema:
             "resources": [{"id": "a", "source": "a", "default_path": "a", "type": "file", "user_modifiable": "yes"}],
         })
         assert any("user_modifiable" in e and "boolean" in e for e in errors)
+
+
+# ---------------------------------------------------------------------------
+# build_source_to_resource_mapping
+# ---------------------------------------------------------------------------
+
+class TestBuildSourceToResourceMapping:
+    """Tests for build_source_to_resource_mapping function."""
+
+    def test_no_manifest_returns_empty(self, tmp_path: Path) -> None:
+        """Kit without manifest.toml returns empty dicts."""
+        from cypilot.utils.manifest import build_source_to_resource_mapping
+
+        kit = tmp_path / "kit"
+        kit.mkdir()
+        (kit / "SKILL.md").write_text("# Skill\n", encoding="utf-8")
+
+        source_map, resource_info = build_source_to_resource_mapping(kit)
+        assert source_map == {}
+        assert resource_info == {}
+
+    def test_file_resource_mapping(self, tmp_path: Path) -> None:
+        """File resources are mapped directly."""
+        from cypilot.utils.manifest import build_source_to_resource_mapping, ResourceInfo
+
+        kit = tmp_path / "kit"
+        kit.mkdir()
+        (kit / "template.md").write_text("# Template\n", encoding="utf-8")
+
+        _write_manifest(kit, """\
+            [manifest]
+            version = "1.0"
+
+            [[resources]]
+            id = "my_template"
+            source = "template.md"
+            default_path = "template.md"
+            type = "file"
+        """)
+
+        source_map, resource_info = build_source_to_resource_mapping(kit)
+
+        assert source_map == {"template.md": "my_template"}
+        assert "my_template" in resource_info
+        assert resource_info["my_template"].type == "file"
+        assert resource_info["my_template"].source_base == "template.md"
+
+    def test_directory_resource_expands_files(self, tmp_path: Path) -> None:
+        """Directory resources expand to all files within."""
+        from cypilot.utils.manifest import build_source_to_resource_mapping, ResourceInfo
+
+        kit = tmp_path / "kit"
+        kit.mkdir()
+        (kit / "artifacts" / "ADR").mkdir(parents=True)
+        (kit / "artifacts" / "ADR" / "template.md").write_text("# ADR\n", encoding="utf-8")
+        (kit / "artifacts" / "ADR" / "checklist.md").write_text("# Check\n", encoding="utf-8")
+        (kit / "artifacts" / "ADR" / "examples").mkdir()
+        (kit / "artifacts" / "ADR" / "examples" / "example.md").write_text("# Ex\n", encoding="utf-8")
+
+        _write_manifest(kit, """\
+            [manifest]
+            version = "1.0"
+
+            [[resources]]
+            id = "adr_artifacts"
+            source = "artifacts/ADR"
+            default_path = "artifacts/ADR"
+            type = "directory"
+        """)
+
+        source_map, resource_info = build_source_to_resource_mapping(kit)
+
+        # All files in directory should map to same resource id
+        assert source_map["artifacts/ADR/template.md"] == "adr_artifacts"
+        assert source_map["artifacts/ADR/checklist.md"] == "adr_artifacts"
+        assert source_map["artifacts/ADR/examples/example.md"] == "adr_artifacts"
+
+        # Resource info should have directory type
+        assert resource_info["adr_artifacts"].type == "directory"
+        assert resource_info["adr_artifacts"].source_base == "artifacts/ADR"
+
+    def test_mixed_file_and_directory_resources(self, tmp_path: Path) -> None:
+        """Both file and directory resources are handled correctly."""
+        from cypilot.utils.manifest import build_source_to_resource_mapping
+
+        kit = tmp_path / "kit"
+        kit.mkdir()
+        (kit / "SKILL.md").write_text("# Skill\n", encoding="utf-8")
+        (kit / "artifacts" / "ADR").mkdir(parents=True)
+        (kit / "artifacts" / "ADR" / "template.md").write_text("# ADR\n", encoding="utf-8")
+
+        _write_manifest(kit, """\
+            [manifest]
+            version = "1.0"
+
+            [[resources]]
+            id = "skill_file"
+            source = "SKILL.md"
+            default_path = "SKILL.md"
+            type = "file"
+
+            [[resources]]
+            id = "adr_dir"
+            source = "artifacts/ADR"
+            default_path = "artifacts/ADR"
+            type = "directory"
+        """)
+
+        source_map, resource_info = build_source_to_resource_mapping(kit)
+
+        assert source_map["SKILL.md"] == "skill_file"
+        assert source_map["artifacts/ADR/template.md"] == "adr_dir"
+        assert resource_info["skill_file"].type == "file"
+        assert resource_info["adr_dir"].type == "directory"
+
+
+# ---------------------------------------------------------------------------
+# file_level_kit_update integration
+# ---------------------------------------------------------------------------
+
+class TestFileLevelKitUpdateIntegration:
+    """Integration tests for file_level_kit_update with manifest-driven bindings."""
+
+    def test_file_and_directory_resources_written_to_bound_paths(self, tmp_path: Path) -> None:
+        """Both file and directory resources are written to their registered bound paths."""
+        from cypilot.utils.diff_engine import file_level_kit_update
+        from cypilot.utils.manifest import build_source_to_resource_mapping
+
+        kit = tmp_path / "kit"
+        kit.mkdir()
+        user_dir = tmp_path / "user"
+        user_dir.mkdir()
+        bound_skill = tmp_path / "bound" / "skill.md"
+        bound_adr = tmp_path / "bound" / "adr"
+        bound_skill.parent.mkdir(parents=True)
+        bound_adr.mkdir(parents=True)
+
+        # Create kit source with file resource (SKILL.md) and directory resource (artifacts/ADR)
+        (kit / "SKILL.md").write_text("# Skill File\n", encoding="utf-8")
+        (kit / "artifacts" / "ADR").mkdir(parents=True)
+        (kit / "artifacts" / "ADR" / "template.md").write_text("# ADR Template\n", encoding="utf-8")
+        (kit / "artifacts" / "ADR" / "checklist.md").write_text("# ADR Checklist\n", encoding="utf-8")
+
+        _write_manifest(kit, """\
+            [manifest]
+            version = "1.0"
+
+            [[resources]]
+            id = "skill_file"
+            source = "SKILL.md"
+            default_path = "SKILL.md"
+            type = "file"
+
+            [[resources]]
+            id = "adr_dir"
+            source = "artifacts/ADR"
+            default_path = "artifacts/ADR"
+            type = "directory"
+        """)
+
+        # Build mappings from manifest
+        source_to_resource_id, resource_info = build_source_to_resource_mapping(kit)
+
+        # Resource bindings redirect to custom locations
+        resource_bindings = {
+            "skill_file": bound_skill,
+            "adr_dir": bound_adr,
+        }
+
+        result = file_level_kit_update(
+            kit,
+            user_dir,
+            auto_approve=True,
+            source_to_resource_id=source_to_resource_id,
+            resource_info=resource_info,
+            resource_bindings=resource_bindings,
+        )
+
+        # Verify file resource written to bound path
+        assert bound_skill.is_file(), "skill_file should be written to bound path"
+        assert bound_skill.read_text(encoding="utf-8") == "# Skill File\n"
+
+        # Verify directory resource files written to bound directory
+        assert (bound_adr / "template.md").is_file(), "adr_dir/template.md should be written"
+        assert (bound_adr / "checklist.md").is_file(), "adr_dir/checklist.md should be written"
+        assert (bound_adr / "template.md").read_text(encoding="utf-8") == "# ADR Template\n"
+        assert (bound_adr / "checklist.md").read_text(encoding="utf-8") == "# ADR Checklist\n"
+
+        # Verify files NOT written to user_dir (they went to bound paths)
+        assert not (user_dir / "SKILL.md").exists()
+        assert not (user_dir / "artifacts" / "ADR" / "template.md").exists()
+
+        # Verify result reports added files
+        assert result["status"] == "updated"
+        added_paths = [e["path"] for e in result["added"]]
+        assert "SKILL.md" in added_paths
+        assert "artifacts/ADR/template.md" in added_paths
+        assert "artifacts/ADR/checklist.md" in added_paths

@@ -584,6 +584,9 @@ def file_level_kit_update(
     dry_run: bool = False,
     content_dirs: Optional[Tuple[str, ...]] = None,
     content_files: Optional[Tuple[str, ...]] = None,
+    resource_bindings: Optional[Dict[str, Path]] = None,
+    source_to_resource_id: Optional[Dict[str, str]] = None,
+    resource_info: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Compare source kit against user's installed copy and apply updates.
 
@@ -598,6 +601,9 @@ def file_level_kit_update(
         dry_run:       Show what would be done without writing.
         content_dirs:  If given, only include files under these top-level dirs.
         content_files: If given, only include root-level files matching these names.
+        resource_bindings: For manifest-driven kits, maps resource_id -> absolute target path.
+        source_to_resource_id: Maps source file rel_path -> resource_id.
+        resource_info: Maps resource_id -> ResourceInfo (type, source_base).
 
     Returns dict::
 
@@ -620,9 +626,108 @@ def file_level_kit_update(
         enum_kw["content_files"] = content_files
 
     source_files = _enumerate_kit_files(source_dir, **enum_kw)
-
-    user_files = _enumerate_kit_files(user_dir, **enum_kw)
     # @cpt-end:cpt-cypilot-algo-kit-file-update:p1:inst-enumerate-files
+
+    # @cpt-begin:cpt-cypilot-algo-kit-file-update:p1:inst-build-target-mapping
+    # Build target path mapping for resource bindings
+    target_mapping: Dict[str, Path] = {}  # source_rel_path -> absolute target path
+    if resource_bindings and source_to_resource_id and resource_info:
+        for src_rel_path in source_files:
+            res_id = source_to_resource_id.get(src_rel_path)
+            if res_id and res_id in resource_bindings:
+                binding_path = resource_bindings[res_id]
+                info = resource_info.get(res_id)
+                if info and info.type == "directory":
+                    # For directory resources, append relative path within directory
+                    source_base = info.source_base
+                    if src_rel_path.startswith(source_base + "/"):
+                        rel_within_dir = src_rel_path[len(source_base) + 1:]
+                        target_mapping[src_rel_path] = binding_path / rel_within_dir
+                    else:
+                        # Fallback: try to compute relative path within directory
+                        try:
+                            rel_within_dir = Path(src_rel_path).relative_to(info.source_base).as_posix()
+                            target_mapping[src_rel_path] = binding_path / rel_within_dir
+                        except ValueError:
+                            # Cannot compute relative path, use filename as last resort
+                            sys.stderr.write(
+                                f"    [debug] directory resource fallback: "
+                                f"source_base={info.source_base}, src_rel_path={src_rel_path}, "
+                                f"binding_path={binding_path}\n"
+                            )
+                            target_mapping[src_rel_path] = binding_path / src_rel_path.split("/")[-1]
+                else:
+                    # File resource: binding path is the target file
+                    # But if binding path is a directory, append the filename
+                    if binding_path.is_dir():
+                        sys.stderr.write(
+                            f"    [warn] file resource binding is a directory: "
+                            f"binding_path={binding_path}, src_rel_path={src_rel_path}\n"
+                        )
+                        filename = src_rel_path.split("/")[-1]
+                        target_mapping[src_rel_path] = binding_path / filename
+                    else:
+                        target_mapping[src_rel_path] = binding_path
+            else:
+                # No binding: default to user_dir / rel_path
+                target_mapping[src_rel_path] = user_dir / src_rel_path
+    else:
+        # No resource bindings: all files go to user_dir
+        for src_rel_path in source_files:
+            target_mapping[src_rel_path] = user_dir / src_rel_path
+    # @cpt-end:cpt-cypilot-algo-kit-file-update:p1:inst-build-target-mapping
+
+    # @cpt-begin:cpt-cypilot-algo-kit-file-update:p1:inst-enumerate-bound-user-files
+    # Enumerate user files from target paths (may be outside user_dir)
+    user_files: Dict[str, bytes] = {}
+    # First, read files at bound target paths (for files that exist in source)
+    for src_rel_path, target_path in target_mapping.items():
+        if target_path.is_file():
+            try:
+                user_files[src_rel_path] = target_path.read_bytes()
+            except (OSError, IOError):
+                pass
+    # For directory resources and file resources with directory bindings,
+    # enumerate existing files to detect files in user's bound path
+    if resource_bindings and resource_info:
+        for res_id, binding_path in resource_bindings.items():
+            info = resource_info.get(res_id)
+            if not info:
+                continue
+            if info.type == "directory" and binding_path.is_dir():
+                # Directory resource: enumerate all files
+                source_base = info.source_base
+                for fpath in binding_path.rglob("*"):
+                    if fpath.is_file():
+                        rel_within_dir = fpath.relative_to(binding_path).as_posix()
+                        src_rel_path = f"{source_base}/{rel_within_dir}"
+                        if src_rel_path not in user_files:
+                            try:
+                                user_files[src_rel_path] = fpath.read_bytes()
+                                target_mapping[src_rel_path] = fpath
+                            except (OSError, IOError):
+                                pass
+            elif info.type == "file" and binding_path.is_dir():
+                # File resource but binding points to directory: check for file with same name
+                filename = info.source_base.split("/")[-1]
+                fpath = binding_path / filename
+                # Compute the source-relative path this file would have
+                src_rel_path = info.source_base
+                if fpath.is_file() and src_rel_path not in user_files:
+                    try:
+                        user_files[src_rel_path] = fpath.read_bytes()
+                        target_mapping[src_rel_path] = fpath
+                    except (OSError, IOError):
+                        pass
+    # Also enumerate user_dir to detect removed files (files in user but not in source)
+    user_dir_files = _enumerate_kit_files(user_dir, **enum_kw)
+    for rel_path, content in user_dir_files.items():
+        if rel_path not in user_files:
+            user_files[rel_path] = content
+            # Add to target_mapping for deletion
+            if rel_path not in target_mapping:
+                target_mapping[rel_path] = user_dir / rel_path
+    # @cpt-end:cpt-cypilot-algo-kit-file-update:p1:inst-enumerate-bound-user-files
 
     # @cpt-begin:cpt-cypilot-algo-kit-file-update:p1:inst-strip-toc
     # Strip TOC from both sides so diffs only show content changes.
@@ -734,10 +839,10 @@ def file_level_kit_update(
         entry = {"path": rel_path, "action": action}
         wrote_file = False
         wrote_raw = False
+        dest = target_mapping.get(rel_path, user_dir / rel_path)
 
         if change_type == "added":
             if action in ("accepted", "modified") and not dry_run:
-                dest = user_dir / rel_path
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 write_data = new_content if action == "modified" else raw_new_content
                 dest.write_bytes(write_data)
@@ -746,15 +851,12 @@ def file_level_kit_update(
             result_added.append(entry)
 
         elif change_type == "removed":
-            if action in ("accepted",) and not dry_run:
-                target = user_dir / rel_path
-                if target.is_file():
-                    target.unlink()
+            if action in ("accepted",) and not dry_run and dest.is_file():
+                dest.unlink()
             result_removed.append(entry)
 
         elif change_type == "modified":
             if action in ("accepted", "modified") and not dry_run:
-                dest = user_dir / rel_path
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 write_data = new_content if action == "modified" else raw_new_content
                 dest.write_bytes(write_data)
@@ -770,7 +872,6 @@ def file_level_kit_update(
             if interactive and not should_regen:
                 should_regen = _prompt_toc_regen(rel_path) == "yes"
             if should_regen:
-                dest = user_dir / rel_path
                 pre_toc_content = dest.read_bytes()
                 try:
                     regenerated = _regenerate_toc(pre_toc_content, toc_fmt)

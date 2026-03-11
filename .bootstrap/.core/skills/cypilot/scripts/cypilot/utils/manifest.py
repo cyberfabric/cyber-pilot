@@ -310,3 +310,73 @@ def resolve_resource_bindings(
     # @cpt-begin:cpt-cypilot-algo-kit-manifest-resolve:p1:inst-resolve-return
     return result
     # @cpt-end:cpt-cypilot-algo-kit-manifest-resolve:p1:inst-resolve-return
+
+
+# ---------------------------------------------------------------------------
+# Source Path Mapping API
+# ---------------------------------------------------------------------------
+
+@dataclass(frozen=True)
+class ResourceInfo:
+    """Metadata about a manifest resource for target path resolution."""
+
+    type: str  # "file" or "directory"
+    source_base: str  # source path in manifest (e.g., "artifacts/ADR")
+
+
+# @cpt-algo:cpt-cypilot-algo-kit-manifest-source-mapping:p1
+def build_source_to_resource_mapping(
+    kit_source: Path,
+) -> tuple[Dict[str, str], Dict[str, ResourceInfo]]:
+    """Build mapping from source file paths to resource identifiers.
+
+    For manifest-driven kit updates, this mapping allows determining which
+    resource binding applies to each source file.
+
+    Args:
+        kit_source: Kit source directory (containing manifest.toml).
+
+    Returns:
+        Tuple of:
+        - source_to_resource_id: Dict mapping each source file's relative path
+          to its resource identifier. For directory resources, all files within
+          the directory are mapped to the same resource id.
+        - resource_info: Dict mapping resource id to ResourceInfo (type and
+          source_base path for computing relative paths within directories).
+
+    Returns (empty_dict, empty_dict) if no manifest.toml exists.
+
+    @cpt-begin:cpt-cypilot-algo-kit-manifest-source-mapping:p1:inst-load-manifest
+    """
+    manifest = load_manifest(kit_source)
+    if manifest is None:
+        return {}, {}
+    # @cpt-end:cpt-cypilot-algo-kit-manifest-source-mapping:p1:inst-load-manifest
+
+    source_to_resource_id: Dict[str, str] = {}
+    resource_info: Dict[str, ResourceInfo] = {}
+
+    # @cpt-begin:cpt-cypilot-algo-kit-manifest-source-mapping:p1:inst-record-resource-info
+    # @cpt-begin:cpt-cypilot-algo-kit-manifest-source-mapping:p1:inst-map-file-resources
+    # @cpt-begin:cpt-cypilot-algo-kit-manifest-source-mapping:p1:inst-expand-directories
+    for res in manifest.resources:
+        resource_info[res.id] = ResourceInfo(
+            type=res.type,
+            source_base=res.source,
+        )
+        if res.type == "file":
+            source_to_resource_id[res.source] = res.id
+        elif res.type == "directory":
+            source_dir = kit_source / res.source
+            if source_dir.is_dir():
+                for fpath in source_dir.rglob("*"):
+                    if fpath.is_file():
+                        rel_path = fpath.relative_to(kit_source).as_posix()
+                        source_to_resource_id[rel_path] = res.id
+    # @cpt-end:cpt-cypilot-algo-kit-manifest-source-mapping:p1:inst-expand-directories
+    # @cpt-end:cpt-cypilot-algo-kit-manifest-source-mapping:p1:inst-map-file-resources
+    # @cpt-end:cpt-cypilot-algo-kit-manifest-source-mapping:p1:inst-record-resource-info
+
+    # @cpt-begin:cpt-cypilot-algo-kit-manifest-source-mapping:p1:inst-return-mapping
+    return source_to_resource_id, resource_info
+    # @cpt-end:cpt-cypilot-algo-kit-manifest-source-mapping:p1:inst-return-mapping

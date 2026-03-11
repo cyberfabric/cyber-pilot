@@ -530,6 +530,354 @@ class TestFileLevelKitUpdate(unittest.TestCase):
 
 
 # =========================================================================
+# file_level_kit_update with resource bindings
+# =========================================================================
+
+class TestFileLevelKitUpdateResourceBindings(unittest.TestCase):
+    """Test file_level_kit_update with resource bindings for manifest-driven kits."""
+
+    def test_file_resource_binding_redirect(self):
+        """File resource is written to bound path, not user_dir."""
+        from cypilot.utils.diff_engine import file_level_kit_update
+        from cypilot.utils.manifest import ResourceInfo
+
+        with TemporaryDirectory() as td:
+            src = Path(td) / "src"
+            usr = Path(td) / "usr"
+            redirect_dir = Path(td) / "redirect"
+            src.mkdir()
+            usr.mkdir()
+            redirect_dir.mkdir()
+
+            # Source has a file
+            (src / "artifacts").mkdir()
+            (src / "artifacts" / "template.md").write_text("new template\n", encoding="utf-8")
+
+            # Resource bindings redirect to different location
+            resource_bindings = {
+                "adr_template": redirect_dir / "template.md",
+            }
+            source_to_resource_id = {
+                "artifacts/template.md": "adr_template",
+            }
+            resource_info = {
+                "adr_template": ResourceInfo(type="file", source_base="artifacts/template.md"),
+            }
+
+            result = file_level_kit_update(
+                src, usr,
+                auto_approve=True,
+                content_dirs=("artifacts",),
+                resource_bindings=resource_bindings,
+                source_to_resource_id=source_to_resource_id,
+                resource_info=resource_info,
+            )
+
+            self.assertEqual(result["status"], "updated")
+            # File should be at redirected path
+            self.assertTrue((redirect_dir / "template.md").is_file())
+            self.assertEqual((redirect_dir / "template.md").read_text(), "new template\n")
+            # File should NOT be at default path
+            self.assertFalse((usr / "artifacts" / "template.md").exists())
+
+    def test_directory_resource_binding_redirect(self):
+        """Directory resource files are written to bound directory with relative paths."""
+        from cypilot.utils.diff_engine import file_level_kit_update
+        from cypilot.utils.manifest import ResourceInfo
+
+        with TemporaryDirectory() as td:
+            src = Path(td) / "src"
+            usr = Path(td) / "usr"
+            redirect_dir = Path(td) / "redirect"
+            src.mkdir()
+            usr.mkdir()
+            redirect_dir.mkdir()
+
+            # Source has a directory with files
+            (src / "artifacts" / "ADR").mkdir(parents=True)
+            (src / "artifacts" / "ADR" / "template.md").write_text("ADR template\n", encoding="utf-8")
+            (src / "artifacts" / "ADR" / "checklist.md").write_text("ADR checklist\n", encoding="utf-8")
+
+            # Resource bindings redirect entire directory
+            resource_bindings = {
+                "adr_artifacts": redirect_dir / "ADR",
+            }
+            source_to_resource_id = {
+                "artifacts/ADR/template.md": "adr_artifacts",
+                "artifacts/ADR/checklist.md": "adr_artifacts",
+            }
+            resource_info = {
+                "adr_artifacts": ResourceInfo(type="directory", source_base="artifacts/ADR"),
+            }
+
+            result = file_level_kit_update(
+                src, usr,
+                auto_approve=True,
+                content_dirs=("artifacts",),
+                resource_bindings=resource_bindings,
+                source_to_resource_id=source_to_resource_id,
+                resource_info=resource_info,
+            )
+
+            self.assertEqual(result["status"], "updated")
+            # Files should be at redirected paths
+            self.assertTrue((redirect_dir / "ADR" / "template.md").is_file())
+            self.assertTrue((redirect_dir / "ADR" / "checklist.md").is_file())
+            self.assertEqual((redirect_dir / "ADR" / "template.md").read_text(), "ADR template\n")
+            # Files should NOT be at default paths
+            self.assertFalse((usr / "artifacts" / "ADR" / "template.md").exists())
+
+    def test_mixed_bound_and_unbound_files(self):
+        """Files without bindings go to user_dir, bound files go to binding path."""
+        from cypilot.utils.diff_engine import file_level_kit_update
+        from cypilot.utils.manifest import ResourceInfo
+
+        with TemporaryDirectory() as td:
+            src = Path(td) / "src"
+            usr = Path(td) / "usr"
+            redirect_dir = Path(td) / "redirect"
+            src.mkdir()
+            usr.mkdir()
+            redirect_dir.mkdir()
+
+            # Source has bound and unbound files
+            (src / "artifacts").mkdir()
+            (src / "artifacts" / "template.md").write_text("bound file\n", encoding="utf-8")
+            (src / "SKILL.md").write_text("unbound file\n", encoding="utf-8")
+
+            resource_bindings = {
+                "adr_template": redirect_dir / "template.md",
+            }
+            source_to_resource_id = {
+                "artifacts/template.md": "adr_template",
+                # SKILL.md has no binding
+            }
+            resource_info = {
+                "adr_template": ResourceInfo(type="file", source_base="artifacts/template.md"),
+            }
+
+            result = file_level_kit_update(
+                src, usr,
+                auto_approve=True,
+                content_dirs=("artifacts",),
+                content_files=("SKILL.md",),
+                resource_bindings=resource_bindings,
+                source_to_resource_id=source_to_resource_id,
+                resource_info=resource_info,
+            )
+
+            self.assertEqual(result["status"], "updated")
+            # Bound file at redirect path
+            self.assertTrue((redirect_dir / "template.md").is_file())
+            # Unbound file at default path
+            self.assertTrue((usr / "SKILL.md").is_file())
+            self.assertEqual((usr / "SKILL.md").read_text(), "unbound file\n")
+
+    def test_update_existing_bound_file(self):
+        """Existing file at bound path is correctly detected and updated."""
+        from cypilot.utils.diff_engine import file_level_kit_update
+        from cypilot.utils.manifest import ResourceInfo
+
+        with TemporaryDirectory() as td:
+            src = Path(td) / "src"
+            usr = Path(td) / "usr"
+            redirect_dir = Path(td) / "redirect"
+            src.mkdir()
+            usr.mkdir()
+            redirect_dir.mkdir()
+
+            # Source has updated content
+            (src / "artifacts").mkdir()
+            (src / "artifacts" / "template.md").write_text("updated content\n", encoding="utf-8")
+
+            # Existing file at bound location
+            (redirect_dir / "template.md").write_text("old content\n", encoding="utf-8")
+
+            resource_bindings = {
+                "adr_template": redirect_dir / "template.md",
+            }
+            source_to_resource_id = {
+                "artifacts/template.md": "adr_template",
+            }
+            resource_info = {
+                "adr_template": ResourceInfo(type="file", source_base="artifacts/template.md"),
+            }
+
+            result = file_level_kit_update(
+                src, usr,
+                auto_approve=True,
+                content_dirs=("artifacts",),
+                resource_bindings=resource_bindings,
+                source_to_resource_id=source_to_resource_id,
+                resource_info=resource_info,
+            )
+
+            self.assertEqual(result["status"], "updated")
+            self.assertIn("artifacts/template.md", result["accepted"])
+            # File should be updated at bound path
+            self.assertEqual((redirect_dir / "template.md").read_text(), "updated content\n")
+
+    def test_no_resource_bindings_uses_default_paths(self):
+        """Without resource bindings, files go to user_dir (backward compatibility)."""
+        from cypilot.utils.diff_engine import file_level_kit_update
+
+        with TemporaryDirectory() as td:
+            src = Path(td) / "src"
+            usr = Path(td) / "usr"
+            src.mkdir(); usr.mkdir()
+
+            (src / "artifacts").mkdir()
+            (src / "artifacts" / "template.md").write_text("content\n", encoding="utf-8")
+
+            # No resource bindings passed
+            result = file_level_kit_update(
+                src, usr,
+                auto_approve=True,
+                content_dirs=("artifacts",),
+            )
+
+            self.assertEqual(result["status"], "updated")
+            # File at default path
+            self.assertTrue((usr / "artifacts" / "template.md").is_file())
+
+    def test_file_resource_binding_to_directory(self):
+        """File resource with binding pointing to a directory appends filename."""
+        from cypilot.utils.diff_engine import file_level_kit_update
+        from cypilot.utils.manifest import ResourceInfo
+
+        with TemporaryDirectory() as td:
+            src = Path(td) / "src"
+            usr = Path(td) / "usr"
+            redirect_dir = Path(td) / "redirect"
+            src.mkdir()
+            usr.mkdir()
+            redirect_dir.mkdir()
+
+            # Source has example.md inside examples/ subdirectory
+            (src / "artifacts" / "ADR" / "examples").mkdir(parents=True)
+            (src / "artifacts" / "ADR" / "examples" / "example.md").write_text("new example\n", encoding="utf-8")
+
+            # Existing file at bound directory (binding points to directory, not file)
+            (redirect_dir / "example.md").write_text("old example\n", encoding="utf-8")
+
+            # Binding points to directory, but manifest resource is a file
+            resource_bindings = {
+                "adr_example": redirect_dir,  # Directory, not file!
+            }
+            source_to_resource_id = {
+                "artifacts/ADR/examples/example.md": "adr_example",
+            }
+            resource_info = {
+                "adr_example": ResourceInfo(type="file", source_base="artifacts/ADR/examples/example.md"),
+            }
+
+            result = file_level_kit_update(
+                src, usr,
+                auto_approve=True,
+                content_dirs=("artifacts",),
+                resource_bindings=resource_bindings,
+                source_to_resource_id=source_to_resource_id,
+                resource_info=resource_info,
+            )
+
+            self.assertEqual(result["status"], "updated")
+            # File should be updated at redirect_dir/example.md (filename appended)
+            self.assertEqual((redirect_dir / "example.md").read_text(), "new example\n")
+
+    def test_file_resource_binding_to_directory_detects_existing(self):
+        """File resource with directory binding detects existing file (not shown as 'new')."""
+        from cypilot.utils.diff_engine import file_level_kit_update
+        from cypilot.utils.manifest import ResourceInfo
+
+        with TemporaryDirectory() as td:
+            src = Path(td) / "src"
+            usr = Path(td) / "usr"
+            redirect_dir = Path(td) / "redirect"
+            src.mkdir()
+            usr.mkdir()
+            redirect_dir.mkdir()
+
+            # Source has example.md
+            (src / "artifacts" / "ADR" / "examples").mkdir(parents=True)
+            (src / "artifacts" / "ADR" / "examples" / "example.md").write_text("same content\n", encoding="utf-8")
+
+            # Existing file at bound directory with SAME content
+            (redirect_dir / "example.md").write_text("same content\n", encoding="utf-8")
+
+            resource_bindings = {
+                "adr_example": redirect_dir,
+            }
+            source_to_resource_id = {
+                "artifacts/ADR/examples/example.md": "adr_example",
+            }
+            resource_info = {
+                "adr_example": ResourceInfo(type="file", source_base="artifacts/ADR/examples/example.md"),
+            }
+
+            result = file_level_kit_update(
+                src, usr,
+                auto_approve=True,
+                content_dirs=("artifacts",),
+                resource_bindings=resource_bindings,
+                source_to_resource_id=source_to_resource_id,
+                resource_info=resource_info,
+            )
+
+            # Should be "current" since file exists with same content
+            self.assertEqual(result["status"], "current")
+            # File should NOT be in added list
+            self.assertNotIn("artifacts/ADR/examples/example.md", result.get("accepted", []))
+
+    def test_existing_file_in_bound_directory_not_in_source(self):
+        """Files existing in bound directory but not in source are detected as 'removed'."""
+        from cypilot.utils.diff_engine import file_level_kit_update
+        from cypilot.utils.manifest import ResourceInfo
+
+        with TemporaryDirectory() as td:
+            src = Path(td) / "src"
+            usr = Path(td) / "usr"
+            redirect_dir = Path(td) / "redirect"
+            src.mkdir()
+            usr.mkdir()
+            redirect_dir.mkdir()
+
+            # Source has template.md but NOT example.md
+            (src / "artifacts").mkdir()
+            (src / "artifacts" / "template.md").write_text("template content\n", encoding="utf-8")
+
+            # Bound directory has BOTH template.md and example.md (example.md is user-only)
+            (redirect_dir / "template.md").write_text("template content\n", encoding="utf-8")
+            (redirect_dir / "example.md").write_text("user example\n", encoding="utf-8")
+
+            resource_bindings = {
+                "adr_artifacts": redirect_dir,
+            }
+            source_to_resource_id = {
+                "artifacts/template.md": "adr_artifacts",
+            }
+            resource_info = {
+                "adr_artifacts": ResourceInfo(type="directory", source_base="artifacts"),
+            }
+
+            result = file_level_kit_update(
+                src, usr,
+                interactive=False,  # Non-interactive declines changes
+                content_dirs=("artifacts",),
+                resource_bindings=resource_bindings,
+                source_to_resource_id=source_to_resource_id,
+                resource_info=resource_info,
+            )
+
+            # example.md should be detected as existing in bound dir
+            # Since it's not in source, it would be classified as "removed"
+            # With interactive=False, it should be declined (not deleted)
+            self.assertTrue((redirect_dir / "example.md").is_file())
+            self.assertEqual((redirect_dir / "example.md").read_text(), "user example\n")
+            # Verify example.md was detected and declined
+            self.assertIn("artifacts/example.md", result["declined"])
+
+
+# =========================================================================
 # _has_conflict_markers
 # =========================================================================
 
