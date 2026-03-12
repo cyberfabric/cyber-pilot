@@ -162,6 +162,7 @@ Keep hardcoded versions but add pre-commit hooks or CI actions to automate bumps
 | `cpt update --source <dir>` | `git describe` in source dir | `skill-v3.0.13-beta` |
 | `cpt update` (from GitHub) | Tag from release URL | `skill-v3.0.13-beta` |
 | Cached copy (no git) | Read `version` from `~/.cypilot/cache/meta.toml` | `v3.0.13-beta` |
+| Legacy cached copy (no git, no `meta.toml`) | Read `__version__` from `__init__.py` | `v3.0.12-beta` |
 
 ### Cache Version Storage
 
@@ -177,7 +178,8 @@ source = "github"  # or "local", "url"
 
 1. `git describe --tags --match "skill-v*"` — if `.git` is present (dev checkout)
 2. `meta.toml` `version` field — if running from cache (`~/.cypilot/cache/`)
-3. `"unknown"` — if neither is available (should not occur in normal operation)
+3. `__version__` from `__init__.py` — legacy fallback for pre-migration cached copies (removed after one release cycle)
+4. `"unknown"` — if none of the above are available (should not occur in normal operation)
 
 ### Whatsnew Comparison
 
@@ -224,6 +226,7 @@ During the transition window (after step 1, before users update):
 - Users on old cached copies still have hardcoded `__version__` — works as before.
 - Users who run `cpt update` get the new skill engine with `meta.toml` fallback — works because `cpt update` writes `meta.toml`.
 - `git describe --match "skill-v*"` works immediately because the initial tag exists.
+- **Whatsnew during first update**: The new skill engine reads the OLD installed version via legacy `__version__` fallback (step 3 in the fallback chain). After `cpt update` completes, `meta.toml` exists and subsequent updates use it. The legacy fallback can be removed after one release cycle.
 
 ### Not Applicable
 

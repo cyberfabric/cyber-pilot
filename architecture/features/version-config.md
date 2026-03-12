@@ -109,14 +109,16 @@ Ensures teams can upgrade Cypilot without losing configuration or customizations
 
 **Error Scenarios**:
 - No git tags matching `skill-v*` → fallback to `meta.toml`
-- No `meta.toml` → version resolves to `"unknown"`
+- No `meta.toml` → fallback to legacy `__version__` from `__init__.py`
+- No `meta.toml` and no legacy `__version__` → version resolves to `"unknown"`
 - `importlib.metadata` not available (broken install) → version resolves to `"unknown"`
 
 **Steps**:
 1. [ ] - `p2` - **IF** proxy: read `importlib.metadata.version("cypilot")` - `inst-resolve-proxy-version`
 2. [ ] - `p2` - **IF** skill engine with `.git`: run `git describe --tags --match "skill-v*"`, strip `skill-` prefix - `inst-resolve-skill-git`
 3. [ ] - `p2` - **IF** skill engine without `.git`: read `version` from `~/.cypilot/cache/meta.toml` - `inst-resolve-skill-meta`
-4. [ ] - `p2` - **IF** neither source available: return `"unknown"` - `inst-resolve-fallback`
+4. [ ] - `p2` - **IF** no `meta.toml`: read `__version__` from `__init__.py` (legacy fallback for pre-migration caches; remove after one release cycle) - `inst-resolve-skill-legacy`
+5. [ ] - `p2` - **IF** none of the above available: return `"unknown"` - `inst-resolve-fallback`
 
 ### Write Cache Version
 
@@ -207,7 +209,8 @@ Ensures teams can upgrade Cypilot without losing configuration or customizations
 1. [ ] - `p2` - **IF** `.git` exists in skill engine root directory: run `git describe --tags --match "skill-v*"` - `inst-git-describe`
 2. [ ] - `p2` - **IF** git describe succeeds: strip `skill-` prefix, return result - `inst-strip-prefix`
 3. [ ] - `p2` - **IF** no `.git` in skill engine root or git describe fails: read `version` from `~/.cypilot/cache/meta.toml` - `inst-read-meta`
-4. [ ] - `p2` - **IF** `meta.toml` missing or unparseable: return `"unknown"` - `inst-version-unknown`
+4. [ ] - `p2` - **IF** `meta.toml` missing or unparseable: read `__version__` from `__init__.py` (legacy fallback for pre-migration caches; remove after one release cycle) - `inst-read-legacy-version`
+5. [ ] - `p2` - **IF** none of the above available: return `"unknown"` - `inst-version-unknown`
 
 ### Normalize Version for Whatsnew
 
