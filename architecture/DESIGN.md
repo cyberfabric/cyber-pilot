@@ -152,6 +152,8 @@ user_modifiable = false
 
 **Design Response**: The `update` command copies the cached skill into the project, detects directory layout and automatically restructures if the old layout is detected, migrates `{cypilot_path}/config/core.toml` (including removal of the legacy `[system]` section per `cpt-cypilot-adr-remove-system-from-core-toml`), migrates bundled kit references to GitHub sources for projects upgrading from versions < 3.0.8 (see `cpt-cypilot-adr-extract-sdlc-kit`), and regenerates agent entry points. The update command does NOT update kit files — kit updates are a separate operation via `cpt kit update`. Config migration preserves all user settings. Version information is accessible via `--version`.
 
+Per `cpt-cypilot-adr-github-based-versioning`, the two components use a **split versioning model**: the **proxy** version is sourced from `pyproject.toml` (read at runtime via `importlib.metadata.version("cypilot")`), while the **skill engine** version is derived from git tags (`git describe --tags --match "skill-v*"`). During `cpt update`, the resolved skill version is written to `~/.cypilot/cache/meta.toml` as the authoritative fallback for cached copies where `.git` is absent. The fallback chain is: git describe → `meta.toml` → `"unknown"`. No `__version__` strings are hardcoded in Python source files.
+
 ##### CLI Configuration Interface
 
 - [ ] `p2` - `cpt-cypilot-fr-core-cli-config`

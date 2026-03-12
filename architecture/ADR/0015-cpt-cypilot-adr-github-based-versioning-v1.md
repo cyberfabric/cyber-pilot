@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-03-12
 decision-makers: ainetx
 ---

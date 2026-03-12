@@ -10,17 +10,22 @@
   - [4. References](#4-references)
 - [2. Actor Flows (CDSL)](#2-actor-flows-cdsl)
   - [Update Project Installation](#update-project-installation)
+  - [Resolve Version at Runtime](#resolve-version-at-runtime)
+  - [Write Cache Version](#write-cache-version)
   - [Manage Config via CLI](#manage-config-via-cli)
 - [3. Processes / Business Logic (CDSL)](#3-processes--business-logic-cdsl)
   - [Update Pipeline](#update-pipeline)
   - [Layout Restructuring](#layout-restructuring)
   - [Compare Blueprint Versions (LEGACY)](#compare-blueprint-versions-legacy)
+  - [Resolve Skill Version](#resolve-skill-version)
+  - [Normalize Version for Whatsnew](#normalize-version-for-whatsnew)
   - [Migrate Config](#migrate-config)
 - [4. States (CDSL)](#4-states-cdsl)
   - [Installation Version State](#installation-version-state)
 - [5. Definitions of Done](#5-definitions-of-done)
   - [Update Command](#update-command)
   - [Config CLI Commands](#config-cli-commands)
+  - [Version Resolution (Split Model)](#version-resolution-split-model)
   - [Config Migration](#config-migration)
 - [6. Implementation Modules](#6-implementation-modules)
 - [7. Acceptance Criteria](#7-acceptance-criteria)
@@ -35,7 +40,7 @@
 
 ### 1. Overview
 
-Enables project skill updates with config migration, and provides CLI commands for managing ignore lists and kit registrations. System definitions are managed in `artifacts.toml` (per `cpt-cypilot-adr-remove-system-from-core-toml`). The update command refreshes `.core/` from cache, detects and auto-restructures old directory layouts, migrates bundled kit references to GitHub sources (versions < 3.0.8), and ensures `config/` scaffold files exist without overwriting user content. Kit file updates are a separate operation via `cpt kit update`.
+Enables project skill updates with config migration, and provides CLI commands for managing ignore lists and kit registrations. System definitions are managed in `artifacts.toml` (per `cpt-cypilot-adr-remove-system-from-core-toml`). The update command refreshes `.core/` from cache, detects and auto-restructures old directory layouts, migrates bundled kit references to GitHub sources (versions < 3.0.8), and ensures `config/` scaffold files exist without overwriting user content. Kit file updates are a separate operation via `cpt kit update`. Version resolution uses a split model: proxy reads `pyproject.toml` via `importlib.metadata`, skill engine derives version from git tags with `meta.toml` fallback (per `cpt-cypilot-adr-github-based-versioning`).
 
 ### 2. Purpose
 
@@ -53,6 +58,7 @@ Ensures teams can upgrade Cypilot without losing configuration or customizations
 - **PRD**: [PRD.md](../PRD.md) — `cpt-cypilot-fr-core-version`, `cpt-cypilot-fr-core-layout-migration`, `cpt-cypilot-fr-core-cli-config`
 - **Design**: [DESIGN.md](../DESIGN.md) — `cpt-cypilot-component-config-manager`, `cpt-cypilot-seq-update`
 - **Dependencies**: `cpt-cypilot-feature-core-infra`, `cpt-cypilot-feature-blueprint-system`
+- **ADRs**: `cpt-cypilot-adr-github-based-versioning` — split versioning model (proxy from `pyproject.toml`, skill from git tags)
 
 ## 2. Actor Flows (CDSL)
 
@@ -74,6 +80,7 @@ Ensures teams can upgrade Cypilot without losing configuration or customizations
 1. [x] - `p1` - User invokes `cpt update [--project-root P] [--dry-run]` - `inst-user-update`
 2. [x] - `p1` - Resolve project root and cypilot directory - `inst-resolve-project`
 3. [x] - `p1` - Replace `.core/` from cache (always force-overwrite) - `inst-replace-core`
+3a. [ ] - `p2` - Write resolved skill version to `~/.cypilot/cache/meta.toml` (delegated to proxy during cache acquisition, see `cpt-cypilot-flow-version-config-write-cache-version`) - `inst-write-cache-version`
 4. [x] - `p1` - Detect directory layout; if old layout detected, trigger automatic restructuring using `cpt-cypilot-algo-version-config-layout-restructure` - `inst-detect-layout`
 5. [x] - `p1` - Migrate `{cypilot_path}/config/core.toml` preserving all user settings - `inst-migrate-config`
 6. [ ] - `p1` - **IF** `core.toml` contains `[system]` section, remove it (system identity is defined in `artifacts.toml` per `cpt-cypilot-adr-remove-system-from-core-toml`); log removal in update report - `inst-remove-system-section`
@@ -87,6 +94,47 @@ Ensures teams can upgrade Cypilot without losing configuration or customizations
 12. [x] - `p1` - Display core whatsnew entries (cache vs installed) before applying update - `inst-whatsnew`
 13. [x] - `p1` - Helper functions: ensure file creation, config README, auto-regenerate agents, read/show whatsnew - `inst-update-helpers`
 14. [x] - `p1` - Human-friendly formatter for update report output - `inst-update-format-output`
+
+### Resolve Version at Runtime
+
+- [ ] `p2` - **ID**: `cpt-cypilot-flow-version-config-resolve-version`
+
+**Actor**: `cpt-cypilot-actor-cypilot-cli`
+
+**Success Scenarios**:
+- Proxy reports version from `importlib.metadata.version("cypilot")` matching `pyproject.toml`
+- Skill engine on tagged commit reports version from `git describe --tags --match "skill-v*"`
+- Skill engine on post-tag commit reports version with commit distance: `skill-v3.0.13-beta-3-gabc1234`
+- Cached copy reports version from `meta.toml`
+
+**Error Scenarios**:
+- No git tags matching `skill-v*` → fallback to `meta.toml`
+- No `meta.toml` → version resolves to `"unknown"`
+- `importlib.metadata` not available (broken install) → version resolves to `"unknown"`
+
+**Steps**:
+1. [ ] - `p2` - **IF** proxy: read `importlib.metadata.version("cypilot")` - `inst-resolve-proxy-version`
+2. [ ] - `p2` - **IF** skill engine with `.git`: run `git describe --tags --match "skill-v*"`, strip `skill-` prefix - `inst-resolve-skill-git`
+3. [ ] - `p2` - **IF** skill engine without `.git`: read `version` from `~/.cypilot/cache/meta.toml` - `inst-resolve-skill-meta`
+4. [ ] - `p2` - **IF** neither source available: return `"unknown"` - `inst-resolve-fallback`
+
+### Write Cache Version
+
+- [ ] `p2` - **ID**: `cpt-cypilot-flow-version-config-write-cache-version`
+
+**Actor**: `cpt-cypilot-actor-cypilot-cli`
+
+**Success Scenarios**:
+- `cpt update` writes resolved skill version to `~/.cypilot/cache/meta.toml`
+
+**Error Scenarios**:
+- Cache directory (`~/.cypilot/cache/`) doesn't exist → create it before writing
+- Version unresolvable from source (no git tags, no release URL) → write `version = "unknown"`
+- Disk write fails → WARN in update report, do not block update
+
+**Steps**:
+1. [ ] - `p2` - Resolve skill version from source (git tag or release URL) - `inst-resolve-cache-version`
+2. [ ] - `p2` - Write `meta.toml` with `version`, `cached_at`, `source` fields - `inst-write-meta-toml`
 
 ### Manage Config via CLI
 
@@ -148,6 +196,30 @@ Ensures teams can upgrade Cypilot without losing configuration or customizations
 2. - `p1` - Compare cache version vs user version per blueprint - `inst-compare-per-bp`
 3. - `p1` - **RETURN** `current` (same), `migration_needed` (higher), or `missing` - `inst-return-comparison`
 
+### Resolve Skill Version
+
+- [ ] `p2` - **ID**: `cpt-cypilot-algo-version-config-resolve-skill-version`
+
+**Input**: Skill engine root path (git checkout dir or cache dir), optional cache directory path
+
+**Output**: Version string (e.g., `v3.0.13-beta`) or `"unknown"`
+
+1. [ ] - `p2` - **IF** `.git` exists in skill engine root directory: run `git describe --tags --match "skill-v*"` - `inst-git-describe`
+2. [ ] - `p2` - **IF** git describe succeeds: strip `skill-` prefix, return result - `inst-strip-prefix`
+3. [ ] - `p2` - **IF** no `.git` in skill engine root or git describe fails: read `version` from `~/.cypilot/cache/meta.toml` - `inst-read-meta`
+4. [ ] - `p2` - **IF** `meta.toml` missing or unparseable: return `"unknown"` - `inst-version-unknown`
+
+### Normalize Version for Whatsnew
+
+- [ ] `p2` - **ID**: `cpt-cypilot-algo-version-config-normalize-version`
+
+**Input**: Version string (e.g., `v3.0.13-beta-3-gabc1234`)
+
+**Output**: Base version string (e.g., `v3.0.13-beta`)
+
+1. [ ] - `p2` - **IF** version matches `*-N-gHASH` pattern: strip `-N-gHASH` suffix - `inst-strip-dev-suffix`
+2. [ ] - `p2` - **ELSE**: return version as-is - `inst-return-as-is`
+
 ### Migrate Config
 
 - [ ] `p2` - **ID**: `cpt-cypilot-algo-version-config-migrate`
@@ -190,6 +262,18 @@ Ensures teams can upgrade Cypilot without losing configuration or customizations
 - [ ] - `p2` - `cpt config system add/remove` manages system definitions in `artifacts.toml`
 - [ ] - `p2` - Schema validation rejects invalid changes before writing
 
+### Version Resolution (Split Model)
+
+- [ ] `p2` - **ID**: `cpt-cypilot-dod-version-config-version-resolution`
+
+- [ ] - `p2` - Proxy `__init__.py` uses `importlib.metadata.version("cypilot")` — no hardcoded `__version__`
+- [ ] - `p2` - Skill `__init__.py` uses `git describe --tags --match "skill-v*"` with `meta.toml` fallback — no hardcoded `__version__`
+- [ ] - `p2` - `cpt update` writes resolved skill version to `~/.cypilot/cache/meta.toml`
+- [ ] - `p2` - `cpt info` correctly reports version in all scenarios: tagged commit, post-tag dev commit, cached copy
+- [ ] - `p2` - Whatsnew comparison normalizes dev suffixes (`-N-gHASH`) before lookup
+- [ ] - `p2` - `check_versions.py` simplified: proxy reads metadata, skill checks bootstrap sync only
+- [ ] - `p2` - CI uses `fetch-depth: 0` for skill version tags
+
 ### Config Migration
 
 - [ ] `p2` - **ID**: `cpt-cypilot-dod-version-config-migration`
@@ -203,6 +287,9 @@ Ensures teams can upgrade Cypilot without losing configuration or customizations
 | Module | Path | Responsibility |
 |--------|------|----------------|
 | Update Command | `skills/.../commands/update.py` | Update pipeline, layout restructuring, file-level kit diff |
+| Proxy `__init__` | `src/cypilot_proxy/__init__.py` | Proxy version via `importlib.metadata` |
+| Skill `__init__` | `skills/.../cypilot/__init__.py` | Skill version via `git describe` + `meta.toml` fallback |
+| Version Check | `scripts/check_versions.py` | Cross-component version consistency |
 
 ## 7. Acceptance Criteria
 
@@ -213,3 +300,6 @@ Ensures teams can upgrade Cypilot without losing configuration or customizations
 - [ ] `cpt config show` displays readable config summary
 - [ ] Config migration preserves all user settings with backup
 - [x] `cpt update` automatically runs self-check after update and reports WARN if integrity check fails
+- [ ] Proxy version reads from `importlib.metadata` — single source in `pyproject.toml`
+- [ ] Skill version reads from `git describe` with `meta.toml` fallback — single source in git tags
+- [ ] `cpt update` writes `meta.toml` with resolved skill version

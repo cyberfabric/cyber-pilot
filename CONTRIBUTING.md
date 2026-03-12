@@ -3,30 +3,30 @@
 
 <!-- toc -->
 
-- [Contributing to Cypilot](#contributing-to-cypilot)
-  - [Thank you for your interest in contributing to Cypilot! This guide covers the development workflow, versioning scheme, bootstrap architecture, commit requirements, and CI pipeline.](#thank-you-for-your-interest-in-contributing-to-cypilot-this-guide-covers-the-development-workflow-versioning-scheme-bootstrap-architecture-commit-requirements-and-ci-pipeline)
-  - [Prerequisites](#prerequisites)
-  - [Development Setup](#development-setup)
-  - [Project Architecture (Self-Hosted Bootstrap)](#project-architecture-self-hosted-bootstrap)
-    - [Critical Rule](#critical-rule)
-  - [Versioning](#versioning)
-    - [Version Locations](#version-locations)
-    - [Releasing a New Version](#releasing-a-new-version)
-  - [Branch and Release Workflow](#branch-and-release-workflow)
-  - [Commit Requirements (DCO)](#commit-requirements-dco)
-    - [How to sign off](#how-to-sign-off)
-    - [Retroactive sign-off](#retroactive-sign-off)
-    - [Why DCO?](#why-dco)
-  - [CI Pipeline](#ci-pipeline)
-    - [Running CI Locally](#running-ci-locally)
-    - [Makefile Targets](#makefile-targets)
-    - [GitHub Actions](#github-actions)
-  - [Making Changes](#making-changes)
-    - [Code Changes](#code-changes)
-    - [Architecture / Spec Changes](#architecture--spec-changes)
-  - [Pull Request Process](#pull-request-process)
-  - [Code Style and Conventions](#code-style-and-conventions)
-  - [Questions?](#questions)
+- [Prerequisites](#prerequisites)
+- [Development Setup](#development-setup)
+- [Project Architecture (Self-Hosted Bootstrap)](#project-architecture-self-hosted-bootstrap)
+  - [Critical Rule](#critical-rule)
+- [Versioning](#versioning)
+  - [Version Sources (Single Source of Truth)](#version-sources-single-source-of-truth)
+  - [Releasing a Skill Engine Version](#releasing-a-skill-engine-version)
+  - [Releasing a Proxy Version](#releasing-a-proxy-version)
+  - [Tag Naming Convention](#tag-naming-convention)
+- [Branch and Release Workflow](#branch-and-release-workflow)
+- [Commit Requirements (DCO)](#commit-requirements-dco)
+  - [How to sign off](#how-to-sign-off)
+  - [Retroactive sign-off](#retroactive-sign-off)
+  - [Why DCO?](#why-dco)
+- [CI Pipeline](#ci-pipeline)
+  - [Running CI Locally](#running-ci-locally)
+  - [Makefile Targets](#makefile-targets)
+  - [GitHub Actions](#github-actions)
+- [Making Changes](#making-changes)
+  - [Code Changes](#code-changes)
+  - [Architecture / Spec Changes](#architecture--spec-changes)
+- [Pull Request Process](#pull-request-process)
+- [Code Style and Conventions](#code-style-and-conventions)
+- [Questions?](#questions)
 
 <!-- /toc -->
 
@@ -96,70 +96,77 @@ The `make update` command runs `cpt update --source . --force`, which:
 
 ## Versioning
 
-Cypilot has **two independent version tracks**.
+Cypilot has **two independent version tracks** using a split versioning model (see `ADR-0015: cpt-cypilot-adr-github-based-versioning`).
 
-### Version Locations
+### Version Sources (Single Source of Truth)
 
-| File | Example | What it versions | When to bump |
-|------|---------|------------------|--------------|
-| `skills/cypilot/scripts/cypilot/__init__.py` | `v3.0.6-beta` | **Skill engine** — the core validation/generation logic | Any change to skill engine code |
-| `src/cypilot_proxy/__init__.py` | `v3.0.2-beta` | **CLI proxy** — the thin routing shell | Changes to proxy routing, caching, or resolution |
-| `pyproject.toml` (`version`) | `3.0.2-beta` | **PyPI package** — installed via `pipx` | Must match `src/cypilot_proxy/__init__.py` (without `v` prefix) |
+| Component | Source of truth | Runtime resolution | Example |
+|-----------|----------------|-------------------|---------|
+| **CLI proxy** | `pyproject.toml` `version` field | `importlib.metadata.version("cypilot")` | `3.0.9-beta` |
+| **Skill engine** | Git tags (prefixed `skill-v*`) | `git describe --tags --match "skill-v*"` | `skill-v3.0.13-beta` |
 
-### Releasing a New Version
+No `__version__` strings are hardcoded in Python source files. The proxy reads its version from package metadata at runtime. The skill engine derives its version from git tags; cached copies (where `.git` is absent) read from `~/.cypilot/cache/meta.toml`, written during `cpt update`.
+
+> **Transition**: This model is being implemented per ADR-0015. Until implementation is complete, `__version__` strings may still be present in source files.
+
+### Releasing a Skill Engine Version
 
 1. **Create a release branch** from `main`:
    ```bash
    git checkout main && git pull --rebase
-   git checkout -b v3.0.6-beta
+   git checkout -b release/skill-v3.0.13-beta
    ```
 
-2. **Bump the skill engine version** in `skills/cypilot/scripts/cypilot/__init__.py`:
-   ```python
-   __version__ = "v3.0.6-beta"
-   ```
-
-3. **If proxy changed**, bump both proxy files **in sync**:
-   ```python
-   # src/cypilot_proxy/__init__.py
-   __version__ = "v3.0.6-beta"
-   ```
-   ```toml
-   # pyproject.toml
-   version = "3.0.6-beta"   # same value, no 'v' prefix
-   ```
-
-4. **Sync bootstrap**:
+2. **Make your changes**, then **sync bootstrap**:
    ```bash
    make update
    ```
 
-5. **Verify** everything passes:
+3. **Verify** everything passes:
    ```bash
    make test
    make validate
    make self-check
    ```
 
-6. **Tag and release** after merge to `main`:
+4. **Tag and release** after merge to `main`:
    ```bash
-   git tag v3.0.6-beta
-   git push origin v3.0.6-beta
+   git tag skill-v3.0.13-beta
+   git push origin skill-v3.0.13-beta
    ```
+
+### Releasing a Proxy Version
+
+1. **Bump the version** in `pyproject.toml`:
+   ```toml
+   version = "3.0.9-beta"
+   ```
+
+2. **Verify** and merge to `main`. No git tag required — `pyproject.toml` is the single source.
+
+### Tag Naming Convention
+
+| Component | Tag format | Example |
+|-----------|-----------|---------|
+| Skill engine | `skill-v{major}.{minor}.{patch}-{pre}` | `skill-v3.0.13-beta` |
+| Proxy | No tag needed — version in `pyproject.toml` | N/A |
 
 ---
 
 ## Branch and Release Workflow
 
 ```
-main                          # Stable, all CI must pass
-└── v3.0.6-beta               # Feature/release branch
+main                              # Stable, all CI must pass
+├── release/skill-v3.0.13-beta    # Skill engine release branch
+├── feat/some-feature             # Feature branch
+└── fix/some-bugfix               # Bugfix branch
 ```
 
-- Branch from `main` for each version
-- All work happens on the version branch
+- Branch from `main` for features and releases
+- All work happens on the branch
 - Merge to `main` via PR after CI passes
-- Tag `main` after merge
+- Tag `main` with `skill-v*` after merge (skill engine releases only)
+- Proxy releases: bump `pyproject.toml` in the branch, no tag needed
 
 ---
 
@@ -245,7 +252,7 @@ CI runs on every push to `main` and every PR targeting `main`. Seven parallel jo
 1. **Test** — `make test` on Python 3.11, 3.12, 3.13, 3.14
 2. **Coverage** — `make test-coverage` on Python 3.14 (≥90% gate)
 3. **Vulture** — `make vulture-ci` dead code scan
-4. **Versions** — `make check-versions` (proxy sync, bootstrap sync)
+4. **Versions** — `make check-versions` (bootstrap sync)
 5. **Spec Coverage** — `make spec-coverage` (≥80% overall, ≥70% per file)
 6. **Validate** — `make validate` + `make self-check` on Python 3.11–3.14
 7. **Validate Kits** — `make validate-kits` on Python 3.11–3.14

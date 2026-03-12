@@ -315,6 +315,9 @@ Cypilot DESIGN is decomposed into features organized around architectural layers
   - CLI config interface: `config system add/remove`, dry-run mode
   - Schema validation before all config writes
   - Version information: `--version` flag
+  - Split versioning model (per `cpt-cypilot-adr-github-based-versioning`): proxy version from `pyproject.toml` via `importlib.metadata`, skill engine version from git tags via `git describe --tags --match "skill-v*"`, cached copy fallback from `meta.toml`
+  - Version resolution: remove hardcoded `__version__` from `__init__.py` files, write resolved skill version to `~/.cypilot/cache/meta.toml` during `cpt update`
+  - CI: `fetch-depth: 0` in GitHub Actions for skill version tags
 
 - **Out of scope**:
   - Kit-specific CLI subcommands (planned p2 plugin)
