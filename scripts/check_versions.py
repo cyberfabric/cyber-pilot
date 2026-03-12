@@ -2,10 +2,12 @@
 """Version consistency checker for Cypilot CI.
 
 Checks:
-1. Proxy version sync: src/cypilot_proxy/__init__.py ↔ pyproject.toml
-2. Bootstrap sync: .bootstrap/.core/ skill version ↔ canonical skill version
-3. Kit version bump: if kits/{slug}/ files changed vs base branch, conf.toml
+1. Kit version bump: if kits/{slug}/ files changed vs base branch, conf.toml
    version must be higher than on the base branch.
+
+Proxy version is read at runtime via importlib.metadata and skill version
+is resolved dynamically via git tags / meta.toml (ADR-0015). Neither
+requires a cross-file consistency check.
 
 Usage:
     python3 scripts/check_versions.py [--base origin/main]
@@ -78,59 +80,6 @@ def _extract_version_from_content(content: str) -> str | None:
         if line.startswith("version") and "=" in line:
             return line.split("=", 1)[1].strip().strip('"').strip("'")
     return None
-
-
-def check_proxy_sync(root: Path) -> list[str]:
-    """Check that proxy __version__ matches pyproject.toml version."""
-    errors: list[str] = []
-
-    proxy_version = _read_py_version(root / "src" / "cypilot_proxy" / "__init__.py")
-    toml_version = _read_toml_version(root / "pyproject.toml")
-
-    if proxy_version is None:
-        errors.append("Cannot read version from src/cypilot_proxy/__init__.py")
-        return errors
-    if toml_version is None:
-        errors.append("Cannot read version from pyproject.toml")
-        return errors
-
-    if _normalize_version(proxy_version) != _normalize_version(toml_version):
-        errors.append(
-            f"Proxy version mismatch: "
-            f"src/cypilot_proxy/__init__.py={proxy_version} "
-            f"≠ pyproject.toml={toml_version}"
-        )
-
-    return errors
-
-
-def check_bootstrap_sync(root: Path) -> list[str]:
-    """Check that .bootstrap/.core/ skill version matches canonical source."""
-    errors: list[str] = []
-
-    canonical = _read_py_version(
-        root / "skills" / "cypilot" / "scripts" / "cypilot" / "__init__.py"
-    )
-    bootstrap = _read_py_version(
-        root / ".bootstrap" / ".core" / "skills" / "cypilot" / "scripts" / "cypilot" / "__init__.py"
-    )
-
-    if canonical is None:
-        errors.append("Cannot read version from skills/cypilot/scripts/cypilot/__init__.py")
-        return errors
-    if bootstrap is None:
-        # .bootstrap may not exist in CI (fresh checkout) — skip
-        return errors
-
-    if canonical != bootstrap:
-        errors.append(
-            f"Bootstrap out of sync: "
-            f"skills/…/__init__.py={canonical} "
-            f"≠ .bootstrap/.core/…/__init__.py={bootstrap}. "
-            f"Run: make update"
-        )
-
-    return errors
 
 
 def check_kit_version_bump(root: Path, base: str) -> list[str]:
@@ -210,12 +159,6 @@ def main() -> int:
     root = Path(__file__).resolve().parent.parent
 
     all_errors: list[str] = []
-
-    print("Checking proxy version sync...")
-    all_errors.extend(check_proxy_sync(root))
-
-    print("Checking bootstrap sync...")
-    all_errors.extend(check_bootstrap_sync(root))
 
     print(f"Checking kit version bumps (vs {args.base})...")
     all_errors.extend(check_kit_version_bump(root, args.base))

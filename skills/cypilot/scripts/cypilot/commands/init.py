@@ -21,6 +21,37 @@ CORE_SUBDIR = ".core"
 GEN_SUBDIR = ".gen"
 DEFAULT_INSTALL_DIR = "cypilot"
 
+
+# @cpt-begin:cpt-cypilot-flow-version-config-write-cache-version:p2:inst-write-meta-toml
+def _write_meta_toml(cache_dir: Path, version: str, source: str) -> None:
+    """Write structured version metadata to cache/meta.toml.
+
+    Called by both ``cpt init`` and ``cpt update`` after core files are copied.
+
+    Fields:
+        version   — resolved skill version (e.g. v3.0.13-beta)
+        cached_at — ISO 8601 UTC timestamp
+        source    — origin URL or "local:<path>"
+    """
+    from datetime import datetime, timezone
+
+    clean_version = version
+    if clean_version.startswith("local:"):
+        clean_version = clean_version[len("local:"):]
+    meta_path = cache_dir / "meta.toml"
+    now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    content = (
+        f'version = "{clean_version}"\n'
+        f'cached_at = "{now}"\n'
+        f'source = "{source}"\n'
+    )
+    try:
+        meta_path.write_text(content, encoding="utf-8")
+    except OSError:
+        pass
+# @cpt-end:cpt-cypilot-flow-version-config-write-cache-version:p2:inst-write-meta-toml
+
+
 def _copy_from_cache(cache_dir: Path, target_dir: Path, force: bool = False) -> Dict[str, str]:
     """Copy tool directories from cache into project cypilot/.core/ dir.
 
@@ -447,6 +478,17 @@ def cmd_init(argv: List[str]) -> int:
         copy_results = {d: "dry_run" for d in COPY_DIRS}
     actions["copy"] = json.dumps(copy_results)
     # @cpt-end:cpt-cypilot-flow-core-infra-project-init:p1:inst-copy-skill
+
+    # @cpt-begin:cpt-cypilot-flow-version-config-write-cache-version:p2:inst-write-meta-init
+    if not args.dry_run:
+        version_file = CACHE_DIR / ".version"
+        if version_file.is_file():
+            _write_meta_toml(
+                CACHE_DIR,
+                version_file.read_text(encoding="utf-8").strip(),
+                "init",
+            )
+    # @cpt-end:cpt-cypilot-flow-version-config-write-cache-version:p2:inst-write-meta-init
 
     # Create the three subdirectories: .core/ (already created by _copy_from_cache), .gen/, config/
     config_dir = cypilot_dir / "config"

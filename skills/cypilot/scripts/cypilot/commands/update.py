@@ -41,6 +41,7 @@ from .init import (
     _gen_readme,
     _inject_root_agents,
     _inject_root_claude,
+    _write_meta_toml,
 )
 from ..utils.ui import ui
 # @cpt-end:cpt-cypilot-flow-version-config-update:p1:inst-update-imports
@@ -164,6 +165,17 @@ def cmd_update(argv: List[str]) -> int:
         ui.file_action(f".core/{name}/", action)
     # @cpt-end:cpt-cypilot-flow-version-config-update:p1:inst-replace-core
     # @cpt-end:cpt-cypilot-algo-version-config-update-pipeline:p1:inst-replace-core-algo
+
+    # @cpt-begin:cpt-cypilot-flow-version-config-write-cache-version:p2:inst-write-meta-update
+    if not args.dry_run:
+        version_file = CACHE_DIR / ".version"
+        if version_file.is_file():
+            _write_meta_toml(
+                CACHE_DIR,
+                version_file.read_text(encoding="utf-8").strip(),
+                "update",
+            )
+    # @cpt-end:cpt-cypilot-flow-version-config-write-cache-version:p2:inst-write-meta-update
 
     # @cpt-begin:cpt-cypilot-algo-version-config-update-pipeline:p1:inst-detect-layout-algo
     # @cpt-begin:cpt-cypilot-flow-version-config-update:p1:inst-detect-layout

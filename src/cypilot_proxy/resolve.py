@@ -221,8 +221,11 @@ def get_project_version(skill_path: Path) -> Optional[str]:
         content = init_file.read_text(encoding="utf-8")
         for line in content.splitlines():
             if line.startswith("__version__"):
-                # Extract version string
-                return line.split("=", 1)[1].strip().strip("\"'")
+                raw = line.split("=", 1)[1].strip()
+                # Must be a quoted string literal, not a function call
+                if raw.startswith(("'", '"')):
+                    return raw.strip("\"'")
+                return None
     except (OSError, ValueError):
         pass
     return None
