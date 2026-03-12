@@ -246,6 +246,7 @@ The following architecture decision records (ADRs) drive the design:
 - `cpt-cypilot-adr-git-style-conflict-markers` — git-style conflict markers for interactive merge
 - `cpt-cypilot-adr-extract-sdlc-kit` — extract SDLC kit to separate GitHub repository
 - `cpt-cypilot-adr-remove-system-from-core-toml` — remove `[system]` from core.toml; artifacts.toml is single source for system identity
+- `cpt-cypilot-adr-github-based-versioning` — split versioning: proxy from pyproject.toml, skill engine from git tags
 
 ### 1.3 Architecture Layers
 
