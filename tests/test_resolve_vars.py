@@ -322,10 +322,11 @@ class TestCmdResolveVars(unittest.TestCase):
                 rc = cmd_resolve_vars(["--root", str(root), "--flat"])
             self.assertEqual(rc, 0)
             out = json.loads(buf.getvalue())
-            # Flat mode outputs only the variables dict (no "status" key)
-            self.assertIn("cypilot_path", out)
-            self.assertIn("adr_rules", out)
+            # Flat mode wraps variables with metadata (no "status" key)
             self.assertNotIn("status", out)
+            self.assertIn("variables", out)
+            self.assertIn("cypilot_path", out["variables"])
+            self.assertIn("adr_rules", out["variables"])
 
     def test_flat_with_kit_filter(self):
         """--flat combined with --kit returns only filtered flat dict."""
@@ -350,13 +351,14 @@ class TestCmdResolveVars(unittest.TestCase):
                 rc = cmd_resolve_vars(["--root", str(root), "--kit", "sdlc", "--flat"])
             self.assertEqual(rc, 0)
             out = json.loads(buf.getvalue())
-            # Flat mode: no "status" key
+            # Flat mode wraps variables with metadata (no "status" key)
             self.assertNotIn("status", out)
+            self.assertIn("variables", out)
             # System vars present
-            self.assertIn("cypilot_path", out)
+            self.assertIn("cypilot_path", out["variables"])
             # Only sdlc kit var, not other
-            self.assertIn("var_a", out)
-            self.assertNotIn("var_b", out)
+            self.assertIn("var_a", out["variables"])
+            self.assertNotIn("var_b", out["variables"])
 
     def test_no_project_root(self):
         """Returns error when no project root found."""
@@ -519,6 +521,31 @@ class TestInfoVariablesIntegration(unittest.TestCase):
                 self.assertIn("variables_collisions", out)
                 self.assertEqual(len(out["variables_collisions"]), 1)
                 self.assertEqual(out["variables_collisions"][0]["variable"], "dup_var")
+            finally:
+                os.chdir(cwd)
+
+    def test_info_degraded_on_corrupt_core_toml(self):
+        """cpt info sets variables_degraded when core.toml is corrupt."""
+        from cypilot.commands.adapter_info import cmd_adapter_info
+
+        with TemporaryDirectory() as td:
+            root = Path(td) / "proj"
+            adapter = _bootstrap_project(root)
+            config = adapter / "config"
+            config.mkdir(parents=True, exist_ok=True)
+            (config / "core.toml").write_text("{{INVALID TOML", encoding="utf-8")
+
+            cwd = os.getcwd()
+            try:
+                os.chdir(root)
+                buf = io.StringIO()
+                with redirect_stdout(buf):
+                    rc = cmd_adapter_info(["--root", str(root)])
+                self.assertEqual(rc, 0)
+                out = json.loads(buf.getvalue())
+                self.assertTrue(out.get("variables_degraded"))
+                self.assertIn("core.toml load failed", out.get("variables_error", ""))
+                self.assertIsNone(out.get("variables"))
             finally:
                 os.chdir(cwd)
 
@@ -714,6 +741,9 @@ class TestCmdResolveVarsCorruptToml(unittest.TestCase):
             self.assertIn("cypilot_path", out["variables"])
             # No kit vars since core.toml is corrupt
             self.assertEqual(len(out["kits"]), 0)
+            # Parse error propagated as core_load_error
+            self.assertIn("core_load_error", out)
+            self.assertIn("TOMLDecodeError", out["core_load_error"])
 
 
 # ---------------------------------------------------------------------------
@@ -730,10 +760,10 @@ class TestHumanFormatters(unittest.TestCase):
         try:
             buf = io.StringIO()
             with contextlib.redirect_stderr(buf):
-                _human_flat({
+                _human_flat({"variables": {
                     "cypilot_path": "/tmp/test/cypilot",
                     "adr_template": "/tmp/test/cypilot/config/kits/sdlc/artifacts/ADR/template.md",
-                })
+                }})
             output = buf.getvalue()
             self.assertIn("cypilot_path", output)
             self.assertIn("adr_template", output)

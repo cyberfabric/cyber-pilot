@@ -194,12 +194,18 @@ def cmd_resolve_vars(argv: list[str]) -> int:
             except (tomllib.TOMLDecodeError, OSError) as exc:
                 import sys
                 sys.stderr.write(f"WARNING: Failed to parse {cp}: {exc}\n")
+                core_data = {
+                    "__load_error__": f"{type(exc).__name__}: {exc}",
+                    "path": str(cp),
+                }
             break
     # @cpt-end:cpt-cypilot-flow-developer-experience-resolve-vars:p1:inst-resolve-vars-load-core
 
     # @cpt-begin:cpt-cypilot-flow-developer-experience-resolve-vars:p1:inst-resolve-vars-merge
     # -- Resolve variables --
     result = _collect_all_variables(project_root, adapter_dir, core_data)
+    if isinstance(core_data, dict) and "__load_error__" in core_data:
+        result["core_load_error"] = core_data["__load_error__"]
     # @cpt-end:cpt-cypilot-flow-developer-experience-resolve-vars:p1:inst-resolve-vars-merge
 
     # @cpt-begin:cpt-cypilot-flow-developer-experience-resolve-vars:p1:inst-resolve-vars-filter-kit
@@ -229,7 +235,12 @@ def cmd_resolve_vars(argv: list[str]) -> int:
     # @cpt-begin:cpt-cypilot-flow-developer-experience-resolve-vars:p1:inst-resolve-vars-return
     # -- Output --
     if args.flat:
-        ui.result(result["variables"], human_fn=_human_flat)
+        flat_output: Dict[str, Any] = {"variables": result["variables"]}
+        if result.get("collisions"):
+            flat_output["collisions"] = result["collisions"]
+        if result.get("core_load_error"):
+            flat_output["core_load_error"] = result["core_load_error"]
+        ui.result(flat_output, human_fn=_human_flat)
     else:
         output = {
             "status": "OK",
@@ -245,7 +256,8 @@ def cmd_resolve_vars(argv: list[str]) -> int:
 def _human_flat(data: dict) -> None:
     """Human-friendly flat variable listing."""
     ui.header("Resolved Variables")
-    for name, path in sorted(data.items()):
+    variables = data.get("variables", data)
+    for name, path in sorted(variables.items()):
         ui.detail(f"{{{name}}}", ui.relpath(path))
     ui.blank()
 # @cpt-end:cpt-cypilot-flow-developer-experience-resolve-vars:p1:inst-resolve-vars-human-flat
