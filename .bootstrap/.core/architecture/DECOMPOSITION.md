@@ -369,6 +369,7 @@ Cypilot DESIGN is decomposed into features organized around architectural layers
   - VS Code extension: ID syntax highlighting, go-to-definition, real-time validation, autocompletion, hover info, CodeLens, traceability tree view, quick fixes — all delegated to `cpt validate`
   - `cpt doctor`: check Python version, git, gh CLI, agents, config integrity
   - `cpt self-check`: validate examples against templates
+  - `cpt resolve-vars`: resolve template variables (`{adr_template}`, `{scripts}`, etc.) to absolute paths from core.toml resource bindings
   - `cpt hook install/uninstall`: git pre-commit hooks for validation
   - `cpt completions install`: shell completion scripts for bash/zsh/fish
 
@@ -403,6 +404,7 @@ Cypilot DESIGN is decomposed into features organized around architectural layers
 - **API**:
   - `cpt doctor`
   - `cpt self-check`
+  - `cpt resolve-vars`
   - `cpt hook install`
   - `cpt hook uninstall`
   - `cpt completions install`

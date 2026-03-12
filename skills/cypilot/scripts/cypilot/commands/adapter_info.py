@@ -114,14 +114,15 @@ def cmd_adapter_info(argv: list[str]) -> int:
             registry = None
     # Load core.toml for version/project_root/kits (authoritative source)
     core_data: Optional[dict] = None
+    core_load_error: Optional[str] = None
     for cp in [(adapter_dir / "config" / "core.toml"), (adapter_dir / "core.toml")]:
         if cp.is_file():
             try:
                 import tomllib as _tl
                 with open(cp, "rb") as f:
                     core_data = _tl.load(f)
-            except Exception:
-                pass
+            except (_tl.TOMLDecodeError, OSError) as exc:
+                core_load_error = f"{type(exc).__name__}: {exc}"
             break
 
     # @cpt-end:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-locate-registry
@@ -332,6 +333,24 @@ def cmd_adapter_info(argv: list[str]) -> int:
         d = adapter_dir / subdir
         dirs_status[subdir] = d.is_dir()
     config["directories"] = dirs_status
+
+    # Resolved template variables (flat dict for format_map substitution)
+    if core_load_error is not None:
+        config["variables"] = None
+        config["variables_error"] = f"core.toml load failed: {core_load_error}"
+        config["variables_degraded"] = True
+    else:
+        try:
+            from .resolve_vars import _collect_all_variables
+            vars_result = _collect_all_variables(project_root, adapter_dir, core_data)
+            config["variables"] = vars_result["variables"]
+            config["variables_by_kit"] = vars_result.get("kits", {})
+            if vars_result.get("collisions"):
+                config["variables_collisions"] = vars_result["collisions"]
+        except (ImportError, OSError, ValueError) as exc:
+            config["variables"] = None
+            config["variables_error"] = str(exc)
+            config["variables_degraded"] = True
     # @cpt-end:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-compute-metadata
 
     # @cpt-begin:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-return-ok
@@ -463,6 +482,19 @@ def _human_info(data: dict) -> None:
         ui.blank()
         ui.step(f"Agent integrations ({len(agents)})")
         ui.substep(f"  {', '.join(agents)}")
+
+    # @cpt-begin:cpt-cypilot-flow-developer-experience-resolve-vars:p1:inst-info-render-variables
+    # Resolved variables
+    variables = data.get("variables") or {}
+    if variables:
+        ui.blank()
+        ui.step(f"Variables ({len(variables)})")
+        for name, path in sorted(variables.items()):
+            ui.substep(f"  {{{name}}}: {ui.relpath(path)}")
+    if data.get("variables_degraded"):
+        ui.blank()
+        ui.warn(f"Variables: {data.get('variables_error', 'unknown error')}")
+    # @cpt-end:cpt-cypilot-flow-developer-experience-resolve-vars:p1:inst-info-render-variables
 
     # Registry errors
     reg_err = data.get("artifacts_registry_error")

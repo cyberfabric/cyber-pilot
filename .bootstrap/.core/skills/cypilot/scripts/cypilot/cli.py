@@ -109,6 +109,10 @@ def _cmd_cypilot_info(argv: List[str]) -> int:
     from .commands.adapter_info import cmd_adapter_info
     return cmd_adapter_info(argv)
 
+def _cmd_resolve_vars(argv: List[str]) -> int:
+    from .commands.resolve_vars import cmd_resolve_vars
+    return cmd_resolve_vars(argv)
+
 def _cmd_migrate(argv: List[str]) -> int:
     from .commands.migrate import cmd_migrate
     return cmd_migrate(argv)
@@ -150,7 +154,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         "list-ids", "list-id-kinds",
         "get-content",
         "where-defined", "where-used",
-        "info",
+        "info", "resolve-vars",
         "agents",
         "generate-agents",
     ]
@@ -175,12 +179,13 @@ def main(argv: Optional[List[str]] = None) -> int:
             "where-defined": "Find where an ID is defined",
             "where-used": "Find all references to an ID",
             "info": "Show project Cypilot configuration",
+            "resolve-vars": "Resolve template variables to absolute paths",
             "toc": "Generate/update Table of Contents",
             "migrate": "Migrate v2 project to v3",
             "migrate-config": "Convert JSON configs to TOML",
         }
         _sections = [
-            ("Setup & Configuration", ["init", "update", "info", "generate-agents", "agents"]),
+            ("Setup & Configuration", ["init", "update", "info", "resolve-vars", "generate-agents", "agents"]),
             ("Validation", ["validate", "validate-kits", "validate-toc", "spec-coverage"]),
             ("Search & Navigation", ["list-ids", "list-id-kinds", "get-content", "where-defined", "where-used"]),
             ("Kit Management", ["kit"]),
@@ -269,6 +274,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         return _cmd_where_used(rest)
     elif cmd == "info":
         return _cmd_cypilot_info(rest)
+    elif cmd == "resolve-vars":
+        return _cmd_resolve_vars(rest)
     elif cmd == "agents":
         return _cmd_agents(rest)
     elif cmd == "generate-agents":

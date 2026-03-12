@@ -110,3 +110,14 @@ details = """\
 - **Backward compatible** — files without bindings still go to default paths
 - **New `build_source_to_resource_mapping()`** — maps source file paths to resource IDs for manifest-driven kits\
 """
+
+["v3.0.12-beta"]
+summary = "Template variable resolution"
+details = """\
+- **New `cpt resolve-vars` command** — resolves kit template variables (`{adr_template}`, `{scripts}`, etc.) to absolute paths
+- **`cpt info` includes `variables` dict** — all template variables resolved automatically during info discovery
+- **`--flat` mode** — outputs a single merged dict for direct `format_map` substitution
+- **`--kit <slug>` filter** — restricts output to system vars + a single kit's resources
+- **Execution protocol updated** — `variables` added to parsed `cpt info` fields; compaction recovery restores variable context
+- **Protocol Guard updated** — explicit steps to store and resolve `{variable}` references in kit files\
+"""

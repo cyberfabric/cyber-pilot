@@ -100,6 +100,27 @@ ALWAYS consider these examples as valid execution logs WHEN Cypilot is enabled:
 
 Use `{cypilot_path}` as the base path for all relative Cypilot file references.
 
+### Template Variable Resolution
+
+Kit markdown files (SKILL.md, AGENTS.md, rules.md, workflows) use template variables like `{adr_template}`, `{scripts}`, `{workflow_pr_review}`, etc. These are **resource identifiers** declared in the kit's `manifest.toml` and registered in `core.toml` after installation.
+
+**How to resolve variables**:
+
+1. **From `info` output** (automatic during Protocol Guard): The `info` command includes a `variables` dict that maps every template variable to its absolute path. Parse the `variables` field from the JSON output.
+
+2. **Dedicated command** (when you need a fresh or filtered variable map):
+```bash
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py --json resolve-vars
+```
+
+**Variable sources** (merged in order):
+- **System**: `cypilot_path`, `project_root`
+- **Kit resources**: all resource IDs from installed kits (e.g., `adr_template`, `scripts`, `workflow_pr_review`)
+
+ALWAYS use the resolved absolute path WHEN encountering a `{variable}` reference in any Cypilot markdown file.
+
+ALWAYS resolve variables from the `info` output first — the `variables` dict is already available after Protocol Guard.
+
 ## Protocol Guard
 
 ALWAYS FIRST open and remember `{cypilot_path}/.gen/AGENTS.md`
@@ -112,7 +133,11 @@ ALWAYS open and follow `{cypilot_path}/config/SKILL.md` WHEN it exists
 
 ALWAYS FIRST run `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py --json info` BEFORE any Cypilot workflow action
 
+ALWAYS store the `variables` dict from `info` output — use it to resolve `{variable}` references in kit files (AGENTS.md, SKILL.md, rules.md, workflows)
+
 ALWAYS FIRST read `{cypilot_path}/.gen/AGENTS.md` WHEN cypilot status is FOUND
+
+ALWAYS resolve `{variable}` references in loaded kit files using the `variables` dict from `info` output
 
 ALWAYS FIRST parse and load ALL matched WHEN clause specs BEFORE proceeding with workflow
 
@@ -279,7 +304,13 @@ Generates or updates Table of Contents in Markdown files between `<!-- toc -->` 
 ```bash
 info [--root <path>] [--cypilot-root <path>]
 ```
-Discovers Cypilot configuration and shows project status (cypilot_dir, project_name, specs, kits).
+Discovers Cypilot configuration and shows project status (cypilot_dir, project_name, specs, kits). Includes a `variables` dict mapping all template variables to absolute paths.
+
+#### resolve-vars
+```bash
+resolve-vars [--root <path>] [--kit <slug>] [--flat]
+```
+Resolves all template variables (`{adr_template}`, `{scripts}`, etc.) to absolute file paths. Sources: system variables (`cypilot_path`, `project_root`) + kit resource bindings from `core.toml`. Use `--kit` to filter to a single kit. Use `--flat` for a plain variable→path dict.
 
 #### init
 ```bash

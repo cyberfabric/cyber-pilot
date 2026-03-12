@@ -221,6 +221,18 @@ EXIT CODES:
   1  File system error
   2  Cypilot not found
 
+OUTPUT:
+  JSON object with:
+  - status: FOUND or NOT_FOUND
+  - project_root: Resolved project root path
+  - cypilot_dir: Resolved Cypilot directory path
+  - project_name: Name derived from project root directory
+  - kit_details: Per-kit metadata (version, content_dirs, artifact_kinds, workflows, resources)
+  - artifacts_registry: Parsed artifacts.toml contents
+  - agent_integrations: List of detected agent installations
+  - directories: Health check of .core/, .gen/, config/ directories
+  - variables: Flat dict mapping all template variable names to absolute paths (for format_map substitution)
+
 EXAMPLE:
   $ python3 scripts/cypilot.py info
   $ python3 scripts/cypilot.py info --root /path/to/project
@@ -228,7 +240,41 @@ EXAMPLE:
 
 RELATED:
   - @CLI.init
+  - @CLI.resolve-vars
   - @CLI.generate-agents
+---
+
+COMMAND resolve-vars
+SYNOPSIS: python3 scripts/cypilot.py resolve-vars [options]
+DESCRIPTION: Resolve all template variables ({adr_template}, {scripts}, {cypilot_path}, etc.) to absolute file paths. Sources: system variables (cypilot_path, project_root) merged with kit resource bindings from core.toml. Use --kit to filter to a single kit. Use --flat for a plain variable-to-path dict.
+
+ARGUMENTS:
+
+OPTIONS:
+  --root  <path>  Project root directory to search from (default: current directory)
+  --kit  <string>  Filter to a specific kit slug
+  --flat  <boolean>  Output only the flat variables dict (default: structured output)
+
+EXIT CODES:
+  0  Variables resolved successfully
+  1  Error (no project root, no cypilot directory, or kit not found)
+
+OUTPUT:
+  JSON object with:
+  - status: OK or ERROR
+  - system: System-level variables (cypilot_path, project_root)
+  - kits: Per-kit resource variables {slug: {var: path}}
+  - variables: Flat merged dict of all variables for format_map() substitution
+  When --flat, outputs only the flat variables dict (no status key).
+
+EXAMPLE:
+  $ python3 scripts/cypilot.py resolve-vars
+  $ python3 scripts/cypilot.py resolve-vars --kit sdlc
+  $ python3 scripts/cypilot.py resolve-vars --flat
+  $ python3 scripts/cypilot.py resolve-vars --root /path/to/project
+
+RELATED:
+  - @CLI.info
 ---
 
 COMMAND where-defined

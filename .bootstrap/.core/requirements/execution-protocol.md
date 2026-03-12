@@ -96,7 +96,8 @@ Common steps shared by `{cypilot_path}/.core/workflows/generate.md` and `{cypilo
 
 1. Detect compaction from conversation summary signals
 2. Re-run: `cpt info` + load required specs from `{cypilot_path}/.gen/AGENTS.md`
-3. Announce restored context (workflow, target, loaded specs), then continue
+3. Re-extract `variables` dict from `info` output for template variable resolution in kit files
+4. Announce restored context (workflow, target, loaded specs), then continue
 
 **Agent MUST NOT**:
 - Continue Cypilot work without re-loading specs after compaction
@@ -223,10 +224,12 @@ ALWAYS proceed as normal coding assistant WHEN user declines initialization
 ## Discover Cypilot
 
 ```bash
-python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py info --root {PROJECT_ROOT} --cypilot-root {cypilot_path}
+python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py --json info --root {PROJECT_ROOT} --cypilot-root {cypilot_path}
 ```
 
-**Parse output**: `status`, `cypilot_dir`, `project_root`, `specs`, `rules`
+**Parse output** (JSON): `status`, `cypilot_dir`, `project_root`, `specs`, `rules`, `variables`
+
+**Store `variables`** dict — it maps every template variable (`{adr_template}`, `{scripts}`, etc.) to its absolute path. Use it to resolve `{variable}` references in kit markdown files (AGENTS.md, SKILL.md, rules.md, workflows).
 
 **If FOUND**: Load `{cypilot_path}/.gen/AGENTS.md` for navigation rules
 

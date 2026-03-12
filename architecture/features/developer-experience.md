@@ -12,15 +12,18 @@
   - [Self-Check](#self-check)
   - [Pre-Commit Hooks](#pre-commit-hooks)
   - [TOC Generation](#toc-generation)
+  - [Resolve Variables](#resolve-variables)
   - [Shell Completions](#shell-completions)
 - [3. Processes / Business Logic (CDSL)](#3-processes--business-logic-cdsl)
   - [Run Doctor Checks](#run-doctor-checks)
   - [Run Self-Check](#run-self-check)
+  - [Resolve Variables](#resolve-variables-1)
 - [4. States (CDSL)](#4-states-cdsl)
   - [Developer Experience State](#developer-experience-state)
 - [5. Definitions of Done](#5-definitions-of-done)
   - [Doctor Command](#doctor-command)
   - [Self-Check Command](#self-check-command)
+  - [Resolve Variables Command](#resolve-variables-command)
   - [Pre-Commit Hooks](#pre-commit-hooks-1)
   - [Shell Completions](#shell-completions-1)
 - [6. Implementation Modules](#6-implementation-modules)
@@ -47,6 +50,7 @@ Reduces friction in daily Cypilot usage. `doctor` catches environment issues bef
 | Actor | Role in Feature |
 |-------|-----------------|
 | `cpt-cypilot-actor-user` | Runs `cpt doctor`, `cpt self-check`, installs hooks/completions |
+| `cpt-cypilot-actor-ai-agent` | Invokes `cpt resolve-vars` and `cpt info` to resolve template variables for kit file substitution |
 | `cpt-cypilot-actor-ci-pipeline` | Runs validation via pre-commit hooks |
 
 ### 4. References
@@ -139,6 +143,38 @@ Reduces friction in daily Cypilot usage. `doctor` catches environment issues bef
 - [x] - `p1` - Imports and module setup for toc command - `inst-toc-gen-imports`
 - [x] - `p1` - Human-friendly formatter for toc command output - `inst-toc-gen-format`
 
+### Resolve Variables
+
+- [x] `p1` - **ID**: `cpt-cypilot-flow-developer-experience-resolve-vars`
+
+**Actor**: `cpt-cypilot-actor-ai-agent`
+
+**Success Scenarios**:
+- Agent runs `cpt resolve-vars` → all template variables resolved to absolute paths
+- Agent runs `cpt resolve-vars --kit sdlc` → only SDLC kit variables returned
+- Agent runs `cpt info` → `variables` dict included in output for automatic resolution during Protocol Guard
+
+**Error Scenarios**:
+- No project root → ERROR with searched path
+- Cypilot not initialized → ERROR with project_root
+- Kit not found (with `--kit`) → ERROR with available kits list
+
+**Steps**:
+1. [x] - `p1` - User/agent invokes `cpt resolve-vars [--root P] [--kit K] [--flat]` - `inst-resolve-vars-parse-args`
+2. [x] - `p1` - Discover project root and cypilot directory - `inst-resolve-vars-discover`
+3. [x] - `p1` - Load core.toml for kit resource bindings - `inst-resolve-vars-load-core`
+4. [x] - `p1` - Collect system variables (cypilot_path, project_root) - `inst-resolve-vars-system`
+5. [x] - `p1` - **FOR EACH** kit with resources in core.toml - `inst-resolve-vars-foreach-kit`
+   1. [x] - `p1` - Resolve each resource binding to absolute path - `inst-resolve-vars-resolve-binding`
+6. [x] - `p1` - Merge system + kit variables into flat dict - `inst-resolve-vars-merge`
+7. [x] - `p1` - **IF** `--kit` filter, restrict to that kit - `inst-resolve-vars-filter-kit`
+8. [x] - `p1` - **RETURN** JSON: `{status, system, kits, variables}` - `inst-resolve-vars-return`
+
+**Supporting**:
+- [x] - `p1` - Render resolved variables in human-friendly `info` output - `inst-info-render-variables`
+- [x] - `p1` - Human-friendly flat variable formatter - `inst-resolve-vars-human-flat`
+- [x] - `p1` - Human-friendly structured variable formatter - `inst-resolve-vars-human-structured`
+
 ### Shell Completions
 
 - [ ] `p3` - **ID**: `cpt-cypilot-flow-developer-experience-completions`
@@ -169,6 +205,16 @@ Reduces friction in daily Cypilot usage. `doctor` catches environment issues bef
 4. - `p1` - Validate example headings match constraints heading contract - `inst-validate-example-headings`
 5. - `p1` - Check that template defines all required ID kinds from constraints - `inst-check-id-kinds`
 
+### Resolve Variables
+
+- [x] `p1` - **ID**: `cpt-cypilot-algo-developer-experience-resolve-vars`
+
+1. [x] - `p1` - Collect system variables: cypilot_path (adapter dir), project_root - `inst-collect-system-vars`
+2. [x] - `p1` - For each kit in core_data.kits, extract resources dict - `inst-extract-kit-resources`
+3. [x] - `p1` - For each resource binding, resolve relative path to absolute via adapter_dir - `inst-resolve-binding-path`
+4. [x] - `p1` - Merge system + all kit variables into flat dict (kit IDs are globally unique) - `inst-merge-flat-dict`
+5. [x] - `p1` - Return structured result: {system, kits, variables} - `inst-return-structured`
+
 ## 4. States (CDSL)
 
 ### Developer Experience State
@@ -194,6 +240,17 @@ No feature-specific state machines. Self-check is stateless (run → report).
 - [x] - `p1` - Reports per-kind pass/fail with specific issues
 - [x] - `p1` - Integrated into `cpt validate` as a fail-fast pre-check
 
+### Resolve Variables Command
+
+- [x] `p1` - **ID**: `cpt-cypilot-dod-developer-experience-resolve-vars`
+
+- [x] - `p1` - `cpt resolve-vars` resolves all template variables to absolute paths
+- [x] - `p1` - `--kit` flag filters to a single kit
+- [x] - `p1` - `--flat` flag outputs plain variable→path dict
+- [x] - `p1` - `cpt info` includes `variables` dict in output for Protocol Guard
+- [x] - `p1` - System variables (cypilot_path, project_root) always present
+- [x] - `p1` - Kit resource bindings resolved from core.toml registrations
+
 ### Pre-Commit Hooks
 
 - [ ] `p3` - **ID**: `cpt-cypilot-dod-developer-experience-hooks`
@@ -216,10 +273,13 @@ No feature-specific state machines. Self-check is stateless (run → report).
 | Self-Check Command | `skills/.../commands/self_check.py` | Kit example validation against templates/constraints |
 | TOC Command | `skills/.../commands/toc.py` | CLI wrapper for TOC generation |
 | TOC Utils | `skills/.../utils/toc.py` | Unified TOC generation, anchor slugs, code block awareness |
+| Resolve Vars Command | `skills/.../commands/resolve_vars.py` | Template variable resolution to absolute paths |
 
 ## 7. Acceptance Criteria
 
 - [x] `cpt self-check` validates kit integrity and reports per-kind results
+- [x] `cpt resolve-vars` resolves all template variables to absolute paths
+- [x] `cpt info` includes `variables` in output for agent variable resolution
 - [ ] `cpt doctor` reports environment health with pass/fail per check
 - [ ] Pre-commit hooks enforce validation on staged artifacts
 - [ ] Shell completions work for all documented commands
