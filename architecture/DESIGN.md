@@ -252,6 +252,7 @@ The following architecture decision records (ADRs) drive the design:
 - `cpt-cypilot-adr-git-style-conflict-markers` — git-style conflict markers for interactive merge
 - `cpt-cypilot-adr-extract-sdlc-kit` — extract SDLC kit to separate GitHub repository
 - `cpt-cypilot-adr-remove-system-from-core-toml` — remove `[system]` from core.toml; artifacts.toml is single source for system identity
+- `cpt-cypilot-adr-prefer-cpt-cli-for-agents` — prefer `cpt` CLI over direct script invocation in agent prompts; graceful fallback to raw Python path
 
 ### 1.3 Architecture Layers
 
@@ -1129,6 +1130,7 @@ The following design domains are not applicable to Cypilot and are explicitly ex
   - `cpt-cypilot-adr-skill-md-entry-point` — SKILL.md as single agent entry point
   - `cpt-cypilot-adr-structured-id-format` — structured cpt-* ID format with @cpt-* code tags
   - `cpt-cypilot-adr-git-style-conflict-markers` — git-style conflict markers for interactive merge
+  - `cpt-cypilot-adr-prefer-cpt-cli-for-agents` — prefer `cpt` CLI over direct script invocation in agent prompts; graceful fallback to raw Python path
 - **Features**: [features/](./features/) — `core-infra.md`, `kit-management.md`, `traceability-validation.md`, `agent-integration.md`, `version-config.md`, `developer-experience.md`, `spec-coverage.md`, `v2-v3-migration.md`
 
 ### Specifications

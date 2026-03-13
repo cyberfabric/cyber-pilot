@@ -11,7 +11,7 @@ Cypilot provides: artifact validation, cross-reference validation, code traceabi
 
 ## Preconditions
 
-- `python3` available
+- `cpt` available (preferred) or `python3` as fallback
 - Target paths exist and readable
 
 ---
@@ -93,6 +93,8 @@ ALWAYS consider these examples as valid execution logs WHEN Cypilot is enabled:
 |----------|-------|-------------|
 | `{cypilot_path}` | Directory containing this `../../SKILL.md`| Project root for Cypilot navigation |
 | `{cypilot_mode}` | `on` or `off` | Current Cypilot mode state |
+| `{cpt_cmd}` | `cpt` or `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py` | Resolved CLI entrypoint (set during CLI Resolution) |
+| `{cpt_installed}` | `true` or `false` | Whether the `cpt` CLI is available |
 
 **Setting `{cypilot_mode}`**:
 - Explicit command: `cypilot on` / `cypilot off`
@@ -110,7 +112,7 @@ Kit markdown files (SKILL.md, AGENTS.md, rules.md, workflows) use template varia
 
 2. **Dedicated command** (when you need a fresh or filtered variable map):
 ```bash
-python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py --json resolve-vars
+{cpt_cmd} --json resolve-vars
 ```
 
 **Variable sources** (merged in order):
@@ -120,6 +122,17 @@ python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py --json resolve-va
 ALWAYS use the resolved absolute path WHEN encountering a `{variable}` reference in any Cypilot markdown file.
 
 ALWAYS resolve variables from the `info` output first — the `variables` dict is already available after Protocol Guard.
+
+## CLI Resolution
+
+ALWAYS run BEFORE Protocol Guard WHEN `{cypilot_mode}` is `on`:
+
+1. Run `command -v cpt` — if found: `{cpt_cmd}` = `cpt`, `{cpt_installed}` = `true`
+2. If not found: `{cpt_cmd}` = `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py`, `{cpt_installed}` = `false`
+3. If not found AND `~/.cypilot/cache/cpt-prompt-dismissed` does NOT exist: inform user that `cpt` can be installed via `pipx install git+https://github.com/cyberfabric/cyber-pilot.git`, offer to install or continue; on dismiss create `~/.cypilot/cache/cpt-prompt-dismissed`
+4. If user later asks about the long invocation path, re-offer `cpt` installation
+
+ALWAYS use `{cpt_cmd}` for ALL Cypilot CLI invocations after resolution.
 
 ## Protocol Guard
 
@@ -131,7 +144,7 @@ ALWAYS open and follow `{cypilot_path}/.gen/SKILL.md` WHEN it exists
 
 ALWAYS open and follow `{cypilot_path}/config/SKILL.md` WHEN it exists
 
-ALWAYS FIRST run `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py --json info` BEFORE any Cypilot workflow action
+ALWAYS FIRST run `{cpt_cmd} --json info` BEFORE any Cypilot workflow action
 
 ALWAYS store the `variables` dict from `info` output — use it to resolve `{variable}` references in kit files (AGENTS.md, SKILL.md, rules.md, workflows)
 
@@ -168,9 +181,9 @@ Cypilot: {FOUND at path | NOT_FOUND}
 
 ## Agent-Safe Invocation
 
-ALWAYS use script entrypoint:
+ALWAYS use the resolved CLI entrypoint:
 ```bash
-python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py --json <subcommand> [options]
+{cpt_cmd} --json <subcommand> [options]
 ```
 
 ALWAYS pass `--json` as the FIRST argument (before the subcommand) WHEN invoking any Cypilot CLI command from an AI agent. This ensures machine-readable JSON output on stdout. Without `--json`, the CLI produces human-friendly output intended for interactive terminal use.
@@ -183,9 +196,9 @@ ALWAYS use `=` form for pattern args starting with `-`: `--pattern=-req-`
 
 ALWAYS SKIP Protocol Guard and workflow loading WHEN user invokes quick commands
 
-ALWAYS run `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py --json init --yes` directly WHEN user invokes `cypilot init`
+ALWAYS run `{cpt_cmd} --json init --yes` directly WHEN user invokes `cypilot init`
 
-ALWAYS run `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py --json generate-agents --agent <name>` directly WHEN user invokes `cypilot generate-agents <name>`
+ALWAYS run `{cpt_cmd} --json generate-agents --agent <name>` directly WHEN user invokes `cypilot generate-agents <name>`
 
 ALWAYS open and follow `{cypilot_path}/.core/workflows/generate.md` directly WHEN user invokes `cypilot auto-config` or `cypilot configure` — generate.md will trigger the auto-config methodology
 
@@ -211,7 +224,7 @@ ALWAYS ask user "plan (phased execution) / generate (modify) / analyze (read-onl
 
 All commands use the entrypoint:
 ```bash
-python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py <command> [options]
+{cpt_cmd} <command> [options]
 ```
 
 All commands output JSON to stdout when invoked with `--json`. Without `--json`, output is human-friendly. Exit codes: 0=PASS, 1=filesystem/config error, 2=FAIL.
