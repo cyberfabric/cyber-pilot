@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import List
 
 from ..utils.ui import ui
+from ..utils.git_utils import _redact_url
 from ..utils.workspace import WorkspaceConfig
 
 # SCP-style SSH: git@host:org/repo or user@host:path
@@ -62,7 +63,7 @@ def _emit_add_result(args: argparse.Namespace, replaced: bool, config_path: str,
         source_info["adapter"] = args.adapter
     url = getattr(args, "url", None)
     if url:
-        source_info["url"] = url
+        source_info["url"] = _redact_url(url)
     branch = getattr(args, "branch", None)
     if branch:
         source_info["branch"] = branch

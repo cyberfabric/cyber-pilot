@@ -18,6 +18,7 @@ from ..utils.files import (
     find_project_root,
     load_cypilot_config,
 )
+from ..utils.git_utils import _redact_url
 from ..utils.ui import ui
 
 def _load_json_file(path: Path) -> Optional[dict]:
@@ -380,7 +381,7 @@ def cmd_adapter_info(argv: list[str]) -> int:
                     resolved = ws_cfg.resolve_source_path(name)
                     reachable = resolved is not None and resolved.is_dir()
                 ws_info["sources"][name] = {
-                    "path": src.path or src.url,
+                    "path": src.path or (_redact_url(src.url) if src.url else None),
                     "role": src.role,
                     "reachable": reachable,
                 }

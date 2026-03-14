@@ -8,6 +8,7 @@ import argparse
 from pathlib import Path
 from typing import List
 
+from ..utils.git_utils import _redact_url
 from ..utils.ui import ui
 
 
@@ -121,7 +122,7 @@ def cmd_workspace_sync(argv: List[str]) -> int:
         ui.result({
             "status": "DRY_RUN",
             "message": "Would sync the following Git URL sources",
-            "sources": [{"name": n, "url": s.url, "branch": s.branch} for n, s in git_sources.items()],
+            "sources": [{"name": n, "url": _redact_url(s.url), "branch": s.branch} for n, s in git_sources.items()],
         }, human_fn=_human_workspace_sync)
         return 0
     # @cpt-end:cpt-cypilot-flow-workspace-sync:p1:inst-sync-if-dry-run
