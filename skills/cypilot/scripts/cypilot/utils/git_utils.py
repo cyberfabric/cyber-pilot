@@ -222,7 +222,11 @@ def resolve_git_source(
             print(f"Warning: cannot compute local path for git URL: {_redact_url(url)}", file=sys.stderr)
         return None
 
-    local_path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        local_path.parent.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        print(f"Warning: cannot create directory {local_path.parent}: {exc}", file=sys.stderr)
+        return None
 
     # Determine branch
     branch = getattr(source, "branch", None) or "HEAD"

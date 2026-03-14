@@ -322,8 +322,10 @@ def _patch_collect_artifacts(root, remote, remote_file="REMOTE.md"):
 def _run_cli_dispatch(test_case, args):
     """Run CLI main() in a temp dir, assert exit code in [0, 1, 2]."""
     from cypilot.cli import main
+    from cypilot.utils.ui import is_json_mode, set_json_mode
     with TemporaryDirectory() as td:
         cwd = os.getcwd()
+        saved_json_mode = is_json_mode()
         try:
             os.chdir(td)
             buf = io.StringIO()
@@ -331,6 +333,7 @@ def _run_cli_dispatch(test_case, args):
                 rc = main(args)
             test_case.assertIn(rc, [0, 1, 2])
         finally:
+            set_json_mode(saved_json_mode)
             os.chdir(cwd)
 
 

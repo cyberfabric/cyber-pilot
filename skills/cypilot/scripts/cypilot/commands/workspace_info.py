@@ -7,6 +7,7 @@ import argparse
 from pathlib import Path
 from typing import List, Optional
 
+from ..utils.git_utils import _redact_url
 from ..utils.ui import ui
 from ..utils.workspace import WorkspaceConfig
 
@@ -41,13 +42,18 @@ def _build_source_info(ws_cfg: WorkspaceConfig, name: str) -> dict:
         "reachable": reachable,
     }
     if src.url is not None:
-        info["url"] = src.url
+        info["url"] = _redact_url(src.url)
     if src.branch is not None:
         info["branch"] = src.branch
 
     if not reachable:
-        identifier = src.url or src.path or name
-        info["warning"] = f"Source directory not reachable: {identifier}"
+        if src.url:
+            info["warning"] = (
+                f"Source not cloned — run 'workspace-sync' to fetch: {_redact_url(src.url)}"
+            )
+        else:
+            identifier = src.path or name
+            info["warning"] = f"Source directory not reachable: {identifier}"
         return info
 
     explicit_adapter = (resolved / src.adapter).resolve() if src.adapter else None

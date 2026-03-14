@@ -615,7 +615,8 @@ class TestAdapterInfoWorkspaceSection(unittest.TestCase):
     def test_workspace_active_in_human_output(self):
         """Human formatter renders active workspace info."""
         from cypilot.commands.adapter_info import _human_info
-        from cypilot.utils.ui import set_json_mode
+        from cypilot.utils.ui import is_json_mode, set_json_mode
+        orig = is_json_mode()
         set_json_mode(False)
         try:
             data = {
@@ -634,12 +635,13 @@ class TestAdapterInfoWorkspaceSection(unittest.TestCase):
             self.assertIn("inline (core.toml)", output)
             self.assertIn("2", output)
         finally:
-            set_json_mode(True)
+            set_json_mode(orig)
 
     def test_workspace_error_in_human_output(self):
         """Human formatter renders workspace error as warning."""
         from cypilot.commands.adapter_info import _human_info
-        from cypilot.utils.ui import set_json_mode
+        from cypilot.utils.ui import is_json_mode, set_json_mode
+        orig = is_json_mode()
         set_json_mode(False)
         try:
             data = {
@@ -655,19 +657,20 @@ class TestAdapterInfoWorkspaceSection(unittest.TestCase):
             output = buf.getvalue()
             self.assertIn("config parse failed", output)
         finally:
-            set_json_mode(True)
+            set_json_mode(orig)
 
 
 class TestHumanInfoFormatterBranches(unittest.TestCase):
     """Cover additional _human_info branches for per-file coverage."""
 
     def setUp(self):
-        from cypilot.utils.ui import set_json_mode
+        from cypilot.utils.ui import is_json_mode, set_json_mode
+        self._orig_json_mode = is_json_mode()
         set_json_mode(False)
 
     def tearDown(self):
         from cypilot.utils.ui import set_json_mode
-        set_json_mode(True)
+        set_json_mode(self._orig_json_mode)
 
     def test_missing_directories_warning(self):
         from cypilot.commands.adapter_info import _human_info

@@ -49,7 +49,11 @@ def _find_adapter_path(entry: Path) -> Optional[str]:
 
 def _compute_source_path(entry: Path, output_dir: Path) -> str:
     """Compute relative source path from the output location."""
-    return Path(os.path.relpath(entry, output_dir)).as_posix()
+    try:
+        return Path(os.path.relpath(entry, output_dir)).as_posix()
+    except ValueError:
+        # Windows: entry and output_dir are on different drives
+        return entry.resolve().as_posix()
 # @cpt-end:cpt-cypilot-algo-workspace-discover-nested:p1:inst-disc-helpers
 
 

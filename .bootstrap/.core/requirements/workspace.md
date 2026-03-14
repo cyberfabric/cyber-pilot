@@ -25,6 +25,7 @@ purpose: Define workspace federation for multi-repo traceability
   - [Scan Warning Logging](#scan-warning-logging)
 - [Artifacts Registry v1.2](#artifacts-registry-v12)
 - [CLI Commands](#cli-commands)
+  - [Syncing Sources](#syncing-sources)
   - [Removing Sources](#removing-sources)
   - [Switching Workspace Type](#switching-workspace-type)
 - [Backward Compatibility](#backward-compatibility)
@@ -272,11 +273,25 @@ When `source` is absent, paths resolve locally (backward compatible). v1.0/v1.1 
 | `workspace-init --inline`                | Initialize workspace inline in `config/core.toml`                              |
 | `workspace-init --dry-run`               | Preview without writing files                                                  |
 | `workspace-add --name N --path P`        | Add source to workspace (auto-detects standalone vs inline)                    |
+| `workspace-add --name N --url U`           | Add Git URL source to standalone workspace                                     |
 | `workspace-add --inline --name N --path P` | Force add source inline to `config/core.toml`                                  |
+| `workspace-add --force --name N ...`       | Overwrite existing source with the same name                                   |
 | `workspace-info`                         | Display workspace config and per-source status                                 |
+| `workspace-sync`                         | Fetch and update worktrees for all Git URL sources                             |
+| `workspace-sync --source <name>`         | Sync a single Git URL source                                                   |
+| `workspace-sync --dry-run`               | Preview sync operations without network access                                 |
+| `workspace-sync --force`                 | Sync discarding uncommitted changes (**DESTRUCTIVE**)                          |
 | `validate --local-only`                  | Validate without cross-repo ID resolution                                      |
 | `validate --source <name>`               | Validate using a specific workspace source's adapter context                   |
 | `list-ids --source <name>`               | Filter IDs by workspace source                                                 |
+
+### Syncing Sources
+
+Git URL sources are cloned on first access (e.g., during `workspace-add --url` or the first operation that resolves a URL source). Subsequent updates require an **explicit** `workspace-sync` invocation — source resolution does not perform network operations for existing repos.
+
+`workspace-sync` fetches the configured branch (or remote default) and fast-forwards the local worktree. Use `--source <name>` to limit sync to a single source. Local path sources are skipped.
+
+**`--force` is DESTRUCTIVE**: it runs `git reset --hard` and `git checkout -B`, discarding uncommitted changes and potentially losing local commits. Without `--force`, the command refuses to sync a dirty worktree.
 
 ### Removing Sources
 
@@ -363,7 +378,7 @@ role = "kits"
 - Namespace resolution rules MUST map Git URL host to local directory path template via exact host match
 - When no namespace rule matches the Git URL host, the system MUST fall back to the default template `{org}/{repo}` — e.g., `https://gitlab.com/team/lib.git` → `team/lib` under `resolve.workdir`
 - Branch/ref configuration MUST default to the remote repository's default branch when no per-source `branch` field is set. Each source MAY override the branch via its `branch` field
-- The system MUST clone or fetch sources as needed and cache them locally under the working directory
+- The system MUST clone URL sources on first access and cache them locally under the working directory. Subsequent fetches MUST only occur via explicit `workspace-sync` invocation — source resolution MUST NOT perform network operations for already-cloned repos
 - `resolve.workdir` MUST be resolved relative to the workspace file's parent directory (standalone only — Git URL sources are not supported in inline mode). The resulting directory is auto-created on first clone
 - The resolved clone path (`workdir / templated`) MUST pass a containment check — paths that escape the working directory (via symlinks or path traversal) MUST be rejected
 
