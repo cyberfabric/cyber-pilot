@@ -261,7 +261,7 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 5. [x] - `p1` - **IF** download fails (network error, 404, rate limit) - `inst-if-download-error`
    1. [x] - `p1` - **RETURN** error with HTTP status and retry suggestion - `inst-return-download-fail`
 6. [x] - `p1` - Extract archive into `~/.cypilot/cache/` (overwrite previous) - `inst-extract-archive`
-7. [ ] - `p1` - Prune `architecture/` in cache to distributable content only (`specs/`, `features/`); remove Cypilot-internal files (ADR/, PRD.md, DESIGN.md, DECOMPOSITION.md, AUDIT-REPORT.md) - `inst-prune-architecture`
+7. [x] - `p1` - Prune `architecture/` in cache to distributable content only (`specs/`, `features/`); remove Cypilot-internal files (ADR/, PRD.md, DESIGN.md, DECOMPOSITION.md, AUDIT-REPORT.md) - `inst-prune-architecture`
 8. [x] - `p1` - Write version marker file `~/.cypilot/cache/.version` with downloaded version - `inst-write-version`
 9. [x] - `p1` - **RETURN** path to cached skill bundle - `inst-return-cache-path-new`
 

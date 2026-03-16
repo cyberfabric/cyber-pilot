@@ -28,6 +28,22 @@ GITHUB_REPO = "cyber-pilot"
 GITHUB_API_BASE = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}"
 USER_AGENT = "cypilot-proxy/3.0"
 
+# Directories/files to copy from source into cache.
+# Matches what _copy_from_cache() reads via COPY_DIRS, plus build metadata
+# for version detection, and kit sources for cache-based kit updates.
+_CACHE_COPY_NAMES: frozenset = frozenset({
+    # Consumed by _copy_from_cache via COPY_DIRS
+    "architecture", "requirements", "schemas", "workflows", "skills",
+    # Build/packaging metadata needed for version detection
+    "pyproject.toml", "setup.py", "setup.cfg",
+    # Kit sources (for cache-based kit updates)
+    "kits",
+})
+
+# Within architecture/, only these subdirectories are distributable to user projects.
+# Everything else (ADR/, PRD.md, DESIGN.md, etc.) is Cypilot-internal.
+_ARCHITECTURE_DISTRIBUTABLE: frozenset = frozenset({"specs", "features"})
+
 def _resolve_api_base(url: str) -> str:
     """
     Resolve GitHub API base URL from a custom repo URL or owner/repo shorthand.
@@ -139,13 +155,20 @@ def copy_from_local(
         shutil.rmtree(cache_dir)
     cache_dir.mkdir(parents=True, exist_ok=True)
 
-    # Copy source contents to cache
+    # Copy source contents to cache (filtered to distributable items only)
     for item in source.iterdir():
+        if item.name not in _CACHE_COPY_NAMES:
+            continue
         dst = cache_dir / item.name
         if item.is_dir():
             shutil.copytree(item, dst)
         elif item.is_file():
             shutil.copy2(item, dst)
+
+    # @cpt-begin:cpt-cypilot-algo-core-infra-cache-skill:p1:inst-prune-architecture
+    # Prune architecture/ to distributable content only (issue #110)
+    _prune_architecture(cache_dir)
+    # @cpt-end:cpt-cypilot-algo-core-infra-cache-skill:p1:inst-prune-architecture
 
     version_file.write_text(f"local:{local_version}", encoding="utf-8")
 
@@ -262,6 +285,11 @@ def download_and_cache(
         return False, "Failed to extract archive: unrecognized format"
     # @cpt-end:cpt-cypilot-algo-core-infra-cache-skill:p1:inst-extract-archive
 
+    # @cpt-begin:cpt-cypilot-algo-core-infra-cache-skill:p1:inst-prune-architecture
+    # Prune architecture/ to distributable content only (issue #110)
+    _prune_architecture(cache_dir)
+    # @cpt-end:cpt-cypilot-algo-core-infra-cache-skill:p1:inst-prune-architecture
+
     # @cpt-begin:cpt-cypilot-algo-core-infra-cache-skill:p1:inst-write-version
     version_file.write_text(resolved_version, encoding="utf-8")
     # @cpt-end:cpt-cypilot-algo-core-infra-cache-skill:p1:inst-write-version
@@ -344,4 +372,20 @@ def _extract_zip_stripped(
         else:
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(zf.read(name))
+
+def _prune_architecture(cache_dir: Path) -> None:
+    """Remove non-distributable content from architecture/ in cache.
+
+    Only specs/ and features/ subdirectories are distributable to user projects.
+    Everything else (ADR/, PRD.md, DESIGN.md, etc.) is Cypilot-internal.
+    """
+    arch_dir = cache_dir / "architecture"
+    if not arch_dir.is_dir():
+        return
+    for child in list(arch_dir.iterdir()):
+        if child.name not in _ARCHITECTURE_DISTRIBUTABLE:
+            if child.is_dir():
+                shutil.rmtree(child)
+            else:
+                child.unlink()
 # @cpt-end:cpt-cypilot-algo-core-infra-cache-skill:p1:inst-cache-helpers
