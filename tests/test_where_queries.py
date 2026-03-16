@@ -274,7 +274,7 @@ class TestCmdWhereDefined(_ContextTestBase):
                 rc = cmd_where_defined(["cpt-test-item-1"])
             self.assertEqual(rc, 0)
             out = json.loads(stdout.getvalue())
-            self.assertEqual(out["status"], "NOT_FOUND")
+            self.assertEqual(out["status"], "NO_ARTIFACTS")
             self.assertEqual(out["artifacts_scanned"], 0)
 
 

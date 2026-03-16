@@ -63,9 +63,31 @@ from .codebase import (
 from .context import (
     CypilotContext,
     LoadedKit,
+    SourceContext,
+    WorkspaceContext,
+    collect_artifacts_to_scan,
+    determine_target_source,
     get_context,
+    get_expanded_meta,
+    get_primary_context,
+    resolve_adapter_context,
+    resolve_artifacts_for_command,
+    resolve_target_and_artifacts,
     set_context,
     ensure_context,
+    is_workspace,
+)
+
+from .workspace import (
+    VALID_ROLES,
+    SourceEntry,
+    TraceabilityConfig,
+    NamespaceRule,
+    ResolveConfig,
+    WorkspaceConfig,
+    find_workspace_config,
+    require_project_root,
+    load_inline_config,
 )
 
 __all__ = [
@@ -116,7 +138,27 @@ __all__ = [
     # Context
     "CypilotContext",
     "LoadedKit",
+    "SourceContext",
+    "WorkspaceContext",
+    "collect_artifacts_to_scan",
+    "determine_target_source",
     "get_context",
+    "get_expanded_meta",
+    "get_primary_context",
+    "resolve_adapter_context",
+    "resolve_artifacts_for_command",
+    "resolve_target_and_artifacts",
     "set_context",
     "ensure_context",
+    "is_workspace",
+    # Workspace
+    "VALID_ROLES",
+    "SourceEntry",
+    "TraceabilityConfig",
+    "NamespaceRule",
+    "ResolveConfig",
+    "WorkspaceConfig",
+    "find_workspace_config",
+    "require_project_root",
+    "load_inline_config",
 ]

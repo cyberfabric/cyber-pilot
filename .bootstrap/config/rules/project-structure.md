@@ -97,7 +97,7 @@ skills/cypilot/scripts/cypilot/
 ├── cli.py                   # Main CLI — command dispatch only
 ├── constants.py             # Shared constants and regex patterns
 │
-├── commands/                # One module per CLI subcommand (18 modules)
+├── commands/                # One module per CLI subcommand (22 modules)
 │   ├── adapter_info.py      # info command
 │   ├── agents.py            # agents command (multi-agent integration)
 │   ├── get_content.py       # get-content command
@@ -114,14 +114,18 @@ skills/cypilot/scripts/cypilot/
 │   ├── validate_kits.py     # validate-kits command
 │   ├── validate_toc.py      # validate-toc command
 │   ├── where_defined.py     # where-defined command
-│   └── where_used.py        # where-used command
+│   ├── where_used.py        # where-used command
+│   ├── workspace_add.py     # workspace-add command
+│   ├── workspace_info.py    # workspace-info command
+│   ├── workspace_init.py    # workspace-init command
+│   └── workspace_sync.py    # workspace-sync command
 │
-└── utils/                   # Shared utility modules (17 modules)
+└── utils/                   # Shared utility modules (18 modules)
     ├── __init__.py          # Re-exports all utilities
     ├── artifacts_meta.py    # artifacts.toml parsing → ArtifactsMeta
     ├── codebase.py          # Code file parsing → CodeFile, ScopeMarker
     ├── constraints.py       # constraints.toml parsing → KitConstraints
-    ├── context.py           # CypilotContext singleton
+    ├── context.py           # CypilotContext + WorkspaceContext singleton
     ├── coverage.py          # Spec coverage calculation
     ├── diff_engine.py       # File-level diff for kit updates
     ├── document.py          # Document utilities
@@ -133,7 +137,8 @@ skills/cypilot/scripts/cypilot/
     ├── parsing.py           # Markdown parsing, section splitting
     ├── toc.py               # Table of Contents generation
     ├── toml_utils.py        # TOML read/write helpers (stdlib tomllib)
-    └── ui.py                # Terminal UI helpers
+    ├── ui.py                # Terminal UI helpers
+    └── workspace.py         # Multi-repo workspace config (WorkspaceConfig, SourceEntry)
 ```
 
 ## Kit Package Structure

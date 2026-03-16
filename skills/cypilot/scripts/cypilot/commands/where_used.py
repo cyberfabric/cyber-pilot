@@ -1,10 +1,8 @@
 # @cpt-begin:cpt-cypilot-flow-traceability-validation-query:p1:inst-query-imports
 import argparse
-import json
-import sys
-from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
+from ..utils.context import resolve_target_and_artifacts
 from ..utils.document import scan_cpt_ids
 from ..utils.ui import ui
 # @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-query-imports
@@ -20,62 +18,10 @@ def cmd_where_used(argv: List[str]) -> int:
     p.add_argument("--include-definitions", action="store_true", help="Include definitions in results")
     args = p.parse_args(argv)
 
-    if args.id_positional and args.id:
-        sys.stderr.write("WARNING: both positional ID and --id given; using positional\n")
-    target_id = (args.id_positional or args.id or "").strip()
-    if not target_id:
-        ui.result({"status": "ERROR", "message": "ID cannot be empty"})
+    target_id, _, artifacts_to_scan, path_to_source, err = resolve_target_and_artifacts(args)
+    if err:
+        ui.result({"status": "ERROR", "message": err})
         return 1
-
-    # Collect artifacts to scan: (artifact_path, artifact_kind)
-    artifacts_to_scan: List[Tuple[Path, str]] = []
-
-    if args.artifact:
-        # Load context from artifact's location
-        artifact_path = Path(args.artifact).resolve()
-        if not artifact_path.exists():
-            ui.result({"status": "ERROR", "message": f"Artifact not found: {artifact_path}"})
-            return 1
-
-        from ..utils.context import CypilotContext
-
-        ctx = CypilotContext.load(artifact_path.parent)
-        if not ctx:
-            ui.result({"status": "ERROR", "message": "Cypilot not initialized. Run 'cypilot init' first."})
-            return 1
-
-        meta = ctx.meta
-        project_root = ctx.project_root
-
-        try:
-            rel_path = artifact_path.relative_to(project_root).as_posix()
-        except ValueError:
-            rel_path = None
-        if rel_path:
-            result = meta.get_artifact_by_path(rel_path)
-            if result:
-                artifact_meta, _system_node = result
-                artifacts_to_scan.append((artifact_path, str(artifact_meta.kind)))
-        if not artifacts_to_scan:
-            ui.result({"status": "ERROR", "message": f"Artifact not in Cypilot registry: {args.artifact}"})
-            return 1
-    else:
-        # Use global context
-        from ..utils.context import get_context
-
-        ctx = get_context()
-        if not ctx:
-            ui.result({"status": "ERROR", "message": "Cypilot not initialized. Run 'cypilot init' first."})
-            return 1
-
-        meta = ctx.meta
-        project_root = ctx.project_root
-
-        # Scan all Cypilot artifacts
-        for artifact_meta, _system_node in meta.iter_all_artifacts():
-            artifact_path = (project_root / artifact_meta.path).resolve()
-            if artifact_path.exists():
-                artifacts_to_scan.append((artifact_path, str(artifact_meta.kind)))
 
     if not artifacts_to_scan:
         ui.result({"id": target_id, "artifacts_scanned": 0, "count": 0, "references": []}, human_fn=lambda d: _human_where_used(d))
@@ -83,6 +29,7 @@ def cmd_where_used(argv: List[str]) -> int:
     # @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-query-resolve
 
     # @cpt-begin:cpt-cypilot-flow-traceability-validation-query:p1:inst-if-where-used
+
     # Search for references
     references: List[Dict[str, object]] = []
 
@@ -92,14 +39,18 @@ def cmd_where_used(argv: List[str]) -> int:
                 continue
             if h.get("type") == "definition" and not bool(args.include_definitions):
                 continue
-            references.append({
+            r: Dict[str, object] = {
                 "artifact": str(artifact_path),
                 "artifact_type": artifact_type,
                 "line": int(h.get("line", 1) or 1),
                 "kind": None,
                 "type": str(h.get("type")),
                 "checked": bool(h.get("checked", False)),
-            })
+            }
+            src = path_to_source.get(str(artifact_path))
+            if src:
+                r["source"] = src
+            references.append(r)
 
     # Sort by artifact and line
     references = sorted(references, key=lambda r: (str(r.get("artifact", "")), int(r.get("line", 0))))
@@ -132,9 +83,11 @@ def _human_where_used(data: dict) -> None:
         art_type = r.get("artifact_type", "")
         ref_type = r.get("type", "")
         checked = r.get("checked", False)
+        source = r.get("source")
         loc = f":{line}" if line else ""
         suffix = "  \u2713" if checked else ""
-        ui.step(f"{art}{loc}  ({ref_type}, {art_type}){suffix}")
+        src_tag = f" [{source}]" if source else ""
+        ui.step(f"{art}{loc}  ({ref_type}, {art_type}){src_tag}{suffix}")
 
     ui.blank()
 # @cpt-end:cpt-cypilot-flow-traceability-validation-query:p1:inst-query-format

@@ -123,10 +123,12 @@ class TestGlobalContextFunctions:
         set_context(None)
         assert get_context() is None
 
-    def test_set_and_get_context(self):
+    @patch("cypilot.utils.context.WorkspaceContext.load", return_value=None)
+    def test_set_and_get_context(self, _mock_ws_load):
         """set_context stores context retrievable by get_context."""
         mock_ctx = MagicMock(spec=CypilotContext)
         set_context(mock_ctx)
+        # get_context() lazily attempts workspace upgrade on first call
         assert get_context() is mock_ctx
 
     def test_set_context_to_none(self):
@@ -136,8 +138,9 @@ class TestGlobalContextFunctions:
         set_context(None)
         assert get_context() is None
 
+    @patch("cypilot.utils.context.WorkspaceContext.load", return_value=None)
     @patch("cypilot.utils.context.CypilotContext.load")
-    def test_ensure_context_loads_when_none(self, mock_load):
+    def test_ensure_context_loads_when_none(self, mock_load, _mock_ws_load):
         """ensure_context loads context when global is None."""
         set_context(None)
         mock_ctx = MagicMock(spec=CypilotContext)
@@ -149,8 +152,9 @@ class TestGlobalContextFunctions:
         assert result is mock_ctx
         assert get_context() is mock_ctx
 
+    @patch("cypilot.utils.context.WorkspaceContext.load", return_value=None)
     @patch("cypilot.utils.context.CypilotContext.load")
-    def test_ensure_context_passes_start_path(self, mock_load):
+    def test_ensure_context_passes_start_path(self, mock_load, _mock_ws_load):
         """ensure_context passes start_path to CypilotContext.load."""
         set_context(None)
         mock_ctx = MagicMock(spec=CypilotContext)
@@ -271,7 +275,7 @@ class TestCypilotContextLoad:
             })
 
             def boom(*args, **kwargs):
-                raise RuntimeError("boom")
+                raise ValueError("boom")
 
             meta.expand_autodetect = boom  # type: ignore[assignment]
 

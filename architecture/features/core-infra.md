@@ -302,7 +302,11 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 9. [x] - `p1` - **ELSE** — set registry to null with error code - `inst-info-registry-missing`
 10. [x] - `p1` - Compute relative path and config presence - `inst-info-compute-metadata`
 11. [ ] - `p1` - **FOR EACH** installed kit with resource bindings: collect resolved resource variables from `core.toml` `[kits.{slug}.resources]` - `inst-info-collect-resources`
-12. [x] - `p1` - **RETURN** JSON: `{status: FOUND, project_root, config, registry}` (exit 0) - `inst-info-return-ok`
+12. [x] - `p1` - Detect and display workspace config status in info output - `inst-info-workspace-section`
+13. [x] - `p1` - **RETURN** JSON: `{status: FOUND, project_root, config, registry, workspace}` (exit 0) - `inst-info-return-ok`
+
+**Supporting**:
+- [x] - `p1` - Human-friendly output formatter for info command (callback passed to ui.result) - `inst-info-human-fmt`
 
 ### Project Root Detection
 
@@ -375,7 +379,10 @@ Enables users to install Cypilot globally, initialize it in any project with sen
    - [x] - `p1` - If `constraints` binding exists and file is present, use binding path for `load_constraints_toml` instead of default kit root - `inst-constraints-from-binding`
 4. [x] - `p1` - Expand autodetect rules into concrete artifact/codebase entries - `inst-ctx-expand-autodetect`
 5. [x] - `p1` - Collect registered system prefixes - `inst-ctx-collect-systems`
-6. [x] - `p1` - **RETURN** CypilotContext with all loaded metadata - `inst-ctx-return`
+6. [x] - `p1` - Build CypilotContext with all loaded metadata - `inst-ctx-build-primary`
+7. [x] - `p1` - Attempt workspace upgrade: call `WorkspaceContext.load(primary_ctx)` to discover workspace config via core.toml `workspace` key (string path or inline dict), falling back to standalone `.cypilot-workspace.toml` at project root - `inst-ctx-workspace-upgrade`
+8. [x] - `p1` - **IF** workspace found — load source contexts, resolve reachability, **RETURN** WorkspaceContext - `inst-ctx-return-workspace`
+9. [x] - `p1` - **ELSE RETURN** CypilotContext (single-repo mode) - `inst-ctx-return`
 
 **Supporting**:
 - [x] - `p1` - Define context data model: LoadedKit, CypilotContext dataclasses, imports - `inst-ctx-datamodel`

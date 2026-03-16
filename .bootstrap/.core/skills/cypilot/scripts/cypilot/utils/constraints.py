@@ -1030,6 +1030,28 @@ def cross_validate_artifacts(
                     refs_by_system_kind.setdefault(system, {}).setdefault(ak, []).append(row)
     # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-build-index
 
+    # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-duplicate-defs
+    # Detect duplicate ID definitions across different artifact files
+    for did, drows in defs_by_id.items():
+        if len(drows) < 2:
+            continue
+        # Group by artifact path — same ID in the same file is not a cross-file collision
+        paths = {str(d.get("artifact_path", "")) for d in drows}
+        if len(paths) < 2:
+            continue
+        sorted_paths = sorted(paths)
+        for d in drows:
+            other_paths = [p for p in sorted_paths if p != str(d.get("artifact_path", ""))]
+            errors.append(error(
+                "structure",
+                f"Duplicate definition of `{did}` — also defined in: {', '.join(other_paths)}",
+                code=EC.DUPLICATE_DEFINITION,
+                path=d.get("artifact_path"),
+                line=int(d.get("line", 1) or 1),
+                id=did,
+            ))
+    # @cpt-end:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-duplicate-defs
+
     # @cpt-begin:cpt-cypilot-algo-traceability-validation-cross-validate:p1:inst-foreach-ref
     # Definition existence for internal systems
     for rid, rows in refs_by_id.items():

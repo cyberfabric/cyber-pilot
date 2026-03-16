@@ -11,6 +11,7 @@ installation and update: only declared resources are installed.
 # @cpt-begin:cpt-cypilot-algo-kit-manifest-install:p1:inst-manifest-datamodel
 from __future__ import annotations
 
+import string
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -81,7 +82,7 @@ def _validate_against_schema(data: Dict[str, Any]) -> List[str]:
         return errors
 
     _VALID_TYPES = {"file", "directory"}
-    _ID_CHARS = set("abcdefghijklmnopqrstuvwxyz0123456789_")
+    _ID_CHARS = set(string.ascii_lowercase + string.digits + "_")
 
     for idx, res in enumerate(resources):
         prefix = f"[[resources]][{idx}]"

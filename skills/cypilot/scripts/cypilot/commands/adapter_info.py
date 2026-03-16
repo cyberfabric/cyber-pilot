@@ -18,6 +18,7 @@ from ..utils.files import (
     find_project_root,
     load_cypilot_config,
 )
+from ..utils.git_utils import _redact_url
 from ..utils.ui import ui
 
 def _load_json_file(path: Path) -> Optional[dict]:
@@ -353,11 +354,53 @@ def cmd_adapter_info(argv: list[str]) -> int:
             config["variables_degraded"] = True
     # @cpt-end:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-compute-metadata
 
+    # @cpt-begin:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-workspace-section
+    # Add workspace section when workspace detected
+    try:
+        from ..utils.workspace import find_workspace_config
+
+        ws_cfg, ws_err = find_workspace_config(project_root)
+        if ws_cfg is not None:
+            ws_info: dict = {
+                "active": True,
+                "version": ws_cfg.version,
+                "is_inline": ws_cfg.is_inline,
+                "location": "inline (core.toml)" if ws_cfg.is_inline else str(ws_cfg.workspace_file),
+                "sources_count": len(ws_cfg.sources),
+                "sources": {},
+            }
+            for name, src in ws_cfg.sources.items():
+                if src.url:
+                    # For URL sources, peek at expected cache path without cloning
+                    from ..utils.git_utils import peek_git_source_path
+                    from ..utils.workspace import ResolveConfig
+                    base = ws_cfg.resolution_base or (ws_cfg.workspace_file.parent if ws_cfg.workspace_file else None)
+                    resolved = peek_git_source_path(src, ws_cfg.resolve or ResolveConfig(), base) if base else None
+                    reachable = resolved is not None and resolved.is_dir()
+                else:
+                    resolved = ws_cfg.resolve_source_path(name)
+                    reachable = resolved is not None and resolved.is_dir()
+                ws_info["sources"][name] = {
+                    "path": src.path or (_redact_url(src.url) if src.url else None),
+                    "role": src.role,
+                    "reachable": reachable,
+                }
+            config["workspace"] = ws_info
+        else:
+            ws_data: dict = {"active": False}
+            if ws_err:
+                ws_data["error"] = ws_err
+            config["workspace"] = ws_data
+    except Exception as exc:
+        config["workspace"] = {"active": False, "error": str(exc)}
+    # @cpt-end:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-workspace-section
+
     # @cpt-begin:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-return-ok
     ui.result(config, human_fn=_human_info)
     return 0
     # @cpt-end:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-return-ok
 
+# @cpt-begin:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-human-fmt
 def _human_info(data: dict) -> None:
     """Human-friendly formatter for the info command."""
     ui.header("Cypilot Project Info")
@@ -496,6 +539,17 @@ def _human_info(data: dict) -> None:
         ui.warn(f"Variables: {data.get('variables_error', 'unknown error')}")
     # @cpt-end:cpt-cypilot-flow-developer-experience-resolve-vars:p1:inst-info-render-variables
 
+    # Workspace
+    ws = data.get("workspace", {})
+    if ws.get("active"):
+        ui.blank()
+        ui.step("Workspace")
+        ui.substep(f"  Location: {ws.get('location', '?')}")
+        ui.substep(f"  Sources: {ws.get('sources_count', 0)}")
+    elif ws.get("error"):
+        ui.blank()
+        ui.warn(f"Workspace: {ws['error']}")
+
     # Registry errors
     reg_err = data.get("artifacts_registry_error")
     if reg_err:
@@ -503,3 +557,4 @@ def _human_info(data: dict) -> None:
         ui.warn(f"Registry: {reg_err}")
 
     ui.blank()
+# @cpt-end:cpt-cypilot-algo-core-infra-display-info:p1:inst-info-human-fmt

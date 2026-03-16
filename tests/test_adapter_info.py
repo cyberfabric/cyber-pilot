@@ -466,7 +466,7 @@ class TestLoadJsonFile(unittest.TestCase):
 
     def test_returns_none_for_missing_file(self):
         from cypilot.commands.adapter_info import _load_json_file
-        self.assertIsNone(_load_json_file(Path("/tmp/nonexistent_abc.json")))
+        self.assertIsNone(_load_json_file(Path(tempfile.gettempdir()) / "nonexistent_abc.json"))
 
     def test_returns_none_for_non_dict(self):
         from cypilot.commands.adapter_info import _load_json_file
@@ -553,6 +553,217 @@ class TestAdapterInfoRegistryEdgeCases(unittest.TestCase):
             self.assertEqual(rc, 0)
             out = json.loads(buf.getvalue())
             self.assertIsNone(out.get("autodetect_registry"))
+
+
+class TestAdapterInfoWorkspaceSection(unittest.TestCase):
+    """Cover workspace error propagation and human-formatter workspace branches."""
+
+    def _bootstrap(self, root):
+        (root / ".git").mkdir()
+        (root / "AGENTS.md").write_text(
+            '<!-- @cpt:root-agents -->\n```toml\ncypilot_path = "adapter"\n```\n<!-- /@cpt:root-agents -->\n',
+            encoding="utf-8",
+        )
+        adapter = root / "adapter"
+        adapter.mkdir()
+        (adapter / "config").mkdir()
+        (adapter / "config" / "AGENTS.md").write_text("# Test\n", encoding="utf-8")
+        return adapter
+
+    def test_workspace_error_propagated(self):
+        """When find_workspace_config returns (None, error), error appears in output."""
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._bootstrap(root)
+            buf = io.StringIO()
+            with patch(
+                "cypilot.utils.workspace.find_workspace_config",
+                return_value=(None, "bad workspace config"),
+            ):
+                with redirect_stdout(buf):
+                    rc = main(["info", "--root", str(root)])
+            self.assertEqual(rc, 0)
+            out = json.loads(buf.getvalue())
+            ws = out.get("workspace", {})
+            self.assertFalse(ws.get("active", True))
+            self.assertEqual(ws.get("error"), "bad workspace config")
+
+    def test_workspace_exception_propagated(self):
+        """When workspace detection raises an exception, error appears in output."""
+        from unittest.mock import patch
+        def _side_effect(*args, **kwargs):
+            # Called from adapter_info workspace section
+            raise RuntimeError("boom")
+
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._bootstrap(root)
+            buf = io.StringIO()
+            with patch(
+                "cypilot.utils.workspace.find_workspace_config",
+                side_effect=_side_effect,
+            ):
+                with redirect_stdout(buf):
+                    rc = main(["info", "--root", str(root)])
+            self.assertEqual(rc, 0)
+            out = json.loads(buf.getvalue())
+            ws = out.get("workspace", {})
+            self.assertFalse(ws.get("active", True))
+            self.assertEqual(ws.get("error"), "boom")
+
+    def test_workspace_active_in_human_output(self):
+        """Human formatter renders active workspace info."""
+        from cypilot.commands.adapter_info import _human_info
+        from cypilot.utils.ui import is_json_mode, set_json_mode
+        orig = is_json_mode()
+        set_json_mode(False)
+        try:
+            data = {
+                "project_root": tempfile.gettempdir(),
+                "workspace": {
+                    "active": True,
+                    "location": "inline (core.toml)",
+                    "sources_count": 2,
+                },
+            }
+            buf = io.StringIO()
+            with redirect_stderr(buf):
+                _human_info(data)
+            output = buf.getvalue()
+            self.assertIn("Workspace", output)
+            self.assertIn("inline (core.toml)", output)
+            self.assertIn("2", output)
+        finally:
+            set_json_mode(orig)
+
+    def test_workspace_error_in_human_output(self):
+        """Human formatter renders workspace error as warning."""
+        from cypilot.commands.adapter_info import _human_info
+        from cypilot.utils.ui import is_json_mode, set_json_mode
+        orig = is_json_mode()
+        set_json_mode(False)
+        try:
+            data = {
+                "project_root": tempfile.gettempdir(),
+                "workspace": {
+                    "active": False,
+                    "error": "config parse failed",
+                },
+            }
+            buf = io.StringIO()
+            with redirect_stderr(buf):
+                _human_info(data)
+            output = buf.getvalue()
+            self.assertIn("config parse failed", output)
+        finally:
+            set_json_mode(orig)
+
+
+class TestHumanInfoFormatterBranches(unittest.TestCase):
+    """Cover additional _human_info branches for per-file coverage."""
+
+    def setUp(self):
+        from cypilot.utils.ui import is_json_mode, set_json_mode
+        self._orig_json_mode = is_json_mode()
+        set_json_mode(False)
+
+    def tearDown(self):
+        from cypilot.utils.ui import set_json_mode
+        set_json_mode(self._orig_json_mode)
+
+    def test_missing_directories_warning(self):
+        from cypilot.commands.adapter_info import _human_info
+        data = {
+            "project_root": tempfile.gettempdir(),
+            "directories": {".core": True, ".gen": False, "config": True},
+        }
+        buf = io.StringIO()
+        with redirect_stderr(buf):
+            _human_info(data)
+        self.assertIn(".gen", buf.getvalue())
+
+    def test_variables_display(self):
+        from cypilot.commands.adapter_info import _human_info
+        data = {
+            "project_root": tempfile.gettempdir(),
+            "variables": {"cypilot_path": tempfile.gettempdir() + "/test", "project_root": tempfile.gettempdir()},
+        }
+        buf = io.StringIO()
+        with redirect_stderr(buf):
+            _human_info(data)
+        output = buf.getvalue()
+        self.assertIn("Variables", output)
+        self.assertIn("cypilot_path", output)
+
+    def test_variables_degraded_warning(self):
+        from cypilot.commands.adapter_info import _human_info
+        data = {
+            "project_root": tempfile.gettempdir(),
+            "variables_degraded": True,
+            "variables_error": "core.toml not found",
+        }
+        buf = io.StringIO()
+        with redirect_stderr(buf):
+            _human_info(data)
+        self.assertIn("core.toml not found", buf.getvalue())
+
+    def test_kit_details_with_content_dirs_and_resources(self):
+        from cypilot.commands.adapter_info import _human_info
+        data = {
+            "project_root": tempfile.gettempdir(),
+            "kit_details": {
+                "sdlc": {
+                    "name": "SDLC Kit",
+                    "version": "1.0",
+                    "content_dirs": ["artifacts", "workflows"],
+                    "artifact_kinds": ["PRD", "DESIGN"],
+                    "resources": {
+                        "prd_template": {"path": "kits/sdlc/PRD/template.md"},
+                    },
+                },
+            },
+        }
+        buf = io.StringIO()
+        with redirect_stderr(buf):
+            _human_info(data)
+        output = buf.getvalue()
+        self.assertIn("Content:", output)
+        self.assertIn("Resources", output)
+
+
+class TestAdapterInfoResolveVarsFailure(unittest.TestCase):
+    """Cover resolve-vars exception path in cmd_adapter_info."""
+
+    def _bootstrap(self, root):
+        (root / ".git").mkdir()
+        (root / "AGENTS.md").write_text(
+            '<!-- @cpt:root-agents -->\n```toml\ncypilot_path = "adapter"\n```\n<!-- /@cpt:root-agents -->\n',
+            encoding="utf-8",
+        )
+        adapter = root / "adapter"
+        adapter.mkdir()
+        (adapter / "config").mkdir()
+        (adapter / "config" / "AGENTS.md").write_text("# Test\n", encoding="utf-8")
+        (adapter / "config" / "core.toml").write_text('version = "1.0"\n', encoding="utf-8")
+        return adapter
+
+    def test_resolve_vars_exception_sets_degraded(self):
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._bootstrap(root)
+            buf = io.StringIO()
+            with patch(
+                "cypilot.commands.resolve_vars._collect_all_variables",
+                side_effect=ValueError("bad vars"),
+            ):
+                with redirect_stdout(buf):
+                    rc = main(["info", "--root", str(root)])
+            self.assertEqual(rc, 0)
+            out = json.loads(buf.getvalue())
+            self.assertTrue(out.get("variables_degraded"))
+            self.assertIn("bad vars", out.get("variables_error", ""))
 
 
 if __name__ == "__main__":

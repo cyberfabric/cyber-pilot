@@ -216,14 +216,15 @@ Catches structural and traceability issues that AI agents miss or hallucinate â€
 
 **Steps**:
 1. [x] - `p1` - Scan all artifacts to build definition index (`defs_by_id`) and reference index (`refs_by_id`) - `inst-build-index`
-2. [x] - `p1` - **FOR EACH** reference to an internal-system ID - `inst-foreach-ref`
+2. [x] - `p1` - **FOR EACH** ID with definitions in multiple different artifact files, emit error: duplicate definition listing conflicting files - `inst-duplicate-defs`
+3. [x] - `p1` - **FOR EACH** reference to an internal-system ID - `inst-foreach-ref`
    1. [x] - `p1` - **IF** no matching definition exists, emit error: reference to undefined ID - `inst-if-no-def`
-3. [x] - `p1` - **FOR EACH** reference with checked task marker - `inst-foreach-checked-ref`
+4. [x] - `p1` - **FOR EACH** reference with checked task marker - `inst-foreach-checked-ref`
    1. [x] - `p1` - **IF** corresponding definition has task marker AND is unchecked, emit error: ref done but def not done - `inst-if-ref-done-def-not`
-4. [x] - `p1` - **FOR EACH** definition with checked task marker - `inst-foreach-checked-def`
+5. [x] - `p1` - **FOR EACH** definition with checked task marker - `inst-foreach-checked-def`
    1. [x] - `p1` - **IF** any task-tracked reference is unchecked, emit error: def done but ref not done - `inst-if-def-done-ref-not`
-5. [x] - `p1` - Enforce coverage rules from constraints (required cross-references between artifact kinds) - `inst-enforce-coverage`
-6. [x] - `p1` - **RETURN** accumulated errors and warnings - `inst-return-cross`
+6. [x] - `p1` - Enforce coverage rules from constraints (required cross-references between artifact kinds) - `inst-enforce-coverage`
+7. [x] - `p1` - **RETURN** accumulated errors and warnings - `inst-return-cross`
 
 **Supporting**:
 - [x] - `p1` - Setup helpers: system matcher, kind extractor, external-system detector, heading-info builder, constraint indexing - `inst-cross-datamodel`

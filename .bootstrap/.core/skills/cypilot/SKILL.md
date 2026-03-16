@@ -11,7 +11,7 @@ Cypilot provides: artifact validation, cross-reference validation, code traceabi
 
 ## Preconditions
 
-- `python3` available
+- `cpt` available (preferred) or `python3` as fallback
 - Target paths exist and readable
 
 ---
@@ -93,6 +93,8 @@ ALWAYS consider these examples as valid execution logs WHEN Cypilot is enabled:
 |----------|-------|-------------|
 | `{cypilot_path}` | Directory containing this `../../SKILL.md`| Project root for Cypilot navigation |
 | `{cypilot_mode}` | `on` or `off` | Current Cypilot mode state |
+| `{cpt_cmd}` | `cpt` or `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py` | Resolved CLI entrypoint (set during CLI Resolution) |
+| `{cpt_installed}` | `true` or `false` | Whether the `cpt` CLI is available |
 
 **Setting `{cypilot_mode}`**:
 - Explicit command: `cypilot on` / `cypilot off`
@@ -110,7 +112,7 @@ Kit markdown files (SKILL.md, AGENTS.md, rules.md, workflows) use template varia
 
 2. **Dedicated command** (when you need a fresh or filtered variable map):
 ```bash
-python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py --json resolve-vars
+{cpt_cmd} --json resolve-vars
 ```
 
 **Variable sources** (merged in order):
@@ -120,6 +122,17 @@ python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py --json resolve-va
 ALWAYS use the resolved absolute path WHEN encountering a `{variable}` reference in any Cypilot markdown file.
 
 ALWAYS resolve variables from the `info` output first — the `variables` dict is already available after Protocol Guard.
+
+## CLI Resolution
+
+ALWAYS run BEFORE Protocol Guard WHEN `{cypilot_mode}` is `on`:
+
+1. Run `command -v cpt` — if found: `{cpt_cmd}` = `cpt`, `{cpt_installed}` = `true`
+2. If not found: `{cpt_cmd}` = `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py`, `{cpt_installed}` = `false`
+3. If not found AND `~/.cypilot/cache/cpt-prompt-dismissed` does NOT exist: inform user that `cpt` can be installed via `pipx install git+https://github.com/cyberfabric/cyber-pilot.git`, offer to install or continue; on dismiss create `~/.cypilot/cache/cpt-prompt-dismissed`
+4. If user later asks about the long invocation path, re-offer `cpt` installation
+
+ALWAYS use `{cpt_cmd}` for ALL Cypilot CLI invocations after resolution.
 
 ## Protocol Guard
 
@@ -131,7 +144,7 @@ ALWAYS open and follow `{cypilot_path}/.gen/SKILL.md` WHEN it exists
 
 ALWAYS open and follow `{cypilot_path}/config/SKILL.md` WHEN it exists
 
-ALWAYS FIRST run `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py --json info` BEFORE any Cypilot workflow action
+ALWAYS FIRST run `{cpt_cmd} --json info` BEFORE any Cypilot workflow action
 
 ALWAYS store the `variables` dict from `info` output — use it to resolve `{variable}` references in kit files (AGENTS.md, SKILL.md, rules.md, workflows)
 
@@ -168,9 +181,9 @@ Cypilot: {FOUND at path | NOT_FOUND}
 
 ## Agent-Safe Invocation
 
-ALWAYS use script entrypoint:
+ALWAYS use the resolved CLI entrypoint:
 ```bash
-python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py --json <subcommand> [options]
+{cpt_cmd} --json <subcommand> [options]
 ```
 
 ALWAYS pass `--json` as the FIRST argument (before the subcommand) WHEN invoking any Cypilot CLI command from an AI agent. This ensures machine-readable JSON output on stdout. Without `--json`, the CLI produces human-friendly output intended for interactive terminal use.
@@ -183,23 +196,33 @@ ALWAYS use `=` form for pattern args starting with `-`: `--pattern=-req-`
 
 ALWAYS SKIP Protocol Guard and workflow loading WHEN user invokes quick commands
 
-ALWAYS run `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py --json init --yes` directly WHEN user invokes `cypilot init`
+ALWAYS run `{cpt_cmd} --json init --yes` directly WHEN user invokes `cypilot init`
 
-ALWAYS run `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py --json generate-agents --agent <name>` directly WHEN user invokes `cypilot generate-agents <name>`
+ALWAYS run `{cpt_cmd} --json generate-agents --agent <name>` directly WHEN user invokes `cypilot generate-agents <name>`
 
 ALWAYS open and follow `{cypilot_path}/.core/workflows/generate.md` directly WHEN user invokes `cypilot auto-config` or `cypilot configure` — generate.md will trigger the auto-config methodology
+
+ALWAYS run `{cpt_cmd} --json workspace-init [--root <dir>] [--output <path>] [--inline] [--force] [--max-depth <N>] [--dry-run]` directly WHEN user invokes `cypilot workspace init`
+
+ALWAYS run `{cpt_cmd} --json workspace-add --name <name> (--path <path> | --url <url>) [--branch <branch>] [--role <role>] [--adapter <path>] [--inline] [--force]` directly WHEN user invokes `cypilot workspace add` — auto-detects inline workspace and routes accordingly when `--inline` is not specified. Use `--inline` to force adding to `config/core.toml` (Git URL sources not supported in inline mode). Returns error if source name already exists unless `--force` is specified.
+
+ALWAYS run `{cpt_cmd} --json workspace-info` directly WHEN user invokes `cypilot workspace info`
+
+ALWAYS run `{cpt_cmd} --json workspace-sync [--source <name>] [--dry-run] [--force]` directly WHEN user invokes `cypilot workspace sync` — **WARNING: `--force` is DESTRUCTIVE** — it discards uncommitted changes and may lose local commits
 
 ---
 
 ## Workflow Routing
 
-Cypilot has exactly **THREE** workflows. No exceptions.
+Cypilot has exactly **THREE** core workflows plus specialized sub-workflows. No exceptions.
 
 ALWAYS open and follow `{cypilot_path}/.core/workflows/plan.md` FIRST WHEN user intent is PLAN: plan, let's plan, create a plan, execution plan, break down, decompose — **check this BEFORE generate/analyze** because "plan to generate X" means PLAN, not GENERATE
 
 ALWAYS open and follow `{cypilot_path}/.core/workflows/generate.md` WHEN user intent is WRITE: create, edit, fix, update, implement, refactor, delete, add, setup, configure, build, code — AND the user did NOT say "plan"
 
 ALWAYS open and follow `{cypilot_path}/.core/workflows/analyze.md` WHEN user intent is READ: analyze, validate, review, analyze, check, inspect, audit, compare, list, show, find — AND the user did NOT say "plan"
+
+ALWAYS open and follow `{cypilot_path}/.core/workflows/workspace.md` (specialized sub-workflow) WHEN user intent is WORKSPACE: workspace, multi-repo, add source, add repo, cross-reference, cross-repo
 
 ALWAYS ask user "plan (phased execution) / generate (modify) / analyze (read-only)?" WHEN intent is UNCLEAR: help, look at, work with, handle and STOP WHEN user cancel or exit
 
@@ -211,7 +234,7 @@ ALWAYS ask user "plan (phased execution) / generate (modify) / analyze (read-onl
 
 All commands use the entrypoint:
 ```bash
-python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py <command> [options]
+{cpt_cmd} <command> [options]
 ```
 
 All commands output JSON to stdout when invoked with `--json`. Without `--json`, output is human-friendly. Exit codes: 0=PASS, 1=filesystem/config error, 2=FAIL.
@@ -220,9 +243,9 @@ All commands output JSON to stdout when invoked with `--json`. Without `--json`,
 
 #### validate
 ```bash
-validate [--artifact <path>] [--skip-code] [--verbose] [--output <path>]
+validate [--artifact <path>] [--skip-code] [--verbose] [--output <path>] [--local-only] [--source <name>]
 ```
-Validates artifacts and code with deterministic checks (structure, cross-refs, task statuses, traceability markers — pairing, coverage, orphans).
+Validates artifacts and code with deterministic checks (structure, cross-refs, task statuses, traceability markers — pairing, coverage, orphans). Use `--local-only` to skip cross-repo workspace validation. Use `--source <name>` to validate a specific workspace source. Note: `--local-only` and `--source` are independent and can be combined — `--source` narrows which artifacts are validated, `--local-only` controls whether cross-repo IDs are included as reference context.
 
 Legacy aliases: `validate-code` (same behavior), `validate-rules` (alias for `validate-kits`).
 
@@ -254,9 +277,9 @@ Measures CDSL marker coverage in codebase files. Reports coverage percentage, gr
 
 #### list-ids
 ```bash
-list-ids [--artifact <path>] [--pattern <string>] [--regex] [--kind <string>] [--all] [--include-code]
+list-ids [--artifact <path>] [--pattern <string>] [--regex] [--kind <string>] [--all] [--include-code] [--source <name>]
 ```
-Lists all Cypilot IDs from registered artifacts. Supports filtering by pattern, kind, and optional code scanning.
+Lists all Cypilot IDs from registered artifacts. Supports filtering by pattern, kind, and optional code scanning. Use `--source <name>` to list IDs from a specific workspace source.
 
 #### list-id-kinds
 ```bash
@@ -350,6 +373,34 @@ Migrates Cypilot v2 projects to v3 (adapter-based → blueprint-based, artifacts
 migrate-config [--project-root <path>] [--dry-run]
 ```
 Converts legacy JSON config files to TOML format.
+
+### Workspace Commands
+
+Workspaces are either **standalone** (`.cypilot-workspace.toml` at project root) or **inline** (`[workspace]` section in `config/core.toml`). The two types cannot be mixed.
+
+#### workspace-init
+```bash
+workspace-init [--root <dir>] [--output <path>] [--inline] [--force] [--max-depth <N>] [--dry-run]
+```
+Initialize a multi-repo workspace by scanning nested sub-directories for repos with cypilot directories. Rejects cross-type conflicts (inline vs standalone) and requires `--force` to reinitialize an existing workspace. Scanning depth is limited by `--max-depth` (default 3) to prevent unbounded traversal; symlinks are skipped.
+
+#### workspace-add
+```bash
+workspace-add --name <name> (--path <path> | --url <url>) [--branch <branch>] [--role <role>] [--adapter <path>] [--inline] [--force]
+```
+Add a source to a workspace config. Auto-detects standalone vs inline workspace. Use `--inline` to force adding to `config/core.toml`. Git URL sources are not supported in inline mode. `--path` is validated at add-time; returns error if directory not found. Returns error if source name already exists unless `--force` is specified.
+
+#### workspace-info
+```bash
+workspace-info
+```
+Display workspace config, list sources, show per-source status (cypilot dir found, artifact count, reachability).
+
+#### workspace-sync
+```bash
+workspace-sync [--source <name>] [--dry-run] [--force]
+```
+Fetch and update worktrees for Git URL sources. Use `--source` to sync a single source. Use `--dry-run` to preview without network operations. Use `--force` to skip dirty worktree check (**WARNING: DESTRUCTIVE** — uncommitted changes will be discarded via `git reset --hard` and local commits may be lost via `git checkout -B`). Local path sources are skipped. Source resolution does not perform network operations for existing repos — use `workspace-sync` to explicitly update.
 
 ---
 

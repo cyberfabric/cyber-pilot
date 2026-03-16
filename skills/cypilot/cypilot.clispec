@@ -40,6 +40,8 @@ OPTIONS:
   --skip-code  <boolean>  Skip code traceability validation (by default, code is also validated)
   --verbose  <boolean>  Print full validation report (default: compact summary)
   --output  <path>  Save validation report to file (default: stdout)
+  --local-only  <boolean>  Skip cross-repo workspace validation (validate local repo only)
+  --source  <string>  Target a specific workspace source for validation (uses that source's adapter context)
 
 EXIT CODES:
   0  Validation passed
@@ -123,6 +125,7 @@ OPTIONS:
   --kind  <string>  Filter by ID kind from template markers (e.g., 'requirement', 'spec', 'actor')
   --all  <boolean>  Include duplicate IDs in results
   --include-code  <boolean>  Also scan code files for Cypilot marker references
+  --source  <string>  Filter by workspace source name (workspace mode only)
 
 EXIT CODES:
   0  Success
@@ -288,9 +291,9 @@ OPTIONS:
   --artifact  <path>  Limit search to specific artifact (optional)
 
 EXIT CODES:
-  0  Exactly one definition found
+  0  Exactly one definition found, or no artifacts available to scan (NO_ARTIFACTS)
   1  File system error or no cypilot found
-  2  ID not found or ambiguous (multiple definitions)
+  2  ID not found after scanning (NOT_FOUND) or ambiguous (multiple definitions)
 
 EXAMPLE:
   $ python3 scripts/cypilot.py where-defined --id cpt-myapp-actor-admin
@@ -743,3 +746,170 @@ EXAMPLE:
 RELATED:
   - @CLI.migrate
   - @CLI.update
+---
+
+COMMAND workspace-init
+SYNOPSIS: python3 scripts/cypilot.py workspace-init [--root <path>] [--output <path>] [--inline] [--force] [--max-depth <N>] [--dry-run]
+DESCRIPTION: Initialize a multi-repo workspace by scanning nested sub-directories for repos with cypilot directories (.git or AGENTS.md marker). Generates a standalone .cypilot-workspace.toml or inline [workspace] section in config/core.toml. Creates an empty workspace when no nested repos are found, allowing incremental source addition via workspace-add.
+WORKFLOW: workspace
+
+ARGUMENTS:
+
+OPTIONS:
+  --root  <path>  Directory to scan for nested repos (default: current project root)
+  --output  <path>  Output path for standalone workspace file
+  --inline  <boolean>  Write workspace config inline into config/core.toml instead of standalone file
+  --force  <boolean>  Force reinitialization when a workspace config already exists
+  --max-depth  <integer>  Maximum directory depth for nested repo scanning (default: 3, min: 1). Symlinks are skipped.
+  --dry-run  <boolean>  Preview discovered sources without writing files
+
+EXIT CODES:
+  0  Workspace config created (with or without sources) or dry-run completed
+  1  Error (no project root, scan root not found, cross-type conflict, existing workspace without --force)
+
+OUTPUT:
+  JSON object with:
+  - status: CREATED or DRY_RUN
+  - message: Human-readable description
+  - config_path: Path to generated workspace file (CREATED only)
+  - workspace: Full workspace data object (DRY_RUN only)
+  - sources_count: Number of discovered sources
+  - sources: List of discovered source name strings
+  - hint: Advisory message when custom --output path requires manual config entry (CREATED with --output only)
+
+EXAMPLE:
+  $ python3 scripts/cypilot.py workspace-init
+  $ python3 scripts/cypilot.py workspace-init --dry-run
+  $ python3 scripts/cypilot.py workspace-init --inline
+  $ python3 scripts/cypilot.py workspace-init --force
+  $ python3 scripts/cypilot.py workspace-init --root ../repos
+
+RELATED:
+  - @CLI.workspace-add
+  - @CLI.workspace-info
+  - @CLI.info
+---
+
+COMMAND workspace-add
+SYNOPSIS: python3 scripts/cypilot.py workspace-add --name <name> (--path <path> | --url <url>) [--branch <branch>] [--role <role>] [--adapter <path>] [--inline] [--force]
+DESCRIPTION: Add a source to a workspace config. Auto-detects standalone vs inline workspace. Use --inline to force adding to config/core.toml. Rejects --inline when a standalone workspace already exists to prevent parallel configs. Git URL sources are not supported in inline mode. Returns error if source name already exists unless --force is specified.
+WORKFLOW: workspace
+
+ARGUMENTS:
+
+OPTIONS:
+  --name  <string>  Source name (human-readable key) [required]
+  --path  <path>  Path to the source repo (relative to workspace file or project root)
+  --url  <string>  Git remote URL (HTTPS or SSH) for the source
+  --branch  <string>  Git branch/ref to checkout
+  --role  <string>  Source role: artifacts, codebase, kits, full (default: full)
+  --adapter  <path>  Path to cypilot dir within the source
+  --inline  <boolean>  Add source inline to config/core.toml instead of standalone workspace file
+  --force  <boolean>  Replace existing source with the same name instead of returning an error
+
+EXIT CODES:
+  0  Source added successfully
+  1  Error (no project root, no workspace config, --inline conflict with standalone, Git URL with inline)
+  2  Invalid arguments (missing required --path or --url, or both provided)
+
+OUTPUT:
+  JSON object with:
+  - status: ADDED
+  - message: Human-readable description of the action
+  - config_path: Path to workspace config file (standalone .cypilot-workspace.toml or inline core.toml)
+  - source: Object with name, role (always present); path (when path-based), url (when URL-based); adapter, branch (included only when set)
+  - replaced: true if an existing source was overwritten (omitted for new sources)
+
+EXAMPLE:
+  $ python3 scripts/cypilot.py workspace-add --name docs --path ../docs-repo --role artifacts
+  $ python3 scripts/cypilot.py workspace-add --name lib --url https://gitlab.com/team/lib.git --branch main
+  $ python3 scripts/cypilot.py workspace-add --inline --name docs --path ../docs-repo --role artifacts
+
+RELATED:
+  - @CLI.workspace-init
+  - @CLI.workspace-info
+---
+
+COMMAND workspace-info
+SYNOPSIS: python3 scripts/cypilot.py workspace-info
+DESCRIPTION: Display workspace configuration, list sources, and show per-source status including cypilot directory detection, artifact counts, and reachability.
+WORKFLOW: workspace
+
+ARGUMENTS:
+
+OPTIONS:
+
+EXIT CODES:
+  0  Workspace info displayed
+  1  Error (no project root, no workspace config)
+
+OUTPUT:
+  JSON object with:
+  - status: OK or ERROR
+  - version: Workspace config version string
+  - config_path: Path to workspace config file (standalone .cypilot-workspace.toml or inline core.toml)
+  - is_inline: Whether workspace is inline in core.toml
+  - project_root: Path to the project root directory
+  - sources_count: Number of configured sources
+  - sources: Array of source status objects, each with:
+      - name, path, resolved_path, role, reachable, adapter_found
+      - adapter: Configured adapter path (if set)
+      - url, branch: Git remote info (if set)
+      - artifact_count, system_count: Counts from adapter metadata (if reachable)
+      - warning: Reason string (if source unreachable)
+      - metadata_error: Error string (if metadata loading failed)
+  - traceability: Object with cross_repo and resolve_remote_ids booleans
+  - config_warnings: Array of validation warning strings (if any)
+  - context_loaded: Whether workspace context was loaded
+  - reachable_sources: Number of reachable sources (if context loaded)
+  - total_registered_systems: Total systems across all sources (if context loaded)
+
+EXAMPLE:
+  $ python3 scripts/cypilot.py workspace-info
+
+RELATED:
+  - @CLI.workspace-init
+  - @CLI.workspace-add
+  - @CLI.workspace-sync
+  - @CLI.validate
+---
+
+COMMAND workspace-sync
+SYNOPSIS: python3 scripts/cypilot.py workspace-sync [--source <name>] [--dry-run] [--force]
+DESCRIPTION: Fetch and update worktrees for Git URL workspace sources. Iterates all sources with a url field (or a single --source) and runs git fetch + checkout to update the local worktree. Local path sources are skipped. Source resolution does not perform network operations for existing repos — use workspace-sync to explicitly update.
+WORKFLOW: workspace
+
+ARGUMENTS:
+
+OPTIONS:
+  --source  <string>  Sync only the named source (default: all Git URL sources)
+  --dry-run  <boolean>  Show which sources would be synced without network operations
+  --force  <boolean>  Skip dirty worktree check and proceed with destructive git operations
+
+EXIT CODES:
+  0  Sync completed (at least one source synced, or no Git URL sources to sync)
+  1  Error (no project root, no workspace config, named source not found, named source has no Git URL)
+  2  All sources failed to sync
+
+OUTPUT:
+  JSON object with:
+  - status: OK, FAIL, or DRY_RUN
+  - synced: Number of successfully synced sources (OK/FAIL only)
+  - failed: Number of failed sources (OK/FAIL only)
+  - results: Array of per-source result objects, each with:
+      - name: Source name
+      - status: "synced" or "failed"
+      - error: Error message string (failed sources only)
+  - sources: Array of source preview objects (DRY_RUN only), each with name, url, branch
+  - message: Human-readable description (DRY_RUN and no-git-sources only)
+
+EXAMPLE:
+  $ python3 scripts/cypilot.py workspace-sync
+  $ python3 scripts/cypilot.py workspace-sync --dry-run
+  $ python3 scripts/cypilot.py workspace-sync --source backend
+
+RELATED:
+  - @CLI.workspace-init
+  - @CLI.workspace-add
+  - @CLI.workspace-info
+---

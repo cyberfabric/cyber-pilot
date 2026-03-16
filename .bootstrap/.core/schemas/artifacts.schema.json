@@ -227,7 +227,7 @@
         "path": {
           "type": "string",
           "minLength": 1,
-          "description": "Path to kit package directory (resolved relative to project root). Contains artifacts/{KIND}/ and codebase/ subdirectories."
+          "description": "Path to kit package directory (resolved relative to project root, or to the named source root when `source` is set). Contains artifacts/{KIND}/ and codebase/ subdirectories."
         },
         "artifacts": {
           "type": "object",
@@ -235,6 +235,11 @@
           "additionalProperties": {
             "$ref": "#/$defs/kit_artifact_paths"
           }
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Workspace source name (v1.2+). When present, kit path is resolved relative to the named source's root instead of the local project root."
         }
       }
     },
@@ -324,7 +329,7 @@
         "path": {
           "type": "string",
           "minLength": 1,
-          "description": "Path to the artifact file (resolved relative to project root). Must be a file path, not a directory."
+          "description": "Path to the artifact file (resolved relative to project root, or to the named source root when `source` is set). Must be a file path, not a directory."
         },
         "kind": {
           "type": "string",
@@ -336,6 +341,11 @@
           "enum": ["FULL", "DOCS-ONLY"],
           "default": "FULL",
           "description": "FULL = traceability to codebase (default); DOCS-ONLY = documentation-only tracing"
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Workspace source name (v1.2+). When present, path is resolved relative to the named source's root instead of the local project root. When absent, path resolves locally (backward compatible)."
         }
       }
     },
@@ -352,7 +362,7 @@
         "path": {
           "type": "string",
           "minLength": 1,
-          "description": "Path to source code directory (resolved relative to project root)"
+          "description": "Path to source code directory (resolved relative to project root, or to the named source root when `source` is set)"
         },
         "extensions": {
           "type": "array",
@@ -377,6 +387,11 @@
             "$ref": "#/$defs/multiline_comment"
           },
           "description": "Multi-line comment delimiters. If omitted, defaults based on file extension."
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Workspace source name (v1.2+). When present, path is resolved relative to the named source's root instead of the local project root."
         }
       }
     },

@@ -22,6 +22,7 @@ REF_NO_DEFINITION = "ref-no-definition"
 REF_DONE_DEF_NOT_DONE = "ref-done-def-not-done"
 DEF_DONE_REF_NOT_DONE = "def-done-ref-not-done"
 REF_TASK_DEF_NO_TASK = "ref-task-def-no-task"
+DUPLICATE_DEFINITION = "duplicate-definition"
 
 # ---------------------------------------------------------------------------
 # Structure — heading numbering

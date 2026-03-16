@@ -18,6 +18,7 @@
   - [2.10 V2 → V3 Migration ⏳ HIGH](#210-v2--v3-migration--high)
   - [2.11 Spec Coverage ⏳ HIGH](#211-spec-coverage--high)
   - [2.12 Execution Plans ✅ HIGH](#212-execution-plans--high)
+  - [2.13 Multi-Repo Workspace Federation ✅ DONE](#213-multi-repo-workspace-federation--done)
 - [3. Feature Dependencies](#3-feature-dependencies)
 
 <!-- /toc -->
@@ -30,7 +31,7 @@ Cypilot DESIGN is decomposed into features organized around architectural layers
 - Features grouped by architectural layer and functional cohesion (related components together)
 - Dependencies minimize coupling between features — each feature is independently implementable given its dependencies
 - SDLC-specific features (F4, F6, F9) have been **extracted** to the SDLC kit repository (`cyberfabric/cyber-pilot-kit-sdlc`) per `cpt-cypilot-adr-extract-sdlc-kit`
-- Core features (F1–F3, F5, F7–F8, F10–F11) cover all core functional requirements
+- Core features (F1–F3, F5, F7–F8, F10–F13) cover all core functional requirements
 
 
 ## 2. Entries
@@ -601,6 +602,84 @@ Cypilot DESIGN is decomposed into features organized around architectural layers
   - `{cypilot_path}/.plans/{task-slug}/phase-{NN}-{slug}.md` — self-contained phase files
 
 
+### 2.13 [Multi-Repo Workspace Federation](features/workspace.md) ✅ DONE
+
+- [x] `p1` - **ID**: `cpt-cypilot-feature-workspace`
+
+- **Purpose**: Enable multi-repo workspace federation — discover repos in nested sub-directories, configure sources, generate workspace config, and provide cross-repo artifact traceability without merging adapters.
+
+- **Depends On**: `cpt-cypilot-feature-core-infra`, `cpt-cypilot-feature-traceability-validation`
+
+- **Scope**:
+  - Workspace configuration: standalone `.cypilot-workspace.toml` or inline `[workspace]` section in `config/core.toml`
+  - Source discovery: scan nested sub-directories for repos with `.git` or `AGENTS.md` marker, infer roles (artifacts/codebase/kits/full)
+  - Workspace config discovery: check the `core.toml` `workspace` key first (string path or inline dict), then fall back to `.cypilot-workspace.toml` at the project root
+  - Context upgrade: `CypilotContext` → `WorkspaceContext` with `SourceContext` per source
+  - Cross-repo artifact path resolution: `resolve_artifact_path` returns `Optional[Path]`, `None` when source is explicitly set but unreachable
+  - Traceability settings: `cross_repo` + `resolve_remote_ids` flags controlling remote ID expansion
+  - CLI commands: `workspace-init`, `workspace-add` (with `--inline` flag for inline mode), `workspace-info`, `workspace-sync`
+  - `--local-only` flag for validate to skip cross-repo resolution
+  - `--source` filter for `list-ids`
+  - Graceful degradation: unreachable sources emit warnings, operations continue with available sources
+  - Scan warning logging: stderr warnings for individual artifact scan failures
+  - Git URL sources in standalone workspace config: remote Git repository URLs with working directory configuration, namespace resolution rules (e.g., `gitlab.com/org/repo.git` → `org/repo`), and per-source branch/ref pinning (`cpt-cypilot-fr-core-workspace-git-sources`)
+  - Cross-repo editing with remote adapter context: when editing files in a remote source, apply that source's own adapter rules/templates/constraints instead of the primary repo's adapter (`cpt-cypilot-fr-core-workspace-cross-repo-editing`)
+
+- **Requirements Covered**:
+
+  - [x] `p1` - `cpt-cypilot-fr-core-workspace`
+  - [x] `p1` - `cpt-cypilot-fr-core-traceability`
+  - [x] `p1` - `cpt-cypilot-fr-core-workspace-git-sources`
+  - [x] `p1` - `cpt-cypilot-fr-core-workspace-cross-repo-editing`
+
+- **Design Principles Covered**:
+
+  - [x] `p1` - `cpt-cypilot-principle-traceability-by-design`
+  - [x] `p1` - `cpt-cypilot-principle-determinism-first`
+  - [x] `p1` - `cpt-cypilot-principle-zero-harm`
+
+- **Design Constraints Covered**:
+
+  - [x] `p1` - `cpt-cypilot-constraint-python-stdlib`
+
+- **Domain Model Entities**:
+  - WorkspaceConfig
+  - SourceEntry
+  - TraceabilityConfig
+  - ResolveConfig
+  - NamespaceRule
+  - SourceContext
+  - WorkspaceContext
+
+- **Design Components**:
+
+  - [x] `p1` - `cpt-cypilot-component-config-manager`
+  - [x] `p1` - `cpt-cypilot-component-traceability-engine`
+
+- **API**:
+  - `cpt workspace-init [--root DIR] [--output PATH] [--inline] [--force] [--dry-run]`
+  - `cpt workspace-add --name N (--path P | --url U) [--branch B] [--role R] [--adapter A] [--inline]`
+  - `cpt workspace-info`
+  - `cpt workspace-sync [--source NAME] [--dry-run]`
+  - `cpt validate --local-only`
+  - `cpt validate --source <name>`
+  - `cpt list-ids --source <name>`
+
+- **Sequences**:
+
+  None (workspace setup is a configuration flow)
+
+- **Out of scope**:
+  - Cross-repo merge conflict resolution
+  - Automatic workspace discovery across machines or CI environments
+  - Authentication and credential management for Git URL sources
+
+- **Data**:
+  - `.cypilot-workspace.toml` — standalone workspace configuration
+  - `config/core.toml` `[workspace]` section — inline workspace configuration
+  - `config/artifacts.toml` `source` fields — per-artifact source references
+
+
 ---
 
 ## 3. Feature Dependencies
@@ -622,7 +701,9 @@ cpt-cypilot-feature-core-infra
     │    │
     │    └─→ cpt-cypilot-feature-spec-coverage
     │
-    └─→ cpt-cypilot-feature-v2-v3-migration ←── cpt-cypilot-feature-traceability-validation
+    ├─→ cpt-cypilot-feature-v2-v3-migration ←── cpt-cypilot-feature-traceability-validation
+    │
+    └─→ cpt-cypilot-feature-workspace ←── cpt-cypilot-feature-traceability-validation
 
     (EXTRACTED to cyberfabric/cyber-pilot-kit-sdlc:)
     cpt-cypilot-feature-sdlc-kit
@@ -638,4 +719,5 @@ cpt-cypilot-feature-core-infra
 - `cpt-cypilot-feature-version-config` requires `cpt-cypilot-feature-core-infra`: update command needs config migration
 - `cpt-cypilot-feature-developer-experience` requires `cpt-cypilot-feature-traceability-validation`: VS Code plugin and doctor delegate to validator and traceability engine
 - `cpt-cypilot-feature-v2-v3-migration` requires `cpt-cypilot-feature-core-infra` and `cpt-cypilot-feature-traceability-validation`: migration needs v3 infrastructure and validation to verify completeness
+- `cpt-cypilot-feature-workspace` requires `cpt-cypilot-feature-core-infra` and `cpt-cypilot-feature-traceability-validation`: workspace federation builds on core context loading and extends cross-repo ID resolution in the traceability engine
 - SDLC-specific features (F4, F6, F9) have been extracted to `cyberfabric/cyber-pilot-kit-sdlc` per `cpt-cypilot-adr-extract-sdlc-kit`

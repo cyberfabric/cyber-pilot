@@ -39,6 +39,11 @@
   - [UC-011 Update Cypilot Version](#uc-011-update-cypilot-version)
   - [UC-012 Migrate Existing Project](#uc-012-migrate-existing-project)
   - [UC-013 Generate Execution Plan](#uc-013-generate-execution-plan)
+  - [UC-014 Initialize Multi-Repo Workspace](#uc-014-initialize-multi-repo-workspace)
+  - [UC-015 Add Workspace Source](#uc-015-add-workspace-source)
+  - [UC-016 Check Workspace Status](#uc-016-check-workspace-status)
+  - [UC-017 Sync Git URL Workspace Sources](#uc-017-sync-git-url-workspace-sources)
+  - [UC-018 Validate or Generate in Remote Workspace Source](#uc-018-validate-or-generate-in-remote-workspace-source)
 - [9. Acceptance Criteria](#9-acceptance-criteria)
 - [10. Dependencies](#10-dependencies)
 - [11. Assumptions](#11-assumptions)
@@ -353,6 +358,44 @@ The system MUST provide a unique identifier system for all design elements with 
 **Actors**:
 `cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`, `cpt-cypilot-actor-ci-pipeline`
 
+#### Multi-Repo Workspace Federation
+
+- [x] `p1` - **ID**: `cpt-cypilot-fr-core-workspace`
+
+The system MUST support multi-repo workspace federation — discovering repositories in nested sub-directories, configuring sources, and enabling cross-repo artifact traceability without merging adapters. The system MUST:
+
+1. **Config modes** — support two workspace configuration modes: standalone `.cypilot-workspace.toml` file and inline `[workspace]` section in `config/core.toml`.
+2. **Config discovery** — discover workspace config by first checking the project's `core.toml` for a `workspace` key (string path or inline dict), then falling back to well-known standalone file `.cypilot-workspace.toml` at the project root — no implicit parent directory traversal.
+3. **Source mapping** — each named source MUST map to a local filesystem path with optional adapter location and role (`artifacts`, `codebase`, `kits`, `full`).
+4. **Path resolution** — source path resolution MUST be relative to the workspace file's parent directory (standalone) or project root (inline).
+5. **CLI commands** — provide `workspace-init` (scan nested sub-directories for repos with `.git` or `AGENTS.md` marker, infer roles, generate config; scanning depth MUST be limited by a `--max-depth` parameter defaulting to 3 to prevent unbounded filesystem traversal), `workspace-add` with `--inline` flag (add sources to standalone or inline config), `workspace-info` (display workspace status with per-source reachability).
+6. **Cross-repo traceability** — cross-repo traceability MUST be controllable via `cross_repo` and `resolve_remote_ids` settings.
+7. **Duplicate ID detection** — detect and reject duplicate artifact ID definitions across workspace sources during cross-repo validation — if the same ID is defined in two different artifact files, the validator MUST report an error on each local definition listing all conflicting files.
+8. **Validation flags** — provide `--local-only` flag for `validate` to skip cross-repo resolution (including duplicate ID detection), and `--source` filter for `list-ids`.
+9. **Graceful degradation** — degrade gracefully when sources are unreachable — emit warnings to stderr and continue with available sources.
+10. **Backward compatibility** — projects without workspace config MUST operate in single-repo mode with zero behavioral changes.
+
+- [x] `p1` - **ID**: `cpt-cypilot-fr-core-workspace-git-sources`
+
+The system MUST support Git URL sources in standalone workspace configuration (`.cypilot-workspace.toml`). The system MUST:
+
+1. **Source specification** — each Git URL source MUST specify: a remote Git repository URL, an optional branch or ref, and namespace resolution rules that map the URL to a local working directory path (e.g., `gitlab.com/org/project.git` → `org/project`).
+2. **URL scheme validation** — Git URL sources MUST accept only HTTPS (`https://`) and SSH (`git@host:path`, `ssh://`) URL schemes; all other schemes (including `file://`, `ftp://`, plain `http://`) MUST be rejected with an error.
+3. **Credential redaction** — URL credential redaction MUST be applied before displaying URLs in output or error messages.
+4. **Auth delegation** — authentication for private repositories is delegated to the user's git configuration (SSH keys, credential helpers); the system MUST NOT store or prompt for credentials (see `cpt-cypilot-nfr-security-integrity`).
+5. **Working directory** — the workspace MUST support a configurable working directory (defaulting to `.workspace-sources`) under which cloned repos are resolved via namespace rules.
+6. **Inline exclusion** — Git URL sources MUST NOT be supported in inline workspace configuration (`config/core.toml`) — inline mode is designed for simple local multi-repo setups where all sources are co-located on the filesystem; Git URL sources introduce clone management, namespace resolution, and network operations that are better isolated in a dedicated standalone workspace file.
+7. **Clone on first resolution** — the system MUST clone missing sources on first resolution and cache them locally.
+8. **Explicit sync model** — updating existing Git URL sources MUST be performed explicitly via `workspace-sync`. Ordinary source resolution MUST NOT perform network operations for already-resolved repos.
+9. **Branch defaulting** — branch configuration MUST be per-source (via `branch` field), defaulting to the remote repository's default branch when not specified.
+
+- [x] `p1` - **ID**: `cpt-cypilot-fr-core-workspace-cross-repo-editing`
+
+The system MUST support cross-repo editing from a primary workspace repository. When a user works from a primary repo (e.g., a docs repo) and edits files in a remote source repo (e.g., backend or frontend), the system MUST apply the rules, templates, and Cypilot tooling from the remote source's own adapter — not from the primary repo's adapter. This ensures each repo's conventions are respected regardless of which repo the user is working from. The system MUST resolve the correct adapter context per-source for validation, generation, and traceability operations targeting that source. When a remote source has no adapter or its adapter cannot be loaded, the system MUST fall back to the primary repo's adapter for that source and emit a warning.
+
+**Actors**:
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
+
 #### Cypilot DSL (CDSL)
 
 - [x] `p1` - **ID**: `cpt-cypilot-fr-core-cdsl`
@@ -526,6 +569,9 @@ The plugin MUST delegate all validation logic to the installed Cypilot CLI to en
 - Validation MUST NOT execute untrusted code from artifacts.
 - Validation MUST produce deterministic results given the same repository state.
 - The config directory MUST NOT contain secrets or credentials.
+- Git URL workspace sources MUST be restricted to HTTPS and SSH schemes; other schemes MUST be rejected.
+- URLs MUST be redacted (credentials stripped) in all user-facing output, error messages, and logs.
+- Git authentication MUST be delegated to the user's local git configuration; the system MUST NOT store, manage, or prompt for credentials.
 
 #### Reliability and Recoverability
 
@@ -928,6 +974,142 @@ The plugin MUST delegate all validation logic to the installed Cypilot CLI to en
 
 ---
 
+### UC-014 Initialize Multi-Repo Workspace
+
+**ID**: `cpt-cypilot-usecase-workspace-init`
+
+**Actors**:
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
+
+**Preconditions**: Cypilot initialized in project; one or more sibling repositories exist in nested sub-directories
+
+**Flow**:
+
+1. User runs `workspace-init [--root DIR] [--output PATH] [--inline] [--force] [--max-depth N] [--dry-run]` from project root
+2. Tool scans nested sub-directories (up to `--max-depth` levels, default 3) for repos with `.git` or `AGENTS.md` with `@cpt:root-agents` marker (uses capability `cpt-cypilot-fr-core-workspace`)
+3. Tool infers source roles (`artifacts`, `codebase`, `kits`, `full`) based on adapter contents
+4. Tool checks for existing workspace config conflicts (cross-type or same-type without `--force`)
+5. Tool writes workspace config with discovered sources and default traceability settings: standalone `.cypilot-workspace.toml` by default, or inline `[workspace]` in `config/core.toml` when `--inline` is specified
+
+**Alternative Flows**:
+- **No nested repos found**: Tool creates an empty workspace config; user can add sources incrementally via `workspace-add`.
+- **Workspace config already exists**: Tool rejects unless `--force` is specified.
+- **`--dry-run` specified**: Tool displays discovered sources without writing files.
+
+**Postconditions**: Workspace config created; sources registered with paths, roles, and adapter locations
+
+---
+
+### UC-015 Add Workspace Source
+
+**ID**: `cpt-cypilot-usecase-workspace-add`
+
+**Actors**:
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
+
+**Preconditions**: Workspace config exists (standalone or inline)
+
+**Flow**:
+
+1. User runs `workspace-add` with source name and path or Git URL (uses capability `cpt-cypilot-fr-core-workspace`)
+2. Tool auto-detects workspace type (standalone vs inline) when `--inline` not specified
+3. Tool validates source: path must be a directory (local) or valid Git URL (standalone only, per `cpt-cypilot-fr-core-workspace-git-sources`)
+4. Tool adds source entry with name, path/URL, optional branch, role, and adapter path
+5. If source name already exists, tool returns error: "Source '{name}' already exists. Use --force to replace."
+6. If `--force` specified and source name already exists, tool replaces the existing entry
+
+**Alternative Flows**:
+- **Name collision without `--force`**: Tool returns error directing user to use `--force` flag.
+- **Git URL with `--inline`**: Tool rejects — Git URL sources are not supported in inline mode.
+- **Standalone workspace exists but `--inline` specified**: Tool rejects to prevent parallel configs.
+- **Source path unreachable**: Tool adds the entry; reachability is checked at runtime by `workspace-info` and `validate`.
+
+**Postconditions**: Source registered in workspace config; available for cross-repo operations
+
+---
+
+### UC-016 Check Workspace Status
+
+**ID**: `cpt-cypilot-usecase-workspace-info`
+
+**Actors**:
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
+
+**Preconditions**: Workspace config exists
+
+**Flow**:
+
+1. User runs `workspace-info` (uses capability `cpt-cypilot-fr-core-workspace`)
+2. Tool loads workspace config and resolves each source path
+3. For each source: checks reachability, probes for adapter directory, loads artifact metadata
+4. Tool reports: workspace version, config location, per-source status (reachable, adapter found, artifact/system counts), traceability settings (`cross_repo`, `resolve_remote_ids`), and any config warnings
+5. User can then run `validate` (with `--local-only` or `--source` flags) or `list-ids --source` to inspect specific sources
+
+**Alternative Flows**:
+- **Source unreachable**: Tool reports warning per source; remaining sources are still displayed.
+- **No workspace config found**: Tool returns error with guidance to run `workspace-init`.
+
+**Postconditions**: User has visibility into workspace health and per-source status
+
+---
+
+### UC-017 Sync Git URL Workspace Sources
+
+**ID**: `cpt-cypilot-usecase-workspace-sync`
+
+**Actors**:
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
+
+**Preconditions**: Workspace config exists with at least one Git URL source (per `cpt-cypilot-fr-core-workspace-git-sources`)
+
+**Flow**:
+
+1. User runs `workspace-sync` (optionally with `--source <name>` to target a single source, `--dry-run` to preview, or `--force` to skip safety checks) (uses capability `cpt-cypilot-fr-core-workspace-git-sources`)
+2. Tool loads workspace config and collects Git URL sources (filtered by `--source` if provided)
+3. For each Git URL source: checks the local worktree for uncommitted changes; aborts that source with an error if dirty (unless `--force` is set)
+4. For each clean (or forced) source: fetches remote changes and updates the local worktree to the configured branch (or the remote default branch if not specified)
+5. Tool reports per-source sync status (synced / failed / dirty) with error details for failures
+
+**Alternative Flows**:
+- **Dirty worktree detected**: Tool reports per-source error listing dirty sources; sync is skipped for those sources. User must commit/stash changes or re-run with `--force`.
+- **Force mode**: Tool skips the dirty worktree check and proceeds with destructive git operations.
+- **Dry-run mode**: Tool lists sources that would be synced (name, URL, branch) without performing network operations.
+- **Named source not found**: Tool returns error with list of available source names.
+- **Named source has no URL**: Tool returns error — only Git URL sources can be synced.
+- **No Git URL sources**: Tool returns OK with zero synced, zero failed.
+- **Partial failure**: If at least one source syncs successfully, overall status is OK with per-source error details for failures.
+- **All sources fail**: Tool returns FAIL status with per-source error details.
+
+**Postconditions**: Git URL workspace sources are up to date with their remote branches
+
+---
+
+### UC-018 Validate or Generate in Remote Workspace Source
+
+**ID**: `cpt-cypilot-usecase-workspace-cross-repo-editing`
+
+**Actors**:
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`, `cpt-cypilot-actor-cypilot-cli`
+
+**Preconditions**: Workspace config exists with at least one reachable source that has a Cypilot adapter
+
+**Flow**:
+
+1. User targets a file or artifact located in a remote workspace source (e.g., `validate --artifact ../backend/architecture/DESIGN.md` or `validate --source backend`) (uses capability `cpt-cypilot-fr-core-workspace-cross-repo-editing`)
+2. Tool resolves which workspace source owns the target file by matching paths against resolved source paths (longest-prefix match)
+3. Tool loads the remote source's own adapter context (rules, templates, constraints, kits) instead of the primary repo's adapter
+4. Tool performs the requested operation (validation, generation, traceability) using the remote adapter context
+5. Tool reports results normally
+
+**Alternative Flows**:
+- **Remote source has no adapter**: Tool falls back to the primary repo's adapter for that source and emits a warning.
+- **Remote source is unreachable**: Tool emits warning and skips (graceful degradation per `cpt-cypilot-fr-core-workspace`).
+- **File does not belong to any workspace source**: Tool uses the primary repo's adapter (file is local).
+
+**Postconditions**: Operation completed using the correct per-source adapter context
+
+---
+
 ## 9. Acceptance Criteria
 
 - [ ] Project initialization completes interactive setup and creates a working install directory in ≤ 5 minutes
@@ -936,6 +1118,12 @@ The plugin MUST delegate all validation logic to the installed Cypilot CLI to en
 - [ ] Environment diagnostics reports environment health with pass/fail per check
 - [ ] Config is never manually edited — all changes go through the CLI tool
 - [ ] PR review workflow produces a structured report matching the template format
+- [ ] `workspace-init` discovers nested repositories and generates valid workspace configuration
+- [ ] Git URL sources are cloned and cached on first resolution without blocking subsequent operations
+- [ ] Cross-repo validation resolves IDs from remote sources when `cross_repo` and `resolve_remote_ids` are enabled
+- [ ] Cross-repo editing applies the correct source adapter's rules and templates
+- [ ] Workspace operates with graceful degradation when sources are unreachable (warnings only, no fatal errors)
+- [ ] Projects without workspace config continue to operate in single-repo mode with zero behavioral changes
 
 ## 10. Dependencies
 

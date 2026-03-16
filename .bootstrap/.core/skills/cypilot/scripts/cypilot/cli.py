@@ -120,6 +120,26 @@ def _cmd_migrate(argv: List[str]) -> int:
 def _cmd_migrate_config(argv: List[str]) -> int:
     from .commands.migrate import cmd_migrate_config
     return cmd_migrate_config(argv)
+
+# =============================================================================
+# WORKSPACE COMMANDS
+# =============================================================================
+
+def _cmd_workspace_init(argv: List[str]) -> int:
+    from .commands.workspace_init import cmd_workspace_init
+    return cmd_workspace_init(argv)
+
+def _cmd_workspace_add(argv: List[str]) -> int:
+    from .commands.workspace_add import cmd_workspace_add
+    return cmd_workspace_add(argv)
+
+def _cmd_workspace_info(argv: List[str]) -> int:
+    from .commands.workspace_info import cmd_workspace_info
+    return cmd_workspace_info(argv)
+
+def _cmd_workspace_sync(argv: List[str]) -> int:
+    from .commands.workspace_sync import cmd_workspace_sync
+    return cmd_workspace_sync(argv)
 # @cpt-end:cpt-cypilot-algo-core-infra-route-command:p1:inst-route-helpers
 
 # =============================================================================
@@ -133,11 +153,13 @@ def main(argv: Optional[List[str]] = None) -> int:
     # Extract global --json flag (must come before command dispatch)
     from .utils.ui import set_json_mode
     if "--json" in argv_list:
-        argv_list.remove("--json")
         set_json_mode(True)
+        while "--json" in argv_list:
+            argv_list.remove("--json")
 
-    # Load global Cypilot context on startup (templates, systems, etc.)
-    # Always reload context based on current working directory (no caching)
+    # Load base Cypilot context on startup (templates, systems, etc.)
+    # Workspace upgrade is deferred — get_context() will lazily attempt it
+    # on first access, so commands like --help and init avoid network I/O.
     from .utils.context import CypilotContext, set_context
     ctx = CypilotContext.load()
     set_context(ctx)
@@ -158,7 +180,10 @@ def main(argv: Optional[List[str]] = None) -> int:
         "agents",
         "generate-agents",
     ]
-    all_commands = analysis_commands + kit_commands + migration_commands + search_commands + utility_commands + legacy_aliases
+    workspace_commands = [
+        "workspace-init", "workspace-add", "workspace-info", "workspace-sync",
+    ]
+    all_commands = analysis_commands + kit_commands + migration_commands + search_commands + workspace_commands + utility_commands + legacy_aliases
 
     # Handle --help / -h at top level (or no subcommand)
     if not argv_list or argv_list[0] in ("-h", "--help"):
@@ -183,6 +208,10 @@ def main(argv: Optional[List[str]] = None) -> int:
             "toc": "Generate/update Table of Contents",
             "migrate": "Migrate v2 project to v3",
             "migrate-config": "Convert JSON configs to TOML",
+            "workspace-init": "Initialize multi-repo workspace",
+            "workspace-add": "Add a source to workspace config",
+            "workspace-info": "Show workspace config and source status",
+            "workspace-sync": "Fetch and update Git URL source worktrees",
         }
         _sections = [
             ("Setup & Configuration", ["init", "update", "info", "resolve-vars", "generate-agents", "agents"]),
@@ -190,6 +219,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             ("Search & Navigation", ["list-ids", "list-id-kinds", "get-content", "where-defined", "where-used"]),
             ("Kit Management", ["kit"]),
             ("Utility", ["toc"]),
+            ("Workspace", ["workspace-init", "workspace-add", "workspace-info", "workspace-sync"]),
             ("Migration", ["migrate", "migrate-config"]),
         ]
         if is_json_mode():
@@ -294,6 +324,14 @@ def main(argv: Optional[List[str]] = None) -> int:
         return _cmd_migrate(rest)
     elif cmd == "migrate-config":
         return _cmd_migrate_config(rest)
+    elif cmd == "workspace-init":
+        return _cmd_workspace_init(rest)
+    elif cmd == "workspace-add":
+        return _cmd_workspace_add(rest)
+    elif cmd == "workspace-info":
+        return _cmd_workspace_info(rest)
+    elif cmd == "workspace-sync":
+        return _cmd_workspace_sync(rest)
     else:
         # @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-if-no-handler
         # @cpt-begin:cpt-cypilot-algo-core-infra-route-command:p1:inst-return-unknown

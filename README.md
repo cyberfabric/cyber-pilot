@@ -54,6 +54,7 @@ Works with any language, stack, or repository.
   - [Architecture](#architecture)
     - [Directory Structure](#directory-structure)
     - [Kit System](#kit-system)
+  - [Multi-Repo Workspaces](#multi-repo-workspaces)
   - [Extensibility](#extensibility)
     - [Kit: **Cypilot SDLC**](#kit-cypilot-sdlc)
   - [Contributing](#contributing)
@@ -286,6 +287,66 @@ Each kit is a **direct file package** containing ready-to-use resources:
 | `AGENTS.md` | Agent system prompt content |
 
 Kits are installed to `config/kits/{slug}/`. Running `cpt update` updates kit files with interactive diff prompts for any user modifications.
+
+---
+
+## Multi-Repo Workspaces
+
+Cypilot supports **multi-repo workspaces** — a federation layer that lets you work across multiple repositories while maintaining cross-repo traceability. Each repo keeps its own independent adapter; the workspace provides a map of named sources.
+
+**Use cases:**
+- PRDs in a docs repo, design in another repo, code in yet another
+- Shared kit packages in a separate repo
+- Working from one repo while referencing artifacts in others
+
+### Quick Setup
+
+```bash
+# Option A: Auto-discover nested repos and generate workspace
+cpt workspace-init
+
+# Option B: Add sources individually
+cpt workspace-add --name docs --path ../docs-repo --role artifacts
+cpt workspace-add --name shared-kits --path ../shared-kits --role kits
+
+# Option C: Define workspace inline in your repo's config
+cpt workspace-add --inline --name docs --path ../docs-repo
+```
+
+### How It Works
+
+The **current working directory** always determines the primary repo. Other repos contribute artifacts, code, and kits for cross-referencing. No adapter merging — each repo owns its configuration.
+
+**Workspace config** is discovered in priority order (project root only — no parent directory traversal):
+1. **`workspace` key in `config/core.toml`** — either an inline `[workspace]` table or a `workspace = "<path>"` string pointing to an external `.toml` file
+2. **Standalone `.cypilot-workspace.toml`** at the project root — auto-discovered as fallback when no `workspace` key exists in `core.toml` (no explicit reference needed)
+
+> **Note:** Discovery starts from the current project's `config/core.toml` and does not search parent directories. Each repo must configure its own workspace entry point.
+
+### Cross-Repo Commands
+
+```bash
+# Validate with cross-repo ID resolution (default when workspace active)
+cpt validate
+
+# Validate local repo only (skip cross-repo)
+cpt validate --local-only
+
+# Search for ID definitions across all repos
+cpt where-defined --id cpt-myapp-req-001
+
+# List IDs from a specific source
+cpt list-ids --source docs-repo
+
+# Check workspace status
+cpt workspace-info
+```
+
+Missing source repos are handled gracefully — a warning is emitted and operations continue with available sources. Artifacts pointing to unreachable sources are skipped rather than silently falling back to local paths.
+
+Cross-repo ID resolution is controlled by two traceability settings in the workspace config: `cross_repo` (enables workspace-aware path resolution) and `resolve_remote_ids` (expands remote IDs into the union set). Both default to `true`. Use `validate --local-only` to skip cross-repo resolution entirely.
+
+For the full specification, see [`requirements/workspace.md`](requirements/workspace.md).
 
 ---
 

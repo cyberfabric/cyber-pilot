@@ -14,6 +14,7 @@ import re
 # === PROJECT CONFIGURATION ===
 
 ARTIFACTS_REGISTRY_FILENAME = "artifacts.toml"
+WORKSPACE_CONFIG_FILENAME = ".cypilot-workspace.toml"
 
 # === ARTIFACT STRUCTURE PATTERNS ===
 

@@ -1060,3 +1060,50 @@ def test_wildcard_lvl3_heading_match(tmp_path: Path):
     for line_ids in result:
         all_ids.update(line_ids)
     assert "feature-item" in all_ids
+
+
+# =========================================================================
+# Duplicate definition detection across artifact files
+# =========================================================================
+
+def test_duplicate_id_across_files_detected(tmp_path: Path):
+    """Duplicate definition of the same ID in two different files is an error."""
+    file_a = tmp_path / "PRD.md"
+    file_a.write_text("**ID**: `cpt-sys-fr-shared-id`\n", encoding="utf-8")
+    file_b = tmp_path / "DESIGN.md"
+    file_b.write_text("**ID**: `cpt-sys-fr-shared-id`\n", encoding="utf-8")
+    arts = [
+        ArtifactRecord(path=file_a, artifact_kind="PRD", constraints=None),
+        ArtifactRecord(path=file_b, artifact_kind="DESIGN", constraints=None),
+    ]
+    rep = cross_validate_artifacts(arts, registered_systems={"sys"}, known_kinds={"fr"})
+    errs = rep.get("errors") or []
+    dup_errs = [e for e in errs if e.get("code") == EC.DUPLICATE_DEFINITION]
+    assert len(dup_errs) == 2  # one error per definition
+    assert all("cpt-sys-fr-shared-id" in e["message"] for e in dup_errs)
+
+
+def test_same_id_same_file_not_flagged_as_duplicate(tmp_path: Path):
+    """Multiple occurrences of an ID in the same file are not cross-file duplicates."""
+    prd = tmp_path / "PRD.md"
+    prd.write_text(
+        "**ID**: `cpt-sys-fr-single`\n\n"
+        "Ref: `cpt-sys-fr-single`\n",
+        encoding="utf-8",
+    )
+    arts = [ArtifactRecord(path=prd, artifact_kind="PRD", constraints=None)]
+    rep = cross_validate_artifacts(arts, registered_systems={"sys"}, known_kinds={"fr"})
+    errs = rep.get("errors") or []
+    dup_errs = [e for e in errs if e.get("code") == EC.DUPLICATE_DEFINITION]
+    assert dup_errs == []
+
+
+def test_single_definition_no_duplicate_error(tmp_path: Path):
+    """A single definition produces no duplicate error."""
+    prd = tmp_path / "PRD.md"
+    prd.write_text("**ID**: `cpt-sys-fr-unique`\n", encoding="utf-8")
+    arts = [ArtifactRecord(path=prd, artifact_kind="PRD", constraints=None)]
+    rep = cross_validate_artifacts(arts, registered_systems={"sys"}, known_kinds={"fr"})
+    errs = rep.get("errors") or []
+    dup_errs = [e for e in errs if e.get("code") == EC.DUPLICATE_DEFINITION]
+    assert dup_errs == []
