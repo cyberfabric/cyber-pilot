@@ -37,7 +37,7 @@ def _redact_url(url: str) -> str:
     if "://" not in url and "@" in url and ":" in url:
         at_idx = url.index("@")
         return f"***{url[at_idx:]}"
-    # Standard URLs: https://user:pass@host/path
+    # Standard URLs: https://<user>:<token>@host/path
     from urllib.parse import urlsplit, urlunsplit
     parts = urlsplit(url)
     if parts.username or parts.password:
