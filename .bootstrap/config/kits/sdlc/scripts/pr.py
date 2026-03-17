@@ -609,7 +609,7 @@ def status(pr_number: str):
     ]
     unresolved_threads = [
         t for t in all_threads
-        if not t.get("isResolved")
+        if not t.get("isResolved") and not t.get("isOutdated")
     ]
 
     # --- Unresolved → unreplied code threads ---
@@ -619,14 +619,6 @@ def status(pr_number: str):
             t.get("comments", {}).get("nodes", [])
         )
         if not comments:
-            continue
-        humans = [
-            c for c in comments
-            if not _is_bot(
-                c.get("author", {}).get("login", "")
-            )
-        ]
-        if not humans:
             continue
         last = comments[-1]
         last_author = (
