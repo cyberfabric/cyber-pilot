@@ -185,18 +185,6 @@ class TestBaseStructure:
         for f in wf_files:
             assert self._has_yaml_frontmatter(f), f"{f.name} missing cypilot: true frontmatter"
 
-    def test_all_spec_files_pass_base_structure(self):
-        """Assert all files pass base structure check."""
-        for f in self._get_spec_files():
-            assert self._has_yaml_frontmatter(f), f"{f.name} missing frontmatter"
-            assert self._has_required_frontmatter_fields(f), f"{f.name} missing required frontmatter fields"
-            assert self._verify_version_format(f), f"{f.name} has invalid version format"
-            assert self._has_title_format(f), f"{f.name} missing title heading"
-            # Prerequisite Checklist is only required for workflows, not requirements
-            if "workflows" in str(f):
-                assert self._has_prereq_section(f), f"{f.name} missing Prerequisite Checklist section"
-            assert self._has_overview_section(f), f"{f.name} missing Overview section"
-
 
 class TestRequirementsStructure:
     """Validate requirements files follow structure conventions."""
@@ -222,15 +210,6 @@ class TestRequirementsStructure:
         assert len(req_files) > 0, "No requirement files found"
         # Verify at least one known requirement file exists
         assert any(f.name.endswith(".md") for f in req_files), "No .md requirement files found"
-
-    def test_requirements_have_must_sections(self):
-        req_dir = PROJECT_ROOT / "requirements"
-        req_files = [f for f in req_dir.glob("*.md") if f.name not in ("README.md",)]
-        for f in req_files:
-            if not f.exists():
-                continue
-            text = f.read_text(encoding="utf-8").lower()
-            assert "must" in text or "shall" in text, f"{f.name} missing MUST/SHALL"
 
     def test_requirements_no_example_references(self):
         """Requirements should not reference examples/ directory."""

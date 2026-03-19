@@ -168,5 +168,17 @@ details = """\
 - **Mandatory plan validation gate** — Phase 4.1 requires self-validation against checklist before execution; reports per-category PASS/FAIL
 - **Plan completion lifecycle** — explicit lifecycle strategy execution (gitignore/cleanup/archive/manual) with user prompts
 - **Abandoned plan recovery** — plan.toml serves as checkpoint; recovery prompt for resuming incomplete plans
-- **New plan-checklist.md** — 7-category validation checklist for plan quality assurance
+- **New plan-checklist.md** — 7-category validation checklist for plan quality assurance\
+"""
+
+["v3.2.0-beta"]
+summary = "Prompt compactification across workflows, requirements, and SKILL.md"
+details = """\
+- **Aggressive prompt compactification release** — reduced the main prompt/instruction set from `9538` lines to `3851` lines (`-59.6%`) across `17` canonical files in `workflows/`, `requirements/`, and `skills/cypilot/SKILL.md`
+- **Core workflow compaction** — condensed `workflows/analyze.md`, `workflows/generate.md`, `workflows/plan.md`, and `workflows/workspace.md` while preserving deterministic validation gates, plan escalation, lifecycle handoff, and recovery flow
+- **Requirements compaction** — compressed execution infrastructure, plan support docs, methodologies, checklists, and workspace guidance in `requirements/` to reduce token load while keeping operational constraints and validation structure explicit
+- **SKILL and workspace guidance compacted** — shortened `skills/cypilot/SKILL.md`, `requirements/workspace.md`, and `workflows/workspace.md` so agents load less context during normal routing and execution
+- **Checklist and methodology normalization** — streamlined `code-checklist.md`, `consistency-checklist.md`, `plan-checklist.md`, `prompt-engineering.md`, `reverse-engineering.md`, and `auto-config.md` into denser formats optimized for agent consumption
+- **Post-compaction TOC fix** — marker-based `validate-toc` now expects the same heading set that `toc` generates, so documents with secondary `H1` sections such as `# MUST HAVE` / `# MUST NOT HAVE` validate correctly with `--max-level 2`
+- **Regression coverage added** — test coverage now includes the marker-based TOC validation case with secondary `H1` sections in a single document\
 """

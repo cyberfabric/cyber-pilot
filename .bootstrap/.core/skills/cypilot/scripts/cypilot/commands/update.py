@@ -26,6 +26,7 @@ Pipeline:
 # @cpt-begin:cpt-cypilot-flow-version-config-update:p1:inst-update-imports
 import argparse
 import json
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -824,6 +825,19 @@ def _read_core_whatsnew(path: Path) -> Dict[str, Dict[str, str]]:
             }
     return result
 
+
+def _stderr_supports_ansi() -> bool:
+    return hasattr(sys.stderr, "isatty") and sys.stderr.isatty()
+
+
+def _format_whatsnew_text(text: str, *, use_ansi: bool) -> str:
+    if use_ansi:
+        formatted = re.sub(r"\*\*(.+?)\*\*", r"\033[1m\1\033[0m", text)
+        return re.sub(r"`(.+?)`", r"\033[36m\1\033[0m", formatted)
+    plain = re.sub(r"\*\*(.+?)\*\*", r"\1", text)
+    return re.sub(r"`(.+?)`", r"\1", plain)
+
+
 def _show_core_whatsnew(
     ref_whatsnew: Dict[str, Dict[str, str]],
     core_whatsnew: Dict[str, Dict[str, str]],
@@ -845,11 +859,19 @@ def _show_core_whatsnew(
     sys.stderr.write(f"  What's new in Cypilot\n")
     sys.stderr.write(f"{'=' * 60}\n")
 
+    use_ansi = _stderr_supports_ansi()
     for ver, entry in missing:
-        sys.stderr.write(f"\n  \033[1m{ver}: {entry['summary']}\033[0m\n")
+        summary = _format_whatsnew_text(entry["summary"], use_ansi=use_ansi)
+        if use_ansi and summary == entry["summary"]:
+            sys.stderr.write(f"\n  \033[1m{ver}: {entry['summary']}\033[0m\n")
+        else:
+            version_label = f"\033[1m{ver}:\033[0m" if use_ansi else f"{ver}:"
+            sys.stderr.write(f"\n  {version_label} {summary}\n")
         if entry["details"]:
             for line in entry["details"].splitlines():
-                sys.stderr.write(f"    {line}\n")
+                sys.stderr.write(
+                    f"    {_format_whatsnew_text(line, use_ansi=use_ansi)}\n"
+                )
 
     sys.stderr.write(f"\n{'=' * 60}\n")
 

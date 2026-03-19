@@ -536,6 +536,91 @@ class TestShowCoreWhatsnew(unittest.TestCase):
         self.assertIn("A", output)
         self.assertIn("B", output)
 
+    def test_non_interactive_renders_bold_markdown_in_summary(self):
+        from cypilot.commands.update import _show_core_whatsnew
+        ref = {
+            "v3.2.0-beta": {
+                "summary": "Prompt **compactification** release",
+                "details": "",
+            },
+        }
+        err = io.StringIO()
+        with redirect_stderr(err):
+            result = _show_core_whatsnew(ref, {}, interactive=False)
+        self.assertTrue(result)
+        output = err.getvalue()
+        self.assertIn("Prompt compactification release", output)
+        self.assertNotIn("**compactification**", output)
+        self.assertNotIn("\033[1mcompactification\033[0m", output)
+
+    def test_non_interactive_renders_bold_markdown_in_details(self):
+        from cypilot.commands.update import _show_core_whatsnew
+        ref = {
+            "v3.2.0-beta": {
+                "summary": "Prompt compactification",
+                "details": "- **Aggressive** prompt compactification release",
+            },
+        }
+        err = io.StringIO()
+        with redirect_stderr(err):
+            result = _show_core_whatsnew(ref, {}, interactive=False)
+        self.assertTrue(result)
+        output = err.getvalue()
+        self.assertIn("- Aggressive prompt compactification release", output)
+        self.assertNotIn("**Aggressive**", output)
+        self.assertNotIn("\033[1mAggressive\033[0m", output)
+
+    def test_non_interactive_renders_inline_code_in_summary(self):
+        from cypilot.commands.update import _show_core_whatsnew
+        ref = {
+            "v3.2.0-beta": {
+                "summary": "Use `workflows/analyze.md` for compact analysis",
+                "details": "",
+            },
+        }
+        err = io.StringIO()
+        with redirect_stderr(err):
+            result = _show_core_whatsnew(ref, {}, interactive=False)
+        self.assertTrue(result)
+        output = err.getvalue()
+        self.assertIn("Use workflows/analyze.md for compact analysis", output)
+        self.assertNotIn("`workflows/analyze.md`", output)
+        self.assertNotIn("\033[36mworkflows/analyze.md\033[0m", output)
+
+    def test_non_interactive_renders_inline_code_in_details(self):
+        from cypilot.commands.update import _show_core_whatsnew
+        ref = {
+            "v3.2.0-beta": {
+                "summary": "Prompt compactification",
+                "details": "- Updated `skills/cypilot/SKILL.md` and `requirements/workspace.md`",
+            },
+        }
+        err = io.StringIO()
+        with redirect_stderr(err):
+            result = _show_core_whatsnew(ref, {}, interactive=False)
+        self.assertTrue(result)
+        output = err.getvalue()
+        self.assertIn("- Updated skills/cypilot/SKILL.md and requirements/workspace.md", output)
+        self.assertNotIn("`skills/cypilot/SKILL.md`", output)
+        self.assertNotIn("\033[36mskills/cypilot/SKILL.md\033[0m", output)
+
+    def test_non_interactive_tty_renders_ansi_markup(self):
+        from cypilot.commands.update import _show_core_whatsnew
+        ref = {
+            "v3.2.0-beta": {
+                "summary": "Prompt **compactification** release in `workflows/analyze.md`",
+                "details": "",
+            },
+        }
+        err = io.StringIO()
+        with patch("cypilot.commands.update._stderr_supports_ansi", return_value=True):
+            with redirect_stderr(err):
+                result = _show_core_whatsnew(ref, {}, interactive=False)
+        self.assertTrue(result)
+        output = err.getvalue()
+        self.assertIn("\033[1mcompactification\033[0m", output)
+        self.assertIn("\033[36mworkflows/analyze.md\033[0m", output)
+
     def test_filters_by_core_keys(self):
         """Only entries missing from .core/ whatsnew are shown."""
         from cypilot.commands.update import _show_core_whatsnew

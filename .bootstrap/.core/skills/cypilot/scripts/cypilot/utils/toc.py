@@ -623,13 +623,21 @@ def validate_toc(
     path = artifact_path or Path("<unknown>")
     lines = content.split("\n")
 
-    # Headings relevant for TOC (skip title, skip TOC heading itself)
-    headings = parse_headings(
-        lines,
-        skip_first=True,
-        skip_toc_heading=True,
-        max_level=max_heading_level,
-    )
+    toc_info = _find_toc_section(lines)
+    if toc_info is not None and toc_info[2] == "heading":
+        headings = parse_headings(
+            lines,
+            skip_first=True,
+            skip_toc_heading=True,
+            max_level=max_heading_level,
+        )
+    else:
+        headings = parse_headings(
+            lines,
+            min_level=2,
+            skip_toc_heading=True,
+            max_level=max_heading_level,
+        )
 
     if not headings:
         # No headings → nothing to validate
@@ -637,7 +645,6 @@ def validate_toc(
 
     # @cpt-begin:cpt-cypilot-algo-traceability-validation-validate-toc:p1:inst-toc-parse-existing
     # 1. TOC exists?
-    toc_info = _find_toc_section(lines)
     if toc_info is None:
         errors.append(error(
             "toc",

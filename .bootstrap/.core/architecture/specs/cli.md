@@ -42,6 +42,7 @@ drivers:
   - [get-content](#get-content)
   - [list-id-kinds](#list-id-kinds)
   - [info](#info)
+  - [agents](#agents)
   - [generate-agents](#generate-agents)
   - [generate-resources](#generate-resources)
   - [doctor](#doctor)
@@ -471,17 +472,48 @@ cpt info
 
 ---
 
-### generate-agents
+### agents
 
-Generate agent entry points.
+Show generated agent integration files without writing anything.
 
 ```
-cpt generate-agents [--agent AGENT]
+cpt agents [--agent AGENT | --openai] [--root PATH] [--cypilot-root PATH] [--config PATH]
+```
+
+| Option | Description |
+|--------|-------------|
+| `--agent AGENT` | Limit output to a specific agent: `windsurf`, `cursor`, `claude`, `copilot`, `openai` |
+| `--openai` | Shortcut for `--agent openai` |
+| `--root PATH` | Project root directory to search from (default: current directory) |
+| `--cypilot-root PATH` | Explicit Cypilot core root (optional override) |
+| `--config PATH` | Path to agents config JSON (optional; built-in defaults used when omitted) |
+
+**Behavior**:
+1. Resolve project root and cypilot directory.
+2. Load agent config (or built-in defaults).
+3. Inspect generated workflow proxies, skill shims, and subagent files for the selected agents.
+4. Return a read-only per-agent listing; no files are written.
+
+**Exit**: 0.
+
+---
+
+### generate-agents
+
+Generate or update agent integration files.
+
+```
+cpt generate-agents [--agent AGENT | --openai] [--root PATH] [--cypilot-root PATH] [--config PATH] [--dry-run]
 ```
 
 | Option | Description |
 |--------|-------------|
 | `--agent AGENT` | Generate for a specific agent only: `windsurf`, `cursor`, `claude`, `copilot`, `openai` |
+| `--openai` | Shortcut for `--agent openai` |
+| `--root PATH` | Project root directory to search from (default: current directory) |
+| `--cypilot-root PATH` | Explicit Cypilot core root (optional override) |
+| `--config PATH` | Path to agents config JSON (optional; built-in defaults used when omitted) |
+| `--dry-run` | Compute planned changes without writing files |
 
 **Without `--agent`**: regenerate for all agents.
 
@@ -490,16 +522,17 @@ cpt generate-agents [--agent AGENT]
 2. Compose the main SKILL.md from core commands + collected extensions.
 3. Generate workflow entry points in each agent's native format.
 4. Generate skill shims referencing the composed SKILL.md.
-5. Full overwrite on each invocation (no merge with existing files).
+5. Generate tool-specific subagent files where supported.
+6. Full overwrite on each invocation (no merge with existing files).
 
-**Output targets**:
-| Agent | Entry Points Directory |
-|-------|----------------------|
-| Windsurf | `.windsurf/workflows/` |
-| Cursor | `.cursor/rules/` |
-| Claude | `.claude/commands/` |
-| Copilot | `.github/prompts/` |
-| OpenAI | `.openai/` |
+**Generated surfaces**:
+| Agent | Generated files/directories |
+|-------|----------------------------|
+| Windsurf | `.windsurf/workflows/`, `.windsurf/skills/cypilot/SKILL.md` |
+| Cursor | `.cursor/commands/`, `.cursor/rules/cypilot.mdc`, `.cursor/agents/` |
+| Claude | `.claude/commands/`, `.claude/skills/`, `.claude/agents/` |
+| Copilot | `.github/prompts/`, `.github/copilot-instructions.md`, `.github/agents/` |
+| OpenAI | `.agents/skills/cypilot/SKILL.md`, `.codex/agents/` |
 
 **Exit**: 0.
 

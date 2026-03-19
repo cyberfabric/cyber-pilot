@@ -178,9 +178,10 @@ Ensures teams can upgrade Cypilot without losing configuration or customizations
 - [x] - `p1` - `cpt update` migrates bundled kit references to GitHub sources (versions < 3.0.8)
 - [x] - `p1` - User config files in `config/` are NEVER overwritten
 - [x] - `p1` - [LEGACY] Blueprint version comparison detects same, migration needed, and missing states
-- [x] - `p1` - `--dry-run` shows what would be done without writing
-- [x] - `p1` - `cpt update` regenerates `.gen/AGENTS.md` and `.gen/SKILL.md` after update
-- [x] - `p1` - `cpt update` automatically runs self-check after completion and includes result in report
+- [x] - `p1` - `cpt update` renders `whatsnew` ANSI styling only when stderr is a TTY; redirected or piped stderr stays plain text
+- [x] - `p1` - `cpt update` removes leftover `config/kits/*/blueprints/` directories from pre-ADR-0001 installs
+- [x] - `p1` - `cpt update` removes legacy `[system]` section from `config/core.toml` (system identity now lives in `artifacts.toml`)
+- [x] - `p1` - `cpt update` auto-migrates legacy kits to manifest-driven resource bindings when source contains `manifest.toml` and core.toml lacks `[kits.{slug}.resources]`
 
 ### Config CLI Commands
 

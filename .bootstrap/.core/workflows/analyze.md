@@ -9,6 +9,28 @@ purpose: Universal workflow for analysing any Cypilot artifact or code
 
 # Analyze
 
+
+<!-- toc -->
+
+- [Rules](#rules)
+- [Overview](#overview)
+- [Context Budget & Overflow Prevention (CRITICAL)](#context-budget--overflow-prevention-critical)
+- [Mode Detection](#mode-detection)
+- [Phase 0: Ensure Dependencies](#phase-0-ensure-dependencies)
+- [Phase 0.1: Plan Escalation Gate](#phase-01-plan-escalation-gate)
+- [Phase 0.5: Clarify Analysis Scope](#phase-05-clarify-analysis-scope)
+- [Phase 1: File Existence Check](#phase-1-file-existence-check)
+- [Phase 2: Deterministic Gate](#phase-2-deterministic-gate)
+- [Phase 3: Semantic Review (Conditional)](#phase-3-semantic-review-conditional)
+- [Phase 4: Output](#phase-4-output)
+- [Phase 5: Offer Next Steps](#phase-5-offer-next-steps)
+- [State Summary](#state-summary)
+- [Key Principles](#key-principles)
+- [Agent Self-Test (STRICT mode — AFTER completing work)](#agent-self-test-strict-mode--after-completing-work)
+- [Validation Criteria](#validation-criteria)
+
+<!-- /toc -->
+
 ALWAYS open and follow `{cypilot_path}/.core/skills/cypilot/SKILL.md` FIRST WHEN {cypilot_mode} is `off`
 
 **Type**: Analysis
@@ -19,187 +41,68 @@ ALWAYS open and follow `{cypilot_path}/.core/requirements/code-checklist.md` WHE
 
 ALWAYS open and follow `{cypilot_path}/.core/requirements/consistency-checklist.md` WHEN user requests analysis of documentation/artifact consistency, contradiction detection, or cross-document alignment (Consistency mode)
 
-OPEN and follow `{cypilot_path}/.core/requirements/prompt-engineering.md` WHEN user requests analysis of:
+ALWAYS open and follow `{cypilot_path}/.core/requirements/prompt-engineering.md` WHEN user requests analysis of:
 - System prompts, agent prompts, or LLM prompts
 - Agent instructions or agent guidelines
 - Skills, workflows, or methodologies
 - AGENTS.md or navigation rules
 - Any document containing instructions for AI agents
-- User explicitly mentions "prompt engineering review" or "instruction quality"
+- User explicitly mentions `prompt engineering review` or `instruction quality`
 
----
+When `prompt-engineering.md` is loaded for instruction analysis, treat compact-prompts optimization as a **HIGH-priority requirement**: explicitly look for safe ways to reduce loaded context while preserving clarity, determinism, constraints, and recovery behavior.
 
-## ⚠️ Maximum Attention to Detail
+## Rules
 
-**MUST** perform analysis checking **ALL** applicable criteria from the loaded checklist:
+**MUST** check **EVERY SINGLE** applicable criterion; verify **EACH ITEM** individually; read the **COMPLETE** artifact; validate **EVERY** ID, reference, and section; check for **ALL** placeholders, empty sections, and missing content; cross-reference **EVERY** actor/capability/requirement ID; report **EVERY** issue found.
 
-- ✅ Check **EVERY SINGLE** applicable criterion
-- ✅ Verify **EACH ITEM** individually, not in groups
-- ✅ Read **COMPLETE** artifact from start to end
-- ✅ Validate **EVERY** ID format, reference, section
-- ✅ Check for **ALL** placeholders, empty sections, missing content
-- ✅ Cross-reference **EVERY** actor/capability/requirement ID
-- ✅ Report **EVERY** issue found
-
-**MUST NOT**:
-- ❌ Skip any checks
-- ❌ Assume sections are correct without verifying
-- ❌ Give benefit of doubt - verify everything
+**MUST NOT** skip checks, assume sections are correct without verifying, or give benefit of doubt.
 
 **One missed issue = INVALID analysis**
 
----
-
-## ⛔ Agent Anti-Patterns (STRICT mode)
-
-**Reference**: `{cypilot_path}/.core/requirements/agent-compliance.md` for full list.
-
-**Critical anti-patterns for analysis**:
-
-| Anti-Pattern | What it looks like | Why it's wrong |
-|--------------|-------------------|----------------|
-| SKIP_SEMANTIC | Deterministic PASS → report overall PASS | Deterministic checks structure only, not content quality |
-| MEMORY_VALIDATION | "I already read it" without Read tool | Context may be stale, compacted, or incomplete |
-| ASSUMED_NA | "Security not applicable for this project" | Document must have explicit N/A statement, agent can't decide |
-| BULK_PASS | "All checklist items pass" | No evidence = no proof of actual verification |
-| SIMULATED_VALIDATION | Produce "✅ PASS" table without running `cpt validate` | Semantic review cannot catch structural errors (IDs, headings, cross-refs) that only the deterministic tool detects |
-
-**Self-check before outputting analysis**:
-- Am I reporting PASS without semantic review? → AP-001 SKIP_SEMANTIC
-- Did I use Read tool for the target artifact THIS turn? → AP-002 MEMORY_VALIDATION
-- Am I marking categories N/A without document quotes? → AP-003 ASSUMED_NA
-- Am I claiming "all pass" without per-category evidence? → AP-004 BULK_PASS
-- Did I produce a validation summary without running `cpt validate` first? → AP-005 SIMULATED_VALIDATION
-
-**If any self-check fails → STOP and restart with compliance**
-
----
+**Reference**: `{cypilot_path}/.core/requirements/agent-compliance.md` for the full anti-pattern list.
+- `AP-001 SKIP_SEMANTIC`: reporting overall PASS from deterministic checks alone.
+- `AP-002 MEMORY_VALIDATION`: claiming review without a fresh Read tool call.
+- `AP-003 ASSUMED_NA`: marking a category N/A without document evidence.
+- `AP-004 BULK_PASS`: claiming "all pass" without per-category evidence.
+- `AP-005 SIMULATED_VALIDATION`: producing a validation summary without running `cpt validate`.
+Before output, self-check: PASS without semantic review? fresh Read this turn? N/A claims quoted? per-category evidence present? actual `cpt validate` output shown? If any answer is no → STOP and restart with compliance.
 
 ## Overview
-
-Universal analysis workflow. Handles multiple modes:
-- **Full mode** (default): Deterministic gate → Semantic review
-- **Semantic mode**: Semantic-only analysis (skip deterministic gate)
-- **Artifact mode**: Analyzes against template + checklist
-- **Code mode**: Analyzes against checklist + design requirements
-
-### Command Variants
-
-| Command | Mode | Description |
-|---------|------|-------------|
-| `/cypilot-analyze` | Full | Deterministic gate → Semantic review |
-| `/cypilot-analyze semantic` | Semantic only | Skip deterministic, checklist-based semantic analysis only |
-| `/cypilot-analyze --artifact <path>` | Full | Analyze specific artifact |
-| `/cypilot-analyze semantic --artifact <path>` | Semantic only | Semantic analysis for specific artifact |
-| `/cypilot-analyze prompt <path>` | Prompt review | Prompt engineering methodology (9-layer analysis) |
-
-**Prompt review triggers** (auto-detected from context):
-- "analyze this system prompt"
-- "review agent instructions"
-- "check this workflow/skill"
-- "prompt engineering review"
-
-After executing `execution-protocol.md`, you have: TARGET_TYPE, RULES, KIND, PATH, and resolved dependencies.
-
----
+Modes: Full (default) = deterministic gate → semantic review; Semantic-only = skip deterministic gate; Artifact = template + checklist; Code = checklist + design requirements; Prompt review = prompt-engineering workflow.
+Commands: `/cypilot-analyze`, `/cypilot-analyze semantic`, `/cypilot-analyze --artifact <path>`, `/cypilot-analyze semantic --artifact <path>`, `/cypilot-analyze prompt <path>`.
+Prompt review triggers include "analyze this system prompt", "review agent instructions", "check this workflow/skill", and "prompt engineering review". After `execution-protocol.md`, you have `TARGET_TYPE`, `RULES`, `KIND`, `PATH`, and resolved dependencies.
 
 ## Context Budget & Overflow Prevention (CRITICAL)
-
-This workflow can require loading multiple long checklists/specs. To prevent context overflow and "missed checks" failures:
-
-- **Budget first**: Before loading large docs, estimate size (e.g., `wc -l`) and state a rough budget for what you will load this turn.
-- **Load only what you will use**: Prefer rules.md "Validation" (analysis checks) and the specific checklist categories needed; avoid loading entire registries/specs unless required.
-- **Chunk reads**: Use `read_file` in ranges and summarize each chunk; do not keep raw full-text of multiple 500+ line documents in context at once.
-- **Summarize-and-drop**: After extracting the needed criteria, keep a short checklist summary and drop the raw text from working memory.
-- **Fail-safe**: If you cannot complete the required checks within context, output `PARTIAL` with a checkpoint (what was checked, what remains, where to resume). Do not claim overall PASS.
-- **Plan escalation**: See [Phase 0.1: Plan Escalation Gate](#phase-01-plan-escalation-gate) — a **mandatory** size check that runs after dependencies are loaded. If the task exceeds the context budget, the agent MUST offer plan escalation before proceeding.
-
----
+- Budget first: estimate size before loading large docs (for example with `wc -l`) and state the budget for this turn.
+- Load only what you use: prefer rules.md Validation and only needed checklist categories; avoid large registries/specs unless required.
+- Chunk reads and summarize-and-drop: use `read_file` ranges, summarize each chunk, and keep only extracted criteria.
+- Fail-safe: if checks cannot be completed within context, output `PARTIAL` with checkpoint status and resume guidance; do not claim overall PASS.
+- Plan escalation: [Phase 0.1](#phase-01-plan-escalation-gate) is mandatory after dependencies load; if budget is exceeded, the agent MUST offer plan escalation before proceeding.
 
 ## Mode Detection
-
-**Check invocation**:
-
-- If user invoked `/cypilot-analyze semantic` or `cypilot analyze semantic` → Set `SEMANTIC_ONLY=true`
-- If user invoked `/cypilot-analyze prompt` or context indicates prompt/instruction review → Set `PROMPT_REVIEW=true`
-- Otherwise → Set `SEMANTIC_ONLY=false`, `PROMPT_REVIEW=false` (full analysis)
-
-**When `SEMANTIC_ONLY=true`**:
-- Skip Phase 2 (Deterministic Gate)
-- Go directly to Phase 3 (Semantic Review)
-- Semantic review is MANDATORY regardless of STRICT/RELAXED mode
-
-**When `PROMPT_REVIEW=true`**:
-- Open and follow `{cypilot_path}/.core/requirements/prompt-engineering.md`
-- Execute 9-layer prompt engineering analysis
-- Skip standard Cypilot analysis (not applicable to prompts)
-- Output using prompt-engineering.md format
-- Traceability checks: N/A (prompts don't have code markers)
-- Registry checks: N/A (prompts may not be in artifacts.toml)
-
----
+- `/cypilot-analyze semantic` or `cypilot analyze semantic` → `SEMANTIC_ONLY=true`; skip Phase 2 and go to Phase 3; semantic review remains mandatory.
+- `/cypilot-analyze prompt` or prompt/instruction review context → `PROMPT_REVIEW=true`; open prompt-engineering.md, run 9-layer review, explicitly search for safe context-reduction opportunities per compact-prompts methodology, skip standard Cypilot analysis, use prompt-engineering output, and treat traceability / registry checks as N/A.
+- Otherwise → `SEMANTIC_ONLY=false`, `PROMPT_REVIEW=false`; run full analysis.
 
 ## Phase 0: Ensure Dependencies
+After `execution-protocol.md`, you have `KITS_PATH`, `TEMPLATE`, `CHECKLIST`, `EXAMPLE`, `REQUIREMENTS`, and `VALIDATION_CHECKS`.
 
-**After execution-protocol.md, you have**:
-- `KITS_PATH` — path to loaded rules.md
-- `TEMPLATE` — template content (from rules Dependencies)
-- `CHECKLIST` — checklist content (from rules Dependencies)
-- `EXAMPLE` — example content (from rules Dependencies)
-- `REQUIREMENTS` — parsed requirements from rules
-- `VALIDATION_CHECKS` — checks from rules.md Validation section
-
-### Verify Rules Loaded
-
-**If rules.md was loaded** (execution-protocol found artifact type):
-- Dependencies already resolved from rules.md Dependencies section
-- Checks defined in rules.md Validation section
-- Proceed silently
-
-**If rules.md NOT loaded** (manual mode):
-
-| Dependency | Purpose | If missing |
-|------------|---------|------------|
-| **Checklist** | Criteria to check | Ask user to provide or specify path |
-| **Template** | Expected structure and sections | Ask user to provide or specify path |
-| **Example** | Reference for expected content quality | Ask user to provide or specify path |
-
-### For Code (additional)
-
-| Dependency | Purpose | If missing |
-|------------|---------|------------|
-| **Code checklist** | Baseline criteria for all code work | Load `{cypilot_path}/.core/requirements/code-checklist.md` |
-| **Design artifact** | Requirements that should be implemented | Ask user to specify source |
+- If `rules.md` loaded: dependencies and validation checks were already resolved; proceed silently.
+- If `rules.md` not loaded: ask the user to provide/specify missing `checklist`, `template`, or `example`.
+- Code mode additional: load `{cypilot_path}/.core/requirements/code-checklist.md` and ask the user to specify the design artifact if missing.
 
 **MUST NOT proceed** to Phase 1 until all dependencies are available.
 
----
-
 ## Phase 0.1: Plan Escalation Gate
-
-**MUST** estimate the total context this analysis will consume BEFORE proceeding further.
-
-**Estimation**:
-1. Count (or estimate) lines of loaded dependencies:
-   - `rules.md` for the target artifact kind (Validation section)
-   - `checklist.md` for the target artifact kind
-   - Target artifact content to analyze
-   - Related artifacts for cross-referencing
-2. Add estimated output size (analysis report)
-3. Add ~30% for agent reasoning overhead
-
-**Decision**:
+**MUST** estimate total context: target `rules.md` Validation, target `checklist.md`, artifact content, related cross-reference artifacts, expected analysis output, and ~30% reasoning overhead.
 
 | Estimated total | Action |
 |----------------|--------|
-| ≤ 1200 lines | Proceed normally — optimal zone, >95% checklist coverage |
-| 1201-2000 lines | Proceed with warning + aggressive summarize-and-drop: _"This is a medium-sized analysis. Activating chunked loading — will output PARTIAL if context runs low."_ |
-| > 2000 lines | **MUST** offer plan escalation before proceeding |
+| `≤ 1200` lines | Proceed normally — optimal zone, >95% checklist coverage. |
+| `1201-2000` lines | Proceed with warning + aggressive summarize-and-drop: _"This is a medium-sized analysis. Activating chunked loading — will output PARTIAL if context runs low."_ |
+| `> 2000` lines | **MUST** offer plan escalation before proceeding. |
 
-> **Why stricter than generate**: Analysis loads checklist.md as **active constraints** — every item must be individually verified. SDLC checklists are 567-1019 lines. Combined with the artifact being analyzed + rules + cross-refs, even a single-artifact analysis quickly exceeds 2000 lines.
-
-**When offering plan escalation** (> 2000 lines):
-
+Offer when `> 2000` lines:
 ```
 ⚠️ This analysis is large — estimated ~{N} lines of context needed:
   - checklist.md:  ~{n} lines
@@ -216,116 +119,58 @@ Options:
 1. Switch to /cypilot-plan (recommended for thorough analysis)
 2. Continue here (risk: context overflow, checks may be partially applied)
 ```
-
-**If user chooses plan**: Stop analyze workflow. Tell user to run `/cypilot-plan analyze {KIND}` with the same parameters.
-
-**If user chooses continue**: Proceed with analyze workflow but activate aggressive chunking from Context Budget section. Log warning: _"Proceeding in single-context mode — some checks may be missed for large artifacts."_
-
----
+If user chooses plan: stop and tell them to run `/cypilot-plan analyze {KIND}` with the same parameters. If user chooses continue: proceed with aggressive chunking and log _"Proceeding in single-context mode — some checks may be missed for large artifacts."_
 
 ## Phase 0.5: Clarify Analysis Scope
 
-### Scope Determination
-
-**Ask user if unclear**:
+If scope is unclear, ask:
 ```
 What is the analysis scope?
 - Full analysis (entire artifact/codebase)
 - Partial analysis (specific sections/IDs)
 - Quick check (structure only, skip semantic)
 ```
-
-### Traceability Mode
-
-**Check artifact's traceability setting in artifacts.toml**:
-- `FULL` → Check code markers, cross-reference IDs in codebase
-- `DOCS-ONLY` → Skip codebase traceability checks
-
-**If FULL traceability**:
-- Identify codebase directories from artifacts.toml
-- Plan to check for `@cpt-*` markers
-- Plan to verify all IDs have code implementations
-
-### Registry Consistency
-
-**Verify artifact is registered**:
-- Check if target path exists in artifacts.toml
-- Verify kind matches registered kind
-- Verify system assignment is correct
-
-**If not registered**:
-- Warn user and suggest registering it in `{cypilot_path}/config/artifacts.toml` (preferred for STRICT analysis)
-- If user wants to proceed anyway, require `/cypilot-analyze semantic` and clearly label output as semantic-only (no deterministic gate)
-
-### Cross-Reference Scope
-
-**Identify related artifacts**:
-- Parent artifacts (what this references)
-- Child artifacts (what references this)
-- Code directories (if FULL traceability)
-
-**Plan checking of**:
-- All outgoing references exist
-- All incoming references are valid
-- No orphaned IDs
-
----
+- Traceability mode: read artifacts.toml — `FULL` means check code markers and codebase cross-refs; `DOCS-ONLY` means skip codebase traceability checks.
+- If `FULL`: identify code directories, plan `@cpt-*` marker checks, and verify all IDs have code implementations.
+- Registry consistency: verify target path exists in artifacts.toml, kind matches, and system assignment is correct.
+- If not registered: warn the user, suggest registering in `{cypilot_path}/config/artifacts.toml`, and if they continue require `/cypilot-analyze semantic` with output clearly labeled semantic-only.
+- Cross-reference scope: identify parent artifacts, child artifacts, and code directories (if FULL); plan checks for outgoing refs, incoming refs, and orphaned IDs.
 
 ## Phase 1: File Existence Check
 
-**Check**:
-1. Target exists at `{PATH}`
-2. Target is not empty
-3. Target is readable
+Check that `{PATH}` exists, is readable, and is not empty.
 
-**If fails**:
+If any check fails:
 ```
 ✗ Target not found: {PATH}
 → Run /cypilot-generate {TARGET_TYPE} {KIND} to create
 ```
 STOP analysis.
 
----
-
 ## Phase 2: Deterministic Gate
 
-**If `SEMANTIC_ONLY=true`**: Skip this phase, go to Phase 3.
+If `SEMANTIC_ONLY=true`, skip this phase and go to Phase 3.
 
 > **⛔ CRITICAL**: The agent's own checklist walkthrough is **NOT** a substitute for `cpt validate`. A manual "✅ PASS" table in chat is semantic review, not deterministic validation — these are **separate steps**. See anti-pattern `SIMULATED_VALIDATION`.
 
-**MUST run first when available** (when not semantic-only).
+Deterministic gate is available only when the target is registered in `{cypilot_path}/config/artifacts.toml` under a system with a configured `kit`, the kit `format` supports Cypilot CLI checks (typically `format: "Cypilot"`), and the artifact or code path is supported by the CLI.
 
-Deterministic gate is considered **available** when:
-- Target is registered in `{cypilot_path}/config/artifacts.toml` under a system with a `kit` configured (registry schema uses `kits`/`kit`), AND
-- The kit `format` supports Cypilot CLI checks (typically `format: "Cypilot"`), AND
-- You are analysing an artifact or code path supported by the CLI.
+If deterministic gate is not available, do **not** force `cypilot.py validate --artifact {PATH}`; require semantic-only analysis or ask the user to register/provide rules first.
 
-If deterministic gate is **not available** (e.g., unregistered path, RELAXED mode without configured kit/rules, or non-Cypilot kit format):
-- Do **not** attempt to force `cypilot.py validate --artifact {PATH}`
-- Require semantic-only analysis (`/cypilot-analyze semantic`) or ask the user to register/provide rules first
-
-### For Artifacts
-
+Artifacts:
 ```bash
 python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate --artifact {PATH}
 ```
-
-### For Code
-
+Code:
 ```bash
 python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate
 ```
+- MUST execute `cpt validate` as an actual terminal command BEFORE any semantic review.
+- MUST include exit code and JSON `status` / `error_count` / `warning_count` in the response as invocation evidence.
+- MUST NOT proceed to Phase 3 until `cpt validate` returns `"status": "PASS"`; if FAIL, report issues and STOP.
+- MUST NOT produce a validation summary without first showing actual `cpt validate` output; doing so is `SIMULATED_VALIDATION`.
 
-### Deterministic Gate Rules
-
-1. **Tool-first**: The agent MUST execute the `cpt validate` command as an actual terminal command BEFORE any semantic review. No exceptions.
-2. **Output evidence**: The agent MUST include the validator's exit code and `status`/`error_count`/`warning_count` from the JSON output in its response so the user can verify the tool was actually invoked.
-3. **Gate**: The agent MUST NOT proceed to Phase 3 (Semantic Review) until `cpt validate` returns `"status": "PASS"`. If it returns FAIL, report issues and STOP.
-4. **Anti-pattern**: The agent MUST NOT produce a validation summary without first showing the actual output of `cpt validate`. Doing so is `SIMULATED_VALIDATION`.
-
-### Evaluate
-
-**If FAIL**:
+If FAIL:
 ```
 ═══════════════════════════════════════════════
 Analysis: {TARGET_TYPE}
@@ -340,244 +185,113 @@ Blocking issues:
 
 → Fix issues and re-run analysis
 ```
-**STOP** — do not proceed to semantic review.
+STOP — do not proceed to semantic review.
 
-**If PASS**:
+If PASS:
 ```
 Deterministic gate: PASS (exit code: 0, errors: 0, warnings: {N})
 ```
-Continue to Phase 3 (Semantic Review).
-
----
+Continue to Phase 3.
 
 ## Phase 3: Semantic Review (Conditional)
 
-**Run if**:
-- Deterministic gate PASS, OR
-- `SEMANTIC_ONLY=true` (skip deterministic gate)
+Run if deterministic gate PASS, or if `SEMANTIC_ONLY=true`.
 
-### Mode-Dependent Behavior
-
-| Invocation | Rules Mode | Semantic Review | Evidence Required |
+| Invocation | Rules mode | Semantic review | Evidence required |
 |------------|------------|-----------------|-------------------|
 | `/cypilot-analyze semantic` | Any | MANDATORY | Yes — per `agent-compliance.md` |
-| `/cypilot-analyze` | **STRICT** | MANDATORY | Yes — per `agent-compliance.md` |
-| `/cypilot-analyze` | **RELAXED** | Optional | No — best effort |
+| `/cypilot-analyze` | STRICT | MANDATORY | Yes — per `agent-compliance.md` |
+| `/cypilot-analyze` | RELAXED | Optional | No — best effort |
 
-**If STRICT mode**:
-- Semantic review is MANDATORY, not optional
-- Agent MUST follow `{cypilot_path}/.core/requirements/agent-compliance.md`
-- Agent MUST provide evidence for each checklist category
-- Agent MUST NOT skip categories or report bulk "PASS"
-- Failure to complete semantic review → analysis INVALID
+STRICT mode: semantic review is MANDATORY; the agent MUST follow `{cypilot_path}/.core/requirements/agent-compliance.md`; the agent MUST provide evidence for each checklist category; the agent MUST NOT skip categories or report bulk PASS; failure to complete semantic review makes the analysis INVALID.
 
-**If semantic review cannot be completed** (context limits, missing info, interruption):
-1. Document which categories were checked with evidence
-2. Mark incomplete categories with reason (e.g., "INCOMPLETE: context limit reached")
-3. Output as `PARTIAL` — do NOT report overall PASS/FAIL
-4. Include checkpoint guidance: "Resume with `/cypilot-analyze semantic` after addressing blockers"
-
-**If RELAXED mode**:
-- Semantic review is optional
-- Agent proceeds with best effort
-- Output includes disclaimer: `⚠️ Semantic review skipped (RELAXED mode)`
+If semantic review cannot be completed: document checked categories with evidence, mark incomplete categories with reason, output `PARTIAL`, and include `Resume with /cypilot-analyze semantic after addressing blockers`. RELAXED mode: if semantic review is skipped, include `⚠️ Semantic review skipped (RELAXED mode)`.
 
 ### Semantic Review Content (STRICT mode)
 
-**Follow Validation section from loaded rules.md**:
+Follow the loaded `rules.md` Validation section.
 
-### For Artifacts (rules.md Validation)
+- [ ] Artifacts: execute rules.md semantic validation using the loaded checklist; load `{cypilot_path}/.gen/AGENTS.md`; check content quality, parent cross-references, naming conventions, placeholder-like content, adapter spec compliance, versioning requirements, and traceability requirements.
+- [ ] Code: execute codebase/rules.md traceability + quality validation; load related design artifact(s); check requirement implementation, conventions, tests, required markers, and `[x]` completion in SPEC design.
+- [ ] Completeness: no placeholder markers (`TODO`, `TBD`, `[Description]`), no empty sections, all IDs follow required format, all IDs are unique, all required fields are present.
+- [ ] Coverage: all parent requirements addressed, all referenced IDs exist, all parent actors/capabilities covered, no orphaned references.
+- [ ] Traceability (`FULL`): all requirement / flow / algorithm IDs have code markers, all test IDs have test implementations, markers follow `requirements/traceability.md`, and no stale markers remain.
+- [ ] ID uniqueness & format: no duplicate IDs within artifact, no duplicate IDs across system (`cypilot list-ids`), all IDs follow naming convention, all IDs use the correct project prefix.
+- [ ] Registry consistency: artifact is registered in artifacts.toml, kind matches, system assignment is correct, and path is correct.
 
-Execute phases from rules.md:
-- **Phase 1: Structural Validation** — already done by deterministic gate
-- **Phase 2: Semantic Validation** — checklist-based, from rules.md
-
-Use checklist from Phase 0 dependencies.
-Load adapter specs: `{cypilot_path}/.gen/AGENTS.md` → follow MANDATORY specs
-
-Check (from rules.md + standard):
-- [ ] Content quality per checklist
-- [ ] Cross-references to parent artifacts valid
-- [ ] Naming conventions followed
-- [ ] No placeholder-like content
-- [ ] Adapter specs compliance (paths, patterns, conventions)
-- [ ] Versioning requirements met (from rules)
-- [ ] Traceability requirements met (from rules)
-
-### For Code (rules.md Validation)
-
-Execute phases from codebase/rules.md:
-- **Phase 1: Traceability Validation** — check code markers
-- **Phase 2: Quality Validation** — checklist-based
-
-Use checklist from Phase 0 dependencies.
-Load design: related artifact(s)
-
-Check (from rules.md + standard):
-- [ ] All design requirements implemented
-- [ ] Code follows conventions
-- [ ] Tests cover requirements
-- [ ] Cypilot markers present where required (to_code="true" IDs)
-- [ ] Implemented items marked `[x]` in SPEC design
-
-### Completeness Checks
-
-- [ ] No placeholder markers (TODO, TBD, [Description])
-- [ ] No empty sections
-- [ ] All IDs follow format from requirements
-- [ ] All IDs unique
-- [ ] All required fields present
-
-### Coverage Checks
-
-- [ ] All parent requirements addressed
-- [ ] All referenced IDs exist in parent artifacts
-- [ ] All actors/capabilities from parent covered
-- [ ] No orphaned references
-
-### Traceability Checks (if FULL traceability)
-
-- [ ] All requirement IDs have code markers
-- [ ] All flow IDs have code markers
-- [ ] All algorithm IDs have code markers
-- [ ] All test IDs have test implementations
-- [ ] Code markers use the canonical format from `requirements/traceability.md` (`@cpt-*` scope markers and `@cpt-begin`/`@cpt-end` blocks)
-- [ ] No stale markers (ID no longer in design)
-
-### ID Uniqueness & Format
-
-- [ ] No duplicate IDs within artifact
-- [ ] No duplicate IDs across system (use `cypilot list-ids`)
-- [ ] All IDs follow naming convention
-- [ ] All IDs have correct prefix for project
-
-### Registry Consistency
-
-- [ ] Artifact is registered in artifacts.toml
-- [ ] Kind matches registered kind
-- [ ] System assignment is correct
-- [ ] Path is correct
-
-### Checkpoint for Large Artifacts
-
-**For artifacts >500 lines or analysis taking multiple turns**:
-- After completing each checklist category group, note progress in output
-- If context runs low, save checkpoint before continuing:
-  - List completed categories with status
-  - List remaining categories
-  - Note current position in artifact
-- On resume: re-read artifact, verify unchanged, continue from checkpoint
-
-### Collect Recommendations
-
-Categorize by priority:
-- **High**: Should fix before proceeding
-- **Medium**: Should fix eventually
-- **Low**: Nice to have
-
----
+Checkpoint rule for artifacts `>500` lines or multi-turn analysis: after each checklist group, note progress; if context runs low, save completed categories, remaining categories, and current artifact position; on resume, re-read the artifact, verify unchanged, and continue from the checkpoint. Categorize recommendations as **High**, **Medium**, or **Low**.
 
 ## Phase 4: Output
 
-Print to chat (NO files created):
+Print to chat only; create no files.
 
 ### Full Analysis Output (default)
-
-```
-═══════════════════════════════════════════════
-Analysis: {TARGET_TYPE}
-───────────────────────────────────────────────
-kind:   {KIND}
-name:   {name}
-path:   {PATH}
-───────────────────────────────────────────────
-Status: PASS
-═══════════════════════════════════════════════
+```markdown
+## Analysis
+**Target**: {TARGET_TYPE}
+**Kind**: {KIND}
+**Name**: {name}
+**Path**: {PATH}
+**Status**: PASS/FAIL/PARTIAL
 
 ### Deterministic Gate
-✓ PASS
+- Exit code: {0|2}
+- Status: {PASS|FAIL|SKIPPED}
+- Errors: {N}, Warnings: {N}
+
+### Category Review
+| Category | Status | Evidence |
+|----------|--------|----------|
+| {category} | PASS/FAIL/N/A/PARTIAL | {line refs, quotes} |
 
 ### Recommendations
+- **High**: {issue with location}
+- **Medium**: {issue with location}
+- **Low**: {issue with location}
 
-**High priority**:
-- {issue with location}
-
-**Medium priority**:
-- {issue with location}
-
-**Low priority**:
-- {issue with location}
-
-### Coverage (if applicable)
+### Coverage
 - Requirements: {X}/{Y} implemented
 - Tests: {X}/{Y} covered
 
-───────────────────────────────────────────────
-═══════════════════════════════════════════════
+### Agent Self-Test Results
+| Question | Answer | Evidence |
+|----------|--------|----------|
+| {question} | YES/NO | {evidence} |
 ```
-
 ### Semantic-Only Output (`/cypilot-analyze semantic`)
-
 ```
-═══════════════════════════════════════════════
 Semantic Analysis: {TARGET_TYPE}
-───────────────────────────────────────────────
-kind:   {KIND}
-name:   {name}
-path:   {PATH}
-───────────────────────────────────────────────
+kind: {KIND}
+name: {name}
+path: {PATH}
 Mode: SEMANTIC ONLY (deterministic gate skipped)
 Status: PASS/FAIL
-═══════════════════════════════════════════════
-
-### Checklist Review
-
 | Category | Status | Evidence |
 |----------|--------|----------|
 | {category} | PASS/FAIL/N/A | {line refs, quotes} |
-
-### Issues Found
-
-**High priority**:
-- {issue with location}
-
-**Medium priority**:
-- {issue with location}
-
-### Coverage
-- Checklist items: {X}/{Y} passed
-- N/A categories: {list with reasoning}
-
-───────────────────────────────────────────────
-═══════════════════════════════════════════════
+High: {issue with location}
+Medium: {issue with location}
+Checklist items: {X}/{Y} passed
+N/A categories: {list with reasoning}
 ```
-
----
-
 ## Phase 5: Offer Next Steps
 
-**Read from rules.md** → `## Next Steps` section
+Read `## Next Steps` from `rules.md` and present applicable options.
 
-Present applicable options to user based on result:
-
-**If PASS**:
+PASS:
 ```
 What would you like to do next?
 1. {option from rules Next Steps for success}
 2. {option from rules Next Steps}
 3. Other
 ```
-
-**If FAIL**:
+FAIL:
 ```
 Fix the issues above, then:
 1. Re-run analysis
 2. {option from rules Next Steps for issues}
 3. Other
 ```
-
----
-
 ## State Summary
 
 | State | TARGET_TYPE | Uses Template | Uses Checklist | Uses Design |
@@ -585,60 +299,30 @@ Fix the issues above, then:
 | Analysing artifact | artifact | ✓ | ✓ | parent only |
 | Analysing code | code | ✗ | ✓ | ✓ |
 
----
-
 ## Key Principles
 
-### Deterministic Gate Is Authoritative
-
-- If deterministic gate ran: its PASS/FAIL is the official result
-- Semantic review adds recommendations (and, in STRICT mode, evidence-backed verification)
-- If deterministic gate cannot run (unregistered/RELAXED/custom rules): do not label overall PASS; use semantic-only output and disclaim reduced rigor
-
-### No Files Created
-
-- All output to chat
-- Never create ANALYSIS_REPORT.md
-- Keep analysis stateless
-
-### Fail Fast
-
-- If deterministic gate fails → STOP
-- Don't waste time on semantic review
-- Report issues immediately
-
----
+- Deterministic gate PASS/FAIL is authoritative when it runs.
+- Semantic review adds recommendations and, in STRICT mode, evidence-backed verification.
+- If the deterministic gate cannot run, do not label overall PASS; use semantic-only output and disclaim reduced rigor.
+- Output is chat-only; never create `ANALYSIS_REPORT.md`; keep analysis stateless.
+- If deterministic gate fails, STOP and report issues immediately.
 
 ## Agent Self-Test (STRICT mode — AFTER completing work)
 
-**CRITICAL**: Answer these questions AFTER doing the work, not before.
-**CRITICAL**: Include answers with evidence in your output.
+Answer these AFTER doing the work and include evidence in the output.
 
-### Self-Test Questions
+| Question | Evidence required |
+|----------|-------------------|
+| Did I read execution-protocol.md before starting? | Show loaded rules and dependencies. |
+| Did I use Read tool to read the ENTIRE artifact THIS turn? | `Read {path}: {N} lines` |
+| Did I check EVERY checklist category individually? | Category breakdown table with per-category status. |
+| Did I provide evidence (quotes, line numbers) for each PASS/FAIL/N/A? | Evidence column in category table. |
+| For N/A claims, did I quote explicit "Not applicable" statements from the document? | Quote lines showing the author marked N/A. |
+| Am I reporting from actual file content, not memory/summary? | Fresh Read tool call visible this turn. |
 
-1. ⚠️ Did I read execution-protocol.md before starting?
-   → Evidence: Show that you loaded rules and dependencies
-
-2. ⚠️ Did I use Read tool to read the ENTIRE artifact THIS turn?
-   → Evidence: `Read {path}: {N} lines`
-
-3. ⚠️ Did I check EVERY checklist category individually?
-   → Evidence: Category breakdown table with per-category status
-
-4. ⚠️ Did I provide evidence (quotes, line numbers) for each PASS/FAIL/N/A?
-   → Evidence: Evidence column in category table
-
-5. ⚠️ For N/A claims, did I quote explicit "Not applicable" statements from document?
-   → Evidence: Quotes showing document author marked it N/A
-
-6. ⚠️ Am I reporting based on actual file content, not memory/summary?
-   → Evidence: Fresh Read tool call visible in this conversation turn
-
-### Self-Test Output Format (include in analysis report)
-
+Sample:
 ```markdown
 ### Agent Self-Test Results
-
 | Question | Answer | Evidence |
 |----------|--------|----------|
 | Read execution-protocol? | YES | Loaded cypilot-sdlc rules, checklist.md |
@@ -648,21 +332,15 @@ Fix the issues above, then:
 | N/A has document quotes? | YES | Lines 698, 712, 725 |
 | Based on fresh read? | YES | Read tool called this turn |
 ```
-
 **If ANY answer is NO or lacks evidence → Analysis is INVALID, must restart**
 
-### RELAXED Mode
-
-In RELAXED mode, self-test is advisory only. Include disclaimer:
-```
+RELAXED mode disclaimer:
+```text
 ⚠️ Self-test skipped (RELAXED mode — no Cypilot rules)
 ```
-
----
-
 ## Validation Criteria
 
-- [ ] {cypilot_path}/.core/requirements/execution-protocol.md executed
+- [ ] `{cypilot_path}/.core/requirements/execution-protocol.md` executed
 - [ ] Dependencies loaded (checklist, template, example)
 - [ ] Analysis scope clarified
 - [ ] Traceability mode determined

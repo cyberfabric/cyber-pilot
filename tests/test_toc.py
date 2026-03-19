@@ -494,6 +494,22 @@ class TestValidateToc:
         result = validate_toc(content)
         assert result["errors"] == []
 
+    def test_valid_marker_based_toc_with_secondary_h1_sections(self):
+        content = (
+            "# Title\n\n"
+            "<!-- toc -->\n\n"
+            "- [Section A](#section-a)\n"
+            "- [Section B](#section-b)\n\n"
+            "<!-- /toc -->\n\n"
+            "# MUST HAVE\n"
+            "## Section A\n\n"
+            "# MUST NOT HAVE\n"
+            "## Section B\n"
+        )
+        result = validate_toc(content, max_heading_level=2)
+        assert result["errors"] == []
+        assert result["warnings"] == []
+
     def test_broken_anchor(self):
         content = (
             "# Title\n\n"
