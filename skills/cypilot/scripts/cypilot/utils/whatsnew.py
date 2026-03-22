@@ -13,6 +13,7 @@ from typing import Dict, Tuple
 
 logger = logging.getLogger(__name__)
 
+# @cpt-begin:cpt-cypilot-algo-kit-whatsnew-display:p1:inst-whatsnew-format
 _ANSI_ESCAPE_RE = re.compile(r"\x1b(?:\[[0-?]*[ -/]*[@-~]|[@-Z\\-_])")
 _BOLD_MARKUP_RE = re.compile(r"\*\*(.+?)\*\*")
 _INLINE_CODE_RE = re.compile(r"`(.+?)`")
@@ -101,7 +102,6 @@ def compare_versions(v1: str, v2: str) -> int:
 # @cpt-end:cpt-cypilot-algo-kit-whatsnew-display:p1:inst-whatsnew-version-cmp
 
 
-# @cpt-begin:cpt-cypilot-algo-kit-whatsnew-display:p1:inst-whatsnew-format
 def stderr_supports_ansi() -> bool:
     """Check if stderr supports ANSI escape codes."""
     return hasattr(sys.stderr, "isatty") and sys.stderr.isatty()
@@ -218,7 +218,7 @@ def _prompt_continue(interactive: bool) -> bool:
     sys.stderr.flush()
     try:
         response = input().strip().lower()
-    except EOFError:
+    except (EOFError, KeyboardInterrupt):
         return False
     return response != "q"
 # @cpt-end:cpt-cypilot-algo-kit-whatsnew-display:p1:inst-prompt-continue
