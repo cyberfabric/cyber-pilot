@@ -718,7 +718,43 @@ def _render_template(lines: List[str], variables: Dict[str, str]) -> str:
     return _ensure_frontmatter_description_quoted(rendered)
 
 
-def _looks_like_generated_claude_legacy_command(content: str) -> bool:
+def _expected_claude_legacy_targets(
+    skill_name: str,
+    project_root: Path,
+    cypilot_root: Path,
+) -> Set[str]:
+    if not isinstance(skill_name, str) or not skill_name.startswith("cypilot-"):
+        return set()
+    workflow_name = skill_name[len("cypilot-"):]
+    workflow_path = core_subpath(cypilot_root, "workflows", f"{workflow_name}.md").resolve()
+    return {
+        f"{{cypilot_path}}/.core/workflows/{workflow_name}.md",
+        _target_path_from_root(workflow_path, project_root, cypilot_root),
+        workflow_path.as_posix(),
+    }
+
+
+def _normalize_agent_target_path(
+    target_path: str,
+    current_file: Path,
+    project_root: Path,
+    cypilot_root: Path,
+) -> str:
+    if target_path.startswith("{cypilot_path}/") or target_path.startswith("@/"):
+        return target_path
+    if target_path.startswith("/"):
+        return Path(target_path).as_posix()
+    return _target_path_from_root((current_file.parent / target_path).resolve(), project_root, cypilot_root)
+
+
+def _looks_like_generated_claude_legacy_command(
+    content: str,
+    *,
+    expected_targets: Set[str],
+    current_file: Path,
+    project_root: Path,
+    cypilot_root: Path,
+) -> bool:
     stripped = content.strip()
     if not stripped:
         return False
@@ -731,7 +767,10 @@ def _looks_like_generated_claude_legacy_command(content: str) -> bool:
     if not match:
         return False
     target_path = match.group(1)
-    return "/workflows/" in target_path and "SKILL.md" not in target_path
+    normalized_target = _normalize_agent_target_path(
+        target_path, current_file, project_root, cypilot_root,
+    )
+    return normalized_target in expected_targets
 # @cpt-end:cpt-cypilot-algo-agent-integration-generate-shims:p1:inst-parse-frontmatter
 
 # @cpt-begin:cpt-cypilot-algo-agent-integration-discover-agents:p1:inst-resolve-kits
@@ -1120,6 +1159,8 @@ def _process_single_agent(
                 if not isinstance(out_cfg, dict):
                     continue
                 rel_path = out_cfg.get("path", "")
+                if not isinstance(rel_path, str):
+                    continue
                 parts = Path(rel_path).parts
                 if len(parts) >= 3 and parts[0] == ".claude" and parts[1] == "skills":
                     skill_names.add(parts[2])
@@ -1136,7 +1177,19 @@ def _process_single_agent(
                     except OSError:
                         skills_result["errors"].append(f"failed to inspect {rel_path}")
                         continue
-                    if not _looks_like_generated_claude_legacy_command(legacy_content):
+                    expected_targets = _expected_claude_legacy_targets(
+                        legacy_skill, project_root, cypilot_root,
+                    )
+                    if not expected_targets:
+                        skills_result["skipped"].append(f"{rel_path} (missing generated marker)")
+                        continue
+                    if not _looks_like_generated_claude_legacy_command(
+                        legacy_content,
+                        expected_targets=expected_targets,
+                        current_file=legacy_file,
+                        project_root=project_root,
+                        cypilot_root=cypilot_root,
+                    ):
                         skills_result["skipped"].append(f"{rel_path} (missing generated marker)")
                         continue
                     if not dry_run:
@@ -1410,9 +1463,23 @@ def cmd_generate_agents(argv: List[str]) -> int:
     for r in preview_results.values():
         wf = r.get("workflows", {})
         sk = r.get("skills", {})
-        total_create += len(wf.get("created", [])) + len(sk.get("created", []))
-        total_update += len(wf.get("updated", [])) + len(sk.get("updated", []))
-        total_delete += len(wf.get("deleted", [])) + len(sk.get("deleted", []))
+        sub = r.get("subagents", {})
+        total_create += (
+            len(wf.get("created", []))
+            + len(sk.get("created", []))
+            + len(sub.get("created", []))
+        )
+        total_update += (
+            len(wf.get("updated", []))
+            + len(wf.get("renamed", []))
+            + len(sk.get("updated", []))
+            + len(sub.get("updated", []))
+        )
+        total_delete += (
+            len(wf.get("deleted", []))
+            + len(sk.get("deleted", []))
+            + len(sub.get("deleted", []))
+        )
 
     if args.dry_run:
         # Just show the preview and exit
@@ -1536,15 +1603,27 @@ def _human_generate_agents_preview(
     for agent_name, r in results.items():
         wf = r.get("workflows", {})
         sk = r.get("skills", {})
+        sub = r.get("subagents", {})
         created_wf = wf.get("created", [])
         updated_wf = wf.get("updated", [])
+        renamed_wf = wf.get("renamed", [])
         deleted_wf = wf.get("deleted", [])
         created_sk = sk.get("created", [])
         updated_sk = sk.get("updated", [])
         deleted_sk = sk.get("deleted", [])
+        created_sub = sub.get("created", [])
+        updated_sub = sub.get("updated", [])
+        skipped_sub = sub.get("skipped", False)
+        skipped_sub_reason = sub.get("skip_reason", "")
 
-        if not (created_wf or updated_wf or deleted_wf or created_sk or updated_sk or deleted_sk):
+        if not (
+            created_wf or updated_wf or renamed_wf or deleted_wf
+            or created_sk or updated_sk or deleted_sk
+            or created_sub or updated_sub
+        ):
             ui.step(f"{agent_name}: up to date")
+            if skipped_sub and skipped_sub_reason:
+                ui.substep(f"subagents skipped: {skipped_sub_reason}")
             continue
 
         ui.step(f"{agent_name}:")
@@ -1552,6 +1631,8 @@ def _human_generate_agents_preview(
             ui.file_action(path, "created")
         for path in updated_wf:
             ui.file_action(path, "updated")
+        for old_path, new_path in renamed_wf:
+            ui.substep(f"workflow renamed: {old_path} -> {new_path}")
         for path in deleted_wf:
             ui.file_action(path, "deleted")
         for path in created_sk:
@@ -1560,6 +1641,12 @@ def _human_generate_agents_preview(
             ui.file_action(path, "updated")
         for path in deleted_sk:
             ui.file_action(path, "deleted")
+        for path in created_sub:
+            ui.file_action(path, "created")
+        for path in updated_sub:
+            ui.file_action(path, "updated")
+        if skipped_sub and skipped_sub_reason:
+            ui.substep(f"subagents skipped: {skipped_sub_reason}")
     ui.blank()
 
 def _human_generate_agents_ok(
@@ -1575,8 +1662,10 @@ def _human_generate_agents_ok(
         agent_status = r.get("status", "?")
         wf = r.get("workflows", {})
         sk = r.get("skills", {})
+        sub = r.get("subagents", {})
         wf_counts = wf.get("counts", {})
         sk_counts = sk.get("counts", {})
+        sub_counts = sub.get("counts", {})
 
         if agent_status == "PASS":
             ui.step(f"{agent_name}")
@@ -1586,11 +1675,14 @@ def _human_generate_agents_ok(
         # Workflows
         created_wf = wf.get("created", [])
         updated_wf = wf.get("updated", [])
+        renamed_wf = wf.get("renamed", [])
         deleted_wf = wf.get("deleted", [])
         for path in created_wf:
             ui.file_action(path, "created")
         for path in updated_wf:
             ui.file_action(path, "updated")
+        for old_path, new_path in renamed_wf:
+            ui.substep(f"workflow renamed: {old_path} -> {new_path}")
         for path in deleted_wf:
             ui.file_action(path, "deleted")
 
@@ -1608,23 +1700,46 @@ def _human_generate_agents_ok(
         for item in skipped_sk:
             ui.warn(f"  skipped: {item}")
 
-        total_wf = wf_counts.get("created", 0) + wf_counts.get("updated", 0)
+        # Subagents
+        created_sub = sub.get("created", [])
+        updated_sub = sub.get("updated", [])
+        for path in created_sub:
+            ui.file_action(path, "created")
+        for path in updated_sub:
+            ui.file_action(path, "updated")
+        if sub.get("skipped") and sub.get("skip_reason"):
+            ui.substep(f"subagents skipped: {sub.get('skip_reason')}")
+
+        total_wf = (
+            wf_counts.get("created", 0)
+            + wf_counts.get("updated", 0)
+            + wf_counts.get("renamed", 0)
+        )
         total_wf_deleted = wf_counts.get("deleted", 0)
         total_sk = sk_counts.get("created", 0) + sk_counts.get("updated", 0)
+        total_sub = sub_counts.get("created", 0) + sub_counts.get("updated", 0)
         total_deleted = sk_counts.get("deleted", 0)
         total_skipped = sk_counts.get("skipped", 0)
-        if total_wf or total_wf_deleted or total_sk or total_deleted or total_skipped:
+        if total_wf or total_wf_deleted or total_sk or total_sub or total_deleted or total_skipped:
             parts = []
             if total_wf:
                 parts.append(f"{total_wf} workflow(s)")
             if total_wf_deleted:
-                parts.append(f"{total_wf_deleted} workflow proxy/proxies removed")
+                parts.append(
+                    f"{total_wf_deleted} workflow proxy/proxies {'would be removed' if dry_run else 'removed'}"
+                )
             if total_sk:
                 parts.append(f"{total_sk} skill file(s)")
+            if total_sub:
+                parts.append(f"{total_sub} subagent file(s)")
             if total_deleted:
-                parts.append(f"{total_deleted} legacy command(s) removed")
+                parts.append(
+                    f"{total_deleted} legacy command(s) {'would be removed' if dry_run else 'removed'}"
+                )
             if total_skipped:
-                parts.append(f"{total_skipped} legacy command(s) preserved")
+                parts.append(
+                    f"{total_skipped} legacy command(s) {'would be preserved' if dry_run else 'preserved'}"
+                )
             ui.substep(", ".join(parts))
 
         # Errors

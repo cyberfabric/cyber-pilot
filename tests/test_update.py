@@ -540,23 +540,27 @@ class TestWhatsnewVersionParsing(unittest.TestCase):
 
     def test_parse_semver_basic(self):
         from cypilot.utils.whatsnew import parse_semver
-        self.assertEqual(parse_semver("1.2.3"), (1, 2, 3))
-        self.assertEqual(parse_semver("0.0.1"), (0, 0, 1))
-        self.assertEqual(parse_semver("10.20.30"), (10, 20, 30))
+        self.assertEqual(parse_semver("1.2.3"), (1, 2, 3, 1))
+        self.assertEqual(parse_semver("0.0.1"), (0, 0, 1, 1))
+        self.assertEqual(parse_semver("10.20.30"), (10, 20, 30, 1))
 
     def test_parse_semver_with_v_prefix(self):
         from cypilot.utils.whatsnew import parse_semver
-        self.assertEqual(parse_semver("v1.2.3"), (1, 2, 3))
-        self.assertEqual(parse_semver("v0.1.0"), (0, 1, 0))
+        self.assertEqual(parse_semver("v1.2.3"), (1, 2, 3, 1))
+        self.assertEqual(parse_semver("v0.1.0"), (0, 1, 0, 1))
 
     def test_parse_semver_with_whatsnew_prefix(self):
         from cypilot.utils.whatsnew import parse_semver
-        self.assertEqual(parse_semver("whatsnew.1.2.3"), (1, 2, 3))
+        self.assertEqual(parse_semver("whatsnew.1.2.3"), (1, 2, 3, 1))
 
     def test_parse_semver_partial(self):
         from cypilot.utils.whatsnew import parse_semver
-        self.assertEqual(parse_semver("1.2"), (1, 2, 0))
-        self.assertEqual(parse_semver("1"), (1, 0, 0))
+        self.assertEqual(parse_semver("1.2"), (1, 2, 0, 1))
+        self.assertEqual(parse_semver("1"), (1, 0, 0, 1))
+
+    def test_parse_semver_prerelease_does_not_collapse_to_zero(self):
+        from cypilot.utils.whatsnew import parse_semver
+        self.assertNotEqual(parse_semver("v3.0.4-beta"), (0, 0, 0))
 
     def test_parse_semver_invalid(self):
         from cypilot.utils.whatsnew import parse_semver
@@ -580,6 +584,10 @@ class TestWhatsnewVersionParsing(unittest.TestCase):
         from cypilot.utils.whatsnew import compare_versions
         self.assertEqual(compare_versions("1.0.0", "1.0.0"), 0)
         self.assertEqual(compare_versions("v1.0.0", "1.0.0"), 0)
+
+    def test_compare_versions_prerelease_sorts_before_release(self):
+        from cypilot.utils.whatsnew import compare_versions
+        self.assertEqual(compare_versions("v3.0.4-beta", "v3.0.4"), -1)
 
 
 class TestShowKitWhatsnew(unittest.TestCase):
@@ -799,6 +807,25 @@ class TestShowCoreWhatsnew(unittest.TestCase):
         output = err.getvalue()
         self.assertIn("\033[1mcompactification\033[0m", output)
         self.assertIn("\033[36mworkflows/analyze.md\033[0m", output)
+
+    def test_non_interactive_strips_control_chars_from_summary_and_details(self):
+        from cypilot.utils.whatsnew import show_core_whatsnew as _show_core_whatsnew
+        ref = {
+            "v3.2.0\x1b[2J": {
+                "summary": "Safe\x1b[31m summary",
+                "details": "- detail\x1b[2K\n- second\x07 line",
+            },
+        }
+        err = io.StringIO()
+        with redirect_stderr(err):
+            result = _show_core_whatsnew(ref, {}, interactive=False)
+        self.assertTrue(result)
+        output = err.getvalue()
+        self.assertIn("v3.2.0: Safe summary", output)
+        self.assertIn("- detail", output)
+        self.assertIn("- second line", output)
+        self.assertNotIn("\x1b", output)
+        self.assertNotIn("\x07", output)
 
     def test_filters_by_core_keys(self):
         """Only entries missing from .core/ whatsnew are shown."""

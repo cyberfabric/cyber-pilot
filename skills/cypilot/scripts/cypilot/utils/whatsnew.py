@@ -13,8 +13,18 @@ from typing import Dict, Tuple
 
 logger = logging.getLogger(__name__)
 
+_ANSI_ESCAPE_RE = re.compile(r"\x1b(?:\[[0-?]*[ -/]*[@-~]|[@-Z\\-_])")
+
+
+def strip_control_chars(text: str, *, preserve_newlines: bool = False) -> str:
+    sanitized = _ANSI_ESCAPE_RE.sub("", str(text))
+    sanitized = sanitized.replace("\x1b", "")
+    if preserve_newlines:
+        return re.sub(r"[\x00-\x08\x0b-\x1f\x7f]", "", sanitized)
+    return re.sub(r"[\x00-\x1f\x7f]", "", sanitized)
+
 # @cpt-begin:cpt-cypilot-algo-kit-whatsnew-display:p1:inst-whatsnew-version-cmp
-def parse_semver(version: str) -> Tuple[int, int, int]:
+def parse_semver(version: str) -> Tuple[int, ...]:
     """Parse semantic version string into tuple (major, minor, patch).
 
     Handles common formats: "1.2.3", "v1.2.3", "whatsnew.1.2.3".
@@ -27,14 +37,29 @@ def parse_semver(version: str) -> Tuple[int, int, int]:
     if v.startswith("v"):
         v = v[1:]
 
+    prerelease = False
+    if "-" in v:
+        v, _, _ = v.partition("-")
+        prerelease = True
+    elif "+" in v:
+        v, _, _ = v.partition("+")
+
     parts = v.split(".")
-    try:
-        major = int(parts[0]) if len(parts) > 0 else 0
-        minor = int(parts[1]) if len(parts) > 1 else 0
-        patch = int(parts[2]) if len(parts) > 2 else 0
-        return (major, minor, patch)
-    except (ValueError, IndexError):
+    numeric_parts = []
+    found_numeric = False
+    for part in parts[:3]:
+        match = re.match(r"(\d+)", part)
+        if match:
+            numeric_parts.append(int(match.group(1)))
+            found_numeric = True
+        else:
+            numeric_parts.append(0)
+    while len(numeric_parts) < 3:
+        numeric_parts.append(0)
+    if not found_numeric:
         return (0, 0, 0)
+    release_rank = 0 if prerelease else 1
+    return (numeric_parts[0], numeric_parts[1], numeric_parts[2], release_rank)
 
 
 def compare_versions(v1: str, v2: str) -> int:
@@ -137,18 +162,21 @@ def _display_whatsnew_entries(
     sys.stderr.write(f"{'=' * 60}\n")
 
     for ver, entry in entries:
-        summary = format_whatsnew_text(entry["summary"], use_ansi=use_ansi)
+        ver = strip_control_chars(ver)
+        summary_source = strip_control_chars(entry["summary"])
+        details_source = strip_control_chars(entry["details"], preserve_newlines=True)
+        summary = format_whatsnew_text(summary_source, use_ansi=use_ansi)
         # If summary wasn't changed by formatting, wrap version in bold
-        if use_ansi and summary == entry["summary"]:
-            sys.stderr.write(f"\n  \033[1m{ver}: {entry['summary']}\033[0m\n")
+        if use_ansi and summary == summary_source:
+            sys.stderr.write(f"\n  \033[1m{ver}: {summary_source}\033[0m\n")
         else:
             version_label = f"\033[1m{ver}:\033[0m" if use_ansi else f"{ver}:"
             sys.stderr.write(f"\n  {version_label} {summary}\n")
 
-        if entry["details"]:
-            for line in entry["details"].splitlines():
+        if details_source:
+            for line in details_source.splitlines():
                 sys.stderr.write(
-                    f"    {format_whatsnew_text(line, use_ansi=use_ansi)}\n"
+                    f"    {format_whatsnew_text(strip_control_chars(line), use_ansi=use_ansi)}\n"
                 )
 
     sys.stderr.write(f"\n{'=' * 60}\n")

@@ -375,6 +375,36 @@ class TestHumanGenerateAgentsPreview(unittest.TestCase):
         self.assertIn("claude", output)
         self.assertIn("deleted", output.lower())
 
+    @_with_human_mode
+    def test_preview_includes_workflow_renames_and_subagents(self):
+        from cypilot.commands.agents import _human_generate_agents_preview
+        import io
+        from contextlib import redirect_stderr
+
+        results = {
+            "claude": {
+                "workflows": {
+                    "created": [],
+                    "updated": [],
+                    "renamed": [("/p/.claude/commands/cypilot-old.md", "/p/.claude/commands/cypilot-new.md")],
+                    "deleted": [],
+                },
+                "skills": {"created": [], "updated": [], "deleted": []},
+                "subagents": {
+                    "created": ["/p/.claude/agents/cypilot-codegen.md"],
+                    "updated": [],
+                    "skipped": False,
+                    "skip_reason": "",
+                },
+            },
+        }
+        err = io.StringIO()
+        with redirect_stderr(err):
+            _human_generate_agents_preview(["claude"], results, Path("/p"))
+        output = err.getvalue()
+        self.assertIn("workflow renamed", output)
+        self.assertIn("cypilot-codegen.md", output)
+
 
 class TestHumanGenerateAgentsOk(unittest.TestCase):
     """Cover lines 1194-1252 (_human_generate_agents_ok formatter)."""
@@ -425,6 +455,48 @@ class TestHumanGenerateAgentsOk(unittest.TestCase):
             _human_generate_agents_ok({"status": "PASS"}, ["cursor"], results, dry_run=True)
         output = err.getvalue()
         self.assertIn("Dry run", output)
+
+    @_with_human_mode
+    def test_ok_dry_run_uses_future_tense_and_reports_subagents(self):
+        from cypilot.commands.agents import _human_generate_agents_ok
+        import io
+        from contextlib import redirect_stderr
+
+        results = {
+            "claude": {
+                "status": "PASS",
+                "workflows": {
+                    "created": [],
+                    "updated": [],
+                    "renamed": [("/p/.claude/commands/cypilot-old.md", "/p/.claude/commands/cypilot-new.md")],
+                    "deleted": ["/p/.claude/commands/cypilot-analyze.md"],
+                    "counts": {"created": 0, "updated": 0, "renamed": 1, "deleted": 1},
+                },
+                "skills": {
+                    "created": [],
+                    "updated": [],
+                    "deleted": ["/p/.claude/commands/cypilot-plan.md"],
+                    "skipped": [".claude/commands/cypilot-workspace.md (missing generated marker)"],
+                    "counts": {"created": 0, "updated": 0, "deleted": 1, "skipped": 1},
+                },
+                "subagents": {
+                    "created": ["/p/.claude/agents/cypilot-codegen.md"],
+                    "updated": [],
+                    "skipped": False,
+                    "skip_reason": "",
+                    "counts": {"created": 1, "updated": 0},
+                },
+                "errors": [],
+            },
+        }
+        err = io.StringIO()
+        with redirect_stderr(err):
+            _human_generate_agents_ok({"status": "PASS"}, ["claude"], results, dry_run=True)
+        output = err.getvalue()
+        self.assertIn("workflow renamed", output)
+        self.assertIn("would be removed", output)
+        self.assertIn("would be preserved", output)
+        self.assertIn("subagent file(s)", output)
 
     @_with_human_mode
     def test_ok_with_errors(self):
@@ -585,6 +657,46 @@ class TestProcessSingleAgentEdgeCases(unittest.TestCase):
             )
             self.assertFalse(legacy_file.exists())
 
+    def test_claude_generated_legacy_command_wrong_target_is_preserved(self):
+        from cypilot.commands.agents import _process_single_agent, _default_agents_config
+
+        with TemporaryDirectory() as td:
+            root, cpt = self._make_project(td)
+            (cpt / ".core" / "workflows").mkdir(parents=True, exist_ok=True)
+            (cpt / ".core" / "workflows" / "plan.md").write_text(
+                "---\nname: cypilot-plan\ndescription: Plan\n---\n# Plan\n",
+                encoding="utf-8",
+            )
+            (cpt / ".core" / "workflows" / "workspace.md").write_text(
+                "---\nname: cypilot-workspace\ndescription: Workspace\n---\n# Workspace\n",
+                encoding="utf-8",
+            )
+            (cpt / ".core" / "workflows" / "generate.md").write_text(
+                "---\nname: cypilot-generate\ndescription: Generate\n---\n# Generate\n",
+                encoding="utf-8",
+            )
+            (cpt / ".core" / "workflows" / "analyze.md").write_text(
+                "---\nname: cypilot-analyze\ndescription: Analyze\n---\n# Analyze\n",
+                encoding="utf-8",
+            )
+
+            legacy_dir = root / ".claude" / "commands"
+            legacy_dir.mkdir(parents=True)
+            legacy_file = legacy_dir / "cypilot-plan.md"
+            legacy_file.write_text(
+                "# /cypilot-plan\n\nALWAYS open and follow `{cypilot_path}/.core/workflows/workspace.md`\n",
+                encoding="utf-8",
+            )
+
+            result = _process_single_agent("claude", root, cpt, _default_agents_config(), None, dry_run=False)
+            self.assertNotIn(
+                legacy_file.relative_to(root).as_posix(),
+                result.get("skills", {}).get("deleted", []),
+            )
+            skipped = result.get("skills", {}).get("skipped", [])
+            self.assertTrue(any("missing generated marker" in item for item in skipped))
+            self.assertTrue(legacy_file.exists())
+
     def test_claude_hand_authored_legacy_command_preserved(self):
         from cypilot.commands.agents import _process_single_agent, _default_agents_config
 
@@ -624,6 +736,27 @@ class TestProcessSingleAgentEdgeCases(unittest.TestCase):
             skipped = result.get("skills", {}).get("skipped", [])
             self.assertTrue(any("missing generated marker" in item for item in skipped))
             self.assertTrue(legacy_file.exists())
+
+    def test_claude_cleanup_ignores_non_string_output_path(self):
+        from cypilot.commands.agents import _process_single_agent, _default_agents_config
+
+        with TemporaryDirectory() as td:
+            root, cpt = self._make_project(td)
+            (cpt / ".core" / "workflows").mkdir(parents=True, exist_ok=True)
+            for workflow_name in ("generate", "analyze", "plan", "workspace"):
+                (cpt / ".core" / "workflows" / f"{workflow_name}.md").write_text(
+                    f"---\nname: cypilot-{workflow_name}\ndescription: {workflow_name}\n---\n# {workflow_name}\n",
+                    encoding="utf-8",
+                )
+
+            cfg = _default_agents_config()
+            cfg["agents"]["claude"]["skills"]["outputs"].append(
+                {"path": 123, "template": ["ALWAYS open and follow `{target_path}`"]},
+            )
+
+            result = _process_single_agent("claude", root, cpt, cfg, None, dry_run=True)
+            self.assertIn("skills", result)
+            self.assertTrue(any("missing path" in err for err in (result.get("errors") or [])))
 
 
 class TestEnsureCypilotLocalRootDirsAndFiles(unittest.TestCase):
