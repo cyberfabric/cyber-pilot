@@ -90,6 +90,10 @@ from .workspace import (
     load_inline_config,
 )
 
+from .layer_discovery import (
+    discover_layers,
+)
+
 __all__ = [
     # File operations
     "cfg_get_str",
@@ -161,4 +165,6 @@ __all__ = [
     "find_workspace_config",
     "require_project_root",
     "load_inline_config",
+    # Layer discovery
+    "discover_layers",
 ]

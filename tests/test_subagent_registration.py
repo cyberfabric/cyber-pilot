@@ -8,7 +8,6 @@ for all supported tools.
 
 import os
 import sys
-import tempfile
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -70,11 +69,11 @@ def _make_semantic_agent(
     return {
         "name": name,
         "description": description,
-        "prompt_file_abs": Path(tempfile.gettempdir()) / "agents" / f"{name}.md",
+        "prompt_file_abs": Path("/fake/agents") / f"{name}.md",
         "mode": mode,
         "isolation": isolation,
         "model": model,
-        "source_dir": Path(tempfile.gettempdir()) / "kit",
+        "source_dir": Path("/fake/kit"),
     }
 
 
@@ -201,8 +200,13 @@ class TestDiscoverKitAgents(unittest.TestCase):
             agents = _discover_kit_agents(cypilot, root)
             self.assertEqual(agents, [])
 
-    def test_invalid_model_rejected(self):
-        """Agent with unrecognized model is skipped."""
+    def test_unknown_model_accepted_as_passthrough(self):
+        """Agent with unknown model is accepted as passthrough (warning, not skip).
+
+        Per cpt-cypilot-dod-project-extensibility-backward-compat: _VALID_MODELS
+        must accept passthrough model strings while keeping 'inherit' and 'fast'
+        as documented known values.
+        """
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             cypilot = root / "cypilot_src"
@@ -214,8 +218,16 @@ class TestDiscoverKitAgents(unittest.TestCase):
                 encoding="utf-8",
             )
             (kit_dir / "x.md").write_text("prompt\n", encoding="utf-8")
-            agents = _discover_kit_agents(cypilot, root)
-            self.assertEqual(agents, [])
+            import io
+            from unittest import mock
+            captured = io.StringIO()
+            with mock.patch("sys.stderr", captured):
+                agents = _discover_kit_agents(cypilot, root)
+            # Agent is NOT skipped — it is accepted as a passthrough model
+            self.assertEqual(len(agents), 1)
+            self.assertEqual(agents[0]["model"], "turbo")
+            # But a warning IS emitted
+            self.assertIn("unknown model", captured.getvalue())
 
     def test_kit_wins_over_core_duplicate(self):
         """Kit agents take precedence over core skill agents with same name."""
@@ -229,6 +241,7 @@ class TestDiscoverKitAgents(unittest.TestCase):
                 '[agents.my-agent]\ndescription = "from core"\nprompt_file = "x.md"\n',
                 encoding="utf-8",
             )
+            (skill_dir / "x.md").write_text("prompt", encoding="utf-8")
             # Kit agent with same name
             kit_dir = cypilot / "config" / "kits" / "sdlc"
             kit_dir.mkdir(parents=True)
@@ -236,6 +249,7 @@ class TestDiscoverKitAgents(unittest.TestCase):
                 '[agents.my-agent]\ndescription = "from kit"\nprompt_file = "x.md"\n',
                 encoding="utf-8",
             )
+            (kit_dir / "x.md").write_text("prompt", encoding="utf-8")
             agents = _discover_kit_agents(cypilot, root)
             self.assertEqual(len(agents), 1)
             self.assertEqual(agents[0]["description"], "from kit")
@@ -251,12 +265,14 @@ class TestDiscoverKitAgents(unittest.TestCase):
                 '[agents.my-agent]\ndescription = "from aaa"\nprompt_file = "x.md"\n',
                 encoding="utf-8",
             )
+            (kit_a / "x.md").write_text("prompt", encoding="utf-8")
             kit_b = cypilot / "config" / "kits" / "bbb"
             kit_b.mkdir(parents=True)
             (kit_b / "agents.toml").write_text(
                 '[agents.my-agent]\ndescription = "from bbb"\nprompt_file = "x.md"\n',
                 encoding="utf-8",
             )
+            (kit_b / "x.md").write_text("prompt", encoding="utf-8")
             agents = _discover_kit_agents(cypilot, root)
             self.assertEqual(len(agents), 1)
             self.assertEqual(agents[0]["description"], "from aaa")

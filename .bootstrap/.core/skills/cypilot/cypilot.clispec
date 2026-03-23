@@ -332,6 +332,37 @@ RELATED:
   - @CLI.get-content
 ---
 
+COMMAND agents
+SYNOPSIS: python3 scripts/cypilot.py agents [--agent <name>] [options]
+DESCRIPTION: Show generated agent integration status. Read-only dry-run — reports which integration files currently exist or would be created/updated for each supported agent without writing anything. Supports windsurf, cursor, claude, copilot, openai.
+ARGUMENTS:
+
+OPTIONS:
+  --agent  <string>  Agent/IDE key (windsurf, cursor, claude, copilot, openai). Omit to show all supported agents.
+  --openai  <boolean>  Shortcut for --agent openai (OpenAI Codex)
+  --root  <path>  Project root directory (default: current directory)
+  --cypilot-root  <path>  Explicit Cypilot core root (optional override)
+
+EXIT CODES:
+  0  Success
+  1  Error (invalid args, missing project root)
+
+OUTPUT:
+  JSON object with:
+  - status: OK
+  - agents: List of supported agent names
+  - results: Per-agent object with workflows and skills status (created/updated/unchanged counts)
+
+EXAMPLE:
+  $ python3 scripts/cypilot.py agents
+  $ python3 scripts/cypilot.py agents --agent claude
+  $ python3 scripts/cypilot.py agents --openai
+
+RELATED:
+  - @CLI.generate-agents
+  - @CLI.init
+---
+
 COMMAND generate-agents
 SYNOPSIS: python3 scripts/cypilot.py generate-agents --agent <name> [options]
 DESCRIPTION: Generate/update agent-specific workflow proxies and skill outputs. Creates unified proxy files for workflows (cypilot-generate, cypilot-analyze, cypilot-plan, cypilot-workspace) and the cypilot skill entry point. Supports windsurf, cursor, claude, copilot, openai.
@@ -365,6 +396,7 @@ EXAMPLE:
   $ python3 scripts/cypilot.py generate-agents
 
 RELATED:
+  - @CLI.agents
   - @CLI.init
   - @CLI.info
 ---
