@@ -97,7 +97,7 @@ detection uses: CLAUDE.md + skills/ at same level, or presence of .git/
 subdirectory. Walk-up stops at master repo root. Missing layers are silently
 omitted. For MVP, only Core, Kit, Master Repo, and Repo layers are supported.
 
-Touches: layer_discovery.py (new), agents.py
+Touches: layer_discovery.py (new)
 ```
 
 ### Resolution Order
