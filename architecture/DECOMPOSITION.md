@@ -20,6 +20,7 @@
   - [2.12 Execution Plans ✅ HIGH](#212-execution-plans--high)
   - [2.13 Multi-Repo Workspace Federation ✅ DONE](#213-multi-repo-workspace-federation--done)
   - [2.14 Subagent Registration ⏳ HIGH](#214-subagent-registration--high)
+  - [2.15 Project-Level Extensibility ⏳ HIGH](#215-project-level-extensibility--high)
 - [3. Feature Dependencies](#3-feature-dependencies)
 
 <!-- /toc -->
@@ -703,6 +704,74 @@ Cypilot DESIGN is decomposed into features organized around architectural layers
   - `cypilot generate-agents --agent <tool>`
 
 
+### 2.15 [Project-Level Extensibility](features/project-extensibility.md) ⏳ HIGH
+
+- [ ] `p1` - **ID**: `cpt-cypilot-feature-project-extensibility`
+
+- **Purpose**: Extend `cpt generate-agents` with a four-layer manifest hierarchy (Core → Kit → Master Repo → Repo), enabling projects and orchestrator repos to declare skills, agents, workflows, and rules via `manifest.toml`. Adds `includes` directive for subdirectory manifests, `[[skills]]` generation, extended agent schema (tools, color, memory_dir, model passthrough), section appending for template composition, provenance traceability, and fully deterministic assembly pipeline.
+
+- **Depends On**: `cpt-cypilot-feature-agent-integration`, `cpt-cypilot-feature-blueprint-system`, `cpt-cypilot-feature-subagent-registration`
+
+- **Scope**:
+  - Manifest v2.0 schema: `[[agents]]`, `[[skills]]`, `[[workflows]]`, `[[rules]]` component sections (`[[hooks]]` and `[[permissions]]` are reserved in the schema but deferred to a follow-up feature and are not in scope here)
+  - `includes` directive for subdirectory manifests (same-layer, max depth 3, circular detection)
+  - Four-layer walk-up discovery: Core → Kit → Master Repo → Repo (Organization and Project layers deferred)
+  - Inner-scope-wins merge semantics across all layers
+  - Extended agent schema: `tools`, `disallowed_tools`, `color`, `memory_dir`, model passthrough
+  - Cross-agent translation including OpenAI Codex (`sandbox_mode`, `developer_instructions`)
+  - `[[skills]]` generation code path (coexists with kit-composed skills)
+  - Section appending for template composition (full block-based composition deferred)
+  - Layer variable resolution: `{base_dir}`, `{master_repo}`, `{repo}`
+  - Provenance traceability: `--show-layers` flag showing per-component winning layer and overridden layers
+  - Deterministic pipeline: zero LLM calls, byte-identical output for same inputs
+  - Component auto-discovery: `--discover` flag scans conventional directories
+  - Backward compatibility: v1 manifests and `agents.toml` fallback
+
+- **Out of scope**:
+  - Master repo bootstrapping and structure conventions (orchestrator-specific)
+  - Kit-specific component definitions (owned by individual kits)
+
+- **Requirements Covered**:
+
+  - `p1` - `cpt-cypilot-fr-core-agents`
+  - `p1` - `cpt-cypilot-fr-core-kits`
+  - `p1` - `cpt-cypilot-fr-core-kit-manifest`
+
+- **Design Principles Covered**:
+
+  - `p1` - `cpt-cypilot-principle-plugin-extensibility`
+  - `p1` - `cpt-cypilot-principle-kit-centric`
+  - `p1` - `cpt-cypilot-principle-dry`
+  - `p1` - `cpt-cypilot-principle-determinism-first`
+
+- **Design Constraints Covered**:
+
+  - `p1` - `cpt-cypilot-constraint-python-stdlib`
+  - `p1` - `cpt-cypilot-constraint-cross-platform`
+
+- **Domain Model Entities**:
+  - Manifest
+  - ManifestLayer
+  - MergedComponents
+  - ProvenanceReport
+
+- **Design Components**:
+
+  - `p1` - `cpt-cypilot-component-agent-generator`
+  - `p1` - `cpt-cypilot-component-kit-manager`
+
+- **API**:
+  - `cpt generate-agents --agent <agent> [--discover] [--show-layers]`
+
+- **Sequences**:
+
+  None (extends existing `cpt-cypilot-seq-generate-workflow`)
+
+- **Data**:
+  - `manifest.toml` at each layer (kit, master repo, org, project, repo)
+  - Layer path variables in resolved variable dict
+
+
 ---
 
 ## 3. Feature Dependencies
@@ -712,9 +781,12 @@ cpt-cypilot-feature-core-infra
     ↓
     ├─→ cpt-cypilot-feature-blueprint-system (Kit Management)
     │
-    ├─→ cpt-cypilot-feature-agent-integration
-    │    ↓
-    │    └─→ cpt-cypilot-feature-execution-plans
+    ├─→ cpt-cypilot-feature-agent-integration ─┬─→ cpt-cypilot-feature-execution-plans
+    │                                          │
+    │                                          ├─→ cpt-cypilot-feature-subagent-registration
+    │                                          │
+    │                                          ↓
+    │   cpt-cypilot-feature-project-extensibility ←── cpt-cypilot-feature-blueprint-system
     │
     ├─→ cpt-cypilot-feature-version-config
     │

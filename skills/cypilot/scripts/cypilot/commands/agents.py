@@ -6,6 +6,7 @@ composes SKILL.md from kit @cpt:skill sections, and creates workflow proxies.
 
 @cpt-flow:cpt-cypilot-flow-agent-integration-generate:p1
 @cpt-flow:cpt-cypilot-flow-agent-integration-workflow:p1
+@cpt-flow:cpt-cypilot-flow-project-extensibility-generate-with-multi-layer:p1
 @cpt-algo:cpt-cypilot-algo-agent-integration-discover-agents:p1
 @cpt-algo:cpt-cypilot-algo-agent-integration-generate-shims:p1
 @cpt-algo:cpt-cypilot-algo-agent-integration-compose-skill:p1
@@ -14,6 +15,7 @@ composes SKILL.md from kit @cpt:skill sections, and creates workflow proxies.
 @cpt-dod:cpt-cypilot-dod-agent-integration-entry-points:p1
 @cpt-dod:cpt-cypilot-dod-agent-integration-skill-composition:p1
 @cpt-dod:cpt-cypilot-dod-agent-integration-workflow-discovery:p1
+@cpt-dod:cpt-cypilot-dod-project-extensibility-backward-compat:p1
 """
 
 import argparse
@@ -28,6 +30,24 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 
 from ..utils.files import core_subpath, config_subpath, find_project_root, _is_cypilot_root, _read_cypilot_var, load_project_config
 from ..utils.ui import ui
+
+# Phase 8: Multi-layer pipeline imports
+from ..utils.manifest import ManifestLayerState as _ManifestLayerState
+from ..utils.layer_discovery import discover_layers as _discover_layers
+from ..utils.manifest import resolve_includes as _resolve_includes, merge_components as _merge_components
+from ..commands.resolve_vars import add_layer_variables as _add_layer_variables
+
+# @cpt-begin:cpt-cypilot-flow-project-extensibility-generate-with-multi-layer:p1:inst-v2-detect
+def _layers_have_v2_manifests(layers: list) -> bool:
+    """Return True if any loaded layer has a v2.0 manifest with components."""
+    for layer in layers:
+        if layer.state == _ManifestLayerState.LOADED and layer.manifest is not None:
+            m = layer.manifest
+            if m.version == "2.0" and (m.agents or m.skills or m.workflows or m.rules or m.includes):
+                return True
+    return False
+# @cpt-end:cpt-cypilot-flow-project-extensibility-generate-with-multi-layer:p1:inst-v2-detect
+
 
 # @cpt-begin:cpt-cypilot-algo-agent-integration-generate-shims:p1:inst-path-helpers
 def _safe_relpath(path: Path, base: Path) -> str:
@@ -159,22 +179,34 @@ def _write_or_skip(
 
     *result* must have ``created``, ``updated``, and ``outputs`` lists.
     """
-    rel = _safe_relpath(out_path, project_root)
-    if not out_path.exists():
-        result["created"].append(out_path.as_posix())
+    # Path traversal prevention (S2083): canonicalize via resolve(), verify the
+    # canonical path is inside project_root, then use ONLY the canonical path
+    # for all filesystem operations — the tainted input is never written directly.
+    root_resolved = project_root.resolve()
+    canonical = out_path.resolve()
+    try:
+        canonical.relative_to(root_resolved)
+    except ValueError:
+        raise ValueError(
+            f"Output path '{out_path}' escapes project root '{project_root}' — "
+            "path traversal is not allowed"
+        )
+    rel = _safe_relpath(canonical, project_root)
+    if not canonical.exists():
+        result["created"].append(canonical.as_posix())
         if not dry_run:
-            out_path.parent.mkdir(parents=True, exist_ok=True)
-            out_path.write_text(content, encoding="utf-8")
+            canonical.parent.mkdir(parents=True, exist_ok=True)
+            canonical.write_text(content, encoding="utf-8")  # NOSONAR
         result["outputs"].append({"path": rel, "action": "created"})
     else:
         try:
-            old = out_path.read_text(encoding="utf-8")
+            old = canonical.read_text(encoding="utf-8")
         except Exception:
             old = ""
         if old != content:
-            result["updated"].append(out_path.as_posix())
+            result["updated"].append(canonical.as_posix())
             if not dry_run:
-                out_path.write_text(content, encoding="utf-8")
+                canonical.write_text(content, encoding="utf-8")  # NOSONAR
             result["outputs"].append({"path": rel, "action": "updated"})
         else:
             result["outputs"].append({"path": rel, "action": "unchanged"})
@@ -197,7 +229,9 @@ def _discover_kit_agents(
     ``model``, ``source_dir``.
     """
     _VALID_MODES = {"readwrite", "readonly"}
-    _VALID_MODELS = {"inherit", "fast"}
+    # _VALID_MODELS: "inherit" and "fast" are documented values; any other
+    # string is accepted as a passthrough model name (warning, not error).
+    _KNOWN_MODELS = {"inherit", "fast"}
 
     seen_names: Set[str] = set()
     out: List[Dict[str, Any]] = []
@@ -223,20 +257,33 @@ def _discover_kit_agents(
             if "/" in name or "\\" in name or ".." in name:
                 sys.stderr.write(f"WARNING: skipping agent with unsafe name: {name!r}\n")
                 continue
-            seen_names.add(name)
             prompt_rel = info.get("prompt_file", "")
+            if not isinstance(prompt_rel, str):
+                sys.stderr.write(
+                    f"WARNING: agent {name!r} has non-string prompt_file, skipping\n"
+                )
+                continue
+            if not prompt_rel:
+                sys.stderr.write(
+                    f"WARNING: agent {name!r} missing prompt_file, skipping\n"
+                )
+                continue
             prompt_abs = None
-            if prompt_rel:
-                candidate = (source_dir / prompt_rel).resolve()
-                # Ensure resolved path stays within source_dir (prevent path traversal)
-                try:
-                    candidate.relative_to(source_dir.resolve())
-                    prompt_abs = candidate
-                except ValueError:
-                    sys.stderr.write(
-                        f"WARNING: agent {name!r} prompt_file escapes source dir, skipping\n"
-                    )
-                    continue
+            candidate = (source_dir / prompt_rel).resolve()
+            # Ensure resolved path stays within source_dir (prevent path traversal)
+            try:
+                candidate.relative_to(source_dir.resolve())
+            except ValueError:
+                sys.stderr.write(
+                    f"WARNING: agent {name!r} prompt_file escapes source dir, skipping\n"
+                )
+                continue
+            if not candidate.is_file():
+                sys.stderr.write(
+                    f"WARNING: agent {name!r} prompt_file not found: {prompt_rel}, skipping\n"
+                )
+                continue
+            prompt_abs = candidate
             mode = info.get("mode", "readwrite")
             model = info.get("model", "inherit")
             if mode not in _VALID_MODES:
@@ -244,11 +291,11 @@ def _discover_kit_agents(
                     f"WARNING: agent {name!r} has invalid mode {mode!r}, skipping\n"
                 )
                 continue
-            if model not in _VALID_MODELS:
+            if model not in _KNOWN_MODELS:
                 sys.stderr.write(
-                    f"WARNING: agent {name!r} has invalid model {model!r}, skipping\n"
+                    f"WARNING: agent {name!r} has unknown model {model!r}, using as passthrough\n"
                 )
-                continue
+            seen_names.add(name)
             out.append({
                 "name": name,
                 "description": info.get("description", f"Cypilot {name} subagent"),
@@ -1242,6 +1289,11 @@ def _process_single_agent(
                     name = ka["name"]
                     template = template_fn(ka)
                     target_agent_rel = target_agent_paths.get(name, "")
+                    if not target_agent_rel:
+                        subagents_result["errors"].append(
+                            f"agent {name!r} has no resolved prompt target, skipped"
+                        )
+                        continue
 
                     content = _render_template(
                         template,
@@ -1329,6 +1381,8 @@ def _resolve_agents_context(argv: List[str], prog: str, description: str, *, all
     p.add_argument("--cypilot-root", default=None, help="Explicit Cypilot core root (optional override)")
     p.add_argument("--config", default=None, help="Path to agents config JSON (optional; defaults are built-in)")
     p.add_argument("--dry-run", action="store_true", help="Compute changes without writing files")
+    p.add_argument("--show-layers", action="store_true", help="Display layer provenance report instead of generating")
+    p.add_argument("--discover", action="store_true", help="Scan conventional dirs and populate manifest.toml before generating")
     if allow_yes:
         p.add_argument("-y", "--yes", action="store_true", help="Skip confirmation prompt")
     args = p.parse_args(argv)
@@ -1450,6 +1504,226 @@ def cmd_generate_agents(argv: List[str]) -> int:
     # copies cypilot files into project when cypilot_root is external.
     # @cpt-end:cpt-cypilot-flow-agent-integration-generate:p1:inst-ensure-local
 
+    # ── NEW: Multi-layer discovery path ────────────────────────────────────
+    # @cpt-begin:cpt-cypilot-flow-project-extensibility-generate-with-multi-layer:p1:inst-step2-discover-layers
+    layers = _discover_layers(project_root, cypilot_root)
+    # @cpt-end:cpt-cypilot-flow-project-extensibility-generate-with-multi-layer:p1:inst-step2-discover-layers
+
+    if _layers_have_v2_manifests(layers):
+        # ── NEW PATH: Multi-layer v2.0 manifest pipeline ─────────────────
+        # @cpt-begin:cpt-cypilot-flow-project-extensibility-generate-with-multi-layer:p1:inst-step3-5-resolve-includes
+
+        # Step 3: Resolve includes for each layer
+        # Use project_root.parent as trusted root to allow cross-repo includes
+        # (e.g. ../sibling-repo/...) within the same workspace.
+        workspace_root = project_root.parent.resolve()
+        has_v2_errors = False
+        resolved_layers = []
+        for layer in layers:
+            if (
+                layer.state == _ManifestLayerState.LOADED
+                and layer.manifest is not None
+                and layer.manifest.includes
+            ):
+                try:
+                    resolved_manifest = _resolve_includes(
+                        layer.manifest, layer.path.parent, trusted_root=workspace_root
+                    )
+                    import dataclasses
+                    resolved_layer = dataclasses.replace(layer, manifest=resolved_manifest)
+                    resolved_layers.append(resolved_layer)
+                except ValueError as exc:
+                    sys.stderr.write(f"ERROR: failed to resolve includes for {layer.path}: {exc}\n")
+                    has_v2_errors = True
+                    resolved_layers.append(layer)
+            else:
+                resolved_layers.append(layer)
+        if has_v2_errors:
+            return 1
+        # @cpt-end:cpt-cypilot-flow-project-extensibility-generate-with-multi-layer:p1:inst-step3-5-resolve-includes
+
+        # Step 4: Handle --discover flag: scan dirs and populate manifest.toml
+        # @cpt-begin:cpt-cypilot-flow-project-extensibility-generate-with-multi-layer:p1:inst-discover-flag
+        if getattr(args, "discover", False):
+            discovered = discover_components(project_root)
+            manifest_out = cypilot_root / "config" / "manifest.toml"
+            if not args.dry_run:
+                write_discovered_manifest(discovered, manifest_out)
+                sys.stderr.write(f"INFO: wrote discovered manifest to {manifest_out}\n")
+            # Re-run discovery after writing
+            layers = _discover_layers(project_root, cypilot_root)
+            resolved_layers = []
+            has_v2_errors = False
+            for layer in layers:
+                if (
+                    layer.state == _ManifestLayerState.LOADED
+                    and layer.manifest is not None
+                    and layer.manifest.includes
+                ):
+                    try:
+                        resolved_manifest = _resolve_includes(
+                            layer.manifest, layer.path.parent, trusted_root=workspace_root
+                        )
+                        import dataclasses as _dc
+                        resolved_layer = _dc.replace(layer, manifest=resolved_manifest)
+                        resolved_layers.append(resolved_layer)
+                    except ValueError as exc:
+                        sys.stderr.write(f"ERROR: failed to resolve includes for {layer.path}: {exc}\n")
+                        has_v2_errors = True
+                        resolved_layers.append(layer)
+                else:
+                    resolved_layers.append(layer)
+            if has_v2_errors:
+                return 1
+        # @cpt-end:cpt-cypilot-flow-project-extensibility-generate-with-multi-layer:p1:inst-discover-flag
+
+        # Step 5: Merge components from all layers
+        # @cpt-begin:cpt-cypilot-flow-project-extensibility-generate-with-multi-layer:p1:inst-step6-merge
+        merged = _merge_components(resolved_layers)
+        # @cpt-end:cpt-cypilot-flow-project-extensibility-generate-with-multi-layer:p1:inst-step6-merge
+
+        # Step 6: Handle --show-layers flag
+        # @cpt-begin:cpt-cypilot-flow-project-extensibility-generate-with-multi-layer:p1:inst-show-layers-flag
+        if getattr(args, "show_layers", False):
+            report = build_provenance_report(merged, project_root)
+            from ..utils.ui import is_json_mode
+            if is_json_mode():
+                ui.result({"status": "OK", "provenance": report})
+            else:
+                human_text = format_provenance_human(report)
+                sys.stdout.write(human_text + "\n")
+            return 0
+        # @cpt-end:cpt-cypilot-flow-project-extensibility-generate-with-multi-layer:p1:inst-show-layers-flag
+
+        # Step 7: Extend variables with layer path variables
+        # @cpt-begin:cpt-cypilot-flow-project-extensibility-generate-with-multi-layer:p1:inst-step9-layer-vars
+        base_variables: Dict[str, str] = {
+            "cypilot_path": cypilot_root.as_posix(),
+            "project_root": project_root.as_posix(),
+        }
+        variables = _add_layer_variables(base_variables, resolved_layers, project_root)
+        # @cpt-end:cpt-cypilot-flow-project-extensibility-generate-with-multi-layer:p1:inst-step9-layer-vars
+
+        # Step 8: Generate for each target agent using manifest v2 pipeline
+        # @cpt-begin:cpt-cypilot-flow-project-extensibility-generate-with-multi-layer:p1:inst-step7-translate
+
+        # Preview pass — compute what would change
+        preview_v2_create = 0
+        preview_v2_update = 0
+        for target in agents_to_process:
+            pr_a = generate_manifest_agents(merged.agents, target, project_root, dry_run=True)
+            pr_s = generate_manifest_skills(merged.skills, target, project_root, dry_run=True)
+            preview_v2_create += len(pr_a.get("created", [])) + len(pr_s.get("created", []))
+            preview_v2_update += len(pr_a.get("updated", [])) + len(pr_s.get("updated", []))
+
+        if args.dry_run:
+            # Build and show dry-run result then return
+            dry_results: Dict[str, Any] = {}
+            for target in agents_to_process:
+                a = generate_manifest_agents(merged.agents, target, project_root, dry_run=True, variables=variables)
+                s = generate_manifest_skills(merged.skills, target, project_root, dry_run=True, variables=variables)
+                dry_results[target] = {"status": "PASS", "agent": target, "manifest_v2": True, "translated_agents": len(merged.agents), "skills": s, "v2_agents": a, "workflows": {"created": [], "updated": [], "unchanged": [], "renamed": [], "deleted": [], "counts": {}}}
+            dr = _build_result(dry_results, agents_to_process, project_root, cypilot_root, cfg_path, copy_report, dry_run=True)
+            dr["manifest_v2"] = True
+            ui.result(dr, human_fn=lambda d: _human_generate_agents_ok(d, agents_to_process, dry_results, dry_run=True))
+            return 0
+
+        if preview_v2_create == 0 and preview_v2_update == 0:
+            ui.info("No changes needed — agent files are up to date.")
+        else:
+            from ..utils.ui import is_json_mode
+            if not is_json_mode():
+                auto_approve = getattr(args, "yes", False)
+                if not auto_approve:
+                    # show count and ask
+                    sys.stdout.write(f"Will create {preview_v2_create} file(s), update {preview_v2_update} file(s). Continue? [y/N] ")
+                    sys.stdout.flush()
+                    answer = sys.stdin.readline().strip().lower()
+                    if answer not in ("y", "yes"):
+                        ui.info("Aborted.")
+                        return 0
+
+        has_errors = False
+        results: Dict[str, Any] = {}
+
+        for target in agents_to_process:
+            # Generate agent files from merged agents (manifest v2 pipeline)
+            agents_result = generate_manifest_agents(
+                merged.agents,
+                target,
+                project_root,
+                args.dry_run,
+                variables=variables,
+            )
+
+            # Generate skill files from merged skills
+            skills_result = generate_manifest_skills(
+                merged.skills,
+                target,
+                project_root,
+                args.dry_run,
+                variables=variables,
+            )
+
+            results[target] = {
+                "status": "PASS",
+                "agent": target,
+                "manifest_v2": True,
+                "translated_agents": len(merged.agents),
+                "skills": skills_result,
+                "v2_agents": agents_result,
+                "workflows": {"created": [], "updated": [], "unchanged": [], "renamed": [], "deleted": [], "counts": {}},
+            }
+        # @cpt-end:cpt-cypilot-flow-project-extensibility-generate-with-multi-layer:p1:inst-step7-translate
+
+        # Also run the legacy pipeline for workflows and skill proxies
+        # (v2 manifest handles agents/skills, legacy handles workflows/skill proxies)
+        for agent in agents_to_process:
+            legacy_result = _process_single_agent(agent, project_root, cypilot_root, cfg, cfg_path, dry_run=args.dry_run)
+            if agent in results:
+                # Merge legacy workflow results into v2 result
+                results[agent]["workflows"] = legacy_result.get("workflows", {})
+                legacy_skills = legacy_result.get("skills", {})
+                # Only use legacy skills if no v2 skills were generated for this agent
+                v2_skill_ids = {e.get("path", "") for e in results[agent].get("skills", {}).get("outputs", [])}
+                if not any(agent in str(sk_path) for sk_path in v2_skill_ids):
+                    results[agent]["legacy_skills"] = legacy_skills
+                if legacy_result.get("status") != "PASS":
+                    has_errors = True
+            else:
+                results[agent] = legacy_result
+                if legacy_result.get("status") != "PASS":
+                    has_errors = True
+
+        agents_result = _build_result(results, agents_to_process, project_root, cypilot_root, cfg_path, copy_report, dry_run=args.dry_run)
+        agents_result["manifest_v2"] = True
+        agents_result["layers"] = len(resolved_layers)
+        ui.result(agents_result, human_fn=lambda d: _human_generate_agents_ok(d, agents_to_process, results, dry_run=args.dry_run))
+        return 0 if not has_errors else 1
+
+    # ── EXISTING PATH: Legacy agents.toml flow (unchanged) ────────────────
+    # @cpt-begin:cpt-cypilot-dod-project-extensibility-backward-compat:p1:inst-legacy-path
+    # Backward compatibility: no v2.0 manifest → use existing _discover_kit_agents() flow.
+    # Existing repos with no manifest.toml MUST produce identical output.
+
+    # Handle --show-layers flag in legacy mode (no layers to show)
+    if getattr(args, "show_layers", False):
+        report = {"components": []}
+        from ..utils.ui import is_json_mode
+        if is_json_mode():
+            ui.result({"status": "OK", "provenance": report})
+        else:
+            sys.stdout.write("Layer Provenance Report\n=======================\n(no v2.0 manifest layers found)\n")
+        return 0
+
+    # Handle --discover flag in legacy mode
+    if getattr(args, "discover", False):
+        discovered = discover_components(project_root)
+        manifest_out = cypilot_root / "config" / "manifest.toml"
+        if not args.dry_run:
+            write_discovered_manifest(discovered, manifest_out)
+            sys.stderr.write(f"INFO: wrote discovered manifest to {manifest_out}\n")
+
     # Step 1: Dry run to preview changes
     # @cpt-begin:cpt-cypilot-flow-agent-integration-generate:p1:inst-for-each-agent
     preview_results: Dict[str, Any] = {}
@@ -1493,8 +1767,9 @@ def cmd_generate_agents(argv: List[str]) -> int:
     else:
         from ..utils.ui import is_json_mode
         if not is_json_mode():
-            _human_generate_agents_preview(agents_to_process, preview_results, project_root)
             auto_approve = getattr(args, "yes", False)
+            if not auto_approve:
+                _human_generate_agents_preview(agents_to_process, preview_results, project_root)
             if not auto_approve and sys.stdin.isatty():
                 try:
                     answer = input("  Proceed? [Y/n] ").strip().lower()
@@ -1522,6 +1797,7 @@ def cmd_generate_agents(argv: List[str]) -> int:
     ui.result(agents_result, human_fn=lambda d: _human_generate_agents_ok(d, agents_to_process, results, dry_run=False))
 
     # @cpt-end:cpt-cypilot-flow-agent-integration-generate:p1:inst-return-report
+    # @cpt-end:cpt-cypilot-dod-project-extensibility-backward-compat:p1:inst-legacy-path
     return 0 if not has_errors else 1
 
 # @cpt-begin:cpt-cypilot-algo-agent-integration-generate-shims:p1:inst-format-output
@@ -1710,6 +1986,15 @@ def _human_generate_agents_ok(
         if sub.get("skipped") and sub.get("skip_reason"):
             ui.substep(f"subagents skipped: {sub.get('skip_reason')}")
 
+        # V2 manifest agents
+        v2_ag = r.get("v2_agents", {})
+        created_v2_ag = v2_ag.get("created", [])
+        updated_v2_ag = v2_ag.get("updated", [])
+        for path in created_v2_ag:
+            ui.file_action(path, "created")
+        for path in updated_v2_ag:
+            ui.file_action(path, "updated")
+
         total_wf = (
             wf_counts.get("created", 0)
             + wf_counts.get("updated", 0)
@@ -1718,9 +2003,10 @@ def _human_generate_agents_ok(
         total_wf_deleted = wf_counts.get("deleted", 0)
         total_sk = sk_counts.get("created", 0) + sk_counts.get("updated", 0)
         total_sub = sub_counts.get("created", 0) + sub_counts.get("updated", 0)
+        total_v2_ag = len(created_v2_ag) + len(updated_v2_ag)
         total_deleted = sk_counts.get("deleted", 0)
         total_skipped = sk_counts.get("skipped", 0)
-        if total_wf or total_wf_deleted or total_sk or total_sub or total_deleted or total_skipped:
+        if total_wf or total_wf_deleted or total_sk or total_sub or total_v2_ag or total_deleted or total_skipped:
             parts = []
             if total_wf:
                 parts.append(f"{total_wf} workflow(s)")
@@ -1732,6 +2018,8 @@ def _human_generate_agents_ok(
                 parts.append(f"{total_sk} skill file(s)")
             if total_sub:
                 parts.append(f"{total_sub} subagent file(s)")
+            if total_v2_ag:
+                parts.append(f"{total_v2_ag} agent file(s)")
             if total_deleted:
                 parts.append(
                     f"{total_deleted} legacy command(s) {'would be removed' if dry_run else 'removed'}"
@@ -1759,3 +2047,824 @@ def _human_generate_agents_ok(
         ui.warn("Agent setup finished with some errors (see above).")
     ui.blank()
 # @cpt-end:cpt-cypilot-algo-agent-integration-generate-shims:p1:inst-format-output
+
+
+# ---------------------------------------------------------------------------
+# Extended Agent Schema Translation (Phase 5)
+# @cpt-algo:cpt-cypilot-algo-project-extensibility-translate-agent-schema:p1
+# @cpt-algo:cpt-cypilot-algo-project-extensibility-generate-skills:p1
+# ---------------------------------------------------------------------------
+
+# AgentEntry and SkillEntry come from manifest.py (Phases 1-4).
+from ..utils.manifest import AgentEntry as _AgentEntry, SkillEntry as _SkillEntry  # type: ignore
+
+
+# @cpt-begin:cpt-cypilot-algo-project-extensibility-translate-agent-schema:p1:inst-per-tool-translators
+
+def _translate_claude_schema(agent: "_AgentEntry") -> Dict[str, Any]:
+    """Translate AgentEntry to Claude Code native frontmatter.
+
+    Supports all extended fields: tools, disallowed_tools, model, isolation,
+    color, memory_dir.
+    """
+    # @cpt-begin:cpt-cypilot-algo-project-extensibility-translate-agent-schema:p1:inst-step-claude
+    frontmatter: List[str] = []
+
+    # MCP tools (mcp__* prefix) are deferred pending an ADR — strip before writing frontmatter.
+    filtered_tools = [t for t in (agent.tools or []) if not t.startswith("mcp__")]
+    filtered_disallowed = [t for t in (agent.disallowed_tools or []) if not t.startswith("mcp__")]
+
+    # tools or disallowed_tools (mutual exclusivity already validated)
+    if filtered_tools:
+        frontmatter.append("tools: " + ", ".join(filtered_tools))
+    elif filtered_disallowed:
+        frontmatter.append("disallowedTools: " + ", ".join(filtered_disallowed))
+    elif agent.mode == "readonly":
+        frontmatter.append("tools: Bash, Read, Glob, Grep")
+        frontmatter.append("disallowedTools: Write, Edit")
+    else:
+        frontmatter.append("tools: Bash, Read, Write, Edit, Glob, Grep")
+
+    if agent.model:
+        frontmatter.append(f"model: {agent.model}")
+
+    if agent.isolation:
+        frontmatter.append("isolation: worktree")
+
+    if agent.skills:
+        frontmatter.append(f"skills: {', '.join(agent.skills)}")
+
+    if agent.color:
+        frontmatter.append(f"color: {agent.color}")
+
+    # memory_dir is NOT a frontmatter field — appended as a note after prompt body
+    body_suffix = ""
+    if agent.memory_dir:
+        body_suffix = f"\n\n---\n*Agent memory directory: `{agent.memory_dir}`*"
+
+    # @cpt-end:cpt-cypilot-algo-project-extensibility-translate-agent-schema:p1:inst-step-claude
+    return {
+        "frontmatter": frontmatter,
+        "body_prefix": "",
+        "body_suffix": body_suffix,
+        "skip": False,
+        "skip_reason": "",
+    }
+
+
+def _translate_cursor_schema(agent: "_AgentEntry") -> Dict[str, Any]:
+    """Translate AgentEntry to Cursor native frontmatter.
+
+    Maps mode to limited tool strings. Ignores color, memory_dir, isolation.
+    """
+    # @cpt-begin:cpt-cypilot-algo-project-extensibility-translate-agent-schema:p1:inst-step-cursor
+    frontmatter: List[str] = []
+
+    if agent.mode == "readonly":
+        frontmatter.append("tools: grep, view, bash")
+        frontmatter.append("readonly: true")
+    else:
+        frontmatter.append("tools: grep, view, edit, bash")
+
+    if agent.model:
+        frontmatter.append(f"model: {agent.model}")
+
+    # @cpt-end:cpt-cypilot-algo-project-extensibility-translate-agent-schema:p1:inst-step-cursor
+    return {
+        "frontmatter": frontmatter,
+        "body_prefix": "",
+        "skip": False,
+        "skip_reason": "",
+    }
+
+
+def _translate_copilot_schema(agent: "_AgentEntry") -> Dict[str, Any]:
+    """Translate AgentEntry to GitHub Copilot native frontmatter.
+
+    Produces tools JSON array. No model/isolation/color support.
+    """
+    # @cpt-begin:cpt-cypilot-algo-project-extensibility-translate-agent-schema:p1:inst-step-copilot
+    frontmatter: List[str] = []
+
+    if agent.tools:
+        tools_json = json.dumps(agent.tools)
+        frontmatter.append(f"tools: {tools_json}")
+    elif agent.mode == "readonly":
+        frontmatter.append('tools: ["read", "search"]')
+    else:
+        frontmatter.append('tools: ["*"]')
+
+    # @cpt-end:cpt-cypilot-algo-project-extensibility-translate-agent-schema:p1:inst-step-copilot
+    return {
+        "frontmatter": frontmatter,
+        "body_prefix": "",
+        "skip": False,
+        "skip_reason": "",
+    }
+
+
+def _translate_codex_schema(agent: "_AgentEntry") -> Dict[str, Any]:
+    """Translate AgentEntry to OpenAI Codex TOML config dict.
+
+    Maps mode to sandbox_mode. Per-agent tool restrictions not supported.
+    """
+    # @cpt-begin:cpt-cypilot-algo-project-extensibility-translate-agent-schema:p1:inst-step-codex
+    sandbox_mode = "read-only" if agent.mode == "readonly" else "workspace-write"
+
+    result: Dict[str, Any] = {
+        "sandbox_mode": sandbox_mode,
+        "developer_instructions": agent.description or "",
+        "skip": False,
+        "skip_reason": "",
+        "frontmatter": [],
+        "body_prefix": "",
+    }
+
+    if agent.model:
+        result["model"] = agent.model
+
+    # @cpt-end:cpt-cypilot-algo-project-extensibility-translate-agent-schema:p1:inst-step-codex
+    return result
+
+
+def _translate_windsurf_schema(agent: "_AgentEntry") -> Dict[str, Any]:
+    """Windsurf does not support subagent generation — returns skip result."""
+    # @cpt-begin:cpt-cypilot-algo-project-extensibility-translate-agent-schema:p1:inst-step-windsurf
+    return {
+        "frontmatter": [],
+        "body_prefix": "",
+        "skip": True,
+        "skip_reason": "Windsurf does not support subagent generation",
+    }
+    # @cpt-end:cpt-cypilot-algo-project-extensibility-translate-agent-schema:p1:inst-step-windsurf
+
+# @cpt-end:cpt-cypilot-algo-project-extensibility-translate-agent-schema:p1:inst-per-tool-translators
+
+
+# Dispatch table: maps target tool name to per-tool translator function.
+_SCHEMA_TRANSLATOR_MAP: Dict[str, Any] = {
+    "claude": _translate_claude_schema,
+    "cursor": _translate_cursor_schema,
+    "copilot": _translate_copilot_schema,
+    "openai": _translate_codex_schema,
+    "windsurf": _translate_windsurf_schema,
+}
+
+
+# @cpt-begin:cpt-cypilot-algo-project-extensibility-translate-agent-schema:p1:inst-translate-agent-schema
+def translate_agent_schema(agent: "_AgentEntry", target: str) -> Dict[str, Any]:
+    """Translate a manifest AgentEntry to agent-native frontmatter/config.
+
+    Validates mutual exclusivity of tools and disallowed_tools, then dispatches
+    to the appropriate per-tool translator.
+
+    Args:
+        agent: AgentEntry from merged manifest (Phase 4).
+        target: Target tool name ('claude', 'cursor', 'copilot', 'openai', 'windsurf').
+
+    Returns:
+        Dict with keys: frontmatter (List[str]), body_prefix (str),
+        skip (bool), skip_reason (str), plus tool-specific extras.
+
+    Raises:
+        ValueError: if both tools and disallowed_tools are set, or target unknown.
+    """
+    # Step 1: Validate mutual exclusivity of tools and disallowed_tools
+    if agent.tools and agent.disallowed_tools:
+        raise ValueError(
+            f"Agent '{agent.id}': 'tools' and 'disallowed_tools' are mutually exclusive — "
+            "set one or neither, not both."
+        )
+
+    # Step 2: Dispatch to per-tool translator
+    translator_fn = _SCHEMA_TRANSLATOR_MAP.get(target)
+    if translator_fn is None:
+        raise ValueError(
+            f"Unknown target tool '{target}'. "
+            f"Supported targets: {sorted(_SCHEMA_TRANSLATOR_MAP.keys())}"
+        )
+
+    return translator_fn(agent)
+# @cpt-end:cpt-cypilot-algo-project-extensibility-translate-agent-schema:p1:inst-translate-agent-schema
+
+
+# Skill output paths per agent tool
+_SKILL_OUTPUT_PATHS: Dict[str, str] = {
+    "claude":   ".claude/skills/{id}/SKILL.md",
+    "cursor":   ".cursor/rules/{id}.mdc",
+    "copilot":  ".github/skills/{id}.md",
+    "openai":   ".agents/skills/{id}/SKILL.md",
+    "windsurf": ".windsurf/skills/{id}/SKILL.md",
+}
+
+
+# @cpt-begin:cpt-cypilot-algo-project-extensibility-generate-skills:p1:inst-generate-manifest-skills
+def generate_manifest_skills(
+    skills: Dict[str, "_SkillEntry"],
+    target: str,
+    project_root: Path,
+    dry_run: bool,
+    variables: Optional[Dict[str, str]] = None,
+) -> Dict[str, Any]:
+    """Generate skill files from merged [[skills]] manifest entries.
+
+    Iterates skills where the target agent is in the skill's agents list,
+    reads source content, applies agent-specific frontmatter wrapper,
+    determines the output path, and writes the skill file.
+
+    Args:
+        skills: Dict of skill_id -> SkillEntry from merged manifest.
+        target: Target tool name ('claude', 'cursor', 'copilot', 'openai', 'windsurf').
+        project_root: Absolute path to project root directory.
+        dry_run: If True, compute actions but do not write files.
+
+    Returns:
+        Dict with keys: created (List[str]), updated (List[str]),
+        unchanged (List[str]), outputs (List[dict]).
+    """
+    result: Dict[str, Any] = {
+        "created": [],
+        "updated": [],
+        "unchanged": [],
+        "outputs": [],
+    }
+
+    path_template = _SKILL_OUTPUT_PATHS.get(target, f".{target}/skills/{{id}}/SKILL.md")
+
+    # Step 1: FOR EACH skill where target is in agents list (empty list = all targets)
+    for skill_id, skill in skills.items():
+        # Empty agents list means "generate for all targets" (consistent with agents behavior)
+        if skill.agents and target not in skill.agents:
+            continue
+
+        # Step 1.1: Determine source path (prefer source over prompt_file)
+        src_path_str = skill.source or skill.prompt_file
+        if not src_path_str:
+            sys.stderr.write(
+                f"WARNING: skill '{skill_id}' has no source or prompt_file, skipping\n"
+            )
+            continue
+
+        src_path = Path(src_path_str)
+        if not src_path.is_absolute():
+            src_path = project_root / src_path_str
+
+        # Step 1.1 continued: Read source content
+        if not src_path.is_file():
+            sys.stderr.write(
+                f"WARNING: skill '{skill_id}' source not found: {src_path}, skipping\n"
+            )
+            continue
+
+        try:
+            source_content = src_path.read_text(encoding="utf-8")
+        except Exception as exc:
+            sys.stderr.write(
+                f"WARNING: skill '{skill_id}' failed to read source: {exc}, skipping\n"
+            )
+            continue
+
+        # Step 1.2: Apply agent-specific frontmatter wrapper
+        # For Claude: wrap with YAML frontmatter (name + description)
+        # For other targets: use source content as-is
+        if target == "claude":
+            escaped_desc = skill.description.replace("\\", "\\\\").replace('"', '\\"')
+            fm_lines = [
+                "---",
+                f"name: {skill_id}",
+                f'description: "{escaped_desc}"',
+                "---",
+                "",
+            ]
+            content = "\n".join(fm_lines) + source_content
+        else:
+            content = source_content
+
+        # Apply accumulated section appends (from merge_component_entry)
+        if skill.append:
+            content = content.rstrip("\n") + "\n" + skill.append
+
+        # Apply layer variable substitution
+        if variables:
+            for k, v in variables.items():
+                content = content.replace(f"{{{k}}}", v)
+
+        # Step 1.3: Determine output path using agent-native conventions
+        rel_out = path_template.replace("{id}", skill_id)
+        out_path = project_root / rel_out
+
+        # Step 1.4: Write skill file to output path using _write_or_skip
+        _write_or_skip(out_path, content, result, project_root, dry_run)
+
+    # Step 3: Return result dict
+    result["unchanged"] = [
+        o["path"] for o in result["outputs"] if o.get("action") == "unchanged"
+    ]
+    return result
+
+
+# Agent output paths per agent tool
+# @cpt-algo:cpt-cypilot-algo-project-extensibility-generate-agents:p1
+# @cpt-dod:cpt-cypilot-dod-project-extensibility-agents-generation:p1
+_AGENT_OUTPUT_PATHS: Dict[str, str] = {
+    "claude":   ".claude/agents/{id}.md",
+    "cursor":   ".cursor/agents/{id}.mdc",
+    "copilot":  ".github/agents/{id}.md",
+    "openai":   ".agents/{id}/agent.md",
+    # windsurf: no subagent support — handled via translate_agent_schema skip
+}
+
+
+# @cpt-begin:cpt-cypilot-algo-project-extensibility-generate-agents:p1:inst-generate-manifest-agents
+def generate_manifest_agents(
+    agents: Dict[str, "_AgentEntry"],
+    target: str,
+    project_root: Path,
+    dry_run: bool,
+    variables: Optional[Dict[str, str]] = None,
+) -> Dict[str, Any]:
+    """Generate agent files from merged [[agents]] manifest entries.
+
+    Iterates agents where the target tool is in the agent's agents list,
+    calls translate_agent_schema to obtain frontmatter and body_prefix,
+    assembles the full file (YAML frontmatter + body), determines the output
+    path using agent-native conventions, and writes the agent file.
+
+    Args:
+        agents: Dict of agent_id -> AgentEntry from merged manifest.
+        target: Target tool name ('claude', 'cursor', 'copilot', 'openai', 'windsurf').
+        project_root: Absolute path to project root directory.
+        dry_run: If True, compute actions but do not write files.
+
+    Returns:
+        Dict with keys: created (List[str]), updated (List[str]),
+        unchanged (List[str]), outputs (List[dict]).
+    """
+    result: Dict[str, Any] = {
+        "created": [],
+        "updated": [],
+        "unchanged": [],
+        "outputs": [],
+    }
+
+    path_template = _AGENT_OUTPUT_PATHS.get(target, f".{target}/agents/{{id}}.md")
+
+    # Step 1: FOR EACH agent where target is in agents list
+    # @cpt-begin:cpt-cypilot-algo-project-extensibility-generate-agents:p1:inst-iterate-agents
+    for agent_id, agent in agents.items():
+        # Empty agents list means "generate for all targets"
+        if agent.agents and target not in agent.agents:
+            continue
+
+        # Step 1.1: Call translate_agent_schema to get frontmatter dict + body_prefix
+        # @cpt-begin:cpt-cypilot-algo-project-extensibility-generate-agents:p1:inst-translate-schema
+        try:
+            translated = translate_agent_schema(agent, target)
+        except ValueError as exc:
+            sys.stderr.write(
+                f"WARNING: agent '{agent_id}' schema translation failed for target '{target}': {exc}, skipping\n"
+            )
+            result.setdefault("errors", []).append({"agent": agent_id, "error": str(exc)})
+            continue
+        # @cpt-end:cpt-cypilot-algo-project-extensibility-generate-agents:p1:inst-translate-schema
+
+        # Step 1.2: IF skip=True → skip agent, log skip reason, continue
+        # @cpt-begin:cpt-cypilot-algo-project-extensibility-generate-agents:p1:inst-check-skip
+        if translated.get("skip"):
+            skip_reason = translated.get("skip_reason", "")
+            sys.stderr.write(
+                f"INFO: agent '{agent_id}' skipped for target '{target}': {skip_reason}\n"
+            )
+            continue
+        # @cpt-end:cpt-cypilot-algo-project-extensibility-generate-agents:p1:inst-check-skip
+
+        # Step 1.3: Read prompt_file (or source) content from agent's resolved path
+        # @cpt-begin:cpt-cypilot-algo-project-extensibility-generate-agents:p1:inst-read-agent-source
+        src_path_str = agent.source or agent.prompt_file
+        if not src_path_str:
+            sys.stderr.write(
+                f"WARNING: agent '{agent_id}' has no source or prompt_file, skipping\n"
+            )
+            continue
+
+        src_path = Path(src_path_str)
+        if not src_path.is_absolute():
+            src_path = project_root / src_path_str
+
+        if not src_path.is_file():
+            sys.stderr.write(
+                f"WARNING: agent '{agent_id}' source not found: {src_path}, skipping\n"
+            )
+            continue
+
+        try:
+            source_content = src_path.read_text(encoding="utf-8")
+        except Exception as exc:
+            sys.stderr.write(
+                f"WARNING: agent '{agent_id}' failed to read source: {exc}, skipping\n"
+            )
+            continue
+
+        # Strip existing frontmatter from source so manifest-generated frontmatter
+        # is the only frontmatter in the output.
+        if source_content.startswith("---"):
+            end_idx = source_content.find("\n---\n", 4)
+            if end_idx != -1:
+                source_content = source_content[end_idx + 5:]
+        # @cpt-end:cpt-cypilot-algo-project-extensibility-generate-agents:p1:inst-read-agent-source
+
+        # Step 1.4: Assemble full file: YAML frontmatter block (name:, description:,
+        # translated fields), then body (body_prefix + prompt content)
+        # @cpt-begin:cpt-cypilot-algo-project-extensibility-generate-agents:p1:inst-assemble-agent-file
+        if not agent.description:
+            sys.stderr.write(
+                f"WARNING: agent '{agent_id}' has no description — agent will not register with Claude CLI\n"
+            )
+            continue
+
+        # Special path for OpenAI/Codex: emit TOML format
+        if target == "openai":
+            sandbox_mode = translated.get("sandbox_mode", "workspace-write")
+            dev_instructions = translated.get("developer_instructions", agent.description or "")
+            model_str = translated.get("model", "")
+            toml_lines = [f"[agents.{agent_id.replace('-', '_')}]"]
+            escaped_desc = (agent.description or "").replace("\\", "\\\\").replace('"', '\\"')
+            toml_lines.append(f'description = "{escaped_desc}"')
+            toml_lines.append(f'sandbox_mode = "{sandbox_mode}"')
+            if model_str and model_str != "inherit":
+                toml_lines.append(f'model = "{model_str}"')
+            toml_lines.append('developer_instructions = """')
+            toml_lines.append(dev_instructions)
+            toml_lines.append('"""')
+            if agent.append:
+                toml_lines.append(agent.append)
+            content = "\n".join(toml_lines) + "\n"
+            if variables:
+                for k, v in variables.items():
+                    content = content.replace(f"{{{k}}}", v)
+            # Use .toml extension for codex output
+            rel_out = path_template.replace("{id}", agent_id).replace(".md", ".toml")
+            out_path = project_root / rel_out
+            _write_or_skip(out_path, content, result, project_root, dry_run)
+            continue
+
+        frontmatter_lines: List[str] = ["---"]
+        frontmatter_lines.append(f"name: {agent.id}")
+        escaped = agent.description.replace("\\", "\\\\").replace('"', '\\"')
+        frontmatter_lines.append(f'description: "{escaped}"')
+        frontmatter_lines.extend(translated.get("frontmatter", []))
+        frontmatter_lines.append("---")
+
+        body_prefix = translated.get("body_prefix", "")
+        body_suffix = translated.get("body_suffix", "")
+        content = "\n".join(frontmatter_lines) + "\n" + body_prefix + source_content + body_suffix
+
+        # Apply accumulated section appends (from merge_component_entry)
+        if agent.append:
+            content = content.rstrip("\n") + "\n" + agent.append
+
+        # Apply layer variable substitution
+        if variables:
+            for k, v in variables.items():
+                content = content.replace(f"{{{k}}}", v)
+        # @cpt-end:cpt-cypilot-algo-project-extensibility-generate-agents:p1:inst-assemble-agent-file
+
+        # Step 1.5: Determine output path using agent-native conventions
+        # @cpt-begin:cpt-cypilot-algo-project-extensibility-generate-agents:p1:inst-determine-agent-path
+        rel_out = path_template.replace("{id}", agent_id)
+        out_path = project_root / rel_out
+        # @cpt-end:cpt-cypilot-algo-project-extensibility-generate-agents:p1:inst-determine-agent-path
+
+        # Step 1.6: Write agent file to output path
+        # @cpt-begin:cpt-cypilot-algo-project-extensibility-generate-agents:p1:inst-write-agent
+        _write_or_skip(out_path, content, result, project_root, dry_run)
+        # @cpt-end:cpt-cypilot-algo-project-extensibility-generate-agents:p1:inst-write-agent
+
+    # @cpt-end:cpt-cypilot-algo-project-extensibility-generate-agents:p1:inst-iterate-agents
+
+    # Step 2/3: Track created/updated/unchanged and return
+    # @cpt-begin:cpt-cypilot-algo-project-extensibility-generate-agents:p1:inst-track-agent-results
+    result["unchanged"] = [
+        o["path"] for o in result["outputs"] if o.get("action") == "unchanged"
+    ]
+    # @cpt-end:cpt-cypilot-algo-project-extensibility-generate-agents:p1:inst-track-agent-results
+
+    # @cpt-begin:cpt-cypilot-algo-project-extensibility-generate-agents:p1:inst-return-agents
+    return result
+    # @cpt-end:cpt-cypilot-algo-project-extensibility-generate-agents:p1:inst-return-agents
+
+# @cpt-end:cpt-cypilot-algo-project-extensibility-generate-agents:p1:inst-generate-manifest-agents
+
+
+# ---------------------------------------------------------------------------
+# Provenance Report + Auto-Discovery (Phase 7)
+# @cpt-algo:cpt-cypilot-algo-project-extensibility-build-provenance:p2
+# @cpt-flow:cpt-cypilot-flow-project-extensibility-discover-register:p2
+# ---------------------------------------------------------------------------
+
+from ..utils.manifest import MergedComponents as _MergedComponents, ProvenanceRecord as _ProvenanceRecord  # type: ignore  # noqa: E402
+
+
+# @cpt-begin:cpt-cypilot-algo-project-extensibility-build-provenance:p2:inst-step1-build-report
+def build_provenance_report(
+    merged: "_MergedComponents",
+    project_root: Path,
+) -> Dict[str, Any]:
+    """Build a JSON-serializable provenance report from MergedComponents.
+
+    Iterates all component types in merged result, records winning layer,
+    overridden layers, and source paths for each component.  Output is
+    sorted by component type then component ID for deterministic results.
+
+    Args:
+        merged:       MergedComponents result from merge_components().
+        project_root: Absolute path to project root (used to make paths relative).
+
+    Returns:
+        JSON-serializable dict with key ``"components"``: list of records,
+        each containing id, type, winning_scope, winning_path, overridden.
+    """
+    # @cpt-begin:cpt-cypilot-algo-project-extensibility-build-provenance:p2:inst-step1-inner
+    component_sections: List[Tuple[str, Dict]] = [
+        ("agents", merged.agents),
+        ("skills", merged.skills),
+        ("workflows", merged.workflows),
+        ("rules", merged.rules),
+    ]
+
+    records: List[Dict[str, Any]] = []
+
+    for component_type, component_dict in component_sections:
+        # @cpt-begin:cpt-cypilot-algo-project-extensibility-build-provenance:p2:inst-step1-foreach-id
+        for cid in sorted(component_dict.keys()):
+            prov: "_ProvenanceRecord" = merged.provenance[cid]
+
+            # Winning layer info
+            winning_path_str = _safe_relpath(prov.winning_path, project_root)
+
+            # Overridden layers info
+            overridden_list: List[Dict[str, str]] = []
+            for scope, path in prov.overridden:
+                overridden_list.append({
+                    "scope": scope,
+                    "path": _safe_relpath(path, project_root),
+                })
+
+            # Source path from the component entry
+            entry = component_dict[cid]
+            source_path = getattr(entry, "source", "") or getattr(entry, "prompt_file", "") or ""
+            if source_path:
+                source_path_obj = Path(source_path)
+                if source_path_obj.is_absolute():
+                    try:
+                        source_path = source_path_obj.relative_to(project_root).as_posix()
+                    except ValueError:
+                        source_path = source_path_obj.as_posix()
+
+            record: Dict[str, Any] = {
+                "id": cid,
+                "type": component_type,
+                "winning_scope": prov.winning_scope,
+                "winning_path": winning_path_str,
+                "overridden": overridden_list,
+            }
+            if source_path:
+                record["source_path"] = source_path
+
+            records.append(record)
+        # @cpt-end:cpt-cypilot-algo-project-extensibility-build-provenance:p2:inst-step1-foreach-id
+    # @cpt-end:cpt-cypilot-algo-project-extensibility-build-provenance:p2:inst-step1-inner
+
+    # Step 2: Sort by type then ID (type order is deterministic via section order above,
+    # IDs within each type are already sorted).
+    return {"components": records}
+# @cpt-end:cpt-cypilot-algo-project-extensibility-build-provenance:p2:inst-step1-build-report
+
+
+def format_provenance_human(report: Dict[str, Any]) -> str:
+    """Format a provenance report as a human-readable table.
+
+    Produces output matching the --show-layers format described in the phase spec.
+
+    Args:
+        report: Dict returned by build_provenance_report().
+
+    Returns:
+        Multi-line string with Layer Provenance Report table.
+    """
+    components: List[Dict[str, Any]] = report.get("components", [])
+
+    # Group by type
+    by_type: Dict[str, List[Dict[str, Any]]] = {}
+    for rec in components:
+        t = rec["type"]
+        by_type.setdefault(t, []).append(rec)
+
+    lines: List[str] = ["Layer Provenance Report", "======================="]
+
+    # Emit in canonical section order
+    section_order = ["agents", "skills", "workflows", "rules"]
+    for section in section_order:
+        recs = by_type.get(section, [])
+        if not recs:
+            continue
+        lines.append(f"\n{section.capitalize()}:")
+        for rec in recs:
+            cid = rec["id"]
+            scope = rec["winning_scope"].capitalize()
+            path = rec["winning_path"]
+            overridden = rec.get("overridden", [])
+            override_str = ""
+            if overridden:
+                override_scopes = ", ".join(o["scope"].capitalize() for o in overridden)
+                override_str = f"    overrides: {override_scopes}"
+            # Align: component ID padded to 16 chars, then scope/path
+            lines.append(f"  {cid:<16} {scope} ({path}){override_str}")
+
+    return "\n".join(lines)
+
+
+# @cpt-begin:cpt-cypilot-flow-project-extensibility-discover-register:p2:inst-step2-scan-dirs
+def discover_components(project_root: Path) -> Dict[str, List[Dict[str, str]]]:
+    """Scan conventional directories for components.
+
+    Searches the following conventional paths relative to *project_root*:
+    - .claude/agents/*.md  → agents (ID = filename stem)
+    - .claude/skills/*/SKILL.md → skills (ID = parent directory name)
+    - .claude/commands/*.md → workflows (ID = filename stem)
+
+    For each discovered file, attempts to extract a description from YAML
+    frontmatter (``description:`` line) if present.
+
+    Args:
+        project_root: Absolute path to project root directory.
+
+    Returns:
+        Dict mapping component type (``"agents"``, ``"skills"``, ``"workflows"``)
+        to a list of dicts, each with ``"id"``, ``"source"``, ``"description"``.
+    """
+    discovered: Dict[str, List[Dict[str, str]]] = {
+        "agents": [],
+        "skills": [],
+        "workflows": [],
+    }
+
+    # @cpt-begin:cpt-cypilot-flow-project-extensibility-discover-register:p2:inst-step2.1-agents
+    _claude = project_root / ".claude"
+    agents_dir = _claude / "agents"
+    if agents_dir.is_dir():
+        for md_file in sorted(agents_dir.glob("*.md")):
+            if md_file.is_file():
+                component_id = md_file.stem
+                description = _extract_frontmatter_description(md_file)
+                discovered["agents"].append({
+                    "id": component_id,
+                    "source": md_file.as_posix(),
+                    "description": description,
+                })
+    # @cpt-end:cpt-cypilot-flow-project-extensibility-discover-register:p2:inst-step2.1-agents
+
+    # @cpt-begin:cpt-cypilot-flow-project-extensibility-discover-register:p2:inst-step2.2-skills
+    skills_dir = _claude / "skills"
+    if skills_dir.is_dir():
+        for skill_md in sorted(skills_dir.glob("*/SKILL.md")):
+            if skill_md.is_file():
+                component_id = skill_md.parent.name
+                description = _extract_frontmatter_description(skill_md)
+                discovered["skills"].append({
+                    "id": component_id,
+                    "source": skill_md.as_posix(),
+                    "description": description,
+                })
+    # @cpt-end:cpt-cypilot-flow-project-extensibility-discover-register:p2:inst-step2.2-skills
+
+    # @cpt-begin:cpt-cypilot-flow-project-extensibility-discover-register:p2:inst-step2.3-workflows
+    commands_dir = _claude / "commands"
+    if commands_dir.is_dir():
+        for md_file in sorted(commands_dir.glob("*.md")):
+            if md_file.is_file():
+                component_id = md_file.stem
+                description = _extract_frontmatter_description(md_file)
+                discovered["workflows"].append({
+                    "id": component_id,
+                    "source": md_file.as_posix(),
+                    "description": description,
+                })
+    # @cpt-end:cpt-cypilot-flow-project-extensibility-discover-register:p2:inst-step2.3-workflows
+
+    return discovered
+# @cpt-end:cpt-cypilot-flow-project-extensibility-discover-register:p2:inst-step2-scan-dirs
+
+
+def _extract_frontmatter_description(path: Path) -> str:
+    """Extract description from YAML frontmatter in a markdown file.
+
+    Looks for a ``description:`` key in the YAML front matter block delimited
+    by ``---`` markers.  Returns empty string if not found or on any error.
+    """
+    try:
+        text = path.read_text(encoding="utf-8")
+    except Exception:
+        return ""
+
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return ""
+
+    _desc_key = "description:"
+    for line in lines[1:]:
+        if line.strip() == "---":
+            break
+        if line.startswith(_desc_key):
+            return line[len(_desc_key):].strip().strip('"').strip("'")
+
+    return ""
+
+
+# @cpt-begin:cpt-cypilot-flow-project-extensibility-discover-register:p2:inst-step4-write-manifest
+def write_discovered_manifest(
+    discovered: Dict[str, List[Dict[str, str]]],
+    manifest_path: Path,
+) -> None:
+    """Write or update a manifest.toml with discovered component sections.
+
+    Generates a v2.0 manifest.toml at *manifest_path* from the *discovered*
+    components dict (as returned by ``discover_components()``).  If the file
+    already exists, reads existing ``id`` values and only appends entries
+    whose IDs are not already present.  If all discovered entries are already
+    present, the file is not modified.
+
+    The ``manifest_path``'s parent directory is created if it does not exist.
+
+    Args:
+        discovered:    Dict mapping component type to list of component dicts
+                       (each with ``id``, ``source``, ``description``).
+        manifest_path: Absolute path to the manifest.toml to write.
+    """
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)  # NOSONAR
+
+    # If the file already exists, collect existing IDs via simple string scan
+    # and only write entries whose IDs are not already present.
+    existing_ids: Set[str] = set()
+    existing_content: Optional[str] = None
+    if manifest_path.is_file():
+        try:
+            existing_content = manifest_path.read_text(encoding="utf-8")
+        except Exception:
+            existing_content = None
+        if existing_content is not None:
+            import re as _re
+            for m in _re.finditer(r'^id\s*=\s*"([^"]+)"', existing_content, _re.MULTILINE):
+                existing_ids.add(m.group(1))
+
+    section_order = ["agents", "skills", "workflows"]
+
+    if existing_content is not None:
+        # Append-only mode: only write new entries
+        new_lines: List[str] = []
+        for section in section_order:
+            entries = discovered.get(section, [])
+            for entry in entries:
+                if entry["id"] in existing_ids:
+                    continue
+                new_lines.append(f'[[{section}]]')
+                new_lines.append(f'id = "{entry["id"]}"')
+                if entry.get("description"):
+                    desc = entry["description"].replace('"', '\\"')
+                    new_lines.append(f'description = "{desc}"')
+                if entry.get("source"):
+                    src = entry["source"].replace('"', '\\"')
+                    new_lines.append(f'source = "{src}"')
+                new_lines.append('')
+
+        if not new_lines:
+            # All discovered entries already present — skip write
+            return
+
+        appended = existing_content.rstrip("\n") + "\n\n# New entries appended by --discover\n" + "\n".join(new_lines)
+        manifest_path.write_text(appended, encoding="utf-8")  # NOSONAR
+        return
+
+    # Fresh write
+    lines: List[str] = [
+        '[manifest]',
+        'version = "2.0"',
+        '',
+    ]
+
+    for section in section_order:
+        entries = discovered.get(section, [])
+        for entry in entries:
+            lines.append(f'[[{section}]]')
+            lines.append(f'id = "{entry["id"]}"')
+            if entry.get("description"):
+                desc = entry["description"].replace('"', '\\"')
+                lines.append(f'description = "{desc}"')
+            if entry.get("source"):
+                src = entry["source"].replace('"', '\\"')
+                lines.append(f'source = "{src}"')
+            lines.append('')
+
+    manifest_path.write_text("\n".join(lines), encoding="utf-8")  # NOSONAR
+# @cpt-end:cpt-cypilot-flow-project-extensibility-discover-register:p2:inst-step4-write-manifest
+# @cpt-end:cpt-cypilot-algo-project-extensibility-generate-skills:p1:inst-generate-manifest-skills

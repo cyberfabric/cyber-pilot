@@ -38,7 +38,7 @@
 
 ### 1.1 Overview
 
-Extend cypilot's multi-agent integration to generate two purpose-built subagent definitions for tools that support isolated agent contexts: Claude Code (`.claude/agents/`), Cursor (`.cursor/agents/`), GitHub Copilot (`.github/agents/`), and OpenAI Codex (`.codex/agents/`). Currently `cypilot generate-agents --agent <name>` generates only skills, commands, and workflow proxies — missing the subagent integration surface that four of five supported tools now provide.
+Extend cypilot's multi-agent integration to generate two purpose-built subagent definitions for tools that support isolated agent contexts: Claude Code (`.claude/agents/`), Cursor (`.cursor/agents/`), GitHub Copilot (`.github/agents/`), and OpenAI Codex (`.codex/agents/`). Currently `cypilot agents --agent <name>` generates only skills, commands, and workflow proxies — missing the subagent integration surface that four of five supported tools now provide.
 
 Problem: Cypilot workflows cannot run as isolated subagents with scoped tools, model selection, and dedicated prompts.
 Primary value: Users get two cypilot subagents (`cypilot-codegen` for fully-specified code generation, `cypilot-pr-review` for isolated PR review) that their IDE/agent tool can auto-delegate to, with appropriate read/write restrictions per workflow.
@@ -46,13 +46,13 @@ Key assumptions: Subagent formats across tools have stabilized sufficiently for 
 
 ### 1.2 Purpose
 
-Enable `cypilot generate-agents` to generate tool-specific subagent definitions so that two purpose-built workflows (`cypilot-codegen` and `cypilot-pr-review`) run as isolated subagents with appropriate tool restrictions, model selection, and custom prompts.
+Enable `cypilot agents` to generate tool-specific subagent definitions so that two purpose-built workflows (`cypilot-codegen` and `cypilot-pr-review`) run as isolated subagents with appropriate tool restrictions, model selection, and custom prompts.
 
 ### 1.3 Actors
 
 | Actor | Role in Feature |
 |-------|-----------------|
-| Developer | Runs `cypilot generate-agents --agent <name>` to generate subagent definitions |
+| Developer | Runs `cypilot agents --agent <name>` to generate subagent definitions |
 | AI Assistant | Main IDE/agent session delegates to cypilot subagents |
 
 ### 1.4 References
@@ -75,17 +75,17 @@ Enable `cypilot generate-agents` to generate tool-specific subagent definitions 
 
 **Error Scenarios**:
 - Target tool does not support subagents (Windsurf) — info message logged, subagent generation skipped, other outputs (skills/workflows) still generated
-- `cypilot-agents.json` missing or malformed — error with remediation guidance
+- `agents.toml` missing or malformed in all discovery sources — subagent generation skipped with reason or parse warning
 - Output directory not writable — filesystem error reported
 
 **Steps**:
 1. [ ] - `p1` - Developer invokes `cypilot generate-agents --agent <name>` - `inst-invoke`
-2. [ ] - `p1` - Load unified agent config from `cypilot-agents.json` - `inst-load-config`
-3. [ ] - `p1` - Resolve subagent config from `agent_cfg.subagents` or fall back to built-in defaults via `_default_subagents()` - `inst-detect`
+2. [ ] - `p1` - Discover semantic subagent definitions from kit/core `agents.toml` files - `inst-load-config`
+3. [ ] - `p1` - Resolve tool output behavior from built-in `_TOOL_AGENT_CONFIG` - `inst-detect`
 4. [ ] - `p1` - **IF** tool has no subagent config (Windsurf, unknown tools) - `inst-check-support`
    1. [ ] - `p1` - Mark subagent generation as skipped with reason - `inst-skip-info`
    2. [ ] - `p1` - Continue with existing skills/workflows generation - `inst-continue-existing`
-5. [ ] - `p1` - Resolve subagent templates — replace `{target_agent_path}` in prompts, render via `_render_template()` - `inst-resolve`
+5. [ ] - `p1` - Resolve subagent proxy templates — replace `{target_agent_path}` in per-tool proxy output with resolved shared agent file path, render via `_render_template()` - `inst-resolve`
 6. [ ] - `p1` - Generate subagent files using format-specific rendering (Markdown+YAML or TOML) - `inst-generate`
 7. [ ] - `p1` - **RETURN** JSON summary of generated files (subagents + skills + workflows) - `inst-return-summary`
 
@@ -118,11 +118,11 @@ Enable `cypilot generate-agents` to generate tool-specific subagent definitions 
 
 **Input**: Tool name (string: `claude`, `cursor`, `copilot`, `openai`, `windsurf`)
 
-**Output**: Subagent config dict or None (from `_default_subagents()` lookup)
+**Output**: Subagent config dict or None (from `_TOOL_AGENT_CONFIG` lookup)
 
 **Steps**:
-1. [ ] - `p1` - Check `agent_cfg.subagents` for explicit config override - `inst-check-override`
-2. [ ] - `p1` - **IF** no override, look up tool name in `_default_subagents()` built-in map - `inst-lookup-defaults`
+1. [ ] - `p1` - Discover subagent definitions from kit/core `agents.toml` files via `_discover_kit_agents()` - `inst-check-override`
+2. [ ] - `p1` - Look up tool-specific output config in `_TOOL_AGENT_CONFIG` built-in map - `inst-lookup-defaults`
 3. [ ] - `p1` - **IF** tool is `claude` **RETURN** config with output_dir=`.claude/agents`, format=markdown, two definitions - `inst-claude`
 4. [ ] - `p1` - **IF** tool is `cursor` **RETURN** config with output_dir=`.cursor/agents`, format=markdown, two definitions - `inst-cursor`
 5. [ ] - `p1` - **IF** tool is `copilot` **RETURN** config with output_dir=`.github/agents`, filename_format=`{name}.agent.md`, two definitions - `inst-copilot`
@@ -133,15 +133,15 @@ Enable `cypilot generate-agents` to generate tool-specific subagent definitions 
 
 - [ ] `p1` - **ID**: `cpt-cypilot-algo-subagent-reg-resolve-template`
 
-**Input**: Subagent definition (name, template, optional description/prompt_lines), shared definitions, target SKILL.md path
+**Input**: Subagent definition (name, template, optional description/prompt_lines), shared definitions, target agent path
 
-**Output**: Rendered subagent file content (string)
+**Output**: Rendered subagent proxy content (string)
 
 **Steps**:
 1. [ ] - `p1` - Look up shared description and prompt_lines from `_shared` map by subagent name - `inst-load-def`
-2. [ ] - `p1` - Replace `{target_agent_path}` in prompt lines with resolved SKILL.md path - `inst-resolve-paths`
+2. [ ] - `p1` - Replace `{target_agent_path}` in prompt lines with resolved shared agent file path - `inst-resolve-paths`
 3. [ ] - `p1` - **IF** format is markdown (claude, cursor, copilot) - `inst-check-md-yaml`
-   1. [ ] - `p1` - Render via `_render_template()` with name, description, prompt, target_skill_path variables - `inst-render-yaml`
+   1. [ ] - `p1` - Render via `_render_template()` with name, description, prompt, target_agent_path variables - `inst-render-yaml`
 4. [ ] - `p1` - **IF** format is `toml` (openai) - `inst-check-toml`
    1. [ ] - `p1` - Render via `_render_toml_agents()` with `[agents.<name>]` sections containing description and developer_instructions - `inst-render-toml`
 5. [ ] - `p1` - **RETURN** rendered content - `inst-return-content`
@@ -170,7 +170,7 @@ Enable `cypilot generate-agents` to generate tool-specific subagent definitions 
 
 ### Subagent Registration State
 
-Not applicable because this is a stateless code generation feature. The `cypilot generate-agents` command produces output files in a single invocation with no lifecycle transitions or persistent state between runs.
+Not applicable because this is a stateless code generation feature. The `cypilot agents` command produces output files in a single invocation with no lifecycle transitions or persistent state between runs.
 
 ## 5. Definitions of Done
 
@@ -178,9 +178,9 @@ Not applicable because this is a stateless code generation feature. The `cypilot
 
 - [ ] `p1` - **ID**: `cpt-cypilot-dod-subagent-reg-claude`
 
-The system **MUST** generate two files in `.claude/agents/` when `cypilot generate-agents --agent claude` is invoked:
-- `cypilot-codegen.md` — YAML frontmatter with tools (Bash, Read, Write, Edit, Glob, Grep), model (inherit), isolation (worktree), and prompt referencing SKILL.md for code generation workflow
-- `cypilot-pr-review.md` — YAML frontmatter with tools (Bash, Read, Glob, Grep), disallowedTools (Write, Edit), model (sonnet), and prompt referencing SKILL.md for PR review workflow
+The system **MUST** generate two proxy files in `.claude/agents/` when `cypilot generate-agents --agent claude` is invoked:
+- `cypilot-codegen.md` — YAML frontmatter with tools (Bash, Read, Write, Edit, Glob, Grep), model (inherit), isolation (worktree), and prompt referencing the shared agent file via `{target_agent_path}` for code generation workflow
+- `cypilot-pr-review.md` — YAML frontmatter with tools (Bash, Read, Glob, Grep), disallowedTools (Write, Edit), model (sonnet), and prompt referencing the shared agent file via `{target_agent_path}` for PR review workflow
 
 **Implements**:
 - `cpt-cypilot-flow-subagent-reg-generate`
@@ -192,9 +192,9 @@ The system **MUST** generate two files in `.claude/agents/` when `cypilot genera
 
 - [ ] `p1` - **ID**: `cpt-cypilot-dod-subagent-reg-cursor`
 
-The system **MUST** generate two files in `.cursor/agents/` when `cypilot generate-agents --agent cursor` is invoked:
-- `cypilot-codegen.md` — YAML frontmatter with tools (grep, view, edit, bash), model (inherit), and prompt referencing SKILL.md for code generation workflow
-- `cypilot-pr-review.md` — YAML frontmatter with tools (grep, view, bash), readonly (true), model (fast), and prompt referencing SKILL.md for PR review workflow
+The system **MUST** generate two proxy files in `.cursor/agents/` when `cypilot generate-agents --agent cursor` is invoked:
+- `cypilot-codegen.md` — YAML frontmatter with tools (grep, view, edit, bash), model (inherit), and prompt referencing the shared agent file via `{target_agent_path}` for code generation workflow
+- `cypilot-pr-review.md` — YAML frontmatter with tools (grep, view, bash), readonly (true), model (fast), and prompt referencing the shared agent file via `{target_agent_path}` for PR review workflow
 
 **Implements**:
 - `cpt-cypilot-flow-subagent-reg-generate`
@@ -205,9 +205,9 @@ The system **MUST** generate two files in `.cursor/agents/` when `cypilot genera
 
 - [ ] `p1` - **ID**: `cpt-cypilot-dod-subagent-reg-copilot`
 
-The system **MUST** generate two files in `.github/agents/` with `.agent.md` extension when `cypilot generate-agents --agent copilot` is invoked:
-- `cypilot-codegen.agent.md` — YAML frontmatter with tools (["*"]) and prompt referencing SKILL.md for code generation workflow
-- `cypilot-pr-review.agent.md` — YAML frontmatter with tools (["read", "search"]) and prompt referencing SKILL.md for PR review workflow
+The system **MUST** generate two proxy files in `.github/agents/` with `.agent.md` extension when `cypilot generate-agents --agent copilot` is invoked:
+- `cypilot-codegen.agent.md` — YAML frontmatter with tools (["*"]) and prompt referencing the shared agent file via `{target_agent_path}` for code generation workflow
+- `cypilot-pr-review.agent.md` — YAML frontmatter with tools (["read", "search"]) and prompt referencing the shared agent file via `{target_agent_path}` for PR review workflow
 
 **Implements**:
 - `cpt-cypilot-flow-subagent-reg-generate`
@@ -218,7 +218,7 @@ The system **MUST** generate two files in `.github/agents/` with `.agent.md` ext
 
 - [ ] `p1` - **ID**: `cpt-cypilot-dod-subagent-reg-openai`
 
-The system **MUST** generate a single `cypilot-agents.toml` file in `.codex/agents/` with two `[agents.<name>]` sections (cypilot_codegen and cypilot_pr_review) containing description and developer_instructions when `cypilot generate-agents --agent openai` is invoked.
+The system **MUST** generate a single `cypilot-agents.toml` file in `.codex/agents/` with two `[agents.<name>]` sections (cypilot_codegen and cypilot_pr_review) containing description and developer_instructions when `cypilot agents --agent openai` is invoked.
 
 **Implements**:
 - `cpt-cypilot-flow-subagent-reg-generate`
@@ -229,7 +229,7 @@ The system **MUST** generate a single `cypilot-agents.toml` file in `.codex/agen
 
 - [ ] `p1` - **ID**: `cpt-cypilot-dod-subagent-reg-config`
 
-The system **MUST** provide built-in subagent defaults via `_default_subagents()` for all four supported tools. If `cypilot-agents.json` contains a `subagents` section for the target tool, the config override **MUST** take precedence. Existing `workflows` and `skills` sections **MUST** remain unchanged (backward compatible).
+The system **MUST** provide built-in per-tool output mapping via `_TOOL_AGENT_CONFIG` for all four supported tools. Semantic subagent definitions are discovered from `agents.toml` (kit/core precedence). Existing `workflows` and `skills` sections **MUST** remain unchanged (backward compatible).
 
 **Implements**:
 - `cpt-cypilot-algo-subagent-reg-detect-capability`
@@ -265,10 +265,10 @@ The system **MUST** support `--dry-run` for subagent generation, showing planned
 - [ ] `cypilot generate-agents --agent windsurf` skips subagent generation with skip reason in JSON output
 - [ ] Existing skills/commands/workflows generation is unchanged for all tools
 - [ ] `--dry-run` shows planned subagent files without writing
-- [ ] Generated subagent prompts correctly reference SKILL.md via `{target_agent_path}` resolution
+- [ ] Generated subagent proxies correctly reference the shared agent file via `{target_agent_path}` resolution
 - [ ] Tool-specific properties (disallowedTools, readonly, isolation, model) are rendered per tool format
 - [ ] `cypilot-codegen` subagent has write tools and isolation; `cypilot-pr-review` subagent is read-only
-- [ ] Built-in defaults are used when `cypilot-agents.json` has no `subagents` section
+- [ ] Built-in defaults from `_TOOL_AGENT_CONFIG` are used; subagent definitions discovered from `agents.toml`
 
 ## Additional Context
 

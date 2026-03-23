@@ -151,7 +151,7 @@ cypilot off           — disable Cypilot mode
 cypilot auto-config   — scan project and generate convention rules
 ```
 
-A full walkthrough is available in [`guides/STORY.md`](guides/STORY.md).
+A full walkthrough is available in [`guides/STORY.md`](guides/STORY.md). For extending Cypilot with project-level components, see [`guides/PROJECT-EXTENSIBILITY.md`](guides/PROJECT-EXTENSIBILITY.md).
 
 ### Example Prompts
 
@@ -218,26 +218,12 @@ Cypilot provides a unified **Agent Skill** (`cypilot`) defined in `skills/cypilo
 
 ### Subagents
 
-Subagents are defined once in `agents.toml` using semantic properties (`mode`, `isolation`, `model`) and automatically adapted to each tool's native format. One definition produces correct output for all supported tools — Claude Code is the canonical format (full fidelity), and other tools receive the best adaptation their format supports.
-
-Two purpose-built subagents are included:
+For tools that support isolated agent contexts (Claude Code, Cursor, GitHub Copilot, OpenAI Codex), Cypilot generates two purpose-built **subagents** that run in dedicated contexts with scoped permissions:
 
 - **`cypilot-codegen`** — Takes fully-specified requirements and implements them without back-and-forth. Runs in an isolated worktree (on Claude Code) with full write access.
 - **`cypilot-pr-review`** — Performs structured, checklist-based PR reviews in a read-only isolated context, keeping detailed analysis separate from the main conversation.
 
-Generated automatically by `cypilot generate-agents --agent <name>`. Windsurf does not support subagents and is gracefully skipped.
-
-**Tool support:**
-
-| Capability | Claude Code | Cursor | GitHub Copilot | OpenAI Codex |
-|---|:---:|:---:|:---:|:---:|
-| Subagent definitions | Yes | Yes | Yes | Yes |
-| Read-only enforcement | `disallowedTools` | `readonly: true` | Tool filter | In prompt |
-| Model selection | Yes | Yes | — | — |
-| Worktree isolation | Yes | — | — | — |
-| Subagent-scoped hooks | Yes | — | — | — |
-
-See [ADR-0016](architecture/ADR/0016-cpt-cypilot-adr-ai-cli-extensibility-subagents-v1.md) for the full adaptation model and format details.
+Subagents are generated automatically by `cypilot generate-agents --agent <name>`. Windsurf does not support subagents and is gracefully skipped.
 
 ### Workflow Commands
 
@@ -388,11 +374,15 @@ For the full specification, see [`requirements/workspace.md`](requirements/works
 
 ## Extensibility
 
-Cypilot is extensible through **Kits** — self-contained packages that bundle templates, rules, checklists, examples, and workflows for a specific domain. The kit plugin system supports extension at three levels:
+Cypilot is extensible at two levels:
+
+**Kit extensibility** — self-contained packages that bundle templates, rules, checklists, examples, and workflows for a specific domain:
 
 1. **Kit-level** — new kits for entirely new domains (e.g., API design, infrastructure-as-code)
 2. **Artifact-level** — new artifact kinds within an existing kit
 3. **Resource-level** — override templates, extend checklists, modify rules within an artifact kind
+
+**Project-level extensibility** — a six-layer manifest hierarchy (Core → Kit → Master Repo → Org → Project → Repo) that lets any layer declare skills, agents, workflows, rules, and hooks via `manifest.toml`. Inner scope wins on conflicts, and block-based template composition allows layers to extend base templates without full overrides. See [`guides/PROJECT-EXTENSIBILITY.md`](guides/PROJECT-EXTENSIBILITY.md) for the full guide.
 
 ### Kit: **Cypilot SDLC**
 
