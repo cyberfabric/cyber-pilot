@@ -371,7 +371,7 @@ class TestSerializeManifestBindingPath(unittest.TestCase):
         ):
             binding = _serialize_manifest_binding_path(
                 PureWindowsPath("D:/external-kits/sdlc/SKILL.md"),
-                Path("/tmp/project/.bootstrap"),
+                Path("project/.bootstrap"),
             )
 
         self.assertEqual(binding, "D:/external-kits/sdlc/SKILL.md")
