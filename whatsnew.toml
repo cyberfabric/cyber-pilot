@@ -198,3 +198,12 @@ details = """\
 - **`cpt update` now shows kit release notes** — main update flow displays `whatsnew.toml` entries for installed kits before running `update_kit`; interactive users can skip a kit after reviewing changes
 - **Claude skill routing cleanup** — `generate-agents` now emits Claude entry points via `.claude/skills/.../SKILL.md`, removes replaced legacy `.claude/commands/*.md` shims, and reports deleted legacy files in the result summary
 """
+
+["v3.3.0-beta"]
+summary = "Authoritative kit paths, bug-finding methodologies, workflow hardening"
+details = """\
+- **Authoritative installed kit roots** — kit install/update/migrate/validate flows now consistently treat `config/core.toml` kit paths as the source of truth, preserve custom kit roots, and handle inaccessible absolute paths and cross-platform absolute-path semantics more safely
+- **Manifest and migration error hardening** — binding-resolution failures surface explicitly, rollback/cleanup paths are tighter, and kit/manifest validation now reports invalid path scenarios more deterministically
+- **New bug-finding methodologies** — added compact high-recall `requirements/bug-finding.md` for source-code review and `requirements/prompt-bug-finding.md` for prompt/instruction review, with workflow integration for bounded, evidence-driven analysis
+- **Workflow and prompt-quality tightening** — `SKILL.md`, `workflows/analyze.md`, `workflows/generate.md`, and `workflows/plan.md` now better enforce task-matched dependency loading, compact prompt context, and terminal response-completion gates to avoid premature completion
+"""
