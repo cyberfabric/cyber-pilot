@@ -9,7 +9,6 @@ purpose: Universal workflow for creating or updating any artifact or code
 
 # Generate
 
-
 <!-- toc -->
 
 - [Generate](#generate)
@@ -35,60 +34,38 @@ purpose: Universal workflow for creating or updating any artifact or code
 
 <!-- /toc -->
 
-ALWAYS open and follow `{cypilot_path}/.core/skills/cypilot/SKILL.md` FIRST WHEN {cypilot_mode} is `off`
-
-**Type**: Operation
-
-ALWAYS open and follow `{cypilot_path}/.core/requirements/execution-protocol.md` FIRST
-
-ALWAYS open and follow `{cypilot_path}/.core/requirements/reverse-engineering.md` WHEN BROWNFIELD project AND user requests to analyze codebase, search in code, or generate artifacts from existing code
-
-NEVER open reverse-engineering.md WHEN GREENFIELD project — there is no code to reverse-engineer
-
-ALWAYS open and follow `{cypilot_path}/.core/requirements/code-checklist.md` WHEN user requests implementing, generating, or editing code (Code mode)
-
-ALWAYS open and follow `{cypilot_path}/.core/requirements/prompt-engineering.md` WHEN user requests generation or updates of:
-- System prompts, agent prompts, or LLM prompts
-- Agent instructions or agent guidelines
-- Skills, workflows, or methodologies
-- AGENTS.md or navigation rules
-- Any document containing instructions for AI agents
-
-When `prompt-engineering.md` is loaded for generation/update of AI instruction documents, treat compact-prompts optimization as a **HIGH-priority requirement**: actively search for safe opportunities to reduce loaded context while keeping instructions explicit, strict, and operationally complete.
-
-For context compaction recovery during multi-phase workflows, follow `{cypilot_path}/.core/requirements/execution-protocol.md` Section "Compaction Recovery".
-
 ## Reverse Engineering Prerequisite (BROWNFIELD only)
 
-`GREENFIELD`: skip this section and proceed to Phase 0. `BROWNFIELD`: reverse-engineering may inform generated artifacts. ALWAYS SKIP this section WHEN GREENFIELD — nothing to reverse-engineer.
+`GREENFIELD`: skip this section and proceed to Phase 0. `BROWNFIELD`: reverse-engineering may inform generated artifacts, code implementation, and code edits. ALWAYS SKIP this section WHEN GREENFIELD — nothing to reverse-engineer.
 
 For BROWNFIELD work:
-- Check whether `{cypilot_path}/config/rules/` has any `.md` files and whether `cypilot.py info` reports any `specs`.
-- If rules or specs exist, load and follow them before generating.
-- If neither exists, offer auto-config.
+- Use Protocol Guard's matched WHEN-clause spec resolution for the current request; treat only task-matched, applicable project specs/rules as satisfying the brownfield rules gate.
+- If one or more project-specific specs/rules are matched for the current request, load and follow them before generating.
+- If no project-specific specs/rules are matched for the current brownfield request, offer auto-config even when unrelated files exist under `{cypilot_path}/config/rules/` or unrelated specs are registered.
+- MUST NOT treat mere on-disk rules-file presence or any unrelated registered spec as sufficient to skip auto-config.
 - ALWAYS open and follow `{cypilot_path}/.core/requirements/auto-config.md` WHEN user accepts auto-config.
 
 ```text
-Brownfield project detected — existing code found but no project-specific rules configured.
+Brownfield project detected — existing code found but no task-matched, applicable project-specific specs/rules were found for this request.
 Auto-config can scan your project and generate rules that teach Cypilot your conventions.
 This produces config/rules/, heading-level WHEN rules in config/AGENTS.md, navigation rules for existing project guides, and system entries in config/artifacts.toml.
 
 → Run auto-config now? [yes/no/skip]
 "yes"  → Run auto-config methodology (recommended for first-time setup)
 "no"   → Cancel generation
-"skip" → Continue without project rules (reduced quality)
+"skip" → Continue without task-matched project specs/rules (reduced quality)
 ```
 
-If user confirms `yes`: execute auto-config methodology (Phases 1→6), then return to generate. If user says `skip`: proceed without project-specific rules. If user says `no`: cancel.
+If user confirms `yes`: execute auto-config methodology (Phases 1→6), then return to generate. If user says `skip`: proceed without task-matched project-specific specs/rules. If user says `no`: cancel.
 
 ## Overview
 
-Artifact mode = template + checklist + example. Code mode = checklist only. Config mode = create/update config files. After `execution-protocol.md`, you have `TARGET_TYPE`, `RULES`, `KIND`, `PATH`, `MODE`, and resolved dependencies. Key variables: `{cypilot_path}/config/`, `{ARTIFACTS_REGISTRY}`, `{KITS_PATH}`, `{PATH}`. Use `{KITS_PATH}/artifacts/{KIND}/examples/` for style and quality guidance.
+Artifact generation mode = template + example by default; load checklist up front only when the current rules explicitly require it before writing. Code generation mode = design/spec context first; load checklist during validation/review unless the current rules explicitly require it during implementation. Config mode = create/update config files. After `execution-protocol.md`, you have `TARGET_TYPE`, `RULES`, `KIND`, `PATH`, `MODE`, and resolved phase-appropriate dependencies. Key variables: `{cypilot_path}/config/`, `{ARTIFACTS_REGISTRY}`, `{KITS_PATH}`, `{PATH}`. Use `{KITS_PATH}/artifacts/{KIND}/examples/` for style and quality guidance.
 
 ## Context Budget & Overflow Prevention (CRITICAL)
 
 - Budget first: estimate size before loading large docs (for example with `wc -l`) and state the budget for this turn.
-- Load only what you need: prefer only the template, checklist, and example sections required for the current `KIND`.
+- Load only what you need: prefer only the generation-phase sections required for the current `KIND`; defer checklist loading to validation/review unless the current rules explicitly require it earlier.
 - Chunk reads and summarize-and-drop: use `read_file` ranges, summarize each chunk, and keep only extracted criteria.
 - Fail-safe: if required steps cannot fit in context, stop and output a checkpoint in chat only; do not proceed to writing files.
 - Plan escalation: [Phase 0.1](#phase-01-plan-escalation-gate) is mandatory after dependencies load; if budget is exceeded, the agent MUST offer plan escalation before proceeding.
@@ -99,11 +76,11 @@ Artifact mode = template + checklist + example. Code mode = checklist only. Conf
 
 Critical failures: `SKIP_TEMPLATE`, `SKIP_EXAMPLE`, `SKIP_CHECKLIST`, `PLACEHOLDER_SHIP`, `NO_CONFIRMATION`, `SIMULATED_VALIDATION`.
 
-Self-check before writing files (MANDATORY in STRICT mode): template loaded, example referenced, checklist self-review complete, no placeholders, and explicit `yes` received. If any answer fails → STOP and fix before proceeding. STRICT mode MUST include self-check results in Phase 3 Summary output.
+Self-check before writing files (MANDATORY in STRICT mode): template loaded, example referenced, no placeholders, and explicit `yes` received. Checklist self-review is required here only when the current rules explicitly require checklist use before writing; otherwise defer checklist review to Phase 5. If any required answer fails → STOP and fix before proceeding. STRICT mode MUST include self-check results in Phase 3 Summary output.
 
 ## Rules Mode Behavior
 
-STRICT: template, checklist, example, and post-write validation are required for high quality. RELAXED: user-provided or best-effort template/example/checklist, optional validation, and no quality guarantee.
+STRICT: generation must load the required generation-phase dependencies (typically template + example for artifacts, design/spec context for code), checklist-driven review must run in Phase 5, and Phase 6 requires validation `PASS`. RELAXED: use user-provided or best-effort phase-appropriate dependencies, still attempt post-write validation automatically when practical, and if validation cannot reach `PASS` after recovery, stop with an explicitly unvalidated result instead of treating it as success.
 
 ```text
 ⚠️ Generated without Cypilot rules (reduced quality assurance)
@@ -111,19 +88,19 @@ STRICT: template, checklist, example, and post-write validation are required for
 
 ## Phase 0: Ensure Dependencies
 
-After `execution-protocol.md`, you have `KITS_PATH`, `TEMPLATE`, `CHECKLIST`, `EXAMPLE`, and `REQUIREMENTS`.
+After `execution-protocol.md`, you have `KITS_PATH`, the phase-appropriate dependency set, and `REQUIREMENTS`.
 
 | Condition | Action |
 |-----------|--------|
-| `rules.md` loaded | Dependencies were already resolved from rules Dependencies; proceed silently. |
-| `rules.md` not loaded | Ask the user to provide/specify missing `checklist`, `template`, or `example`. |
-| Code mode additional | Load `{cypilot_path}/.core/requirements/code-checklist.md` and ask the user to specify the design artifact if missing. |
+| `rules.md` loaded | Phase-appropriate dependencies were already resolved from rules Dependencies; proceed silently. |
+| `rules.md` not loaded | Ask the user to provide/specify the generation-phase dependencies that are actually needed now; request `checklist` only when the current phase or rules explicitly require it. |
+| Code mode additional | Ask the user to specify the design artifact if missing; load `{cypilot_path}/.core/requirements/code-checklist.md` up front only when the current rules explicitly require implementation-time checklist guidance, otherwise defer it to Phase 5 review. |
 
-**MUST NOT proceed** to Phase 1 until all dependencies are available.
+**MUST NOT proceed** to Phase 1 until all generation-phase dependencies required for the current target are available.
 
 ## Phase 0.1: Plan Escalation Gate
 
-**MUST** estimate total context from `rules.md`, `template.md`, `checklist.md`, `example.md`, expected output size, project context, and ~30% reasoning overhead.
+**MUST** estimate total context from `rules.md`, the generation-phase dependencies actually needed for this run (for example `template.md` and `example.md`, plus `checklist.md` only when explicitly required before writing), expected output size, project context, and ~30% reasoning overhead.
 
 | Estimated total | Action |
 |----------------|--------|
@@ -136,7 +113,7 @@ After `execution-protocol.md`, you have `KITS_PATH`, `TEMPLATE`, `CHECKLIST`, `E
 When `> 2500` lines, offer:
 
 ```text
-⚠️ This task is large — estimated ~{N} lines of context needed (`rules.md`, `template.md`, `checklist.md`, `example.md`, output, project ctx).
+⚠️ This task is large — estimated ~{N} lines of context needed (`rules.md`, active generation dependencies, output, project ctx).
 This exceeds the safe single-context budget (~2500 lines). The plan workflow can decompose this into focused phases (≤500 lines each) that ensure every kit rule is followed and nothing is skipped.
 
 Options:
@@ -167,7 +144,7 @@ Where should the result go?
 - MCP tool / external system (specify)
 ```
 
-Then: store the selected system; if file output + using rules, determine the path, plan the `artifacts.toml` entry, and check `UPDATE` vs `CREATE`; for artifacts identify parent references; for code identify design artifacts + requirement IDs + traceability markers; for new IDs use `cpt-{system}-{kind}-{slug}` and verify uniqueness with `cypilot list-ids`.
+Then: store the selected system; if file output + using rules, determine the path, plan the `artifacts.toml` entry, and check `UPDATE` vs `CREATE`; for artifacts identify parent references; for code identify design artifacts + requirement IDs + traceability markers; for new IDs use `cpt-{system}-{kind}-{slug}` and verify uniqueness with `{cpt_cmd} --json list-ids`.
 
 ## Phase 1: Collect Information
 
@@ -208,9 +185,9 @@ Inputs confirmed. Proceeding to generation...
 
 Follow the loaded `rules.md` Tasks section.
 
-Artifacts: load template/checklist/example, create content per rules, generate IDs/structure, then self-review against the checklist.
+Artifacts: load the generation-phase dependencies required now (typically template + example, plus checklist only when explicitly required before writing), create content per rules, and generate IDs/structure.
 
-Code: load spec design + checklist, implement with traceability markers, use the correct marker format, then quality-check traceability.
+Code: load spec design and any implementation-time dependencies required by the current rules, implement with traceability markers, and use the correct marker format; defer checklist-driven review to Phase 5 unless the current rules explicitly require it earlier.
 
 Standard checks:
 
@@ -255,7 +232,7 @@ Checkpoint policy: default is chat only; write a checkpoint file only if the use
 **Content preview**: {brief overview of what will be created/changed}
 **Files to write**: `{path}`: {description}; {additional files if any}
 **Artifacts registry**: `{cypilot_path}/config/artifacts.toml`: {entry additions/updates, if any}
-**STRICT self-check**: template loaded = {yes/no}; example referenced = {yes/no}; checklist reviewed = {yes/no}; placeholders absent = {yes/no}; explicit `yes` received = {yes/no}
+**STRICT self-check**: template loaded = {yes/no}; example referenced = {yes/no}; checklist status = {required-and-complete/deferred-to-phase-5}; placeholders absent = {yes/no}; explicit `yes` received = {yes/no}
 **Proceed?** [yes/no/modify]
 ```
 
@@ -273,37 +250,47 @@ Only after confirmation: update `{cypilot_path}/config/artifacts.toml` if a new 
 
 ## Phase 5: Analyze
 
-Run validation automatically after generation; do not list it in Next Steps.
+Attempt deterministic validation automatically after generation; do not list it in Next Steps. STRICT mode requires validation `PASS` before Phase 6. RELAXED mode may exit with an explicitly unvalidated result only through the Error Handling recovery branch.
 
-> **⛔ CRITICAL**: The agent's own checklist walkthrough is **NOT** a substitute for `cpt validate`. A manual "✅ PASS" table in chat is semantic review, not deterministic validation — these are **separate steps**. See anti-pattern `SIMULATED_VALIDATION`.
+> **⛔ CRITICAL**: The agent's own checklist walkthrough is **NOT** a substitute for the applicable deterministic validator command(s). A manual "✅ PASS" table in chat is semantic review, not deterministic validation — these are **separate steps**. See anti-pattern `SIMULATED_VALIDATION`.
 
 ### Step 1: Deterministic Validation (tool-based)
 
-MUST run `cpt validate` as an actual terminal command.
+MUST run deterministic validation as an actual terminal command using the canonical agent-safe form.
 
 Artifacts:
 
 ```bash
-python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate
+{cpt_cmd} --json validate
 ```
 
 Specific artifact:
 
 ```bash
-python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py validate --artifact {PATH}
+{cpt_cmd} --json validate --artifact {PATH}
 ```
 
-Rules: execute the validator BEFORE any semantic review; include exit code and JSON `status` / `error_count` / `warning_count`; MUST NOT proceed until `cpt validate` returns `"status": "PASS"`; MUST NOT summarize validation without the actual validator output. If FAIL → fix errors → re-run until PASS.
+Rules: execute the deterministic validator BEFORE any semantic review; choose the target-applicable deterministic validator command(s) for the current output and rules (for example `{cpt_cmd} --json validate`, `{cpt_cmd} --json validate --artifact {PATH}`, `{cpt_cmd} --json validate-toc {PATH}`, or another deterministic validator explicitly required by the current target); record the exact deterministic validator command(s) executed, including subcommand and path flags, plus each command's actual validator exit code and JSON `status` / `error_count` / `warning_count`; record the overall deterministic gate result across the full required validator set; if deterministic validation is skipped in the RELAXED/unvalidated recovery branch, record `Deterministic gate: SKIPPED`, an explicit skip reason, and an explicit note that there is no validator-backed evidence because no deterministic validator command completed; in STRICT mode, MUST NOT proceed to Phase 6 until all applicable deterministic validator command(s) for the current target have been run and the overall deterministic gate is `PASS`; MUST NOT summarize validation without the actual validator output, omit which validator command produced each result, or collapse a mixed-result validator set into a single untraceable line. If FAIL → fix errors → re-run until PASS. Repeated validation failure is a recovery branch, not a PASS substitute.
 
-Only after PASS: self-review generated content against `checklist.md`, verify no placeholders (`TODO`, `TBD`, `FIXME`), verify cross-references are meaningful, and verify content quality/completeness.
+ Only after PASS: load `checklist.md` if it was not already loaded, then self-review generated content against it, verify no placeholders (`TODO`, `TBD`, `FIXME`), verify cross-references are meaningful, and verify content quality/completeness.
+
+ Validation Results body below is the single authoritative sub-contract for deterministic validation metadata. Whenever this workflow requires validation results to be embedded elsewhere, paste the completed body verbatim with actual values instead of rewriting the fields.
 
 ```markdown
-## Validation Results
-Deterministic (`cpt validate`): exit code {0|2}, status {PASS|FAIL}, errors {N}, warnings {N}
-Semantic Review: checklist coverage {summary}; content quality {summary}; issues found {list or "none"}
-```
+ ## Validation Results
+ Deterministic validator command(s): `{exact command(s) run}` | `none; skipped before execution`
+ Deterministic validator results:
+- `{command 1}` → exit code {actual exit code}, status {actual JSON status}, errors {N}, warnings {N}
+- `{command N}` → exit code {actual exit code}, status {actual JSON status}, errors {N}, warnings {N}
+- `skipped before execution` → no deterministic validator command executed; use this line instead of command bullets when deterministic validation was skipped
+ Deterministic gate: {PASS|FAIL|SKIPPED}; overall result across all required validator command(s)
+ Skip reason: {`not applicable` | `why deterministic validation was skipped`}
+ Validator-backed evidence note: {`validator-backed evidence present for the executed command(s) above` | `none; deterministic validation was skipped, so there is no validator-backed evidence`}
+ Semantic review basis: {`static/manual only; no validator-backed semantic checker exists` | `validator-backed by {tool}` | `hybrid: validator-backed by {tool} + manual checklist review`}
+ Semantic Review: checklist coverage {summary}; content quality {summary}; issues found {list or "none"}
+ ```
 
-If both pass: proceed to Phase 6. If semantic issues are found: fix them and re-validate from the validator step.
+ If deterministic validation passes and semantic review passes: proceed to Phase 6. If semantic issues are found: fix them and re-validate from the validator step. If deterministic validation cannot reach PASS after recovery attempts, follow Error Handling: STRICT mode stops here; RELAXED mode may only exit with an explicitly unvalidated result and MUST NOT present it as PASS.
 
 ## Phase 6: Offer Next Steps
 
@@ -313,24 +300,25 @@ Read `## Next Steps` from `rules.md` and present:
 What would you like to do next?
 1. {option from rules Next Steps}
 2. {option from rules Next Steps}
-3. Other
+3. Generate review prompts
+4. Other
 ```
 
 If Phase 4 wrote or updated any files, MUST append a final chat-only `Review Prompt` section after the next-step options. If output was chat-only and no files changed, skip this section.
 This applies to any successful file-writing generate flow, including artifacts, code, workflow/instruction updates, and multi-file edits.
 If files were written and the response omits the `Review Prompt` section or either required review prompt, the generate output is incomplete.
 
-`Review Prompt` rules — both prompts MUST be **self-contained final prompts** usable in a fresh chat without any prior context:
-- explicitly begin with the phrase `Invoke skill cypilot`
-- state that `/cypilot-generate` is complete and the next chat is for reviewing the generated changes
-- embed inline: changed file paths, what was changed per file (brief summary), kind/target, validation results (exit code, errors, warnings)
-- do NOT reference "previous chat", "findings above", or any content outside the prompt itself
-- the prompt alone must give the next agent everything needed to start work immediately
-- generate **two separate prompts**:
-  1. `Plan Review Prompt` — route to `/cypilot-plan` when the review scope is broad, multi-file, or needs phased / strict coverage
-  2. `Direct Review Prompt` — route to `/cypilot-analyze` when the review scope is bounded and can be performed immediately
-- include both prompts in the same final response whenever files were written
-- MUST NOT ask the next agent to regenerate or re-implement the changes
+ `Review Prompt` rules — both prompts MUST be **self-contained final prompts** usable in a fresh chat without any prior context:
+ - explicitly begin with the phrase `Invoke skill cypilot`
+ - state that `/cypilot-generate` is complete and the next chat is for reviewing the generated changes
+- embed inline: changed file paths, what was changed per file (brief summary), kind/target, and the completed `Validation Results` body with actual values
+ - do NOT reference "previous chat", "findings above", or any content outside the prompt itself
+ - the prompt alone must give the next agent everything needed to start work immediately
+ - generate **two separate prompts**:
+ 1. `Plan Review Prompt` — route to `/cypilot-plan` when the review scope is broad, multi-file, or needs to be phased or strict coverage
+ 2. `Direct Review Prompt` — route to `/cypilot-analyze` when the review scope is bounded and can be performed immediately
+ - include both prompts in the same final response whenever files were written
+ - MUST NOT ask the next agent to regenerate or re-implement the changes
 
 Template:
 
@@ -348,9 +336,7 @@ Changed files:
 - `{path}` — {brief description of what was created/changed}
 - `{additional path}` — {brief description}
 
-Validation results:
-- Deterministic (`cpt validate`): exit code {0|2}, status {PASS|FAIL}, errors {N}, warnings {N}
-- Semantic review: {summary of checklist coverage and any issues}
+{paste the completed Validation Results body from the canonical template above verbatim, preserving field names, order, and values}
 
 Use `/cypilot-plan` to create a phased review plan for these changes.
 Focus on review coverage, risk hotspots, and the minimal set of review phases needed for high confidence.
@@ -373,9 +359,7 @@ Changed files:
 - `{path}` — {brief description of what was created/changed}
 - `{additional path}` — {brief description}
 
-Validation results:
-- Deterministic (`cpt validate`): exit code {0|2}, status {PASS|FAIL}, errors {N}, warnings {N}
-- Semantic review: {summary of checklist coverage and any issues}
+{paste the completed Validation Results body from the canonical template above verbatim, preserving field names, order, and values}
 
 Use `/cypilot-analyze` to review these changes now.
 Report findings with severity, evidence, risks, regressions, and recommended fixes.
@@ -391,7 +375,7 @@ Tool failure:
 ⚠️ Tool error: {error message}
 → Check Python environment and dependencies
 → Verify cypilot is correctly configured
-→ Run /cypilot-adapter to refresh
+→ Run `{cpt_cmd} --json update` to refresh the adapter if the local installation is stale
 ```
 
 STOP — do not continue with incomplete state.
@@ -401,23 +385,23 @@ User abandonment: do not auto-proceed with assumptions; state is resumed by re-r
 Validation failure loop (3+ times):
 
 ```text
-⚠️ Validation failing repeatedly. Options:
-1. Review checklist requirements manually
-2. Simplify artifact scope
-3. Skip validation (RELAXED mode only)
+⚠️ Deterministic validation is still failing after repeated fixes. Options:
+1. Review checklist requirements manually and fix the reported validator errors
+2. Simplify artifact scope or revert the last change set, then re-run validation
+3. RELAXED mode only: stop the success path and return the result as unvalidated (`Deterministic gate: FAIL` or `SKIPPED`); do not present it as PASS
 ```
 
 ## State Summary
 
 | State | TARGET_TYPE | Has Template | Has Checklist | Has Example |
 |-------|-------------|--------------|---------------|-------------|
-| Generating artifact | artifact | ✓ | ✓ | ✓ |
-| Generating code | code | ✗ | ✓ | ✗ |
+| Generating artifact | artifact | ✓ | phase-dependent | ✓ |
+| Generating code | code | ✗ | phase-dependent | ✗ |
 
 ## Validation Criteria
 
 - [ ] `{cypilot_path}/.core/requirements/execution-protocol.md` executed
-- [ ] Dependencies loaded (checklist, template, example)
+- [ ] Phase-appropriate dependencies loaded (generation: template/example unless checklist explicitly required; validation/review: checklist when applicable)
 - [ ] System context clarified (if using rules)
 - [ ] Output destination clarified
 - [ ] Parent references identified
@@ -429,5 +413,8 @@ Validation failure loop (3+ times):
 - [ ] File written after confirmation (if file output)
 - [ ] Artifacts registry updated (if file output + rules)
 - [ ] Validation executed
+- [ ] Exact deterministic validator command(s), per-command validator results, and overall deterministic gate recorded
+- [ ] `Semantic review basis` recorded
+- [ ] `Skip reason` and `Validator-backed evidence note` recorded when deterministic gate is `SKIPPED`
 - [ ] Review prompt generated when files were written
 - [ ] Both `Plan Review Prompt` and `Direct Review Prompt` generated in the same response when files were written

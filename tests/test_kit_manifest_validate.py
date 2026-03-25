@@ -8,7 +8,11 @@ Covers:
 from __future__ import annotations
 
 import sys
+import io
+import json
 import unittest
+from unittest.mock import patch
+from contextlib import redirect_stdout
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -407,6 +411,61 @@ class TestValidateKitsResourcePaths(unittest.TestCase):
             finally:
                 set_context(None)
 
+    def test_verbose_report_uses_authoritative_adapter_relative_custom_root(self):
+        from cypilot.utils.context import CypilotContext, set_context
+        from cypilot.commands.validate_kits import run_validate_kits
+
+        with TemporaryDirectory() as td:
+            td_path = Path(td)
+            root = td_path / "proj"
+            adapter = _bootstrap_project(root)
+            config = adapter / "config"
+            custom_kit_dir = adapter / "custom-kits" / "sdlc"
+            custom_kit_dir.mkdir(parents=True)
+            (custom_kit_dir / "constraints.toml").write_text("[broken\ninvalid", encoding="utf-8")
+
+            from cypilot.utils import toml_utils
+            toml_utils.dump({
+                "version": "1.0",
+                "project_root": "..",
+                "kits": {
+                    "sdlc": {
+                        "format": "Cypilot",
+                        "path": "custom-kits/sdlc",
+                        "version": "2.0",
+                    },
+                },
+            }, config / "core.toml")
+
+            toml_utils.dump({
+                "version": "1.0",
+                "project_root": "..",
+                "kits": {
+                    "sdlc": {"format": "Cypilot", "path": "config/kits/sdlc"},
+                },
+                "systems": [{"name": "Test", "slug": "test", "kit": "sdlc"}],
+            }, config / "artifacts.toml")
+
+            ctx = CypilotContext.load(root)
+            self.assertIsNotNone(ctx)
+            set_context(ctx)
+
+            try:
+                rc, result = run_validate_kits(
+                    project_root=ctx.project_root,
+                    adapter_dir=ctx.adapter_dir,
+                    verbose=True,
+                )
+                self.assertEqual(rc, 2)
+                self.assertEqual(result["status"], "FAIL")
+                self.assertEqual(result["kits"][0]["path"], str(custom_kit_dir.resolve()))
+                self.assertEqual(
+                    result["kits"][0]["errors"][0]["path"],
+                    str((custom_kit_dir / "constraints.toml").resolve()),
+                )
+            finally:
+                set_context(None)
+
 
 # ---------------------------------------------------------------------------
 # validate-kits by path: manifest validation for standalone kits
@@ -590,6 +649,94 @@ class TestValidateKitsFilterWithResources(unittest.TestCase):
                 )
                 self.assertEqual(rc, 0)
                 self.assertEqual(result["status"], "PASS")
+            finally:
+                set_context(None)
+
+
+class TestValidateCustomKitRootMetadata(unittest.TestCase):
+    def setUp(self):
+        from cypilot.utils.ui import set_json_mode
+        set_json_mode(True)
+
+    def tearDown(self):
+        from cypilot.utils.ui import set_json_mode
+        set_json_mode(False)
+
+    def test_cmd_validate_uses_authoritative_constraints_path_for_custom_root(self):
+        from _test_helpers import write_constraints_toml
+        from cypilot.commands.validate import cmd_validate
+        from cypilot.utils.context import CypilotContext, set_context
+        from cypilot.utils import toml_utils
+
+        with TemporaryDirectory() as td:
+            td_path = Path(td)
+            root = td_path / "proj"
+            adapter = _bootstrap_project(root)
+            config = adapter / "config"
+            custom_kit_dir = adapter / "custom-kits" / "sdlc"
+            (custom_kit_dir / "artifacts" / "PRD").mkdir(parents=True, exist_ok=True)
+            (custom_kit_dir / "artifacts" / "PRD" / "template.md").write_text("# PRD\n\n## Required Section\n", encoding="utf-8")
+            write_constraints_toml(custom_kit_dir, {
+                "PRD": {
+                    "identifiers": {"fr": {"required": False}},
+                    "headings": [
+                        {"level": 1, "pattern": "PRD", "id": "prd-title"},
+                        {"level": 2, "pattern": "Required Section", "id": "required-section"},
+                    ],
+                },
+            })
+
+            artifacts_dir = root / "architecture"
+            artifacts_dir.mkdir(parents=True, exist_ok=True)
+            artifact_path = artifacts_dir / "PRD.md"
+            artifact_path.write_text("# PRD\n", encoding="utf-8")
+
+            toml_utils.dump({
+                "version": "1.0",
+                "project_root": "..",
+                "kits": {
+                    "sdlc": {
+                        "format": "Cypilot",
+                        "path": "custom-kits/sdlc",
+                        "version": "2.0",
+                    },
+                },
+            }, config / "core.toml")
+
+            toml_utils.dump({
+                "version": "1.0",
+                "project_root": "..",
+                "kits": {
+                    "sdlc": {"format": "Cypilot", "path": "config/kits/sdlc"},
+                },
+                "systems": [{
+                    "name": "Test",
+                    "slug": "test",
+                    "kit": "sdlc",
+                    "artifacts": [{
+                        "path": "architecture/PRD.md",
+                        "kind": "PRD",
+                        "traceability": "FULL",
+                    }],
+                }],
+            }, config / "artifacts.toml")
+
+            ctx = CypilotContext.load(root)
+            self.assertIsNotNone(ctx)
+            set_context(ctx)
+
+            try:
+                buf = io.StringIO()
+                with patch("cypilot.commands.validate_kits.run_validate_kits", return_value=(0, {"status": "PASS"})):
+                    with redirect_stdout(buf):
+                        rc = cmd_validate(["--skip-code"])
+                self.assertEqual(rc, 2)
+                out = json.loads(buf.getvalue())
+                self.assertEqual(out["status"], "FAIL")
+                self.assertTrue(any(
+                    err.get("constraints_path") == str((custom_kit_dir / "constraints.toml").resolve())
+                    for err in out.get("errors", [])
+                ))
             finally:
                 set_context(None)
 

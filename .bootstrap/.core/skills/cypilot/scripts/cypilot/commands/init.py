@@ -630,6 +630,19 @@ def cmd_init(argv: List[str]) -> int:
         # @cpt-begin:cpt-cypilot-flow-core-infra-project-init:p1:inst-install-kit-accepted
         if install_kit_flag:
             kit_results = _install_default_kit(cypilot_dir, interactive, actions, errors)
+            if errors:
+                err_result: Dict[str, object] = {
+                    "status": "ERROR",
+                    "message": "Init failed",
+                    "project_root": project_root.as_posix(),
+                    "cypilot_dir": cypilot_dir.as_posix(),
+                    "dry_run": bool(args.dry_run),
+                    "errors": errors,
+                }
+                if backups:
+                    err_result["backups"] = backups
+                ui.result(err_result, human_fn=lambda d: _human_init_error(d))
+                return 1
         # @cpt-end:cpt-cypilot-flow-core-infra-project-init:p1:inst-install-kit-accepted
         # @cpt-begin:cpt-cypilot-flow-core-infra-project-init:p1:inst-skip-kit-declined
         else:

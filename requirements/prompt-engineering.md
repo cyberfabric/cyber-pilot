@@ -2,7 +2,7 @@
 cypilot: true
 type: requirement
 name: Prompt Engineering Review Methodology
-version: 1.1
+version: 1.2
 purpose: Systematic methodology for reviewing and improving agent instructions with compact-prompts optimization
 ---
 
@@ -32,6 +32,8 @@ purpose: Systematic methodology for reviewing and improving agent instructions w
 **Scope**: Any file containing agent instructions — system prompts, skills, workflows, requirements, `AGENTS.md`, and methodologies.
 
 **Out of scope**: This does not provide a “best prompt” template or generate production prompts; it defines a review method and report format.
+
+**Companion methodology**: for bug hunting, hidden failure modes, unsafe behavior, regressions, instruction conflicts, or root-cause analysis in prompts and agent instructions, also use `prompt-bug-finding.md` as the behavioral defect search procedure.
 
 ## Overview
 
@@ -273,10 +275,12 @@ If a layer exceeds its pass budget, note blockers and continue; incomplete analy
 
 **Required report fields**:
 
-- `Summary`: document type, overall quality (`GOOD | NEEDS_IMPROVEMENT | POOR`), critical issue count, total issue count.
+- `Summary`: document type, overall quality (`GOOD | NEEDS_IMPROVEMENT | POOR`), critical issue count, total issue count. When paired with `prompt-bug-finding.md`, start `Summary` with that methodology's required status block, including `Review status` and `Deterministic gate: PASS | FAIL | SKIPPED`; if the gate is `SKIPPED`, state why and explicitly state `no validator-backed evidence for this review path` before the quality counts.
 - `Context Budget & Evidence`: budget, inputs loaded (`path — size — sections/ranges`), and overflow handling.
 - `Compact-Prompts Findings`: safe reductions found, content kept intentionally, deferred or blocked opportunities, and a behavior-preservation check confirming `MUST`, `MUST NOT`, triggers, thresholds, output rules, and fail-safes remain intact.
 - `Verification Checklist`: all critical issues addressed; no new issues introduced; examples/tests updated when needed; context overflow prevention evidenced; compact-prompts findings reported explicitly.
+
+When the deterministic gate is `SKIPPED`, do not describe semantic review, checklist review, or manual inspection as deterministic, validator-backed, or tool-validated unless actual validator or tool output exists.
 
 **N/A rule**: mark a check `N/A` only when the document explicitly makes it inapplicable; otherwise mark `FAIL` or `PARTIAL` and explain what is missing.
 
@@ -285,6 +289,7 @@ If a layer exceeds its pass budget, note blockers and continue; incomplete analy
 - **Validate workflow**: use this methodology for semantic validation of instruction documents.
 - **Generate workflow**: apply these principles when creating new instruction documents.
 - **Adapter workflow**: ensure `AGENTS.md` follows these best practices.
+- **Prompt bug review**: pair this methodology with `prompt-bug-finding.md` when the task is defect-oriented rather than general instruction-quality review.
 
 ## References
 
@@ -293,6 +298,8 @@ If a layer exceeds its pass budget, note blockers and continue; incomplete analy
 **Anti-pattern sources**: 14 Prompt Engineering Mistakes; 10 Common LLM Prompt Mistakes; Common Challenges and Solutions.
 
 **Agent-specific resources**: 4 Tips for AI Agent System Prompts; 11 Prompting Techniques for Better AI Agents; System Prompts Design Patterns.
+
+**Companion methodology**: `prompt-bug-finding.md` for bug hunting, hidden failure modes, unsafe behavior, regressions, instruction conflicts, or root-cause analysis in prompts and agent instructions.
 
 ## Validation
 

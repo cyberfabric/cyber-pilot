@@ -8,23 +8,24 @@ description: "Invoke when user asks to do something with Cypilot, or wants to an
 
 <!-- toc -->
 
-- [Cypilot Unified Tool](#cypilot-unified-tool)
-  - [Goal](#goal)
-  - [Preconditions](#preconditions)
-  - [⚠️ MUST Instruction Semantics ⚠️](#️-must-instruction-semantics-️)
-  - [Agent Acknowledgment](#agent-acknowledgment)
-  - [Execution Logging](#execution-logging)
-  - [Variables](#variables)
-    - [Template Variable Resolution](#template-variable-resolution)
-  - [CLI Resolution](#cli-resolution)
-  - [Protocol Guard](#protocol-guard)
-  - [Cypilot Mode](#cypilot-mode)
-  - [Agent-Safe Invocation](#agent-safe-invocation)
-  - [Quick Commands (No Protocol)](#quick-commands-no-protocol)
-  - [Workflow Routing](#workflow-routing)
-  - [Command Reference](#command-reference)
-  - [Auto-Configuration](#auto-configuration)
-  - [Project Configuration](#project-configuration)
+- [Goal](#goal)
+- [Preconditions](#preconditions)
+- [⚠️ MUST Instruction Semantics ⚠️](#must-instruction-semantics)
+- [Agent Acknowledgment](#agent-acknowledgment)
+- [Execution Logging](#execution-logging)
+- [Variables](#variables)
+  - [Template Variable Resolution](#template-variable-resolution)
+- [CLI Resolution](#cli-resolution)
+- [Protocol Guard](#protocol-guard)
+- [Cypilot Mode](#cypilot-mode)
+- [Agent-Safe Invocation](#agent-safe-invocation)
+- [Quick Commands](#quick-commands)
+  - [Direct CLI Commands (No Workflow Routing)](#direct-cli-commands-no-workflow-routing)
+  - [Workflow Shortcuts](#workflow-shortcuts)
+- [Workflow Routing](#workflow-routing)
+- [Command Reference](#command-reference)
+- [Auto-Configuration](#auto-configuration)
+- [Project Configuration](#project-configuration)
 
 <!-- /toc -->
 
@@ -48,7 +49,7 @@ Cypilot provides artifact validation, cross-reference validation, code traceabil
 - [ ] MUST/ALWAYS are mandatory; skipping any MUST invalidates execution.
 - [ ] I will read all required files before proceeding.
 - [ ] I will follow workflows step-by-step without shortcuts.
-- [ ] I will not create files without user confirmation in operation workflows.
+- [ ] I will not create or modify files, or execute any other write-capable Cypilot command, without explicit user confirmation, and I will not add auto-approval flags unless the user explicitly asks for them.
 - [ ] I will list Cypilot files read, why, and the triggering instruction before any approval prompt.
 
 By proceeding with Cypilot work, I acknowledge and accept these requirements.
@@ -100,13 +101,18 @@ ALWAYS use `{cpt_cmd}` for all later CLI invocations.
 
 ## Protocol Guard
 
-- ALWAYS FIRST open and remember `{cypilot_path}/.gen/AGENTS.md`
-- ALWAYS open and follow `{cypilot_path}/config/AGENTS.md` when it exists
-- ALWAYS open and follow `{cypilot_path}/.gen/SKILL.md` when it exists
-- ALWAYS open and follow `{cypilot_path}/config/SKILL.md` when it exists
 - ALWAYS FIRST run `{cpt_cmd} --json info` before any Cypilot workflow action
 - ALWAYS store the `variables` dict from `info` output and use it to resolve `{variable}` references in AGENTS/SKILL/rules/workflows
-- ALWAYS FIRST parse and load all matched WHEN-clause specs before proceeding
+- ALWAYS follow this load order: `info` → registry/intent/target/rules resolution from `execution-protocol.md` → matched WHEN-clause specs
+- ALWAYS open and remember `{cypilot_path}/.gen/AGENTS.md` after `info` succeeds; use it for navigation and WHEN-clause matching
+- ALWAYS open and follow `{cypilot_path}/config/AGENTS.md` when it exists and the current route or matched WHEN clause requires it
+- ALWAYS open and follow `{cypilot_path}/.gen/SKILL.md` when it exists and the current route or matched WHEN clause requires it
+- ALWAYS open and follow `{cypilot_path}/config/SKILL.md` when it exists and the current route or matched WHEN clause requires it
+- ALWAYS load matched WHEN-clause specs only after registry understanding, target determination, and `rules.md` resolution provide enough context to match safely
+- MUST NOT preload every AGENTS/SKILL/spec file up front; load only the smallest set needed for the current request
+- Before opening a large AGENTS/SKILL/spec file, estimate size and prefer chunked reads of matched sections over full-file reads
+- If safe WHEN-clause matching is not yet possible, stop after registry/target/rules resolution and continue only when enough context exists to load specs boundedly
+- If required Protocol Guard context would exceed the current turn budget, checkpoint or escalate instead of proceeding with partial or unbounded spec loading
 - ALWAYS include this block when editing code:
 ```text
 Cypilot Context:
@@ -129,21 +135,32 @@ Cypilot: {FOUND at path | NOT_FOUND}
 ## Agent-Safe Invocation
 
 - ALWAYS use `{cpt_cmd} --json <subcommand> [options]`
-- ALWAYS pass `--json` as the first argument for agent-driven CLI calls
+- ALWAYS pass `--json` immediately after `{cpt_cmd}` and before the subcommand for agent-driven CLI calls
 - ALWAYS use `=` form for pattern args starting with `-` (example: `--pattern=-req-`)
+- MUST obtain explicit user confirmation before executing any write-capable command, including direct CLI commands that do not route through a workflow
+- MUST NOT add auto-approval flags such as `--yes`, `-y`, or `--force` to write-capable commands unless the user explicitly requested that non-interactive behavior
 
-## Quick Commands (No Protocol)
+## Quick Commands
+
+### Direct CLI Commands (No Workflow Routing)
+
+No workflow routing skips workflow selection only. It does not waive confirmation: obtain explicit user confirmation before executing any write-capable direct CLI command below.
 
 | User invocation | Direct action |
 |---|---|
-| `cypilot init` | Run `{cpt_cmd} --json init --yes` |
+| `cypilot init` | After explicit user confirmation, run `{cpt_cmd} --json init` |
 | `cypilot agents <name>` | Run `{cpt_cmd} --json agents --agent <name>` |
-| `cypilot generate-agents <name>` | Run `{cpt_cmd} --json generate-agents --agent <name>` |
-| `cypilot auto-config` / `cypilot configure` | Open and follow `{cypilot_path}/.core/workflows/generate.md` |
-| `cypilot workspace init` | Run `{cpt_cmd} --json workspace-init [--root <dir>] [--output <path>] [--inline] [--force] [--max-depth <N>] [--dry-run]` |
-| `cypilot workspace add` | Run `{cpt_cmd} --json workspace-add --name <name> (--path <path> \| --url <url>) [--branch <branch>] [--role <role>] [--adapter <path>] [--inline] [--force]` |
+| `cypilot generate-agents <name>` | After explicit user confirmation, run `{cpt_cmd} --json generate-agents --agent <name>` |
+| `cypilot workspace init` | After explicit user confirmation, run `{cpt_cmd} --json workspace-init [--root <dir>] [--output <path>] [--inline] [--force] [--max-depth <N>] [--dry-run]` |
+| `cypilot workspace add` | After explicit user confirmation, run `{cpt_cmd} --json workspace-add --name <name> (--path <path> \| --url <url>) [--branch <branch>] [--role <role>] [--adapter <path>] [--inline] [--force]` |
 | `cypilot workspace info` | Run `{cpt_cmd} --json workspace-info` |
-| `cypilot workspace sync` | Run `{cpt_cmd} --json workspace-sync [--source <name>] [--dry-run] [--force]`; `--force` is destructive |
+| `cypilot workspace sync` | After explicit user confirmation, run `{cpt_cmd} --json workspace-sync [--source <name>] [--dry-run] [--force]`; `--force` is destructive |
+
+### Workflow Shortcuts
+
+| User invocation | Action |
+|---|---|
+| `cypilot auto-config` / `cypilot configure` | Open and follow `{cypilot_path}/.core/workflows/generate.md` |
 
 ## Workflow Routing
 
@@ -157,22 +174,22 @@ Cypilot has exactly three core workflows plus specialized sub-workflows. Routing
 | Workspace | `workspace`, `multi-repo`, `add source`, `add repo`, `cross-reference`, `cross-repo` | Open and follow `{cypilot_path}/.core/workflows/workspace.md` |
 | Unclear | `help`, `look at`, `work with`, `handle` | Ask `plan (phased execution) / generate (modify) / analyze (read-only)?` and stop if the user cancels |
 
-`configure` routes through `generate.md`; that workflow may auto-trigger `requirements/auto-config.md` for brownfield projects with no project-specific rules.
+`configure` and `auto-config` are workflow shortcuts, not direct no-protocol commands; both route through `generate.md`, which may auto-trigger `requirements/auto-config.md` for brownfield projects with no project-specific rules.
 
 ## Command Reference
 
 Entrypoint: `{cpt_cmd} <command> [options]`
-Machine output: add `--json` as the first argument. Exit codes: `0 = PASS`, `1 = filesystem/config error`, `2 = FAIL`.
+Machine output: add `--json` immediately after `{cpt_cmd}` and before the subcommand. Exit codes: `0 = PASS`, `1 = filesystem/config error`, `2 = FAIL`.
 Legacy aliases: `validate-code` = `validate`; `validate-rules` = `validate-kits`.
 
 | Category | Commands |
 |---|---|
-| Validation | `validate` (artifacts + code), `validate-kits` (kit config), `validate-toc` (TOC integrity), `self-check` (template/example sync), `spec-coverage` (marker coverage) |
-| Search | `list-ids` (enumerate IDs), `list-id-kinds` (kind counts), `get-content` (fetch by ID), `where-defined` (definition), `where-used` (references) |
-| Kit management | `kit install` (install kit), `kit update` (file-level kit update) |
-| Utilities | `toc` (generate TOC), `info` (discover config), `resolve-vars` (expand template vars), `init` (bootstrap project), `update` (refresh adapter), `agents` (show generated integrations), `generate-agents` (generate/update integrations) |
-| Migration | `migrate` (v2→v3 project), `migrate-config` (JSON→TOML config) |
-| Workspace | `workspace-init` (create workspace), `workspace-add` (add source), `workspace-info` (status), `workspace-sync` (update Git sources) |
+| Validation | `{cpt_cmd} --json validate` (artifacts + code), `{cpt_cmd} --json validate-kits` (kit config), `{cpt_cmd} --json validate-toc` (TOC integrity), `{cpt_cmd} --json self-check` (template/example sync), `{cpt_cmd} --json spec-coverage` (marker coverage) |
+| Search | `{cpt_cmd} --json list-ids` (enumerate IDs), `{cpt_cmd} --json list-id-kinds` (kind counts), `{cpt_cmd} --json get-content` (fetch by ID), `{cpt_cmd} --json where-defined` (definition), `{cpt_cmd} --json where-used` (references) |
+| Kit management | `{cpt_cmd} --json kit install` (install kit), `{cpt_cmd} --json kit update` (file-level kit update) |
+| Utilities | `{cpt_cmd} --json toc` (generate TOC), `{cpt_cmd} --json info` (discover config), `{cpt_cmd} --json resolve-vars` (expand template vars), `{cpt_cmd} --json init` (bootstrap project), `{cpt_cmd} --json update` (refresh adapter), `{cpt_cmd} --json agents` (show generated integrations), `{cpt_cmd} --json generate-agents` (generate/update integrations) |
+| Migration | `{cpt_cmd} --json migrate` (v2→v3 project), `{cpt_cmd} --json migrate-config` (JSON→TOML config) |
+| Workspace | `{cpt_cmd} --json workspace-init` (create workspace), `{cpt_cmd} --json workspace-add` (add source), `{cpt_cmd} --json workspace-info` (status), `{cpt_cmd} --json workspace-sync` (update Git sources) |
 
 See `skills/cypilot/cypilot.clispec` for full syntax, arguments, options, exit semantics, and examples.
 

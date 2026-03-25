@@ -80,12 +80,12 @@ def cmd_validate(argv: List[str]) -> int:
     Performs deterministic validation checks (structure, cross-references,
     task statuses, traceability markers) and produces a machine-readable report.
     """
-    from ..utils.context import get_context
+    from ..utils.context import get_context, _resolve_loaded_kit_constraints_path
 
     # @cpt-begin:cpt-cypilot-flow-traceability-validation-validate:p1:inst-user-validate
     p = argparse.ArgumentParser(
         prog="validate",
-        description="Validate Cypilot artifacts and code traceability (structure + cross-refs + traceability)",
+        description="Validate Cypilot artifacts and code traceability (structure + cross-references + traceability)",
     )
     p.add_argument("--artifact", default=None, help="Path to specific Cypilot artifact (if omitted, validates all registered Cypilot artifacts)")
     p.add_argument("--skip-code", action="store_true", help="Skip code traceability validation")
@@ -316,7 +316,14 @@ def cmd_validate(argv: List[str]) -> int:
         constraints_path = None
         if loaded_kit:
             try:
-                constraints_path = (project_root / str(loaded_kit.kit.path or "").strip().strip("/") / "constraints.toml").resolve()
+                adapter_dir = getattr(ctx, "adapter_dir", None)
+                if not isinstance(adapter_dir, Path):
+                    adapter_dir = project_root
+                constraints_path = _resolve_loaded_kit_constraints_path(
+                    adapter_dir,
+                    project_root,
+                    loaded_kit,
+                )
             except Exception:
                 constraints_path = None
 

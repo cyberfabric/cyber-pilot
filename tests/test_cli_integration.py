@@ -5453,9 +5453,6 @@ class TestCLIAgentsBugFixes(unittest.TestCase):
 
     def test_generate_agents_nonstring_prompt_file_does_not_crash(self):
         """Bug 1 (type): prompt_file = list/int must be skipped gracefully, not crash."""
-        import io as _io
-        from contextlib import redirect_stderr
-
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             (root / ".git").mkdir()
@@ -5474,7 +5471,7 @@ class TestCLIAgentsBugFixes(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            stderr_buf = _io.StringIO()
+            stderr_buf = io.StringIO()
             stdout = io.StringIO()
             with redirect_stdout(stdout), redirect_stderr(stderr_buf):
                 # Must not raise TypeError

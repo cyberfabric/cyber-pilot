@@ -33,6 +33,8 @@ class LoadedKit:
     templates: Dict[str, object]  # kind -> template-like (unused)
     constraints: Optional[KitConstraints] = None
     resource_bindings: Optional[Dict[str, str]] = None
+    kit_root: Optional[Path] = None
+    constraints_path: Optional[Path] = None
 
 @dataclass
 class CypilotContext:
@@ -129,14 +131,68 @@ def _resolve_registry_path(adapter_dir: Path) -> Path:
     return (adapter_dir / _ARTIFACTS_TOML).resolve()
 
 
+def _resolve_loaded_kit_root(adapter_dir: Path, project_root: Path, kit_path: str) -> Optional[Path]:
+    """Resolve a kit root using shared registered-path semantics.
+
+    Same-OS absolute paths must stay absolute. Relative paths are first
+    resolved from the adapter directory, with a project-root fallback to
+    preserve legacy registry behavior for project-relative kit paths.
+    """
+    from ..commands.kit import (
+        _is_registered_kit_path_absolute,
+        _normalize_path_string,
+        _resolve_registered_kit_dir,
+    )
+
+    normalized = _normalize_path_string(str(kit_path or ""))
+    if not normalized:
+        return adapter_dir.resolve()
+
+    kit_root = _resolve_registered_kit_dir(adapter_dir, normalized)
+    if kit_root is None:
+        return None
+    if _is_registered_kit_path_absolute(normalized) or kit_root.is_dir():
+        return kit_root
+
+    project_relative_root = (project_root / Path(normalized)).resolve()
+    if project_relative_root.is_dir():
+        return project_relative_root
+    return kit_root
+
+
+def _resolve_loaded_kit_constraints_path(
+    adapter_dir: Path,
+    project_root: Path,
+    loaded_kit: LoadedKit,
+) -> Optional[Path]:
+    """Resolve the authoritative constraints path for a loaded kit."""
+    resolved_constraints_path = getattr(loaded_kit, "constraints_path", None)
+    if isinstance(resolved_constraints_path, Path):
+        return resolved_constraints_path
+    if isinstance(resolved_constraints_path, str):
+        candidate = Path(resolved_constraints_path)
+        if candidate.is_absolute():
+            return candidate
+
+    kit_root = getattr(loaded_kit, "kit_root", None)
+    if not isinstance(kit_root, Path):
+        kit_root = _resolve_loaded_kit_root(
+            adapter_dir,
+            project_root,
+            str(getattr(getattr(loaded_kit, "kit", None), "path", "") or ""),
+        )
+    if kit_root is None:
+        return None
+    return (kit_root / "constraints.toml").resolve()
+
+
 def _load_single_kit(kit_id, kit, adapter_dir, project_root):
     """Load a single kit's templates, constraints, and resource bindings."""
     templates = {}
 
-    kit_path_str = str(kit.path or "").strip().strip("/")
-    kit_root = (adapter_dir / kit_path_str).resolve()
-    if not kit_root.is_dir():
-        kit_root = (project_root / kit_path_str).resolve()
+    kit_root = _resolve_loaded_kit_root(adapter_dir, project_root, str(kit.path or ""))
+    if kit_root is None:
+        kit_root = adapter_dir.resolve()
     # @cpt-begin:cpt-cypilot-algo-core-infra-context-loading:p1:inst-ctx-load-resource-bindings
     rb = None
     _resolved_bindings = {}
@@ -156,19 +212,23 @@ def _load_single_kit(kit_id, kit, adapter_dir, project_root):
     constraints_errs = []
     # @cpt-begin:cpt-cypilot-algo-core-infra-context-loading:p1:inst-constraints-from-binding
     _constraints_root = kit_root
+    resolved_constraints_path = None
     if _resolved_bindings and "constraints" in _resolved_bindings:
         _constraints_path = _resolved_bindings["constraints"]
         if _constraints_path.is_file():
             _constraints_root = _constraints_path.parent
+            resolved_constraints_path = _constraints_path.resolve()
     # @cpt-end:cpt-cypilot-algo-core-infra-context-loading:p1:inst-constraints-from-binding
     if _constraints_root.is_dir():
         kit_constraints, constraints_errs = load_constraints_toml(_constraints_root)
     elif kit_root.is_dir():
         kit_constraints, constraints_errs = load_constraints_toml(kit_root)
+    if resolved_constraints_path is None and _constraints_root.is_dir():
+        resolved_constraints_path = (_constraints_root / "constraints.toml").resolve()
 
     errors = []
     if constraints_errs:
-        constraints_path = (kit_root / "constraints.toml").resolve()
+        constraints_path = resolved_constraints_path or (kit_root / "constraints.toml").resolve()
         errors.append(error(
             "constraints",
             "Invalid constraints.toml",
@@ -178,7 +238,14 @@ def _load_single_kit(kit_id, kit, adapter_dir, project_root):
             kit=kit_id,
         ))
 
-    loaded = LoadedKit(kit=kit, templates=templates, constraints=kit_constraints, resource_bindings=rb)
+    loaded = LoadedKit(
+        kit=kit,
+        templates=templates,
+        constraints=kit_constraints,
+        resource_bindings=rb,
+        kit_root=kit_root,
+        constraints_path=resolved_constraints_path,
+    )
     return loaded, errors
 
 

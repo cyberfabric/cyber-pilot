@@ -6,6 +6,7 @@ has no [kits.{slug}.resources].
 """
 from __future__ import annotations
 
+import os
 import sys
 import textwrap
 import tomllib
@@ -316,6 +317,70 @@ class TestMigrateLegacyKitToManifest(unittest.TestCase):
             # Paths should reference the custom location
             for binding_path in result["resource_bindings"].values():
                 self.assertIn("custom_path", binding_path)
+
+    def test_windows_absolute_registered_root_fails_on_non_windows(self):
+        if os.name == "nt":
+            self.skipTest("non-Windows-only absolute path regression")
+        from cypilot.commands.kit import migrate_legacy_kit_to_manifest
+        from cypilot.utils import toml_utils
+
+        with TemporaryDirectory() as td:
+            td_path = Path(td)
+            kit_src = _make_kit_source_with_manifest(td_path, "mykit")
+            adapter = td_path / "adapter"
+            config = adapter / "config"
+            config.mkdir(parents=True)
+
+            toml_utils.dump({
+                "version": "1.0",
+                "project_root": "..",
+                "kits": {
+                    "mykit": {
+                        "format": "Cypilot",
+                        "path": "C:/external-kits/mykit",
+                        "version": "1.0",
+                    }
+                },
+            }, config / "core.toml")
+
+            result = migrate_legacy_kit_to_manifest(
+                kit_src, adapter, "mykit", interactive=False,
+            )
+
+            self.assertEqual(result["status"], "FAIL")
+            self.assertIn("not accessible on this OS", result["errors"][0])
+
+    def test_posix_absolute_registered_root_fails_on_windows(self):
+        import cypilot.commands.kit as kit_module
+        from cypilot.commands.kit import migrate_legacy_kit_to_manifest
+        from cypilot.utils import toml_utils
+
+        with TemporaryDirectory() as td:
+            td_path = Path(td)
+            kit_src = _make_kit_source_with_manifest(td_path, "mykit")
+            adapter = td_path / "adapter"
+            config = adapter / "config"
+            config.mkdir(parents=True)
+
+            toml_utils.dump({
+                "version": "1.0",
+                "project_root": "..",
+                "kits": {
+                    "mykit": {
+                        "format": "Cypilot",
+                        "path": "/external-kits/mykit",
+                        "version": "1.0",
+                    }
+                },
+            }, config / "core.toml")
+
+            with patch.object(kit_module.os, "name", "nt"):
+                result = migrate_legacy_kit_to_manifest(
+                    kit_src, adapter, "mykit", interactive=False,
+                )
+
+            self.assertEqual(result["status"], "FAIL")
+            self.assertIn("not accessible on this OS", result["errors"][0])
 
     def test_interactive_prompt_custom_relative_path(self):
         """Interactive prompt allows user to override new resource with relative path."""
@@ -644,6 +709,145 @@ class TestUpdateKitLegacyMigration(unittest.TestCase):
             # NEW binding added
             self.assertIn("new_workflow", kit_entry["resources"])
             self.assertIn("workflows/new_workflow.md", kit_entry["resources"]["new_workflow"]["path"])
+
+    def test_update_manifest_migration_preserves_absolute_bindings_when_relpath_raises(self):
+        import cypilot.commands.kit as kit_module
+        from cypilot.commands.kit import update_kit
+        from cypilot.utils import toml_utils
+
+        with TemporaryDirectory() as td:
+            td_path = Path(td)
+            kit_src = _make_kit_source_with_manifest(td_path, "mykit")
+            _write_manifest(kit_src, """\
+                [manifest]
+                version = "1.0"
+                root = "{cypilot_path}/config/kits/{slug}"
+                user_modifiable = false
+
+                [[resources]]
+                id = "adr_artifacts"
+                source = "artifacts/ADR"
+                default_path = "artifacts/ADR"
+                type = "directory"
+                user_modifiable = false
+
+                [[resources]]
+                id = "constraints"
+                source = "constraints.toml"
+                default_path = "constraints.toml"
+                type = "file"
+                user_modifiable = false
+
+                [[resources]]
+                id = "skill"
+                source = "SKILL.md"
+                default_path = "SKILL.md"
+                type = "file"
+                user_modifiable = false
+
+                [[resources]]
+                id = "notes"
+                source = "notes.txt"
+                default_path = "notes.txt"
+                type = "file"
+                user_modifiable = false
+            """)
+            (kit_src / "notes.txt").write_text("notes\n", encoding="utf-8")
+
+            adapter = td_path / "adapter"
+            config = adapter / "config"
+            external_kit_dir = (td_path / "external-kits" / "mykit").resolve()
+            (external_kit_dir / "artifacts" / "ADR").mkdir(parents=True)
+            (external_kit_dir / "artifacts" / "ADR" / "template.md").write_text("# ADR\n", encoding="utf-8")
+            (external_kit_dir / "artifacts" / "ADR" / "rules.md").write_text("# Rules\n", encoding="utf-8")
+            (external_kit_dir / "constraints.toml").write_text('[artifacts]\n', encoding="utf-8")
+            (external_kit_dir / "SKILL.md").write_text("# Kit mykit\n", encoding="utf-8")
+            config.mkdir(parents=True)
+
+            toml_utils.dump({
+                "version": "1.0",
+                "project_root": "..",
+                "kits": {
+                    "mykit": {
+                        "format": "Cypilot",
+                        "path": external_kit_dir.as_posix(),
+                        "version": "1.0",
+                    }
+                },
+            }, config / "core.toml")
+
+            original_relpath = kit_module.os.path.relpath
+
+            def _patched_relpath(path, start):
+                if os.fspath(path).startswith(external_kit_dir.as_posix()):
+                    raise ValueError("path is on mount 'D:', start on mount 'C:'")
+                return original_relpath(path, start)
+
+            with patch.object(kit_module.os.path, "relpath", side_effect=_patched_relpath):
+                result = update_kit(
+                    "mykit", kit_src, adapter,
+                    interactive=False, auto_approve=True,
+                )
+
+            self.assertNotEqual(result["version"]["status"], "failed")
+            with open(config / "core.toml", "rb") as f:
+                data = tomllib.load(f)
+            resources = data["kits"]["mykit"]["resources"]
+            self.assertEqual(data["kits"]["mykit"]["path"], external_kit_dir.as_posix())
+            self.assertEqual(resources["skill"]["path"], f"{external_kit_dir.as_posix()}/SKILL.md")
+            self.assertEqual(resources["constraints"]["path"], f"{external_kit_dir.as_posix()}/constraints.toml")
+            self.assertEqual(resources["notes"]["path"], f"{external_kit_dir.as_posix()}/notes.txt")
+
+    def test_manifest_update_preserves_registered_custom_kit_path(self):
+        """Manifest-backed update keeps an existing custom kits.{slug}.path."""
+        from cypilot.commands.kit import update_kit
+        from cypilot.utils import toml_utils
+
+        with TemporaryDirectory() as td:
+            td_path = Path(td)
+            kit_src = _make_kit_source_with_manifest(td_path, "mykit")
+            adapter = td_path / "adapter"
+            config = adapter / "config"
+            custom_kit_dir = adapter / "custom-kits" / "mykit"
+            custom_kit_dir.mkdir(parents=True)
+            (custom_kit_dir / "artifacts" / "ADR").mkdir(parents=True)
+            (custom_kit_dir / "artifacts" / "ADR" / "template.md").write_text("# ADR\n", encoding="utf-8")
+            (custom_kit_dir / "artifacts" / "ADR" / "rules.md").write_text("# Rules\n", encoding="utf-8")
+            (custom_kit_dir / "constraints.toml").write_text('[artifacts]\n', encoding="utf-8")
+            (custom_kit_dir / "SKILL.md").write_text("# Old Skill\n", encoding="utf-8")
+            toml_utils.dump({
+                "version": "1.0",
+                "project_root": "..",
+                "kits": {
+                    "mykit": {
+                        "format": "Cypilot",
+                        "path": "custom-kits/mykit",
+                        "version": "1.0",
+                        "resources": {
+                            "adr_artifacts": {"path": "custom-kits/mykit/artifacts/ADR"},
+                            "constraints": {"path": "custom-kits/mykit/constraints.toml"},
+                            "skill": {"path": "custom-kits/mykit/SKILL.md"},
+                        },
+                    }
+                },
+            }, config / "core.toml")
+
+            (kit_src / "SKILL.md").write_text("# New Skill\n", encoding="utf-8")
+            toml_utils.dump({"version": "2.1", "slug": "mykit"}, kit_src / "conf.toml")
+
+            update_kit(
+                "mykit", kit_src, adapter,
+                interactive=False, auto_approve=True,
+            )
+
+            with open(config / "core.toml", "rb") as f:
+                data = tomllib.load(f)
+
+            kit_entry = data["kits"]["mykit"]
+            self.assertEqual(kit_entry["path"], "custom-kits/mykit")
+            self.assertEqual(kit_entry["version"], "2.1")
+            self.assertEqual((custom_kit_dir / "SKILL.md").read_text(encoding="utf-8"), "# New Skill\n")
+            self.assertFalse((adapter / "config" / "kits" / "mykit").exists())
 
 
 if __name__ == "__main__":

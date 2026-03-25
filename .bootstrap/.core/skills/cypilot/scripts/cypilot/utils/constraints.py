@@ -1778,6 +1778,24 @@ def _normalize_id_entry(
     return normalized, None
 
 
+def _parse_identifier_entry(
+    kkind: object,
+    entry: object,
+    kind: str,
+) -> Tuple[Optional[IdConstraint], Optional[str]]:
+    if not isinstance(kkind, str) or not kkind.strip():
+        return None, f"constraints for {kind} field 'identifiers' has non-string kind key"
+    if not isinstance(entry, dict):
+        return None, f"constraints for {kind} identifiers[{kkind}]: Constraint entry must be an object"
+    normalized, norm_err = _normalize_id_entry(kkind, entry, kind)
+    if norm_err:
+        return None, norm_err
+    constraint, parse_err = _parse_id_constraint(normalized)
+    if parse_err:
+        return None, f"constraints for {kind} identifiers[{kkind}]: {parse_err}"
+    return constraint, None
+
+
 def _parse_identifiers_block(
     identifiers_raw: object,
     kind: str,
@@ -1789,27 +1807,18 @@ def _parse_identifiers_block(
     defined_id: List[IdConstraint] = []
     seen_defined: set[str] = set()
     for kkind, entry in identifiers_raw.items():
-        if not isinstance(kkind, str) or not kkind.strip():
-            errors.append(f"constraints for {kind} field 'identifiers' has non-string kind key")
-            continue
-        if not isinstance(entry, dict):
-            errors.append(f"constraints for {kind} identifiers[{kkind}]: Constraint entry must be an object")
-            continue
-        normalized, norm_err = _normalize_id_entry(kkind, entry, kind)
-        if norm_err:
-            errors.append(norm_err)
-            continue
-        c, e = _parse_id_constraint(normalized)
+        c, e = _parse_identifier_entry(kkind, entry, kind)
         if e:
-            errors.append(f"constraints for {kind} identifiers[{kkind}]: {e}")
+            errors.append(e)
             continue
-        if c is not None:
-            kk = c.kind.strip().lower()
-            if kk in seen_defined:
-                errors.append(f"constraints for {kind} identifiers has duplicate kind '{c.kind.strip()}'")
-                continue
-            seen_defined.add(kk)
-            defined_id.append(c)
+        if c is None:
+            continue
+        kk = c.kind.strip().lower()
+        if kk in seen_defined:
+            errors.append(f"constraints for {kind} identifiers has duplicate kind '{c.kind.strip()}'")
+            continue
+        seen_defined.add(kk)
+        defined_id.append(c)
     return defined_id, True
 # @cpt-end:cpt-cypilot-algo-traceability-validation-load-constraints:p1:inst-constraints-normalize
 

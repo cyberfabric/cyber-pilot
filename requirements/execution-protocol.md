@@ -52,7 +52,7 @@ After context compaction, agent may lose active-workflow state, loaded specs, or
 | Detection signals | Recovery protocol |
 |---|---|
 | Conversation starts with "This session is being continued from a previous conversation" | 1. Detect compaction from summary signals |
-| Summary mentions `/cypilot-generate`, `/cypilot-analyze`, or other Cypilot commands | 2. Re-run: `cpt info` + load required specs from `{cypilot_path}/.gen/AGENTS.md` |
+| Summary mentions `/cypilot-generate`, `/cypilot-analyze`, or other Cypilot commands | 2. Re-run: `{cpt_cmd} --json info` + load required specs from `{cypilot_path}/.gen/AGENTS.md` |
 | Todo list contains Cypilot-related tasks in progress | 3. Re-extract `variables` dict from `info` output for template variable resolution in kit files |
 |  | 4. Announce restored context (workflow, target, loaded specs), then continue |
 
@@ -63,7 +63,7 @@ After context compaction, agent may lose active-workflow state, loaded specs, or
 
 ## Deterministic Operations
 
-**ALWAYS** run `cypilot toc <file>` for ANY Table of Contents generation or update in Markdown files. **NEVER** write TOC manually — agent-generated anchors are unreliable. Manually written TOC = **INVALID output**.
+**ALWAYS** run `{cpt_cmd} --json toc <file>` for ANY Table of Contents generation or update in Markdown files. **NEVER** write TOC manually — agent-generated anchors are unreliable. Manually written TOC = **INVALID output**.
 
 ## Mode Detection
 
@@ -130,7 +130,7 @@ Available kits:
 ### Discover Cypilot
 
 ```bash
-cpt info --json --root {PROJECT_ROOT} --cypilot-root {cypilot_path}
+{cpt_cmd} --json info --root {project_root} --cypilot-root {cypilot_path}
 ```
 
 Parse JSON output: `status`, `cypilot_dir`, `project_root`, `specs`, `rules`, `variables`.
@@ -148,7 +148,7 @@ Parse JSON output: `status`, `cypilot_dir`, `project_root`, `specs`, `rules`, `v
 | **Resolve Kit Package** | Find system containing target artifact; get `system.kit`; look up `artifacts.toml.kits[kit_name].path`; set `KIT_BASE` | `KIT_BASE` |
 | **Determine Artifact Type** | Resolve from explicit parameter or registry lookup: `cypilot generate PRD` → PRD; `cypilot analyze {path}` → `artifacts.toml.systems[].artifacts[path].kind`; path in `codebase[]` → CODE | `ARTIFACT_TYPE` |
 | **Load Rules.md** | Set `KITS_PATH = {KIT_BASE}/artifacts/{ARTIFACT_TYPE}/rules.md`; for CODE use `KITS_PATH = {KIT_BASE}/codebase/rules.md`; MUST read rules.md and parse Dependencies, Requirements, Tasks (for generate), Validation (for validate) | `KITS_PATH`, parsed rules sections |
-| **Load Dependencies** | For each dependency from rules.md, resolve path relative to rules.md location, load file content, store for workflow use | `TEMPLATE`, `CHECKLIST`, `EXAMPLE` |
+| **Load Dependencies** | For each dependency from rules.md, resolve path relative to rules.md location, load only the dependencies required for the current phase, and store them for workflow use. Generation normally loads template/example (or code design/spec context) first; checklist is loaded during validation/review unless the current rules explicitly require it earlier | phase-appropriate dependency set |
 | **Confirm Requirements** | Agent confirms Structural, Semantic, Versioning, and Traceability requirements from rules | `REQUIREMENTS` |
 | **Load Config Specs** | After rules loaded and target type determined, read `{cypilot_path}/.gen/AGENTS.md`; use the matching rules below to open applicable specs; if config uses legacy `WHEN executing workflows: ...`, map workflow names to artifact kinds internally | `CONFIG_SPECS` |
 
@@ -191,6 +191,6 @@ Use this single checklist for all execution-protocol validation.
 | **Detection (D)** | D.1 Cypilot mode detected (agent states Cypilot enabled); D.2 Rules mode determined (STRICT/RELAXED + reason) |
 | **Discovery (DI)** | DI.1 Cypilot discovery executed (`cpt info`); DI.2 `artifacts.toml` read/understood (agent lists systems/rules); DI.3 Rules directories explored (agent lists artifact kinds) |
 | **Clarification (CL)** | CL.1 Target type clarified (artifact or code); CL.2 Artifact type determined (PRD, DESIGN, etc.); CL.3 System context clarified when using rules; CL.4 Rules context clarified when multiple rules |
-| **Loading (L)** | L.1 `KITS_PATH` resolved (correct `rules.md`); L.2 Dependencies loaded (template/checklist/example); L.3 Requirements confirmed (agent enumerates requirements); L.4 Config specs loaded when WHEN clauses match |
+| **Loading (L)** | L.1 `KITS_PATH` resolved (correct `rules.md`); L.2 Phase-appropriate dependencies loaded (generation: template/example unless checklist is explicitly required early; validation/review: checklist when applicable); L.3 Requirements confirmed (agent enumerates requirements); L.4 Config specs loaded when WHEN clauses match |
 | **Context (C)** | C.1 Cross-references understood (parent/child/related artifacts); C.2 Project context available (can reference project specifics) |
 | **Final (F)** | F.1 D.1-D.2 pass; F.2 DI.1-DI.3 pass; F.3 CL.1-CL.4 pass (apply conditionals); F.4 L.1-L.4 pass (apply conditionals); F.5 C.1-C.2 pass; F.6 Ready for workflow-specific logic |

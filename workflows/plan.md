@@ -16,24 +16,25 @@ purpose: Universal workflow for generating execution plans with phased delivery
 - [Context Budget & Overflow Prevention (CRITICAL)](#context-budget--overflow-prevention-critical)
 - [Phase 0: Resolve Variables & Discover Tools](#phase-0-resolve-variables--discover-tools)
 - [Phase 1: Assess Scope](#phase-1-assess-scope)
+- [Phase 2: Decompose](#phase-2-decompose)
 - [Phase 3: Compile Phase Files](#phase-3-compile-phase-files)
 - [Phase 4: Finalize Plan](#phase-4-finalize-plan)
-- [Phase 5: Execute Phases](#phase-5-execute-phases)
-- [Phase 6: Check Status](#phase-6-check-status)
+- [Appendix A: Execute Phases (Reference Only)](#appendix-a-execute-phases-reference-only)
+- [Appendix B: Check Status (Reference Only)](#appendix-b-check-status-reference-only)
 - [Plan Storage Format](#plan-storage-format)
 - [Execution Log](#execution-log)
 
 <!-- /toc -->
 
-> **⛔ CRITICAL CONSTRAINT**: This workflow ONLY generates execution plans. It NEVER executes the underlying task (generate, analyze, implement) directly. Even if the task seems small, this workflow's job is to produce phase files — not to do the work itself. If the task is small enough for direct execution, tell the user to use `/cypilot-generate` or `/cypilot-analyze` instead.
+> **⛔ CRITICAL CONSTRAINT**: This workflow ONLY generates execution plans and related handoff artifacts. It NEVER executes the underlying task (generate, analyze, implement) directly. Even if the task seems small, this workflow's job is to produce phase files — not to do the work itself. If the task is small enough for direct execution, tell the user to use `/cypilot-generate` or `/cypilot-analyze` instead. The reference appendices below define the runtime contract that generated plans MUST support; they are not steps performed by this workflow.
 
-> **⛔ CRITICAL CONSTRAINT — FULL CONTEXT LOADING**: Before generating ANY plan, you MUST load and process ALL navigation rules (`ALWAYS open`, `OPEN and follow`, `ALWAYS open and follow`) from the **target workflow** (generate.md, analyze.md, or the relevant workflow). Every file referenced by those directives MUST be opened and its content used during decomposition and compilation. Skipping ANY navigation rule means phase files will be compiled with incomplete context, producing broken or shallow results. This is the #1 source of plan quality failures.
+> **⛔ CRITICAL CONSTRAINT — COMPLETE COVERAGE, COMPACT LOADING**: Before generating ANY plan, you MUST discover and process ALL navigation rules (`ALWAYS open`, `OPEN and follow`, `ALWAYS open and follow`) from the **target workflow** (generate.md, analyze.md, or the relevant workflow). Every applicable file referenced by those directives MUST be opened at least once, but you MUST retain only the specific sections/ranges needed for decomposition, interaction extraction, and compilation. Completeness is proven by a loaded-file manifest with paths and sections/ranges, not by keeping every dependency fully resident in context. Skipping ANY navigation rule still produces incomplete context and broken plans. This is the #1 source of plan quality failures.
 
 > **⛔ CRITICAL CONSTRAINT — KIT RULES ARE LAW** *(highest priority)*: Every rule in the kit's `rules.md` for the target artifact kind MUST be enforced in the generated plan — **completely, without omission or summarization**. Rules are inlined verbatim into phase files. If the full rules don't fit in a single phase, split the phase so each sub-phase gets ALL rules relevant to its scope — but NEVER trim, summarize, or selectively skip rules to fit a budget. The `checklist.md` items are equally mandatory for analyze tasks. A plan that drops kit rules produces artifacts that fail validation.
 
 > **⛔ CRITICAL CONSTRAINT — DETERMINISTIC FIRST**: Every phase step that CAN be done by a deterministic tool (cpt command, script, shell command) MUST use that tool instead of LLM reasoning. Discover available tools dynamically in Phase 0 — do NOT assume a fixed set of commands. Tool capabilities change between versions. The CLISPEC file is the source of truth for what commands exist and what they can do.
 
-> **⛔ CRITICAL CONSTRAINT — INTERACTIVE QUESTIONS COMPLETENESS** *(mandatory)*: You MUST find ALL interactive questions, user input requests, confirmation gates, review requests, and decision points from: (1) the target workflow, (2) `rules.md` for the target artifact kind, (3) `checklist.md`, (4) `template.md`, AND (5) **every file referenced by navigation rules** (`ALWAYS open`, `OPEN and follow`) in those files — recursively. Every interaction point found MUST appear in the compiled plan: pre-resolvable questions asked BEFORE plan generation, phase-bound questions embedded in phase files. **Missing even ONE interaction point = plan is INVALID.** See `{cypilot_path}/.core/requirements/plan-checklist.md` Section 2 for the complete extraction procedure.
+> **⛔ CRITICAL CONSTRAINT — INTERACTIVE QUESTIONS COMPLETENESS** *(mandatory)*: You MUST find ALL interactive questions, user input requests, confirmation gates, review requests, and decision points from: (1) the target workflow, (2) `rules.md` for the target artifact kind, (3) `checklist.md`, (4) `template.md`, AND (5) **every file referenced by navigation rules** (`ALWAYS open`, `OPEN and follow`) in those files — recursively. Every interaction point found MUST appear in the compiled plan: pre-resolvable questions asked BEFORE plan generation, phase-bound questions embedded in phase files. Inspect every applicable dependency, record the source path plus section/range for each interaction point, and carry forward only the extracted interaction data needed by later phases. **Missing even ONE interaction point = plan is INVALID.** See `{cypilot_path}/.core/requirements/plan-checklist.md` Section 2 for the complete extraction procedure.
 
 > **⛔ CRITICAL CONSTRAINT — BRIEF BEFORE COMPILE**: Phase files MUST NOT be written directly. Every phase file MUST be compiled from a corresponding compilation brief (`brief-{NN}-{slug}.md`) that was written to disk in Phase 3.2. The brief is the contract between decomposition (what to include) and compilation (how to assemble). Skipping briefs produces phase files that silently omit kit content, miss load instructions, or inline wrong sections. **If you find yourself writing a phase file without first reading its brief from disk — STOP, you are violating the workflow.** Write the brief first, write it to disk, THEN compile from it. A phase file without a corresponding brief file on disk = INVALID plan.
 
@@ -53,28 +54,27 @@ OPEN and follow `{cypilot_path}/.core/requirements/plan-checklist.md` WHEN valid
 
 For context compaction recovery during multi-phase workflows, follow `{cypilot_path}/.core/requirements/execution-protocol.md` Section "Compaction Recovery".
 
----
-
 ## Overview
 
 This workflow generates execution plans, not direct results. Use it when work exceeds a single-context window, requires a long checklist, or involves multi-block implementation. Do **not** use it for small edits, direct execution, or work that fits in ~500 compiled lines. Output: `plan.toml` + `N` phase files in `{cypilot_path}/.plans/{task-slug}/`.
 
 ## Context Budget & Overflow Prevention (CRITICAL)
 
+- Open every applicable dependency file to inspect required sections, but do NOT retain full file bodies once the needed slices are extracted.
 - Do NOT load all kit dependencies at once; load incrementally per phase.
 - Do NOT hold all phase files in context simultaneously; compile and write one at a time.
 - If a phase compilation would exceed current context budget, checkpoint and use Compaction Recovery.
 - The plan manifest (`plan.toml`) is the recovery checkpoint and MUST be written before compilation.
 
-Budget targets: Phase 0-1 `~200` lines, Phase 2 `~300`, Phase 3 `~500` per phase file, Phase 4 `~50`, Phase 5-6 `~500` one phase at a time.
+Budget targets: Phase 0-1 `~200` lines, Phase 2 `~300`, Phase 3 `~500` per phase file, Phase 4 `~50`. The reference appendices below are runtime guidance only and do not consume plan-generation budget unless the user explicitly asks about execution behavior.
 
 ## Phase 0: Resolve Variables & Discover Tools
 
-Run `EXECUTE: {cypilot_command} info`; store `{cypilot_path}`, `{project_root}`, and kit paths.
+Run `EXECUTE: {cpt_cmd} --json info`; store `{cypilot_path}`, `{project_root}`, and the returned `variables` dict for later path resolution.
 
 ### 0.1 Discover Available Tools
 
-Read `READ: {cypilot_path}/.core/skills/cypilot/cypilot.clispec` and build a dynamic tool map from each `COMMAND` block as `{command_name} — {DESCRIPTION line} [outputs: {OUTPUT format}]`. Also scan `SCAN: {kit_scripts_path}/ for *.py, *.sh files` and add kit scripts with inferred purpose.
+Read `READ: {cypilot_path}/.core/skills/cypilot/cypilot.clispec` and build a dynamic tool map from each `COMMAND` block as `{command_name} — {DESCRIPTION line} [outputs: {OUTPUT format}]`. Also inspect the resolved `variables` dict for script directories (for example `{scripts}` when present), scan each such directory for `*.py`, `*.sh` files, and add kit scripts with inferred purpose.
 
 ## Phase 1: Assess Scope
 
@@ -88,17 +88,18 @@ Read `READ: {cypilot_path}/.core/skills/cypilot/cypilot.clispec` and build a dyn
 
 ### 1.1b Extract Target Workflow Navigation Rules (CRITICAL)
 
-Open `{cypilot_path}/.core/workflows/{target_workflow}` and: scan all navigation directives, list referenced files + `WHEN` conditions, evaluate them, open every applicable file, and record a loaded-file manifest.
+Open `{cypilot_path}/.core/workflows/{target_workflow}` and: scan all navigation directives, list referenced files + `WHEN` conditions, evaluate them, open every applicable file, extract only the sections/ranges needed for plan generation, and record a loaded-file manifest with `path`, `reason`, `sections/ranges`, and `line_count`.
 
 Report:
 ```text
 Context loaded for plan generation:
   Workflow: {target_workflow} ({N} navigation rules processed)
-  Kit files: {M} files loaded ({rules}, {checklist}, {template}, ...)
-  Total context: ~{L} lines
+  Files inspected: {M} files
+  Loaded manifest: {path — sections/ranges — reason}
+  Total retained context: ~{L} lines
   All navigation rules processed? [YES/NO]
 ```
-**Gate**: do NOT proceed until ALL applicable navigation rules are processed and all required referenced files are loaded.
+**Gate**: do NOT proceed until ALL applicable navigation rules are processed, every required referenced file has been opened, and every retained slice needed for planning is captured in the manifest.
 
 ### 1.2 Estimate Compiled Size
 
@@ -130,33 +131,55 @@ Interaction points scan complete:
 **Gate**: do NOT proceed if any source file was not scanned or any interaction point remains unclassified. If zero are found, report `No interaction points detected — task is fully autonomous` and omit User Decisions from phase files.
 
 ### 1.4 Identify Target
- 
- Resolve generate/analyze → artifact kind, file path, and kit; implement → FEATURE spec path and CDSL blocks. Then report:
- ```text
- Plan scope:
-   Type: {generate|analyze|implement}
-   Target: {artifact kind or feature name}
-   Estimated size: ~{N} lines
- ```
- 
- ## Phase 2: Decompose
- 
- Open and follow `{cypilot_path}/.core/requirements/plan-decomposition.md`.
- 
- Compilation is split to minimize context: write the manifest, write briefs, then compile one phase at a time.
- 
- Select a strategy based on task type:
- - **generate**: load the target template, list H2 sections, group them into phases of `2-4` sections, and record phase boundaries.
- - **analyze**: load the target checklist, list checklist categories, group them by validation pipeline order (structural → semantic → cross-ref → traceability → synthesis), and record phase boundaries.
- - **implement**: load the FEATURE spec, list CDSL blocks, assign one block + tests per phase, add scaffolding and final integration phases, and record boundaries.
 
-Output a phase list containing phase number and title, covered sections / categories / blocks, dependencies, `input_files`, `output_files`, assigned interaction points, and intermediate results needed by later phases.
+Resolve generate/analyze → artifact kind, file path, and kit; implement → FEATURE spec path and CDSL blocks. Also compute `plan.target_key`, the canonical target identity used for deterministic plan-directory naming and reuse:
+- generate artifact target: prefer the single resolved output artifact path as `artifact-path:{absolute path}`; otherwise use `artifact:{artifact kind}:{explicit artifact name}`
+- analyze path target: use `path:{absolute path}` for the primary file/directory target; analyze artifact target follows the generate artifact-target rule
+- implement target: prefer `feature-path:{absolute FEATURE path}`; otherwise `feature-id:{FEATURE ID}`; otherwise `feature-title:{normalized FEATURE title}`
+Then report:
+```text
+Plan scope:
+  Type: {generate|analyze|implement}
+  Target: {artifact kind or feature name}
+  Target key: {canonical target identity}
+  Estimated size: ~{N} lines
+```
+
+## Phase 2: Decompose
+
+Open and follow `{cypilot_path}/.core/requirements/plan-decomposition.md`.
+
+Compilation is split to minimize context: write the manifest, write briefs, then compile one phase at a time.
+
+### 2.1 Select Plan Lifecycle (before finalizing phases)
+
+Ask how completed plans should be handled:
+```text
+Plan files are stored in {cypilot_path}/.plans/{task-slug}/.
+How should completed plans be handled?
+  [1] .gitignore — keep plan files in place and ensure .plans/ is gitignored
+  [2] Cleanup phase — add a final Cleanup phase that removes compiled plan artifacts after delivery phases pass
+  [3] Archive — move the plan directory to {cypilot_path}/.plans/.archive/
+  [4] Manual — stop after execution and ask me what to do with the plan files
+```
+Record `lifecycle = "gitignore" | "cleanup" | "archive" | "manual"`. Lifecycle handling is deterministic and single-path:
+- `gitignore`: planning-time repository hygiene. Ensure `.plans/` is gitignored before or immediately after the first plan file write. Set `plan.lifecycle_status = "done"` as soon as the ignore rule exists. No post-completion plan-file prompt is allowed.
+- `cleanup`: reserve a final Cleanup phase now so `total_phases`, dependencies, briefs, and budget estimates are structurally correct before `plan.toml` is written. After all non-lifecycle phases are `done`, set `plan.lifecycle_status = "ready"`, execute the Cleanup phase, then set `plan.lifecycle_status = "done"` only if cleanup succeeds. The Cleanup phase removes `brief-*`, `phase-*`, and `out/`; `plan.toml` remains as the terminal receipt. No post-completion plan-file prompt is allowed.
+- `archive`: after all phases are `done`, set `plan.lifecycle_status = "ready"`, move the plan directory to `{cypilot_path}/.plans/.archive/{task-slug}/`, then update `plan.active_plan_dir` and set `plan.lifecycle_status = "done"` in the moved manifest. No post-completion plan-file prompt is allowed.
+- `manual`: do nothing automatically. After all phases are `done`, set `plan.lifecycle_status = "manual_action_required"` and present exactly one keep/archive/delete choice. This is the only strategy that allows a post-completion plan-file decision prompt.
+
+Select a strategy based on task type:
+- **generate**: load the target template, list H2 sections, group them into phases of `2-4` sections, and record phase boundaries.
+- **analyze**: load the target checklist, list checklist categories, group them by validation pipeline order (structural → semantic → cross-ref → traceability → synthesis), and record phase boundaries.
+- **implement**: load the FEATURE spec, list CDSL blocks, assign one block + tests per phase, add scaffolding and final integration phases, and record boundaries.
+
+Output a phase list containing phase number and title, covered sections / categories / blocks, dependencies, `input_files`, `output_files`, assigned interaction points, and intermediate results needed by later phases. If `lifecycle = cleanup`, append the reserved final Cleanup phase after all delivery phases and make it depend on the last non-cleanup phase.
 
 ### Intermediate Results Analysis
 
-Identify data flow between phases: incremental artifact output, extracted data, analysis notes, generated IDs, and decision logs.
+ Identify data flow between phases: incremental artifact output, extracted data, analysis notes, generated IDs, and decision logs.
 
-Rules: if any later phase needs a phase result, save it to `{cypilot_path}/.plans/{task-slug}/out/{filename}`; if only the final artifact depends on it, write directly to the project path; if the final phase assembles prior outputs, list ALL required `inputs`; use names like `out/phase-{NN}-{what}.md`.
+ Rules: if any later phase needs a phase result, save it to `{cypilot_path}/.plans/{task-slug}/out/{filename}`; if only the final artifact depends on it, write directly to the project path; if the final phase assembles prior outputs, list ALL required `inputs`; use names like `out/phase-{NN}-{what}.md`.
 
 ### Review Phases
 
@@ -172,16 +195,14 @@ Decomposition ({strategy} strategy):
   Phase 3: {title} — ~{N} lines (phase: {P}, runtime: {R}) 
   ...
   Phase N: {title} — ~{N} lines (phase: {P}, runtime: {R}) 
-
+  
   Total phases: {N}
   Overflow phases: 0
   Budget: 2000 lines max per phase
-
+  
   Proceed with compilation? [y/n]
 ```
 Wait for user confirmation before proceeding.
-
----
 
 ## Phase 3: Compile Phase Files
 
@@ -191,14 +212,20 @@ Compilation is split to minimize context: write the manifest, write briefs, then
 
 ### 3.1 Write Plan Manifest
 
-Write `plan.toml` **before** compilation:
+Write `plan.toml` after decomposition and lifecycle selection, but **before** phase compilation:
 ```toml
 [plan]
 task = "{task description}"
 type = "{generate|analyze|implement}"
 target = "{artifact kind}"          # e.g. "PRD", "DESIGN", "FEATURE"
+target_key = "{canonical target identity}" # deterministic naming/reuse key for this plan target
 kit_path = "{absolute path to kit}" # e.g. "/abs/path/config/kits/sdlc"
 created = "{ISO 8601 timestamp}"
+lifecycle = "{gitignore|cleanup|archive|manual}"
+execution_status = "not_started"     # not_started|in_progress|done|failed
+lifecycle_status = "pending"         # pending|ready|in_progress|manual_action_required|done|failed; use "done" immediately for `gitignore` once `.plans/` is gitignored
+plan_dir = "{cypilot_path}/.plans/{task-slug}"
+active_plan_dir = "{cypilot_path}/.plans/{task-slug}" # update if archived
 total_phases = {N}
 
 [[phases]]
@@ -208,6 +235,7 @@ slug = "{short-slug}"
 file = "phase-01-{slug}.md"
 brief_file = "brief-01-{slug}.md"  # compilation brief (MUST exist before phase file)
 status = "pending"
+kind = "delivery"                    # delivery|lifecycle
 depends_on = []
 input_files = []                    # project files to read at runtime
 output_files = ["{target file}"]    # project files this phase creates/modifies
@@ -215,9 +243,8 @@ outputs = ["out/phase-01-{what}.md"] # intermediate results for later phases
 inputs = []                         # intermediate results from prior phases
 template_sections = [1, 2, 3]      # H2 numbers from template.md (generate tasks)
 checklist_sections = []             # H2 numbers from checklist.md (analyze tasks)
-
-# ... one [[phases]] block per phase
 ```
+`plan.execution_status` tracks aggregate phase execution independently from plan-file handling. `plan.lifecycle_status` tracks whether plan storage actions are still pending, in progress, complete, or awaiting manual resolution.
 
 ### 3.2 Generate Compilation Briefs (from Template)
 
@@ -252,32 +279,26 @@ After all phases are compiled:
 6. Context budget `phase_file_lines + input_files + inputs + output_lines ≤ 2000`; otherwise split.
 7. After the final phase, the union of all Rules sections must cover `100%` of applicable rules.
 
----
-
 ## Phase 4: Finalize Plan
 
-> **Note**: `plan.toml` was already written in Phase 3.1 and phase files compiled in Phase 3.2-3.3.
+> **Note**: `plan.toml` was already written in Phase 3.1, lifecycle was selected in Phase 2.1, and phase files were compiled in Phase 3.2-3.3.
 
-Status values in `plan.toml`: `pending`, `in_progress`, `done`, `failed`.
+Status model in `plan.toml`:
+- `phases[].status`: `pending`, `in_progress`, `done`, `failed`
+- `plan.execution_status`: aggregate phase execution state, independent of lifecycle handling
+- `plan.lifecycle_status`: plan-file lifecycle state, independent of whether all phases are already complete
 
-### Plan Lifecycle Strategy
+Update rules:
+- all phases `pending` → `plan.execution_status = "not_started"`
+- any phase `in_progress`, or any mix of `done` and `pending`, → `plan.execution_status = "in_progress"`
+- any phase `failed` → `plan.execution_status = "failed"` until explicitly reopened or downgraded
+- all phases `done` → `plan.execution_status = "done"`; `plan.lifecycle_status` may still be `ready`, `in_progress`, or `manual_action_required`
 
-Ask how completed plans should be handled:
-```text
-Plan files are stored in {cypilot_path}/.plans/{task-slug}/.
-How should completed plans be handled?
-  [1] .gitignore — add .plans/ to .gitignore
-  [2] Cleanup phase — add a final phase that deletes plan files after all phases pass
-  [3] Archive — move to {cypilot_path}/.plans/.archive/
-  [4] Keep as-is — leave plan files in place, user manages manually
-```
-Record `lifecycle = "gitignore" | "cleanup" | "archive" | "manual"`. Rules: `gitignore` appends `.plans/`; `cleanup` adds a final Cleanup phase; `archive` moves to `.plans/.archive/{task-slug}/` and gitignores only `.plans/.archive/`; `manual` does nothing. Report `Plan created: {cypilot_path}/.plans/{task-slug}/` with phase count, file count, and lifecycle.
-
-### Phase 4.1: Validate Plan Before Execution (MANDATORY)
+### 4.1 Validate Plan Before Handoff (MANDATORY)
 
 > **⛔ CRITICAL**: Offer plan validation as the FIRST next step.
 
-Before generating the startup prompt:
+Before generating the startup prompt or offering execution handoff:
 1. Self-validate against `{cypilot_path}/.core/requirements/plan-checklist.md`.
 2. Report:
 ```text
@@ -296,19 +317,31 @@ Plan Self-Validation: {task-slug}
 Overall: PASS/FAIL
 ═══════════════════════════════════════════════
 ```
-If any category FAILs: list issues and offer to fix them. If all PASS: present ALL of these next steps and wait for user choice before generating the startup prompt:
+If any category FAILs: list issues and offer to fix them.
+
+### 4.2 Report Plan & Offer Next Steps
+
+If all categories PASS, report:
+```text
+Plan created: {cypilot_path}/.plans/{task-slug}/
+  Phases: {N}
+  Files: {file_count}
+  Lifecycle: {lifecycle}
+```
+
+ Then present ALL of these next steps and wait for user choice before generating the startup prompt:
 ```text
 What would you like to do next?
 
   [1] Validate plan thoroughly — run /cypilot-analyze on the plan
-  [2] Start execution — begin with Phase 1
+  [2] Prepare execution handoff — generate the Phase 1 startup prompt for a downstream execution chat
   [3] Review plan files — inspect phase files before execution
   [4] Modify plan — adjust phases, add/remove content
 ```
 
 ### New-Chat Startup Prompt
 
-When requested, emit the entire startup prompt inside a **single fenced code block**:
+When the user chooses execution handoff, emit the entire startup prompt inside a **single fenced code block**:
 ```text
 I have a Cypilot execution plan ready at:
   {cypilot_path}/.plans/{task-slug}/plan.toml
@@ -319,18 +352,21 @@ After completion, report results and generate the prompt for Phase 2.
 ```
 No explanatory text may be mixed into that code fence.
 
----
+## Appendix A: Execute Phases (Reference Only)
 
-## Phase 5: Execute Phases
+This appendix is the runtime contract for a generated plan after `/cypilot-plan` has finished. It is reference material for downstream execution, not a phase performed during plan creation.
 
 When the user requests phase execution:
 
 ### 5.1 Load Phase
 
-1. Read `plan.toml` to find the next pending phase respecting dependencies.
-2. Update that phase status to `in_progress`.
-3. Read the phase file.
-4. Follow the phase file exactly — it is self-contained.
+1. Read `plan.toml`, including `plan.execution_status`, `plan.lifecycle_status`, and all phase metadata.
+2. Determine the next executable phase from manifest state, not chat memory: choose the first phase whose status is `pending` or explicitly reopened and whose `depends_on` phases are all `done`.
+3. Audit dependency integrity for that candidate phase: every upstream phase marked `done` must still satisfy its declared `output_files`, its declared `outputs`, and any intermediate artifacts required by downstream `inputs`. If not, follow [5.7 Abandoned Plan Recovery](#57-abandoned-plan-recovery).
+4. If the audit reopens any delivery phase, repair lifecycle state before further execution: keep `plan.lifecycle_status = "done"` only for `gitignore`; otherwise reset `plan.lifecycle_status` to `"pending"` and clear any stale `manual_action_required`, `ready`, or `in_progress` state from the prior completion attempt.
+5. If all delivery phases still remain `done` and `plan.lifecycle_status = "manual_action_required"`, resolve the single manual lifecycle choice before attempting any further lifecycle handling. A stale manual lifecycle state MUST NOT block recovery.
+6. Update the candidate phase status to `in_progress` and set `plan.execution_status = "in_progress"`.
+7. Read the phase file and follow it exactly — it is self-contained.
 
 ### 5.2 Execute
 
@@ -372,25 +408,26 @@ I have a Cypilot execution plan at:
   {cypilot_path}/.plans/{task-slug}/plan.toml
 
 Phase {N} is complete ({status}).
-Please read the plan manifest, then execute Phase {N+1}: "{title}".
-The phase file is: {cypilot_path}/.plans/{task-slug}/phase-{NN}-{slug}.md
-It is self-contained — follow its instructions exactly.
+Please read the plan manifest, confirm the next executable phase, and execute it.
+If manifest state or dependency checks require recovery, follow recovery before reading the next phase file.
+The expected next phase file is: {cypilot_path}/.plans/{task-slug}/phase-{NN}-{slug}.md
+The phase file is self-contained — follow its instructions exactly.
 After completion, report results and generate the prompt for Phase {N+2}.
 ```
 Then ask:
 ```text
-Continue in this chat? [y] execute next phase here | [n] copy prompt above to new chat
+Continue in this chat? [y] re-enter from plan.toml here | [n] copy prompt above to new chat
 (Recommended: new chat for guaranteed clean context)
 ```
 If user chooses continue, apply:
 ```text
 --- CONTEXT BOUNDARY ---
-Previous phase execution is complete. Disregard all prior context.
-Read ONLY the next phase file — it is self-contained.
-Do not reference any information from before this boundary.
+Previous phase execution is complete. Disregard prior chat context.
+Re-read `plan.toml`, confirm the next executable phase from manifest state, verify dependency `output_files`, `outputs`, and downstream `inputs`, repair stale lifecycle state if recovery reopens work, then read ONLY that phase file.
+If manifest state disagrees with the expected next phase, follow the manifest and recovery logic instead of chat memory.
 ---
 ```
-The phase file on disk is the sole source of truth.
+The manifest on disk is the sole source of truth. Same-chat continuation MUST re-enter 5.1, including full integrity audit and lifecycle-state repair, and MUST NOT bypass manifest or recovery logic.
 
 **If last phase** instead of a next-phase prompt, MUST:
 1. Report completion:
@@ -401,47 +438,69 @@ The phase file on disk is the sole source of truth.
    Plan: {cypilot_path}/.plans/{task-slug}/plan.toml
    Target: {artifact kind or feature}
    Phases completed: {M}
+   Execution status: done
    Lifecycle strategy: {lifecycle}
+   Lifecycle status: {lifecycle_status}
    ═══════════════════════════════════════════════
    ```
-2. Execute the lifecycle strategy from `plan.toml`.
-3. Ask:
-   ```text
-   Plan execution complete. What would you like to do with the plan files?
+2. Set `plan.execution_status = "done"`.
+3. Handle plan-file lifecycle exactly once:
+   - if `lifecycle = "gitignore"`, no further plan-file action runs here; `plan.lifecycle_status` should already be `done`
+   - if `lifecycle = "cleanup"`, the reserved final Cleanup phase is the lifecycle action; when that phase finishes successfully, set `plan.lifecycle_status = "done"`, otherwise `failed`
+   - if `lifecycle = "archive"`, set `plan.lifecycle_status = "ready"`, perform the archive move exactly once, then set `plan.lifecycle_status = "done"` or `failed`
+   - if `lifecycle = "manual"`, set `plan.lifecycle_status = "manual_action_required"` and present exactly one prompt:
+     ```text
+     Plan execution complete. Manual lifecycle selected. What should happen to the plan files?
 
-     [1] Keep — leave plan files for reference
-     [2] Archive — move to .plans/.archive/ (gitignored)
-     [3] Delete — remove plan directory entirely
-     [4] Already handled — lifecycle strategy was {lifecycle}
-   ```
-4. Offer validation:
+       [1] Keep — leave plan files for reference and set `lifecycle_status = "done"`
+       [2] Archive — move to `.plans/.archive/` and set `lifecycle_status = "done"`
+       [3] Delete — remove the plan directory after reporting completion; no further manifest status remains on disk
+     ```
+   No second plan-file prompt is allowed after `gitignore`, `cleanup`, or `archive`.
+4. Offer post-completion follow-up:
    ```text
-   Would you like to validate the generated {artifact/code}?
+   Would you like a post-completion follow-up?
 
-     [1] Yes — run /cypilot-analyze on the output
-     [2] No — done for now
+     [1] Deterministic validation — only when validator availability is proven for this exact completed target under `workflows/analyze.md` Phase 2; run the canonical validator command, report exit code plus JSON `status` / `error_count` / `warning_count`, and continue only if PASS
+     [2] Semantic review — run `/cypilot-analyze` on the completed target when semantic inspection is desired or deterministic validation is unavailable
+     [3] No follow-up — done for now
    ```
+   Routing rules:
+   - `generate`: if one concrete artifact output path is the completed target and validator availability is proven, the canonical deterministic command is `{cpt_cmd} --json validate --artifact {PATH}`
+   - `implement`: use `{cpt_cmd} --json validate` only when active config plus CLI support prove that the code validator applies to the completed target; otherwise deterministic validation is unavailable
+   - `analyze`: do not suggest a generic deterministic validator as a completion default; the plan already executed an analysis path
+   - Validator availability MUST NOT be inferred from workflow prose, examples, artifact labels, or plan type alone
 
 ### 5.7 Abandoned Plan Recovery
 
-If a plan is abandoned: `plan.toml` is the checkpoint; read it, find the first `pending` or `in_progress` phase, verify any partial outputs, and resume from there.
+If a plan is abandoned or same-chat continuation loses state: `plan.toml` is the checkpoint, but recovery MUST audit completed work before resuming.
+
+1. Read `plan.toml`.
+2. Audit every phase marked `done` in dependency order against its declared `output_files`, its declared `outputs`, and any intermediate artifacts required by downstream `inputs`.
+3. If a completed phase is inconsistent, reopen it by downgrading `status` from `done` to `pending` or `failed` as appropriate, and also downgrade every downstream dependent phase to `pending`.
+4. If any phase was reopened, repair lifecycle state before resuming: keep `plan.lifecycle_status = "done"` only for `gitignore`; otherwise set `plan.lifecycle_status = "pending"` and cancel any stale `manual_action_required`, `ready`, or `in_progress` lifecycle state from the prior completion attempt.
+5. Recompute `plan.execution_status` from the downgraded manifest.
+6. Resume from the earliest executable phase after the audit — not merely the first phase that was previously `pending`.
 
 Recovery prompt:
 ```text
 I have an incomplete Cypilot execution plan at:
   {cypilot_path}/.plans/{task-slug}/plan.toml
-Please read the plan manifest, check which phases are done/pending, and resume execution from the first incomplete phase.
+Please read the plan manifest, audit completed phases against their declared `output_files`, declared `outputs`, and downstream `inputs`, repair stale lifecycle state if work is reopened, and resume from the earliest executable phase.
 ```
 
----
+## Appendix B: Check Status (Reference Only)
 
-## Phase 6: Check Status
+This appendix defines how a generated plan reports status after creation. It is reference material for downstream execution/status handling, not a planning step.
 
 When the user asks for plan status, read `plan.toml` and report:
 ```text
 Plan: {task description}
   Type: {type}
   Target: {target}
+  Execution: {execution_status}
+  Lifecycle: {lifecycle} — {lifecycle_status}
+  Active location: {active_plan_dir}
   Progress: {done}/{total} phases
 
   Phase 1: {title} — {status}
@@ -449,9 +508,7 @@ Plan: {task description}
   ...
   Phase N: {title} — {status}
 ```
-If any phase failed, suggest retry / skip / abort.
-
----
+If `lifecycle_status = manual_action_required`, report that one manual lifecycle decision is pending and direct the operator back to the execution flow that presents the single keep/archive/delete prompt; do not duplicate the three choices in a status-only response. If `lifecycle_status = failed`, suggest retrying the lifecycle action or handling it manually. If any phase failed, suggest retry / reopen / abort.
 
 ## Plan Storage Format
 
@@ -469,18 +526,21 @@ All plan data lives in `{cypilot_path}/.plans/{task-slug}/`:
       phase-01-id-scheme.md
       phase-02-req-ids.md
 ```
+Compute `plan.target_key` first and use it as the authoritative identity for plan-directory reuse; directory naming stays human-readable, while equality/reuse checks compare the exact key.
 Naming conventions:
-- task slug: `{type}-{artifact_kind}-{project_slug}`
+- generate: `{type}-{artifact_kind}-{artifact_slug}`. Use the explicit artifact name when available; otherwise use the output path stem.
+- analyze: `{type}-{artifact_kind}-{artifact_slug}` for artifact-oriented reviews, or `{type}-path-{target_path_slug}` when the primary target is a file or directory path. For path targets, if the absolute target path is under `{project_root}`, strip `{project_root}/` first and normalize that relative path (`{project_root}/src/api/users.py` → `analyze-path-src-api-users-py`); otherwise normalize the absolute-path segments.
+- implement: `{type}-feature-{feature_slug}`. Derive `{feature_slug}` from the FEATURE ID first; if no ID exists, use the FEATURE title; if neither exists, use the FEATURE file stem.
+- normalization: lowercase, replace path separators / spaces / punctuation with `-`, collapse repeated `-`, trim leading/trailing `-`.
+- collision handling: if an existing non-archived plan has the same `type` and exactly the same `plan.target_key`, reuse its directory; otherwise append `-2`, `-3`, ... using the lowest available suffix.
 - phase file: `phase-{NN}-{slug}.md`
 - plan manifest: always `plan.toml`
 
-Cleanup is controlled by the lifecycle strategy from Phase 4.
-
----
+Lifecycle behavior is controlled by the strategy selected in Phase 2.1 and recorded in `plan.toml`; if archived, `active_plan_dir` points to the archive path, and if cleaned up, `plan.toml` remains as the terminal receipt even after compiled plan artifacts are removed.
 
 ## Execution Log
 
-Keep a brief observable log in chat, not on disk:
+Keep a brief **plan-generation-only** observable log in chat, not on disk. Runtime execution/status examples belong to Appendix A and Appendix B only.
 ```text
 [plan] Assessing scope: generate PRD for myapp
 [plan] Estimated size: ~1200 lines → plan needed
@@ -490,7 +550,5 @@ Keep a brief observable log in chat, not on disk:
 [plan] Phase 1 compiled: 380 lines (within budget)
 [plan] ...
 [plan] Plan written: .plans/generate-prd-myapp/ (4 phases)
-[exec] Phase 1/4: in_progress
-[exec] Phase 1/4: done (all criteria passed)
 ...
 ```

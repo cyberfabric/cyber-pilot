@@ -1407,6 +1407,10 @@ def _load_agents_cfg(
 def _resolve_agents_context(argv: List[str], prog: str, description: str, *, allow_yes: bool = False, read_only: bool = False) -> Optional[tuple]:
     """Shared argument parsing and project resolution for agents commands.
 
+    When ``read_only=True``, this helper skips ``_ensure_cypilot_local`` so no
+    file copying or local-state mutation occurs. Use ``read_only`` for safe
+    list/inspection commands that should not modify project-local Cypilot files.
+
     Returns (args, agents_to_process, project_root, cypilot_root, copy_report, cfg_path, cfg)
     or None if it handled the response itself (error / early exit).
     """

@@ -33,7 +33,6 @@ def test_parse_workflow_extracts_all_sections():
 
     assert has_prerequisites, f"{workflow_path.name}: Prerequisite section not found"
     assert has_phases, f"{workflow_path.name}: Phase section not found"
-    assert '**Type**:' in content, f"{workflow_path.name}: Type metadata not found"
 
 
 def test_validate_all_workflows_have_required_structure():
@@ -53,9 +52,9 @@ def test_validate_all_workflows_have_required_structure():
     for workflow_path in workflow_files:
         content = workflow_path.read_text(encoding='utf-8')
 
-        # All workflows must have **Type**: metadata
-        if '**Type**:' not in content:
-            errors.append(f"{workflow_path.name}: Missing **Type**: metadata")
+        # All workflows must have type: workflow frontmatter
+        if 'type: workflow' not in content:
+            errors.append(f"{workflow_path.name}: Missing type: workflow frontmatter")
 
         # All workflows must have some form of steps/phases
         has_steps = any(s in content for s in ['## Steps', '## Step', '## Phase'])

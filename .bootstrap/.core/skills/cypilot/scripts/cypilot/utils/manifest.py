@@ -255,6 +255,18 @@ def validate_manifest(manifest: Manifest, kit_source: Path) -> List[str]:
 # Resource Resolution API
 # ---------------------------------------------------------------------------
 
+
+def _resolve_binding_path(cypilot_dir: Path, identifier: str, binding_path: str) -> Path:
+    from ..commands.kit import _normalize_path_string, _resolve_registered_kit_dir
+
+    normalized_path = _normalize_path_string(binding_path)
+    resolved_path = _resolve_registered_kit_dir(cypilot_dir, normalized_path)
+    if resolved_path is None:
+        raise ValueError(
+            f"Resource '{identifier}' binding path '{normalized_path}' is an absolute path that is not accessible on this OS"
+        )
+    return resolved_path
+
 # @cpt-begin:cpt-cypilot-algo-kit-manifest-resolve:p1:inst-resolve-read-bindings
 def resolve_resource_bindings(
     config_dir: Path, slug: str, cypilot_dir: Path,
@@ -298,14 +310,14 @@ def resolve_resource_bindings(
     result: Dict[str, Path] = {}
     for identifier, binding in resources.items():
         if isinstance(binding, dict):
-            rel_path = str(binding.get("path", "")).strip()
+            binding_path = str(binding.get("path", "")).strip()
         elif isinstance(binding, str):
-            rel_path = binding.strip()
+            binding_path = binding.strip()
         else:
             continue
-        if not rel_path:
+        if not binding_path:
             continue
-        result[identifier] = (cypilot_dir / rel_path).resolve()
+        result[identifier] = _resolve_binding_path(cypilot_dir, identifier, binding_path)
     # @cpt-end:cpt-cypilot-algo-kit-manifest-resolve:p1:inst-resolve-to-absolute
 
     # @cpt-begin:cpt-cypilot-algo-kit-manifest-resolve:p1:inst-resolve-return

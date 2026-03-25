@@ -249,7 +249,7 @@ Enables users to install, update, and validate kit packages with interactive fil
 4. [x] - `p1` - **IF** not force and version matches installed: return "current" status with metadata - `inst-version-check`
 5. [x] - `p1` - **IF** source has `manifest.toml` and kit has no `resources` in core.toml: trigger `migrate_legacy_kit_to_manifest` - `inst-legacy-manifest-migration`
 6. [x] - `p1` - **IF** source has `manifest.toml`: build source-path-to-resource-id mapping from manifest, resolve resource bindings from `core.toml` via `cpt-cypilot-algo-kit-manifest-resolve` - `inst-resolve-resource-bindings`
-7. [x] - `p1` - **IF** config/kits/{slug}/ does not exist: first-install via `_copy_kit_content`, seed configs, register in core.toml - `inst-first-install`
+7. [x] - `p1` - **IF** the authoritative installed root from `config/core.toml` `kits.{slug}.path` does not exist (defaulting to `config/kits/{slug}` when missing): first-install via `_copy_kit_content`, seed configs, register in core.toml - `inst-first-install`
 8. [x] - `p1` - **ELSE**: existing kit — delegate to `file_level_kit_update` for interactive diff, passing `resource_bindings`, `source_to_resource_id`, and `resource_info` for manifest-driven kits - `inst-file-level-diff`
 9. [x] - `p1` - Update version in `core.toml` from source version - `inst-update-core-toml`
 10. [x] - `p1` - Collect metadata for `.gen/` aggregation - `inst-collect-metadata`
@@ -548,8 +548,8 @@ Enables users to install, update, and validate kit packages with interactive fil
 
 | State | Condition | Transitions |
 |-------|-----------|-------------|
-| `not_installed` | `config/kits/{slug}/` does not exist | → `installed` via `install_kit` |
-| `installed` | Kit files present in `config/kits/{slug}/` | → `updated` via `update_kit`, → `current` if version matches |
+| `not_installed` | The authoritative installed root from `config/core.toml` `kits.{slug}.path` does not exist (or defaults to missing `config/kits/{slug}`) | → `installed` via `install_kit` |
+| `installed` | Kit files present at the authoritative installed root from `kits.{slug}.path` | → `updated` via `update_kit`, → `current` if version matches |
 | `current` | Installed version matches source version | → `updated` via force update |
 | `updated` | Files changed via file-level diff | → `current` on next check |
 

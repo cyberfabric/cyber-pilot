@@ -32,7 +32,7 @@ def run_validate_kits(
     This is the reusable engine called by both the CLI and ``cmd_update``.
     """
     # @cpt-begin:cpt-cypilot-algo-kit-validate:p1:inst-init-context
-    from ..utils.context import get_context
+    from ..utils.context import get_context, _resolve_loaded_kit_constraints_path
     from ..utils.constraints import load_constraints_toml
     from ..utils.artifacts_meta import load_artifacts_meta
 
@@ -46,17 +46,21 @@ def run_validate_kits(
     kit_reports: List[Dict[str, object]] = []
     all_errors: List[Dict[str, object]] = []
 
-    for kit_id, kit in (ctx.meta.kits or {}).items():
+    for kit_id, loaded_kit in (ctx.kits or {}).items():
         if kit_filter and str(kit_id) != str(kit_filter):
             continue
-        if not kit.is_cypilot_format():
-            continue
 
-        kit_root = (project_root / str(kit.path or "").strip().strip("/")).resolve()
-        config_kit_dir = adapter_dir / "config" / "kits" / str(kit_id)
-        _has_kit_dir = config_kit_dir.is_dir()
+        kit_root = getattr(loaded_kit, "kit_root", None)
+        if not isinstance(kit_root, Path):
+            kit_root = adapter_dir.resolve()
+        constraints_path = _resolve_loaded_kit_constraints_path(
+            adapter_dir,
+            project_root,
+            loaded_kit,
+        )
+        constraints_root = constraints_path.parent if constraints_path is not None else kit_root
 
-        _kc, kc_errs = load_constraints_toml(kit_root)
+        _kc, kc_errs = load_constraints_toml(constraints_root)
 
         rep: Dict[str, object] = {
             "kit": str(kit_id),
@@ -65,7 +69,7 @@ def run_validate_kits(
             "error_count": len(kc_errs),
         }
         if kc_errs:
-            errs = [constraints_error("constraints", "Invalid constraints.toml", path=(kit_root / "constraints.toml"), line=1, errors=list(kc_errs), kit=str(kit_id))]
+            errs = [constraints_error("constraints", "Invalid constraints.toml", path=(constraints_path or (kit_root / "constraints.toml")), line=1, errors=list(kc_errs), kit=str(kit_id))]
             if verbose:
                 rep["errors"] = errs
             all_errors.extend(errs)

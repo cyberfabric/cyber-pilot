@@ -57,6 +57,7 @@ Spaider.code-workspace
 
 # Cypilot plans (ephemeral)
 .bootstrap/.plans/.archive/
+.bootstrap/.plans/analyze-path-skills-cypilot-scripts-cypilot/
 
 # Artifacts
 .prs/*

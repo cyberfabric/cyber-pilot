@@ -39,8 +39,6 @@ from cypilot.commands.migrate import (
     cmd_migrate_config,
     _remove_gitmodule_entry,
     _rollback,
-    _write_gen_agents,
-    _copy_tree_contents,
     _normalize_pr_review_data,
     _migrate_adapter_json_configs,
     _cleanup_old_adapter_agent_files,
@@ -942,6 +940,7 @@ class TestComplexMigration(unittest.TestCase):
                                 "DESIGN": {"pattern": "DESIGN.md", "traceability": "full"},
                             },
                             "codebase": [{"name": "api", "path": "backend/src", "extensions": [".py"]}],
+                            "validation": {"traceability": True},
                         },
                     ],
                     "children": [
@@ -1077,56 +1076,6 @@ class TestRollback(unittest.TestCase):
             result = _rollback(root, backup)
             self.assertTrue(result["success"])
             self.assertTrue((root / "somedir" / "old.txt").is_file())
-
-
-# ===========================================================================
-# Test: _write_gen_agents
-# ===========================================================================
-
-class TestWriteGenAgents(unittest.TestCase):
-    def test_writes_gen_agents(self):
-        with TemporaryDirectory() as d:
-            gen_dir = Path(d) / ".gen"
-            _write_gen_agents(gen_dir, "my-project")
-            agents = gen_dir / "AGENTS.md"
-            self.assertTrue(agents.is_file())
-            content = agents.read_text()
-            self.assertIn("my-project", content)
-            self.assertIn("artifacts.toml", content)
-
-
-# ===========================================================================
-# Test: _copy_tree_contents
-# ===========================================================================
-
-class TestCopyTreeContents(unittest.TestCase):
-    def test_copies_files_and_dirs(self):
-        with TemporaryDirectory() as d:
-            src = Path(d) / "src"
-            dst = Path(d) / "dst"
-            src.mkdir()
-            dst.mkdir()
-            (src / "file.txt").write_text("hello")
-            sub = src / "subdir"
-            sub.mkdir()
-            (sub / "nested.txt").write_text("nested")
-            _copy_tree_contents(src, dst)
-            self.assertEqual((dst / "file.txt").read_text(), "hello")
-            self.assertEqual((dst / "subdir" / "nested.txt").read_text(), "nested")
-
-    def test_overwrites_existing_dir(self):
-        with TemporaryDirectory() as d:
-            src = Path(d) / "src"
-            dst = Path(d) / "dst"
-            src.mkdir()
-            dst.mkdir()
-            (src / "subdir").mkdir()
-            (src / "subdir" / "new.txt").write_text("new")
-            (dst / "subdir").mkdir()
-            (dst / "subdir" / "old.txt").write_text("old")
-            _copy_tree_contents(src, dst)
-            self.assertTrue((dst / "subdir" / "new.txt").is_file())
-            self.assertFalse((dst / "subdir" / "old.txt").is_file())
 
 
 # ===========================================================================
@@ -2256,7 +2205,7 @@ class TestRunMigrateAgentsSystemExit(unittest.TestCase):
             with patch("cypilot.commands.migrate.CACHE_DIR", cache):
                 with patch("cypilot.commands.init.CACHE_DIR", cache):
                     with patch("cypilot.commands.migrate._cmd_generate_agents",
-                               side_effect=SystemExit(0)):
+                               return_value=0):
                         result = run_migrate(root, yes=True)
             # Should not crash; migration continues
             self.assertIn(result["status"], ("PASS", "VALIDATION_FAILED"))
@@ -2276,7 +2225,7 @@ class TestRunMigrateAgentsSystemExit(unittest.TestCase):
             with patch("cypilot.commands.migrate.CACHE_DIR", cache):
                 with patch("cypilot.commands.init.CACHE_DIR", cache):
                     with patch("cypilot.commands.migrate._cmd_generate_agents",
-                               side_effect=SystemExit(1)):
+                               return_value=1):
                         result = run_migrate(root, yes=True)
             # Migration should still complete (agent failure is non-fatal)
             self.assertIn(result["status"], ("PASS", "VALIDATION_FAILED"))
@@ -2479,12 +2428,31 @@ class TestCleanupOldAdapterAgentFiles(unittest.TestCase):
             root = Path(d)
             wf = root / ".windsurf" / "workflows"
             wf.mkdir(parents=True)
+            old_adapter = root / ".cypilot-adapter"
+            old_adapter.mkdir()
+            (old_adapter / "AGENTS.md").write_text("# Old adapter\n")
             (wf / "some-proxy.md").write_text(
-                "# /some\n\nALWAYS open and follow `.cypilot-adapter/AGENTS.md`\n"
+                "# /some\n\nALWAYS open and follow `../../.cypilot-adapter/AGENTS.md`\n"
             )
             removed = _cleanup_old_adapter_agent_files(root, ".cypilot-adapter", ".cypilot")
             self.assertEqual(len(removed), 1)
             self.assertFalse((wf / "some-proxy.md").exists())
+
+    def test_preserves_body_mentions_without_matching_follow_target(self):
+        """Loose adapter-dir mentions outside the follow target are preserved."""
+        with TemporaryDirectory() as d:
+            root = Path(d)
+            wf = root / ".windsurf" / "workflows"
+            wf.mkdir(parents=True)
+            target = wf / "some-proxy.md"
+            target.write_text(
+                "# /some\n\n"
+                "ALWAYS open and follow `../../.cypilot/workflows/analyze.md`\n\n"
+                "Notes: legacy adapter lived in .cypilot-adapter/ before migration.\n"
+            )
+            removed = _cleanup_old_adapter_agent_files(root, ".cypilot-adapter", ".cypilot")
+            self.assertEqual(removed, [])
+            self.assertTrue(target.exists())
 
     def test_no_crash_on_missing_dirs(self):
         """No error when agent dirs don't exist."""
@@ -2645,7 +2613,7 @@ class TestRunMigrateStepsFallbackKitMerge(unittest.TestCase):
             "warnings": [],
             "errors": [],
         }
-        kit_result, all_warnings = self._call_run_migrate_steps(
+        kit_result, _all_warnings = self._call_run_migrate_steps(
             base_kit_result, None,
         )
 

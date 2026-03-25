@@ -24,6 +24,23 @@ _TOKEN_PROJECT_ROOT = "{project_root}"
 _TOKEN_SYSTEM = "$system"
 
 
+def _merge_authoritative_core_kits(registry_kits: object, core_kits: object) -> object:
+    merged = dict(registry_kits) if isinstance(registry_kits, dict) else {}
+    if not isinstance(core_kits, dict):
+        return merged
+    for kit_id, core_kit in core_kits.items():
+        if not isinstance(kit_id, str) or not isinstance(core_kit, dict):
+            continue
+        existing = merged.get(kit_id)
+        if isinstance(existing, dict):
+            merged_kit = dict(existing)
+            merged_kit.update(core_kit)
+            merged[kit_id] = merged_kit
+            continue
+        merged[kit_id] = dict(core_kit)
+    return merged
+
+
 def _parse_autodetect_artifacts(raw: object) -> "Dict[str, AutodetectArtifactPattern]":
     artifacts: Dict[str, "AutodetectArtifactPattern"] = {}
     if isinstance(raw, dict):
@@ -432,8 +449,6 @@ def _check_without_child_slugs(
                 f"folder_slug={child_node.slug}{prefix_info} — "
                 f"all IDs use system `{full_sys}` which does not start with `{parent_prefix}-`"
             )
-        else:
-            pass
     else:
         errors.append(
             f"Cannot determine system from IDs: system={child_node.name} "
@@ -868,7 +883,7 @@ class ArtifactsMeta:
                             if _kind_tokens:
                                 _parent_prefix = node.get_hierarchy_prefix()
                                 _all_def_ids, _has_ids = _collect_def_ids_from_artifacts(
-                                    child_node.artifacts, _resolve_path,
+                                    child_node.artifacts, _resolve_path, errors,
                                 )
                                 _check_child_slug_consistency(
                                     child_node, _all_def_ids, _has_ids,
@@ -1061,9 +1076,9 @@ def load_artifacts_meta(adapter_dir: Path) -> Tuple[Optional[ArtifactsMeta], Opt
                 data["version"] = core["version"]
             if isinstance(core.get("project_root"), str) and "project_root" not in data:
                 data["project_root"] = core["project_root"]
-            # kits: merge from core.toml if not already in registry
-            if ("kits" not in data or not data["kits"]) and isinstance(core.get("kits"), dict):
-                data["kits"] = core["kits"]
+            # kits: merge from core.toml, preserving registry-only fields while letting core override overlaps
+            if isinstance(core.get("kits"), dict):
+                data["kits"] = _merge_authoritative_core_kits(data.get("kits"), core["kits"])
 
         # @cpt-end:cpt-cypilot-algo-core-infra-registry-parsing:p1:inst-reg-parse-merge
 
