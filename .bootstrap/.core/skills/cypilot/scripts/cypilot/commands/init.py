@@ -30,38 +30,6 @@ CORE_SUBDIR = ".core"
 GEN_SUBDIR = ".gen"
 DEFAULT_INSTALL_DIR = "cypilot"
 
-def _copy_one_dir(src: Path, dst: Path, name: str, results: Dict[str, str], *, force: bool) -> None:
-    """Copy a single directory from cache, recording outcome in *results*."""
-    if not src.is_dir():
-        results[name] = "missing_in_cache"
-        return
-    if dst.exists():
-        if not force:
-            results[name] = "skipped"
-            return
-        shutil.rmtree(dst)
-        results[name] = "updated"
-    else:
-        results[name] = "created"
-    shutil.copytree(src, dst)
-
-
-def _copy_one_file(src: Path, dst: Path, name: str, results: Dict[str, str], *, force: bool) -> None:
-    """Copy a single file from cache, recording outcome in *results*."""
-    if not src.is_file():
-        results[name] = "missing_in_cache"
-        return
-    if dst.exists():
-        if not force:
-            results[name] = "skipped"
-            return
-        results[name] = "updated"
-    else:
-        results[name] = "created"
-    dst.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(src, dst)
-
-
 def _copy_from_cache(cache_dir: Path, target_dir: Path, force: bool = False) -> Dict[str, str]:
     """Copy tool directories from cache into project cypilot/.core/ dir.
 
@@ -76,6 +44,17 @@ def _copy_from_cache(cache_dir: Path, target_dir: Path, force: bool = False) -> 
     core_dir = target_dir / CORE_SUBDIR
     results: Dict[str, str] = {}
 
+    # Snapshot which directories existed before rmtree so force re-copies
+    # are reported as "updated" rather than "created".
+    pre_force_existed: set = set()
+    if force:
+        for name in COPY_DIRS:
+            if (core_dir / name).exists():
+                pre_force_existed.add(name)
+        for name in COPY_ROOT_DIRS:
+            if (target_dir / name).exists():
+                pre_force_existed.add(name)
+
     # Full cleanup of .core/ when force=True (ensures no stale files)
     # This is the mode used by `cpt update` which always passes force=True
     if force and core_dir.exists():
@@ -83,9 +62,39 @@ def _copy_from_cache(cache_dir: Path, target_dir: Path, force: bool = False) -> 
 
     core_dir.mkdir(parents=True, exist_ok=True)
 
+    def _copy_dir(src: Path, dst: Path, name: str) -> None:
+        """Copy a directory."""
+        if not src.is_dir():
+            results[name] = "missing_in_cache"
+            return
+        if dst.exists():
+            if not force:
+                results[name] = "skipped"
+                return
+            shutil.rmtree(dst)
+            results[name] = "updated"
+        else:
+            results[name] = "updated" if force and name in pre_force_existed else "created"
+        shutil.copytree(src, dst)
+
+    def _copy_file(src: Path, dst: Path, name: str) -> None:
+        """Copy a single file."""
+        if not src.is_file():
+            results[name] = "missing_in_cache"
+            return
+        if dst.exists():
+            if not force:
+                results[name] = "skipped"
+                return
+            results[name] = "updated"
+        else:
+            results[name] = "updated" if force and name in pre_force_existed else "created"
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, dst)
+
     # Copy full directories
     for name in COPY_DIRS:
-        _copy_one_dir(cache_dir / name, core_dir / name, name, results, force=force)
+        _copy_dir(cache_dir / name, core_dir / name, name)
 
     # Copy selective items from architecture/
     arch_src = cache_dir / "architecture"
@@ -94,14 +103,14 @@ def _copy_from_cache(cache_dir: Path, target_dir: Path, force: bool = False) -> 
         src = arch_src / item
         dst = arch_dst / item
         if src.is_dir():
-            _copy_one_dir(src, dst, f"architecture/{item}", results, force=force)
+            _copy_dir(src, dst, f"architecture/{item}")
         elif src.is_file():
-            _copy_one_file(src, dst, f"architecture/{item}", results, force=force)
+            _copy_file(src, dst, f"architecture/{item}")
         else:
             results[f"architecture/{item}"] = "missing_in_cache"
 
     for name in COPY_ROOT_DIRS:
-        _copy_one_dir(cache_dir / name, target_dir / name, name, results, force=force)
+        _copy_dir(cache_dir / name, target_dir / name, name)
 
     return results
 

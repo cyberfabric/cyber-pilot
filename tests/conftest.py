@@ -5,6 +5,14 @@ from pathlib import Path
 
 import pytest
 
+# Python <3.11 does not have stdlib tomllib; use tomli as a fallback.
+if sys.version_info < (3, 11):
+    try:
+        import tomli as _tomli
+        sys.modules.setdefault("tomllib", _tomli)
+    except ImportError:
+        pass
+
 
 def pytest_configure() -> None:
     repo_root = Path(__file__).resolve().parents[1]

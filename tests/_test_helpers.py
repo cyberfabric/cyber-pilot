@@ -103,6 +103,7 @@ def write_registered_sdlc_config(
     }, config_dir / "artifacts.toml")
 
 
+
 def run_cli_in_project(root: Path, args: List[str]) -> Tuple[int, dict]:
     """Run CLI main() in *root*, return (exit_code, parsed_json_output)."""
     from cypilot.cli import main

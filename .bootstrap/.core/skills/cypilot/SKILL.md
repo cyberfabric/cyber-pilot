@@ -102,14 +102,15 @@ ALWAYS use `{cpt_cmd}` for all later CLI invocations.
 
 ## Protocol Guard
 
+- ALWAYS FIRST open and remember `{cypilot_path}/.gen/AGENTS.md`
+- ALWAYS open and follow `{cypilot_path}/config/AGENTS.md` when it exists
+- ALWAYS open and follow `{cypilot_path}/.gen/SKILL.md` when it exists
+- ALWAYS open and follow `{cypilot_path}/config/SKILL.md` when it exists
 - ALWAYS FIRST run `{cpt_cmd} --json info` before any Cypilot workflow action
 - ALWAYS store the `variables` dict from `info` output and use it to resolve `{variable}` references in AGENTS/SKILL/rules/workflows
 - ALWAYS follow this load order: `info` → registry/intent/target/rules resolution from `execution-protocol.md` → matched WHEN-clause specs
-- ALWAYS open and remember `{cypilot_path}/.gen/AGENTS.md` after `info` succeeds; use it for navigation and WHEN-clause matching
-- ALWAYS open and follow `{cypilot_path}/config/AGENTS.md` when it exists and the current route or matched WHEN clause requires it
-- ALWAYS open and follow `{cypilot_path}/.gen/SKILL.md` when it exists and the current route or matched WHEN clause requires it
-- ALWAYS open and follow `{cypilot_path}/config/SKILL.md` when it exists and the current route or matched WHEN clause requires it
 - ALWAYS load matched WHEN-clause specs only after registry understanding, target determination, and `rules.md` resolution provide enough context to match safely
+- ALWAYS FIRST parse and load all matched WHEN-clause specs before proceeding
 - MUST NOT preload every AGENTS/SKILL/spec file up front; load only the smallest set needed for the current request
 - Before opening a large AGENTS/SKILL/spec file, estimate size and prefer chunked reads of matched sections over full-file reads
 - If safe WHEN-clause matching is not yet possible, stop after registry/target/rules resolution and continue only when enough context exists to load specs boundedly
@@ -210,6 +211,182 @@ Legacy aliases: `validate-code` = `validate`; `validate-rules` = `validate-kits`
 | Workspace | `{cpt_cmd} --json workspace-init` (create workspace), `{cpt_cmd} --json workspace-add` (add source), `{cpt_cmd} --json workspace-info` (status), `{cpt_cmd} --json workspace-sync` (update Git sources) |
 
 See `skills/cypilot/cypilot.clispec` for full syntax, arguments, options, exit semantics, and examples.
+
+### Validation Commands
+
+#### validate
+```bash
+validate [--artifact <path>] [--skip-code] [--verbose] [--output <path>] [--local-only] [--source <name>]
+```
+Validates artifacts and code with deterministic checks (structure, cross-refs, task statuses, traceability markers — pairing, coverage, orphans). Use `--local-only` to skip cross-repo workspace validation. Use `--source <name>` to validate a specific workspace source. Note: `--local-only` and `--source` are independent and can be combined — `--source` narrows which artifacts are validated, `--local-only` controls whether cross-repo IDs are included as reference context.
+
+Legacy aliases: `validate-code` (same behavior), `validate-rules` (alias for `validate-kits`).
+
+#### validate-kits
+```bash
+validate-kits [--kit <id>] [--template <path>] [--verbose]
+```
+Validates kit configuration — template frontmatter, constraints, resource paths.
+
+#### validate-toc
+```bash
+validate-toc <files...> [--max-level <N>] [--verbose]
+```
+Validates Table of Contents in Markdown files — TOC exists, anchors point to real headings, all headings covered, not stale.
+
+#### self-check
+```bash
+self-check [--kit <id>] [--verbose]
+```
+Validates example artifacts against their templates (template QA). Ensures templates and examples remain synchronized.
+
+#### spec-coverage
+```bash
+spec-coverage [--system <slug>] [--min-coverage <N>] [--min-file-coverage <N>] [--min-granularity <N>] [--verbose] [--output <path>]
+```
+Measures CDSL marker coverage in codebase files. Reports coverage percentage, granularity score, per-file details, and uncovered line ranges. Use `--system` to limit to specific system slug(s). Use `--min-file-coverage` to enforce per-file minimum.
+
+### Search Commands
+
+#### list-ids
+```bash
+list-ids [--artifact <path>] [--pattern <string>] [--regex] [--kind <string>] [--all] [--include-code] [--source <name>]
+```
+Lists all Cypilot IDs from registered artifacts. Supports filtering by pattern, kind, and optional code scanning. Use `--source <name>` to list IDs from a specific workspace source.
+
+#### list-id-kinds
+```bash
+list-id-kinds [--artifact <path>]
+```
+Lists ID kinds that exist in artifacts with counts and template mappings.
+
+#### get-content
+```bash
+get-content (--artifact <path> | --code <path>) --id <string> [--inst <string>]
+```
+Retrieves content block for a specific Cypilot ID from artifacts or code files.
+
+#### where-defined
+```bash
+where-defined --id <id> [--artifact <path>]
+```
+Finds where a Cypilot ID is defined.
+
+#### where-used
+```bash
+where-used --id <id> [--artifact <path>] [--include-definitions]
+```
+Finds all references to a Cypilot ID.
+
+### Kit Management Commands
+
+#### kit install
+```bash
+kit install <source-path> [--dry-run] [--yes]
+```
+Installs a kit from a source directory. Copies kit files to `config/kits/{slug}/`.
+
+#### kit update
+```bash
+kit update [--kit <slug>] [--dry-run] [--yes] [--auto-approve]
+```
+Updates kit files in `config/kits/{slug}/` with file-level diff. Interactive prompts for modified files: accept/decline/accept-all/decline-all.
+
+### Utility Commands
+
+#### toc
+```bash
+toc <files...> [--max-level <N>] [--indent <N>] [--dry-run] [--skip-validate]
+```
+Generates or updates Table of Contents in Markdown files between `<!-- toc -->` markers.
+
+#### info
+```bash
+info [--root <path>] [--cypilot-root <path>]
+```
+Discovers Cypilot configuration and shows project status (cypilot_dir, project_name, specs, kits). Includes a `variables` dict mapping all template variables to absolute paths.
+
+#### resolve-vars
+```bash
+resolve-vars [--root <path>] [--kit <slug>] [--flat]
+```
+Resolves all template variables (`{adr_template}`, `{scripts}`, etc.) to absolute file paths. Sources: system variables (`cypilot_path`, `project_root`) + kit resource bindings from `core.toml`. Use `--kit` to filter to a single kit. Use `--flat` for a plain variable→path dict.
+
+#### init
+```bash
+init [--project-root <path>] [--cypilot-root <path>] [--project-name <string>] [--yes] [--dry-run] [--force]
+```
+Initializes Cypilot config directory (`.core/`, `.gen/`, `config/`) and root `AGENTS.md`.
+
+#### update
+```bash
+update [--source <path>] [--force] [--dry-run]
+```
+Updates `.core/` from cache, updates kit files in `config/kits/` with file-level diff, regenerates `.gen/` aggregates, ensures `config/` scaffold.
+
+#### agents
+```bash
+agents [--agent <name>] [--root <path>] [--cypilot-root <path>]
+```
+Shows generated agent integration status. Read-only dry-run — reports which integration files currently exist or would be created/updated for each supported agent without writing anything.
+Supported: windsurf, cursor, claude, copilot, openai.
+
+#### generate-agents
+```bash
+generate-agents [--agent <name>] [--root <path>] [--cypilot-root <path>] [--dry-run] [--yes] [--show-layers] [--discover]
+```
+Generates agent-specific workflow proxies and skill entry points.
+Supported: windsurf, cursor, claude, copilot, openai.
+
+Generates workflow commands, skill outputs, and **subagents** (isolated agent definitions with scoped tools and dedicated prompts). Two subagents are created for tools that support them: `cypilot-codegen` (full write access, worktree isolation) and `cypilot-pr-review` (read-only). Windsurf does not support subagents and is gracefully skipped.
+
+Use `--show-layers` to display layer provenance report instead of generating. Use `--discover` to scan conventional dirs and populate `manifest.toml` before generating.
+
+Shortcut: `generate-agents --openai`
+
+### Migration Commands
+
+#### migrate
+```bash
+migrate [--project-root <path>] [--cypilot-root <path>] [--dry-run] [--yes]
+```
+Migrates Cypilot v2 projects to v3 (adapter-based → blueprint-based, artifacts.json → artifacts.toml, three-directory layout).
+
+#### migrate-config
+```bash
+migrate-config [--project-root <path>] [--dry-run]
+```
+Converts legacy JSON config files to TOML format.
+
+### Workspace Commands
+
+Workspaces are either **standalone** (`.cypilot-workspace.toml` at project root) or **inline** (`[workspace]` section in `config/core.toml`). The two types cannot be mixed.
+
+#### workspace-init
+```bash
+workspace-init [--root <dir>] [--output <path>] [--inline] [--force] [--max-depth <N>] [--dry-run]
+```
+Initialize a multi-repo workspace by scanning nested sub-directories for repos with cypilot directories. Rejects cross-type conflicts (inline vs standalone) and requires `--force` to reinitialize an existing workspace. Scanning depth is limited by `--max-depth` (default 3) to prevent unbounded traversal; symlinks are skipped.
+
+#### workspace-add
+```bash
+workspace-add --name <name> (--path <path> | --url <url>) [--branch <branch>] [--role <role>] [--adapter <path>] [--inline] [--force]
+```
+Add a source to a workspace config. Auto-detects standalone vs inline workspace. Use `--inline` to force adding to `config/core.toml`. Git URL sources are not supported in inline mode. `--path` is validated at add-time; returns error if directory not found. Returns error if source name already exists unless `--force` is specified.
+
+#### workspace-info
+```bash
+workspace-info
+```
+Display workspace config, list sources, show per-source status (cypilot dir found, artifact count, reachability).
+
+#### workspace-sync
+```bash
+workspace-sync [--source <name>] [--dry-run] [--force]
+```
+Fetch and update worktrees for Git URL sources. Use `--source` to sync a single source. Use `--dry-run` to preview without network operations. Use `--force` to skip dirty worktree check (**WARNING: DESTRUCTIVE** — uncommitted changes will be discarded via `git reset --hard` and local commits may be lost via `git checkout -B`). Local path sources are skipped. Source resolution does not perform network operations for existing repos — use `workspace-sync` to explicitly update.
+
+---
 
 ## Auto-Configuration
 

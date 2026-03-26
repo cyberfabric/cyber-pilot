@@ -120,6 +120,7 @@ Enables users to install, update, and validate kit packages with interactive fil
 8. [x] - `p1` - Regenerate `.gen/` aggregates (unless dry-run) - `inst-regen-gen`
 9. [x] - `p1` - Format version status, accepted/declined files, and output result - `inst-format-output`
 
+
 **Supporting**:
 - [x] - `p1` - Resolve GitHub update targets: download source kits for each registered kit - `inst-resolve-github-targets`
 - [x] - `p1` - Build normalized update result dict from kit update output - `inst-build-update-result`

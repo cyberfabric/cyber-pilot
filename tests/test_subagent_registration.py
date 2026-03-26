@@ -202,8 +202,8 @@ class TestDiscoverKitAgents(unittest.TestCase):
             agents = _discover_kit_agents(cypilot, root)
             self.assertEqual(agents, [])
 
-    def test_invalid_model_rejected(self):
-        """Agent with unrecognized model is skipped."""
+    def test_unknown_model_passthrough(self):
+        """Agent with unrecognized model is allowed as passthrough (warn, not skip)."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             cypilot = root / "cypilot_src"
@@ -216,7 +216,8 @@ class TestDiscoverKitAgents(unittest.TestCase):
             )
             (kit_dir / "x.md").write_text("prompt\n", encoding="utf-8")
             agents = _discover_kit_agents(cypilot, root)
-            self.assertEqual(agents, [])
+            self.assertEqual(len(agents), 1)
+            self.assertEqual(agents[0]["model"], "turbo")
 
     def test_kit_wins_over_core_duplicate(self):
         """Kit agents take precedence over core skill agents with same name."""

@@ -271,6 +271,7 @@ The following architecture decision records (ADRs) drive the design:
 - `cpt-cypilot-adr-ai-cli-extensibility-subagents` — generate isolated subagent definitions (codegen, PR review) for tools that support them; Claude Code as canonical format with per-tool adaptation
 - `cpt-cypilot-adr-execution-plans` — automated execution plans with compiled phase files for context-bounded agent tasks; decomposition by template sections, checklist categories, or CDSL blocks
 - `cpt-cypilot-adr-ralphex-delegation-skill` — integrate ralphex through a dedicated delegation skill that preserves Cypilot as the source of truth for planning, SDLC assets, and validation contracts while delegating autonomous execution
+- `cpt-cypilot-adr-unified-manifest-hierarchy` — unified manifest.toml v2.0 with six-layer walk-up discovery for project-level extensibility
 
 ### 1.3 Architecture Layers
 

@@ -1659,9 +1659,9 @@ class TestInitCopyFromCache(unittest.TestCase):
             # Second call without force → skipped (init behavior)
             r2 = _copy_from_cache(cache, target, force=False)
             self.assertEqual(r2["requirements"], "skipped")
-            # Third call with force → created (update behavior: .core/ fully cleared first)
+            # Third call with force → updated (pre_force_existed tracks prior existence)
             r3 = _copy_from_cache(cache, target, force=True)
-            self.assertEqual(r3["requirements"], "created")
+            self.assertEqual(r3["requirements"], "updated")
 
     def test_missing_cache_dir_entries(self):
         """When cache dirs don't exist, reports missing_in_cache."""
@@ -1674,6 +1674,34 @@ class TestInitCopyFromCache(unittest.TestCase):
             result = _copy_from_cache(cache, target, force=False)
             for k, v in result.items():
                 self.assertEqual(v, "missing_in_cache")
+
+
+    def test_architecture_file_items_copied(self):
+        """Architecture spec files are copied via _copy_file path."""
+        from cypilot.commands.init import _copy_from_cache, COPY_ARCHITECTURE_ITEMS
+        with TemporaryDirectory() as td:
+            cache = Path(td) / "cache"
+            target = Path(td) / "project" / "cypilot"
+            target.mkdir(parents=True)
+            # Create at least one architecture spec file in cache
+            for item in COPY_ARCHITECTURE_ITEMS[:2]:
+                src = cache / "architecture" / item
+                src.parent.mkdir(parents=True, exist_ok=True)
+                src.write_text(f"# {item}\n", encoding="utf-8")
+            r1 = _copy_from_cache(cache, target, force=False)
+            for item in COPY_ARCHITECTURE_ITEMS[:2]:
+                key = f"architecture/{item}"
+                self.assertIn(r1.get(key), ("created", "missing_in_cache"), f"unexpected for {key}: {r1.get(key)}")
+            # Second call without force → skipped
+            r2 = _copy_from_cache(cache, target, force=False)
+            for item in COPY_ARCHITECTURE_ITEMS[:2]:
+                key = f"architecture/{item}"
+                self.assertEqual(r2.get(key), "skipped")
+            # Third call with force → created (architecture items not in pre_force_existed)
+            r3 = _copy_from_cache(cache, target, force=True)
+            for item in COPY_ARCHITECTURE_ITEMS[:2]:
+                key = f"architecture/{item}"
+                self.assertEqual(r3.get(key), "created")
 
 
 class TestInitReadExistingInstall(unittest.TestCase):

@@ -364,7 +364,7 @@ class TestHumanGenerateAgentsPreview(unittest.TestCase):
                 "skills": {
                     "created": [],
                     "updated": [],
-                    "deleted": ["/p/.claude/commands/cypilot-plan.md"],
+                    "deleted": ["/p/.claude/commands/cypilot-plan.md", "/p/.claude/commands/cypilot-generate.md"],
                 },
             },
         }
@@ -475,8 +475,8 @@ class TestHumanGenerateAgentsOk(unittest.TestCase):
                 "skills": {
                     "created": [],
                     "updated": [],
-                    "deleted": ["/p/.claude/commands/cypilot-plan.md"],
-                    "skipped": [".claude/commands/cypilot-workspace.md (missing generated marker)"],
+                    "deleted": ["/p/.claude/commands/cypilot-plan.md", "/p/.claude/commands/cypilot-generate.md"],
+                    "skipped": [".claude/commands/cypilot-workspace.md (missing generated marker)", ".claude/commands/cypilot-analyze.md (missing generated marker)"],
                     "counts": {"created": 0, "updated": 0, "deleted": 1, "skipped": 1},
                 },
                 "subagents": {
@@ -644,9 +644,9 @@ class TestProcessSingleAgentEdgeCases(unittest.TestCase):
 
             legacy_dir = root / ".claude" / "commands"
             legacy_dir.mkdir(parents=True)
-            legacy_file = legacy_dir / "cypilot-plan.md"
+            legacy_file = legacy_dir / "cypilot-generate.md"
             legacy_file.write_text(
-                "# /cypilot-plan\n\nALWAYS open and follow `{cypilot_path}/.core/workflows/plan.md`\n",
+                "# /cypilot-generate\n\nALWAYS open and follow `{cypilot_path}/.core/workflows/generate.md`\n",
                 encoding="utf-8",
             )
 
@@ -682,9 +682,9 @@ class TestProcessSingleAgentEdgeCases(unittest.TestCase):
 
             legacy_dir = root / ".claude" / "commands"
             legacy_dir.mkdir(parents=True)
-            legacy_file = legacy_dir / "cypilot-plan.md"
+            legacy_file = legacy_dir / "cypilot-generate.md"
             legacy_file.write_text(
-                "# /cypilot-plan\n\nALWAYS open and follow `{cypilot_path}/.core/workflows/workspace.md`\n",
+                "# /cypilot-generate\n\nALWAYS open and follow `{cypilot_path}/.core/workflows/analyze.md`\n",
                 encoding="utf-8",
             )
 
@@ -722,9 +722,9 @@ class TestProcessSingleAgentEdgeCases(unittest.TestCase):
 
             legacy_dir = root / ".claude" / "commands"
             legacy_dir.mkdir(parents=True)
-            legacy_file = legacy_dir / "cypilot-plan.md"
+            legacy_file = legacy_dir / "cypilot-generate.md"
             legacy_file.write_text(
-                "# /cypilot-plan\n\nCustom instructions stay here.\n",
+                "# /cypilot-generate\n\nCustom instructions stay here.\n",
                 encoding="utf-8",
             )
 

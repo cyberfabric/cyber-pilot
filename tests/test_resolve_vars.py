@@ -574,6 +574,7 @@ class TestInfoVariablesIntegration(unittest.TestCase):
                 variables = out.get("variables", {})
                 self.assertIn("cypilot_path", variables)
                 self.assertIn("project_root", variables)
+                # System vars only (cypilot_path + project_root)
                 self.assertEqual(len(variables), 2)
             finally:
                 os.chdir(cwd)
@@ -862,6 +863,133 @@ class TestHumanFormatters(unittest.TestCase):
                 self.assertIn("cypilot_path", output)
         finally:
             set_json_mode(True)
+
+
+# ---------------------------------------------------------------------------
+# Layer variables wiring (base_dir, master_repo, repo)
+# ---------------------------------------------------------------------------
+
+class TestResolveVarsLayerVariables(unittest.TestCase):
+    """Test that resolve-vars CLI exposes layer variables (base_dir, master_repo, repo)."""
+
+    def setUp(self):
+        set_json_mode(True)
+
+    def tearDown(self):
+        set_json_mode(False)
+
+    def test_resolve_vars_includes_layer_variables(self):
+        """resolve-vars output contains base_dir, master_repo, and repo."""
+        with TemporaryDirectory() as td:
+            root = Path(td) / "proj"
+            adapter = _bootstrap_project(root)
+            config = adapter / "config"
+            _write_core_toml(config, {
+                "version": "1.0",
+                "kits": {},
+            })
+
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                rc = cmd_resolve_vars(["--root", str(root)])
+            self.assertEqual(rc, 0)
+            out = json.loads(buf.getvalue())
+            variables = out["variables"]
+            self.assertIn("base_dir", variables)
+            self.assertIn("master_repo", variables)
+            self.assertIn("repo", variables)
+            # repo should be the resolved project root
+            self.assertEqual(variables["repo"], root.resolve().as_posix())
+
+    def test_resolve_vars_flat_includes_layer_variables(self):
+        """resolve-vars --flat output contains base_dir, master_repo, and repo."""
+        with TemporaryDirectory() as td:
+            root = Path(td) / "proj"
+            adapter = _bootstrap_project(root)
+            config = adapter / "config"
+            _write_core_toml(config, {
+                "version": "1.0",
+                "kits": {},
+            })
+
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                rc = cmd_resolve_vars(["--root", str(root), "--flat"])
+            self.assertEqual(rc, 0)
+            out = json.loads(buf.getvalue())
+            variables = out["variables"]
+            self.assertIn("base_dir", variables)
+            self.assertIn("master_repo", variables)
+            self.assertIn("repo", variables)
+
+
+class TestResolveVarsKitLayerVariables(unittest.TestCase):
+    """Test that --kit and --kit --flat preserve layer variables."""
+
+    def setUp(self):
+        set_json_mode(True)
+
+    def tearDown(self):
+        set_json_mode(False)
+
+    def test_kit_includes_layer_variables(self):
+        """resolve-vars --kit includes base_dir, master_repo, and repo."""
+        with TemporaryDirectory() as td:
+            root = Path(td) / "proj"
+            adapter = _bootstrap_project(root)
+            config = adapter / "config"
+            _write_core_toml(config, {
+                "version": "1.0",
+                "kits": {
+                    "sdlc": {
+                        "resources": {"var_a": {"path": "a"}},
+                    },
+                },
+            })
+
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                rc = cmd_resolve_vars(["--root", str(root), "--kit", "sdlc"])
+            self.assertEqual(rc, 0)
+            out = json.loads(buf.getvalue())
+            variables = out["variables"]
+            self.assertIn("base_dir", variables)
+            self.assertIn("master_repo", variables)
+            self.assertIn("repo", variables)
+            self.assertEqual(variables["repo"], root.resolve().as_posix())
+            # Kit var still present
+            self.assertIn("var_a", variables)
+
+    def test_kit_flat_includes_layer_variables(self):
+        """resolve-vars --kit --flat includes base_dir, master_repo, and repo."""
+        with TemporaryDirectory() as td:
+            root = Path(td) / "proj"
+            adapter = _bootstrap_project(root)
+            config = adapter / "config"
+            _write_core_toml(config, {
+                "version": "1.0",
+                "kits": {
+                    "sdlc": {
+                        "resources": {"var_a": {"path": "a"}},
+                    },
+                    "other": {
+                        "resources": {"var_b": {"path": "b"}},
+                    },
+                },
+            })
+
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                rc = cmd_resolve_vars(["--root", str(root), "--kit", "sdlc", "--flat"])
+            self.assertEqual(rc, 0)
+            out = json.loads(buf.getvalue())
+            variables = out["variables"]
+            self.assertIn("base_dir", variables)
+            self.assertIn("master_repo", variables)
+            self.assertIn("repo", variables)
+            # Only selected kit var, not other
+            self.assertIn("var_a", variables)
+            self.assertNotIn("var_b", variables)
 
 
 if __name__ == "__main__":

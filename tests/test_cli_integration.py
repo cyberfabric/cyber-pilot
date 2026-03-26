@@ -485,6 +485,10 @@ class TestCLIAgentsCommand(unittest.TestCase):
                 "# /cypilot-workspace\n\nALWAYS open and follow `{cypilot_path}/.core/workflows/workspace.md`\n",
                 encoding="utf-8",
             )
+            (legacy_commands / "cypilot-generate.md").write_text(
+                "# /cypilot-generate\n\nALWAYS open and follow `{cypilot_path}/.core/workflows/generate.md`\n",
+                encoding="utf-8",
+            )
 
             stdout = io.StringIO()
             with redirect_stdout(stdout):
@@ -518,8 +522,10 @@ class TestCLIAgentsCommand(unittest.TestCase):
             deleted = set(agent_r.get("skills", {}).get("deleted", []))
             self.assertIn(".claude/commands/cypilot-plan.md", deleted)
             self.assertIn(".claude/commands/cypilot-workspace.md", deleted)
+            self.assertIn(".claude/commands/cypilot-generate.md", deleted)
             self.assertFalse((legacy_commands / "cypilot-plan.md").exists())
             self.assertFalse((legacy_commands / "cypilot-workspace.md").exists())
+            self.assertFalse((legacy_commands / "cypilot-generate.md").exists())
 
     def test_agents_dry_run_does_not_write_files(self):
         """Test agents command dry-run mode."""
