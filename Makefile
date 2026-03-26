@@ -1,5 +1,5 @@
 # @cpt-algo:cpt-cypilot-spec-init-structure-change-infrastructure:p1
-.PHONY: test test-verbose test-quick test-coverage validate validate-examples validate-feature validate-code validate-code-feature self-check validate-kits validate-kits-sdlc vulture vulture-ci install install-pipx install-proxy clean help check-pytest check-pytest-cov check-pipx check-vulture check-versions update spec-coverage ci lint-ci
+.PHONY: test test-verbose test-quick test-coverage validate validate-examples validate-feature validate-code validate-code-feature self-check validate-kits validate-kits-sdlc vulture vulture-ci pylint install install-pipx install-proxy clean help check-pytest check-pytest-cov check-pipx check-vulture check-pylint check-versions update spec-coverage ci lint-ci
 
 # Detect container architecture for act (arm64 on Apple Silicon, amd64 otherwise)
 UNAME_M := $(shell uname -m)
@@ -18,7 +18,9 @@ CPT ?= cpt
 PYTEST_PIPX ?= $(PIPX) run --spec pytest pytest
 PYTEST_PIPX_COV ?= $(PIPX) run --spec pytest-cov pytest
 VULTURE_PIPX ?= $(PIPX) run --spec vulture vulture
+PYLINT_PIPX ?= $(PIPX) run --spec pylint pylint
 VULTURE_MIN_CONF ?= 0
+PYLINT_TARGETS ?= src/cypilot_proxy skills/cypilot/scripts/cypilot
 
 # Default target
 help:
@@ -93,6 +95,18 @@ check-vulture: check-pipx
 		exit 1; \
 	}
 
+check-pylint: check-pipx
+	@$(PYLINT_PIPX) --version >/dev/null 2>&1 || { \
+		echo ""; \
+		echo "ERROR: pylint is not runnable via pipx"; \
+		echo ""; \
+		echo "Install it with:"; \
+		echo "  pipx install pylint"; \
+		echo "or just run: make pylint (pipx run will download it)"; \
+		echo ""; \
+		exit 1; \
+	}
+
 test: check-pytest
 	@echo "Running Cypilot tests with pipx..."
 	$(PYTEST_PIPX) tests/ -v --tb=short
@@ -130,6 +144,10 @@ vulture: check-vulture
 vulture-ci: check-vulture
 	@echo "Running vulture dead-code scan (CI mode, fails if findings)..."
 	$(VULTURE_PIPX) skills/cypilot/scripts/cypilot vulture_whitelist.py --min-confidence $(VULTURE_MIN_CONF)
+
+pylint: check-pylint
+	@echo "Running pylint..."
+	PYTHONPATH=src:skills/cypilot/scripts $(PYLINT_PIPX) $(PYLINT_TARGETS)
 
 # Spec coverage check (Cypilot system only)
 spec-coverage:

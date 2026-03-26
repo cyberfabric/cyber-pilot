@@ -290,6 +290,7 @@ def _discover_kit_agents(
     config_kits = _resolve_config_kits(cypilot_root, project_root)
     if config_kits.is_dir():
         registered = _registered_kit_dirs(project_root)
+        registered_dirs: Set[str] = registered if isinstance(registered, set) else set()
         try:
             kit_dirs = sorted(config_kits.iterdir())
         except Exception:
@@ -297,7 +298,7 @@ def _discover_kit_agents(
         for kit_dir in kit_dirs:
             if not kit_dir.is_dir():
                 continue
-            if registered is not None and kit_dir.name not in registered:
+            if registered_dirs and kit_dir.name not in registered_dirs:
                 continue
             _load_agents_toml(kit_dir / "agents.toml", kit_dir)
 
@@ -865,11 +866,12 @@ def _list_workflow_files(cypilot_root: Path, project_root: Optional[Path] = None
 
     # 2. Kit workflows (config/kits/*/workflows/)
     registered = _registered_kit_dirs(project_root)
+    registered_dirs: Set[str] = registered if isinstance(registered, set) else set()
     config_kits = _resolve_config_kits(cypilot_root, project_root)
     if config_kits.is_dir():
         try:
             for kit_dir in sorted(config_kits.iterdir()):
-                if registered is not None and kit_dir.name not in registered:
+                if registered_dirs and kit_dir.name not in registered_dirs:
                     continue
                 _scan_dir(kit_dir / "workflows")
         except Exception:
@@ -1111,12 +1113,13 @@ def _process_single_agent(
 
                 # Enrich description with per-kit skill descriptions from config/kits/*/SKILL.md
                 registered = _registered_kit_dirs(project_root)
+                registered_dirs: Set[str] = registered if isinstance(registered, set) else set()
                 config_kits = _resolve_config_kits(cypilot_root, project_root)
                 if config_kits.is_dir():
                     kit_descs: List[str] = []
                     try:
                         for kit_dir in sorted(config_kits.iterdir()):
-                            if registered is not None and kit_dir.name not in registered:
+                            if registered_dirs and kit_dir.name not in registered_dirs:
                                 continue
                             kit_skill = kit_dir / "SKILL.md"
                             if kit_skill.is_file():

@@ -17,7 +17,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from .codebase import CodeFile, _SCOPE_MARKER_RE, _BLOCK_BEGIN_RE, _BLOCK_END_RE
 from .language_config import EXTENSION_COMMENT_DEFAULTS

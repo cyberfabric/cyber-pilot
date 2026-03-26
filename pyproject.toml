@@ -18,3 +18,33 @@ cpt = "cypilot_proxy.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.pylint.main]
+jobs = 0
+persistent = false
+py-version = "3.11"
+ignore-paths = [
+    "^\\.bootstrap/",
+    "^examples/",
+    "^tests/",
+]
+
+[tool.pylint.format]
+max-line-length = 120
+
+[tool.pylint.design]
+max-args = 8
+max-positional-arguments = 8
+
+[tool.pylint.reports]
+score = false
+
+[tool.pylint."messages control"]
+disable = [
+    "all",
+]
+enable = [
+    "E0602",
+    "E1135",
+    "E0102",
+]

@@ -1,0 +1,141 @@
+[plan]
+task = "Systematically fix all pylint findings via disable-all baseline and incremental re-enable by priority"
+type = "implement"
+target = "CODEBASE"
+target_key = "feature-title:systematic-pylint-remediation"
+kit_path = ".bootstrap/config/kits/sdlc"
+created = "2026-03-26T07:44:00Z"
+lifecycle = "archive"
+execution_status = "in_progress"
+lifecycle_status = "pending"
+plan_dir = ".bootstrap/.plans/implement-systematic-pylint-remediation"
+active_plan_dir = ".bootstrap/.plans/implement-systematic-pylint-remediation"
+total_phases = 8
+
+[[phases]]
+number = 1
+title = "Baseline and rollout mechanism"
+slug = "baseline-and-rollout"
+file = "phase-01-baseline-and-rollout.md"
+brief_file = "brief-01-baseline-and-rollout.md"
+status = "done"
+kind = "delivery"
+depends_on = []
+input_files = ["pyproject.toml", "Makefile", ".github/workflows/ci.yml"]
+output_files = ["pyproject.toml", "Makefile"]
+outputs = ["out/phase-01-rollout-baseline.md", "out/phase-01-message-priority.md"]
+inputs = []
+template_sections = []
+checklist_sections = []
+
+[[phases]]
+number = 2
+title = "Critical runtime errors"
+slug = "critical-runtime-errors"
+file = "phase-02-critical-runtime-errors.md"
+brief_file = "brief-02-critical-runtime-errors.md"
+status = "done"
+kind = "delivery"
+depends_on = [1]
+input_files = ["pyproject.toml", "src/cypilot_proxy", "skills/cypilot/scripts/cypilot", "tests"]
+output_files = ["pyproject.toml", "src/cypilot_proxy", "skills/cypilot/scripts/cypilot", "tests"]
+outputs = ["out/phase-02-critical-errors.md"]
+inputs = ["out/phase-01-rollout-baseline.md", "out/phase-01-message-priority.md"]
+template_sections = []
+checklist_sections = []
+
+[[phases]]
+number = 3
+title = "High-risk warnings"
+slug = "high-risk-warnings"
+file = "phase-03-high-risk-warnings.md"
+brief_file = "brief-03-high-risk-warnings.md"
+status = "pending"
+kind = "delivery"
+depends_on = [2]
+input_files = ["pyproject.toml", "src/cypilot_proxy", "skills/cypilot/scripts/cypilot", "tests"]
+output_files = ["pyproject.toml", "src/cypilot_proxy", "skills/cypilot/scripts/cypilot", "tests"]
+outputs = ["out/phase-03-high-risk-warnings.md"]
+inputs = ["out/phase-01-message-priority.md", "out/phase-02-critical-errors.md"]
+template_sections = []
+checklist_sections = []
+
+[[phases]]
+number = 4
+title = "Control-flow hotspots I"
+slug = "control-flow-hotspots-i"
+file = "phase-04-control-flow-hotspots-i.md"
+brief_file = "brief-04-control-flow-hotspots-i.md"
+status = "pending"
+kind = "delivery"
+depends_on = [3]
+input_files = ["pyproject.toml", "src/cypilot_proxy", "skills/cypilot/scripts/cypilot", "tests"]
+output_files = ["pyproject.toml", "src/cypilot_proxy", "skills/cypilot/scripts/cypilot", "tests"]
+outputs = ["out/phase-04-control-flow-hotspots-i.md"]
+inputs = ["out/phase-01-message-priority.md", "out/phase-03-high-risk-warnings.md"]
+template_sections = []
+checklist_sections = []
+
+[[phases]]
+number = 5
+title = "Control-flow hotspots II"
+slug = "control-flow-hotspots-ii"
+file = "phase-05-control-flow-hotspots-ii.md"
+brief_file = "brief-05-control-flow-hotspots-ii.md"
+status = "pending"
+kind = "delivery"
+depends_on = [4]
+input_files = ["pyproject.toml", "src/cypilot_proxy", "skills/cypilot/scripts/cypilot", "tests"]
+output_files = ["pyproject.toml", "src/cypilot_proxy", "skills/cypilot/scripts/cypilot", "tests"]
+outputs = ["out/phase-05-control-flow-hotspots-ii.md"]
+inputs = ["out/phase-01-message-priority.md", "out/phase-04-control-flow-hotspots-i.md"]
+template_sections = []
+checklist_sections = []
+
+[[phases]]
+number = 6
+title = "Architecture and duplication hygiene"
+slug = "architecture-and-duplication-hygiene"
+file = "phase-06-architecture-and-duplication-hygiene.md"
+brief_file = "brief-06-architecture-and-duplication-hygiene.md"
+status = "pending"
+kind = "delivery"
+depends_on = [5]
+input_files = ["pyproject.toml", "src/cypilot_proxy", "skills/cypilot/scripts/cypilot", "tests"]
+output_files = ["pyproject.toml", "src/cypilot_proxy", "skills/cypilot/scripts/cypilot", "tests"]
+outputs = ["out/phase-06-architecture-and-duplication-hygiene.md"]
+inputs = ["out/phase-01-message-priority.md", "out/phase-05-control-flow-hotspots-ii.md"]
+template_sections = []
+checklist_sections = []
+
+[[phases]]
+number = 7
+title = "Import and format normalization"
+slug = "import-and-format-normalization"
+file = "phase-07-import-and-format-normalization.md"
+brief_file = "brief-07-import-and-format-normalization.md"
+status = "pending"
+kind = "delivery"
+depends_on = [6]
+input_files = ["pyproject.toml", "Makefile", ".github/workflows/ci.yml", "src/cypilot_proxy", "skills/cypilot/scripts/cypilot", "tests"]
+output_files = ["pyproject.toml", "src/cypilot_proxy", "skills/cypilot/scripts/cypilot", "tests"]
+outputs = ["out/phase-07-import-and-format-normalization.md"]
+inputs = ["out/phase-01-message-priority.md", "out/phase-06-architecture-and-duplication-hygiene.md"]
+template_sections = []
+checklist_sections = []
+
+[[phases]]
+number = 8
+title = "Naming, docstrings, and steady-state"
+slug = "naming-docstrings-and-steady-state"
+file = "phase-08-naming-docstrings-and-steady-state.md"
+brief_file = "brief-08-naming-docstrings-and-steady-state.md"
+status = "pending"
+kind = "delivery"
+depends_on = [7]
+input_files = ["pyproject.toml", "src/cypilot_proxy", "skills/cypilot/scripts/cypilot", "tests"]
+output_files = ["pyproject.toml", "src/cypilot_proxy", "skills/cypilot/scripts/cypilot", "tests"]
+outputs = ["out/phase-08-steady-state.md"]
+inputs = ["out/phase-01-message-priority.md", "out/phase-07-import-and-format-normalization.md"]
+template_sections = []
+checklist_sections = []

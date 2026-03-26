@@ -12,6 +12,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "cypilot" / "scripts"))
 
@@ -264,6 +265,16 @@ class TestDiscoverKitAgents(unittest.TestCase):
             agents = _discover_kit_agents(cypilot, root)
             self.assertEqual(len(agents), 1)
             self.assertEqual(agents[0]["description"], "from aaa")
+
+    def test_invalid_registered_kit_dirs_value_is_ignored(self):
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            cypilot = self._make_kit_tree(root)
+            with patch("cypilot.commands.agents._registered_kit_dirs", return_value=object()):
+                agents = _discover_kit_agents(cypilot, root)
+            self.assertEqual(len(agents), 2)
+            names = {a["name"] for a in agents}
+            self.assertEqual(names, {"cypilot-codegen", "cypilot-pr-review"})
 
 
 # ── Per-tool template tests ─────────────────────────────────────────

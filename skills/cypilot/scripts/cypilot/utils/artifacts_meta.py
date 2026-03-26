@@ -970,10 +970,6 @@ class ArtifactsMeta:
     # @cpt-begin:cpt-cypilot-algo-core-infra-registry-parsing:p1:inst-reg-query-methods
     # === Kit Methods ===
 
-    def get_kit(self, kit_id: str) -> Optional[Kit]:
-        """Get a kit by ID."""
-        return self.kits.get(kit_id)
-
     # === Artifact Methods ===
 
     def get_artifact_by_path(self, path: str) -> Optional[Tuple[Artifact, SystemNode]]:

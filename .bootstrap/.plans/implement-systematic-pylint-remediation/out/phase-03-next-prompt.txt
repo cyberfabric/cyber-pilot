@@ -1,0 +1,8 @@
+I have a Cypilot execution plan at:
+  .bootstrap/.plans/implement-systematic-pylint-remediation/plan.toml
+
+Phase 2 is complete (PASS).
+Please read the plan manifest, then execute Phase 3: "High-risk warnings".
+The phase file is: .bootstrap/.plans/implement-systematic-pylint-remediation/phase-03-high-risk-warnings.md
+It is self-contained — follow its instructions exactly.
+After completion, report results and generate the prompt for the next phase.
