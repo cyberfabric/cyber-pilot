@@ -268,7 +268,7 @@ The following architecture decision records (ADRs) drive the design:
 - `cpt-cypilot-adr-prefer-cpt-cli-for-agents` — prefer `cpt` CLI over direct script invocation in agent prompts; graceful fallback to raw Python path
 - `cpt-cypilot-adr-ai-cli-extensibility-subagents` — generate isolated subagent definitions (codegen, PR review) for tools that support them; Claude Code as canonical format with per-tool adaptation
 - `cpt-cypilot-adr-execution-plans` — automated execution plans with compiled phase files for context-bounded agent tasks; decomposition by template sections, checklist categories, or CDSL blocks
-- `cpt-cypilot-adr-ralphx-delegation-skill` — integrate RalphX through a dedicated delegation skill that preserves Cypilot as the source of truth for planning, SDLC assets, and validation contracts while delegating execution
+- `cpt-cypilot-adr-ralphex-delegation-skill` — integrate ralphex through a dedicated delegation skill that preserves Cypilot as the source of truth for planning, SDLC assets, and validation contracts while delegating autonomous execution
 
 ### 1.3 Architecture Layers
 
