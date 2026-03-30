@@ -845,6 +845,59 @@ class TestCLIAgentsCommand(unittest.TestCase):
             agent_result = out.get("results", {}).get("test", out)
             self.assertGreater(len(agent_result.get("skills", {}).get("updated", [])), 0)
 
+    def test_openai_agent_generates_individual_skill_files(self):
+        """Issue #125: openai (codex) agent should generate per-workflow skill files."""
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / ".git").mkdir()
+            self._write_minimal_cypilot_skill(root)
+            self._write_workflows_with_frontmatter(root)
+
+            out = self._generate_agent(root, "openai")
+            openai_result = out.get("results", {}).get("openai", {})
+            self.assertEqual(openai_result.get("status"), "PASS")
+
+            expected_skills = [
+                root / ".agents" / "skills" / "cypilot" / "SKILL.md",
+                root / ".agents" / "skills" / "cypilot-generate" / "SKILL.md",
+                root / ".agents" / "skills" / "cypilot-analyze" / "SKILL.md",
+                root / ".agents" / "skills" / "cypilot-plan" / "SKILL.md",
+                root / ".agents" / "skills" / "cypilot-workspace" / "SKILL.md",
+            ]
+            for skill_file in expected_skills:
+                self.assertTrue(
+                    skill_file.exists(),
+                    f"Expected skill file not generated: {skill_file.relative_to(root)}",
+                )
+
+    def test_openai_agent_skill_frontmatter_matches_codex_schema(self):
+        """Issue #125: generated skill files must use Codex-compatible frontmatter."""
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / ".git").mkdir()
+            self._write_minimal_cypilot_skill(root)
+            self._write_workflows_with_frontmatter(root)
+
+            self._generate_agent(root, "openai")
+
+            from cypilot.commands.agents import _parse_frontmatter
+
+            for skill_name in ("cypilot", "cypilot-generate", "cypilot-analyze", "cypilot-plan", "cypilot-workspace"):
+                skill_file = root / ".agents" / "skills" / skill_name / "SKILL.md"
+                fm = _parse_frontmatter(skill_file)
+                self.assertTrue(fm.get("name", "").strip(),
+                    f"{skill_name}/SKILL.md must have a non-empty 'name'")
+                self.assertTrue(fm.get("description", "").strip(),
+                    f"{skill_name}/SKILL.md must have a non-empty 'description'")
+
+    def _generate_agent(self, root: Path, agent: str) -> dict:
+        stdout = io.StringIO()
+        with redirect_stdout(stdout):
+            exit_code = main(["generate-agents", "--agent", agent,
+                "--root", str(root), "--cypilot-root", str(root)])
+        self.assertEqual(exit_code, 0, f"generate-agents --agent {agent} failed")
+        return json.loads(stdout.getvalue())
+
 
 class TestCLIParseFrontmatter(unittest.TestCase):
     """Test _parse_frontmatter function."""

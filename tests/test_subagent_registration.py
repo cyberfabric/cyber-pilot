@@ -23,7 +23,7 @@ from cypilot.commands.agents import (
     _default_agents_config,
     _discover_kit_agents,
     _process_single_agent,
-    _render_toml_agents,
+    _render_toml_agent,
     _TOOL_AGENT_CONFIG,
 )
 
@@ -342,74 +342,50 @@ class TestToolTemplates(unittest.TestCase):
 
 # ── TOML rendering tests ───────────────────────────────────────────
 
-class TestRenderTomlAgents(unittest.TestCase):
-    """Tests for _render_toml_agents() TOML rendering."""
+class TestRenderTomlAgent(unittest.TestCase):
+    """Tests for _render_toml_agent() per-file TOML rendering."""
 
-    def _make_paths(self, names, prefix="@/kits/sdlc/agents"):
-        return {n: f"{prefix}/{n}.md" for n in names}
+    def test_has_top_level_name(self):
+        agent = _make_semantic_agent("cypilot-codegen")
+        result = _render_toml_agent(agent, "@/agents/cypilot-codegen.md")
+        self.assertIn('name = "cypilot-codegen"', result)
 
-    def test_renders_header_comment(self):
-        result = _render_toml_agents([], {})
-        self.assertIn("# Cypilot subagent definitions for OpenAI Codex", result)
+    def test_has_top_level_description(self):
+        agent = _make_semantic_agent("cypilot-codegen", description="Cypilot code generator.")
+        result = _render_toml_agent(agent, "@/agents/cypilot-codegen.md")
+        self.assertIn('description = "Cypilot code generator."', result)
 
-    def test_renders_two_agent_sections(self):
-        agents = [_make_semantic_agent("cypilot-codegen"), _make_semantic_agent("cypilot-pr-review")]
-        paths = self._make_paths([a["name"] for a in agents])
-        result = _render_toml_agents(agents, paths)
-        self.assertIn("[agents.cypilot_codegen]", result)
-        self.assertIn("[agents.cypilot_pr_review]", result)
-
-    def test_contains_agent_path_pointer(self):
-        agents = [_make_semantic_agent("cypilot-codegen", description="Code gen")]
-        paths = self._make_paths(["cypilot-codegen"])
-        result = _render_toml_agents(agents, paths)
+    def test_has_developer_instructions_with_pointer(self):
+        agent = _make_semantic_agent("cypilot-codegen")
+        result = _render_toml_agent(agent, "@/agents/cypilot-codegen.md")
+        self.assertIn('developer_instructions = """', result)
         self.assertIn("ALWAYS open and follow", result)
         self.assertIn("agents/cypilot-codegen.md", result)
 
-    def test_contains_descriptions(self):
-        agents = [
-            _make_semantic_agent("cypilot-codegen", description="Cypilot code generator."),
-            _make_semantic_agent("cypilot-pr-review", description="Cypilot PR reviewer."),
-        ]
-        paths = self._make_paths([a["name"] for a in agents])
-        result = _render_toml_agents(agents, paths)
-        self.assertIn('description = "Cypilot code generator.', result)
-        self.assertIn('description = "Cypilot PR reviewer.', result)
-
-    def test_developer_instructions_has_pointer_not_inlined_prompt(self):
-        agents = [_make_semantic_agent("cypilot-codegen")]
-        paths = self._make_paths(["cypilot-codegen"])
-        result = _render_toml_agents(agents, paths)
-        self.assertIn('developer_instructions = """', result)
-        self.assertIn("ALWAYS open and follow", result)
-        self.assertNotIn("You are a Cypilot", result)
-
-    def test_hyphens_replaced_with_underscores(self):
-        agents = [_make_semantic_agent("my-agent-name")]
-        paths = {"my-agent-name": "@/agents/my-agent-name.md"}
-        result = _render_toml_agents(agents, paths)
-        self.assertIn("[agents.my_agent_name]", result)
+    def test_no_nested_agents_sections(self):
+        agent = _make_semantic_agent("cypilot-codegen")
+        result = _render_toml_agent(agent, "@/agents/cypilot-codegen.md")
+        self.assertNotIn("[agents.", result)
 
     def test_ends_with_newline(self):
-        agents = [_make_semantic_agent("test")]
-        result = _render_toml_agents(agents, {"test": "@/test.md"})
+        agent = _make_semantic_agent("test")
+        result = _render_toml_agent(agent, "@/test.md")
         self.assertTrue(result.endswith("\n"))
 
     def test_escapes_backslash_in_description(self):
-        agents = [_make_semantic_agent("t", description="path\\to\\file")]
-        result = _render_toml_agents(agents, {"t": "@/t.md"})
+        agent = _make_semantic_agent("t", description="path\\to\\file")
+        result = _render_toml_agent(agent, "@/t.md")
         self.assertIn("path\\\\to\\\\file", result)
 
     def test_escapes_quotes_in_description(self):
-        agents = [_make_semantic_agent("t", description='say "hello"')]
-        result = _render_toml_agents(agents, {"t": "@/t.md"})
+        agent = _make_semantic_agent("t", description='say "hello"')
+        result = _render_toml_agent(agent, "@/t.md")
         self.assertIn('say \\"hello\\"', result)
 
     def test_collapses_multiline_description(self):
-        agents = [_make_semantic_agent("t", description="line one\nline two\n  line three")]
-        result = _render_toml_agents(agents, {"t": "@/t.md"})
+        agent = _make_semantic_agent("t", description="line one\nline two\n  line three")
+        result = _render_toml_agent(agent, "@/t.md")
         self.assertIn('description = "line one line two line three"', result)
-        self.assertNotIn("\n", result.split("description = ")[1].split("\n")[0].replace('"', ''))
 
 
 # ── Integration tests ───────────────────────────────────────────────
@@ -496,20 +472,35 @@ class TestSubagentIntegration(unittest.TestCase):
             self.assertTrue(codegen_path.exists())
             self.assertTrue(pr_path.exists())
 
-    def test_openai_generates_toml_file(self):
+    def test_openai_generates_per_agent_toml_files(self):
+        """Issue #125: Codex CLI expects one TOML file per agent with top-level fields."""
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             cypilot = self._setup_cypilot_tree(root)
             result = self._run_agents(root, cypilot, "openai")
 
             self.assertEqual(result["status"], "PASS")
-            toml_path = root / ".codex" / "agents" / "cypilot-agents.toml"
-            self.assertTrue(toml_path.exists())
+            agents_dir = root / ".codex" / "agents"
 
-            content = toml_path.read_text(encoding="utf-8")
-            self.assertIn("[agents.cypilot_codegen]", content)
-            self.assertIn("[agents.cypilot_pr_review]", content)
-            self.assertIn("ALWAYS open and follow", content)
+            # Each agent gets its own .toml file
+            codegen_toml = agents_dir / "cypilot-codegen.toml"
+            pr_review_toml = agents_dir / "cypilot-pr-review.toml"
+            self.assertTrue(codegen_toml.exists(), "cypilot-codegen.toml not created")
+            self.assertTrue(pr_review_toml.exists(), "cypilot-pr-review.toml not created")
+
+            # Combined file must NOT exist (it causes Codex CLI warnings)
+            combined = agents_dir / "cypilot-agents.toml"
+            self.assertFalse(combined.exists(), "combined cypilot-agents.toml must not be created")
+
+            # Each file has top-level fields (not nested under [agents.*])
+            for toml_path in (codegen_toml, pr_review_toml):
+                content = toml_path.read_text(encoding="utf-8")
+                self.assertIn('name = "', content)
+                self.assertIn('description = "', content)
+                self.assertIn('developer_instructions = """', content)
+                self.assertIn("ALWAYS open and follow", content)
+                self.assertNotIn("[agents.", content,
+                    f"{toml_path.name} must use top-level fields, not [agents.*] sections")
 
     def test_windsurf_skips_subagent_generation(self):
         with TemporaryDirectory() as tmpdir:
