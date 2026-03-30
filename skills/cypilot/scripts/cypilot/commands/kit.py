@@ -107,10 +107,20 @@ def _download_kit_from_github(
             f"Failed to download kit from GitHub ({owner}/{repo}@{version}): {exc}"
         ) from exc
 
-    # Extract
+    # Extract — validate member paths to prevent zip-slip (S5042), then use
+    # the built-in ``filter="data"`` safeguard for defence-in-depth.
     try:
         with tarfile.open(tar_path, "r:gz") as tar:
-            tar.extractall(path=tmp_dir, filter="data")
+            for member in tar.getmembers():
+                member_path = (tmp_dir / member.name).resolve()
+                if not member_path.is_relative_to(tmp_dir.resolve()):
+                    raise RuntimeError(
+                        f"Unsafe path in archive: {member.name!r}"
+                    )
+            tar.extractall(path=tmp_dir, filter="data")  # noqa: S202
+    except RuntimeError:
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+        raise
     except Exception as exc:
         shutil.rmtree(tmp_dir, ignore_errors=True)
         raise RuntimeError(
