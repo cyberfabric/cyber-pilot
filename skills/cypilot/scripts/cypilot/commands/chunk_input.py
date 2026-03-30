@@ -380,7 +380,7 @@ def cmd_chunk_input(argv: List[str]) -> int:
 
     # @cpt-begin:cpt-cypilot-flow-execution-plans-chunk-raw-input:p1:inst-dry-run
     if args.dry_run:
-        input_signature, source_records = _build_input_signature(sources)
+        input_signature, _ = _build_input_signature(sources)
         result = {
             "status": "OK",
             "dry_run": True,
