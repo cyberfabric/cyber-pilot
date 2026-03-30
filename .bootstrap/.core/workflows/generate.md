@@ -122,6 +122,16 @@ Options:
 
 If user chooses plan: stop and tell them to run `/cypilot-plan generate {KIND}` with the same parameters. If user chooses continue: proceed with aggressive chunking and log _"Proceeding in single-context mode — quality may be reduced for large artifacts."_
 
+### Raw-Input Overflow Rule
+
+When raw input (file paths + optional stdin) exceeds `threshold-lines` (default 500), the planner MAY perform a non-mutating signature check before requesting write approval:
+
+1. Run `{cpt_cmd} --json chunk-input --max-lines 300 --threshold-lines 500 --output-dir {cypilot_path}/.plans/{task-slug}/input --dry-run` (add `--include-stdin` when stdin participates). This is read-only and returns the deterministic `input_signature` and planned manifest without writing files.
+2. If an existing package at `{cypilot_path}/.plans/{task-slug}/input/manifest.json` has a matching `input_signature`, reuse it without prompting.
+3. Only if no matching reusable package exists, request explicit user approval to run the write-capable command: `{cpt_cmd} --json chunk-input --max-lines 300 --threshold-lines 500 --output-dir {cypilot_path}/.plans/{task-slug}/input` (add `--include-stdin` when needed).
+
+This dry-run check and reuse path takes precedence over the single-context bypass check in Phase 0.1 but still preserves the requirement to route to `/cypilot-plan` when total lines exceed the threshold.
+
 ## Phase 0.5: Clarify Output & Context
 
 If system context is unclear, ask:

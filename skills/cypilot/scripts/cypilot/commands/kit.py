@@ -75,16 +75,20 @@ def _validate_tar_archive_before_extract(
     tar_path: Path,
     tmp_dir: Path,
 ) -> None:
-    members = tar.getmembers()
-    if len(members) > _GITHUB_TARBALL_MAX_MEMBERS:
-        raise RuntimeError(
-            "Archive extraction blocked: too many archive entries "
-            f"({len(members)} > {_GITHUB_TARBALL_MAX_MEMBERS})"
-        )
-
     tmp_dir_resolved = tmp_dir.resolve()
     total_size = 0
-    for member in members:
+    member_count = 0
+
+    while True:
+        member = tar.next()
+        if member is None:
+            break
+        member_count += 1
+        if member_count > _GITHUB_TARBALL_MAX_MEMBERS:
+            raise RuntimeError(
+                "Archive extraction blocked: too many archive entries "
+                f"(>{_GITHUB_TARBALL_MAX_MEMBERS})"
+            )
         member_path = (tmp_dir / member.name).resolve()
         if not member_path.is_relative_to(tmp_dir_resolved):
             raise RuntimeError(
@@ -158,6 +162,7 @@ def _download_kit_from_github(
     try:
         with tarfile.open(tar_path, "r:gz") as tar:
             _validate_tar_archive_before_extract(tar, tar_path, tmp_dir)
+        with tarfile.open(tar_path, "r:gz") as tar:
             tar.extractall(path=tmp_dir, filter="data")  # noqa: S202
     except RuntimeError:
         shutil.rmtree(tmp_dir, ignore_errors=True)

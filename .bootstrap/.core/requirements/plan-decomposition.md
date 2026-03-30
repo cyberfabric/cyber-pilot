@@ -192,5 +192,6 @@ Phases MUST declare dependencies in TOML frontmatter.
 If total compiled content would fit within `500` lines, the plan workflow MUST stop and redirect to the direct workflow instead of generating a plan.
 
 1. Estimate total compiled size.
-2. If estimate `≤ 500`, redirect to `/cypilot-generate` or `/cypilot-analyze`.
-3. If estimate `> 500`, continue plan generation.
+2. If `plan.input_signature` is available, check it against any existing manifest at `{cypilot_path}/.plans/{task-slug}/input/manifest.json`. If the signatures match or the raw input already required planning (i.e., exceeded the threshold), proceed with plan generation and do not redirect.
+3. If estimate `≤ 500` and no signature-based bypass applies, redirect to `/cypilot-generate` or `/cypilot-analyze`.
+4. If estimate `> 500`, continue plan generation.

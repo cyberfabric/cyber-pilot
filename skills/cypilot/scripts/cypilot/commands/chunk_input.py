@@ -26,7 +26,7 @@ from ..utils.ui import ui
 
 DEFAULT_MAX_LINES = 300
 DEFAULT_THRESHOLD_LINES = 500
-CHUNK_FILE_RE = re.compile(r"^\d{3}-\d{2}-.+-part-\d{2}\.[^.]+$")
+CHUNK_FILE_RE = re.compile(r"^\d+-\d+-.+-part-\d+\.[^.]+$")
 DIRECT_PROMPT_FILE = "direct-prompt.md"
 PACKAGE_MANIFEST_FILE = "manifest.json"
 

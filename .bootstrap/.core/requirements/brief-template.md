@@ -48,6 +48,8 @@ inputs = {inputs}
 ```
 
 ## Load Instructions
+When `input_manifest` is non-empty, the first load item MUST be `Read input/manifest.json` so the executing agent discovers the assigned chunk list before loading any `input/*.md` chunk files. The chunk files listed in subsequent load steps MUST be kept consistent with the chunks declared in `input_manifest`.
+
 {numbered list of load items}
 
 **Do NOT load**: {irrelevant files}
@@ -63,7 +65,7 @@ Required sections:
 5. User Decisions
 6. Rules
 7. Input
-8. Task — add `Read <file>` steps for runtime-read items
+8. Task — add `Read input/manifest.json` first when `input_manifest` is non-empty, then add `Read <file>` steps for runtime-read items (including assigned input chunks)
 9. Acceptance Criteria
 10. Output Format — use the required completion report + next-phase prompt from `plan-template.md`
 

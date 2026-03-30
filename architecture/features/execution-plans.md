@@ -125,10 +125,11 @@ Execution Plans solve this by moving decomposition from the user to the tool. Th
 2. [x] - `p1` - Command parses arguments and validates required numeric thresholds - `inst-parse-args`
 3. [x] - `p1` - Command reads file sources and optional `stdin` according to invocation mode - `inst-read-sources`
 4. [x] - `p1` - Command computes total line count, canonical `input_signature`, and whether planning is required - `inst-evaluate-threshold`
-5. [x] - `p1` - Command stages a complete replacement package in a temporary sibling directory instead of deleting the active package first - `inst-prepare-output`
-6. [x] - `p1` - **IF** `stdin` participated → command preserves raw direct prompt as `direct-prompt.md` inside the staged package - `inst-store-direct-prompt`
-7. [x] - `p1` - Command writes deterministic numbered chunk files bounded by `max_lines` and `manifest.json` carrying `input_signature` and chunk metadata - `inst-write-chunks`
-8. [x] - `p1` - Command atomically swaps the staged package into place; on write failure, the previously active package remains intact - `inst-return-result`
+5. [x] - `p1` - **IF** `--dry-run` is set → command skips staging, writing, and atomic swap; instead returns the deterministic `input_signature` and a planned manifest (including chunk metadata, source records, and whether `direct-prompt.md` would be preserved) without persisting any files; callers use this for signature-based reuse checks - `inst-dry-run`
+6. [x] - `p1` - Command stages a complete replacement package in a temporary sibling directory instead of deleting the active package first - `inst-prepare-output`
+7. [x] - `p1` - **IF** `stdin` participated → command preserves raw direct prompt as `direct-prompt.md` inside the staged package - `inst-store-direct-prompt`
+8. [x] - `p1` - Command writes deterministic numbered chunk files bounded by `max_lines` and `manifest.json` carrying `input_signature` and chunk metadata - `inst-write-chunks`
+9. [x] - `p1` - Command atomically swaps the staged package into place; on write failure, the previously active package remains intact - `inst-return-result`
 
 ### Execute Phase
 
@@ -343,7 +344,7 @@ Execution Plans solve this by moving decomposition from the user to the tool. Th
 The system MUST provide a `chunk-input` command that takes file paths and/or `stdin` input and emits a deterministic raw-input package in the output directory. The package MUST contain:
 - `manifest.json` with `input_signature`, source metadata, and ordered chunk metadata
 - `direct-prompt.md` (if `stdin` was used)
-- `NNN-SS-label-part-PP.md` chunk files (where `NNN` is the chunk number, `SS` is the source sequence number (zero-padded index), `label` is the source display name, and `PP` is the part number)
+- `NNN-SS-label-part-PP.md` chunk files (where `NNN` is the chunk number, `SS` is the source sequence number (zero-padded index), `label` is the slugified source label (lowercase, ASCII-safe, spaces and special characters replaced with hyphens or underscores to ensure deterministic, filesystem-safe filenames), and `PP` is the part number)
 
 Package reuse MUST depend on an exact `input_signature` match, not only on plan target identity or directory existence. Re-running the command with changed raw input MUST preserve the previous live package unless the replacement package is fully written and successfully swapped into place.
 

@@ -53,6 +53,8 @@ input_files = []
 output_files = []
 outputs = []
 inputs = []
+input_manifest = ""   # relative path to input/manifest.json when a raw-input package exists, empty string otherwise
+input_signature = ""  # SHA-256 input signature from chunk-input (or direct prompt hash); always populated for reuse checks
 ```
 
 Field rules:
@@ -64,6 +66,8 @@ Field rules:
 - `depends_on` MUST be `[]` or integer phase numbers.
 - `input_files` and `inputs` are runtime-read items and MUST have matching Task read steps.
 - `output_files` are created or modified project files; `outputs` are intermediate files in `out/`.
+- `input_manifest` MUST be the relative path to `input/manifest.json` when a raw-input package exists, or an empty string otherwise.
+- `input_signature` MUST be the SHA-256 input signature produced by `chunk-input` (or computed from the direct prompt + provided file contents); always populated for reuse checks.
 
 ### Section 2: Preamble
 
@@ -224,6 +228,8 @@ total = 4
 type = "generate"
 output_files = ["examples/overwork_alert/architecture/PRD.md"]
 outputs = ["out/phase-01-actors.md"]
+input_manifest = "input/manifest.json"
+input_signature = "sha256:a1b2c3d4e5f6..."
 ```
 
 ## Preamble

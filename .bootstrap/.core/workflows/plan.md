@@ -131,12 +131,18 @@ Resolve generate/analyze → artifact kind, file path, and kit; implement → FE
 - generate artifact target: prefer the single resolved output artifact path as `artifact-path:{absolute path}`; otherwise use `artifact:{artifact kind}:{explicit artifact name}`
 - analyze path target: use `path:{absolute path}` for the primary file/directory target; analyze artifact target follows the generate artifact-target rule
 - implement target: prefer `feature-path:{absolute FEATURE path}`; otherwise `feature-id:{FEATURE ID}`; otherwise `feature-title:{normalized FEATURE title}`
+Derive `{task-slug}` from `plan.type` and `plan.target_key` using the naming conventions in the Naming appendix. The slug MUST be resolved before any path or command that references `{cypilot_path}/.plans/{task-slug}/`.
+
+Compute `plan.input_signature`: if raw input exceeds the threshold and a `chunk-input --dry-run` was performed, use the `input_signature` from its output; otherwise compute SHA-256 of the direct prompt text concatenated with provided file contents. Always populate `plan.input_signature` in `plan.toml`, even when no raw-input package or manifest exists.
+
 Then report:
 ```text
 Plan scope:
   Type: {generate|analyze|implement}
   Target: {artifact kind or feature name}
   Target key: {canonical target identity}
+  Task slug: {task-slug}
+  Input signature: {input_signature}
   Estimated size: ~{N} lines
 ```
 
@@ -216,6 +222,7 @@ task = "{task description}"
 type = "{generate|analyze|implement}"
 target = "{artifact kind}"          # e.g. "PRD", "DESIGN", "FEATURE"
 target_key = "{canonical target identity}" # deterministic naming/reuse key for this plan target
+input_signature = "{sha256:...}"   # SHA-256 of direct prompt + provided file contents; always populated for reuse checks
 kit_path = "{absolute path to kit}" # e.g. "/abs/path/config/kits/sdlc"
 created = "{ISO 8601 timestamp}"
 lifecycle = "{gitignore|cleanup|archive|manual}"
@@ -574,7 +581,7 @@ Naming conventions:
 - analyze: `{type}-{artifact_kind}-{artifact_slug}` for artifact-oriented reviews, or `{type}-path-{target_path_slug}` when the primary target is a file or directory path. For path targets, if the absolute target path is under `{project_root}`, strip `{project_root}/` first and normalize that relative path (`{project_root}/src/api/users.py` → `analyze-path-src-api-users-py`); otherwise normalize the absolute-path segments.
 - implement: `{type}-feature-{feature_slug}`. Derive `{feature_slug}` from the FEATURE ID first; if no ID exists, use the FEATURE title; if neither exists, use the FEATURE file stem.
 - normalization: lowercase, replace path separators / spaces / punctuation with `-`, collapse repeated `-`, trim leading/trailing `-`.
-- collision handling: if an existing non-archived plan has the same `type` and the same `plan.target_key`, reuse its directory; otherwise append `-2`, `-3`, ... using the lowest available suffix.
+- collision handling: if an existing non-archived plan has the same `type`, the same `plan.target_key`, and the same `plan.input_signature`, reuse its directory; two plans for the same target but different input signatures are treated as distinct. If no exact match exists, append `-2`, `-3`, ... using the lowest available suffix.
 - phase file: `phase-{NN}-{slug}.md`
 - plan manifest: always `plan.toml`
 
