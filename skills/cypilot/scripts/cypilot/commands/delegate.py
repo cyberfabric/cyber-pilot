@@ -174,7 +174,7 @@ def _print_human(result: dict) -> None:
         return
 
     if status == "ready":
-        ui.step(f"[DRY RUN] Command assembled (not invoked):")
+        ui.step("[DRY RUN] Command assembled (not invoked):")
         command = result.get("command", [])
         if command:
             ui.info(f"  {' '.join(command)}")
