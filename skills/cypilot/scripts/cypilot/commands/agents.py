@@ -27,6 +27,7 @@ composes SKILL.md from kit @cpt:skill sections, and creates workflow proxies.
 # @cpt-begin:cpt-cypilot-algo-agent-integration-generate-shims:p1:inst-agents-datamodel
 import argparse
 import json
+import os
 import re
 import shutil
 import sys
@@ -36,6 +37,17 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 
 # Regex for valid TOML bare key / agent name: ASCII letters, digits, hyphen, underscore.
 _VALID_AGENT_NAME_RE = re.compile(r"^[A-Za-z0-9_-]+$")
+
+
+def _validate_path(path, allowed_base):
+    """Validate that *path* is within *allowed_base* to prevent path traversal."""
+    resolved = os.path.realpath(str(path))
+    base = os.path.realpath(str(allowed_base))
+    if resolved != base and not resolved.startswith(base + os.sep):
+        raise ValueError(
+            f"Path traversal blocked: {resolved!r} is outside {base!r}"
+        )
+    return resolved
 
 from ..utils.files import core_subpath, config_subpath, find_project_root, _is_cypilot_root, _read_cypilot_var, load_project_config
 from ..utils.ui import ui
@@ -209,6 +221,8 @@ def _ensure_cypilot_local(
             src = cypilot_root / dirname
             if src.is_dir():
                 dst = core_dst / dirname
+                _validate_path(src, cypilot_root)
+                _validate_path(dst, local_dot)
                 shutil.copytree(src, dst, ignore=_COPY_IGNORE, dirs_exist_ok=True)
                 file_count += sum(1 for _ in dst.rglob("*") if _.is_file())
 
@@ -216,12 +230,16 @@ def _ensure_cypilot_local(
             src = cypilot_root / dirname
             if src.is_dir():
                 dst = local_dot / dirname
+                _validate_path(src, cypilot_root)
+                _validate_path(dst, local_dot)
                 shutil.copytree(src, dst, ignore=_COPY_IGNORE, dirs_exist_ok=True)
                 file_count += sum(1 for _ in dst.rglob("*") if _.is_file())
 
         for fname in _COPY_FILES:
             src = cypilot_root / fname
             if src.is_file():
+                _validate_path(src, cypilot_root)
+                _validate_path(core_dst / fname, local_dot)
                 shutil.copy2(src, core_dst / fname)
                 file_count += 1
 

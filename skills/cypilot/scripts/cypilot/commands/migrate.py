@@ -34,6 +34,7 @@ to v3 (blueprint-based, artifacts.toml, three-directory layout).
 import argparse
 import json
 import logging
+import os
 import re
 import shutil
 import subprocess
@@ -44,6 +45,17 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from ..utils import toml_utils
 from ..utils.ui import ui
+
+
+def _validate_path(path, allowed_base):
+    """Validate that *path* is within *allowed_base* to prevent path traversal."""
+    resolved = os.path.realpath(str(path))
+    base = os.path.realpath(str(allowed_base))
+    if resolved != base and not resolved.startswith(base + os.sep):
+        raise ValueError(
+            f"Path traversal blocked: {resolved!r} is outside {base!r}"
+        )
+    return resolved
 
 logger = logging.getLogger(__name__)
 
@@ -312,6 +324,8 @@ def backup_v2_state(
     # @cpt-begin:cpt-cypilot-algo-v2-v3-migration-backup-v2-state:p1:inst-backup-adapter
     adapter_dir = project_root / adapter_path
     if adapter_dir.is_dir():
+        _validate_path(adapter_dir, project_root)
+        _validate_path(backup_dir / adapter_path, backup_dir)
         shutil.copytree(adapter_dir, backup_dir / adapter_path)
         backed_up.append(adapter_path)
     # @cpt-end:cpt-cypilot-algo-v2-v3-migration-backup-v2-state:p1:inst-backup-adapter
@@ -320,6 +334,8 @@ def backup_v2_state(
     for v2_root_file in (".cypilot-config.json", "cypilot-agents.json"):
         v2_path = project_root / v2_root_file
         if v2_path.is_file():
+            _validate_path(v2_path, project_root)
+            _validate_path(backup_dir / v2_root_file, backup_dir)
             shutil.copy2(v2_path, backup_dir / v2_root_file)
             backed_up.append(v2_root_file)
     # @cpt-end:cpt-cypilot-algo-v2-v3-migration-backup-v2-state:p1:inst-backup-config-json
@@ -327,6 +343,8 @@ def backup_v2_state(
     # @cpt-begin:cpt-cypilot-algo-v2-v3-migration-backup-v2-state:p1:inst-backup-core
     core_dir = project_root / core_path
     if core_dir.is_dir():
+        _validate_path(core_dir, project_root)
+        _validate_path(backup_dir / core_path, backup_dir)
         shutil.copytree(core_dir, backup_dir / core_path, symlinks=True)
         backed_up.append(core_path)
     # @cpt-end:cpt-cypilot-algo-v2-v3-migration-backup-v2-state:p1:inst-backup-core
@@ -335,6 +353,8 @@ def backup_v2_state(
     if core_install_type == INSTALL_TYPE_SUBMODULE:
         gitmodules = project_root / _GITMODULES_FILE
         if gitmodules.is_file():
+            _validate_path(gitmodules, project_root)
+            _validate_path(backup_dir / _GITMODULES_FILE, backup_dir)
             shutil.copy2(gitmodules, backup_dir / _GITMODULES_FILE)
             backed_up.append(_GITMODULES_FILE)
     # @cpt-end:cpt-cypilot-algo-v2-v3-migration-backup-v2-state:p1:inst-backup-gitmodules
@@ -342,6 +362,8 @@ def backup_v2_state(
     # @cpt-begin:cpt-cypilot-algo-v2-v3-migration-backup-v2-state:p1:inst-backup-root-agents
     root_agents = project_root / _AGENTS_MD
     if root_agents.is_file():
+        _validate_path(root_agents, project_root)
+        _validate_path(backup_dir / _AGENTS_MD, backup_dir)
         shutil.copy2(root_agents, backup_dir / _AGENTS_MD)
         backed_up.append(_AGENTS_MD)
     # @cpt-end:cpt-cypilot-algo-v2-v3-migration-backup-v2-state:p1:inst-backup-root-agents
@@ -351,6 +373,8 @@ def backup_v2_state(
     for agent_dir_name in agent_dirs:
         agent_dir = project_root / agent_dir_name
         if agent_dir.is_dir():
+            _validate_path(agent_dir, project_root)
+            _validate_path(backup_dir / agent_dir_name, backup_dir)
             shutil.copytree(agent_dir, backup_dir / agent_dir_name)
             backed_up.append(agent_dir_name)
     # @cpt-end:cpt-cypilot-algo-v2-v3-migration-backup-v2-state:p1:inst-backup-agent-dirs
@@ -408,12 +432,18 @@ def _rollback(
         try:
             if dst.exists():
                 if dst.is_dir():
+                    _validate_path(dst, project_root)
                     shutil.rmtree(dst)
                 else:
+                    _validate_path(dst, project_root)
                     dst.unlink()
             if src.is_dir():
+                _validate_path(src, backup_dir)
+                _validate_path(dst, project_root)
                 shutil.copytree(src, dst, symlinks=True)
             elif src.is_file():
+                _validate_path(src, backup_dir)
+                _validate_path(dst, project_root)
                 shutil.copy2(src, dst)
             restored.append(item)
         except OSError as e:
@@ -426,6 +456,7 @@ def _rollback(
                 _paths_overlap(created_cypilot_dir, restored_path)
                 for restored_path in restored_paths
             ):
+                _validate_path(created_cypilot_dir, project_root)
                 shutil.rmtree(created_cypilot_dir)
                 cleaned.append(str(created_cypilot_dir))
         except OSError as e:
@@ -490,6 +521,7 @@ def cleanup_core_path(
             # @cpt-begin:cpt-cypilot-algo-v2-v3-migration-cleanup-core-path:p1:inst-remove-git-modules-dir
             git_modules_dir = project_root / ".git" / "modules" / core_path
             if git_modules_dir.is_dir():
+                _validate_path(git_modules_dir, project_root / ".git" / "modules")
                 shutil.rmtree(git_modules_dir)
             # @cpt-end:cpt-cypilot-algo-v2-v3-migration-cleanup-core-path:p1:inst-remove-git-modules-dir
 
@@ -524,6 +556,7 @@ def cleanup_core_path(
 
             # Remove leftover empty directory if deinit/git-rm left it
             if core_dir.is_dir():
+                _validate_path(core_dir, project_root)
                 shutil.rmtree(core_dir, ignore_errors=True)
 
             # @cpt-begin:cpt-cypilot-algo-v2-v3-migration-cleanup-core-path:p1:inst-return-submodule-ok
@@ -549,6 +582,7 @@ def cleanup_core_path(
     if core_install_type == INSTALL_TYPE_GIT_CLONE:
         try:
             # @cpt-begin:cpt-cypilot-algo-v2-v3-migration-cleanup-core-path:p1:inst-remove-clone-dir
+            _validate_path(core_dir, project_root)
             shutil.rmtree(core_dir)
             # @cpt-end:cpt-cypilot-algo-v2-v3-migration-cleanup-core-path:p1:inst-remove-clone-dir
             # @cpt-begin:cpt-cypilot-algo-v2-v3-migration-cleanup-core-path:p1:inst-return-clone-ok
@@ -573,6 +607,7 @@ def cleanup_core_path(
     # @cpt-begin:cpt-cypilot-algo-v2-v3-migration-cleanup-core-path:p1:inst-cleanup-plain-dir
     try:
         # @cpt-begin:cpt-cypilot-algo-v2-v3-migration-cleanup-core-path:p1:inst-remove-plain-dir
+        _validate_path(core_dir, project_root)
         shutil.rmtree(core_dir)
         # @cpt-end:cpt-cypilot-algo-v2-v3-migration-cleanup-core-path:p1:inst-remove-plain-dir
         # @cpt-begin:cpt-cypilot-algo-v2-v3-migration-cleanup-core-path:p1:inst-return-plain-ok
@@ -927,9 +962,14 @@ def migrate_kits(
             dst = config_kit_dir / item.name
             if item.is_dir():
                 if dst.exists():
+                    _validate_path(dst, cypilot_dir)
                     shutil.rmtree(dst)
+                _validate_path(item, adapter_dir)
+                _validate_path(dst, cypilot_dir)
                 shutil.copytree(item, dst)
             else:
+                _validate_path(item, adapter_dir)
+                _validate_path(dst, cypilot_dir)
                 shutil.copy2(item, dst)
         # @cpt-end:cpt-cypilot-algo-v2-v3-migration-migrate-kits:p1:inst-copy-kit-config
 
@@ -970,6 +1010,7 @@ def migrate_kits(
     # Remove legacy kits/ directory — no longer used in new model
     kits_user_dir = cypilot_dir / "kits"
     if kits_user_dir.is_dir():
+        _validate_path(kits_user_dir, cypilot_dir)
         shutil.rmtree(kits_user_dir)
 
     # @cpt-begin:cpt-cypilot-algo-v2-v3-migration-migrate-kits:p1:inst-return-kits-result
@@ -1214,6 +1255,7 @@ def _cleanup_old_adapter_agent_files(
             skill_dir = project_root / agent_skills / skill_dir_name
             if skill_dir.is_dir():
                 try:
+                    _validate_path(skill_dir, project_root)
                     shutil.rmtree(skill_dir)
                     removed.append(str(skill_dir.relative_to(project_root)))
                 except (PermissionError, OSError) as exc:
@@ -1539,6 +1581,7 @@ def _cleanup_adapter_directory(
     adapter_dir_path: Path,
     adapter_path: str,
     json_convert_failed: List[str],
+    project_root: Path,
 ) -> List[str]:
     if not adapter_dir_path.is_dir():
         return []
@@ -1549,6 +1592,7 @@ def _cleanup_adapter_directory(
         )
         return []
 
+    _validate_path(adapter_dir_path, project_root)
     shutil.rmtree(adapter_dir_path)
     return [f"{adapter_path}/"]
 
@@ -1658,7 +1702,7 @@ def _cleanup_v2_adapter(
 
     # @cpt-begin:cpt-cypilot-flow-v2-v3-migration-migrate-project:p1:inst-cleanup-adapter
     removed_v2_files = _cleanup_adapter_directory(
-        adapter_dir_path, adapter_path, json_convert_failed,
+        adapter_dir_path, adapter_path, json_convert_failed, project_root,
     )
     removed_v2_files.extend(_remove_v2_root_files(project_root))
     _report_removed_paths("V2 artifacts cleaned up", removed_v2_files)

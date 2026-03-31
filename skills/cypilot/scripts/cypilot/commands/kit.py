@@ -24,6 +24,17 @@ from ..utils.whatsnew import show_kit_whatsnew
 # @cpt-end:cpt-cypilot-algo-kit-github-helpers:p1:inst-kit-imports
 
 
+def _validate_path(path, allowed_base):
+    """Validate that *path* is within *allowed_base* to prevent path traversal."""
+    resolved = os.path.realpath(str(path))
+    base = os.path.realpath(str(allowed_base))
+    if resolved != base and not resolved.startswith(base + os.sep):
+        raise ValueError(
+            f"Path traversal blocked: {resolved!r} is outside {base!r}"
+        )
+    return resolved
+
+
 # ---------------------------------------------------------------------------
 # GitHub source helpers
 # ---------------------------------------------------------------------------
@@ -251,6 +262,8 @@ def _seed_kit_config_files(
         if src.is_file() and src.suffix in _CONFIG_EXTENSIONS:
             dst = config_dir / src.name
             if not dst.exists():
+                _validate_path(src, gen_scripts_dir)
+                _validate_path(dst, config_dir)
                 shutil.copy2(src, dst)
                 actions[f"config_{src.stem}"] = "seeded"
 # @cpt-end:cpt-cypilot-algo-kit-content-mgmt:p1:inst-seed-configs
@@ -305,7 +318,10 @@ def _copy_kit_content(
         dst = config_kit_dir / d
         if src.is_dir():
             if dst.exists():
+                _validate_path(dst, config_kit_dir)
                 shutil.rmtree(dst)
+            _validate_path(src, kit_source)
+            _validate_path(dst, config_kit_dir)
             shutil.copytree(src, dst)
             actions[d] = "copied"
 
@@ -313,6 +329,8 @@ def _copy_kit_content(
         src = kit_source / f
         dst = config_kit_dir / f
         if src.is_file():
+            _validate_path(src, kit_source)
+            _validate_path(dst, config_kit_dir)
             shutil.copy2(src, dst)
             actions[f] = "copied"
 
@@ -1324,7 +1342,12 @@ def cmd_kit_install(argv: List[str]) -> int:
     finally:
         # @cpt-begin:cpt-cypilot-flow-kit-install-cli:p1:inst-cleanup-tmp
         if tmp_dir_to_clean:
-            shutil.rmtree(tmp_dir_to_clean, ignore_errors=True)
+            try:
+                _validate_path(tmp_dir_to_clean, tempfile.gettempdir())
+            except ValueError:
+                ui.warn(f"Temp cleanup skipped: path outside temp dir: {tmp_dir_to_clean}")
+            else:
+                shutil.rmtree(tmp_dir_to_clean, ignore_errors=True)
         # @cpt-end:cpt-cypilot-flow-kit-install-cli:p1:inst-cleanup-tmp
 
 # @cpt-begin:cpt-cypilot-flow-kit-install-cli:p1:inst-human-output
@@ -1591,7 +1614,12 @@ def cmd_kit_update(argv: List[str]) -> int:
                     "files_written": 0,
                 })
                 if tmp_dir:
-                    shutil.rmtree(tmp_dir, ignore_errors=True)
+                    try:
+                        _validate_path(tmp_dir, tempfile.gettempdir())
+                    except ValueError:
+                        ui.warn(f"Temp cleanup skipped: path outside temp dir: {tmp_dir}")
+                    else:
+                        shutil.rmtree(tmp_dir, ignore_errors=True)
                 continue
         # @cpt-end:cpt-cypilot-flow-kit-update-cli:p1:inst-show-whatsnew
 
@@ -1611,7 +1639,12 @@ def cmd_kit_update(argv: List[str]) -> int:
             errors.append(f"{kit_slug}: {exc}")
         finally:
             if tmp_dir:
-                shutil.rmtree(tmp_dir, ignore_errors=True)
+                try:
+                    _validate_path(tmp_dir, tempfile.gettempdir())
+                except ValueError:
+                    ui.warn(f"Temp cleanup skipped: path outside temp dir: {tmp_dir}")
+                else:
+                    shutil.rmtree(tmp_dir, ignore_errors=True)
 
         if kit_r.get("errors"):
             errors.extend(f"{kit_slug}: {err}" for err in kit_r.get("errors", []))

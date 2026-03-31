@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 _VERSION_RES = (
     re.compile(r"^v?\d+\.\d+$"),
     re.compile(r"^v?\d+\.\d+\.\d+$"),
+    re.compile(r"^v?\d+\.\d+\.\d+[-+].+$"),
 )
 
 # @cpt-begin:cpt-cypilot-algo-ralphex-delegation-validate:p1:inst-if-none

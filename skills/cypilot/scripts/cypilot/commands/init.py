@@ -1,11 +1,24 @@
 # @cpt-begin:cpt-cypilot-flow-core-infra-project-init:p1:inst-init-helpers
 import argparse
 import json
+import os
 import re
 import shutil
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+
+def _validate_path(path, allowed_base):
+    """Validate that *path* is within *allowed_base* to prevent path traversal."""
+    resolved = os.path.realpath(str(path))
+    base = os.path.realpath(str(allowed_base))
+    if resolved != base and not resolved.startswith(base + os.sep):
+        raise ValueError(
+            f"Path traversal blocked: {resolved!r} is outside {base!r}"
+        )
+    return resolved
 
 from ..utils.artifacts_meta import create_backup, generate_default_registry, generate_slug
 from ..utils import toml_utils
@@ -58,6 +71,7 @@ def _copy_from_cache(cache_dir: Path, target_dir: Path, force: bool = False) -> 
     # Full cleanup of .core/ when force=True (ensures no stale files)
     # This is the mode used by `cpt update` which always passes force=True
     if force and core_dir.exists():
+        _validate_path(core_dir, target_dir)
         shutil.rmtree(core_dir)
 
     core_dir.mkdir(parents=True, exist_ok=True)
@@ -71,10 +85,13 @@ def _copy_from_cache(cache_dir: Path, target_dir: Path, force: bool = False) -> 
             if not force:
                 results[name] = "skipped"
                 return
+            _validate_path(dst, target_dir)
             shutil.rmtree(dst)
             results[name] = "updated"
         else:
             results[name] = "updated" if force and name in pre_force_existed else "created"
+        _validate_path(src, cache_dir)
+        _validate_path(dst, target_dir)
         shutil.copytree(src, dst)
 
     def _copy_file(src: Path, dst: Path, name: str) -> None:
@@ -90,6 +107,8 @@ def _copy_from_cache(cache_dir: Path, target_dir: Path, force: bool = False) -> 
         else:
             results[name] = "updated" if force and name in pre_force_existed else "created"
         dst.parent.mkdir(parents=True, exist_ok=True)
+        _validate_path(src, cache_dir)
+        _validate_path(dst, target_dir)
         shutil.copy2(src, dst)
 
     # Copy full directories
@@ -415,7 +434,12 @@ def _install_default_kit(
         errors.append({"path": "kit", "error": str(exc)})
     finally:
         if tmp_to_clean is not None:
-            shutil.rmtree(tmp_to_clean, ignore_errors=True)
+            try:
+                _validate_path(tmp_to_clean, Path(tempfile.gettempdir()))
+            except ValueError:
+                ui.warn(f"Temp cleanup skipped: path outside temp dir: {tmp_to_clean}")
+            else:
+                shutil.rmtree(tmp_to_clean, ignore_errors=True)
     # @cpt-end:cpt-cypilot-flow-core-infra-project-init:p1:inst-install-kit-accepted
     return kit_results
 
