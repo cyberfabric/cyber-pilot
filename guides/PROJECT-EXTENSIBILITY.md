@@ -29,6 +29,11 @@ This guide explains how Cypilot's manifest hierarchy enables projects and orches
     - [The standctl Case](#the-standctl-case)
   - [Discovery Mode](#discovery-mode)
   - [Backward Compatibility](#backward-compatibility)
+  - [Relationship with Workspace Federation](#relationship-with-workspace-federation)
+    - [How They Compose](#how-they-compose)
+    - [Orchestrator Repo with Sub-Projects](#orchestrator-repo-with-sub-projects)
+    - [Current Limitations](#current-limitations)
+    - [Potential Improvements](#potential-improvements)
   - [Future Work](#future-work)
 
 ---
@@ -550,6 +555,109 @@ Discovery writes found components into the project `manifest.toml`. Subsequent r
 
 ---
 
+## Relationship with Workspace Federation
+
+Cypilot has two complementary multi-repo mechanisms that address different dimensions of working across repositories:
+
+| | Project Extensibility (this feature) | Workspace Federation |
+|---|---|---|
+| **Direction** | Vertical — walks *up* the filesystem from repo to orchestrator | Horizontal — federates *across* sibling repositories |
+| **Config file** | `manifest.toml` at each layer boundary | `.cypilot-workspace.toml` or inline in `core.toml` |
+| **Discovery** | `discover_layers()` — finds manifest layers by walking parent directories to a master repo boundary | `find_workspace_config()` — finds workspace config at project root, then resolves named sources |
+| **Merge model** | Component merging with innermost-wins precedence and provenance tracking | No merging — each source keeps its own independent adapter context |
+| **Primary use case** | Agent/skill/workflow generation via `cpt generate-agents` | Cross-repo artifact traceability via `cpt validate`, `cpt list-ids`, `cpt where-defined` |
+| **Runtime type** | `ManifestLayer`, `MergedComponents` | `WorkspaceContext`, `SourceContext` |
+
+### How They Compose
+
+The two features operate on independent axes and do not conflict:
+
+```text
+                    Workspace Federation (horizontal)
+                    ┌──────────┬──────────┬──────────┐
+                    │ source-a │ source-b │ source-c │
+                    └────┬─────┴────┬─────┴────┬─────┘
+                         │          │          │
+Project Extensibility    │          │          │
+(vertical, per-source)   ▼          ▼          ▼
+                    ┌─────────┐┌─────────┐┌─────────┐
+                    │ Repo    ││ Repo    ││ Repo    │
+                    │ Master  ││ Master  ││ Master  │
+                    │ Kit     ││ Kit     ││ Kit     │
+                    │ Core    ││ Core    ││ Core    │
+                    └─────────┘└─────────┘└─────────┘
+```
+
+- **Workspace commands** (`workspace-init`, `workspace-add`, `validate --source`) manage cross-repo source federation and artifact traceability. They use `WorkspaceContext` and `SourceContext`.
+- **Extensibility commands** (`generate-agents`, `generate-agents --show-layers`) manage per-repo agent/skill generation from the manifest layer hierarchy. They use `discover_layers()` and `merge_components()`.
+
+### Orchestrator Repo with Sub-Projects
+
+A common deployment pattern is a quasi-mono-repo: an orchestration repository that contains many sub-projects for specific aspects of a system — services, libraries, infrastructure, documentation, etc. Each sub-project may be a Git submodule, a nested repository, or simply a subdirectory with its own Cypilot adapter. The orchestration repo itself holds shared configuration, organization-wide rules, and cross-cutting agents, while each sub-project maintains its own independent adapter.
+
+```text
+orchestrator-repo/                          ← the orchestration repo (has .git/, CLAUDE.md, skills/)
+├── manifest.toml                           ← master layer: org-wide agents, rules
+├── .cypilot-workspace.toml                 ← workspace config federating sub-projects
+├── service-a/                              ← sub-project with its own .bootstrap/
+│   └── .bootstrap/config/manifest.toml     ← repo layer for service-a
+├── service-b/
+│   └── .bootstrap/config/manifest.toml
+└── infra/
+    └── .bootstrap/config/manifest.toml
+```
+
+This structure supports two distinct working modes, each engaging different combinations of the two features:
+
+#### Mode 1: Multi-Project Scope (working from the orchestration repo root)
+
+The developer opens or branches the orchestration repo itself — their working directory is the orchestration repo root. This is common for cross-cutting changes that span multiple sub-projects, or for reviewing the system as a whole.
+
+**What activates**:
+
+- **Workspace federation**: if the orchestration repo has a `.cypilot-workspace.toml` (or inline `[workspace]` in `core.toml`), context loading upgrades to `WorkspaceContext`. Each sub-project becomes a named source with its own `SourceContext`, enabling cross-repo traceability — `cpt validate`, `cpt list-ids`, and `cpt where-defined` resolve artifacts across all federated sources.
+- **Layer discovery**: `discover_layers()` runs from the orchestration repo's own `.bootstrap/` root. It finds the orchestration repo's kit layers and repo-layer manifest. Since the orchestration repo *is* the master repo boundary (it has `.git/`), the walk-up stops there — no master layer is added above it.
+
+**Net effect**: traceability spans the full workspace; agent generation uses the orchestration repo's own manifest hierarchy. Sub-project manifests are not merged into the orchestration repo's agent generation — each sub-project's agents are generated independently (see [Current Limitations](#current-limitations)).
+
+#### Mode 2: Single-Project Scope (working from within a sub-project)
+
+The developer's working directory is inside a specific sub-project — e.g., `orchestrator-repo/service-a/`. This is the common case for feature work scoped to one service.
+
+**What activates**:
+
+- **Layer discovery**: `discover_layers()` runs from `service-a/.bootstrap/`. It loads the kit layers and repo-layer manifest from `service-a/.bootstrap/config/manifest.toml`. It then walks up from `service-a/` and finds the orchestration repo as a master repo boundary (via `.git/` or `CLAUDE.md` + `skills/`). If the orchestration repo has a `manifest.toml` at its root, that becomes the **master layer** — its agents, skills, and rules merge into service-a's generation with the repo layer winning on conflicts.
+- **Workspace federation**: if `service-a` has its own workspace config, it activates independently. More commonly, the sub-project has no workspace config and operates in single-repo mode — `CypilotContext` without `WorkspaceContext`.
+
+**Net effect**: the sub-project inherits organization-wide agents and rules from the orchestration repo's master-layer manifest, while its own repo-layer manifest can override or extend them. Cross-repo traceability is not active unless the sub-project has its own workspace config.
+
+#### Choosing Between Modes
+
+| Concern | Multi-Project (orchestration root) | Single-Project (sub-project) |
+|---|---|---|
+| Cross-repo artifact traceability | Yes — via workspace federation | No (unless sub-project has own workspace) |
+| Inherited org-wide agents/rules | Only from orchestration repo's own layers | Yes — via master layer walk-up |
+| Agent generation scope | Orchestration repo only | Submodule + orchestration master layer |
+| Typical use case | System-wide reviews, cross-cutting changes, workspace-info | Feature development within one service |
+
+### Current Limitations
+
+Layer discovery and workspace federation operate independently. This means:
+
+- `cpt generate-agents` does not discover or merge manifests from workspace sources — it runs within the primary repo's layer hierarchy only
+- Workspace sources with their own `manifest.toml` files must run `cpt generate-agents` independently within each source
+- There is no cross-source component merging — each source's manifest hierarchy is self-contained
+
+These boundaries are intentional for the MVP. Cross-source manifest merging would require precedence rules for component conflicts across sources and is tracked as future work.
+
+### Potential Improvements
+
+1. **Workspace-aware agent generation** — extend `cpt generate-agents` to optionally iterate workspace sources and run layer discovery within each, generating agents for all sources in a single invocation
+2. **Cross-source component visibility** — allow a workspace source's manifest to reference components defined in another source (e.g., a shared skill defined in an infra repo, consumed by a service repo)
+3. **Unified provenance** — extend `--show-layers` to include workspace source attribution alongside layer provenance, so the developer can see both *which layer* and *which source* contributed each component
+
+---
+
 ## Future Work
 
 These items are deferred from the MVP but planned for follow-up features:
@@ -559,3 +667,4 @@ These items are deferred from the MVP but planned for follow-up features:
 3. **`[[permissions]]` generation** — merge MCP tool permissions into `.claude/settings.local.json` (additive, idempotent); this is an important follow-up as manual permission setup is a significant time sink
 4. **`[[hooks]]` generation** — session hooks into agent-native config (e.g., `.claude/settings.json`)
 5. **Custom section preservation** — detect and preserve `<!-- *:custom -->` markers during regeneration
+6. **Workspace-aware layer discovery** — extend `discover_layers()` to optionally run within each workspace source, enabling cross-source component awareness in `cpt generate-agents`

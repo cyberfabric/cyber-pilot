@@ -92,6 +92,7 @@ The following quality domains are not applicable to this feature:
 - Remote source authentication beyond Git CLI credentials
 - Workspace-level dependency resolution between source packages
 - Live file-watching or automatic re-discovery of sources
+- Cross-source manifest layer discovery and component merging (belongs to [project-extensibility](./project-extensibility.md) — see "Relationship with Workspace Federation" in [PROJECT-EXTENSIBILITY guide](../../guides/PROJECT-EXTENSIBILITY.md#relationship-with-workspace-federation))
 
 ## 2. Actor Flows (CDSL)
 

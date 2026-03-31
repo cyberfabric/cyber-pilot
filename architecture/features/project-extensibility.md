@@ -100,6 +100,12 @@ The first concrete consumer is the standctl integration into cyber-repo, which d
 - `[[hooks]]` generation (e.g., `SessionEnd` hooks into `.claude/settings.json`)
 - Reserved in schema, parser accepts and ignores
 
+**Follow-up: Workspace-Aware Layer Discovery**:
+- Extend `discover_layers()` to optionally run within each workspace source
+- Would enable `cpt generate-agents` to merge components across workspace boundaries
+- Requires precedence rules for cross-source component conflicts
+- See [workspace feature spec](./workspace.md) and [PROJECT-EXTENSIBILITY guide](../../guides/PROJECT-EXTENSIBILITY.md#relationship-with-workspace-federation) for the relationship between the two features
+
 ### 1.4 Actors
 
 | Actor | Role in Feature |
