@@ -463,6 +463,14 @@ def cmd_validate(argv: List[str]) -> int:
                 _index_cache.update_entry(art.path, hits)
                 precomputed_hits[hkey] = hits
 
+    # Helper: reuse precomputed hits when --incremental is active
+    def _cached_scan(path: Path) -> list:
+        if precomputed_hits is not None:
+            hkey = str(path)
+            if hkey in precomputed_hits:
+                return precomputed_hits[hkey]
+        return scan_cpt_ids(path)
+
     if len(all_artifacts_for_cross) > 0:
         cross_result = cross_validate_artifacts(all_artifacts_for_cross, registered_systems=registered_systems, known_kinds=known_kinds, precomputed_hits=precomputed_hits)
         cross_errors = cross_result.get("errors", [])
@@ -500,7 +508,7 @@ def cmd_validate(argv: List[str]) -> int:
         if traceability != "FULL":
             continue
         try:
-            for h in scan_cpt_ids(artifact_path):
+            for h in _cached_scan(artifact_path):
                 if h.get("type") != "definition" or not h.get("id"):
                     continue
                 full_ids_to_check.add(str(h["id"]))
@@ -514,7 +522,7 @@ def cmd_validate(argv: List[str]) -> int:
         # Build complete set of defined artifact IDs for orphan checks.
         for art in all_artifacts_for_cross:
             art_traceability = traceability_by_path.get(str(art.path), "FULL")
-            for h in scan_cpt_ids(art.path):
+            for h in _cached_scan(art.path):
                 if h.get("type") != "definition" or not h.get("id"):
                     continue
                 did = str(h["id"])
@@ -666,7 +674,7 @@ def cmd_validate(argv: List[str]) -> int:
             present_kinds.add(kind)
 
             try:
-                for h in scan_cpt_ids(art.path):
+                for h in _cached_scan(art.path):
                     if h.get("type") != "reference":
                         continue
                     rid = str(h.get("id") or "").strip()
@@ -689,7 +697,7 @@ def cmd_validate(argv: List[str]) -> int:
             art_traceability = traceability_by_path.get(art_path_str, "FULL")
 
             try:
-                defs = [h for h in scan_cpt_ids(art.path) if h.get("type") == "definition" and h.get("id")]
+                defs = [h for h in _cached_scan(art.path) if h.get("type") == "definition" and h.get("id")]
             except (OSError, ValueError):
                 defs = []
 
@@ -822,6 +830,10 @@ def cmd_validate(argv: List[str]) -> int:
             except Exception:
                 pass  # Degrade gracefully — watch still detects file changes
         watch_paths = [art.path for art in all_artifacts_for_cross if art.path.exists()]
+        # Also watch code files with @cpt-* markers
+        for _cf in parsed_code_files_full:
+            if _cf.path.exists():
+                watch_paths.append(_cf.path)
         session.register_files(watch_paths)
         import sys as _sys
         _sys.stderr.write(f"[watch] Session sync started — monitoring {len(watch_paths)} files (Ctrl+C to stop)\n")

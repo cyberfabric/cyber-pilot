@@ -187,6 +187,22 @@ class TestComputeCodeContainersRegex:
         assert containers[3] == ""   # scope exited
         assert containers[4] == ""   # still at top level
 
+    def test_nested_class_method(self):
+        """After inner method exits, outer class scope should be restored."""
+        lines = [
+            "class Foo:",          # indent 0, pushes Foo
+            "    def bar(self):",  # indent 4, pushes bar -> Foo.bar
+            "        body",        # indent 8, still in Foo.bar
+            "    other_line",      # indent 4, pops bar -> Foo
+            "top_level",           # indent 0, pops Foo -> ""
+        ]
+        containers = compute_code_containers_regex(lines)
+        assert containers[1] == "Foo"
+        assert containers[2] == "Foo.bar"
+        assert containers[3] == "Foo.bar"
+        assert containers[4] == "Foo"       # back to class scope
+        assert containers[5] == ""          # top level
+
     def test_empty(self):
         assert compute_code_containers_regex([]) == {}
 
@@ -494,13 +510,23 @@ class TestSessionIndex:
         f.write_text("hello")
         session = SessionIndex()
         session.register_files([f])
-        # Modify file
-        import time
-        time.sleep(0.05)  # Ensure mtime changes
+        # Modify file content and force mtime change via os.utime
         f.write_text("changed")
+        os.utime(f, (f.stat().st_atime + 10, f.stat().st_mtime + 10))
         notifications = session.check_for_changes()
         assert len(notifications) == 1
         assert notifications[0].file_path == f
+
+    def test_touch_no_content_change_no_notification(self, tmp_path):
+        """Touch (mtime change) without content change should NOT emit notification."""
+        f = tmp_path / "test.md"
+        f.write_text("hello")
+        session = SessionIndex()
+        session.register_files([f])
+        # Touch file (change mtime but not content)
+        os.utime(f, (f.stat().st_atime + 10, f.stat().st_mtime + 10))
+        notifications = session.check_for_changes()
+        assert len(notifications) == 0
 
     def test_detect_deletion(self, tmp_path):
         f = tmp_path / "test.md"

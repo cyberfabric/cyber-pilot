@@ -207,26 +207,32 @@ def compute_code_containers_regex(lines: Sequence[str]) -> Dict[int, str]:
     """Fallback container detection for non-Python code files.
 
     Uses simple regex to detect def/function/class declarations.
-    Tracks indentation to detect when a scope exits.
-    Less accurate than AST but language-agnostic.
+    Maintains a stack of (indent, name) to handle nested scopes:
+    ``class Foo`` → ``def bar`` produces ``Foo.bar``, and returning
+    to the class body restores ``Foo``.
     """
     result: Dict[int, str] = {}
-    current_container = ""
-    container_indent = 0
+    stack: List[Tuple[int, str]] = []  # (indent_level, name)
 
     for idx, line in enumerate(lines):
         line_no = idx + 1
+        if not line.strip():
+            # Blank line: keep current scope
+            result[line_no] = ".".join(n for _, n in stack) if stack else ""
+            continue
+
+        line_indent = len(line) - len(line.lstrip())
+
+        # Pop scopes that this line has exited
+        while stack and line_indent <= stack[-1][0]:
+            stack.pop()
+
         m = _FUNC_RE.match(line)
         if m:
-            current_container = m.group(1) or m.group(2) or ""
-            container_indent = len(line) - len(line.lstrip())
-        elif current_container and line.strip():
-            # Non-blank line: check if we've exited the scope
-            line_indent = len(line) - len(line.lstrip())
-            if line_indent <= container_indent:
-                current_container = ""
-                container_indent = 0
-        result[line_no] = current_container
+            name = m.group(1) or m.group(2) or ""
+            stack.append((line_indent, name))
+
+        result[line_no] = ".".join(n for _, n in stack) if stack else ""
 
     return result
 # @cpt-end:cpt-cypilot-algo-smart-indexing-compute-anchor:p1:inst-regex-fallback
@@ -683,25 +689,32 @@ class StaleNotification:
 class SessionIndex:
     """Wraps graph + cache for live session sync.
 
-    Polls watched files by mtime and produces StaleNotification
-    objects when content diverges from the indexed state.
+    Polls watched files by mtime (fast gate) then verifies by content
+    hash so that ``touch`` or save-without-change does not emit false
+    stale notifications.
     """
     graph: TraceGraph = field(default_factory=TraceGraph)
     cache: IndexCache = field(default_factory=IndexCache)
     _mtime_snapshot: Dict[str, float] = field(default_factory=dict)
+    _hash_snapshot: Dict[str, str] = field(default_factory=dict)
 
     def register_files(self, paths: Sequence[Path]) -> None:
-        """Record initial mtime snapshot for all watched files."""
+        """Record initial mtime and content hash snapshot for all watched files."""
         for p in paths:
             try:
                 self._mtime_snapshot[str(p)] = p.stat().st_mtime
+                self._hash_snapshot[str(p)] = hashlib.sha256(p.read_bytes()).hexdigest()
             except OSError:
                 pass
     # @cpt-end:cpt-cypilot-algo-smart-indexing-file-watcher:p4:inst-initial-snapshot
 
     # @cpt-begin:cpt-cypilot-algo-smart-indexing-file-watcher:p4:inst-compare-mtime
     def check_for_changes(self) -> List[StaleNotification]:
-        """Poll watched files, return stale notifications for changed ones."""
+        """Poll watched files, return stale notifications for changed ones.
+
+        Uses mtime as a fast gate, then verifies by content hash so
+        that ``touch`` or save-without-change is not reported as stale.
+        """
         notifications: List[StaleNotification] = []
         for path_str, old_mtime in list(self._mtime_snapshot.items()):
             p = Path(path_str)
@@ -713,6 +726,16 @@ class SessionIndex:
                 ))
                 continue
             if current_mtime != old_mtime:
+                # Verify by content hash
+                try:
+                    current_hash = hashlib.sha256(p.read_bytes()).hexdigest()
+                except OSError:
+                    current_hash = ""
+                old_hash = self._hash_snapshot.get(path_str, "")
+                self._mtime_snapshot[path_str] = current_mtime
+                if current_hash == old_hash:
+                    continue  # mtime changed but content didn't — skip
+                self._hash_snapshot[path_str] = current_hash
                 affected = self.graph.affected_by_change(p)
                 affected_ids = tuple(
                     str(n.data.get("id", "")) for n in affected
@@ -722,7 +745,6 @@ class SessionIndex:
                     file_path=p, affected_ids=affected_ids,
                     message=f"Changed: {p} (affects {len(affected_ids)} IDs)",
                 ))
-                self._mtime_snapshot[path_str] = current_mtime
         return notifications
     # @cpt-end:cpt-cypilot-algo-smart-indexing-file-watcher:p4:inst-compare-mtime
 
