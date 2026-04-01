@@ -71,6 +71,7 @@ class AnchoredHit:
         """Bridge to existing flat-dict format for backward compatibility."""
         return {
             "id": self.id,
+            "type": self.type,
             "line": self.line,
             "checked": self.checked,
             "priority": self.priority,
@@ -206,16 +207,25 @@ def compute_code_containers_regex(lines: Sequence[str]) -> Dict[int, str]:
     """Fallback container detection for non-Python code files.
 
     Uses simple regex to detect def/function/class declarations.
+    Tracks indentation to detect when a scope exits.
     Less accurate than AST but language-agnostic.
     """
     result: Dict[int, str] = {}
     current_container = ""
+    container_indent = 0
 
     for idx, line in enumerate(lines):
         line_no = idx + 1
         m = _FUNC_RE.match(line)
         if m:
             current_container = m.group(1) or m.group(2) or ""
+            container_indent = len(line) - len(line.lstrip())
+        elif current_container and line.strip():
+            # Non-blank line: check if we've exited the scope
+            line_indent = len(line) - len(line.lstrip())
+            if line_indent <= container_indent:
+                current_container = ""
+                container_indent = 0
         result[line_no] = current_container
 
     return result
@@ -345,7 +355,12 @@ class IndexCache:
     entries: Dict[str, FileIndexEntry] = field(default_factory=dict)
 
     def is_stale(self, path: Path) -> bool:
-        """Check whether *path* needs re-parsing."""
+        """Check whether *path* needs re-parsing.
+
+        Checks mtime first (fast). If mtime changed, falls back to
+        content hash comparison so that a plain ``touch`` does not
+        force a reparse when the content is unchanged.
+        """
         key = str(path)
         entry = self.entries.get(key)
         if entry is None:
@@ -354,7 +369,18 @@ class IndexCache:
             current_mtime = path.stat().st_mtime
         except OSError:
             return True
-        return current_mtime != entry.mtime
+        if current_mtime == entry.mtime:
+            return False
+        # mtime changed — verify by content hash
+        try:
+            current_hash = hashlib.sha256(path.read_bytes()).hexdigest()
+        except OSError:
+            return True
+        if current_hash == entry.content_hash:
+            # Content unchanged despite mtime change; update cached mtime
+            entry.mtime = current_mtime
+            return False
+        return True
 
     def update_entry(self, path: Path, hits: List[Dict[str, object]]) -> None:
         """Store (or replace) the parse results for *path*."""

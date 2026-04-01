@@ -178,6 +178,15 @@ class TestComputeCodeContainersRegex:
         containers = compute_code_containers_regex(lines)
         assert containers[1] == "main"
 
+    def test_scope_exit(self):
+        """Container should be cleared when indentation returns to declaration level."""
+        lines = ["def foo():", "    body", "top_level_code", "more_top_level"]
+        containers = compute_code_containers_regex(lines)
+        assert containers[1] == "foo"
+        assert containers[2] == "foo"
+        assert containers[3] == ""   # scope exited
+        assert containers[4] == ""   # still at top level
+
     def test_empty(self):
         assert compute_code_containers_regex([]) == {}
 
@@ -205,6 +214,7 @@ class TestAnchoredHit:
         )
         row = hit.to_legacy_row()
         assert row["id"] == "cpt-test-fr-foo"
+        assert row["type"] == "definition"
         assert row["line"] == 42
         assert row["checked"] is True
         assert row["priority"] == "p1"
@@ -289,14 +299,25 @@ class TestIndexCache:
         cache.update_entry(f, [{"id": "cpt-x", "line": 1}])
         assert not cache.is_stale(f)
 
-    def test_mtime_change_is_stale(self, tmp_path):
+    def test_mtime_change_content_changed_is_stale(self, tmp_path):
         cache = IndexCache()
         f = tmp_path / "test.md"
         f.write_text("hello")
         cache.update_entry(f, [])
-        # Modify file
+        # Modify file content
         f.write_text("changed")
         assert cache.is_stale(f)
+
+    def test_touch_same_content_not_stale(self, tmp_path):
+        """Touch (mtime change) with same content should NOT be stale."""
+        cache = IndexCache()
+        f = tmp_path / "test.md"
+        f.write_text("hello")
+        cache.update_entry(f, [])
+        # Touch file (change mtime but not content)
+        import os
+        os.utime(f, (f.stat().st_atime + 10, f.stat().st_mtime + 10))
+        assert not cache.is_stale(f)
 
     def test_changed_files(self, tmp_path):
         cache = IndexCache()
