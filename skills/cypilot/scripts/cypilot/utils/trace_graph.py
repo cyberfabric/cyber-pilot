@@ -291,21 +291,39 @@ def build_doc_anchored_hits(
 
 
 def _extract_section_text(lines: Sequence[str], target_line: int) -> str:
-    """Extract text of the section containing target_line."""
+    """Extract text of the section containing target_line.
+
+    Fence-aware: headings inside fenced code blocks (```) are ignored
+    so that code samples containing ``# ...`` do not split the section.
+    """
     if not lines:
         return ""
 
+    # Find the heading at or above target_line (fence-aware scan backwards)
     section_start = 0
     section_level = 0
+    # Build a quick fence-state map for the file
+    in_fence = [False] * (len(lines) + 1)
+    fence = False
+    for i, raw in enumerate(lines):
+        if _CODE_FENCE_RE.match(raw):
+            fence = not fence
+        in_fence[i] = fence
+
     for i in range(target_line - 1, -1, -1):
+        if in_fence[i]:
+            continue
         hm = _HEADING_RE.match(lines[i])
         if hm:
             section_start = i
             section_level = len(hm.group(1))
             break
 
+    # Find end of section (next heading at same or higher level, outside fence)
     section_end = len(lines)
     for i in range(section_start + 1, len(lines)):
+        if in_fence[i]:
+            continue
         hm = _HEADING_RE.match(lines[i])
         if hm and len(hm.group(1)) <= section_level:
             section_end = i
@@ -342,7 +360,15 @@ _CACHE_VERSION = 1
 
 @dataclass
 class FileIndexEntry:
-    """Cached parse results for a single file."""
+    """Cached parse results for a single file.
+
+    Stores plain dict rows (same format as ``scan_cpt_ids()`` output)
+    because ``cross_validate_artifacts()`` consumes those dicts directly.
+    ``AnchoredHit`` enrichment (heading_path, container, content_hash)
+    is computed on-the-fly from these rows and the file content when
+    needed. This is by-design: the cache avoids coupling to the P1
+    enrichment layer so it stays backward-compatible.
+    """
     path: str
     mtime: float
     content_hash: str
@@ -454,8 +480,13 @@ class IndexCache:
 
 
 def git_changed_files(project_root: Path) -> Optional[Set[str]]:
-    """Return set of file paths changed according to git, or None on error."""
+    """Return set of file paths changed according to git, or None on error.
+
+    Includes modified tracked files (staged + unstaged) *and* untracked
+    files so that newly created artifacts are picked up for indexing.
+    """
     try:
+        # Modified tracked files (unstaged)
         result = subprocess.run(
             ["git", "diff", "--name-only", "HEAD"],
             cwd=str(project_root),
@@ -463,14 +494,23 @@ def git_changed_files(project_root: Path) -> Optional[Set[str]]:
         )
         if result.returncode != 0:
             return None
+        files = set(result.stdout.strip().splitlines())
+        # Staged changes
         staged = subprocess.run(
             ["git", "diff", "--name-only", "--cached"],
             cwd=str(project_root),
             capture_output=True, text=True, timeout=10,
         )
-        files = set(result.stdout.strip().splitlines())
         if staged.returncode == 0:
             files.update(staged.stdout.strip().splitlines())
+        # Untracked files (new files not yet added)
+        untracked = subprocess.run(
+            ["git", "ls-files", "--others", "--exclude-standard"],
+            cwd=str(project_root),
+            capture_output=True, text=True, timeout=10,
+        )
+        if untracked.returncode == 0:
+            files.update(untracked.stdout.strip().splitlines())
         return files
     except (OSError, subprocess.TimeoutExpired):
         return None
@@ -555,8 +595,16 @@ class TraceGraph:
     def affected_by_change(self, file_path: Path) -> List[TraceNode]:
         """Key query: which nodes are affected when *file_path* changes?
 
-        Traverses reverse REFERENCES and IMPLEMENTS edges from every
-        node in the changed file, collecting all dependents.
+        For each node in the changed file:
+        1. Follow *forward* IMPLEMENTS edges (CODE_BLOCK -> DEFINITION)
+           to find the definitions that the code implements.
+        2. Follow *reverse* REFERENCES edges from those definitions
+           to find all docs that reference them.
+        3. Follow *reverse* IMPLEMENTS edges to find other code that
+           implements the same definitions.
+
+        This ensures a code change surfaces the specs it implements
+        and all artifacts that reference those specs.
         """
         file_nodes = self.nodes_for_file(file_path)
         affected: Dict[str, TraceNode] = {}
@@ -568,6 +616,15 @@ class TraceGraph:
                 continue
             visited.add(node.id)
             affected[node.id] = node
+            # Forward: CODE_BLOCK -> DEFINITION (implementations)
+            for fwd in self.neighbors(node.id, EdgeType.IMPLEMENTS):
+                if fwd.id not in visited:
+                    frontier.append(fwd)
+            # Forward: REFERENCE -> DEFINITION
+            for fwd in self.neighbors(node.id, EdgeType.REFERENCES):
+                if fwd.id not in visited:
+                    frontier.append(fwd)
+            # Reverse: find nodes that reference or implement this one
             for rev in self.reverse_neighbors(node.id, EdgeType.REFERENCES):
                 if rev.id not in visited:
                     frontier.append(rev)
@@ -721,6 +778,10 @@ class SessionIndex:
             try:
                 current_mtime = p.stat().st_mtime
             except OSError:
+                # Remove from snapshots so we don't spam on every poll
+                self._mtime_snapshot.pop(path_str, None)
+                self._hash_snapshot.pop(path_str, None)
+                self.cache.remove_entry(p)
                 notifications.append(StaleNotification(
                     file_path=p, message=f"File deleted or inaccessible: {p}",
                 ))

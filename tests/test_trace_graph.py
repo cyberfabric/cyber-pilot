@@ -466,9 +466,26 @@ class TestTraceGraph:
         g.add_node(TraceNode(id="def1", node_type=NodeType.DEFINITION, data={"id": "cpt-x", "file": "/spec.md"}))
         g.add_node(TraceNode(id="code1", node_type=NodeType.CODE_BLOCK, data={"id": "cpt-x", "file": "/impl.py"}))
         g.add_edge("code1", "def1", EdgeType.IMPLEMENTS)
-        # Change impl.py -> should find code1
+        # Change impl.py -> should find code1 AND def1 (via forward IMPLEMENTS)
         affected = g.affected_by_change(Path("/impl.py"))
-        assert any(n.id == "code1" for n in affected)
+        affected_ids = {n.id for n in affected}
+        assert "code1" in affected_ids
+        assert "def1" in affected_ids  # traversed forward IMPLEMENTS edge
+
+    def test_affected_by_change_code_reaches_referencing_docs(self):
+        """Code change -> definition -> referencing docs."""
+        g = TraceGraph()
+        g.add_node(TraceNode(id="def1", node_type=NodeType.DEFINITION, data={"id": "cpt-x", "file": "/spec.md"}))
+        g.add_node(TraceNode(id="code1", node_type=NodeType.CODE_BLOCK, data={"id": "cpt-x", "file": "/impl.py"}))
+        g.add_node(TraceNode(id="ref1", node_type=NodeType.REFERENCE, data={"id": "cpt-x", "file": "/decomp.md"}))
+        g.add_edge("code1", "def1", EdgeType.IMPLEMENTS)
+        g.add_edge("ref1", "def1", EdgeType.REFERENCES)
+        # Change impl.py -> should reach code1 -> def1 -> ref1
+        affected = g.affected_by_change(Path("/impl.py"))
+        affected_ids = {n.id for n in affected}
+        assert "code1" in affected_ids
+        assert "def1" in affected_ids
+        assert "ref1" in affected_ids  # referencing doc discovered
 
 
 class TestBuildTraceGraph:
@@ -537,6 +554,20 @@ class TestSessionIndex:
         notifications = session.check_for_changes()
         assert len(notifications) == 1
         assert "deleted" in notifications[0].message.lower() or "inaccessible" in notifications[0].message.lower()
+
+    def test_deleted_file_not_spammed_on_subsequent_polls(self, tmp_path):
+        """After a file is deleted, subsequent polls should not re-report it."""
+        f = tmp_path / "test.md"
+        f.write_text("hello")
+        session = SessionIndex()
+        session.register_files([f])
+        f.unlink()
+        # First poll: should report deletion
+        n1 = session.check_for_changes()
+        assert len(n1) == 1
+        # Second poll: should NOT report again (tombstoned)
+        n2 = session.check_for_changes()
+        assert len(n2) == 0
 
     def test_refresh_file(self, tmp_path):
         f = tmp_path / "test.md"
