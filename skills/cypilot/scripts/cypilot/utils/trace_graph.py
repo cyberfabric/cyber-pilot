@@ -754,6 +754,7 @@ class SessionIndex:
         self.cache.update_entry(path, hits)
         try:
             self._mtime_snapshot[str(path)] = path.stat().st_mtime
+            self._hash_snapshot[str(path)] = hashlib.sha256(path.read_bytes()).hexdigest()
         except OSError:
             pass
     # @cpt-end:cpt-cypilot-algo-smart-indexing-file-watcher:p4:inst-create-notification
