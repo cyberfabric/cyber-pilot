@@ -93,6 +93,8 @@ def cmd_validate(argv: List[str]) -> int:
     p.add_argument("--output", default=None, help="Write report to file instead of stdout")
     p.add_argument("--local-only", action="store_true", help="Skip cross-repo workspace validation (validate local repo only)")
     p.add_argument("--source", default=None, help="Target a specific workspace source for validation (uses that source's adapter context)")
+    p.add_argument("--incremental", action="store_true", help="Use cached index, re-parse only changed files")
+    p.add_argument("--watch", action="store_true", help="Enter session sync mode with live stale notifications")
     args = p.parse_args(argv)
     # @cpt-end:cpt-cypilot-flow-traceability-validation-validate:p1:inst-user-validate
 
@@ -442,8 +444,26 @@ def cmd_validate(argv: List[str]) -> int:
         _seen_cross = {str(r.path) for r in all_artifacts_for_cross}
         all_artifacts_for_cross.extend(_collect_cross_repo_artifacts(ws_ctx, _seen_cross))
 
+    # --- Incremental index support (P2) ---
+    precomputed_hits = None
+    _index_cache = None
+    if getattr(args, "incremental", False) and len(all_artifacts_for_cross) > 0:
+        from ..utils.trace_graph import IndexCache
+        cache_path = Path(ctx.project_root) / ".cypilot-cache" / "trace-index.json"
+        _index_cache = IndexCache.load(cache_path)
+        precomputed_hits = {}
+        for art in all_artifacts_for_cross:
+            hkey = str(art.path)
+            if not _index_cache.is_stale(art.path):
+                entry = _index_cache.entries.get(hkey)
+                if entry:
+                    precomputed_hits[hkey] = entry.hits
+            else:
+                hits = scan_cpt_ids(art.path)
+                _index_cache.update_entry(art.path, hits)
+
     if len(all_artifacts_for_cross) > 0:
-        cross_result = cross_validate_artifacts(all_artifacts_for_cross, registered_systems=registered_systems, known_kinds=known_kinds)
+        cross_result = cross_validate_artifacts(all_artifacts_for_cross, registered_systems=registered_systems, known_kinds=known_kinds, precomputed_hits=precomputed_hits)
         cross_errors = cross_result.get("errors", [])
         cross_warnings = cross_result.get("warnings", [])
         # Only include cross-ref errors for artifacts we're validating
@@ -769,6 +789,29 @@ def cmd_validate(argv: List[str]) -> int:
         Path(args.output).write_text(out_text, encoding="utf-8")
     else:
         ui.result(report, human_fn=lambda d: _human_validate(d))
+
+    # --- Save incremental cache (P2) ---
+    if _index_cache is not None:
+        cache_path = Path(ctx.project_root) / ".cypilot-cache" / "trace-index.json"
+        _index_cache.save(cache_path)
+
+    # --- Watch mode (P4) ---
+    if getattr(args, "watch", False) and overall_status == "PASS":
+        import time as _time
+        from ..utils.trace_graph import SessionIndex
+        session = SessionIndex()
+        watch_paths = [art.path for art in all_artifacts_for_cross if art.path.exists()]
+        session.register_files(watch_paths)
+        import sys as _sys
+        _sys.stderr.write(f"[watch] Session sync started — monitoring {len(watch_paths)} files (Ctrl+C to stop)\n")
+        try:
+            while True:
+                _time.sleep(2)
+                notifications = session.check_for_changes()
+                for n in notifications:
+                    _sys.stderr.write(f"[watch] {n.message}\n")
+        except KeyboardInterrupt:
+            _sys.stderr.write("\n[watch] Session sync stopped.\n")
 
     if overall_status == "PASS":
         # @cpt-begin:cpt-cypilot-state-traceability-validation-report:p1:inst-pass

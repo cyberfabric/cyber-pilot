@@ -1,21 +1,30 @@
 """Structural traceability graph for Cypilot codebase indexing.
 
 Phase 1: Structural anchoring + content hashing
-Phase 2: Incremental diff-aware index (future)
-Phase 3: Traceability graph (future)
-Phase 4: Real-time session sync (future)
+Phase 2: Incremental diff-aware index
+Phase 3: Traceability graph
+Phase 4: Real-time session sync
 
 @cpt-algo:cpt-cypilot-algo-smart-indexing-compute-anchor:p1
 @cpt-algo:cpt-cypilot-algo-smart-indexing-compute-hash:p1
+@cpt-algo:cpt-cypilot-algo-smart-indexing-manage-cache:p2
+@cpt-algo:cpt-cypilot-algo-smart-indexing-build-graph:p3
+@cpt-algo:cpt-cypilot-algo-smart-indexing-detect-affected:p3
+@cpt-algo:cpt-cypilot-algo-smart-indexing-file-watcher:p4
 """
 from __future__ import annotations
 
 import ast
 import hashlib
+import json
+import os
 import re
-from dataclasses import dataclass
+import subprocess
+import time
+from dataclasses import dataclass, field
+from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Dict, List, Optional, Sequence, Set, Tuple
 
 
 _HEADING_RE = re.compile(r"^\s*(#{1,6})\s+(.+?)\s*$")
@@ -306,3 +315,397 @@ def compute_code_fingerprints(
         key = f"{bm.id}:{bm.phase}:{bm.inst}"
         fingerprints[key] = hash_block_content(bm.content)
     return fingerprints
+
+
+# ===========================================================================
+# P2: Incremental Diff-Aware Index
+# ===========================================================================
+
+_CACHE_VERSION = 1
+
+
+@dataclass
+class FileIndexEntry:
+    """Cached parse results for a single file."""
+    path: str
+    mtime: float
+    content_hash: str
+    hits: List[Dict[str, object]] = field(default_factory=list)
+
+
+# @cpt-begin:cpt-cypilot-algo-smart-indexing-manage-cache:p2:inst-init-cache
+@dataclass
+class IndexCache:
+    """Persistent index cache with mtime + hash based staleness detection.
+
+    Stores parsed scan results per file. Staleness is checked by mtime
+    first (fast), then verified by content hash if mtime changed.
+    """
+    version: int = _CACHE_VERSION
+    entries: Dict[str, FileIndexEntry] = field(default_factory=dict)
+
+    def is_stale(self, path: Path) -> bool:
+        """Check whether *path* needs re-parsing."""
+        key = str(path)
+        entry = self.entries.get(key)
+        if entry is None:
+            return True
+        try:
+            current_mtime = path.stat().st_mtime
+        except OSError:
+            return True
+        return current_mtime != entry.mtime
+
+    def update_entry(self, path: Path, hits: List[Dict[str, object]]) -> None:
+        """Store (or replace) the parse results for *path*."""
+        key = str(path)
+        try:
+            raw = path.read_bytes()
+            mtime = path.stat().st_mtime
+        except OSError:
+            return
+        c_hash = hashlib.sha256(raw).hexdigest()
+        self.entries[key] = FileIndexEntry(
+            path=key, mtime=mtime, content_hash=c_hash, hits=hits,
+        )
+
+    def remove_entry(self, path: Path) -> None:
+        """Remove a file that no longer exists."""
+        self.entries.pop(str(path), None)
+
+    def changed_files(self, paths: Sequence[Path]) -> List[Path]:
+        """Return only the files that need re-parsing."""
+        return [p for p in paths if self.is_stale(p)]
+# @cpt-end:cpt-cypilot-algo-smart-indexing-manage-cache:p2:inst-init-cache
+
+    # ---- serialisation ----------------------------------------------------
+
+    # @cpt-begin:cpt-cypilot-algo-smart-indexing-manage-cache:p2:inst-serialize
+    def save(self, cache_path: Path) -> None:
+        """Persist the cache to JSON."""
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+        data = {
+            "version": self.version,
+            "entries": {
+                k: {
+                    "path": e.path,
+                    "mtime": e.mtime,
+                    "content_hash": e.content_hash,
+                    "hits": e.hits,
+                }
+                for k, e in self.entries.items()
+            },
+        }
+        cache_path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+    @classmethod
+    def load(cls, cache_path: Path) -> "IndexCache":
+        """Load from JSON. Returns empty cache on any error."""
+        try:
+            raw = json.loads(cache_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError, UnicodeDecodeError):
+            return cls()
+        if not isinstance(raw, dict) or raw.get("version") != _CACHE_VERSION:
+            return cls()
+        cache = cls(version=raw.get("version", _CACHE_VERSION))
+        for k, v in raw.get("entries", {}).items():
+            if not isinstance(v, dict):
+                continue
+            cache.entries[k] = FileIndexEntry(
+                path=v.get("path", k),
+                mtime=float(v.get("mtime", 0)),
+                content_hash=str(v.get("content_hash", "")),
+                hits=list(v.get("hits", [])),
+            )
+        return cache
+    # @cpt-end:cpt-cypilot-algo-smart-indexing-manage-cache:p2:inst-serialize
+
+
+def git_changed_files(project_root: Path) -> Optional[Set[str]]:
+    """Return set of file paths changed according to git, or None on error."""
+    try:
+        result = subprocess.run(
+            ["git", "diff", "--name-only", "HEAD"],
+            cwd=str(project_root),
+            capture_output=True, text=True, timeout=10,
+        )
+        if result.returncode != 0:
+            return None
+        staged = subprocess.run(
+            ["git", "diff", "--name-only", "--cached"],
+            cwd=str(project_root),
+            capture_output=True, text=True, timeout=10,
+        )
+        files = set(result.stdout.strip().splitlines())
+        if staged.returncode == 0:
+            files.update(staged.stdout.strip().splitlines())
+        return files
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+
+
+# ===========================================================================
+# P3: Traceability Graph
+# ===========================================================================
+
+class NodeType(Enum):
+    ARTIFACT = "artifact"
+    SECTION = "section"
+    DEFINITION = "definition"
+    REFERENCE = "reference"
+    CODE_FILE = "code_file"
+    CODE_BLOCK = "code_block"
+
+
+class EdgeType(Enum):
+    CONTAINS = "contains"
+    DEFINES = "defines"
+    REFERENCES = "references"
+    IMPLEMENTS = "implements"
+
+
+@dataclass
+class TraceNode:
+    """A node in the traceability graph."""
+    id: str
+    node_type: NodeType
+    data: Dict[str, object] = field(default_factory=dict)
+
+
+# @cpt-begin:cpt-cypilot-algo-smart-indexing-build-graph:p3:inst-build-adjacency
+@dataclass
+class TraceGraph:
+    """Dual adjacency-list graph for traceability queries.
+
+    Supports forward and reverse traversal with optional edge-type
+    filtering. Purpose-built for the 5 node types and 4 edge types
+    needed by Cypilot traceability.
+    """
+    nodes: Dict[str, TraceNode] = field(default_factory=dict)
+    _forward: Dict[str, List[Tuple[str, EdgeType]]] = field(default_factory=dict)
+    _reverse: Dict[str, List[Tuple[str, EdgeType]]] = field(default_factory=dict)
+
+    def add_node(self, node: TraceNode) -> None:
+        self.nodes[node.id] = node
+
+    def add_edge(self, source: str, target: str, edge_type: EdgeType) -> None:
+        self._forward.setdefault(source, []).append((target, edge_type))
+        self._reverse.setdefault(target, []).append((source, edge_type))
+
+    def neighbors(
+        self, node_id: str, edge_type: Optional[EdgeType] = None,
+    ) -> List[TraceNode]:
+        """Forward neighbors, optionally filtered by edge type."""
+        edges = self._forward.get(node_id, [])
+        if edge_type is not None:
+            edges = [(t, e) for t, e in edges if e == edge_type]
+        return [self.nodes[t] for t, _ in edges if t in self.nodes]
+
+    def reverse_neighbors(
+        self, node_id: str, edge_type: Optional[EdgeType] = None,
+    ) -> List[TraceNode]:
+        """Reverse neighbors, optionally filtered by edge type."""
+        edges = self._reverse.get(node_id, [])
+        if edge_type is not None:
+            edges = [(s, e) for s, e in edges if e == edge_type]
+        return [self.nodes[s] for s, _ in edges if s in self.nodes]
+# @cpt-end:cpt-cypilot-algo-smart-indexing-build-graph:p3:inst-build-adjacency
+
+    # @cpt-begin:cpt-cypilot-algo-smart-indexing-detect-affected:p3:inst-find-file-nodes
+    def nodes_for_file(self, file_path: Path) -> List[TraceNode]:
+        """All nodes belonging to a specific file."""
+        fp = str(file_path)
+        return [
+            n for n in self.nodes.values()
+            if n.data.get("file") == fp or n.data.get("artifact_path") == fp
+        ]
+
+    def affected_by_change(self, file_path: Path) -> List[TraceNode]:
+        """Key query: which nodes are affected when *file_path* changes?
+
+        Traverses reverse REFERENCES and IMPLEMENTS edges from every
+        node in the changed file, collecting all dependents.
+        """
+        file_nodes = self.nodes_for_file(file_path)
+        affected: Dict[str, TraceNode] = {}
+        frontier = list(file_nodes)
+        visited: Set[str] = set()
+        while frontier:
+            node = frontier.pop()
+            if node.id in visited:
+                continue
+            visited.add(node.id)
+            affected[node.id] = node
+            for rev in self.reverse_neighbors(node.id, EdgeType.REFERENCES):
+                if rev.id not in visited:
+                    frontier.append(rev)
+            for rev in self.reverse_neighbors(node.id, EdgeType.IMPLEMENTS):
+                if rev.id not in visited:
+                    frontier.append(rev)
+        return list(affected.values())
+    # @cpt-end:cpt-cypilot-algo-smart-indexing-detect-affected:p3:inst-find-file-nodes
+
+    def definitions_for_id(self, cpt_id: str) -> List[TraceNode]:
+        """All DEFINITION nodes with a matching cpt ID."""
+        return [
+            n for n in self.nodes.values()
+            if n.node_type == NodeType.DEFINITION and n.data.get("id") == cpt_id
+        ]
+
+    def references_for_id(self, cpt_id: str) -> List[TraceNode]:
+        """All REFERENCE nodes pointing to a cpt ID."""
+        return [
+            n for n in self.nodes.values()
+            if n.node_type == NodeType.REFERENCE and n.data.get("id") == cpt_id
+        ]
+
+    def implementations_for_id(self, cpt_id: str) -> List[TraceNode]:
+        """All CODE_BLOCK nodes implementing a cpt ID."""
+        return [
+            n for n in self.nodes.values()
+            if n.node_type == NodeType.CODE_BLOCK and n.data.get("id") == cpt_id
+        ]
+
+
+# @cpt-begin:cpt-cypilot-algo-smart-indexing-build-graph:p3:inst-create-artifact-nodes
+def build_trace_graph(
+    defs_by_id: Dict[str, List[Dict[str, object]]],
+    refs_by_id: Dict[str, List[Dict[str, object]]],
+    code_refs: Optional[List[Dict[str, object]]] = None,
+) -> TraceGraph:
+    """Build a TraceGraph from the flat index dicts.
+
+    This is the bridge between the existing validation pipeline
+    (which produces defs_by_id/refs_by_id) and the new graph.
+    """
+    graph = TraceGraph()
+    artifact_nodes: Dict[str, str] = {}  # file path -> node id
+
+    # Create artifact and definition nodes from defs_by_id
+    for cpt_id, rows in defs_by_id.items():
+        for row in rows:
+            fp = str(row.get("artifact_path", ""))
+            # Ensure artifact node exists
+            if fp and fp not in artifact_nodes:
+                art_nid = f"artifact:{fp}"
+                graph.add_node(TraceNode(
+                    id=art_nid, node_type=NodeType.ARTIFACT,
+                    data={"file": fp, "artifact_path": fp,
+                           "artifact_kind": row.get("artifact_kind", "")},
+                ))
+                artifact_nodes[fp] = art_nid
+
+            # Definition node
+            def_nid = f"def:{cpt_id}:{fp}:{row.get('line', 0)}"
+            graph.add_node(TraceNode(
+                id=def_nid, node_type=NodeType.DEFINITION,
+                data={"id": cpt_id, "file": fp, "artifact_path": fp,
+                       "line": row.get("line", 0), **{
+                           k: row[k] for k in ("checked", "system", "id_kind",
+                                                "artifact_kind") if k in row}},
+            ))
+            if fp in artifact_nodes:
+                graph.add_edge(artifact_nodes[fp], def_nid, EdgeType.DEFINES)
+
+    # Create reference nodes from refs_by_id
+    for cpt_id, rows in refs_by_id.items():
+        for row in rows:
+            fp = str(row.get("artifact_path", ""))
+            ref_nid = f"ref:{cpt_id}:{fp}:{row.get('line', 0)}"
+            graph.add_node(TraceNode(
+                id=ref_nid, node_type=NodeType.REFERENCE,
+                data={"id": cpt_id, "file": fp, "artifact_path": fp,
+                       "line": row.get("line", 0)},
+            ))
+            # Link reference to its definition(s)
+            for def_node in graph.definitions_for_id(cpt_id):
+                graph.add_edge(ref_nid, def_node.id, EdgeType.REFERENCES)
+
+    # Create code block nodes
+    if code_refs:
+        for cref in code_refs:
+            cpt_id = str(cref.get("id", ""))
+            fp = str(cref.get("file", ""))
+            line = cref.get("line", 0)
+            cb_nid = f"code:{cpt_id}:{fp}:{line}"
+            graph.add_node(TraceNode(
+                id=cb_nid, node_type=NodeType.CODE_BLOCK,
+                data={"id": cpt_id, "file": fp, "line": line,
+                       "kind": cref.get("kind"), "inst": cref.get("inst")},
+            ))
+            for def_node in graph.definitions_for_id(cpt_id):
+                graph.add_edge(cb_nid, def_node.id, EdgeType.IMPLEMENTS)
+
+    return graph
+# @cpt-end:cpt-cypilot-algo-smart-indexing-build-graph:p3:inst-create-artifact-nodes
+
+
+# ===========================================================================
+# P4: Real-Time Session Sync
+# ===========================================================================
+
+@dataclass(frozen=True)
+class StaleNotification:
+    """Notification that a tracked file has changed."""
+    file_path: Path
+    affected_ids: Tuple[str, ...] = ()
+    message: str = ""
+
+
+# @cpt-begin:cpt-cypilot-algo-smart-indexing-file-watcher:p4:inst-initial-snapshot
+@dataclass
+class SessionIndex:
+    """Wraps graph + cache for live session sync.
+
+    Polls watched files by mtime and produces StaleNotification
+    objects when content diverges from the indexed state.
+    """
+    graph: TraceGraph = field(default_factory=TraceGraph)
+    cache: IndexCache = field(default_factory=IndexCache)
+    _mtime_snapshot: Dict[str, float] = field(default_factory=dict)
+
+    def register_files(self, paths: Sequence[Path]) -> None:
+        """Record initial mtime snapshot for all watched files."""
+        for p in paths:
+            try:
+                self._mtime_snapshot[str(p)] = p.stat().st_mtime
+            except OSError:
+                pass
+    # @cpt-end:cpt-cypilot-algo-smart-indexing-file-watcher:p4:inst-initial-snapshot
+
+    # @cpt-begin:cpt-cypilot-algo-smart-indexing-file-watcher:p4:inst-compare-mtime
+    def check_for_changes(self) -> List[StaleNotification]:
+        """Poll watched files, return stale notifications for changed ones."""
+        notifications: List[StaleNotification] = []
+        for path_str, old_mtime in list(self._mtime_snapshot.items()):
+            p = Path(path_str)
+            try:
+                current_mtime = p.stat().st_mtime
+            except OSError:
+                notifications.append(StaleNotification(
+                    file_path=p, message=f"File deleted or inaccessible: {p}",
+                ))
+                continue
+            if current_mtime != old_mtime:
+                affected = self.graph.affected_by_change(p)
+                affected_ids = tuple(
+                    str(n.data.get("id", "")) for n in affected
+                    if n.data.get("id")
+                )
+                notifications.append(StaleNotification(
+                    file_path=p, affected_ids=affected_ids,
+                    message=f"Changed: {p} (affects {len(affected_ids)} IDs)",
+                ))
+                self._mtime_snapshot[path_str] = current_mtime
+        return notifications
+    # @cpt-end:cpt-cypilot-algo-smart-indexing-file-watcher:p4:inst-compare-mtime
+
+    # @cpt-begin:cpt-cypilot-algo-smart-indexing-file-watcher:p4:inst-create-notification
+    def refresh_file(self, path: Path, hits: List[Dict[str, object]]) -> None:
+        """Incrementally update the cache for a single changed file."""
+        self.cache.update_entry(path, hits)
+        try:
+            self._mtime_snapshot[str(path)] = path.stat().st_mtime
+        except OSError:
+            pass
+    # @cpt-end:cpt-cypilot-algo-smart-indexing-file-watcher:p4:inst-create-notification
