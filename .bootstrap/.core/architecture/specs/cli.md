@@ -528,11 +528,27 @@ cpt generate-agents [--agent AGENT | --openai] [--root PATH] [--cypilot-root PAT
 **Generated surfaces**:
 | Agent | Generated files/directories |
 |-------|----------------------------|
-| Windsurf | `.windsurf/workflows/`, `.windsurf/skills/cypilot/SKILL.md` |
-| Cursor | `.cursor/commands/`, `.cursor/rules/cypilot.mdc`, `.cursor/agents/` |
-| Claude | `.claude/commands/`, `.claude/skills/`, `.claude/agents/` |
-| Copilot | `.github/prompts/`, `.github/copilot-instructions.md`, `.github/agents/` |
-| OpenAI | `.agents/skills/cypilot/SKILL.md`, `.codex/agents/` |
+| Windsurf | `.windsurf/workflows/`, `.agents/skills/` (shared) |
+| Cursor | `.cursor/commands/`, `.cursor/agents/`, `.agents/skills/` (shared) |
+| Claude | `.claude/skills/`, `.claude/agents/` |
+| Copilot | `.github/prompts/`, `.github/copilot-instructions.md`, `.github/agents/`, `.agents/skills/` (shared) |
+| OpenAI | `.agents/skills/` (shared), `.codex/.cypilot-installed` (marker), `.codex/agents/` |
+
+**Detection model** (used by `info` and `update --auto-regenerate`):
+Each agent is detected via Cypilot-specific generated files, not generic tool directories.
+- **Claude**: `.claude/skills/cypilot/SKILL.md`
+- **Windsurf**: `.windsurf/workflows/cypilot.md` (primary) or legacy `.windsurf/skills/cypilot/SKILL.md` with `{cypilot_path}/` follow-link
+- **Cursor**: `.cursor/commands/cypilot.md` (primary) or legacy `.cursor/rules/cypilot.mdc` with `{cypilot_path}/` follow-link
+- **Copilot**: `.github/.cypilot-installed` (primary), `.github/prompts/cypilot.prompt.md`, or `.github/copilot-instructions.md` starting with `# Cypilot` (legacy). User-authored `copilot-instructions.md` files are never overwritten.
+- **OpenAI**: `.codex/.cypilot-installed` (primary), `.codex/agents/` with Cypilot content (legacy mixed-install), or `.agents/skills/cypilot/SKILL.md` only when no other agent's primary or legacy Cypilot marker is present (legacy pure)
+
+**Skill file model**:
+- **Kit workflow skills**: Generated as shared `.agents/skills/{id}/SKILL.md` for all non-Claude agents
+- **Manifest skills**: Generated to `.agents/skills/{id}/SKILL.md` with agent targeting enforced via filtering logic — when a manifest skill is scoped to specific agents (e.g. `agents=['cursor']`), it is not generated for other agents
+
+All non-Claude agents read from the shared `.agents/skills/` directory, but agent-specific manifest skills are filtered at generation time. This prevents Cursor-only skills from being offered to Copilot or OpenAI.
+
+Legacy per-tool manifest skill files are migrated away only when they match generated content or are pure generated stubs; customized legacy files are preserved.
 
 **Exit**: 0.
 

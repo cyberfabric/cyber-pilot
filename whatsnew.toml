@@ -237,3 +237,13 @@ details = """\
 - **Fix: ralphex version discovery** — version regex now accepts semver build metadata suffixes (e.g. `v0.26.2-7a637fa-20260331T171815`), fixing false "incompatible" reports for valid binaries
 - **Fix: ralphex URL references** — updated all ralphex URLs from cyberfabric to umputun
 """
+
+["v3.6.0-beta"]
+summary = "Telemetry, agent generation hardening, skills migration, project extensibility fixes"
+details = """\
+- **Non-blocking usage telemetry** — CLI proxy now collects optional usage telemetry without blocking command execution
+- **Agent generation hardening** — subagents and legacy_skills included in dry-run preview; frontmatter and workflow target validated in legacy cleanup to prevent over-deletion; UnicodeDecodeError handled in file detection helpers; unified skill frontmatter generation
+- **Skills location consolidation** — skills now live exclusively in `.claude/skills/` and `.agents/skills/`; legacy locations removed
+- **Project extensibility fixes** — worktree boundary detection, master-layer source trust, and `append_file` support for multi-layer pipelines
+- **Architecture docs** — consolidated agent integration model with shared skill stubs; documented project extensibility / workspace federation relationship\
+"""

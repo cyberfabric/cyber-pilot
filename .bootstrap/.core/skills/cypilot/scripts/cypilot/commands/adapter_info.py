@@ -313,18 +313,13 @@ def cmd_adapter_info(argv: list[str]) -> int:
             kit_details[slug] = kd
     config["kit_details"] = kit_details
 
-    # Agent integrations
-    agents_found = []
-    agent_dirs = {
-        "windsurf": project_root / ".windsurf",
-        "cursor": project_root / ".cursor",
-        "claude": project_root / ".claude",
-        "copilot": project_root / ".github" / "copilot-instructions.md",
-        "openai": project_root / ".agents",
-    }
-    for agent_name, agent_path in agent_dirs.items():
-        if agent_path.exists():
-            agents_found.append(agent_name)
+    # Agent integrations — detect via shared _is_agent_installed() which checks
+    # Cypilot-specific markers and legacy fallbacks per agent.
+    from .agents import _ALL_RECOGNIZED_AGENTS, _is_agent_installed
+    agents_found = [
+        agent for agent in _ALL_RECOGNIZED_AGENTS
+        if _is_agent_installed(agent, project_root)
+    ]
     config["agent_integrations"] = agents_found
 
     # Directory structure health

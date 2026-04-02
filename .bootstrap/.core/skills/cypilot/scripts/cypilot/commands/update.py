@@ -568,25 +568,15 @@ def _maybe_regenerate_agents(
     from .agents import (
         _ALL_RECOGNIZED_AGENTS,
         _default_agents_config,
+        _is_agent_installed,
         _process_single_agent,
     )
 
     cfg = _default_agents_config()
-    agents_cfg = cfg.get("agents", {})
     regenerated: List[str] = []
 
     for agent in _ALL_RECOGNIZED_AGENTS:
-        agent_cfg = agents_cfg.get(agent, {})
-        skills_cfg = agent_cfg.get("skills", {})
-        outputs = skills_cfg.get("outputs", [])
-        # Only regenerate if at least one skill output file already exists
-        has_existing = any(
-            isinstance(out, dict)
-            and isinstance(out.get("path"), str)
-            and (project_root / out["path"]).is_file()
-            for out in outputs
-        )
-        if not has_existing:
+        if not _is_agent_installed(agent, project_root):
             continue
         result = _process_single_agent(
             agent, project_root, cypilot_dir, cfg, None, dry_run=False,
