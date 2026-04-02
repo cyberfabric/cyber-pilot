@@ -463,7 +463,7 @@ The system MUST provide an environment diagnostics command that checks environme
 
 The system MUST provide non-blocking usage telemetry that tracks CLI invocations for organizational visibility into AI agent adoption. The system MUST:
 
-1. Record every `cpt` CLI invocation with: git user identity (`user.name`, `user.email`), git remote URL (`remote.origin.url`), command name, timestamp, and Cypilot version.
+1. Record every `cpt` CLI invocation with: git user identity (`user.name`, `user.email`), git remote URL (`remote.origin.url`), command name, timestamp, and Cypilot version. Telemetry MUST be skipped (no record written, no thread spawned) for `--version`, `--help`, and `-h` invocations, and when telemetry is disabled via `CYPILOT_TELEMETRY=0`.
 2. Write telemetry records as JSONL to local log files in `~/.cypilot/logs/` organized by date (`YYYY-MM-DD.log`).
 3. Optionally send telemetry to a remote HTTP endpoint in OTLP Logs JSON format when `CYPILOT_TELEMETRY_URL` is set.
 4. Rotate local log files by deleting files older than a configurable retention period (default: 5 days, override via `CYPILOT_TELEMETRY_RETENTION_DAYS`). Rotation MUST run at most once per day (triggered only when a new day's log file is created).
