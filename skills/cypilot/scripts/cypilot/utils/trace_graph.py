@@ -17,10 +17,8 @@ from __future__ import annotations
 import ast
 import hashlib
 import json
-import os
 import re
 import subprocess
-import time
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -246,7 +244,7 @@ def compute_code_containers_regex(lines: Sequence[str]) -> Dict[int, str]:
 def build_doc_anchored_hits(
     path: Path,
     hits: Sequence[Dict[str, object]],
-    headings_at: Sequence[Sequence[str]],
+    _headings_at: Sequence[Sequence[str]],
     *,
     lines: Optional[Sequence[str]] = None,
 ) -> List[AnchoredHit]:
@@ -490,7 +488,7 @@ def git_changed_files(project_root: Path) -> Optional[Set[str]]:
         result = subprocess.run(
             ["git", "diff", "--name-only", "HEAD"],
             cwd=str(project_root),
-            capture_output=True, text=True, timeout=10,
+            capture_output=True, text=True, timeout=10, check=False,
         )
         if result.returncode != 0:
             return None
@@ -499,7 +497,7 @@ def git_changed_files(project_root: Path) -> Optional[Set[str]]:
         staged = subprocess.run(
             ["git", "diff", "--name-only", "--cached"],
             cwd=str(project_root),
-            capture_output=True, text=True, timeout=10,
+            capture_output=True, text=True, timeout=10, check=False,
         )
         if staged.returncode == 0:
             files.update(staged.stdout.strip().splitlines())
@@ -507,7 +505,7 @@ def git_changed_files(project_root: Path) -> Optional[Set[str]]:
         untracked = subprocess.run(
             ["git", "ls-files", "--others", "--exclude-standard"],
             cwd=str(project_root),
-            capture_output=True, text=True, timeout=10,
+            capture_output=True, text=True, timeout=10, check=False,
         )
         if untracked.returncode == 0:
             files.update(untracked.stdout.strip().splitlines())

@@ -27,3 +27,40 @@ _MergedComponents  # used as string type hint in agents.py
 _ProvenanceRecord  # used as string type hint in agents.py
 assemble_component  # public API for future use
 INCLUDE_ERROR = ManifestLayerState.INCLUDE_ERROR  # valid enum value for future use
+
+# trace_graph.py — public API / dataclass fields used by external callers
+from cypilot.utils.trace_graph import (
+    StructuralAnchor,
+    AnchoredHit,
+    IndexCache,
+    NodeType,
+    EdgeType,
+    TraceGraph,
+    SessionIndex,
+    compute_py_containers,
+    compute_code_containers_regex,
+    build_doc_anchored_hits,
+    compute_code_fingerprints,
+    git_changed_files,
+)
+_ = StructuralAnchor
+_.container  # StructuralAnchor.container
+_ = AnchoredHit
+_.to_legacy_row  # AnchoredHit.to_legacy_row
+compute_py_containers  # public API
+compute_code_containers_regex  # public API
+build_doc_anchored_hits  # public API
+compute_code_fingerprints  # public API
+_ = IndexCache
+_.changed_files  # IndexCache.changed_files
+git_changed_files  # public API
+_ = NodeType
+_.SECTION  # NodeType.SECTION
+_.CODE_FILE  # NodeType.CODE_FILE
+_ = EdgeType
+_.CONTAINS  # EdgeType.CONTAINS
+_ = TraceGraph
+_.references_for_id  # TraceGraph.references_for_id
+_.implementations_for_id  # TraceGraph.implementations_for_id
+_ = SessionIndex
+_.refresh_file  # SessionIndex.refresh_file

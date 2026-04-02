@@ -810,25 +810,23 @@ def cmd_validate(argv: List[str]) -> int:
         from ..utils.trace_graph import SessionIndex, build_trace_graph
         session = SessionIndex()
         # Seed the graph with current validation data so affected_ids work
-        if 'defs_by_id' in dir() or True:
-            try:
-                from ..utils.constraints import cross_validate_artifacts as _xva
-                from ..utils.document import scan_cpt_ids as _scan
-                _defs: dict = {}
-                _refs: dict = {}
-                for _art in all_artifacts_for_cross:
-                    for _h in _scan(_art.path):
-                        _hid = str(_h.get("id", ""))
-                        if not _hid:
-                            continue
-                        _row = {"id": _hid, "artifact_path": str(_art.path), "line": _h.get("line", 0)}
-                        if str(_h.get("type")) == "definition":
-                            _defs.setdefault(_hid, []).append(_row)
-                        else:
-                            _refs.setdefault(_hid, []).append(_row)
-                session.graph = build_trace_graph(_defs, _refs)
-            except Exception:
-                pass  # Degrade gracefully — watch still detects file changes
+        try:
+            from ..utils.document import scan_cpt_ids as _scan
+            _defs: dict = {}
+            _refs: dict = {}
+            for _art in all_artifacts_for_cross:
+                for _h in _scan(_art.path):
+                    _hid = str(_h.get("id", ""))
+                    if not _hid:
+                        continue
+                    _row = {"id": _hid, "artifact_path": str(_art.path), "line": _h.get("line", 0)}
+                    if str(_h.get("type")) == "definition":
+                        _defs.setdefault(_hid, []).append(_row)
+                    else:
+                        _refs.setdefault(_hid, []).append(_row)
+            session.graph = build_trace_graph(_defs, _refs)
+        except (OSError, ValueError, KeyError):
+            pass  # Degrade gracefully — watch still detects file changes
         watch_paths = [art.path for art in all_artifacts_for_cross if art.path.exists()]
         # Also watch code files with @cpt-* markers
         for _cf in parsed_code_files_full:
