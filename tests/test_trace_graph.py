@@ -582,3 +582,297 @@ class TestSessionIndex:
         assert n.file_path == Path("/a.md")
         assert n.affected_ids == ("cpt-x",)
         assert n.message == "Changed"
+
+
+# ===========================================================================
+# Additional coverage tests
+# ===========================================================================
+
+class TestComputeCodeContainersRegexBlankLine:
+    """Cover line 219-220: blank line inside a scope keeps current container."""
+
+    def test_blank_line_inside_function_scope(self):
+        lines = [
+            "def foo():",     # indent 0 -> foo
+            "    x = 1",      # indent 4 -> foo
+            "",               # blank line -> should keep "foo" (line 219-220)
+            "    y = 2",      # indent 4 -> foo
+        ]
+        containers = compute_code_containers_regex(lines)
+        assert containers[3] == "foo"  # blank line preserves scope
+
+
+class TestBuildDocAnchoredHitsNoFile:
+    """Cover lines 260-263: OSError fallback when lines=None and path missing."""
+
+    def test_nonexistent_path_no_lines(self):
+        hits = [{"id": "cpt-x", "line": 1, "type": "definition"}]
+        headings_at = [[]]
+        result = build_doc_anchored_hits(
+            Path("/nonexistent/path/file.md"), hits, headings_at, lines=None,
+        )
+        assert len(result) == 1
+        assert result[0].id == "cpt-x"
+        # With empty lines from OSError fallback, content_hash should be ""
+        assert result[0].anchor.content_hash == ""
+
+
+class TestExtractSectionTextEdgeCases:
+    """Cover lines 298, 308, 313, 324, 327-328 in _extract_section_text."""
+
+    def test_empty_lines(self):
+        """Line 298: empty lines list returns empty string."""
+        from cypilot.utils.trace_graph import _extract_section_text
+        assert _extract_section_text([], 1) == ""
+
+    def test_fenced_heading_ignored(self):
+        """Lines 308, 313: headings inside fenced code blocks are skipped."""
+        from cypilot.utils.trace_graph import _extract_section_text
+        lines = [
+            "# Real heading",     # 0: section start
+            "Some text",          # 1
+            "```",                # 2: fence open
+            "# Fake heading",     # 3: inside fence, should be ignored
+            "```",                # 4: fence close
+            "More text",          # 5
+            "# Next heading",     # 6: real heading ends section
+        ]
+        # target_line=4 (1-based line 5) is inside the first section
+        result = _extract_section_text(lines, 5)
+        assert "Real heading" in result
+        assert "More text" in result
+        # The fake heading inside the fence should NOT split the section
+        assert "Fake heading" in result
+
+    def test_fenced_heading_does_not_end_section(self):
+        """Lines 324, 327-328: heading inside fence after section_start is skipped."""
+        from cypilot.utils.trace_graph import _extract_section_text
+        lines = [
+            "# Section A",       # 0
+            "Content A",         # 1
+            "```",               # 2: fence open
+            "# Not a heading",   # 3: inside fence
+            "```",               # 4: fence close
+            "Still section A",   # 5
+            "# Section B",       # 6: real next section
+        ]
+        result = _extract_section_text(lines, 2)
+        # Section A should span from line 0 to line 5 (exclusive of line 6)
+        assert "Content A" in result
+        assert "Still section A" in result
+        assert "Section B" not in result
+
+    def test_section_search_skips_fenced_heading_backwards(self):
+        """Line 313: backward scan skips headings inside fences."""
+        from cypilot.utils.trace_graph import _extract_section_text
+        lines = [
+            "# Top",             # 0
+            "```",               # 1: fence open
+            "# Fenced",          # 2: inside fence
+            "```",               # 3: fence close
+            "text after fence",  # 4
+        ]
+        # target_line=5 (1-based) -> idx 4, scanning backwards should skip
+        # the fenced heading at idx 2 and find "# Top" at idx 0
+        result = _extract_section_text(lines, 5)
+        assert "Top" in result
+        assert "text after fence" in result
+
+
+class TestIndexCacheIsStaleEdgeCases:
+    """Cover lines 400-401, 407-408, 421-422 in IndexCache."""
+
+    def test_is_stale_stat_oserror(self, tmp_path):
+        """Lines 400-401: OSError from stat() returns True."""
+        cache = IndexCache()
+        f = tmp_path / "test.md"
+        f.write_text("hello")
+        cache.update_entry(f, [])
+        # Delete the file so stat() raises OSError
+        f.unlink()
+        assert cache.is_stale(f) is True
+
+    def test_is_stale_read_bytes_oserror(self, tmp_path):
+        """Lines 407-408: OSError from read_bytes() after mtime changed."""
+        import hashlib as _hl
+        cache = IndexCache()
+        f = tmp_path / "test.md"
+        f.write_text("hello")
+        cache.update_entry(f, [])
+        # Change mtime so we enter the hash-verification branch
+        os.utime(f, (f.stat().st_atime + 10, f.stat().st_mtime + 10))
+        # Now make the file unreadable by deleting it -- but we need stat
+        # to succeed. Instead, use a directory (stat works, read_bytes fails).
+        saved_mtime = f.stat().st_mtime
+        saved_hash = _hl.sha256(f.read_bytes()).hexdigest()
+        # Overwrite entry with current mtime-1 so mtime differs
+        entry = cache.entries[str(f)]
+        entry.mtime = saved_mtime - 1
+        entry.content_hash = saved_hash
+        # Delete and replace with directory so read_bytes raises OSError
+        f.unlink()
+        f.mkdir()
+        assert cache.is_stale(f) is True
+        f.rmdir()
+
+    def test_update_entry_oserror(self, tmp_path):
+        """Lines 421-422: update_entry with non-existent path is a no-op."""
+        cache = IndexCache()
+        missing = tmp_path / "gone.md"
+        cache.update_entry(missing, [{"id": "cpt-z"}])
+        assert str(missing) not in cache.entries
+
+    def test_is_stale_mtime_changed_hash_matches_updates_mtime(self, tmp_path):
+        """Lines 400-401, 409-411: mtime changed but hash matches -> update cached mtime."""
+        cache = IndexCache()
+        f = tmp_path / "test.md"
+        f.write_text("hello")
+        cache.update_entry(f, [])
+        old_cached_mtime = cache.entries[str(f)].mtime
+        # Touch file to change mtime without changing content
+        new_mtime = old_cached_mtime + 100
+        os.utime(f, (new_mtime, new_mtime))
+        assert not cache.is_stale(f)
+        # Verify that cached mtime was updated to the new value
+        assert cache.entries[str(f)].mtime == new_mtime
+
+
+class TestIndexCacheLoadEdgeCases:
+    """Cover line 469: non-dict entry in entries is skipped."""
+
+    def test_load_with_non_dict_entry(self, tmp_path):
+        cache_file = tmp_path / "cache.json"
+        data = {
+            "version": 1,
+            "entries": {
+                "/good.md": {
+                    "path": "/good.md",
+                    "mtime": 1.0,
+                    "content_hash": "abc",
+                    "hits": [],
+                },
+                "/bad.md": "not a dict",  # line 469: should be skipped
+            },
+        }
+        cache_file.write_text(json.dumps(data))
+        loaded = IndexCache.load(cache_file)
+        assert "/good.md" in loaded.entries
+        assert "/bad.md" not in loaded.entries
+
+
+class TestTraceGraphQueryMethods:
+    """Cover lines 614, 624, 631 via affected_by_change traversal paths."""
+
+    def test_references_for_id_no_match(self):
+        """Line 614: references_for_id with no matching nodes."""
+        g = TraceGraph()
+        g.add_node(TraceNode(id="def1", node_type=NodeType.DEFINITION, data={"id": "cpt-x"}))
+        assert g.references_for_id("cpt-nonexistent") == []
+
+    def test_implementations_for_id_no_match(self):
+        """Line 631: implementations_for_id with no matching nodes."""
+        g = TraceGraph()
+        g.add_node(TraceNode(id="ref1", node_type=NodeType.REFERENCE, data={"id": "cpt-x"}))
+        assert g.implementations_for_id("cpt-nonexistent") == []
+
+    def test_affected_by_change_forward_references_edge(self):
+        """Line 624: ensure forward REFERENCES edge is traversed."""
+        g = TraceGraph()
+        # A reference node in the changed file that points to a definition
+        g.add_node(TraceNode(
+            id="ref1", node_type=NodeType.REFERENCE,
+            data={"id": "cpt-x", "file": "/changed.md"},
+        ))
+        g.add_node(TraceNode(
+            id="def1", node_type=NodeType.DEFINITION,
+            data={"id": "cpt-x", "file": "/spec.md"},
+        ))
+        g.add_edge("ref1", "def1", EdgeType.REFERENCES)
+        affected = g.affected_by_change(Path("/changed.md"))
+        affected_ids = {n.id for n in affected}
+        assert "ref1" in affected_ids
+        assert "def1" in affected_ids  # reached via forward REFERENCES
+
+    def test_affected_by_change_reverse_implements(self):
+        """Line 631: reverse IMPLEMENTS edge traversal.
+
+        When a definition changes, other code blocks implementing it
+        should be discovered via reverse IMPLEMENTS.
+        """
+        g = TraceGraph()
+        g.add_node(TraceNode(
+            id="def1", node_type=NodeType.DEFINITION,
+            data={"id": "cpt-x", "file": "/spec.md"},
+        ))
+        g.add_node(TraceNode(
+            id="code1", node_type=NodeType.CODE_BLOCK,
+            data={"id": "cpt-x", "file": "/impl1.py"},
+        ))
+        g.add_node(TraceNode(
+            id="code2", node_type=NodeType.CODE_BLOCK,
+            data={"id": "cpt-x", "file": "/impl2.py"},
+        ))
+        g.add_edge("code1", "def1", EdgeType.IMPLEMENTS)
+        g.add_edge("code2", "def1", EdgeType.IMPLEMENTS)
+        # Change spec.md -> def1 is direct, code1 and code2 via reverse IMPLEMENTS
+        affected = g.affected_by_change(Path("/spec.md"))
+        affected_ids = {n.id for n in affected}
+        assert "def1" in affected_ids
+        assert "code1" in affected_ids
+        assert "code2" in affected_ids
+
+
+class TestSessionIndexRefreshAndHash:
+    """Cover lines 762-763, 791-792, 815-818 in SessionIndex."""
+
+    def test_refresh_file_updates_snapshots(self, tmp_path):
+        """Lines 815-818: refresh_file updates both mtime and hash snapshots."""
+        import hashlib as _hl
+        f = tmp_path / "test.md"
+        f.write_text("original")
+        session = SessionIndex()
+        session.register_files([f])
+        old_hash = session._hash_snapshot[str(f)]
+        old_mtime = session._mtime_snapshot[str(f)]
+        # Modify file
+        f.write_text("updated content")
+        session.refresh_file(f, [{"id": "cpt-refreshed"}])
+        # Snapshots should reflect the new content
+        assert session._hash_snapshot[str(f)] != old_hash
+        assert session._hash_snapshot[str(f)] == _hl.sha256(b"updated content").hexdigest()
+        assert str(f) in session.cache.entries
+
+    def test_refresh_file_oserror(self, tmp_path):
+        """Lines 817-818: refresh_file with missing file is a no-op for snapshots."""
+        session = SessionIndex()
+        missing = tmp_path / "gone.md"
+        session.refresh_file(missing, [{"id": "cpt-x"}])
+        # Should not crash; cache update is also a no-op for missing files
+        assert str(missing) not in session._mtime_snapshot
+
+    def test_check_for_changes_read_bytes_oserror(self, tmp_path):
+        """Lines 791-792: OSError on read_bytes sets current_hash to empty string."""
+        f = tmp_path / "test.md"
+        f.write_text("hello")
+        session = SessionIndex()
+        session.register_files([f])
+        # Change mtime so we enter the hash branch, then make read fail
+        old_mtime = f.stat().st_mtime
+        # Replace file with a directory so stat works but read_bytes fails
+        f.unlink()
+        f.mkdir()
+        # Manually set a different mtime to trigger the branch
+        new_mtime = old_mtime + 10
+        os.utime(f, (new_mtime, new_mtime))
+        notifications = session.check_for_changes()
+        # Should detect a change (empty hash != old hash)
+        assert len(notifications) == 1
+        f.rmdir()
+
+    def test_register_files_oserror(self, tmp_path):
+        """Lines 762-763: register_files with non-existent path is silently skipped."""
+        session = SessionIndex()
+        missing = tmp_path / "nonexistent.md"
+        session.register_files([missing])
+        assert str(missing) not in session._mtime_snapshot
+        assert str(missing) not in session._hash_snapshot
