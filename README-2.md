@@ -80,7 +80,6 @@ In practice, this means Cyber Pilot helps you:
   - [Planning and phased execution](#planning-and-phased-execution)
   - [Validation and review](#validation-and-review)
 - [Agent integrations and subagents](#agent-integrations-and-subagents)
-- [Directory model at a glance](#directory-model-at-a-glance)
 - [Multi-repo workspaces](#multi-repo-workspaces)
 - [RalphEx delegation](#ralphex-delegation)
 - [Extensibility](#extensibility)
