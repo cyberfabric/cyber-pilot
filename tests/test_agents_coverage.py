@@ -1011,5 +1011,66 @@ class TestCypilotRalphexRegistration(unittest.TestCase):
             )
 
 
+class TestReadSourceContentTrustedRoots(unittest.TestCase):
+    """Cover trusted_roots parameter in _read_source_content (lines ~2468-2500)."""
+
+    def test_path_inside_trusted_root_is_allowed(self):
+        from cypilot.commands.agents import _read_source_content
+
+        with TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir) / "project"
+            project_root.mkdir()
+            trusted = Path(tmpdir) / "trusted_area"
+            trusted.mkdir()
+            src_file = trusted / "skill.md"
+            src_file.write_text("Skill content here\n", encoding="utf-8")
+
+            result = _read_source_content(
+                "skill", "my-skill", str(src_file),
+                project_root, cypilot_root=None,
+                trusted_roots=[trusted],
+            )
+            self.assertIsNotNone(result)
+            self.assertIn("Skill content here", result)
+
+    def test_path_outside_project_and_trusted_roots_is_rejected(self):
+        from cypilot.commands.agents import _read_source_content
+
+        with TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir) / "project"
+            project_root.mkdir()
+            trusted = Path(tmpdir) / "trusted_area"
+            trusted.mkdir()
+            untrusted = Path(tmpdir) / "untrusted"
+            untrusted.mkdir()
+            src_file = untrusted / "escape.md"
+            src_file.write_text("escaped content\n", encoding="utf-8")
+
+            result = _read_source_content(
+                "skill", "bad-skill", str(src_file),
+                project_root, cypilot_root=None,
+                trusted_roots=[trusted],
+            )
+            self.assertIsNone(result)
+
+    def test_path_outside_all_roots_no_trusted_roots_rejected(self):
+        from cypilot.commands.agents import _read_source_content
+
+        with TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir) / "project"
+            project_root.mkdir()
+            outside = Path(tmpdir) / "outside"
+            outside.mkdir()
+            src_file = outside / "file.md"
+            src_file.write_text("content\n", encoding="utf-8")
+
+            result = _read_source_content(
+                "agent", "a1", str(src_file),
+                project_root, cypilot_root=None,
+                trusted_roots=[],
+            )
+            self.assertIsNone(result)
+
+
 if __name__ == "__main__":
     unittest.main()

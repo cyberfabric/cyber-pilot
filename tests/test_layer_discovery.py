@@ -82,6 +82,13 @@ class TestIsMasterRepoBoundary:
             (d / "skills").mkdir()
             assert _is_master_repo_boundary(d) is False
 
+    def test_git_file_worktree(self):
+        """A .git file (not directory) is recognized as a boundary (worktree support)."""
+        with TemporaryDirectory() as tmp:
+            d = Path(tmp)
+            (d / ".git").write_text("gitdir: /some/worktree/path")
+            assert _is_master_repo_boundary(d) is True
+
     def test_empty_dir(self):
         with TemporaryDirectory() as tmp:
             d = Path(tmp)

@@ -35,7 +35,8 @@ def _is_master_repo_boundary(dir_path: Path) -> bool:
     - ``CLAUDE.md`` file AND ``skills/`` subdirectory present at the same level.
     - ``.git/`` subdirectory present.
     """
-    if (dir_path / ".git").is_dir():
+    git_marker = dir_path / ".git"
+    if git_marker.is_dir() or git_marker.is_file():
         return True
     if (dir_path / "CLAUDE.md").is_file() and (dir_path / "skills").is_dir():
         return True

@@ -1746,6 +1746,7 @@ def _run_v2_pipeline(
     cfg: Any,
     cfg_path: Optional[Path],
     _copy_report: dict,
+    trusted_roots: Optional[List[Path]] = None,
 ) -> Tuple[Dict[str, Any], bool]:
     """Run generate_manifest_agents + generate_manifest_skills + legacy pipeline.
 
@@ -1756,10 +1757,10 @@ def _run_v2_pipeline(
 
     for target in agents_to_process:
         agents_r = generate_manifest_agents(
-            merged.agents, target, project_root, args.dry_run, variables=variables, cypilot_root=cypilot_root,
+            merged.agents, target, project_root, args.dry_run, variables=variables, cypilot_root=cypilot_root, trusted_roots=trusted_roots,
         )
         skills_r = generate_manifest_skills(
-            merged.skills, target, project_root, args.dry_run, variables=variables, cypilot_root=cypilot_root,
+            merged.skills, target, project_root, args.dry_run, variables=variables, cypilot_root=cypilot_root, trusted_roots=trusted_roots,
         )
         results[target] = {
             "status": "PASS",
@@ -1838,6 +1839,11 @@ def cmd_generate_agents(argv: List[str]) -> int:
         merged = _merge_components(resolved_layers)
         # @cpt-end:cpt-cypilot-flow-project-extensibility-generate-with-multi-layer:p1:inst-step6-merge
 
+        # Collect trusted roots from discovered layer directories so that
+        # master-layer source paths (rewritten to absolute) pass the
+        # containment check in _read_source_content.
+        _trusted_roots = [layer.path.parent for layer in resolved_layers if layer.state == _ManifestLayerState.LOADED]
+
         # Step 6: Handle --show-layers flag
         rc = _handle_show_layers_v2(args, merged, project_root)
         if rc is not None:
@@ -1859,8 +1865,8 @@ def cmd_generate_agents(argv: List[str]) -> int:
         preview_skills: Dict[str, Dict[str, Any]] = {}
         legacy_preview: Dict[str, Any] = {}
         for target in agents_to_process:
-            pr_a = generate_manifest_agents(merged.agents, target, project_root, dry_run=True, variables=variables, cypilot_root=cypilot_root)
-            pr_s = generate_manifest_skills(merged.skills, target, project_root, dry_run=True, variables=variables, cypilot_root=cypilot_root)
+            pr_a = generate_manifest_agents(merged.agents, target, project_root, dry_run=True, variables=variables, cypilot_root=cypilot_root, trusted_roots=_trusted_roots)
+            pr_s = generate_manifest_skills(merged.skills, target, project_root, dry_run=True, variables=variables, cypilot_root=cypilot_root, trusted_roots=_trusted_roots)
             preview_agents[target] = pr_a
             preview_skills[target] = pr_s
             preview_v2_create += len(pr_a.get("created", [])) + len(pr_s.get("created", []))
@@ -1886,7 +1892,7 @@ def cmd_generate_agents(argv: List[str]) -> int:
             return 0
 
         results, has_errors = _run_v2_pipeline(
-            args, merged, agents_to_process, project_root, cypilot_root, variables, cfg, cfg_path, copy_report
+            args, merged, agents_to_process, project_root, cypilot_root, variables, cfg, cfg_path, copy_report, trusted_roots=_trusted_roots,
         )
         agents_result = _build_result(results, agents_to_process, project_root, cypilot_root, cfg_path, copy_report, dry_run=args.dry_run)
         agents_result["manifest_v2"] = True
@@ -2459,6 +2465,7 @@ def _read_source_content(
     src_str: str,
     project_root: Path,
     cypilot_root: Optional[Path] = None,
+    trusted_roots: Optional[List[Path]] = None,
 ) -> Optional[str]:
     """Resolve *src_str* to an absolute path, read text, strip leading frontmatter.
 
@@ -2469,8 +2476,9 @@ def _read_source_content(
     if not src_path.is_absolute():
         src_path = project_root / src_str
 
-    # Path traversal guard: ensure resolved path stays within project root
-    # or cypilot_root (which may be external, e.g. a shared kit location).
+    # Path traversal guard: ensure resolved path stays within project root,
+    # cypilot_root (which may be external, e.g. a shared kit location), or
+    # any trusted root (e.g. a discovered master repo root).
     resolved = src_path.resolve()
     try:
         resolved.relative_to(project_root.resolve())
@@ -2482,20 +2490,28 @@ def _read_source_content(
                 allowed = True
             except ValueError:
                 pass
+        if not allowed and trusted_roots:
+            for root in trusted_roots:
+                try:
+                    resolved.relative_to(root.resolve())
+                    allowed = True
+                    break
+                except ValueError:
+                    pass
         if not allowed:
             sys.stderr.write(
                 f"WARNING: {entity_kind} '{entity_id}' source escapes project root: {src_path}, skipping\n"
             )
             return None
 
-    if not src_path.is_file():
+    if not resolved.is_file():
         sys.stderr.write(
-            f"WARNING: {entity_kind} '{entity_id}' source not found: {src_path}, skipping\n"
+            f"WARNING: {entity_kind} '{entity_id}' source not found: {resolved}, skipping\n"
         )
         return None
 
     try:
-        content = src_path.read_text(encoding="utf-8")
+        content = resolved.read_text(encoding="utf-8")
     except OSError as exc:
         sys.stderr.write(
             f"WARNING: {entity_kind} '{entity_id}' failed to read source: {exc}, skipping\n"
@@ -2569,6 +2585,7 @@ def generate_manifest_skills(
     dry_run: bool,
     variables: Optional[Dict[str, str]] = None,
     cypilot_root: Optional[Path] = None,
+    trusted_roots: Optional[List[Path]] = None,
 ) -> Dict[str, Any]:
     """Generate skill files from merged [[skills]] manifest entries.
 
@@ -2609,7 +2626,7 @@ def generate_manifest_skills(
             )
             continue
 
-        source_content = _read_source_content("skill", skill_id, src_str, project_root, cypilot_root=cypilot_root)
+        source_content = _read_source_content("skill", skill_id, src_str, project_root, cypilot_root=cypilot_root, trusted_roots=trusted_roots)
         if source_content is None:
             continue
 
@@ -2734,6 +2751,7 @@ def generate_manifest_agents(
     dry_run: bool,
     variables: Optional[Dict[str, str]] = None,
     cypilot_root: Optional[Path] = None,
+    trusted_roots: Optional[List[Path]] = None,
 ) -> Dict[str, Any]:
     """Generate agent files from merged [[agents]] manifest entries.
 
@@ -2798,7 +2816,7 @@ def generate_manifest_agents(
                 f"WARNING: agent '{agent_id}' has no source or prompt_file, skipping\n"
             )
             continue
-        source_content = _read_source_content("agent", agent_id, src_str, project_root, cypilot_root=cypilot_root)
+        source_content = _read_source_content("agent", agent_id, src_str, project_root, cypilot_root=cypilot_root, trusted_roots=trusted_roots)
         # @cpt-end:cpt-cypilot-algo-project-extensibility-generate-agents:p1:inst-read-agent-source
         if source_content is None:
             continue

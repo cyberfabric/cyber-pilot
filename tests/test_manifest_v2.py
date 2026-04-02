@@ -8,6 +8,8 @@ from __future__ import annotations
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import pytest
+
 from cypilot.utils.manifest import (
     AgentEntry,
     ComponentEntry,
@@ -17,6 +19,7 @@ from cypilot.utils.manifest import (
     RuleEntry,
     SkillEntry,
     WorkflowEntry,
+    _parse_base_fields,
     load_manifest,
     parse_manifest_v2,
 )
@@ -354,3 +357,126 @@ def test_component_entry_inheritance():
     assert issubclass(SkillEntry, ComponentEntry)
     assert issubclass(WorkflowEntry, ComponentEntry)
     assert issubclass(RuleEntry, ComponentEntry)
+
+
+# ---------------------------------------------------------------------------
+# _parse_base_fields — append_file support
+# ---------------------------------------------------------------------------
+
+
+class TestParseBaseFieldsAppendFile:
+    """Cover append_file branch in _parse_base_fields (lines ~271-290)."""
+
+    def test_append_file_reads_content_relative_to_git_root(self):
+        """append_file resolves relative to nearest .git ancestor and reads content."""
+        with TemporaryDirectory() as tmp:
+            repo = Path(tmp) / "repo"
+            repo.mkdir()
+            (repo / ".git").mkdir()
+            manifest_dir = repo / "cypilot" / "config"
+            manifest_dir.mkdir(parents=True)
+            manifest_path = manifest_dir / "manifest.toml"
+            manifest_path.write_text("[manifest]\n", encoding="utf-8")
+            extra = repo / "extra.md"
+            extra.write_text("Appended content", encoding="utf-8")
+
+            raw = {"id": "test", "append_file": "extra.md"}
+            result = _parse_base_fields(raw, manifest_path=manifest_path)
+            assert result["append"] == "Appended content"
+
+    def test_append_file_reads_content_with_git_worktree_file(self):
+        """append_file resolves relative to nearest .git file (worktree case)."""
+        with TemporaryDirectory() as tmp:
+            repo = Path(tmp) / "repo"
+            repo.mkdir()
+            (repo / ".git").write_text("gitdir: /some/path/.git/worktrees/foo", encoding="utf-8")
+            manifest_dir = repo / "cypilot" / "config"
+            manifest_dir.mkdir(parents=True)
+            manifest_path = manifest_dir / "manifest.toml"
+            manifest_path.write_text("[manifest]\n", encoding="utf-8")
+            extra = repo / "extra.md"
+            extra.write_text("Worktree appended content", encoding="utf-8")
+
+            raw = {"id": "test", "append_file": "extra.md"}
+            result = _parse_base_fields(raw, manifest_path=manifest_path)
+            assert result["append"] == "Worktree appended content"
+
+    def test_append_and_append_file_mutually_exclusive(self):
+        """Supplying both append and append_file raises ValueError."""
+
+        raw = {"id": "test", "append": "inline", "append_file": "extra.md"}
+        with pytest.raises(ValueError, match="mutually exclusive"):
+            _parse_base_fields(raw, manifest_path=Path("/dummy"))
+
+    def test_append_file_missing_target_raises(self):
+        """append_file pointing to non-existent file raises ValueError."""
+
+        with TemporaryDirectory() as tmp:
+            repo = Path(tmp) / "repo"
+            repo.mkdir()
+            (repo / ".git").mkdir()
+            manifest_path = repo / "manifest.toml"
+            manifest_path.write_text("[manifest]\n", encoding="utf-8")
+
+            raw = {"id": "test", "append_file": "nonexistent.md"}
+            with pytest.raises(ValueError, match="not found"):
+                _parse_base_fields(raw, manifest_path=manifest_path)
+
+    def test_append_file_without_manifest_path_raises(self):
+        """append_file without manifest_path context raises ValueError."""
+
+        raw = {"id": "test", "append_file": "extra.md"}
+        with pytest.raises(ValueError, match="requires manifest_path"):
+            _parse_base_fields(raw, manifest_path=None)
+
+    def test_append_file_non_string_raises(self):
+        """append_file that is not a string raises ValueError."""
+
+        raw = {"id": "test", "append_file": 42}
+        with pytest.raises(ValueError, match="must be a string"):
+            _parse_base_fields(raw, manifest_path=Path("/dummy"))
+
+    def test_append_file_absolute_path_rejected(self):
+        """append_file with absolute path is rejected."""
+
+        with TemporaryDirectory() as tmp:
+            repo = Path(tmp) / "repo"
+            repo.mkdir()
+            (repo / ".git").mkdir()
+            manifest_path = repo / "manifest.toml"
+            manifest_path.write_text("[manifest]\n", encoding="utf-8")
+
+            raw = {"id": "test", "append_file": "/etc/passwd"}
+            with pytest.raises(ValueError, match="must be a relative path"):
+                _parse_base_fields(raw, manifest_path=manifest_path)
+
+    def test_append_file_traversal_rejected(self):
+        """append_file that escapes repo root via ../ is rejected."""
+
+        with TemporaryDirectory() as tmp:
+            repo = Path(tmp) / "repo"
+            repo.mkdir()
+            (repo / ".git").mkdir()
+            # Create a file outside the repo to prove it can't be read
+            secret = Path(tmp) / "secret.md"
+            secret.write_text("secret", encoding="utf-8")
+            manifest_path = repo / "manifest.toml"
+            manifest_path.write_text("[manifest]\n", encoding="utf-8")
+
+            raw = {"id": "test", "append_file": "../secret.md"}
+            with pytest.raises(ValueError, match="escapes repo root"):
+                _parse_base_fields(raw, manifest_path=manifest_path)
+
+    def test_append_file_no_git_ancestor_rejected(self):
+        """append_file with no .git ancestor raises clear error."""
+
+        with TemporaryDirectory() as tmp:
+            # No .git anywhere — manifest at filesystem leaf
+            deep = Path(tmp) / "a" / "b" / "c"
+            deep.mkdir(parents=True)
+            manifest_path = deep / "manifest.toml"
+            manifest_path.write_text("[manifest]\n", encoding="utf-8")
+
+            raw = {"id": "test", "append_file": "notes.md"}
+            with pytest.raises(ValueError, match=r"no \.git ancestor"):
+                _parse_base_fields(raw, manifest_path=manifest_path)

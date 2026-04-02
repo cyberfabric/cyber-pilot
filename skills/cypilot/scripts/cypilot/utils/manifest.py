@@ -259,12 +259,47 @@ def _validate_component_id(path: Path, section: str, idx: int, cid: str) -> None
         )
 
 
-def _parse_base_fields(raw: Dict[str, Any]) -> Dict[str, Any]:
+def _parse_base_fields(raw: Dict[str, Any], manifest_path: Optional[Path] = None) -> Dict[str, Any]:
     """Extract base ComponentEntry fields from a raw TOML dict."""
     raw_append = raw.get("append")
+    raw_append_file = raw.get("append_file")
     comp_id = str(raw.get("id", "")).strip()
+    if raw_append is not None and raw_append_file is not None:
+        raise ValueError(f"Component '{comp_id}': 'append' and 'append_file' are mutually exclusive")
     if raw_append is not None and not isinstance(raw_append, str):
         raise ValueError(f"Component '{comp_id}': 'append' must be a string, got {type(raw_append).__name__}")
+    # append_file: read content from a file path relative to the project root
+    # (the nearest ancestor directory containing .git).
+    # Must be relative — absolute paths are rejected to prevent arbitrary file reads.
+    if raw_append_file is not None:
+        if not isinstance(raw_append_file, str):
+            raise ValueError(f"Component '{comp_id}': 'append_file' must be a string, got {type(raw_append_file).__name__}")
+        if manifest_path is None:
+            raise ValueError(f"Component '{comp_id}': 'append_file' requires manifest_path context")
+        append_path = Path(raw_append_file)
+        if append_path.is_absolute():
+            raise ValueError(f"Component '{comp_id}': 'append_file' must be a relative path, got '{raw_append_file}'")
+        # Resolve relative to the project root (nearest .git ancestor)
+        repo_root = manifest_path.parent
+        found_root = False
+        while repo_root != repo_root.parent:
+            if (repo_root / ".git").exists():
+                found_root = True
+                break
+            repo_root = repo_root.parent
+        if not found_root:
+            raise ValueError(f"Component '{comp_id}': no .git ancestor found for append_file resolution")
+        append_path = (repo_root / append_path).resolve()
+        # Path containment: resolved path must stay within the repo root
+        try:
+            append_path.relative_to(repo_root.resolve())
+        except ValueError as exc:
+            raise ValueError(
+                f"Component '{comp_id}': append_file '{raw_append_file}' escapes repo root '{repo_root}'"
+            ) from exc
+        if not append_path.is_file():
+            raise ValueError(f"Component '{comp_id}': append_file '{raw_append_file}' not found at {append_path}")
+        raw_append = append_path.read_text(encoding="utf-8")
     return {
         "id": comp_id,
         "description": str(raw.get("description", "")).strip(),
@@ -283,7 +318,7 @@ def _parse_agents(path: Path, raw_agents: List[Any]) -> List[AgentEntry]:
     for idx, raw in enumerate(raw_agents):
         if not isinstance(raw, dict):
             raise ValueError(f"{path}: [[agents]][{idx}] must be a table")
-        base = _parse_base_fields(raw)
+        base = _parse_base_fields(raw, manifest_path=path)
         _validate_component_id(path, "agents", idx, base["id"])
 
         tools = list(raw.get("tools", []))
@@ -318,7 +353,7 @@ def _parse_skills(path: Path, raw_skills: List[Any]) -> List[SkillEntry]:
     for idx, raw in enumerate(raw_skills):
         if not isinstance(raw, dict):
             raise ValueError(f"{path}: [[skills]][{idx}] must be a table")
-        base = _parse_base_fields(raw)
+        base = _parse_base_fields(raw, manifest_path=path)
         _validate_component_id(path, "skills", idx, base["id"])
         skills.append(SkillEntry(**base))
     return skills
@@ -330,7 +365,7 @@ def _parse_workflows(path: Path, raw_workflows: List[Any]) -> List[WorkflowEntry
     for idx, raw in enumerate(raw_workflows):
         if not isinstance(raw, dict):
             raise ValueError(f"{path}: [[workflows]][{idx}] must be a table")
-        base = _parse_base_fields(raw)
+        base = _parse_base_fields(raw, manifest_path=path)
         _validate_component_id(path, "workflows", idx, base["id"])
         workflows.append(WorkflowEntry(**base))
     return workflows
@@ -342,7 +377,7 @@ def _parse_rules(path: Path, raw_rules: List[Any]) -> List[RuleEntry]:
     for idx, raw in enumerate(raw_rules):
         if not isinstance(raw, dict):
             raise ValueError(f"{path}: [[rules]][{idx}] must be a table")
-        base = _parse_base_fields(raw)
+        base = _parse_base_fields(raw, manifest_path=path)
         _validate_component_id(path, "rules", idx, base["id"])
         rules.append(RuleEntry(**base))
     return rules
