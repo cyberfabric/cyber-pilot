@@ -32,6 +32,7 @@
   - [Skill Cache Downloads from GitHub](#skill-cache-downloads-from-github)
   - [Init Creates Full Config](#init-creates-full-config)
   - [Root AGENTS.md Integrity](#root-agentsmd-integrity)
+  - [Usage Telemetry](#usage-telemetry)
 - [6. Implementation Modules](#6-implementation-modules)
 - [7. Acceptance Criteria](#7-acceptance-criteria)
 
@@ -87,10 +88,11 @@ Enables users to install Cypilot globally, initialize it in any project with sen
 
 **Steps**:
 1. [x] - `p1` - User invokes `cypilot <command> [args]` from terminal - `inst-user-invokes`
-2. [x] - `p1` - CLI proxy checks for project-installed skill at `{cypilot_path}/` in current or parent directories - `inst-check-project-skill`
-3. [x] - `p1` - **IF** project skill found - `inst-if-project-skill`
+2. [x] - `p1` - Fire non-blocking telemetry for the invocation (daemon thread: git identity + remote URL, local log, optional OTLP HTTP) - `inst-telemetry`
+3. [x] - `p1` - CLI proxy checks for project-installed skill at `{cypilot_path}/` in current or parent directories - `inst-check-project-skill`
+4. [x] - `p1` - **IF** project skill found - `inst-if-project-skill`
    1. [x] - `p1` - Forward command and args to project skill engine - `inst-forward-project`
-4. [x] - `p1` - **ELSE** - `inst-else-no-project`
+5. [x] - `p1` - **ELSE** - `inst-else-no-project`
    1. [x] - `p1` - Check cached skill at `~/.cypilot/cache/` - `inst-check-cache`
    2. [x] - `p1` - **IF** cached skill exists - `inst-if-cache`
       1. [x] - `p1` - Forward command and args to cached skill engine - `inst-forward-cache`
@@ -99,14 +101,14 @@ Enables users to install Cypilot globally, initialize it in any project with sen
       2. [x] - `p1` - **IF** download failed - `inst-if-download-failed`
          1. [x] - `p1` - **RETURN** error: "Failed to download Cypilot skill. Check network and retry." (exit 1) - `inst-return-download-error`
       3. [x] - `p1` - Forward command and args to freshly cached skill engine - `inst-forward-fresh-cache`
-5. [x] - `p1` - Skill engine executes command, produces JSON to stdout - `inst-engine-execute`
-6. [x] - `p1` - CLI proxy performs non-blocking background version check - `inst-bg-version-check`
-7. [x] - `p1` - **IF** cached version newer than project version - `inst-if-version-mismatch`
+6. [x] - `p1` - Skill engine executes command, produces JSON to stdout - `inst-engine-execute`
+7. [x] - `p1` - CLI proxy performs non-blocking background version check - `inst-bg-version-check`
+8. [x] - `p1` - **IF** cached version newer than project version - `inst-if-version-mismatch`
    1. [x] - `p1` - Display update notice to stderr - `inst-show-update-notice`
-8. [x] - `p1` - **IF** first arg is `update` - `inst-if-update-cache`
+9. [x] - `p1` - **IF** first arg is `update` - `inst-if-update-cache`
    1. [x] - `p1` - Algorithm: download and cache skill using `cpt-cypilot-algo-core-infra-cache-skill` with optional version/branch/SHA argument - `inst-explicit-cache-update`
    2. [x] - `p1` - **RETURN** JSON: `{status, message, version}` (exit 0 on success, 1 on failure) - `inst-return-cache-update`
-9. [x] - `p1` - **RETURN** exit code from skill engine (0=PASS, 1=error, 2=FAIL) - `inst-return-exit`
+10. [x] - `p1` - **RETURN** exit code from skill engine (0=PASS, 1=error, 2=FAIL) - `inst-return-exit`
 
 **Supporting**:
 - [x] - `p1` - Imports, param extraction helpers (`_extract_version_param`, `_extract_named_param`), version display, init cache logic, forward-to-skill subprocess wrapper, background version check function - `inst-cli-proxy-helpers`
@@ -506,6 +508,22 @@ The system **MUST** verify the root `AGENTS.md` managed block on every CLI invoc
 - `cpt-cypilot-principle-zero-harm`
 - `cpt-cypilot-component-skill-engine`
 
+### Usage Telemetry
+
+- [x] `p1` - **ID**: `cpt-cypilot-dod-core-infra-telemetry`
+
+The system **MUST** provide non-blocking usage telemetry in the CLI proxy that records every invocation. The telemetry module **MUST**: collect git user identity (`user.name`, `user.email`) and remote URL via a single `git config --get-regexp` subprocess call; append JSONL records to `~/.cypilot/logs/YYYY-MM-DD.log`; optionally POST OTLP Logs JSON to `CYPILOT_TELEMETRY_URL`; rotate old log files when a new day's file is created; log HTTP errors to the local log file (never to stderr); be fully disableable via `CYPILOT_TELEMETRY=0`; use only Python stdlib.
+
+**Implements**:
+- `cpt-cypilot-flow-core-infra-cli-invocation`
+
+**Covers (PRD)**:
+- `cpt-cypilot-fr-core-telemetry`
+
+**Covers (DESIGN)**:
+- `cpt-cypilot-component-cli-proxy`
+- `cpt-cypilot-constraint-python-stdlib`
+
 ## 6. Implementation Modules
 
 | Module | Path | Responsibility |
@@ -513,6 +531,7 @@ The system **MUST** verify the root `AGENTS.md` managed block on every CLI invoc
 | CLI Proxy | `src/cypilot_proxy/cli.py` | Global CLI entry point, command routing, version check |
 | Skill Resolver | `src/cypilot_proxy/resolve.py` | Project root detection, skill target resolution |
 | Cache Manager | `src/cypilot_proxy/cache.py` | GitHub download, local copy, archive extraction |
+| Telemetry | `src/cypilot_proxy/telemetry.py` | Non-blocking usage telemetry: local JSONL logs, OTLP HTTP, log rotation |
 | Skill Engine CLI | `skills/.../cli.py` | Skill engine command dispatch |
 | Init Command | `skills/.../commands/init.py` | Project initialization, directory creation |
 | Adapter Info | `skills/.../commands/adapter_info.py` | `info` command — display project config |

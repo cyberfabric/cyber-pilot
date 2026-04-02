@@ -49,6 +49,12 @@ Each kit is a file package: a collection of artifact definitions (rules, checkli
 
 **Design Response**: Thin proxy shell with local cache at `~/.cypilot/cache/`. On every invocation the proxy ensures a cached skill bundle exists, routes commands to the project-installed or cached skill, and performs non-blocking background version checks. The proxy contains zero skill logic.
 
+##### Usage Telemetry
+
+- [x] `p1` - `cpt-cypilot-fr-core-telemetry`
+
+**Design Response**: Telemetry module (`cypilot_proxy.telemetry`) in the CLI Proxy layer. On every invocation, `main()` spawns a daemon thread that: (1) collects git identity and remote URL via a single `git config --get-regexp` call, (2) appends a JSONL record to `~/.cypilot/logs/YYYY-MM-DD.log`, (3) rotates old log files when a new day's file is created (at most once per day), (4) optionally POSTs an OTLP Logs JSON payload to `CYPILOT_TELEMETRY_URL`. The daemon thread is fire-and-forget — if the main process exits before the HTTP call completes, the thread is silently killed. All errors are caught and logged to the local log file. Zero impact on command latency. Controlled by three env vars: `CYPILOT_TELEMETRY` (disable), `CYPILOT_TELEMETRY_URL` (endpoint), `CYPILOT_TELEMETRY_RETENTION_DAYS` (rotation, default 5 days). Stdlib-only: `urllib.request`, `threading`, `subprocess`, `json`.
+
 ##### Project Initialization
 
 - [x] `p1` - `cpt-cypilot-fr-core-init`
@@ -543,10 +549,11 @@ Provides a stable global entry point (`cypilot`/`cpt`) that works both inside an
 - Route commands to project-installed skill (if inside a project) or cached skill (if outside)
 - Perform non-blocking background version checks
 - Display version update notices when cached version is newer than project version
+- Collect and emit usage telemetry (local JSONL logs + optional OTLP HTTP) via non-blocking daemon thread
 
 ##### Responsibility boundaries
 
-Does NOT contain any skill logic, workflow logic, or command implementations. Does NOT interpret command arguments — passes them through to the resolved skill. Does NOT modify project files.
+Does NOT contain any skill logic, workflow logic, or command implementations. Does NOT interpret command arguments — passes them through to the resolved skill. Does NOT modify project files. Telemetry MUST NOT block, slow down, or affect command execution in any way.
 
 ##### Related components (by ID)
 

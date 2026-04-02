@@ -457,6 +457,25 @@ The system MUST provide an environment diagnostics command that checks environme
 **Actors**:
 `cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
 
+#### Usage Telemetry
+
+- [x] `p1` - **ID**: `cpt-cypilot-fr-core-telemetry`
+
+The system MUST provide non-blocking usage telemetry that tracks CLI invocations for organizational visibility into AI agent adoption. The system MUST:
+
+1. Record every `cpt` CLI invocation with: git user identity (`user.name`, `user.email`), git remote URL (`remote.origin.url`), command name, timestamp, and Cypilot version.
+2. Write telemetry records as JSONL to local log files in `~/.cypilot/logs/` organized by date (`YYYY-MM-DD.log`).
+3. Optionally send telemetry to a remote HTTP endpoint in OTLP Logs JSON format when `CYPILOT_TELEMETRY_URL` is set.
+4. Rotate local log files by deleting files older than a configurable retention period (default: 5 days, override via `CYPILOT_TELEMETRY_RETENTION_DAYS`). Rotation MUST run at most once per day (triggered only when a new day's log file is created).
+5. Never block or slow down CLI command execution — all telemetry work MUST run in a background daemon thread.
+6. Never crash or affect CLI behavior on telemetry failure — HTTP errors MUST be logged to the local log file, not printed to stderr.
+7. Be fully disableable via `CYPILOT_TELEMETRY=0`.
+8. Use only Python stdlib (no third-party dependencies).
+9. Collect git identity via a single `git config --get-regexp` subprocess call — git handles all config resolution (local, global, includes, conditional includes).
+
+**Actors**:
+`cpt-cypilot-actor-user`, `cpt-cypilot-actor-cypilot-cli`
+
 #### Pre-Commit Hook Integration
 
 - [ ] `p3` - **ID**: `cpt-cypilot-fr-core-hooks`

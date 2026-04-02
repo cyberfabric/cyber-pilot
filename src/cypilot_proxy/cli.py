@@ -63,6 +63,11 @@ def main(argv: Optional[List[str]] = None) -> int:
     args = argv if argv is not None else sys.argv[1:]
     # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-user-invokes
 
+    # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-telemetry
+    from cypilot_proxy.telemetry import track_invocation
+    track_invocation(args)
+    # @cpt-end:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-telemetry
+
     # @cpt-begin:cpt-cypilot-flow-core-infra-cli-invocation:p1:inst-cli-proxy-helpers
     # Handle --version with no value: show version info
     if args and args[0] == "--version" and len(args) == 1:
