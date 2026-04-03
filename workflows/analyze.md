@@ -187,6 +187,14 @@ Code:
 - MUST NOT proceed to Phase 3 until `{cpt_cmd} --json validate` returns `"status": "PASS"`; if FAIL, report issues and STOP.
 - MUST NOT produce a validation summary without first showing actual validator output; doing so is `SIMULATED_VALIDATION`.
 
+Language content check (run when `[validation] allowed_content_languages` is configured in `.cypilot-workspace.toml`):
+```bash
+{cpt_cmd} --json check-language {PATH}
+```
+- Run AFTER `cpt validate` passes.
+- If `check-language` returns violations (`LANG001`): report flagged lines as deterministic gate failures; do NOT proceed to Phase 3.
+- Language violations are errors, not warnings; STRICT mode requires `PASS` before Phase 3.
+
 If FAIL:
 ```
 ═══════════════════════════════════════════════
@@ -282,6 +290,7 @@ Prompt-specific routing:
 - Exit code: {0|2|SKIPPED}
 - Errors: {N}
 - Warnings: {N}
+- Language check: {PASS|FAIL|SKIPPED (not configured)}
 - Notes: {why skipped or blocking validator summary}
 
 ### 3. Semantic Review
@@ -453,6 +462,7 @@ RELAXED mode disclaimer:
 - [ ] Cross-reference scope identified
 - [ ] Target exists and readable
 - [ ] Deterministic gate executed when available and required, otherwise explicitly marked `SKIPPED` with reason
+- [ ] Language content check executed when `allowed_content_languages` is configured, otherwise explicitly marked `SKIPPED (not configured)`
 - [ ] ID uniqueness verified (within artifact and across system)
 - [ ] Cross-references verified (outgoing and incoming)
 - [ ] Traceability markers verified (if `FULL` traceability)
