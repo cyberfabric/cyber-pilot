@@ -384,7 +384,7 @@ You do not need these on day one. Add them when your use case justifies the extr
 
 #### Multi-repo workspaces
 
-Cypilot supports **multi-repo workspaces** so artifacts, code, and kits do not all have to live in one repository.
+Cypilot supports **multi-repo workspaces** so related docs, code, and shared kit assets can live in separate repositories and still stay aligned.
 
 Use this when docs, code, or shared kit assets live in separate repos and still need to stay aligned.
 
@@ -394,9 +394,9 @@ For practical guidance, see **[guides/BEST-PRACTICES.md](guides/BEST-PRACTICES.m
 
 RalphEx support is optional.
 
-When available, Cyber Pilot can delegate execution through the dedicated `cypilot-ralphex` path.
+When available, Cyber Pilot can hand off selected execution work to RalphEx under human supervision.
 
-Use this when you want bounded execution handoff with supervision rather than only interactive use inside the current AI coding tool.
+Use this when you want supervised execution handoff for bounded tasks instead of keeping all work interactive inside the current AI coding tool.
 
 For when to delegate and how human review fits, see **[guides/BEST-PRACTICES.md](guides/BEST-PRACTICES.md)**.
 
@@ -404,16 +404,9 @@ For when to delegate and how human review fits, see **[guides/BEST-PRACTICES.md]
 
 Cypilot supports **project-level extensibility**, not just installable kits.
 
-At a high level, 🖥️ `cpt generate-agents` can discover and merge project-defined:
+Cyber Pilot can also load project-defined skills, subagents, workflows, and rules, so teams can extend behavior without packaging everything as a kit.
 
-- **skills**
-- **subagents**
-- **workflows**
-- **rules**
-
-This is driven by `manifest.toml` files and a layered resolution model so repo-local definitions can override shared defaults.
-
-For the full manifest model, includes semantics, layer resolution rules, orchestrator repo pattern, and concrete examples, see **[guides/PROJECT-EXTENSIBILITY.md](guides/PROJECT-EXTENSIBILITY.md)**.
+For the full model and examples, see **[guides/PROJECT-EXTENSIBILITY.md](guides/PROJECT-EXTENSIBILITY.md)**.
 
 ---
 
@@ -421,101 +414,60 @@ For the full manifest model, includes semantics, layer resolution rules, orchest
 
 - **Is Cypilot a replacement for Claude Code, Cursor, Copilot, or another AI coding tool?**
 
-  No. Cypilot sits on top of those AI coding tools and adds routing, context loading, validation, and traceability.
+  No. Cypilot sits on top of those AI coding tools and adds workflow routing, context loading, validation, and traceability.
 
-- **When is Cypilot clearly a good fit?**
+- **When is Cypilot a good fit, and when is it overkill?**
 
-  Large, risky, multi-step work; structured transformations; repeatable review; brownfield understanding; multi-repo coordination.
-
-- **When should I avoid Cypilot?**
-
-  Tiny edits, loose ideation, throwaway spikes, pure UI exploration, or any task where speed matters more than control.
+  It is a good fit for large, risky, multi-step work, structured transformations, repeatable review, brownfield understanding, and multi-repo coordination. It is overkill for tiny edits, loose ideation, throwaway spikes, or any task where speed matters more than control.
 
 - **Do I need a kit to use Cypilot?**
 
-  No. Core Cypilot works without kits. The SDLC kit is the easiest way to get a full artifact-first delivery model.
-
-  Start with core. Add a kit only when you want domain templates, rules, and review material.
+  No. Core Cypilot works without kits. Start with core. Add a kit only when you want domain templates, rules, and review material.
 
 - **What part is deterministic?**
 
-  Config resolution, workflow routing, validation, TOC checks, ID and traceability checks, and file-backed plans are deterministic. The model's reasoning and generation quality are not.
+  Config resolution, workflow routing, validation, TOC checks, ID and traceability checks, and file-backed plans are deterministic. The agent's reasoning and generation quality are not.
 
 - **Which host is the best first experience?**
 
   Claude Code currently provides the highest-fidelity Cypilot experience, especially for subagents and isolation. Other supported hosts still work and may fit different team preferences.
 
-- **When is Cypilot overkill?**
-
-  If one short prompt and one small edit are enough, Cypilot is probably too much process.
-
 - **What is the safest way to start if I am unsure?**
 
-  Run 🖥️ `cpt init`, run 🖥️ `cpt generate-agents`, then try one focused 💬 `cypilot analyze: ...` request.
+  Run 🖥️ `cpt init`, run 🖥️ `cpt generate-agents`, then try one focused 💬 `cypilot analyze: ...` request. Start with one workflow and one use case, not the whole system at once.
 
 - **Can I use Cypilot on a brownfield project?**
 
-  Yes. Start with 💬 `cypilot analyze: ...`, use 💬 `cypilot plan: ...` for risky changes, and use 💬 `cypilot auto-config` when you need project-specific rules.
-
-- **Will this help me ship faster?**
-
-  For larger or riskier changes, yes by reducing rework. For tiny tasks, usually no.
-
-- **When should I use `plan` first?**
-
-  When the task spans multiple files, steps, constraints, or review cycles.
-
-- **Is this useful for validation work?**
-
-  Yes. It is good for checklist-based review, consistency checks, and gap finding.
-
-- **Is this good for refactors and migrations?**
-
-  Yes, especially when the work is risky, multi-step, or easy to derail in one long chat.
-
-- **Will this help me understand an unfamiliar codebase?**
-
-  Yes, mainly through focused analysis and bounded planning, not through magic code understanding.
-
-- **Will this help keep requirements, design, and code aligned?**
-
-  Yes. That is one of the strongest reasons to use it.
+  Yes. Start with 💬 `cypilot analyze: ...` to understand the area, use 💬 `cypilot plan: ...` for risky changes, and use 💬 `cypilot auto-config` when you need project-specific rules.
 
 - **Do I need to use `plan`, `generate`, and `analyze` every time?**
 
-  No. Use only the workflow that matches the job.
-
-- **Can I adopt this gradually?**
-
-  Yes. Start with one workflow and one use case, not the whole system at once.
-
-- **Is this useful if my team already has a process?**
-
-  Yes, if you want that process to be more repeatable inside AI-assisted work.
+  No. Use only the workflow that matches the job. Start with `plan` when the task spans multiple files, steps, constraints, or review cycles.
 
 - **Can this replace testing, code review, or security tooling?**
 
   No. It strengthens the workflow around those activities; it does not replace specialized tools or human judgment.
- 
- ---
- 
- ## Further reading
 
-- **[Best practices guide](guides/BEST-PRACTICES.md)**
-- **[Agent tools guide](guides/AGENT-TOOLS.md)**
-- **[Configuration guide](guides/CONFIGURATION.md)**
-- **[Story-driven walkthrough](guides/STORY.md)**
-- **[Architecture and ADRs](architecture/)**
-- **[Requirements and checklists](requirements/)**
-- **[Workspace specification](requirements/workspace.md)**
-- **[Contributing guide](CONTRIBUTING.md)**
-- **Kit, traceability, and schema specs:** [architecture/specs/](architecture/specs/) and [schemas/](schemas/)
+---
+
+## Further reading
+
+- **Start here next**
+  - **[Best practices guide](guides/BEST-PRACTICES.md)**
+  - **[Agent tools guide](guides/AGENT-TOOLS.md)**
+  - **[Configuration guide](guides/CONFIGURATION.md)**
+  - **[Story-driven walkthrough](guides/STORY.md)**
+
+- **Deeper reference**
+  - **[Workspace specification](requirements/workspace.md)**
+  - **[Requirements and checklists](requirements/)**
+  - **[Architecture and ADRs](architecture/)**
 
 ---
 
 ## Feedback and issues
 
-If you think a workflow is unclear, an instruction stack has behavioral bugs, a script behaves incorrectly, or important corner cases are missing, please open a GitHub issue.
+If you think a workflow is unclear, instructions behave incorrectly, a script behaves incorrectly, or important corner cases are missing, please open a GitHub issue.
 
 - **Issues list:** [github.com/cyberfabric/cyber-pilot/issues](https://github.com/cyberfabric/cyber-pilot/issues)
 - **Create a new issue:** [github.com/cyberfabric/cyber-pilot/issues/new/choose](https://github.com/cyberfabric/cyber-pilot/issues/new/choose)
@@ -523,32 +475,27 @@ If you think a workflow is unclear, an instruction stack has behavioral bugs, a 
 The most useful issue reports usually include:
 
 - **A short summary**
-- **Affected file, workflow, script, or command**
+- **Affected file, workflow, script, or exact command**
+- **Minimal reproduction steps**
 - **Expected vs actual behavior**
-- **Evidence** such as logs, validator output, screenshots, or minimal prompt slices
+- **Evidence** such as exact command output, logs, validator output, screenshots, or a minimal prompt or plan slice
 - **Environment details** such as OS, AI coding tool, model, and Cypilot version if known
 
 ---
 
 ## Bottom line
 
-Cypilot is best understood as a **deterministic transformation, structure, and validation layer for AI-assisted engineering**.
+Cyber Pilot is best understood as a **deterministic structure, transformation, and validation layer for work done through AI coding tools**.
 
 It is strongest when you need:
 
 - **document-to-document and document-to-code transformation**
 - **deterministic validation**
 - **structured review**
-- **traceability**
+- **keeping requirements, design, and code aligned**
 - **planning for large tasks**
 
-It is weakest when you expect it to replace:
-
-- **thinking**
-- **discovery**
-- **good documents**
-- **good code review**
-- **specialized tools**
+It is a poor fit when you want the lightest possible chat-to-edit loop, or when the underlying documents, review habits, and engineering judgment are not there yet.
 
 Used correctly, it does not replace your stack.
 
