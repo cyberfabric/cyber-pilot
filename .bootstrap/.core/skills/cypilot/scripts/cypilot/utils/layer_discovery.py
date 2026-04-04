@@ -12,10 +12,10 @@ by walking up the filesystem from the repo root.
 from __future__ import annotations
 
 import logging
-import tomllib
 from pathlib import Path
 from typing import List, Optional
 
+from ._tomllib_compat import tomllib
 from .manifest import ManifestLayer, ManifestLayerState, parse_manifest_v2, _rewrite_component_paths
 # @cpt-end:cpt-cypilot-algo-project-extensibility-walk-up-discovery:p1:inst-imports
 

@@ -10,9 +10,10 @@ TOML utilities for Cypilot config files.
 
 # @cpt-begin:cpt-cypilot-algo-core-infra-toml-utils:p1:inst-toml-datamodel
 import re
-import tomllib
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+from ._tomllib_compat import tomllib
 
 TomlData = Dict[str, Any]
 

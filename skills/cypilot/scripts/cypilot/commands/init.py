@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from ..utils._tomllib_compat import tomllib
 from ..utils.artifacts_meta import create_backup, generate_default_registry, generate_slug
 from ..utils import toml_utils
 from ..utils.ui import ui
@@ -257,7 +258,6 @@ def _read_existing_install(project_root: Path) -> Optional[str]:
 
     Returns install dir relative path if found, None otherwise.
     """
-    import tomllib
     agents_file = project_root / _AGENTS_FILENAME
     if not agents_file.is_file():
         return None

@@ -11,6 +11,8 @@ import sys
 from pathlib import Path
 from typing import Dict, Tuple
 
+from ._tomllib_compat import tomllib
+
 logger = logging.getLogger(__name__)
 
 # @cpt-begin:cpt-cypilot-algo-kit-whatsnew-display:p1:inst-whatsnew-format
@@ -128,11 +130,6 @@ def read_whatsnew(path: Path) -> Dict[str, Dict[str, str]]:
     Keys may be in format "whatsnew.X.Y.Z" (from TOML section) or just "X.Y.Z".
     """
     if not path.is_file():
-        return {}
-    try:
-        import tomllib
-    except ModuleNotFoundError as e:
-        logger.debug("Failed to parse %s: %s", path, e)
         return {}
     try:
         with open(path, "rb") as f:

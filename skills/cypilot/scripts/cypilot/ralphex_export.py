@@ -18,10 +18,10 @@ import os
 import re
 import subprocess
 import sys
-import tomllib
 from pathlib import Path
 from typing import Optional
 
+from .utils._tomllib_compat import tomllib
 from .utils.files import _read_cypilot_var, core_subpath
 
 logger = logging.getLogger(__name__)

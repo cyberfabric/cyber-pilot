@@ -30,6 +30,7 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from ..utils._tomllib_compat import tomllib
 from .init import (
     CACHE_DIR,
     COPY_ARCHITECTURE_ITEMS,
@@ -639,7 +640,6 @@ def _remove_system_from_core_toml(config_dir: Path) -> bool:
         return False
 
     try:
-        import tomllib
         with open(core_toml, "rb") as f:
             data = tomllib.load(f)
     except (OSError, ValueError) as exc:
@@ -686,7 +686,6 @@ def _deduplicate_legacy_kits(config_dir: Path) -> Dict[str, str]:
         return {}
 
     try:
-        import tomllib
         with open(core_toml, "rb") as f:
             data = tomllib.load(f)
     except (OSError, ValueError):
@@ -730,9 +729,8 @@ def _deduplicate_legacy_kits(config_dir: Path) -> Dict[str, str]:
     artifacts_toml = config_dir / "artifacts.toml"
     if artifacts_toml.is_file():
         try:
-            import tomllib as _tomllib
             with open(artifacts_toml, "rb") as f:
-                reg = _tomllib.load(f)
+                reg = tomllib.load(f)
 
             changed = False
             for sys_entry in reg.get("systems", []):
@@ -773,7 +771,6 @@ def _migrate_kit_sources(config_dir: Path) -> Dict[str, str]:
         return {}
 
     try:
-        import tomllib
         with open(core_toml, "rb") as f:
             data = tomllib.load(f)
     except (OSError, ValueError):

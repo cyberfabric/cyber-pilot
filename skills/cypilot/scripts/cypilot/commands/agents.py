@@ -30,9 +30,10 @@ import json
 import re
 import shutil
 import sys
-import tomllib
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
+
+from ..utils._tomllib_compat import tomllib
 
 # Regex for valid TOML bare key / agent name: ASCII letters, digits, hyphen, underscore.
 _VALID_AGENT_NAME_RE = re.compile(r"^[A-Za-z0-9_-]+$")

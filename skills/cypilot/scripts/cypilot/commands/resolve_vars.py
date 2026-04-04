@@ -17,6 +17,7 @@ import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+from ..utils._tomllib_compat import tomllib
 from ..utils.files import (
     find_cypilot_directory,
     find_project_root,
@@ -333,7 +334,6 @@ def cmd_resolve_vars(argv: list[str]) -> int:
     ]:
         if cp.is_file():
             try:
-                import tomllib
                 with open(cp, "rb") as f:
                     core_data = tomllib.load(f)
             except (tomllib.TOMLDecodeError, OSError) as exc:

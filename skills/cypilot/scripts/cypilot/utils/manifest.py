@@ -17,11 +17,12 @@ from __future__ import annotations
 
 import re
 import string
-import tomllib
 from dataclasses import dataclass, field, replace
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
+
+from ._tomllib_compat import tomllib
 
 
 # ---------------------------------------------------------------------------

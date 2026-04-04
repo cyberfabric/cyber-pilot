@@ -14,6 +14,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Dict, Iterator, List, Optional, Set, Tuple
 
+from ._tomllib_compat import tomllib
 from ..constants import ARTIFACTS_REGISTRY_FILENAME
 
 # @cpt-begin:cpt-cypilot-algo-core-infra-registry-parsing:p1:inst-reg-dataclasses
@@ -1053,7 +1054,6 @@ def load_artifacts_meta(adapter_dir: Path) -> Tuple[Optional[ArtifactsMeta], Opt
     # @cpt-begin:cpt-cypilot-algo-core-infra-registry-parsing:p1:inst-reg-parse-merge
     try:
         if path.suffix == ".toml":
-            import tomllib
             with open(path, "rb") as f:
                 data = tomllib.load(f)
         else:
@@ -1067,9 +1067,8 @@ def load_artifacts_meta(adapter_dir: Path) -> Tuple[Optional[ArtifactsMeta], Opt
         if not core_path.is_file():
             core_path = adapter_dir / "core.toml"
         if core_path.is_file():
-            import tomllib as _tl
             with open(core_path, "rb") as f:
-                core = _tl.load(f)
+                core = tomllib.load(f)
             # version and project_root: core.toml is authoritative, artifacts.toml is fallback
             if isinstance(core.get("version"), str) and "version" not in data:
                 data["version"] = core["version"]

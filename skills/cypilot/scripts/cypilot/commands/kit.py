@@ -19,6 +19,7 @@ import urllib.request
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any, Dict, List, Optional, Tuple
 
+from ..utils._tomllib_compat import tomllib
 from ..utils.ui import ui
 from ..utils.whatsnew import show_kit_whatsnew
 # @cpt-end:cpt-cypilot-algo-kit-github-helpers:p1:inst-kit-imports
@@ -638,7 +639,6 @@ def _read_project_name_from_registry(config_dir: Path) -> Optional[str]:
     if not artifacts_toml.is_file():
         return None
     try:
-        import tomllib
         with open(artifacts_toml, "rb") as f:
             data = tomllib.load(f)
         systems = data.get("systems", [])
@@ -1707,7 +1707,6 @@ def _read_conf_version(conf_path: Path) -> int:
     if not conf_path.is_file():
         return 0
     try:
-        import tomllib
         with open(conf_path, "rb") as f:
             data = tomllib.load(f)
         ver = data.get("version")
@@ -1838,7 +1837,6 @@ def _update_core_toml_kit_paths(config_dir: Path) -> None:
     core_toml = config_dir / _KIT_CORE_TOML
     if not core_toml.is_file():
         return
-    import tomllib
     with open(core_toml, "rb") as f:
         data = tomllib.load(f)
     kits_conf = data.get("kits", {})
@@ -2363,7 +2361,6 @@ def _read_kits_from_core_toml(config_dir: Path) -> Dict[str, Dict[str, Any]]:
     if not core_toml.is_file():
         return {}
     try:
-        import tomllib
         with open(core_toml, "rb") as f:
             data = tomllib.load(f)
     except (OSError, ValueError):
@@ -2384,7 +2381,6 @@ def _read_kit_slug(kit_source: Path) -> str:
     if not conf_toml.is_file():
         return ""
     try:
-        import tomllib
         with open(conf_toml, "rb") as f:
             data = tomllib.load(f)
         slug = data.get("slug")
@@ -2404,7 +2400,6 @@ def _read_kit_version_from_core(config_dir: Path, kit_slug: str) -> str:
     if not core_toml.is_file():
         return ""
     try:
-        import tomllib
         with open(core_toml, "rb") as f:
             data = tomllib.load(f)
         kit_entry = data.get("kits", {}).get(kit_slug, {})
@@ -2422,7 +2417,6 @@ def _read_kit_version(conf_path: Path) -> str:
     """Read kit version from conf.toml."""
     # @cpt-begin:cpt-cypilot-algo-kit-config-helpers:p1:inst-read-kit-version
     try:
-        import tomllib
         with open(conf_path, "rb") as f:
             data = tomllib.load(f)
         ver = data.get("version")
@@ -2451,7 +2445,6 @@ def _register_kit_in_core_toml(
         return
 
     try:
-        import tomllib
         with open(core_toml, "rb") as f:
             data = tomllib.load(f)
     except (OSError, ValueError):

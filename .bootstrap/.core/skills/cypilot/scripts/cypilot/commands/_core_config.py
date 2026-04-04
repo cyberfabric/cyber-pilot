@@ -6,8 +6,9 @@
 from __future__ import annotations
 
 import logging
-import tomllib
 from pathlib import Path
+
+from ..utils._tomllib_compat import tomllib
 
 logger = logging.getLogger(__name__)
 
