@@ -309,7 +309,7 @@ Your AI coding tool gives you the chat interface and model access. The agent doe
 - **What tradeoff does Cypilot make?**
   - more process and context in exchange for more control, auditability, and repeatability
 
-For the full fit / non-fit guidance, practical anti-patterns, planning heuristics, and workflow-choice rules, use **[guides/BEST-PRACTICES.md](guides/BEST-PRACTICES.md)**.
+For the full fit / non-fit guidance, practical anti-patterns, planning heuristics, and workflow-choice rules, use **[guides/USAGE-GUIDE.md](guides/USAGE-GUIDE.md)**.
 
 ### What Cypilot provides
 
@@ -374,7 +374,7 @@ Cypilot has three core workflows. Each has a portable chat form and, in some hos
 
 The portable 💬 `cypilot <workflow>: ...` form is the best default. Slash commands are host-specific aliases, not separate capabilities.
 
-For default routing priorities and detailed workflow-choice advice, use **[guides/BEST-PRACTICES.md](guides/BEST-PRACTICES.md)**.
+For default routing priorities and detailed workflow-choice advice, use **[guides/USAGE-GUIDE.md](guides/USAGE-GUIDE.md)**.
 
 ---
 
@@ -388,7 +388,7 @@ Cypilot supports **multi-repo workspaces** so related docs, code, and shared kit
 
 Use this when docs, code, or shared kit assets live in separate repos and still need to stay aligned.
 
-For practical guidance, see **[guides/BEST-PRACTICES.md](guides/BEST-PRACTICES.md)**. For the full model and configuration rules, see **[requirements/workspace.md](requirements/workspace.md)**.
+For practical guidance, see **[guides/USAGE-GUIDE.md](guides/USAGE-GUIDE.md)**. For the full model and configuration rules, see **[requirements/workspace.md](requirements/workspace.md)**.
 
 #### RalphEx delegation
 
@@ -398,7 +398,7 @@ When available, Cyber Pilot can hand off selected execution work to RalphEx unde
 
 Use this when you want supervised execution handoff for bounded tasks instead of keeping all work interactive inside the current AI coding tool.
 
-For when to delegate and how human review fits, see **[guides/BEST-PRACTICES.md](guides/BEST-PRACTICES.md)**.
+For when to delegate and how human review fits, see **[guides/USAGE-GUIDE.md](guides/USAGE-GUIDE.md)**.
 
 #### Project extensibility
 
@@ -453,7 +453,7 @@ For the full model and examples, see **[guides/PROJECT-EXTENSIBILITY.md](guides/
 ## Further reading
 
 - **Start here next**
-  - **[Best practices guide](guides/BEST-PRACTICES.md)**
+  - **[Usage guide](guides/USAGE-GUIDE.md)**
   - **[Agent tools guide](guides/AGENT-TOOLS.md)**
   - **[Configuration guide](guides/CONFIGURATION.md)**
   - **[Story-driven walkthrough](guides/STORY.md)**

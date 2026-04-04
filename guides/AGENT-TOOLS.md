@@ -552,7 +552,7 @@ Whether the host supports subagents or not, the operating model should still be:
 ## Further reading
 
 - **[README](../README.md)**
-- **[Best practices guide](BEST-PRACTICES.md)**
+- **[Usage guide](USAGE-GUIDE.md)**
 - **[Configuration guide](CONFIGURATION.md)**
 - **[ADR-0016: Subagent registration](../architecture/ADR/0016-cpt-cypilot-adr-ai-cli-extensibility-subagents-v1.md)**
 - **[Workspace specification](../requirements/workspace.md)**

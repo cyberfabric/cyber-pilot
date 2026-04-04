@@ -1,4 +1,4 @@
-# Cypilot Best Practices and Bad Practices
+# Cypilot Usage Guide
 
 How to use **Cypilot** effectively across common situations, and how to avoid the most common failure modes.
 
@@ -429,7 +429,7 @@ Typical CI snippets:
 - 🖥️ `cpt validate --local-only`
 - 🖥️ `cpt self-check`
 - 🖥️ `cpt validate-kits`
-- 🖥️ `cpt validate-toc README-2.md guides/BEST-PRACTICES.md`
+- 🖥️ `cpt validate-toc PRD.md guides/USAGE-GUIDE.md`
 - 🖥️ `cpt spec-coverage --system cypilot --min-coverage 90 --min-file-coverage 60 --min-granularity 0.45`
 
 If your repository also provides a `Makefile`, treat it as a convenience wrapper around these `cpt` commands, not as the canonical description of the checks themselves.
