@@ -1,8 +1,8 @@
 # Cypilot Usage Guide
 
-How to use **Cypilot** effectively across common situations, and how to avoid the most common failure modes.
+How to use **Cypilot** well in common real-world situations: when to use it, when to skip it, and how to choose the right workflow without unnecessary overhead.
 
-> **Convention**: 💬 = paste into AI agent chat. 🖥️ = run in terminal.
+> **Convention**: 💬 = paste into AI coding tool chat. 🖥️ = run in terminal.
 
 ---
 
@@ -13,12 +13,12 @@ How to use **Cypilot** effectively across common situations, and how to avoid th
 - [3. When Cypilot is a good fit](#3-when-cypilot-is-a-good-fit)
 - [4. When Cypilot is not the best first move](#4-when-cypilot-is-not-the-best-first-move)
 - [5. Choosing the right workflow](#5-choosing-the-right-workflow)
-- [6. Best practices](#6-best-practices)
-- [7. Bad practices and anti-patterns](#7-bad-practices-and-anti-patterns)
+- [6. Practical usage habits](#6-practical-usage-habits)
+- [7. Common mistakes and anti-patterns](#7-common-mistakes-and-anti-patterns)
 - [8. Situation-by-situation guidance](#8-situation-by-situation-guidance)
 - [9. Prompt patterns that usually work well](#9-prompt-patterns-that-usually-work-well)
 - [10. Prompt patterns that usually go wrong](#10-prompt-patterns-that-usually-go-wrong)
-- [11. Workspace federation and orchestration repo pattern](#11-workspace-federation-and-orchestration-repo-pattern)
+- [11. Using Cyber Pilot across multiple repositories](#11-using-cyber-pilot-across-multiple-repositories)
 - [12. Brownfield projects](#12-brownfield-projects)
 - [13. Delegation and autonomous execution](#13-delegation-and-autonomous-execution)
 - [14. Quick decision checklist](#14-quick-decision-checklist)
@@ -28,13 +28,15 @@ How to use **Cypilot** effectively across common situations, and how to avoid th
 
 ## 1. What this guide is for
 
-This guide is for the classic practical questions:
+This guide is for the practical questions that come up after onboarding:
 
 - **What should I do in this situation?**
 - **What should I avoid?**
 - **When should I use `plan`, `generate`, or `analyze`?**
 - **When is Cypilot useful, and when is it just overhead?**
 - **How do I get the benefits without using the product badly?**
+
+Use this guide when you already know what Cypilot is and now need help choosing the right workflow in common real-world situations.
 
 The focus is not abstract theory.
 
@@ -44,9 +46,9 @@ The focus is operational behavior: how to use Cypilot well in real projects.
 
 ## 2. The shortest mental model
 
-Cypilot is best understood as a **deterministic orchestration, validation, and traceability layer** for AI-assisted engineering.
+Cypilot is most useful when a task needs more than raw prompting.
 
-Use the LLM for:
+Use your AI coding tool and agent for:
 
 - **reasoning**
 - **writing**
@@ -55,14 +57,16 @@ Use the LLM for:
 
 Use Cypilot for:
 
-- **workflow routing**
-- **context loading**
-- **rules and templates**
-- **deterministic validation**
-- **traceability**
-- **planning large tasks**
+- **choosing the right workflow**
+- **loading the right context**
+- **applying rules and templates**
+- **running deterministic validation**
+- **keeping requirements, design, and code linked through stable identifiers**
+- **breaking large tasks into phases**
 
-If you use Cypilot like a generic prompt prefix, you will miss most of its value.
+If the task is tiny or exploratory, direct prompting may be enough.
+
+If the task needs structure, validation, or safe multi-step execution, Cypilot is usually the better fit.
 
 ---
 
@@ -86,9 +90,9 @@ Cypilot is a strong fit when one or more of these are true:
   
   Example: regulated environments, auditability, or spec-driven development.
 
-- **You want one repeatable workflow across multiple AI tools**
+- **You want one repeatable workflow across multiple AI coding tools**
   
-  Example: the team uses Claude Code, Cursor, Windsurf, Copilot, or multiple hosts.
+  Example: the team uses Claude Code, Cursor, Windsurf, GitHub Copilot, or more than one AI coding tool.
 
 - **You need cross-repo coordination**
   
@@ -98,9 +102,9 @@ Cypilot is a strong fit when one or more of these are true:
   
   Example: design review, PR review, or status reporting that should follow the same structure across runs.
 
-- **You want team-level process standardization**
+- **You need a repeatable way to handle multi-step work safely**
   
-  Example: multiple engineers or AI hosts should follow the same planning, validation, and review discipline.
+  Example: multiple engineers or AI coding tools should follow the same planning, validation, and review discipline.
 
 ---
 
@@ -118,7 +122,7 @@ Cypilot is often not the best first move when:
 
 - **You want maximum first-draft speed with minimum ceremony**
   
-  Example: throwaway prototypes or disposable spikes.
+  Example: throwaway prototypes, loose ideation, or disposable spikes.
 
 - **You do not yet have enough structure to anchor the work**
   
@@ -132,23 +136,15 @@ Cypilot is often not the best first move when:
   
   Example: the task is small enough that loading workflow context, rules, and validation logic costs more than it helps.
 
-- **You are doing pure visual or frontend exploration**
+- **You are exploring many open-ended alternatives**
   
-  Example: the UI direction is still open-ended and design exploration matters more than structure.
-
-- **You want the fastest possible first draft with minimal ceremony**
-  
-  Example: quick spec drafting, loose ideation, or throwaway first passes where controlled transformation is not yet the priority.
-
-- **You are exploring many disposable alternatives**
-  
-  Example: branching into multiple speculative directions with little commitment to stable structure.
+  Example: visual direction finding, branching into speculative options, or broad product brainstorming.
 
 That is not a bug.
 
 It is the tradeoff of using a more structured system.
 
-For these cases, lighter approaches or direct agent prompting can be a better starting point.
+For these cases, lighter approaches or direct prompting can be a better starting point.
 
 ---
 
@@ -208,7 +204,7 @@ Why this matters:
 - you want to create or update an artifact
 - you want to implement already-structured work
 - the target and source materials are known
-- the main need is execution, not diagnosis
+- the main job is producing or updating something, not diagnosing uncertainty
 
 **Good prompt shape**:
 
@@ -222,74 +218,34 @@ When a prompt below references `PRD`, `DESIGN`, `DECOMPOSITION`, or `FEATURE`, i
 - you want a review or audit
 - you want to compare two artifacts
 - you want to inspect gaps, drift, or consistency
+- you need to understand what is wrong, unclear, or missing before you change anything
 
 **Good prompt shape**:
 
-- `cypilot analyze: validate architecture/DESIGN.md against the current FEATURE docs` *(requires SDLC kit)*
+- 💬 `cypilot analyze: validate architecture/DESIGN.md against the current FEATURE docs` *(requires SDLC kit)*
 
-### What `analyze` can do in practice
+### What `analyze` is for in practice
 
-`/cypilot-analyze` is not only for generic validation. In practice, it covers several distinct review and inspection modes.
+`analyze` is the review and inspection workflow.
 
-Examples in this section that reference `PRD`, `DESIGN`, `DECOMPOSITION`, or `FEATURE` assume the built-in SDLC kit is installed.
+In day-to-day use, reach for it when you need one of five things:
 
-- **Artifact and traceability validation**
-  - Use it when you want deterministic checks for structure, IDs, references, checklists, and code-marker traceability.
-  - Good fit for: validating a PRD, DESIGN, FEATURE, or checking whether code and artifacts still line up when those artifact kinds come from the SDLC kit.
-  - Typical prompt shape: 💬 `cypilot analyze: validate this FEATURE and its code traceability` *(requires SDLC kit)*
+- **validation** of structure, references, or traceability
+- **review** of prompts, instructions, or code
+- **comparison** between documents, artifacts, or versions
+- **drift / gap detection** across related sources
+- **brownfield understanding** before you plan or generate changes in an unfamiliar codebase
 
-- **Prompt and instruction review**
-  - Use it for system prompts, skills, workflows, methodologies, `AGENTS.md`, and other AI-instruction documents.
-  - This is the right path when you want clarity review, anti-pattern detection, context-engineering review, compact-prompts opportunities, or improvement guidance.
-  - Typical prompt shape: 💬 `cypilot analyze: review this workflow for prompt engineering quality`
-
-- **Prompt bug finding**
-  - Use it when the goal is not just instruction quality, but hidden behavioral defects: unsafe behavior, routing defects, missing guards, bad completion criteria, regressions, or instruction conflicts.
-  - Ask for this explicitly when you want defect-oriented review rather than a general style review.
-  - Typical prompt shape: 💬 `cypilot analyze: find prompt bugs in this workflow and agent instruction stack`
-
-- **Code review**
-  - Use it for structured checklist-based code review, including quality, security, error handling, testing, performance, and observability concerns.
-  - Good fit when you want a disciplined review of code changes instead of an unstructured opinion.
-  - Typical prompt shape: 💬 `cypilot analyze: review these code changes for correctness, security, and test gaps`
-
-- **Code bug finding**
-  - Use it when you want maximum-recall search for logic bugs, edge cases, regressions, hidden failure modes, or root-cause analysis.
-  - This is stronger than a generic code review when the main objective is to find defects, not just assess quality.
-  - Typical prompt shape: 💬 `cypilot analyze: find bugs, edge cases, and regression risks in this module`
-
-- **Consistency, contradiction, gap, and drift analysis**
-  - Use it when docs or artifacts may disagree, duplicate each other, use inconsistent terminology, contain stale claims, or leave important requirements unspecified.
-  - Good fit for README/guide cleanup, cross-document consistency review, or checking whether a downstream artifact drifted away from its source.
-  - Typical prompt shape: 💬 `cypilot analyze: find consistency gaps and contradictions across these guides`
-
-- **Reverse engineering and brownfield understanding**
-  - Use it when you need Cypilot to map entry points, structure, dependencies, data flow, state, integration boundaries, and recurring patterns in an existing project.
-  - Good fit before planning changes in an unfamiliar codebase.
-  - Typical prompt shape: 💬 `cypilot analyze: explain the current architecture boundaries, entry points, and likely conventions`
-
-- **PR review**
-  - Use it for structured pull-request review when you want checklist-based findings rather than ad hoc comments.
-  - Good fit for isolated review passes, especially before merge or when you want a first-pass issue sweep.
-  - Typical prompt shape: 💬 `cypilot analyze: review PR #123 for correctness, regression risk, and checklist violations`
-
-- **Traceability lookup and impact inspection**
-  - Use Cypilot's search and validation tools when you need to know where an ID is defined, where it is used, what content it points to, or what may be affected by a change.
-  - Good fit for gap analysis, change impact checks, and artifact-to-code audits.
-  - Typical tools and commands include `validate`, `list-ids`, `get-content`, `where-defined`, and `where-used`.
+If the main job is understanding what is wrong, inconsistent, missing, or risky, `analyze` is usually the right starting point.
 
 How to choose between them:
 
-- if you want **deterministic structure and reference checks**, start with validation
-- if you want **quality review of prompts/instructions**, ask for prompt review
-- if you want **behavioral defects in prompts**, ask explicitly for prompt bug finding
-- if you want **quality review of code**, ask for code review
-- if you want **maximum-recall defect hunting in code**, ask explicitly for bug finding
-- if you want **cross-document alignment**, ask for consistency, contradiction, gap, or drift analysis
-- if you first need to **understand an unfamiliar system**, start with reverse engineering or brownfield analysis before generation
-- if your request depends on `PRD`, `DESIGN`, `DECOMPOSITION`, or `FEATURE`, make the SDLC kit dependency explicit instead of implying those artifact kinds exist everywhere
-
-For large reviews, multi-file audits, or anything likely to exceed one safe context, route through `plan` first and then execute the analysis in bounded phases.
+- **Need deterministic checks?** Start with validation.
+- **Need quality feedback on prompts or code?** Ask for review.
+- **Need defect hunting?** Ask explicitly for bug finding.
+- **Need cross-document alignment?** Ask for consistency, contradiction, gap, or drift analysis.
+- **Need to understand an unfamiliar codebase first?** Start with reverse engineering or brownfield analysis before generation.
+- **Need a large review?** Use `plan` first, then execute the analysis in bounded phases.
 
 ### Default routing rule
 
@@ -323,7 +279,7 @@ A final **human review is still required** before treating the result as done.
 
 ---
 
-## 6. Best practices
+## 6. Practical usage habits
 
 1. **Start from a clear target**
    - Name the artifact, code area, workflow, or outcome.
@@ -334,159 +290,59 @@ A final **human review is still required** before treating the result as done.
 3. **Use `plan` before context gets out of control**
    - Do not wait until the conversation is already overloaded.
 
-4. **Validate early, not only at the end**
-   - Run deterministic checks before downstream drift accumulates.
+4. **Validate early and keep validation in the loop**
+   - Generate or implement, validate, review, fix, and validate again before drift accumulates.
 
-5. **Use Cypilot for what is deterministic**
-   - Structure, routing, validation, IDs, rules, templates.
+5. **Use Cypilot for structure; use the agent for judgment**
+   - Let Cypilot enforce structure, validation, routing, and templates. Use the agent for interpretation, tradeoffs, and writing.
 
-6. **Use the LLM for what is judgment-heavy**
-   - Reasoning, writing, tradeoffs, interpretation.
+6. **Be explicit about what must not change**
+   - Say what is in scope and what is out of scope.
 
-7. **Keep upstream artifacts healthy**
-   - Weak PRDs and weak DESIGN docs create weak downstream results.
+7. **Use the smallest workflow that still preserves control**
+   - Do not over-apply heavyweight flows to trivial tasks.
 
-8. **Use workspaces when the system is multi-repo**
-   - Do not force all artifacts and code into one repo model if reality is different.
+8. **Make review repeatable, then make a final human call**
+   - Use repeatable checks to improve consistency, but keep final engineering judgment with a human reviewer.
 
-9. **Make review repeatable**
-   - Use checklists and analysis flows before human review, not instead of human review.
-
-10. **Treat delegation as supervised automation**
-    - Especially when validation may produce false positives.
-
-11. **Be explicit about what must not change**
-    - Say what is in scope and what is out of scope.
-
-12. **Use the smallest workflow that still preserves control**
-    - Do not over-apply heavyweight flows to trivial tasks.
-
-13. **Keep artifacts and code in sync**
-    - When implementing from a spec, treat the artifact and the codebase as one connected system.
-
-14. **If code markers are missing, ask the agent to add them**
-    - If the agent implemented the code but did not place `@cpt-*` markers where they are required, explicitly ask it to add the missing markers.
-
-15. **Use the same loop for code that you use for artifacts**
-    - Generate or implement, validate, review, fix, validate again, and repeat until the remaining known issues are resolved.
-
-16. **Require final human review for code changes**
-    - Validation and AI review help catch many issues, but they do not replace engineering judgment.
-
-17. **Use a fresh chat for generation and review tasks**
-    - For substantial `generate` and `analyze` or review tasks, prefer a new chat. If you stay in the same session, clear context before the next task. In environments such as Claude or Codex-style chat shells, `💬 /clear` is a practical reset.
-
-18. **Use Cypilot deterministic checks in CI, not only in chat**
-    - If a check can be run through `cpt` or the repo Makefile, put it into your local pre-PR routine and your CI pipeline so structural regressions are caught automatically.
-
-19. **Name SDLC kit dependencies explicitly**
-    - If a prompt, example, or workflow depends on `PRD`, `DESIGN`, `DECOMPOSITION`, `FEATURE`, SDLC templates, or SDLC example validation, say that it requires the SDLC kit instead of implying those artifact kinds are universal.
+9. **Use a fresh chat for new generation or review work**
+   - For substantial `generate` or `analyze` tasks, prefer a new chat. If you stay in the same session, clear context before the next task.
 
 ### CI with `cpt` tools
 
-The main Cypilot-oriented CI checks should be expressed in terms of direct `cpt` commands:
+Use the relevant deterministic `cpt` checks locally before opening a PR, and keep the same checks in CI so review is not the first place they run.
 
-- 🖥️ `cpt validate`
-- 🖥️ `cpt self-check`
-- 🖥️ `cpt validate-kits`
-- 🖥️ `cpt validate-kits kits/sdlc`
-- 🖥️ `cpt spec-coverage --system cypilot --min-coverage 90 --min-file-coverage 60 --min-granularity 0.45`
+For specialized work such as template/example synchronization or kit changes, include the matching focused checks as well.
 
-Use them as deterministic gates around artifact and methodology changes.
-
-What they are for:
-
-- **`cpt validate`**
-  - Validates artifacts and code with deterministic checks for structure, cross-references, task status consistency, and traceability markers.
-
-- **`cpt self-check`**
-  - Validates examples against templates and is especially useful for SDLC example/template synchronization.
-
-- **`cpt validate-kits`**
-  - Validates kit configuration, templates, constraints, and resource paths across registered kits.
-
-- **`cpt validate-kits kits/sdlc`**
-  - Focuses kit validation specifically on the SDLC kit.
-
-- **`cpt spec-coverage --system cypilot --min-coverage 90 --min-file-coverage 60 --min-granularity 0.45`**
-  - Measures marker coverage with explicit thresholds so CI can fail on traceability regressions.
-
-Practical recommendation:
-
-- run the most relevant checks locally before opening a PR
-- keep the same checks in CI so review is not the first place they run
-- use narrower checks during iteration and broader checks before merge
-
-Good default pattern:
-
-- for general methodology changes: 🖥️ `cpt validate`
-- for SDLC artifact/template changes: 🖥️ `cpt self-check`
-- for kit changes: 🖥️ `cpt validate-kits` or 🖥️ `cpt validate-kits kits/sdlc`
-- for spec-traceability discipline: 🖥️ `cpt spec-coverage --system cypilot --min-coverage 90 --min-file-coverage 60 --min-granularity 0.45`
-
-Typical CI snippets:
-
-- 🖥️ `cpt validate --local-only`
-- 🖥️ `cpt self-check`
-- 🖥️ `cpt validate-kits`
-- 🖥️ `cpt validate-toc PRD.md guides/USAGE-GUIDE.md`
-- 🖥️ `cpt spec-coverage --system cypilot --min-coverage 90 --min-file-coverage 60 --min-granularity 0.45`
-
-If your repository also provides a `Makefile`, treat it as a convenience wrapper around these `cpt` commands, not as the canonical description of the checks themselves.
-
-The goal is simple: let humans review meaning and tradeoffs, while CI enforces the deterministic rules every time.
+Use narrower checks while iterating and broader checks before merge. Let humans review meaning and tradeoffs, while CI enforces the deterministic rules every time.
 
 ---
 
-## 7. Bad practices and anti-patterns
+## 7. Common mistakes and anti-patterns
 
-1. **Using Cypilot as just another chat prefix**
-   - This ignores workflows, validation, kits, and structure.
+1. **Using Cyber Pilot like a generic chat tool**
+   - That bypasses the workflows, structure, and validation that make it useful.
 
 2. **Starting with `generate` on a huge ambiguous task**
    - This usually creates drift, missed constraints, and context overload.
 
-3. **Expecting IDs to guarantee good code**
-   - IDs improve traceability, not architecture quality. They help link artifacts, track what was specified and implemented, and detect drift, but they do not guarantee good requirements, good design, or good implementation judgment.
-
-4. **Skipping validation until the end**
+3. **Skipping validation until the end**
    - By then the system may already have amplified upstream errors.
 
-5. **Using Cypilot for purely open-ended ideation**
-   - It is built for structure, not maximum free-form exploration.
+4. **Treating deterministic checks or repeated validate-fix loops as proof of correctness**
+   - Iteration improves confidence, but it does not replace final human review.
 
-6. **Treating deterministic checks as full review**
-   - Validation is not equivalent to human engineering judgment.
+5. **Using it for wide-open brainstorming when structure is not the goal**
+   - It works best when you want guided structure, not maximum free-form exploration.
 
-7. **Applying full orchestration setup to every tiny repo by default**
-   - This creates avoidable overhead in small projects.
+6. **Applying a full structured workflow when a small direct edit would do**
+   - Sometimes the process costs more than the task.
 
-8. **Ignoring workspace federation when the real system is multi-repo**
-   - That causes artificial constraints and path confusion.
+7. **Asking for outcomes without naming the governing artifact or source**
+   - The agent then guesses instead of transforming from clear input.
 
-9. **Delegating autonomous loops without monitoring**
-   - False positives can send automation in the wrong direction.
-
-10. **Asking for outcomes without naming source-of-truth artifacts**
-    - The agent then guesses instead of transforming.
-
-11. **Loading too much context when less would do**
-    - More context is not always better; it can reduce clarity and stability.
-
-12. **Using Cypilot where plain editing is enough**
-    - Sometimes the structured workflow costs more than the task.
-
-13. **Implementing code from artifacts without validating traceability**
-    - That breaks the artifact-to-code chain and makes later review and maintenance harder.
-
-14. **Leaving missing code markers uncorrected**
-    - If markers are required and missing, do not just accept the code as-is; ask the agent to place the markers correctly.
-
-15. **Treating repeated validate-fix cycles as a guarantee of correctness**
-    - Iteration improves confidence, but it does not eliminate the need for final human review.
-
-16. **Reusing stale context across unrelated generation or review tasks**
-    - Old context can leak assumptions into the next task. Start a new chat or clear the context first.
+8. **Reusing stale context across unrelated generation or review tasks**
+   - Old context can leak assumptions into the next task. Start a new chat or clear the context first.
 
 ---
 
@@ -502,7 +358,7 @@ The goal is simple: let humans review meaning and tradeoffs, while CI enforces t
 
 **Do not**:
 
-- assume the AI tool already knows the project structure
+- assume the AI coding tool already knows the project structure
 - skip agent generation and then expect integrated workflows to exist
 
 ### Situation: existing repo with no conventions captured
@@ -551,28 +407,15 @@ The goal is simple: let humans review meaning and tradeoffs, while CI enforces t
 **Do**:
 
 - use `generate` if the implementation target is already clear
-- point to the exact FEATURE, DESIGN, or DECOMPOSITION artifact *(requires SDLC kit when using those SDLC artifact kinds)*
-- ask the agent to preserve or add required `@cpt-*` markers in code
+- name the governing artifact explicitly
+- preserve required traceability markers if your workflow uses them
 - validate and review after implementation
 
 **Do not**:
 
 - ask for implementation without naming the governing artifact
 - let code drift away from the approved artifact set
-- assume traceability markers will always be added automatically
-
-### Situation: the agent changed code but did not place markers
-
-**Do**:
-
-- explicitly ask the agent to add the missing `@cpt-*` markers
-- point to the relevant artifact IDs if needed
-- re-run validation after the markers are added
-
-**Do not**:
-
-- manually assume traceability is fine without checking
-- continue downstream review while known required markers are still missing
+- ignore known missing required markers before downstream review
 
 ### Situation: code review or design review
 
@@ -600,31 +443,28 @@ The goal is simple: let humans review meaning and tradeoffs, while CI enforces t
 ### Context hygiene
 
 - 💬 start a new chat before a new generation or review task
-- 💬 `/clear` before the next task if you stay in the same Claude or Codex-style session
+- 💬 clear the chat context before the next task if you stay in the same session
 
 ---
 
 ## 9. Prompt patterns that usually work well
 
-Prompts in this section that reference `PRD`, `DESIGN`, `DECOMPOSITION`, or `FEATURE` assume the built-in SDLC kit is installed.
+Examples that reference `PRD`, `DESIGN`, `DECOMPOSITION`, or `FEATURE` assume the SDLC kit is installed; otherwise substitute your own project artifact types.
 
 ### Structured generation
 
-- 💬 `cypilot generate: create a DESIGN from architecture/PRD.md for the billing service` *(requires SDLC kit)*
-- 💬 `cypilot generate: update the FEATURE spec for password reset based on the latest DESIGN` *(requires SDLC kit)*
-- 💬 `cypilot generate: implement the approved FEATURE for rate limiting in the auth service and preserve required @cpt-* code markers` *(requires SDLC kit)*
-- 💬 `cypilot generate: update the codebase to match architecture/FEATURE-login.md, then list which IDs were implemented in code` *(requires SDLC kit)*
+- 💬 `cypilot generate: create a DESIGN from architecture/PRD.md for the billing service`
+- 💬 `cypilot generate: implement the approved FEATURE for rate limiting in the auth service and preserve required @cpt-* code markers`
 
 ### Structured analysis
 
-- 💬 `cypilot analyze: validate architecture/FEATURE-login.md` *(requires SDLC kit)*
-- 💬 `cypilot analyze: compare the current implementation against the approved FEATURE for user invite flow` *(requires SDLC kit)*
-- 💬 `cypilot analyze: review the current code against the approved FEATURE and report missing traceability markers, validation issues, and likely implementation gaps` *(requires SDLC kit)*
+- 💬 `cypilot analyze: validate architecture/FEATURE-login.md`
+- 💬 `cypilot analyze: review the current code against the approved FEATURE and report missing traceability markers, validation issues, and likely implementation gaps`
 
 ### Planning
 
 - 💬 `cypilot plan: break this monolith-to-service extraction into safe phases with validation points`
-- 💬 `cypilot plan: break this FEATURE implementation into artifact-aware coding phases with validation and review checkpoints` *(requires SDLC kit)*
+- 💬 `cypilot plan: break this FEATURE implementation into artifact-aware coding phases with validation and review checkpoints`
 
 ### Context-bounded execution
 
@@ -638,8 +478,7 @@ Prompts in this section that reference `PRD`, `DESIGN`, `DECOMPOSITION`, or `FEA
 
 ### Marker recovery
 
-- 💬 `cypilot generate: add the missing @cpt-* markers to the code changed for this FEATURE and keep the implementation behavior unchanged` *(requires SDLC kit)*
-- 💬 `cypilot analyze: find code paths that should contain @cpt-* markers for the approved FEATURE but do not` *(requires SDLC kit)*
+- 💬 `cypilot generate: add the missing @cpt-* markers to the code changed for this FEATURE and keep the implementation behavior unchanged`
 
 ---
 
@@ -650,7 +489,7 @@ Prompts in this section that reference `PRD`, `DESIGN`, `DECOMPOSITION`, or `FEA
 - 💬 `cypilot generate: improve everything`
 - 💬 `cypilot analyze: tell me if this code is good`
 - 💬 `cypilot generate: rewrite the app based on best practices`
-- 💬 `cypilot generate: implement this spec in code, skip validation for now`
+- 💬 `cypilot generate: implement this spec in code and treat the first pass as done without validation`
 - 💬 `cypilot generate: add the feature, markers are not important`
 
 Why these go wrong:
@@ -663,25 +502,18 @@ Why these go wrong:
 
 Better versions:
 
-- 💬 `cypilot plan: break the auth rewrite into phases constrained to backend API first`
-- 💬 `cypilot analyze: validate this DESIGN against the current PRD and list missing sections` *(requires SDLC kit)*
-- 💬 `cypilot generate: update only the login FEATURE spec using the approved auth DESIGN` *(requires SDLC kit)*
+- Instead of `cypilot generate: build the whole system`: 💬 `cypilot plan: break the auth rewrite into phases constrained to backend API first`
+- Instead of `cypilot analyze: tell me if this code is good`: 💬 `cypilot analyze: review this module for correctness, regression risk, and missing tests`
+- Instead of `cypilot generate: rewrite the app based on best practices`: 💬 `cypilot analyze: find the three highest-risk design and implementation issues in this module`
+- Instead of `cypilot generate: implement this spec in code and treat the first pass as done without validation`: 💬 `cypilot generate: update only the login FEATURE spec using the approved auth DESIGN, then validate the result`
 
 ---
 
-## 11. Workspace federation and orchestration repo pattern
+## 11. Using Cyber Pilot across multiple repositories
 
-Cyber Pilot can feel heavy in smaller repos because the system includes a meaningful amount of:
+If you work across several small repositories, avoid copying the full Cyber Pilot setup into each one.
 
-- **orchestration logic in scripts**
-- **behavioral instructions in Markdown**
-- **rules, templates, validation, and routing structure**
-
-That overhead is real.
-
-It is the price paid for stronger control, repeatability, traceability, and validation.
-
-A practical mitigation is **workspace federation**.
+A better pattern is to keep one main orchestration repository and connect related repositories through a workspace.
 
 ### Good pattern
 
@@ -689,7 +521,7 @@ Keep one dedicated **orchestration repository** with the full Cyber Pilot setup,
 
 That gives you:
 
-- centralized orchestration weight
+- one place for orchestration setup
 - shared rules and kits
 - cross-repo traceability
 - less duplication of setup across many small repos
@@ -711,6 +543,8 @@ cpt workspace-info
 ---
 
 ## 12. Brownfield projects
+
+Here, "brownfield" means an existing system with partial docs, unclear conventions, or mixed quality.
 
 Brownfield projects are often a strong Cypilot use case, but only if you are disciplined.
 
@@ -740,7 +574,11 @@ Brownfield projects are often a strong Cypilot use case, but only if you are dis
 
 ## 13. Delegation and autonomous execution
 
-Delegation can be powerful, especially for repetitive generate-validate-fix cycles.
+Delegation can be useful, but only when three things are clear:
+
+- the task is bounded
+- the validation loop is trustworthy enough to monitor
+- a human will still make the final acceptance decision
 
 A delegated loop often looks like:
 
@@ -764,19 +602,11 @@ If validation produces a false positive, an autonomous loop can optimize for the
 
 ### Mitigation
 
-- prefer delegated flows that preserve granular changes and rollback points
-- use RalphEx safeguards where available instead of assuming every guardrail must be manual
+- prefer delegated flows that keep changes granular and preserve rollback points
 - inspect status, outputs, and validation results while the loop is running
+- if your AI coding tool or execution environment provides safeguards, use them, but do not treat them as a substitute for boundaries, monitoring, and final review
 - stop or roll back to a known-good point if the loop goes off track
 - require human review before treating the delegated result as done
-
-In practice, some of these safeguards may already be provided by RalphEx itself, such as granular commit behavior or clearer rollback points.
-
-The human responsibility is not to manually reproduce every safeguard, but to set boundaries, monitor whether the loop still looks trustworthy, and make the final acceptance decision.
-
-### Example
-
-- 💬 `cypilot delegate this plan to ralphex`
 
 Even after a clean delegated loop, the result is still not automatically guaranteed correct.
 
@@ -793,7 +623,7 @@ Use Cypilot if most answers are **yes**:
 - **Is deterministic validation useful?**
 - **Is traceability useful?**
 - **Is the task large enough that planning helps?**
-- **Would repeatability across tools or contributors help?**
+- **Would repeatability across AI coding tools or contributors help?**
 
 Be cautious if most answers are **yes** here instead:
 
@@ -803,14 +633,13 @@ Be cautious if most answers are **yes** here instead:
 - **Would a lightweight direct prompt be enough?**
 - **Would the workflow overhead exceed the task value?**
 
+If the left-hand answers are mostly yes, Cyber Pilot is probably a good fit. If the right-hand answers dominate, use a lighter workflow or your AI coding tool directly.
+
 ---
 
 ## Further reading
 
-- **[README](../README.md)**
-- **[Configuration guide](CONFIGURATION.md)**
-- **[Project extensibility guide](PROJECT-EXTENSIBILITY.md)**
-- **[Story-driven walkthrough](STORY.md)**
-- **[Workspace specification](../requirements/workspace.md)**
-- **[Prompt engineering methodology](../requirements/prompt-engineering.md)**
-- **[Prompt bug-finding methodology](../requirements/prompt-bug-finding.md)**
+- **[README](../README.md)** — product overview and setup context
+- **[Configuration guide](CONFIGURATION.md)** — tune rules, kits, and behavior
+- **[Story-driven walkthrough](STORY.md)** — see an end-to-end example
+- **[Workspace specification](../requirements/workspace.md)** — use this if you are running Cyber Pilot across multiple repositories
