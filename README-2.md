@@ -72,71 +72,56 @@ A typical path is: approve the requirement and design, split the change into bou
 ### Start here if you're evaluating Cyber Pilot
 
 - **Use it when**
-  - you have multi-step work across requirements, design, implementation, validation, and review
-  - you want repeatable workflows, stronger validation, and less drift between stages
+  - you have a larger change that needs planning, implementation, validation, or review across more than one step
+  - you want the work to stay aligned from requirement or design through implementation and review
 
 - **Do not start with it when**
   - the task is a tiny edit, throwaway spike, or open-ended exploration
   - speed matters more than structure and the shape of the work is still unclear
 
 - **Who usually benefits most early**
-  - engineers: safer large changes, stronger validation, and less drift
-  - tech leads and architects: clearer design flow, review discipline, and traceability
-  - PMs and delivery readers: better visibility into how requirements, design, and implementation stay aligned
-
-- **Start small first**
-  - after setup, try 💬 `cypilot analyze: ...` on one existing document or 💬 `cypilot plan: ...` on one larger task
-  - leave kits, workspaces, and delegation for later unless you already need them
+  - engineers: safer larger changes, clearer review checkpoints, and better confidence before merging
+  - tech leads and architects: clearer design-to-implementation flow, better review discipline, and visible traceability across stages
+  - PMs and delivery readers: clearer visibility into whether the implemented work still matches the approved requirement and design
 
 ### What to expect after setup
 
-After setup, you can already use Cyber Pilot from your AI coding tool or the CLI without learning its deeper configuration model:
+After setup, you can start with one practical Cyber Pilot workflow from your AI coding tool, with the CLI supporting setup, validation, and repeatable workflows.
 
-- **A project Cyber Pilot directory** that stores core files, generated entry points, and project configuration
-- **Generated entry points in your AI coding tool** so you can invoke Cyber Pilot workflows from where you already work
-- **Workflow prompts you can invoke in your AI coding tool**, such as 💬 `cypilot analyze: ...` and 💬 `cypilot plan: ...`
-- **A CLI for repeatable setup, validation, and workflow support** through 🖥️ `cpt <command>`
+- **A structured analysis of an existing requirement or design doc** with 💬 `cypilot analyze: ...`
+- **A bounded phase plan for a larger change** with 💬 `cypilot plan: ...`
+- **A repeatable CLI path for setup and validation** through 🖥️ `cpt`
 
-You do **not** need to understand kits, workspaces, delegation, or deeper configuration on day one.
+You do **not** need advanced features on day one; most first trials start with `analyze`, `plan`, and validation only.
 
 ### Where Cyber Pilot helps first
 
-Most teams see the first value in a few repeatable cases:
+First value usually shows up in a few repeatable situations:
 
-- **Turning an approved requirement or design into implementation** — without losing decisions along the way
-- **Large or risky changes** — split work into bounded, inspectable phases
-- **Review and validation** — run deterministic checks and structured analysis instead of trusting one generation pass
-- **Brownfield understanding** — understand an existing system before modifying it
+- **Turning an approved requirement or design into implementation** — while keeping implementation and review aligned with it
+- **A bounded plan for a larger or riskier change** before coding starts
+- **A validation pass before review or merge** instead of trusting one generation pass
+- **A clearer picture of an unfamiliar area** before changing code in a brownfield system
 
 ### Prerequisites
 
-For the standard first-trial path, you need Python, Git, one supported AI coding tool, and a way to install the CLI (`pipx` recommended).
+For a first trial, you need Python 3.11+, Git, and one supported AI coding tool such as Claude Code, Cursor, Windsurf, GitHub Copilot, or OpenAI Codex.
 
-- **Python 3.11+**
-  
-  Required for the CLI and skill engine.
+`pipx` is recommended for installing the CLI globally. `gh` is optional for PR review and PR status workflows.
 
-- **Git**
-  
-  Used for project detection, workspace handling, and normal repository workflows.
-
-- **One supported AI coding tool**
-  
-  Cyber Pilot works with tools such as Windsurf, Cursor, Claude Code, GitHub Copilot, and OpenAI-compatible environments.
-
-- **`pipx`**
-  
-  Recommended for installing the CLI globally.
-
-- **`gh` CLI** *(optional)*
-  
-  Useful for PR review and PR status workflows.
-
-**Prefer to skim?** Jump to [Quick start](#quick-start), [What success looks like after 5 minutes](#5-what-success-looks-like-after-5-minutes), [Host support at a glance](#host-support-at-a-glance), [Workflow model](#workflow-model), [Configuration at a glance](#configuration-at-a-glance), or [Further reading](#further-reading).
+**Prefer to skim?** Jump to [Quick start](#quick-start), [What success looks like after 5 minutes](#5-what-success-looks-like-after-5-minutes), or [Host support at a glance](#host-support-at-a-glance).
 
 ---
 
 ### Quick start
+
+Goal: get Cyber Pilot working in your repository and produce one concrete result within a few minutes.
+
+Cyber Pilot is the product.
+Use 🖥️ `cpt` in your terminal for repo setup.
+Use 💬 `cypilot ...` in your AI tool chat for workflows in that same repository.
+Do **not** run 💬 `cypilot ...` in the terminal.
+The generated setup folder is `cypilot/` by default, but you can choose a different name such as `.cpt/` during init.
 
 #### 1. Install the CLI
 
@@ -145,25 +130,20 @@ For the standard first-trial path, you need Python, Git, one supported AI coding
 pipx install git+https://github.com/cyberfabric/cyber-pilot.git
 ```
 
-Update later with:
+Verify the CLI install with:
 
+🖥️ **Terminal**:
 ```bash
-pipx upgrade cypilot
+cpt --version
 ```
 
-This installs 🖥️ `cpt` globally.
+If it prints a version, the CLI install worked.
+If this works, skip the macOS and Windows notes below.
+If `cpt` is not found, open a new terminal and try again.
 
-The CLI is a thin entrypoint. On use, it resolves to the cached or project-local Cypilot engine.
+**Only if needed on macOS**
 
-Project links:
-
-- **`pipx`**: [pipx.pypa.io](https://pipx.pypa.io/)
-- **Homebrew**: [brew.sh](https://brew.sh/)
-- **Scoop**: [scoop.sh](https://scoop.sh/)
-
-**macOS note**
-
-If you do not have `pipx` yet, the recommended install path is **Homebrew**:
+Install `pipx` with **Homebrew**:
 
 🖥️ **Terminal**:
 ```bash
@@ -179,9 +159,9 @@ For example, with the default macOS `zsh` setup:
 source ~/.zshrc
 ```
 
-**Windows note**
+**Only if needed on Windows**
 
-If you do not have `pipx` yet, the recommended install path is **Scoop**:
+Install `pipx` with **Scoop**:
 
 🖥️ **Terminal**:
 ```bash
@@ -193,6 +173,8 @@ Then open a new terminal so the updated `PATH` is picked up.
 
 #### 2. Initialize a project
 
+From your repository root, run:
+
 🖥️ **Terminal**:
 
 ```bash
@@ -200,39 +182,22 @@ cpt init
 cpt generate-agents
 ```
 
-This creates the Cypilot directory for your project and prepares agent-specific integrations.
+🖥️ `cpt init` is interactive. For a first trial, you can usually accept the default project root, keep the default setup directory unless you want a custom one, and accept the default SDLC kit if prompted.
 
-For most projects, the default directory is `cypilot/`. In the self-hosted Cyber Pilot repository itself, the equivalent directory is `.bootstrap/`.
+🖥️ `cpt init` sets up Cyber Pilot in your repository.
+🖥️ `cpt generate-agents` adds the AI-tool integration files for this repository.
 
-🖥️ `cpt init` creates three main areas inside that directory:
+🖥️ `cpt generate-agents` may preview the files it will create and ask you to confirm before writing them.
 
-| Directory | Purpose | Editable? |
-|---|---|---|
-| `.core/` | Read-only core workflows, skills, schemas, and requirements | No |
-| `.gen/` | Generated aggregate files for agent consumption | No |
-| `config/` | Project configuration and installed kit material | Yes |
+After this step, your repository should contain a new Cyber Pilot setup folder such as `cypilot/` or `.cpt/`, plus generated AI-tool integration files. You may also see host-specific folders such as `.windsurf/`, `.cursor/`, `.claude/`, `.github/`, `.codex/`, or `.agents/`, but you do not need to open or edit them for this trial.
 
-It also creates `config/core.toml` and `config/artifacts.toml`, defines a root system, and injects the managed root `AGENTS.md` block.
+If your AI tool is already open, reload the repository before continuing to step 3.
 
-🖥️ `cpt generate-agents` supports: `windsurf`, `cursor`, `claude`, `copilot`, `openai`.
+#### 3. Turn on Cyber Pilot in your AI tool
 
-It generates workflow entry points, skill outputs, and subagents where the host tool supports them.
+In the AI tool chat attached to the same repository or workspace you just initialized, run:
 
-- **Workflow commands** — entry points for `plan`, `generate`, `analyze`, and supported kit workflows
-- **Skill outputs** — host-visible Cypilot skill entry points that route into the core instructions
-- **Subagents** — isolated task-specific agents where the host supports them
-
-#### 2.5 Update an existing installation
-
-🖥️ **Terminal**:
-
-```bash
-cpt update
-```
-
-This refreshes `.core/`, regenerates `.gen/`, and updates kit files in `config/kits/` with file-level diffs.
-
-#### 3. Enable Cypilot mode in your AI tool
+In some hosts, you may also see a generated `cypilot` command or `/cypilot-...` entrypoint in the chat UI. The portable default in this README remains 💬 `cypilot ...`.
 
 💬 **AI agent chat**:
 
@@ -240,24 +205,22 @@ This refreshes `.core/`, regenerates `.gen/`, and updates kit files in `config/k
 cypilot on
 ```
 
-In practice, this tells the agent to use Cypilot's workflow routing and control layer instead of a generic chat-only interaction style.
+If setup worked, the chat should end with a clear activation confirmation such as `Cypilot Mode Enabled`. If the chat replies like a normal assistant and does not confirm Cyber Pilot mode, activation did not happen; reopen the repository in the AI tool and try again. Some hosts may also show the resolved Cypilot path or loaded context.
 
-#### 4. Start with one of the three main workflows
+#### 4. For your first 5-minute trial, start with `analyze` or `plan`
+
+- start with `analyze` if you already have a requirement, design doc, or implementation plan
+- start with `plan` if you have a larger change request but no plan yet
+- leave `generate` for later, once the change is approved and tightly scoped
+
+For this trial, use one small real input only: paste 5-15 lines of a requirement or change request, attach one short note or spec section, or point to one specific requirement, design, or change-request file in the same chat message. Do **not** ask for a repo-wide review or a broad plan with no concrete input attached.
 
 **Analyze**
 
 💬 **AI agent chat**:
 
 ```text
-cypilot analyze: review this implementation plan and tell me what is missing or inconsistent
-```
-
-**Generate**
-
-💬 **AI agent chat**:
-
-```text
-cypilot generate: implement the approved login flow from the current plan and keep the existing behavior outside that scope unchanged
+cypilot analyze: review the pasted requirement, the attached note, or docs/requirements.md. List the top 5 unclear, missing, or conflicting points, then end with the 3 questions that must be answered before implementation
 ```
 
 **Plan**
@@ -265,26 +228,21 @@ cypilot generate: implement the approved login flow from the current plan and ke
 💬 **AI agent chat**:
 
 ```text
-cypilot plan: break this migration into safe implementation phases
+cypilot plan: using the pasted change request, the attached note, or docs/change-request.md, break this work into 3-7 small reviewable phases. For each phase, give the goal, likely files affected, and the main risk
 ```
 
-In hosts where 🖥️ `cpt generate-agents` created slash commands, 💬 `/cypilot-plan`, 💬 `/cypilot-generate`, and 💬 `/cypilot-analyze` are legacy aliases for the same three workflows.
+Skip 💬 `cypilot generate: ...` for your first 5-minute trial. Use it later, after the change is approved and tightly scoped.
 
 #### 5. What success looks like after 5 minutes
 
-You should now have:
+After 5 minutes, success means you have both:
 
-- a Cypilot directory in your project with `.core/`, `.gen/`, and `config/`
-- generated host entry points for your AI tool
-- a chat workflow that can respond to 💬 `cypilot on`, 💬 `cypilot analyze: ...`, 💬 `cypilot generate: ...`, and 💬 `cypilot plan: ...`
+- a clear activation confirmation from 💬 `cypilot on`, such as `Cypilot Mode Enabled`
+- one useful result you could act on immediately: either a numbered list of real gaps or blocking questions, or a phased implementation plan
 
-A good first trial is:
+The new setup folder and generated integration files are only a secondary sanity check. The goal is a useful result, not setup artifacts.
 
-- ask 💬 `cypilot analyze: review this plan and tell me what is missing`
-- ask 💬 `cypilot plan: break this migration into safe phases`
-- ask 💬 `cypilot generate: implement this approved change and keep behavior outside scope unchanged`
-
-For more artifact-specific prompt shapes, use **[guides/BEST-PRACTICES.md](guides/BEST-PRACTICES.md)**.
+You can defer generated files, host-specific integration details, and advanced setup until later.
 
 ### Host support at a glance
 
