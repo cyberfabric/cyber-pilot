@@ -70,34 +70,39 @@ For teams already using an AI coding tool, Cyber Pilot provides the operating co
 
  ## Fit and non-fit
 
-Use Cyber Pilot if you already work with an AI coding tool and need more control over larger or riskier work.
+ Use Cyber Pilot if you already work with an AI coding tool and the cost of ambiguity, rework, or review failure is high enough to justify more structure and control.
 
-### Who it helps
+ ### Helps most when you are responsible for
 
- - **Engineers** — to keep larger changes bounded, reviewable, and easier to continue safely
- - **Tech leads and architects** — to reduce drift between approved requirements, design, and implementation
- - **Product and delivery leads** — to see how approved scope maps to implementation and what review evidence supports it
+  - **Implementation work** that needs to stay bounded, inspectable, and safer to continue across more than one step
+  - **Alignment across handoffs or review checkpoints** so requirements, design, plans, and implementation do not drift apart
+  - **Review or delivery accountability** when approved scope needs reviewable evidence, clearer status surfaces, or deterministic checks before merge
 
-### Good fit when
+ ### Good fit when
 
- - you have a larger change that needs planning, implementation, validation, or review across more than one step
- - you want the work to stay aligned from requirement or design through implementation and review
+  - you have a multi-step, higher-risk, or review-sensitive change where the cost of ambiguity or rework is higher than the cost of added structure
+  - the work needs bounded execution and reviewable alignment across approved inputs, implementation, and review, not just a quick diff
+  - you are working in a brownfield or unfamiliar area and need understanding before editing, not just speed while editing
+  - coordination, handoffs, or deterministic validation materially reduce risk before review or merge
 
-### Not the best fit when
+ ### Not the best fit when
 
- - the task is a tiny edit, throwaway spike, or open-ended exploration
- - speed matters more than structure and the shape of the work is still unclear
+  - the task is a tiny edit, throwaway spike, or open-ended exploration
+  - the change is already well understood, low risk, and fast to make locally without added coordination or review structure
+  - speed matters more than structure and the shape of the work is still unclear
+  - you do not want artifact-backed process, staged review, or deterministic validation overhead even when the task is non-trivial
+  - your team rejects workflow discipline or does not want to maintain the delivery surfaces that make review and validation easier
 
-### Where value appears first
+ ### Where value appears first
 
- - turning an approved requirement or design into implementation while keeping implementation and review aligned with it
- - creating a bounded plan for a larger or riskier change before coding starts
- - running a validation pass before review or merge instead of trusting one generation pass
- - getting a clearer picture of an unfamiliar area before changing code in a brownfield system
+  - a first bounded plan that makes a risky or unfamiliar change easier to execute in stages
+  - a first inspectable understanding surface for an unfamiliar area before you start changing code
+  - a first deterministic validation result or drift signal before review or merge instead of trusting one generation pass
+  - a first reviewable linkage between approved inputs and the implementation under review
 
-## Operating model
+ ## Operating model
 
-### System boundary and control model
+ ### System boundary and control model
 
 Cyber Pilot is best understood as the **workflow, context, and validation layer around your AI coding tool**.
 
@@ -109,7 +114,7 @@ Your AI coding tool gives you the chat interface and model access. The agent doe
   - transformation
   - implementation judgment
 
- - **Use Cyber Pilot for**
+- **Use Cyber Pilot for**
   - workflow selection
   - task-matched context loading
   - templates, rules, and checklists
@@ -118,12 +123,12 @@ Your AI coding tool gives you the chat interface and model access. The agent doe
 
  ### Deterministic vs non-deterministic boundary
 
- - **Deterministic**
+- **Deterministic**
   - config and resource resolution
   - routing into workflows and specialized commands
   - repeatable command behavior for the same configured project surface
 
- - **Non-deterministic**
+- **Non-deterministic**
   - the agent's reasoning, writing quality, and implementation judgment
   - human review decisions
 
