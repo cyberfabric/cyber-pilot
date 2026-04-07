@@ -83,9 +83,15 @@ cypilot/                          # Project root
 
 ### Critical Rule
 
-> **NEVER edit files inside `.bootstrap/.core/` or `.bootstrap/.gen/`.**
-> These are read-only copies. Always edit the canonical source files under project root
-> (`skills/`, `kits/`, `schemas/`, etc.) and then run `make update` to sync.
+> **Do not edit files under `.bootstrap/` directly when contributing.**
+> In this self-hosted repo, `.bootstrap/` is a bootstrap copy of a Cypilot version used
+> to develop Cypilot itself — similar to bootstrapping a compiler.
+> Treat `.bootstrap/.core/` and `.bootstrap/.gen/` as read-only mirrors.
+> Always edit the canonical source files under project root (`skills/`, `kits/`,
+> `schemas/`, `architecture/`, `requirements/`, etc.). Run `make update` only when you
+> need to verify new behavior live against the bootstrap copy, for example during manual
+> testing. After such a test, it is recommended to return `.bootstrap/` to its previous
+> state, and the pull request should be clean of bootstrap-only changes.
 
 The `make update` command runs `cpt update --source . --force`, which:
 1. Copies canonical sources into `.bootstrap/.core/`
@@ -256,10 +262,11 @@ All jobs must pass before merge.
 
 ### Code Changes
 
-1. Edit files under `skills/cypilot/scripts/cypilot/` (skill engine) or `src/cypilot_proxy/` (CLI proxy)
-2. Run `make update` to sync into `.bootstrap/.core/`
-3. Add or update tests in `tests/`
-4. Verify: `make test && make validate`
+1. Edit canonical files under `skills/cypilot/scripts/cypilot/` (skill engine), `src/cypilot_proxy/` (CLI proxy), or other project-root source directories
+2. Do not patch mirrored files under `.bootstrap/` directly
+3. If you need a live manual check against the bootstrap copy, run `make update`, perform the test, and then revert `.bootstrap/` back to the previous state before opening the PR
+4. Add or update tests in `tests/`
+5. Verify: `make test && make validate`
 
 ### Architecture / Spec Changes
 
