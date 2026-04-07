@@ -1,36 +1,34 @@
-# Contributing to Cypilot
+# Contributing to Cyber Pilot
 
 
 <!-- toc -->
 
-- [Contributing to Cypilot](#contributing-to-cypilot)
-  - [Thank you for your interest in contributing to Cypilot! This guide covers the development workflow, versioning scheme, bootstrap architecture, commit requirements, and CI pipeline.](#thank-you-for-your-interest-in-contributing-to-cypilot-this-guide-covers-the-development-workflow-versioning-scheme-bootstrap-architecture-commit-requirements-and-ci-pipeline)
-  - [Prerequisites](#prerequisites)
-  - [Development Setup](#development-setup)
-  - [Project Architecture (Self-Hosted Bootstrap)](#project-architecture-self-hosted-bootstrap)
-    - [Critical Rule](#critical-rule)
-  - [Versioning](#versioning)
-    - [Version Locations](#version-locations)
-    - [Releasing a New Version](#releasing-a-new-version)
-  - [Branch and Release Workflow](#branch-and-release-workflow)
-  - [Commit Requirements (DCO)](#commit-requirements-dco)
-    - [How to sign off](#how-to-sign-off)
-    - [Retroactive sign-off](#retroactive-sign-off)
-    - [Why DCO?](#why-dco)
-  - [CI Pipeline](#ci-pipeline)
-    - [Running CI Locally](#running-ci-locally)
-    - [Makefile Targets](#makefile-targets)
-    - [GitHub Actions](#github-actions)
-  - [Making Changes](#making-changes)
-    - [Code Changes](#code-changes)
-    - [Architecture / Spec Changes](#architecture--spec-changes)
-  - [Pull Request Process](#pull-request-process)
-  - [Code Style and Conventions](#code-style-and-conventions)
-  - [Questions?](#questions)
+- [Prerequisites](#prerequisites)
+- [Development Setup](#development-setup)
+- [Project Architecture (Self-Hosted Bootstrap)](#project-architecture-self-hosted-bootstrap)
+  - [Critical Rule](#critical-rule)
+- [Versioning](#versioning)
+  - [Version Locations](#version-locations)
+  - [Releasing a New Version](#releasing-a-new-version)
+- [Branch and Release Workflow](#branch-and-release-workflow)
+- [Commit Requirements (DCO)](#commit-requirements-dco)
+  - [How to sign off](#how-to-sign-off)
+  - [Retroactive sign-off](#retroactive-sign-off)
+  - [Why DCO?](#why-dco)
+- [CI Pipeline](#ci-pipeline)
+  - [Running CI Locally](#running-ci-locally)
+  - [Makefile Targets](#makefile-targets)
+  - [GitHub Actions](#github-actions)
+- [Making Changes](#making-changes)
+  - [Code Changes](#code-changes)
+  - [Architecture / Spec Changes](#architecture--spec-changes)
+- [Pull Request Process](#pull-request-process)
+- [Code Style and Conventions](#code-style-and-conventions)
+- [Questions?](#questions)
 
 <!-- /toc -->
 
-Thank you for your interest in contributing to Cypilot! This guide covers the development workflow, versioning scheme, bootstrap architecture, commit requirements, and CI pipeline.
+Thank you for your interest in contributing to Cyber Pilot! This guide covers the development workflow, versioning scheme, bootstrap architecture, commit requirements, and CI pipeline.
 ---
 
 ## Prerequisites
@@ -64,7 +62,7 @@ make ci
 
 ## Project Architecture (Self-Hosted Bootstrap)
 
-Cypilot builds itself. The repo is simultaneously the **source code** and a **Cypilot-managed project** with its own `.bootstrap/` adapter directory.
+Cyber Pilot builds itself. The repo is simultaneously the **source code** and a **self-hosted Cyber Pilot project** with its own `.bootstrap/` setup directory.
 
 ```
 cypilot/                          # Project root
@@ -73,7 +71,7 @@ cypilot/                          # Project root
 ├── schemas/                      # CANONICAL source: JSON schemas
 ├── architecture/                 # CANONICAL source: PRD, DESIGN, DECOMPOSITION, features
 ├── requirements/                 # CANONICAL source: checklists
-├── .bootstrap/                   # Adapter directory (cypilot_path = ".bootstrap")
+├── .bootstrap/                   # Self-hosted setup directory (cypilot_path = ".bootstrap")
 │   ├── .core/                    #   READ-ONLY mirror of skills/, schemas/, architecture/, etc.
 │   ├── .gen/                     #   AUTO-GENERATED aggregates (AGENTS.md, SKILL.md, README.md)
 │   └── config/                   #   User-editable config + kit outputs (core.toml, artifacts.toml, kits/)
@@ -83,9 +81,16 @@ cypilot/                          # Project root
 
 ### Critical Rule
 
-> **NEVER edit files inside `.bootstrap/.core/` or `.bootstrap/.gen/`.**
-> These are read-only copies. Always edit the canonical source files under project root
-> (`skills/`, `kits/`, `schemas/`, etc.) and then run `make update` to sync.
+> **Do not edit files under `.bootstrap/` directly when contributing.**
+> In this self-hosted repo, `.bootstrap/` is a bootstrap copy of a Cyber Pilot version used
+> to develop Cyber Pilot itself — similar to bootstrapping a compiler.
+> This is a repo-specific self-hosted setup, not the general user-project layout described in the README.
+> Treat `.bootstrap/.core/` and `.bootstrap/.gen/` as read-only mirrors.
+> Always edit the canonical source files under project root (`skills/`, `kits/`,
+> `schemas/`, `architecture/`, `requirements/`, etc.). Run `make update` only when you
+> need to verify new behavior live against the bootstrap copy, for example during manual
+> testing. After such a test, it is recommended to return `.bootstrap/` to its previous
+> state, and the pull request should be clean of bootstrap-only changes.
 
 The `make update` command runs `cpt update --source . --force`, which:
 1. Copies canonical sources into `.bootstrap/.core/`
@@ -96,32 +101,32 @@ The `make update` command runs `cpt update --source . --force`, which:
 
 ## Versioning
 
-Cypilot has **two independent version tracks**.
+Cyber Pilot has **two independent version tracks**.
 
 ### Version Locations
 
 | File | Example | What it versions | When to bump |
 |------|---------|------------------|--------------|
-| `skills/cypilot/scripts/cypilot/__init__.py` | `v3.4.0-beta` | **Skill engine** — the core validation/generation logic | Any change to skill engine code |
-| `pyproject.toml` (`version`) | `3.4.0-beta` | **CLI proxy** — installed via `pipx` | Changes to proxy routing, caching, or resolution |
+| `skills/cypilot/scripts/cypilot/__init__.py` | `vX.Y.Z-beta` | **Skill engine** — the core validation/generation logic | Any change to skill engine code |
+| `pyproject.toml` (`version`) | `X.Y.Z-beta` | **CLI proxy** — installed via `pipx` | Changes to proxy routing, caching, or resolution |
 
 ### Releasing a New Version
 
 1. **Create a release branch** from `main`:
    ```bash
    git checkout main && git pull --rebase
-   git checkout -b v3.4.0-beta
+   git checkout -b vX.Y.Z-beta
    ```
 
 2. **Bump the skill engine version** in `skills/cypilot/scripts/cypilot/__init__.py`:
    ```python
-   __version__ = "v3.4.0-beta"
+   __version__ = "vX.Y.Z-beta"
    ```
 
 3. **If proxy changed**, bump version in `pyproject.toml`:
    ```toml
    # pyproject.toml
-   version = "3.4.0-beta"
+   version = "X.Y.Z-beta"
    ```
 
 4. **Sync bootstrap**:
@@ -138,8 +143,8 @@ Cypilot has **two independent version tracks**.
 
 6. **Tag and release** after merge to `main`:
    ```bash
-   git tag v3.4.0-beta
-   git push origin v3.4.0-beta
+   git tag vX.Y.Z-beta
+   git push origin vX.Y.Z-beta
    ```
 
 ---
@@ -148,7 +153,7 @@ Cypilot has **two independent version tracks**.
 
 ```
 main                          # Stable, all CI must pass
-└── v3.4.0-beta               # Feature/release branch
+└── vX.Y.Z-beta               # Feature/release branch
 ```
 
 - Branch from `main` for each version
@@ -256,10 +261,11 @@ All jobs must pass before merge.
 
 ### Code Changes
 
-1. Edit files under `skills/cypilot/scripts/cypilot/` (skill engine) or `src/cypilot_proxy/` (CLI proxy)
-2. Run `make update` to sync into `.bootstrap/.core/`
-3. Add or update tests in `tests/`
-4. Verify: `make test && make validate`
+1. Edit canonical files under `skills/cypilot/scripts/cypilot/` (skill engine), `src/cypilot_proxy/` (CLI proxy), or other project-root source directories
+2. Do not patch mirrored files under `.bootstrap/` directly
+3. If you need a live manual check against the bootstrap copy, run `make update`, perform the test, and then revert `.bootstrap/` back to the previous state before opening the PR
+4. Add or update tests in `tests/`
+5. Verify: `make test && make validate`
 
 ### Architecture / Spec Changes
 
