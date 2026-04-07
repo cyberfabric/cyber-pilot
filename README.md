@@ -3,7 +3,7 @@
  [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
   ![Version](https://img.shields.io/badge/version-3.6.0--beta-green.svg)
   ![Python](https://img.shields.io/badge/python-3.11+-blue.svg)
-  [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=cyberfabric_cyber-pilot&metric=coverage)](https://sonarcloud.io/summary/new_code?id=cyberfabric_cyber-pilot)
+ [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=cyberfabric_cyber-pilot&metric=coverage)](https://sonarcloud.io/summary/new_code?id=cyberfabric_cyber-pilot)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=cyberfabric_cyber-pilot&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=cyberfabric_cyber-pilot)
 [![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=cyberfabric_cyber-pilot&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=cyberfabric_cyber-pilot)
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=cyberfabric_cyber-pilot&metric=bugs)](https://sonarcloud.io/summary/new_code?id=cyberfabric_cyber-pilot)
@@ -13,6 +13,8 @@
 **Status**: Active
 
 **Audience**: Developers using AI coding tools, technical leads, engineering teams
+
+> **Convention**: 💬 = paste into AI coding tool chat. 🖥️ = run in terminal.
 
 ## Overview
 
@@ -294,8 +296,6 @@ In practice, this creates clearer boundaries, earlier drift detection, and more 
  Python 3.11+ is the runtime for Cyber Pilot's repository-local scripts and CI, even when you do not install `cpt` globally yourself.
  
  `pipx` is recommended when you want to install the `cpt` CLI globally and run it yourself. `gh` is optional for PR review and PR status workflows.
- 
- > **Convention**: 💬 = paste into AI coding tool chat. 🖥️ = run in terminal.
  
  ### Setup paths and commands
  
