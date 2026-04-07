@@ -203,19 +203,19 @@ Cyber Pilot has three core workflows. Each has a portable chat form and, in some
 
 | Workflow | Portable chat form | Matching alias in some hosts | Use it when |
 |---|---|---|---|
-| Plan | 💬 `cypilot plan: ...` | 💬 `/cypilot-plan` | the task is too large, risky, or context-heavy for one conversation |
-| Generate | 💬 `cypilot generate: ...` | 💬 `/cypilot-generate` | you want to create, update, implement, or configure something |
-| Analyze | 💬 `cypilot analyze: ...` | 💬 `/cypilot-analyze` | you want to validate, review, inspect, compare, or audit |
+| Plan | `cypilot plan: ...` | `/cypilot-plan` | the task is too large, risky, or context-heavy for one conversation |
+| Generate | `cypilot generate: ...` | `/cypilot-generate` | you want to create, update, implement, or configure something |
+| Analyze | `cypilot analyze: ...` | `/cypilot-analyze` | you want to validate, review, inspect, compare, or audit |
 
-The portable 💬 `cypilot <workflow>: ...` form is the best default. Slash commands are host-specific aliases, not separate capabilities.
+The portable `cypilot <workflow>: ...` form is the best default. Slash commands are host-specific aliases, not separate capabilities.
 
-Use `plan` to bound large work, `generate` to implement within approved scope, and `analyze` to review, validate, or inspect the result.
+`plan`, `generate`, and `analyze` are reusable workflow modes, not a fixed mandatory sequence. They define how work is framed; the next section shows one common delivery order in which teams often combine them.
 
 For default routing priorities and detailed workflow-choice advice, use **[guides/USAGE-GUIDE.md](guides/USAGE-GUIDE.md)**.
 
 ## Typical delivery sequence
 
-Cyber Pilot is strongest when an early idea or PoC needs to become a production-ready change without losing scope or design intent.
+This is one common order for combining the workflows when an early idea or PoC needs to become a production-ready change without losing scope or design intent.
 
 In practice, teams usually move through four visible stages:
 
@@ -226,21 +226,21 @@ In practice, teams usually move through four visible stages:
 
 In practice, this creates clearer boundaries, earlier drift detection, and more reliable review evidence than one long mixed-purpose chat.
 
-## Supported hosts
-
-Cyber Pilot works across multiple AI coding tools, but some hosts support its structured workflows more fully than others.
-
-| Host | Best first use | Notes |
-|---|---|---|
-| Claude Code | Best starting point for full workflow support | Strongest support for isolated task flow, subagents, and separate generation/review passes |
-| Cursor | Good editor-first starting point | Strong everyday IDE choice, with a smoother general workflow than the more orchestration-heavy hosts |
-| GitHub Copilot | Good for familiar editor and GitHub-centered workflows | Supports structured Cyber Pilot use, but with less control over task orchestration than Claude Code |
-| OpenAI Codex | Best for narrow, well-scoped tasks | Works best when task boundaries are tight and validation steps are clearly specified |
-| Windsurf | Usable with manual workflow discipline | Works without subagents, but you should separate generation and review into different chats |
-
-If you are unsure where to start, **Claude Code** currently gives the clearest first experience for the full Cyber Pilot workflow.
-
-For host-specific setup guidance, deeper tradeoffs, and the full support matrix, use **[guides/AGENT-TOOLS.md](guides/AGENT-TOOLS.md)**.
+ ## Supported hosts
+ 
+ Cyber Pilot works across multiple AI coding tools through the same portable `cypilot` workflow model, but some hosts preserve its workflow boundaries more fully than others. The differences are mainly in orchestration control, workflow separation, subagent support, manual discipline burden, and first-run clarity.
+ 
+ | Host | Workflow support profile | Operational tradeoff |
+ |---|---|---|
+ | Claude Code | Strongest starting point for the full Cyber Pilot workflow | Preserves workflow separation, subagent-assisted isolation, and separate generation/review passes with the least manual reconstruction |
+ | Cursor | Good editor-first support for everyday Cyber Pilot use | Portable workflows still work well, but orchestration boundaries and isolation are less explicit than in stronger workflow-oriented hosts |
+ | GitHub Copilot | Usable for structured GitHub-centered Cyber Pilot work | The same portable workflow model applies, but phase separation and task orchestration need more manual steering than in Claude Code |
+ | OpenAI Codex | Best for bounded, tightly scoped Cyber Pilot work | Works best when workflow boundaries are narrow and explicit; less natural for broader multi-stage delivery flow |
+ | Windsurf | Usable when you enforce workflow discipline manually | Portable workflows still apply, but weaker isolation means generation and review should stay in separate chats by convention |
+ 
+ If you are unsure where to start, **Claude Code** currently gives the clearest first experience for the full Cyber Pilot workflow because it best preserves workflow separation, orchestration control, and subagent-assisted isolation.
+ 
+ For host-specific setup guidance, deeper tradeoffs, and the full support matrix, use **[guides/AGENT-TOOLS.md](guides/AGENT-TOOLS.md)**.
 
 ## Evaluate Cyber Pilot
 
