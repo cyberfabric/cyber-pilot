@@ -1,30 +1,75 @@
-# Cypilot Usage Guide
+# Cyber Pilot Usage Guide
 
-How to use **Cypilot** well in common real-world situations: when to use it, when to skip it, and how to choose the right workflow without unnecessary overhead.
+
+<!-- toc -->
+
+- [1. What this guide is for](#1-what-this-guide-is-for)
+- [2. Installation and first-time setup](#2-installation-and-first-time-setup)
+  - [One easy operating rule](#one-easy-operating-rule)
+  - [Prerequisites](#prerequisites)
+  - [If the repository already includes Cyber Pilot](#if-the-repository-already-includes-cyber-pilot)
+  - [1. Install the CLI](#1-install-the-cli)
+  - [2. Initialize the repository](#2-initialize-the-repository)
+  - [3. Turn Cyber Pilot on in chat](#3-turn-cyber-pilot-on-in-chat)
+  - [Common install/setup failures](#common-installsetup-failures)
+  - [4. Pick the right first move](#4-pick-the-right-first-move)
+  - [What success looks like after the first few minutes](#what-success-looks-like-after-the-first-few-minutes)
+- [3. The shortest mental model](#3-the-shortest-mental-model)
+- [4. When Cyber Pilot is a good fit](#4-when-cyber-pilot-is-a-good-fit)
+- [5. When Cyber Pilot is not the best first move](#5-when-cyber-pilot-is-not-the-best-first-move)
+- [6. Choosing the right workflow](#6-choosing-the-right-workflow)
+  - [Use `plan` when](#use-plan-when)
+  - [What counts as a large task](#what-counts-as-a-large-task)
+  - [Quick check: should you use `plan` first?](#quick-check-should-you-use-plan-first)
+  - [Best chat form](#best-chat-form)
+  - [Use `generate` when](#use-generate-when)
+  - [Use `analyze` when](#use-analyze-when)
+  - [What `analyze` is for in practice](#what-analyze-is-for-in-practice)
+  - [Default routing rule](#default-routing-rule)
+  - [Recommended execution loop for artifacts and code](#recommended-execution-loop-for-artifacts-and-code)
+- [7. Practical usage habits](#7-practical-usage-habits)
+  - [CI with `cpt` tools](#ci-with-cpt-tools)
+- [8. Common mistakes and anti-patterns](#8-common-mistakes-and-anti-patterns)
+- [9. Situation-by-situation guidance](#9-situation-by-situation-guidance)
+  - [Situation: new project setup](#situation-new-project-setup)
+  - [Situation: existing repo with no conventions captured](#situation-existing-repo-with-no-conventions-captured)
+  - [Situation: create or update a document](#situation-create-or-update-a-document)
+  - [Situation: large implementation request](#situation-large-implementation-request)
+  - [Situation: implementing code from an approved artifact](#situation-implementing-code-from-an-approved-artifact)
+  - [Situation: code review or design review](#situation-code-review-or-design-review)
+  - [Situation: small low-risk fix](#situation-small-low-risk-fix)
+  - [Context hygiene](#context-hygiene)
+- [10. Prompt patterns that usually work well](#10-prompt-patterns-that-usually-work-well)
+  - [Structured generation](#structured-generation)
+  - [Structured analysis](#structured-analysis)
+  - [Planning](#planning)
+  - [Context-bounded execution](#context-bounded-execution)
+  - [Brownfield understanding](#brownfield-understanding)
+  - [Marker recovery](#marker-recovery)
+- [11. Prompt patterns that usually go wrong](#11-prompt-patterns-that-usually-go-wrong)
+- [12. Using Cyber Pilot across multiple repositories](#12-using-cyber-pilot-across-multiple-repositories)
+  - [Good pattern](#good-pattern)
+  - [Bad pattern](#bad-pattern)
+  - [Typical commands](#typical-commands)
+- [13. Brownfield projects](#13-brownfield-projects)
+  - [Good approach](#good-approach)
+  - [Bad approach](#bad-approach)
+  - [Good sequence](#good-sequence)
+- [14. Delegation and autonomous execution](#14-delegation-and-autonomous-execution)
+  - [Good use](#good-use)
+  - [Risk](#risk)
+  - [Mitigation](#mitigation)
+  - [Delegation preflight](#delegation-preflight)
+- [15. Quick decision checklist](#15-quick-decision-checklist)
+- [Further reading](#further-reading)
+
+<!-- /toc -->
+
+How to use **Cyber Pilot** well in common real-world situations: when to use it, when to skip it, and how to choose the right workflow without unnecessary overhead.
 
 > **Convention**: 💬 = paste into AI coding tool chat. 🖥️ = run in terminal.
 
 ---
-
-## Table of Contents
-
-- [1. What this guide is for](#1-what-this-guide-is-for)
-- [2. Installation and first-time setup](#2-installation-and-first-time-setup)
-- [3. The shortest mental model](#3-the-shortest-mental-model)
-- [4. When Cypilot is a good fit](#4-when-cypilot-is-a-good-fit)
-- [5. When Cypilot is not the best first move](#5-when-cypilot-is-not-the-best-first-move)
-- [6. Choosing the right workflow](#6-choosing-the-right-workflow)
-- [7. Practical usage habits](#7-practical-usage-habits)
-- [8. Common mistakes and anti-patterns](#8-common-mistakes-and-anti-patterns)
-- [9. Situation-by-situation guidance](#9-situation-by-situation-guidance)
-- [10. Prompt patterns that usually work well](#10-prompt-patterns-that-usually-work-well)
-- [11. Prompt patterns that usually go wrong](#11-prompt-patterns-that-usually-go-wrong)
-- [12. Using Cyber Pilot across multiple repositories](#12-using-cyber-pilot-across-multiple-repositories)
-- [13. Brownfield projects](#13-brownfield-projects)
-- [14. Delegation and autonomous execution](#14-delegation-and-autonomous-execution)
-- [15. Quick decision checklist](#15-quick-decision-checklist)
-- [Further reading](#further-reading)
-
 ---
 
 ## 1. What this guide is for
@@ -34,18 +79,20 @@ This guide is for the practical questions that come up after onboarding:
 - **What should I do in this situation?**
 - **What should I avoid?**
 - **When should I use `plan`, `generate`, or `analyze`?**
-- **When is Cypilot useful, and when is it just overhead?**
+- **When is Cyber Pilot useful, and when is it just overhead?**
 - **How do I get the benefits without using the product badly?**
 
-Use this guide when you already know what Cypilot is and now need help choosing the right workflow in common real-world situations.
+Use this guide when you already know what Cyber Pilot is and now need help choosing the right workflow in common real-world situations.
 
 The focus is not abstract theory.
 
-The focus is operational behavior: how to use Cypilot well in real projects.
+The focus is operational behavior: how to use Cyber Pilot well in real projects.
 
 ## 2. Installation and first-time setup
 
 If you need the exact setup path, complete this once before the rest of the guide.
+
+For the short version, use the setup section in **[README](../README.md)** first. This section is the detailed operating path.
 
 ### One easy operating rule
 
@@ -61,6 +108,19 @@ If you need the exact setup path, complete this once before the rest of the guid
 - one supported AI coding tool
 - `pipx` for a global CLI install
 - `gh` if you want PR review or PR status workflows
+
+### If the repository already includes Cyber Pilot
+
+If the repository already has a Cyber Pilot setup directory and generated AI coding tool integration files, you usually do **not** need to install `cpt` globally just to try the project.
+
+In that case:
+
+- ensure Python 3.11+ is available for the repository-local scripts and CI
+- open the repository in your supported AI coding tool
+- activate Cyber Pilot in chat with 💬 `cypilot on`
+- start with one focused request such as 💬 `cypilot analyze: ...` or 💬 `cypilot plan: ...`
+
+Use the CLI install path below when you need to bootstrap the repository yourself, run terminal commands directly, or manage setup across multiple repositories.
 
 ### 1. Install the CLI
 
@@ -117,7 +177,7 @@ cpt generate-agents
 
 `cpt init` is interactive.
 
-For a first trial, it is usually safe to accept the default project root, keep the default setup directory unless you want a custom one, and accept the default SDLC kit if prompted.
+For a first trial, it is usually safe to accept the default project root, keep the default setup directory `cypilot/` unless you want a custom one, and accept the default SDLC kit if prompted.
 
 `cpt init` sets up Cyber Pilot in the repository.
 
@@ -125,7 +185,7 @@ For a first trial, it is usually safe to accept the default project root, keep t
 
 `cpt generate-agents` may preview the files it will create and ask you to confirm before writing them.
 
-In a normal project, this creates a setup directory such as `cypilot/` or `.cpt/`, generated host integration files, and user-editable configuration under `config/` inside the chosen setup directory.
+In a normal project, this creates a setup directory `cypilot/`, generated host integration files, and user-editable configuration under `config/` inside that setup directory.
 
 You may also see host-specific folders such as `.windsurf/`, `.cursor/`, `.claude/`, `.github/`, `.codex/`, or `.agents/`.
 
@@ -184,7 +244,7 @@ Some hosts may also show the resolved Cyber Pilot path or loaded context.
 
 - **First 5-minute trial**: start with `cypilot analyze: ...` or `cypilot plan: ...`, not `generate`
 - **New project or already-structured work**: start with `cypilot generate: ...` or `cypilot plan: ...`
-- **Existing codebase with weak or missing conventions**: run `cypilot auto-config`, inspect what it inferred, and refine the generated rules before large changes
+- **Existing codebase with weak or missing conventions**: run 💬 `cypilot auto-config`, inspect what it inferred, and then refine the generated rules before large changes
 - **After changing workflows, kits, or host integrations**: rerun `cpt generate-agents` or `cpt generate-agents --agent <tool>`
 
 For the first trial, use one small real input only: one short requirement, one design note, or one focused change request. Do not start with a repo-wide review or a broad implementation request.
@@ -206,7 +266,7 @@ For host-specific setup details and troubleshooting, use **[AGENT-TOOLS.md](AGEN
 
 ## 3. The shortest mental model
 
-Cypilot is most useful when a task needs more than raw prompting.
+Cyber Pilot is most useful when a task needs more than raw prompting.
 
 Use your AI coding tool and agent for:
 
@@ -215,7 +275,7 @@ Use your AI coding tool and agent for:
 - **transformation**
 - **implementation judgment**
 
-Use Cypilot for:
+Use Cyber Pilot for:
 
 - **choosing the right workflow**
 - **loading the right context**
@@ -226,14 +286,14 @@ Use Cypilot for:
 
 If the task is tiny or exploratory, direct prompting may be enough.
 
-If the task needs structure, validation, or safe multi-step execution, Cypilot is usually the better fit.
+If the task needs structure, validation, or safe multi-step execution, Cyber Pilot is usually the better fit.
 
 
 ---
 
-## 4. When Cypilot is a good fit
+## 4. When Cyber Pilot is a good fit
 
-Cypilot is a strong fit when one or more of these are true:
+Cyber Pilot is a strong fit when one or more of these are true:
 
 - **You are transforming one structured artifact into another**
   
@@ -270,9 +330,9 @@ Cypilot is a strong fit when one or more of these are true:
 
 ---
 
-## 5. When Cypilot is not the best first move
+## 5. When Cyber Pilot is not the best first move
 
-Cypilot is often not the best first move when:
+Cyber Pilot is often not the best first move when:
 
 - **The task is tiny**
   
@@ -469,8 +529,8 @@ A final **human review is still required** before treating the result as done.
 4. **Validate early and keep validation in the loop**
    - Generate or implement, validate, review, fix, and validate again before drift accumulates.
 
-5. **Use Cypilot for structure; use the agent for judgment**
-   - Let Cypilot enforce structure, validation, routing, and templates. Use the agent for interpretation, tradeoffs, and writing.
+5. **Use Cyber Pilot for structure; use the agent for judgment**
+   - Let Cyber Pilot enforce structure, validation, routing, and templates. Use the agent for interpretation, tradeoffs, and writing.
 
 6. **Be explicit about what must not change**
    - Say what is in scope and what is out of scope.
@@ -611,7 +671,7 @@ Use narrower checks while iterating and broader checks before merge. Let humans 
 
 **Do**:
 
-- ask whether Cypilot is actually needed
+- ask whether Cyber Pilot is actually needed
 - use the smallest flow that preserves enough control
 
 **Do not**:
@@ -696,6 +756,8 @@ If you work across several small repositories, avoid copying the full Cyber Pilo
 
 A better pattern is to keep one main orchestration repository and connect related repositories through a workspace.
 
+Workspace federation and project extensibility solve different problems. Workspaces connect multiple repositories into one reachable validation and traceability surface. Project extensibility changes the behavior available inside a single repository through local skills, workflows, subagents, and rules. Many teams use both together.
+
 ### Good pattern
 
 Keep one dedicated **orchestration repository** with the full Cyber Pilot setup, then connect multiple smaller repos through a workspace.
@@ -735,11 +797,11 @@ Useful follow-up commands:
 
 Here, "brownfield" means an existing system with partial docs, unclear conventions, or mixed quality.
 
-Brownfield projects are often a strong Cypilot use case, but only if you are disciplined.
+Brownfield projects are often a strong Cyber Pilot use case, but only if you are disciplined.
 
 ### Good approach
 
-- start with auto-config
+- start with 💬 `cypilot auto-config`
 - inspect inferred rules
 - identify the real source-of-truth artifacts
 - use analysis before generation when the current system is still unclear
@@ -843,6 +905,8 @@ If the left-hand answers are mostly yes, Cyber Pilot is probably a good fit. If 
 ## Further reading
 
 - **[README](../README.md)** — product overview and setup context
+- **[AGENT-TOOLS.md](AGENT-TOOLS.md)** — host-specific setup details and operational differences
 - **[Configuration guide](CONFIGURATION.md)** — tune rules, kits, and behavior
-- **[Story-driven walkthrough](STORY.md)** — see an end-to-end example
+- **[Project extensibility guide](PROJECT-EXTENSIBILITY.md)** — extend local behavior inside one repository
 - **[Workspace specification](../requirements/workspace.md)** — use this if you are running Cyber Pilot across multiple repositories
+- **[Historical story-driven walkthrough](STORY.md)** — older transcript, useful as archive rather than canonical guidance

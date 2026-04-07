@@ -1,5 +1,11 @@
 # Using Cypilot — A Real Conversation (Story)
 
+> **Historical walkthrough**
+>
+> This document is a real transcript from an earlier Cyber Pilot setup and command model.
+> Keep it as a historical example, not as the canonical guide to the current product surface.
+> For the current model, start with **[README.md](../README.md)**, then continue with **[USAGE-GUIDE.md](USAGE-GUIDE.md)** and **[AGENT-TOOLS.md](AGENT-TOOLS.md)**.
+
 This is a real IDE conversation with an agent running in **Cypilot mode**.
 
 The goal of this story is to show what Cypilot looks like in practice:
@@ -7,6 +13,8 @@ The goal of this story is to show what Cypilot looks like in practice:
 - How Cypilot routes requests to the correct workflow (analyze vs generate)
 - How it loads the required context deterministically (adapter + required docs)
 - How it gates file writes behind explicit confirmation
+
+Because the transcript reflects an earlier version, some commands, directory names, and workflow framing differ from the current README-led model.
 
 **Outcome:** By the end of this conversation, the user has a working example application (“Overwork Alert”) with CLI + daemon wiring, deterministic validations, unit tests, and a successful manual macOS smoke test.
 

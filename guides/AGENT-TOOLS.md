@@ -1,33 +1,71 @@
-# Using AI Agent Tools with Cypilot
+# Using AI Agent Tools with Cyber Pilot
 
-How to use **Cypilot** with different AI agent hosts, what each tool supports, where the rough edges are, and how to work around them.
 
-> **Convention**: 💬 = paste into AI agent chat. 🖥️ = run in terminal.
+<!-- toc -->
 
----
-
-## Table of Contents
-
-- [1. What Cypilot generates into host tools](#1-what-cypilot-generates-into-host-tools)
+- [1. What Cyber Pilot generates into host tools](#1-what-cyber-pilot-generates-into-host-tools)
 - [2. Quick recommendation by tool](#2-quick-recommendation-by-tool)
 - [3. Support matrix](#3-support-matrix)
 - [4. Shared best practices across all tools](#4-shared-best-practices-across-all-tools)
   - [Model requirements by operation and prompt type](#model-requirements-by-operation-and-prompt-type)
+  - [Practical model-family guidance](#practical-model-family-guidance)
   - [How host limitations affect model choice](#how-host-limitations-affect-model-choice)
 - [5. Claude Code](#5-claude-code)
+  - [Why it fits Cyber Pilot well](#why-it-fits-cyber-pilot-well)
+  - [Best use cases](#best-use-cases)
+  - [Typical problems](#typical-problems)
+  - [How to mitigate](#how-to-mitigate)
+  - [Practical recommendation](#practical-recommendation)
 - [6. Cursor](#6-cursor)
+  - [What works well](#what-works-well)
+  - [Where it is weaker than Claude Code](#where-it-is-weaker-than-claude-code)
+  - [Typical problems](#typical-problems-1)
+  - [How to mitigate](#how-to-mitigate-1)
+  - [Practical recommendation](#practical-recommendation-1)
 - [7. GitHub Copilot](#7-github-copilot)
+  - [What works well](#what-works-well-1)
+  - [Main limitation](#main-limitation)
+  - [Typical problems](#typical-problems-2)
+  - [How to mitigate](#how-to-mitigate-2)
+  - [Practical recommendation](#practical-recommendation-2)
 - [8. OpenAI Codex](#8-openai-codex)
+  - [What works well](#what-works-well-2)
+  - [Main limitation](#main-limitation-1)
+  - [Typical problems](#typical-problems-3)
+  - [How to mitigate](#how-to-mitigate-3)
+  - [Practical recommendation](#practical-recommendation-3)
 - [9. Windsurf](#9-windsurf)
+  - [The key limitation](#the-key-limitation)
+  - [What this changes in practice](#what-this-changes-in-practice)
+  - [Typical problems](#typical-problems-4)
+  - [How to mitigate](#how-to-mitigate-4)
+  - [Practical recommendation](#practical-recommendation-4)
 - [10. Common problems and fixes](#10-common-problems-and-fixes)
+  - [Problem: subagents are not available where you expected them](#problem-subagents-are-not-available-where-you-expected-them)
+  - [Problem: review quality is poor after a long generation session](#problem-review-quality-is-poor-after-a-long-generation-session)
+  - [Problem: the host appears to support read-only review, but you still do not trust it fully](#problem-the-host-appears-to-support-read-only-review-but-you-still-do-not-trust-it-fully)
+  - [Problem: one giant task keeps going off the rails](#problem-one-giant-task-keeps-going-off-the-rails)
+  - [Problem: Windsurf feels worse than tools with subagents](#problem-windsurf-feels-worse-than-tools-with-subagents)
 - [11. How to think about subagents vs manual chat separation](#11-how-to-think-about-subagents-vs-manual-chat-separation)
+  - [If the host supports subagents](#if-the-host-supports-subagents)
+  - [If the host does not support subagents](#if-the-host-does-not-support-subagents)
+  - [Core rule](#core-rule)
 - [Further reading](#further-reading)
 
+<!-- /toc -->
+
+How to use **Cyber Pilot** with different AI agent hosts, what each tool supports, where the rough edges are, and how to work around them.
+
+For the canonical product model, workflow model, and setup paths, start with **[README](../README.md)**. This guide is specifically about host differences and operational trade-offs.
+
+> **Convention**: 💬 = paste into AI coding tool chat. 🖥️ = run in terminal.
+
+---
 ---
 
-## 1. What Cypilot generates into host tools
+## 1. What Cyber Pilot generates into host tools
 
-Cypilot is not tied to one AI host.
+Cyber Pilot is not tied to one AI host.
 
 Instead, it projects its workflows and instructions into the host tool you use.
 
@@ -37,7 +75,7 @@ In practice, `cpt generate-agents --agent <tool>` generates some combination of:
   - entry points for `plan`, `generate`, `analyze`, workspace flows, and kit workflows
 
 - **skill outputs**
-  - host-tool-visible Cypilot skill entry points that route into the core instructions
+  - host-tool-visible Cyber Pilot skill entry points that route into the core instructions
 
 - **subagents**
   - isolated task-specific agents with scoped permissions and dedicated prompts, where the host supports them
@@ -59,26 +97,26 @@ cpt generate-agents --agent windsurf
 
 Subagents are not equally supported across all tools.
 
-That is one of the most important practical differences when using Cypilot.
+That is one of the most important practical differences when using Cyber Pilot.
 
 ---
 
 ## 2. Quick recommendation by tool
 
 - **Claude Code**
-  - Best overall fit when you want the fullest Cypilot experience, especially for **generation**, strong subagent support, read-only review isolation, model selection, and worktree isolation.
+  - Best overall fit when you want the fullest Cyber Pilot experience, especially for **generation**, strong subagent support, read-only review isolation, model selection, and worktree isolation.
 
 - **Cursor**
-  - Good general-purpose IDE host for Cypilot. Supports subagents, and its **multi-model** nature is a real advantage because you can pair Anthropic for generation with GPT-style models for review. The isolation model is still weaker than Claude Code.
+  - Good general-purpose IDE host for Cyber Pilot. Supports subagents, and its **multi-model** nature is a real advantage because you can pair Anthropic for generation with GPT-style models for review. The isolation model is still weaker than Claude Code.
 
 - **GitHub Copilot**
-  - Usable with Cypilot and supports subagents. It is especially attractive when you want **strong review behavior** with GPT-style models, though host-level control is less expressive than Claude Code.
+  - Usable with Cyber Pilot and supports subagents. It is especially attractive when you want **strong review behavior** with GPT-style models, though host-level control is less expressive than Claude Code.
 
 - **OpenAI Codex**
   - Strong option for **review**, bounded analysis, and artifact-heavy work when you want GPT-style strictness and carefulness. Works best when tasks stay narrow and validation is explicit.
 
 - **Windsurf**
-  - Still usable with Cypilot workflows and skills, and its **multi-model** nature is a practical plus. But it does **not** support subagents, so treat it as a single-agent host and manually separate contexts.
+  - Still usable with Cyber Pilot workflows and skills, and its **multi-model** nature is a practical plus. But it does **not** support subagents, so treat it as a single-agent host and manually separate contexts.
 
 ---
 
@@ -93,12 +131,12 @@ That is one of the most important practical differences when using Cypilot.
 | Model selection in generated subagents | Yes | Yes | No equivalent | Tool-dependent / less central | N/A |
 | Subagent-scoped hooks | Yes | No | Tool-specific / narrower current surface | No | No |
 | Multi-model host advantage | No | Yes | Yes | No | Yes |
-| Best use mode with Cypilot | Full orchestration | Strong daily-driver | Structured assistance | Bounded execution | Manual separation |
+| Best use mode with Cyber Pilot | Full orchestration | Strong daily-driver | Structured assistance | Bounded execution | Manual separation |
 
 **Important distinction**:
 
-- if a host does **not** support subagents, that is a **host limitation**, not a Cypilot limitation
-- Cypilot still gives you workflows, skill routing, validation, traceability, and planning
+- if a host does **not** support subagents, that is a **host limitation**, not a Cyber Pilot limitation
+- Cyber Pilot still gives you workflows, skill routing, validation, traceability, and planning
 
 ---
 
@@ -150,7 +188,7 @@ The current subagent defaults already follow this rule of thumb:
 
 ### Practical model-family guidance
 
-In current practical use with Cypilot, the model-family tendency is usually:
+In current practical use with Cyber Pilot, the model-family tendency is usually:
 
 - **GPT-thinking models**
   - usually better for **review**, especially when you want stricter, more careful, more exact analysis
@@ -187,7 +225,7 @@ The right choice still depends on the host, the task shape, and the exact model 
   - supports generated model selection and is useful as a **multi-model host**; a common practical split is Anthropic for generation and GPT-style models for review. It still lacks Claude-style worktree isolation.
 
 - **GitHub Copilot**
-  - generated agent files do not have the same direct model-selection surface, so choose the right model in the host environment or session before invoking Cypilot workflows. Its multi-model nature is useful when you want stronger review behavior from GPT-style models.
+  - generated agent files do not have the same direct model-selection surface, so choose the right model in the host environment or session before invoking Cyber Pilot workflows. Its multi-model nature is useful when you want stronger review behavior from GPT-style models.
 
 - **OpenAI Codex**
   - treat model choice as mostly session-level and prompt-level rather than strongly host-enforced metadata; use stronger GPT-style models for planning, review, architecture, and brownfield work
@@ -199,9 +237,9 @@ The right choice still depends on the host, the task shape, and the exact model 
 
 ## 5. Claude Code
 
-### Why it fits Cypilot well
+### Why it fits Cyber Pilot well
 
-Claude Code is the strongest fit for the full Cypilot model.
+Claude Code is the strongest fit for the full Cyber Pilot model.
 
 It is the highest-fidelity host for:
 
@@ -212,7 +250,7 @@ It is the highest-fidelity host for:
 - **worktree isolation**
 - **subagent-level hooks**
 
-This makes it the closest match to how Cypilot wants generation and review to be separated.
+This makes it the closest match to how Cyber Pilot wants generation and review to be separated.
 
 ### Best use cases
 
@@ -241,7 +279,7 @@ This makes it the closest match to how Cypilot wants generation and review to be
 
 ### Practical recommendation
 
-If you want the most complete Cypilot host today, use **Claude Code**.
+If you want the most complete Cyber Pilot host today, use **Claude Code**.
 
 It is also the strongest default when the main task is **code generation**.
 
@@ -251,7 +289,7 @@ It is also the strongest default when the main task is **code generation**.
 
 ### What works well
 
-Cursor supports Cypilot subagents and is a strong day-to-day host for normal coding workflows.
+Cursor supports Cyber Pilot subagents and is a strong day-to-day host for normal coding workflows.
 
 It supports:
 
@@ -281,7 +319,7 @@ That means the overall separation is still useful, but not as strong as the Clau
 
 ### Practical recommendation
 
-Use **Cursor** when you want solid Cypilot support inside an interactive IDE workflow and do not strictly depend on Claude-style worktree isolation.
+Use **Cursor** when you want solid Cyber Pilot support inside an interactive IDE workflow and do not strictly depend on Claude-style worktree isolation.
 
 It becomes especially attractive when you want one host where:
 
@@ -294,7 +332,7 @@ It becomes especially attractive when you want one host where:
 
 ### What works well
 
-GitHub Copilot supports generated Cypilot subagents and can participate in structured generation and review flows.
+GitHub Copilot supports generated Cyber Pilot subagents and can participate in structured generation and review flows.
 
 It is useful for:
 
@@ -311,15 +349,15 @@ The result is still useful, but some control that Claude can express more direct
 ### Typical problems
 
 - **You expect Copilot subagents to enforce as much as Claude Code does**
-- **You rely too much on the host tool and not enough on Cypilot validation**
-- **You have existing GitHub-side instruction files and assume Cypilot will overwrite everything**
+- **You rely too much on the host tool and not enough on Cyber Pilot validation**
+- **You have existing GitHub-side instruction files and assume Cyber Pilot will overwrite everything**
 
 ### How to mitigate
 
 - keep the tasks explicit and bounded
-- lean more on Cypilot workflows and deterministic validation
+- lean more on Cyber Pilot workflows and deterministic validation
 - inspect generated `.github/agents/` outputs when debugging setup issues
-- do not treat host integration as the source of truth; treat Cypilot workflows and validation as the source of truth
+- do not treat host integration as the source of truth; treat Cyber Pilot workflows and validation as the source of truth
 
 ### Practical recommendation
 
@@ -333,7 +371,7 @@ It is especially reasonable when your review culture benefits from **GPT-style t
 
 ### What works well
 
-OpenAI Codex can be used with Cypilot and supports generated agent definitions.
+OpenAI Codex can be used with Cyber Pilot and supports generated agent definitions.
 
 It works best for:
 
@@ -381,9 +419,9 @@ It is particularly strong for:
 
 Windsurf does **not** support subagents.
 
-This is the most important thing to understand before using Cypilot there.
+This is the most important thing to understand before using Cyber Pilot there.
 
-Cypilot still works through:
+Cyber Pilot still works through:
 
 - **workflow integrations**
 - **skill outputs**
@@ -414,11 +452,11 @@ In Windsurf, you should manually do what subagents would otherwise help with aut
 - keep one role per chat
 - use `plan` for larger work so each phase stays bounded
 - run validation and review explicitly after generation
-- accept that Windsurf is a **single-agent host** from Cypilot's point of view
+- accept that Windsurf is a **single-agent host** from Cyber Pilot's point of view
 
 ### Practical recommendation
 
-Use **Windsurf** with Cypilot when you want the workflow and skill layer, but do not expect host-native subagent orchestration.
+Use **Windsurf** with Cyber Pilot when you want the workflow and skill layer, but do not expect host-native subagent orchestration.
 
 Think of Windsurf as **manual context orchestration** rather than **subagent orchestration**.
 
@@ -463,7 +501,7 @@ Its main practical upside is that it can still be valuable as a **multi-model ho
 **Fix**:
 
 - treat host permissions as helpful, not as your only safety mechanism
-- rely on Cypilot validation, review workflow, and final human review
+- rely on Cyber Pilot validation, review workflow, and final human review
 
 ### Problem: one giant task keeps going off the rails
 
@@ -473,7 +511,7 @@ Its main practical upside is that it can still be valuable as a **multi-model ho
 
 **Fix**:
 
-- use `💬 /cypilot-plan`
+- use `💬 cypilot plan: ...`
 - execute phase by phase
 - validate after each meaningful step
 
@@ -489,7 +527,7 @@ Its main practical upside is that it can still be valuable as a **multi-model ho
 - separate generation from review
 - keep tasks smaller and more explicit
 
-One practical workaround is to use Cypilot to generate the **next-chat prompt** for you.
+One practical workaround is to use Cyber Pilot to generate the **next-chat prompt** for you.
 
 Example:
 

@@ -22,93 +22,103 @@ Stable identifiers and references connect requirements, design, plans, and imple
 
 For teams already using an AI coding tool, Cyber Pilot provides the operating controls needed to keep requirements, design, plans, and code traceable, reviewable, and enforceable as artifacts and implementation change:
 
-  - **stable identifiers and cross-link validation** to prove alignment across requirements, design, plans, and code
-  - **deterministic `cpt` validation** to check structure, references, consistency, and traceability locally and in CI 
-  - **templates, checklists, and staged workflows** to gate generation, review, and validation through explicit stages with defined inputs, outputs, and checks
- 
- **Jump to:** [Product shape](#product-shape) | [Fit and non-fit](#fit-and-non-fit) | [Operating model](#operating-model) | [Traceability and validation model](#traceability-and-validation-model) | [Workflow model](#workflow-model) | [Typical delivery sequence](#typical-delivery-sequence) | [Supported hosts](#supported-hosts) | [Evaluate Cyber Pilot](#evaluate-cyber-pilot) | [Installation and setup reference](#installation-and-setup-reference)
- 
- ## Product shape
- 
- ### Authoritative delivery artifacts
- 
- - **Requirements and design artifacts** become the approved, file-backed source of scope, intent, and constraints for downstream work.
- - **Plans** turn that approved intent into bounded execution shape before implementation sprawls across one long chat.
- - **Checklists** make review and validation expectations visible instead of leaving them implicit in chat or memory.
- - **Implementation changes** are reviewed against those approved artifacts rather than as isolated code diffs.
- 
- ### What Cyber Pilot adds to a repo
- 
- After `cpt init` and `cpt generate-agents`, Cyber Pilot typically adds a setup directory such as `cypilot/` or `.cpt/`, generated AI coding tool integration files, and user-editable configuration under `config/` inside the chosen setup directory.
- 
- This repo-installed control surface is how Cyber Pilot becomes operationally real inside a repository rather than staying a chat convention. It is also the first concrete proof surface most teams can inspect directly: what is generated, what remains user-editable, what is optional, and what deterministic validation can see.
- 
- - **Generated** — AI coding tool integration files and repository wiring
- - **User-editable** — project configuration, rules, and any installed kit content meant for local use
- - **Optional** — installed kit content extends the base platform only when you want a more opinionated delivery model
- - **Validator-visible** — artifacts, plans, and configuration participate in deterministic `cpt` checks when those configured surfaces are in use
- 
- ### Core platform and optional kits
- 
- Cyber Pilot has two main parts:
- 
- - **Core platform** — the repository wiring, workflow routing, configuration surfaces, deterministic validation, and chat-facing skill that make the delivery model operational and repeatable
- - **Kits** — optional add-ons that specialize that same delivery model with domain-specific templates, rules, workflows, and validation material
- 
- Most teams should start with the core platform and add a kit later only if they want a ready-made delivery model for a specific domain or way of working. Kits extend the same underlying system rather than introducing a separate product shape.
- 
- ### How teams encounter Cyber Pilot
- 
- In practice, teams usually encounter and touch Cyber Pilot through four main surfaces in the repository and toolchain:
- 
- | Surface | Form | Role |
- |---|---|---|
- | Primary AI surface | `cypilot <workflow>: <request>` | Main chat entry point for `plan`, `generate`, and `analyze` requests |
- | Deterministic CLI | `cpt <command>` | Setup, validation, updates, and repeatable local or CI checks |
- | Generated AI coding tool integration files | generated files in the repository | Connect the repository or workspace to supported tools without manual setup in each host |
- | Optional kit content | installed kit content | Add domain-specific templates, rules, workflows, and validation material |
- 
- ## Fit and non-fit
+- **stable identifiers and cross-link validation** to prove alignment across requirements, design, plans, and code
+- **deterministic `cpt` validation** to check structure, references, consistency, and traceability locally and in CI
+- **templates, checklists, and staged workflows** to gate generation, review, and validation through explicit stages with defined inputs, outputs, and checks
 
- Use Cyber Pilot if you already work with an AI coding tool and the cost of ambiguity, rework, or review failure is high enough to justify more structure and control.
+**Jump to:** [Product shape](#product-shape) | [Fit and non-fit](#fit-and-non-fit) | [Operating model](#operating-model) | [Traceability and validation model](#traceability-and-validation-model) | [Workflow model](#workflow-model) | [Typical delivery sequence](#typical-delivery-sequence) | [Supported hosts](#supported-hosts) | [Evaluate Cyber Pilot](#evaluate-cyber-pilot) | [Installation and setup reference](#installation-and-setup-reference)
 
- ### Helps most when you are responsible for
+## Product shape
 
- - **Implementation work** that needs to stay bounded, inspectable, and safer to continue across more than one step
- - **Alignment across handoffs or review checkpoints** so requirements, design, plans, and implementation do not drift apart
- - **Review or delivery accountability** when approved scope needs reviewable evidence, clearer status surfaces, or deterministic checks before merge
+### Authoritative delivery artifacts
 
- ### Good fit when
+- **Requirements and design artifacts** become the approved, file-backed source of scope, intent, and constraints for downstream work.
+- **Plans** turn that approved intent into bounded execution shape before implementation sprawls across one long chat.
+- **Checklists** make review and validation expectations visible instead of leaving them implicit in chat or memory.
+- **Implementation changes** are reviewed against those approved artifacts rather than as isolated code diffs.
 
- - you have a multi-step, higher-risk, or review-sensitive change where the cost of ambiguity or rework is higher than the cost of added structure
- - the work needs bounded execution and reviewable alignment across approved inputs, implementation, and review, not just a quick diff
- - you are working in a brownfield or unfamiliar area and need understanding before editing, not just speed while editing
- - coordination, handoffs, or deterministic validation materially reduce risk before review or merge
+### What Cyber Pilot adds to a repo
 
- ### Not the best fit when
+After `cpt init` and `cpt generate-agents`, Cyber Pilot typically adds a setup directory named `cypilot/`, generated AI coding tool integration files, and user-editable configuration under `config/` inside that setup directory.
 
- - the task is a tiny edit, throwaway spike, or open-ended exploration
- - the change is already well understood, low risk, and fast to make locally without added coordination or review structure
- - speed matters more than structure and the shape of the work is still unclear
- - you do not want artifact-backed process, staged review, or deterministic validation overhead even when the task is non-trivial
- - your team rejects workflow discipline or does not want to maintain the delivery surfaces that make review and validation easier
+`cypilot/` is the normal default for user projects. Self-hosted development in this repository uses `.bootstrap/` as a repo-specific exception described in **[CONTRIBUTING.md](CONTRIBUTING.md)**.
 
- ### Where value appears first
+This repo-installed control surface is how Cyber Pilot becomes operationally real inside a repository rather than staying a chat convention. It is also the first concrete proof surface most teams can inspect directly: what is generated, what remains user-editable, what is optional, and what deterministic validation can see.
 
- - a first bounded plan that makes a risky or unfamiliar change easier to execute in stages
- - a first inspectable understanding surface for an unfamiliar area before you start changing code
- - a first deterministic validation result or drift signal before review or merge instead of trusting one generation pass
- - a first reviewable linkage between approved inputs and the implementation under review
+- **Generated** — AI coding tool integration files and repository wiring
+- **User-editable** — project configuration, rules, and any installed kit content meant for local use
+- **Optional** — installed kit content extends the base platform only when you want a more opinionated delivery model
+- **Validator-visible** — artifacts, plans, and configuration participate in deterministic `cpt` checks when those configured surfaces are in use
 
- ## Operating model
- 
- ### System boundary and control model
- 
- Cyber Pilot is best understood as the **workflow, context, and validation layer around your AI coding tool**.
- 
- Four actors shape the operating model: the **AI coding tool** provides the environment, chat interface, and model access, the **agent** performs the reasoning and writing inside that environment, **Cyber Pilot** governs the repo-attached workflow, configuration, and validation surface around the work, and the **human** decides approval, adequacy, risk acceptance, and whether the result is acceptable to merge or ship.
- 
- Cyber Pilot makes that repo-attached surface more explicit by controlling what context and rules are loaded, what structured artifacts or checkpoints the task is expected to use, and what deterministic checks can later be run with `cpt`. It does not supply the underlying intelligence of the model, and it does not decide whether the final implementation is correct, well-designed, or acceptable to merge.
+| Surface | Typical location | Ownership |
+|---|---|---|
+| Setup directory | `cypilot/` | Created by setup; contains both generated and user-editable material |
+| Host integration files | `.windsurf/`, `.cursor/`, `.claude/`, `.github/`, `.codex/`, `.agents/` | Generated by `cpt generate-agents`; regenerate when host integration changes |
+| Project config | `cypilot/config/` | User-editable and reviewable in the repo |
+| Installed kit content | `cypilot/config/kits/{slug}/` | User-editable local delivery surface for that kit |
+| Self-hosted bootstrap copy in this repo only | `.bootstrap/` | Contributor-only special case; not the normal user-project layout |
+
+### Core platform and optional kits
+
+Cyber Pilot has two main parts:
+
+- **Core platform** — the repository wiring, workflow routing, configuration surfaces, deterministic validation, and chat-facing skill that make the delivery model operational and repeatable
+- **Kits** — optional add-ons that specialize that same delivery model with domain-specific templates, rules, workflows, and validation material
+
+Most teams should start with the core platform and add a kit later only if they want a ready-made delivery model for a specific domain or way of working. Kits extend the same underlying system rather than introducing a separate product shape.
+
+### How teams encounter Cyber Pilot
+
+In practice, teams usually encounter and touch Cyber Pilot through four main surfaces in the repository and toolchain:
+
+| Surface | Form | Role |
+|---|---|---|
+| Primary AI surface | `cypilot <workflow>: <request>` | Main chat entry point for `plan`, `generate`, and `analyze` requests |
+| Deterministic CLI | `cpt <command>` | Setup, validation, updates, and repeatable local or CI checks |
+| Generated AI coding tool integration files | generated files in the repository | Connect the repository or workspace to supported tools without manual setup in each host |
+| Optional kit content | installed kit content | Add domain-specific templates, rules, workflows, and validation material |
+
+## Fit and non-fit
+
+Use Cyber Pilot if you already work with an AI coding tool and the cost of ambiguity, rework, or review failure is high enough to justify more structure and control.
+
+### Helps most when you are responsible for
+
+- **Implementation work** that needs to stay bounded, inspectable, and safer to continue across more than one step
+- **Alignment across handoffs or review checkpoints** so requirements, design, plans, and implementation do not drift apart
+- **Review or delivery accountability** when approved scope needs reviewable evidence, clearer status surfaces, or deterministic checks before merge
+
+### Good fit when
+
+- you have a multi-step, higher-risk, or review-sensitive change where the cost of ambiguity or rework is higher than the cost of added structure
+- the work needs bounded execution and reviewable alignment across approved inputs, implementation, and review, not just a quick diff
+- you are working in a brownfield or unfamiliar area and need understanding before editing, not just speed while editing
+- coordination, handoffs, or deterministic validation materially reduce risk before review or merge
+
+### Not the best fit when
+
+- the task is a tiny edit, throwaway spike, or open-ended exploration
+- the change is already well understood, low risk, and fast to make locally without added coordination or review structure
+- speed matters more than structure and the shape of the work is still unclear
+- you do not want artifact-backed process, staged review, or deterministic validation overhead even when the task is non-trivial
+- your team rejects workflow discipline or does not want to maintain the delivery surfaces that make review and validation easier
+
+### Where value appears first
+
+- a first bounded plan that makes a risky or unfamiliar change easier to execute in stages
+- a first inspectable understanding surface for an unfamiliar area before you start changing code
+- a first deterministic validation result or drift signal before review or merge instead of trusting one generation pass
+- a first reviewable linkage between approved inputs and the implementation under review
+
+## Operating model
+
+### System boundary and control model
+
+Cyber Pilot is best understood as the **workflow, context, and validation layer around your AI coding tool**.
+
+Four actors shape the operating model: the **AI coding tool** provides the environment, chat interface, and model access, the **agent** performs the reasoning and writing inside that environment, **Cyber Pilot** governs the repo-attached workflow, configuration, and validation surface around the work, and the **human** decides approval, adequacy, risk acceptance, and whether the result is acceptable to merge or ship.
+
+Cyber Pilot makes that repo-attached surface more explicit by controlling what context and rules are loaded, what structured artifacts or checkpoints the task is expected to use, and what deterministic checks can later be run with `cpt`. It does not supply the underlying intelligence of the model, and it does not decide whether the final implementation is correct, well-designed, or acceptable to merge.
 
  - **Use the agent for**
    - reasoning
@@ -320,13 +330,11 @@ In practice, this creates clearer boundaries, earlier drift detection, and more 
     cpt generate-agents
     ```
 
-    `cpt init` and `cpt generate-agents` are one-time repository bootstrap steps, not steps every downstream user must repeat.
+   `cpt init` and `cpt generate-agents` are one-time repository bootstrap steps, not steps every downstream user must repeat.
 
-    This creates a setup directory such as `cypilot/` or `.cpt/`, generated AI coding tool integration files, and user-editable configuration under `config/` inside the chosen setup directory.
+    This creates a default setup directory `cypilot/`, generated AI coding tool integration files, and user-editable configuration under `config/` inside that setup directory.
 
-3. **Activate Cyber Pilot in chat**
-
-    💬 **AI coding tool chat**:
+3. **Activate Cyber Pilot** in the AI coding tool chat:
     ```text
     cypilot on
     ```
@@ -339,6 +347,15 @@ For detailed host-specific setup, troubleshooting, and operational walkthroughs,
  
  The main top-level user-editable configuration lives under `config/` inside your Cyber Pilot setup directory. Other parts of the setup directory may contain generated or supporting material, and installed kits can add their own editable surfaces.
  
+ A quick ownership rule:
+
+| Surface | Ownership |
+|---|---|
+| `cypilot/config/` | User-editable control surface |
+| `cypilot/config/kits/{slug}/` | Editable installed-kit content |
+| Host integration files such as `.windsurf/`, `.cursor/`, `.claude/`, `.github/`, `.codex/`, `.agents/` | Generated by `cpt generate-agents` |
+| `.bootstrap/` | Self-hosted contributor-only context |
+
  You do not need full configuration mastery immediately. Treat these as the main top-level control files you can inspect, review, edit, and version in the repository.
  
  | File | What it controls |
@@ -353,13 +370,15 @@ For detailed host-specific setup, troubleshooting, and operational walkthroughs,
  
  ## Extended operating modes
 
-You do not need these on day one. Add them when your use case justifies the extra surface area.
+ You do not need these on day one. Add them when your use case justifies the extra surface area.
 
 ### Multi-repo workspaces
 
 Cyber Pilot supports **multi-repo workspaces** so related docs, code, and shared kit assets can live in separate repositories and still stay aligned.
 
 Use this when docs, code, or shared kit assets live in separate repos and still need to stay aligned.
+
+Workspaces expand the reachable repository set. They do not replace project-level extensibility inside one repository.
 
 For practical guidance, see **[guides/USAGE-GUIDE.md](guides/USAGE-GUIDE.md)**. For the full model and configuration rules, see **[requirements/workspace.md](requirements/workspace.md)**.
 
@@ -379,18 +398,23 @@ Cyber Pilot supports **project-level extensibility**, not just installable kits.
 
 Cyber Pilot can also load project-defined skills, subagents, workflows, and rules, so teams can extend behavior without packaging everything as a kit.
 
+Project extensibility changes the behavior available inside one repository. Workspaces connect multiple repositories. Teams can use both together: keep cross-repo traceability through workspaces while extending the local project behavior through project-defined skills, workflows, and rules.
+
 For the full model and examples, see **[guides/PROJECT-EXTENSIBILITY.md](guides/PROJECT-EXTENSIBILITY.md)**.
 
 ## Further reading
+
+Recommended reading path: **README -> [Usage guide](guides/USAGE-GUIDE.md) -> [Agent tools guide](guides/AGENT-TOOLS.md) -> [Configuration guide](guides/CONFIGURATION.md)**.
 
 - **Start here next**
   - **[Usage guide](guides/USAGE-GUIDE.md)**
   - **[Agent tools guide](guides/AGENT-TOOLS.md)**
   - **[Configuration guide](guides/CONFIGURATION.md)**
-  - **[Story-driven walkthrough](guides/STORY.md)**
 
 - **Deeper reference**
   - **[Workspace specification](requirements/workspace.md)**
+  - **[Project extensibility guide](guides/PROJECT-EXTENSIBILITY.md)**
+  - **[Historical story-driven walkthrough](guides/STORY.md)**
   - **[Requirements and checklists](requirements/)**
   - **[Architecture and ADRs](architecture/)**
 
