@@ -24,6 +24,7 @@ from cypilot.commands.check_language import (
     _default_roots,
     _human_result,
     _read_config_languages,
+    _read_config_ignore_patterns,
 )
 
 
@@ -272,6 +273,125 @@ class TestHumanResult(unittest.TestCase):
         output_quiet = self._capture(data, quiet=True)
         # Quiet mode should produce less or equal output
         self.assertLessEqual(len(output_quiet), len(output_normal))
+
+
+class TestReadConfigIgnorePatterns(unittest.TestCase):
+    """_read_config_ignore_patterns() reads ignore patterns from workspace config."""
+
+    def test_no_context_returns_empty_list(self):
+        with patch("cypilot.utils.context.get_context", return_value=None):
+            patterns = _read_config_ignore_patterns()
+        self.assertEqual(patterns, [])
+
+    def test_workspace_config_error_raises_value_error(self):
+        mock_ctx = MagicMock()
+        mock_ctx.project_root = Path("/fake/project")
+        with patch("cypilot.utils.context.get_context", return_value=mock_ctx):
+            with patch(
+                "cypilot.utils.workspace.find_workspace_config",
+                return_value=(None, "bad config"),
+            ):
+                with self.assertRaises(ValueError):
+                    _read_config_ignore_patterns()
+
+    def test_workspace_config_with_ignore_paths_returns_them(self):
+        mock_ctx = MagicMock()
+        mock_ctx.project_root = Path("/fake/project")
+        mock_cfg = MagicMock()
+        mock_cfg.validation = MagicMock()
+        mock_cfg.validation.ignore_paths = ["docs/translations/**", "*.i18n.md"]
+        with patch("cypilot.utils.context.get_context", return_value=mock_ctx):
+            with patch(
+                "cypilot.utils.workspace.find_workspace_config",
+                return_value=(mock_cfg, None),
+            ):
+                patterns = _read_config_ignore_patterns()
+        self.assertEqual(patterns, ["docs/translations/**", "*.i18n.md"])
+
+    def test_no_workspace_config_returns_empty_list(self):
+        mock_ctx = MagicMock()
+        mock_ctx.project_root = Path("/fake/project")
+        with patch("cypilot.utils.context.get_context", return_value=mock_ctx):
+            with patch(
+                "cypilot.utils.workspace.find_workspace_config",
+                return_value=(None, None),
+            ):
+                patterns = _read_config_ignore_patterns()
+        self.assertEqual(patterns, [])
+
+
+class TestDefaultRootsExceptionBranch(unittest.TestCase):
+    """_default_roots() falls back to cwd when get_context raises."""
+
+    def test_import_error_falls_back_to_cwd(self):
+        with patch("cypilot.utils.context.get_context", side_effect=ImportError("no module")):
+            roots = _default_roots()
+        self.assertIsInstance(roots, list)
+        self.assertGreater(len(roots), 0)
+
+    def test_attribute_error_falls_back_to_cwd(self):
+        with patch("cypilot.utils.context.get_context", side_effect=AttributeError("no attr")):
+            roots = _default_roots()
+        self.assertIsInstance(roots, list)
+        self.assertGreater(len(roots), 0)
+
+
+class TestCmdCheckLanguageConfigErrors(unittest.TestCase):
+    """cmd_check_language() returns 1 when config loading fails."""
+
+    def setUp(self):
+        self._tmpdir = TemporaryDirectory()
+        self.root = Path(self._tmpdir.name)
+
+    def tearDown(self):
+        self._tmpdir.cleanup()
+
+    def test_config_language_error_returns_1(self):
+        with patch(
+            "cypilot.commands.check_language._read_config_languages",
+            side_effect=ValueError("bad config"),
+        ):
+            code, _, _ = _run([str(self.root)])
+        self.assertEqual(code, 1)
+
+    def test_config_ignore_patterns_error_returns_1(self):
+        with patch(
+            "cypilot.commands.check_language._read_config_languages",
+            return_value=["en"],
+        ):
+            with patch(
+                "cypilot.commands.check_language._read_config_ignore_patterns",
+                side_effect=ValueError("bad ignore config"),
+            ):
+                code, _, _ = _run([str(self.root)])
+        self.assertEqual(code, 1)
+
+    def test_lang_scan_error_returns_1(self):
+        from cypilot.utils.content_language import LangScanError
+        with patch(
+            "cypilot.utils.content_language.scan_paths",
+            side_effect=LangScanError(Path("/fake/file.md"), OSError("perm denied")),
+        ):
+            code, _, _ = _run(["--languages", "en", str(self.root)])
+        self.assertEqual(code, 1)
+
+    def test_no_paths_uses_default_roots(self):
+        arch = self.root / "architecture"
+        arch.mkdir()
+        with patch(
+            "cypilot.commands.check_language._default_roots",
+            return_value=[arch],
+        ):
+            with patch(
+                "cypilot.commands.check_language._read_config_languages",
+                return_value=["en"],
+            ):
+                with patch(
+                    "cypilot.commands.check_language._read_config_ignore_patterns",
+                    return_value=[],
+                ):
+                    code, _, _ = _run([])
+        self.assertEqual(code, 0)
 
 
 if __name__ == "__main__":
