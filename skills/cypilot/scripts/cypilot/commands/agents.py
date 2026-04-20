@@ -2344,6 +2344,7 @@ def cmd_generate_agents(argv: List[str]) -> int:
     preview_results: Dict[str, Any] = {}
     for agent in agents_to_process:
         preview_results[agent] = _process_single_agent(agent, project_root, cypilot_root, cfg, cfg_path, dry_run=True)
+    # @cpt-end:cpt-cypilot-flow-agent-integration-generate:p1:inst-for-each-agent
 
     # Compute total changes
     total_create = 0
