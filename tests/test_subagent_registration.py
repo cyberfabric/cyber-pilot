@@ -314,7 +314,7 @@ class TestToolTemplates(unittest.TestCase):
         text = "\n".join(lines)
         self.assertIn("tools: grep, view, bash", text)
         self.assertIn("readonly: true", text)
-        self.assertIn("model: fast", text)
+        self.assertIn("model: claude-3.5-sonnet", text)
 
     def test_copilot_readwrite(self):
         agent = _make_semantic_agent(mode="readwrite")

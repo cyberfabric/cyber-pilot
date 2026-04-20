@@ -371,7 +371,7 @@ RELATED:
 
 COMMAND self-check
 SYNOPSIS: python3 scripts/cypilot.py self-check [--kit <id>] [--verbose]
-DESCRIPTION: Validate example artifacts against their templates (template QA). For each kit package, checks that example.md passes validation against template.md. Ensures templates and examples remain synchronized. (Legacy flag alias: --rule)
+DESCRIPTION: Validate example artifacts against their templates (template QA). For each kit package, checks that all example markdown artifacts pass validation against the corresponding template.md. Ensures templates and examples remain synchronized. (Legacy flag alias: --rule)
 WORKFLOW: kits
 
 ARGUMENTS:

@@ -348,6 +348,10 @@ def _prompt_kit_install_flag(interactive: bool) -> bool:
     # @cpt-begin:cpt-cypilot-flow-core-infra-project-init:p1:inst-prompt-kit
     if interactive and sys.stdin.isatty():
         sys.stderr.write(f"\n  Install SDLC kit ({_DEFAULT_KIT_SOURCE})?\n")
+        sys.stderr.write("  This adds the default Cypilot SDLC templates, workflows, and rules for typical project setup.\n")
+        sys.stderr.write("  Reply with `a` to install it now or `d` to skip it.\n")
+        sys.stderr.write("  Suggested: `a` for first-time setup; `d` only if you want to install or manage kits manually.\n")
+        sys.stderr.write("  `a` = download and install the default kit now. `d` = continue without installing the kit.\n")
         sys.stderr.write("  [a]ccept / [d]ecline: ")
         sys.stderr.flush()
         try:
