@@ -62,7 +62,9 @@ WHEN this rule triggers, ALWAYS also open and follow `{cypilot_path}/.core/requi
 
 ALWAYS open and follow `{cypilot_path}/.core/requirements/prompt-bug-finding.md` WHEN user requests bug hunting, hidden failure modes, unsafe behavior, regressions, instruction conflicts, routing defects, or root-cause search in prompts, agent instructions, workflows, skills, or other AI instruction documents; this direct trigger remains mandatory even when `prompt-engineering.md` was not the reason prompt review was selected
 
-When `prompt-engineering.md` is loaded for instruction analysis, treat compact-prompts optimization as a **HIGH-priority requirement**: explicitly look for safe ways to reduce loaded context while preserving clarity, determinism, constraints, and recovery behavior.
+When `prompt-engineering.md` or `prompt-bug-finding.md` is loaded for instruction analysis, treat compact-prompts optimization as a **HIGH-priority requirement**: explicitly look for safe ways to reduce loaded context while preserving clarity, determinism, constraints, and recovery behavior.
+
+When `prompt-engineering.md` or `prompt-bug-finding.md` is loaded for instruction analysis, treat interaction UX as a **CRITICAL requirement**: explicitly check whether user-facing questions explain why input is needed, make option meanings and outcomes obvious, mark the most relevant option when one path is clearly favored, and make reply format trivial to understand.
 
 ## Rules
 
@@ -71,6 +73,8 @@ When `prompt-engineering.md` is loaded for instruction analysis, treat compact-p
 **MUST NOT** skip checks, assume sections are correct without verifying, or give benefit of doubt.
 
 **One missed issue = INVALID analysis**
+
+**Completion contract** (enforced at response finalization): when actionable issues exist (`FAIL`, `PARTIAL`, blocking validator errors, or any recommendation requiring artifact/code/workflow changes), the response MUST NOT end without emitting BOTH a `Fix Prompt` AND a `Plan Prompt` as the final two sections. An analysis summary alone is not completion. A validation report alone is not completion. A next-step menu alone is not completion. See Phase 4 `enforceRemediationPrompts` for full rules.
 
 **Reference**: `{cypilot_path}/.core/requirements/agent-compliance.md` for the full anti-pattern list.
 - `AP-001 SKIP_SEMANTIC`: reporting overall PASS from deterministic checks alone.
@@ -96,11 +100,13 @@ For code-review-style requests such as `review my changes`, `review this diff`, 
 
 ## Mode Detection
 - `/cypilot-analyze semantic` or `cypilot analyze semantic` → `SEMANTIC_ONLY=true`; skip Phase 2 and go to Phase 3; semantic review remains mandatory.
-- Prompt/instruction review context → `PROMPT_REVIEW=true`; open `prompt-engineering.md` and `prompt-bug-finding.md`; run the 9-layer prompt-engineering review, explicitly search for safe context-reduction opportunities per compact-prompts methodology, run prompt-bug-finding as the behavioral defect-search companion, skip standard Cypilot artifact/code checklist analysis, and use the prompt-review output contract from Phase 4. Do **not** pre-mark traceability, registry, or similar checks as `N/A`; mark `N/A` only when the reviewed document explicitly makes a check inapplicable, otherwise report `FAIL` or `PARTIAL` per the loaded prompt methodologies.
+- Prompt/instruction review context → `PROMPT_REVIEW=true`; open `prompt-engineering.md` and `prompt-bug-finding.md`; run the 10-layer prompt-engineering review, explicitly search for safe context-reduction opportunities per compact-prompts methodology, treat decision-point UX and suggested-option quality as critical review scope, run prompt-bug-finding as the behavioral defect-search companion, skip standard Cypilot artifact/code checklist analysis, and use the prompt-review output contract from Phase 4. Do **not** pre-mark traceability, registry, or similar checks as `N/A`; mark `N/A` only when the reviewed document explicitly makes a check inapplicable, otherwise report `FAIL` or `PARTIAL` per the loaded prompt methodologies.
 - Otherwise → `SEMANTIC_ONLY=false`, `PROMPT_REVIEW=false`; run full analysis.
 
 ## Phase 0: Ensure Dependencies
 After `execution-protocol.md`, you have `KITS_PATH`, `TEMPLATE`, `CHECKLIST`, `EXAMPLE`, `REQUIREMENTS`, and `VALIDATION_CHECKS`.
+
+Variable checkpoint: `{cpt_cmd}`, `{cypilot_path}`, and `{project_root}` are resolved by `execution-protocol.md`. On context loss or new-chat resume, re-run `cpt --json info` to restore these values before any path-dependent step.
 
 - If `rules.md` loaded: dependencies and validation checks were already resolved; proceed silently.
 - If `rules.md` not loaded: ask the user to provide/specify missing `checklist`, `template`, or `example`.
@@ -108,7 +114,7 @@ After `execution-protocol.md`, you have `KITS_PATH`, `TEMPLATE`, `CHECKLIST`, `E
 
 **MUST NOT proceed** to Phase 1 until all dependencies are available.
 
-Raw-input overflow rule: if the direct user prompt plus all provided files exceeds `500` total lines, the agent MUST NOT continue in direct analysis mode. It MUST route through `/cypilot-plan`, preserve the same request scope, and require the planner to materialize that raw input under `{cypilot_path}/.plans/{task-slug}/input/` before decomposition. The planner MUST obtain explicit user approval before creating that directory or executing the write-capable `{cpt_cmd} --json chunk-input ... --max-lines 300 --threshold-lines 500` command, and MUST pass `--include-stdin` when direct prompt text must be packaged together with provided files. This routing takes precedence over any later single-context bypass check inside planning.
+Raw-input overflow rule: see `{cypilot_path}/.core/requirements/raw-input-overflow.md`. If the direct user prompt plus all provided files exceeds `500` total lines, the agent MUST stop direct analysis long enough to offer `/cypilot-plan` versus continuing here with reduced guarantees, exactly as specified in that file.
 
 ## Phase 0.1: Plan Escalation Gate
 **MUST** estimate total context: target `rules.md` Validation, target `checklist.md`, artifact content, related cross-reference artifacts, expected analysis output, and ~30% reasoning overhead.
@@ -249,6 +255,15 @@ Follow the loaded `rules.md` Validation section.
 - [ ] Registry consistency: artifact is registered in artifacts.toml, kind matches, system assignment is correct, and path is correct.
 
 Checkpoint rule for artifacts `>500` lines or multi-turn analysis: after each checklist group, note progress; if context runs low, save completed categories, remaining categories, and current artifact position; on resume, re-read the artifact, verify unchanged, and continue from the checkpoint. Categorize recommendations as **High**, **Medium**, or **Low**.
+
+### Phase 3 → Phase 4 Checkpoint (Context Budget Recovery)
+
+Before proceeding to Phase 4 Output, estimate remaining context budget. If budget is below ~30% of original capacity:
+- Emit a partial progress note: list completed checklist categories with summary verdicts and any issues found so far.
+- Stop and ask the user: "Context budget is low after semantic review. Continue to Phase 4 (Output + remediation prompts) in this chat, or start a fresh chat with the checkpoint above?"
+- On resume in a fresh chat: re-read the artifact (verify unchanged), load the checkpoint note, skip to Phase 4 with the saved findings.
+
+If budget is sufficient (≥30% remaining), proceed directly to Phase 4 without stopping.
 
 ## Phase 4: Output
 
@@ -393,6 +408,10 @@ What would you like to do next?
 1. {option from rules Next Steps for success}
 2. {option from rules Next Steps}
 3. Other
+Reply with the option number or a short custom instruction.
+1. {option from rules Next Steps for success} — Suggested when it is the clearest continuation from the current result; state why and what happens next.
+2. {option from rules Next Steps} — State what this does next.
+3. Other — Say what you want to change or do next.
 ```
 FAIL:
 ```
@@ -400,6 +419,10 @@ Issues require remediation. Use one of the generated prompts above as the defaul
 1. Start a direct fix with skill `cypilot` via the generated `Fix Prompt`
 2. Start phased remediation with skill `cypilot` via the generated `Plan Prompt`
 3. Re-run analysis after fixes
+Reply with `1`, `2`, or `3`.
+1. Start a direct fix with skill `cypilot` via the generated `Fix Prompt` — Suggested for a bounded fix that can start immediately.
+2. Start phased remediation with skill `cypilot` via the generated `Plan Prompt` — Use this when the fix is broad, risky, or multi-step.
+3. Re-run analysis after fixes — Use this only after changes are already made.
 ```
 If actionable issues exist, the next-step menu is informational only; `enforceRemediationPrompts` still applies, so the workflow MUST end in the same response with `Fix Prompt` followed by `Plan Prompt` as the final two sections. MUST NOT ask whether the prompts should be generated and MUST NOT defer them to a later user turn.
 

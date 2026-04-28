@@ -211,7 +211,8 @@ def _prompt_continue(interactive: bool) -> bool:
     if not interactive:
         return True
 
-    sys.stderr.write("  Press Enter to continue with update (or 'q' to abort): ")
+    sys.stderr.write("  Why this input is needed: confirm that you reviewed the update summary before changes continue.\n")
+    sys.stderr.write("  Press Enter to continue, or type `q` to abort the update: ")
     sys.stderr.flush()
     try:
         response = input().strip().lower()

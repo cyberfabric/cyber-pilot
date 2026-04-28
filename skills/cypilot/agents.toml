@@ -16,7 +16,7 @@
 #
 #   model (string):
 #     "inherit"    → all tools: use the model selected by the user/session
-#     "fast"       → Claude Code: maps to "sonnet"; Cursor: kept as "fast";
+#     "fast"       → Claude Code: maps to "sonnet"; Cursor: maps to "claude-3.5-sonnet";
 #                    Copilot/Codex: maps to the tool's fast-tier model
 #     Prefer "inherit" unless the agent explicitly needs a cheaper/faster tier.
 #     Use "fast" only for high-volume, low-complexity tasks (e.g. PR review).

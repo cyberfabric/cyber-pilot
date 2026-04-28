@@ -2338,6 +2338,67 @@ class TestCLIValidateKitsCommand(unittest.TestCase):
             finally:
                 os.chdir(cwd)
 
+    def test_validate_rules_checks_all_examples_for_kind(self):
+        """Regression: validate-kits must validate every example markdown file."""
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            kit_root = root / "kits" / "sdlc"
+            examples_dir = kit_root / "artifacts" / "PRD" / "examples"
+            examples_dir.mkdir(parents=True)
+
+            from _test_helpers import write_constraints_toml
+            write_constraints_toml(
+                kit_root,
+                {"PRD": {"identifiers": {"fr": {"required": True, "template": "cpt-{system}-fr-{slug}"}}}},
+            )
+
+            (kit_root / "artifacts" / "PRD" / "template.md").write_text(
+                "# PRD\n\n- [ ] `p1` - **ID**: `cpt-{system}-fr-{slug}`\n",
+                encoding="utf-8",
+            )
+            (examples_dir / "example-valid.md").write_text(
+                "# PRD\n\n- [ ] `p1` - **ID**: `cpt-test-fr-valid`\n",
+                encoding="utf-8",
+            )
+            (examples_dir / "example-invalid.md").write_text(
+                "# PRD\n\nThis example intentionally omits the required ID.\n",
+                encoding="utf-8",
+            )
+
+            _bootstrap_registry_new_format(
+                root,
+                kits={"cypilot": {"format": "Cypilot", "path": "kits/sdlc"}},
+                systems=[],
+            )
+
+            cwd = os.getcwd()
+            try:
+                os.chdir(str(root))
+                stdout = io.StringIO()
+                with redirect_stdout(stdout):
+                    exit_code = main(["validate-kits", "--verbose"])
+
+                self.assertEqual(exit_code, 2)
+                out = json.loads(stdout.getvalue())
+                self.assertEqual(out.get("status"), "FAIL")
+                self.assertEqual(out.get("templates_checked"), 1)
+                self.assertEqual(len(out.get("self_check_results", [])), 1)
+
+                item = out["self_check_results"][0]
+                self.assertEqual(item.get("examples_checked"), 2)
+                self.assertEqual(
+                    item.get("example_paths"),
+                    [
+                        str((examples_dir / "example-invalid.md").resolve()),
+                        str((examples_dir / "example-valid.md").resolve()),
+                    ],
+                )
+                self.assertEqual(item.get("example_path"), str((examples_dir / "example-invalid.md").resolve()))
+                self.assertEqual(item.get("status"), "FAIL")
+                self.assertGreater(item.get("error_count", 0), 0)
+            finally:
+                os.chdir(cwd)
+
 
 class TestCLIGetContentCommand(unittest.TestCase):
     """Tests for get-content command."""

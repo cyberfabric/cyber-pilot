@@ -2,8 +2,8 @@
 cypilot: true
 type: requirement
 name: Prompt Bug-Finding Methodology
-version: 1.2
-purpose: Compact methodology for high-recall discovery of behavioral defects in prompts and agent instructions
+version: 1.3
+purpose: Compact methodology for high-recall discovery of behavioral defects in prompts and agent instructions, including interaction UX failures that cause wrong or stalled user decisions
 ---
 
 # Prompt Bug-Finding Methodology
@@ -17,6 +17,7 @@ purpose: Compact methodology for high-recall discovery of behavioral defects in 
 - Treat prompts as executable control logic, not just prose. Review branches, preconditions, permissions, state, and recovery behavior.
 - Optimize for recall first, then raise precision with evidence. Missing a real prompt bug is usually worse than inspecting one plausible hypothesis.
 - Distinguish **behavioral bugs** from general quality smells. A prompt bug causes wrong or unsafe agent behavior, not merely awkward wording.
+- Treat user-decision UX failures as behavioral bugs when they can cause the user to choose the wrong path, fail to respond, misunderstand what is required, or lose control of the interaction.
 - Work from **invariants, triggers, and failure modes**, not from style alone.
 - Load only the instructions needed for the active execution path, but do not treat an uninspected dependency as irrelevant. When a reference may affect routing, authority, safety, state, recovery, or output behavior, load the smallest decisive slice first and escalate only while the dependency remains materially unresolved.
 - Define a `slice` as one contiguous excerpt from one dependency file: one TOC read, one section, or one contiguous line range. A TOC read counts as one slice only when the inspected TOC excerpt itself fits the slice budget; if the TOC is longer than the budget, narrow it to the smallest contiguous TOC subsection or line range that can still resolve the question. Use file metadata, section numbering, heading ranges, and targeted keyword searches to identify that smallest decisive contiguous excerpt. Do not merge disjoint excerpts and count them as one slice; if a section or TOC excerpt is longer than the budget, narrow it to the smallest contiguous subsection or range that can still resolve the question. This slice rule is part of bounded dependency escalation: start narrow, retain only the decisive excerpt, then escalate only if the dependency remains materially unresolved.
@@ -42,6 +43,7 @@ Focus first on instructions most likely to create high-impact failures.
 
 - Start from always-on system prompts, top-priority guardrails, user-confirmation rules, tool-use policies, write/deploy restrictions, and output contracts.
 - Prioritize documents that route execution, load other files, define conditional `WHEN` behavior, manage state/checkpoints, or control recovery after failure.
+- Inspect every user-facing question, confirmation gate, options menu, fallback prompt, and suggested next-step block that can change what the user does next.
 - Inspect instructions governing tool permissions, dependency loading, validation gates, context compaction, escalation, and multi-turn memory.
 - Expand to referenced skills, workflows, requirements, or examples by first checking the smallest decisive slice: entry conditions, authority/safety guards, state rules, recovery rules, and output contracts. If relevance is still uncertain, keep escalating within the dependency budget instead of assuming the dependency is harmless; if the next step would overflow the budget, carry the dependency forward as unresolved review debt and use the `PARTIAL` fallback.
 - Use repository signals when available: recently edited prompts, repeated fixes, recurring review comments, long files, duplicated rules, and documents with many cross-references.
@@ -53,6 +55,7 @@ Extract what the instruction system requires before, during, and after execution
 - Preconditions: required files, loaded context, available tools, user approvals, mode flags, and environmental assumptions.
 - Postconditions: allowed outputs, required evidence, mandatory validation, required follow-up actions, response-completion gates, required terminal blocks or handoff prompts, required terminal block ordering, and stop conditions.
 - Authority invariants: what the agent may do, must not do, and must ask before doing.
+- Interaction invariants: when asking the user for input, the prompt must explain why the input is needed, what good input looks like, what each option changes, how to reply, and which option is suggested when the context clearly favors one path.
 - Routing invariants: which request types trigger which workflow, dependency, or branch, and which branches are mutually exclusive.
 - State invariants: what must survive across turns, checkpoints, compaction, retries, and resumptions.
 - Retained working set: keep a pinned summary of the active hotspot and branch, decisive excerpts, extracted invariants, dependency decisions, open hypotheses, pending validations, and current review status before dropping raw context.
@@ -67,6 +70,7 @@ Trace how prompt bugs appear when execution leaves the happy path.
 - Walk the main path, then examine ambiguous requests, overlapping triggers, missing prerequisites, missing files, denied permissions, tool failure, validation failure, and partial completion.
 - Check completion branches explicitly: look for workflows that can stop after a summary, validator report, next-step menu, or checkpoint-looking block even though required final prompts, handoff blocks, or final response sections are still missing.
 - Check precedence: what happens when two rules apply, when a global rule conflicts with a conditional rule, or when recovery text contradicts the normal path.
+- Check user-decision branches explicitly: unclear asks, ambiguous options, hidden option consequences, missing suggested path, generic recommendations, option overload, unclear reply formats, and confusing stage transitions.
 - For multi-turn workflows, inspect stale assumptions, state loss after compaction, resumed execution without re-validation, and incorrect carryover from prior turns.
 - For dependency-driven prompts, inspect circular loading, missing gating, unconditional loading, hidden required dependencies, and dependency-order bugs.
 - For tool-driven prompts, inspect unsafe defaults, missing confirmation gates, wrong fallback behavior, silent failure, and retries with no exit condition.
@@ -83,6 +87,7 @@ Apply the same defect lenses regardless of prompt style.
 | Output contract | Missing schema, incomplete format, no evidence requirement, success criteria unclear |
 | Completion & finalization gate | False completion criteria, response can end after summary/validation/next steps, required terminal blocks or handoff prompts missing, final block ordering unspecified |
 | Tool-use & safety boundary | Writes before confirmation, unsafe action path, missing approval, invalid tool sequence |
+| Interaction UX & choice architecture | Unexplained asks, ambiguous options, hidden consequences, no suggested option when one path is clearly best, generic follow-ups, unclear reply format, or option overload that causes user confusion or wrong branching |
 | Context & compaction | Critical rule dropped, oversized always-on text, missing summarize-and-drop, compaction loses invariants |
 | Memory & state | Implicit state, missing checkpoint, stale carryover, resume path skips re-checks |
 | Recovery & escalation | No fallback, silent failure, infinite retry loop, no ask-user path, missing partial output behavior |
@@ -107,6 +112,7 @@ A suspected prompt bug becomes much stronger when you can describe exactly how t
 When static review is insufficient, specify the cheapest next proof.
 
 - Use targeted eval prompts for ambiguous routing, conflicting priorities, or output-format defects.
+- Use targeted dialogue tests for unclear questions, ambiguous options, suggested-option quality, fallback prompts, and transition clarity at user decision points.
 - Use adversarial prompts for jailbreak resistance, authority confusion, prompt injection handling, and unsafe fallback behavior.
 - Use multi-turn tests for checkpointing, compaction recovery, resumability, and stale-memory bugs.
 - Use tool-path tests for permission denial, validation failure, missing dependencies, and retry handling.
@@ -196,6 +202,7 @@ Efficiency rules:
 - Use this methodology when the user asks to find bugs, hidden failure modes, regressions, unsafe behavior, instruction conflicts, routing defects, or root causes in prompts or agent instruction documents.
 - Use `prompt-engineering.md` for clarity, structure, anti-pattern, context-engineering, and improvement synthesis review.
 - Use this methodology as the **behavioral defect search procedure** for prompt review, while `prompt-engineering.md` remains the broader quality and design methodology.
+- In prompt review, treat interaction UX failures that can mislead, block, or overload the user at decision points as prompt bugs, not merely style issues.
 - In prompt review, treat safe compaction opportunities that merely improve efficiency as quality work, but treat compaction that removes required triggers, guardrails, or recovery paths as a prompt bug.
 
 ## Validation
@@ -210,6 +217,7 @@ Review is complete when:
 - [ ] Missing proof was converted into a concrete dynamic validation step
 - [ ] Review status, deterministic gate state, environment snapshot, coverage summary, and decisive dependency outcomes were reported explicitly
 - [ ] Loaded dependency slices were bounded as contiguous TOC/section/range reads, any dependency concluded non-material was backed by inspected-slice proof, and any unresolved hotspot-relevant normative effect forced `PARTIAL` instead of `PASS`
+- [ ] User-decision points were checked for explain-why, option clarity, option consequences, suggested-path quality, reply format, and fallback behavior whenever the reviewed scope contains interactive prompts
 - [ ] For workflows or instructions with required terminal outputs, completion gates, required handoff blocks, and terminal block ordering were checked explicitly
 - [ ] Confidence and residual uncertainty were reported explicitly
 - [ ] No claim of `100%` detection or blanket coverage was made
