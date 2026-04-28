@@ -136,8 +136,8 @@ def cmd_list_ids(argv: List[str]) -> int:
         parts = [p for p in remainder.split("-") if p]
         if not parts:
             return None
-        # Kind is the first segment after the system prefix; the slug may contain
-        # words that coincide with other kind names, so left-to-right wins.
+        # Infer kind by scanning left-to-right and returning the first token
+        # that matches `known_kinds` (to avoid slug tokens overriding earlier matches).
         for part in parts:
             k = part.lower()
             if known_kinds and k in known_kinds:
