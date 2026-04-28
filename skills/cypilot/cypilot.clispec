@@ -386,14 +386,25 @@ EXIT CODES:
   2  One or more examples failed validation
 
 OUTPUT:
-  JSON object with:
-  - status: PASS or FAIL
+  JSON object emitted by `commands/self_check.py` with the following top-level fields:
+  - status: PASS or FAIL (overall — FAIL if any per-template result fails)
+  - project_root: Absolute path of the resolved project root
+  - cypilot_dir: Absolute path of the resolved Cypilot adapter directory
   - kits_checked: Number of kits checked
-  - templates_checked: Number of templates checked
-  - results: Per-template results
-  - pass_count: Examples that passed
-  - fail_count: Examples that failed
-  - failures: List of failed examples with error details
+  - templates_checked: Number of per-template results returned (length of `results`)
+  - results: Array of per-template result objects (one per `(kit, kind)` checked)
+
+  Each `results[i]` object contains:
+  - kit (string): Kit ID this result belongs to
+  - kind (string): Artifact kind validated (e.g. "PRD", "DESIGN")
+  - example_path (string | null): Path of the first validated example for this kit/kind, or null when no example file exists; preserved for backward compatibility with single-example consumers
+  - example_paths (array of string): All example paths validated for this kit/kind, in deterministic sorted order — reflects the updated "check all examples" behavior (a single-example checker would return at most one entry; the full set is validated when multiple exist)
+  - examples_checked (integer): Count of examples validated for this kit/kind (`len(example_paths)`); `0` when the kind has no examples on disk
+  - status (string): PASS or FAIL for this kit/kind
+  - error_count (integer, optional): Present only when status is FAIL; total error count across all validated examples for this kit/kind
+  - errors (array of object, optional): Present only when status is FAIL; aggregated validator errors
+  - warning_count (integer, optional): Present when warnings were produced
+  - warnings (array of object, optional): Present when status is FAIL or `--verbose` was passed
 
 EXAMPLE:
   $ python3 scripts/cypilot.py self-check

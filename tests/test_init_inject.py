@@ -173,14 +173,19 @@ class TestPromptKitInstallFlag(unittest.TestCase):
             self.assertFalse(self._fn()(True))
 
     def test_interactive_tty_accept(self):
-        """User types 'a' → accepted; help text written to stderr."""
+        """User types 'a' → accepted; all six prompt lines written to stderr."""
         buf = io.StringIO()
         with patch("sys.stdin.isatty", return_value=True), \
              patch("sys.stderr", buf), \
              patch("builtins.input", return_value="a"):
             self.assertTrue(self._fn()(True))
         out = buf.getvalue()
+        # Header + the four added help lines + the [a]ccept / [d]ecline cursor.
         self.assertIn("Install SDLC kit", out)
+        self.assertIn("This adds the default Cypilot SDLC templates", out)
+        self.assertIn("Reply with `a` to install it now or `d` to skip it", out)
+        self.assertIn("Suggested: `a` for first-time setup", out)
+        self.assertIn("`a` = download and install the default kit now", out)
         self.assertIn("[a]ccept / [d]ecline", out)
 
     def test_interactive_tty_decline(self):
