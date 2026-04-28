@@ -457,7 +457,7 @@ def run_self_check_from_meta(
             if examples_dir is None:
                 examples_dir = (kind_dir / "examples").resolve()
 
-            # Pick any .md file in examples path (directory or single file)
+            # Pick the first (the same file on all file systems) .md file in examples path (directory or single file)
             example_path = None
             try:
                 if examples_dir is not None and examples_dir.exists():
@@ -466,7 +466,7 @@ def run_self_check_from_meta(
                     else:
                         md_files = list(Path(examples_dir).glob("*.md"))
                         if md_files:
-                            example_path = md_files[0]
+                            example_path = sorted(md_files)[0]
             except OSError:
                 example_path = None
 
