@@ -17,7 +17,8 @@ files created/modified when done.
 
 This agent's response is complete only when ALL of the following are true:
 - The generate workflow Phase 4 (write files) has been executed and all target files are written
-- Phase 5 deterministic validation has been run and results are recorded
+- Phase 5a deterministic validation has been executed (each applicable validator command run, with command, exit code, and JSON status/error_count/warning_count recorded, and the overall deterministic gate result recorded as PASS, FAIL, or SKIPPED with proof)
+- Phase 5b has assembled the complete `Validation Results` body from the canonical template with actual values filled in (deterministic gate result plus validator command/results), and `Review Prompts` MUST NOT be emitted until that body is complete
 - If files were written: the `Review Prompts` section with both `Plan Review Prompt` and `Direct Review Prompt` has been emitted
 - The SKILL.md invariant has been satisfied (Cypilot mode was loaded)
 

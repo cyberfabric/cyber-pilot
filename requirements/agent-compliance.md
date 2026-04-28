@@ -109,9 +109,9 @@ When validating artifacts `>500` lines OR checklist has `>15` categories:
 
 | Situation | Required behavior |
 |---|---|
-| After each category group (3-5 categories) | Output progress checkpoint with completed category IDs/statuses |
-| Context runs low | Save completed categories, remaining categories, and resume instructions |
-| Resume after compaction | Re-read the artifact, verify unchanged line count, then continue |
+| After each category group (3-5 categories) | Persist a durable progress checkpoint (to the agent's todo tracking tool or to a JSON file/DB — not solely conversation output) with `completedCategoryIDs`, `statuses`, `remainingCategoryIDs`, `artifactPath`, `artifactLineCount`, and `timestamp` |
+| Context runs low | Before any context compaction, write the same structured JSON checkpoint (`completedCategoryIDs`, `statuses`, `remainingCategoryIDs`, `artifactPath`, `artifactLineCount`, `timestamp`, plus resume instructions) to durable storage so it survives pruning |
+| Resume after compaction | Re-read the artifact, verify the current line count matches the saved `artifactLineCount`. If they differ → error path: log the discrepancy with details (saved vs current line count, artifact path, timestamps), mark the checkpoint as inconsistent, STOP automated resume, and surface an investigation/retry instruction to the user. Saved checkpoint metadata MUST include retry/backoff options and a manual-override flag so resumption logic can handle divergence safely. Only when line counts match → continue from the recorded position |
 
 ## Recovery from Anti-Pattern Detection
 

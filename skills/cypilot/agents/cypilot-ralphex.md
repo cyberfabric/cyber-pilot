@@ -42,6 +42,33 @@ invalid root), or 2 on delegation errors (ralphex not found, validation failed).
 `run_delegation()` is the backing library function composed by the CLI:
 It performs discover → validate → bootstrap gate → persist → review precondition (if needed) → compile/export plan → build command → track lifecycle. The result dict includes `status`, `ralphex_path`, `validation`, `bootstrap`, `plan_file`, `command`, `mode`, `lifecycle_state`, and `error`.
 
+Import and call:
+
+```python
+from cypilot.ralphex_export import run_delegation
+
+result = run_delegation(
+    config=cypilot_config_dict,            # parsed Cypilot config (dict)
+    plan_dir="/abs/path/.bootstrap/.plans/<task-slug>",
+    repo_root="/abs/path/repo",
+    mode="execute",                         # or "review" / "dry-run-style behavior via dry_run=True"
+    default_branch="main",
+    config_path=None,                       # optional Path to the active config file
+    dry_run=False,                          # True → assemble command without invoking ralphex
+)
+
+if result["status"] == "error":
+    # inspect result["error"], result["lifecycle_state"]; do not proceed to handoff
+    ...
+else:
+    # status is "ready" (dry_run) or "delegated";
+    # inspect result["ralphex_path"], result["validation"], result["bootstrap"],
+    # result["plan_file"], result["command"], result["mode"], result["lifecycle_state"]
+    ...
+```
+
+Required parameters: `config`, `plan_dir`, `repo_root`. Common optional parameters: `mode`, `default_branch`, `config_path`, `dry_run` (additional knobs — `worktree`, `serve`, `plans_dir_override`, `stream_output` — exist for advanced cases).
+
 **Status values:**
 - `"ready"` — dry_run mode, command assembled but not invoked
 - `"delegated"` — command assembled and ready for invocation

@@ -789,8 +789,8 @@ def _default_agents_config() -> dict:
                         {
                             "path": ".github/copilot-instructions.md",
                             "template": [
-                                _GENERATED_MARKER,
                                 "# Cypilot",
+                                _GENERATED_MARKER,
                                 "",
                                 "{custom_content}",
                             ],

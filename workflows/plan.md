@@ -68,7 +68,7 @@ Budget targets: Phase 0-1 `~200` lines, Phase 2 `~300`, Phase 3 `~500` per phase
 
 Run `EXECUTE: {cpt_cmd} --json info`; store `{cypilot_path}`, `{project_root}`, and the returned `variables` dict for later path resolution.
 
-Variable checkpoint: after resolving `{cpt_cmd}`, `{cypilot_path}`, and `{project_root}`, record them as a comment block at the top of `plan.toml` under `[meta]` so they survive context compaction. On context loss or new-chat resume, re-run `cpt --json info` to restore resolved values before any path-dependent step.
+Variable checkpoint: after resolving `{cpt_cmd}`, `{cypilot_path}`, and `{project_root}`, carry them forward to Phase 3.1, where they MUST be written into the `[meta]` TOML table at the top of `plan.toml` so they survive context compaction and the runtime can read them on resume. On context loss or new-chat resume, parse `plan.toml`'s `[meta]` table first, then re-run `cpt --json info` to verify (or refresh) the resolved values before any path-dependent step.
 
 ### 0.1 Discover Available Tools
 
@@ -253,6 +253,15 @@ The manifest and all `brief-*` files are mandatory outputs of `/cypilot-plan`. A
 
 Write `plan.toml` after decomposition and lifecycle selection, but **before** phase compilation:
 ```toml
+[meta]
+# Variables resolved in Phase 0 from `{cpt_cmd} --json info`.
+# Persisted here so the runtime can read them on resume after context compaction
+# without re-deriving them; refresh by re-running `cpt --json info` if stale.
+cpt_cmd = "{resolved cpt_cmd value}"           # e.g. "cpt" or "python3 /abs/path/.bootstrap/.core/skills/cypilot/scripts/cypilot.py"
+cypilot_path = "{absolute cypilot_path}"        # e.g. "/abs/path/.bootstrap"
+project_root = "{absolute project_root}"        # e.g. "/abs/path/repo"
+# variables = "{path to JSON snapshot}"          # OPTIONAL: full `variables` dict from `info` output
+
 [plan]
 task = "{task description}"
 type = "{generate|analyze|implement}"
