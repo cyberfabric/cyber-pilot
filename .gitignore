@@ -53,9 +53,7 @@ cypilot-flow-layers-2a.drawio.svg
 Spaider.code-workspace
 
 # Cypilot plans (ephemeral)
-.bootstrap/.plans/.archive/
-.bootstrap/.plans/analyze-path-skills-cypilot-scripts-cypilot/
-.bootstrap/.plans/analyze-path-current-branch-vs-main-comprehensive/
+.bootstrap/.plans/
 
 # Artifacts
 .prs/*

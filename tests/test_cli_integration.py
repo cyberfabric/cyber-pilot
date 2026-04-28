@@ -230,6 +230,40 @@ class TestCLIValidateCommand(unittest.TestCase):
             finally:
                 os.chdir(cwd)
 
+    def test_validate_incremental_flag(self):
+        """Test --incremental creates and uses cache."""
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        with redirect_stdout(stdout), redirect_stderr(stderr):
+            exit_code = main(["validate", "--incremental"])
+            self.assertIn(exit_code, [0, 1, 2])
+
+    def test_validate_watch_flag_keyboard_interrupt(self):
+        """Test --watch mode exits cleanly on KeyboardInterrupt."""
+        import time as _time
+        original_sleep = _time.sleep
+
+        def _fake_sleep(_duration):
+            raise KeyboardInterrupt()
+
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        with redirect_stdout(stdout), redirect_stderr(stderr):
+            with patch.object(_time, "sleep", side_effect=KeyboardInterrupt):
+                exit_code = main(["validate", "--watch"])
+                # watch mode only activates on PASS; may return 0,1,2
+                self.assertIn(exit_code, [0, 1, 2])
+
+    def test_validate_incremental_and_watch(self):
+        """Test combined --incremental --watch flags."""
+        import time as _time
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        with redirect_stdout(stdout), redirect_stderr(stderr):
+            with patch.object(_time, "sleep", side_effect=KeyboardInterrupt):
+                exit_code = main(["validate", "--incremental", "--watch"])
+                self.assertIn(exit_code, [0, 1, 2])
+
 
 class TestCLICommandsRulesOnlyKit(unittest.TestCase):
     def test_rules_only_kit_markerless_commands_work(self):

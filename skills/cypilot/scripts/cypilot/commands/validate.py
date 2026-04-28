@@ -93,6 +93,8 @@ def cmd_validate(argv: List[str]) -> int:
     p.add_argument("--output", default=None, help="Write report to file instead of stdout")
     p.add_argument("--local-only", action="store_true", help="Skip cross-repo workspace validation (validate local repo only)")
     p.add_argument("--source", default=None, help="Target a specific workspace source for validation (uses that source's adapter context)")
+    p.add_argument("--incremental", action="store_true", help="Use cached index, re-parse only changed files")
+    p.add_argument("--watch", action="store_true", help="Enter session sync mode with live stale notifications")
     args = p.parse_args(argv)
     # @cpt-end:cpt-cypilot-flow-traceability-validation-validate:p1:inst-user-validate
 
@@ -451,8 +453,35 @@ def cmd_validate(argv: List[str]) -> int:
         _seen_cross = {str(r.path) for r in all_artifacts_for_cross}
         all_artifacts_for_cross.extend(_collect_cross_repo_artifacts(ws_ctx, _seen_cross))
 
+    # --- Incremental index support (P2) ---
+    precomputed_hits = None
+    _index_cache = None
+    if getattr(args, "incremental", False) and len(all_artifacts_for_cross) > 0:
+        from ..utils.trace_graph import IndexCache
+        cache_path = Path(ctx.project_root) / ".cypilot-cache" / "trace-index.json"
+        _index_cache = IndexCache.load(cache_path)
+        precomputed_hits = {}
+        for art in all_artifacts_for_cross:
+            hkey = str(art.path)
+            if not _index_cache.is_stale(art.path):
+                entry = _index_cache.entries.get(hkey)
+                if entry:
+                    precomputed_hits[hkey] = entry.hits
+            else:
+                hits = scan_cpt_ids(art.path)
+                _index_cache.update_entry(art.path, hits)
+                precomputed_hits[hkey] = hits
+
+    # Helper: reuse precomputed hits when --incremental is active
+    def _cached_scan(path: Path) -> list:
+        if precomputed_hits is not None:
+            hkey = str(path)
+            if hkey in precomputed_hits:
+                return precomputed_hits[hkey]
+        return scan_cpt_ids(path)
+
     if len(all_artifacts_for_cross) > 0:
-        cross_result = cross_validate_artifacts(all_artifacts_for_cross, registered_systems=registered_systems, known_kinds=known_kinds)
+        cross_result = cross_validate_artifacts(all_artifacts_for_cross, registered_systems=registered_systems, known_kinds=known_kinds, precomputed_hits=precomputed_hits)
         cross_errors = cross_result.get("errors", [])
         cross_warnings = cross_result.get("warnings", [])
         # Only include cross-ref errors for artifacts we're validating
@@ -488,7 +517,7 @@ def cmd_validate(argv: List[str]) -> int:
         if traceability != "FULL":
             continue
         try:
-            for h in scan_cpt_ids(artifact_path):
+            for h in _cached_scan(artifact_path):
                 if h.get("type") != "definition" or not h.get("id"):
                     continue
                 full_ids_to_check.add(str(h["id"]))
@@ -502,7 +531,7 @@ def cmd_validate(argv: List[str]) -> int:
         # Build complete set of defined artifact IDs for orphan checks.
         for art in all_artifacts_for_cross:
             art_traceability = traceability_by_path.get(str(art.path), "FULL")
-            for h in scan_cpt_ids(art.path):
+            for h in _cached_scan(art.path):
                 if h.get("type") != "definition" or not h.get("id"):
                     continue
                 did = str(h["id"])
@@ -654,7 +683,7 @@ def cmd_validate(argv: List[str]) -> int:
             present_kinds.add(kind)
 
             try:
-                for h in scan_cpt_ids(art.path):
+                for h in _cached_scan(art.path):
                     if h.get("type") != "reference":
                         continue
                     rid = str(h.get("id") or "").strip()
@@ -677,7 +706,7 @@ def cmd_validate(argv: List[str]) -> int:
             art_traceability = traceability_by_path.get(art_path_str, "FULL")
 
             try:
-                defs = [h for h in scan_cpt_ids(art.path) if h.get("type") == "definition" and h.get("id")]
+                defs = [h for h in _cached_scan(art.path) if h.get("type") == "definition" and h.get("id")]
             except (OSError, ValueError):
                 defs = []
 
@@ -778,6 +807,51 @@ def cmd_validate(argv: List[str]) -> int:
         Path(args.output).write_text(out_text, encoding="utf-8")
     else:
         ui.result(report, human_fn=lambda d: _human_validate(d))
+
+    # --- Save incremental cache (P2) ---
+    if _index_cache is not None:
+        cache_path = Path(ctx.project_root) / ".cypilot-cache" / "trace-index.json"
+        _index_cache.save(cache_path)
+
+    # --- Watch mode (P4) ---
+    if getattr(args, "watch", False) and overall_status == "PASS":
+        import time as _time
+        from ..utils.trace_graph import SessionIndex, build_trace_graph
+        session = SessionIndex()
+        # Seed the graph with current validation data so affected_ids work
+        try:
+            from ..utils.document import scan_cpt_ids as _scan
+            _defs: dict = {}
+            _refs: dict = {}
+            for _art in all_artifacts_for_cross:
+                for _h in _scan(_art.path):
+                    _hid = str(_h.get("id", ""))
+                    if not _hid:
+                        continue
+                    _row = {"id": _hid, "artifact_path": str(_art.path), "line": _h.get("line", 0)}
+                    if str(_h.get("type")) == "definition":
+                        _defs.setdefault(_hid, []).append(_row)
+                    else:
+                        _refs.setdefault(_hid, []).append(_row)
+            session.graph = build_trace_graph(_defs, _refs)
+        except (OSError, ValueError, KeyError):
+            pass  # Degrade gracefully — watch still detects file changes
+        watch_paths = [art.path for art in all_artifacts_for_cross if art.path.exists()]
+        # Also watch code files with @cpt-* markers
+        for _cf in parsed_code_files_full:
+            if _cf.path.exists():
+                watch_paths.append(_cf.path)
+        session.register_files(watch_paths)
+        import sys as _sys
+        _sys.stderr.write(f"[watch] Session sync started — monitoring {len(watch_paths)} files (Ctrl+C to stop)\n")
+        try:
+            while True:
+                _time.sleep(2)
+                notifications = session.check_for_changes()
+                for n in notifications:
+                    _sys.stderr.write(f"[watch] {n.message}\n")
+        except KeyboardInterrupt:
+            _sys.stderr.write("\n[watch] Session sync stopped.\n")
 
     if overall_status == "PASS":
         # @cpt-begin:cpt-cypilot-state-traceability-validation-report:p1:inst-pass

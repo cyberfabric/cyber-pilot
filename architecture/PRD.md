@@ -19,6 +19,7 @@
 - [5. Functional Requirements](#5-functional-requirements)
   - [5.1 Core](#51-core)
   - [5.2 SDLC Kit (EXTRACTED — External Package)](#52-sdlc-kit-extracted--external-package)
+  - [5.3 Smart Indexing](#53-smart-indexing)
 - [6. Non-Functional Requirements](#6-non-functional-requirements)
   - [6.1 Module-Specific NFRs](#61-module-specific-nfrs)
   - [6.2 NFR Exclusions](#62-nfr-exclusions)
@@ -521,6 +522,48 @@ The plugin MUST delegate all validation logic to the installed Cypilot CLI to en
 > **EXTRACTED**: The SDLC kit has been extracted to a separate GitHub repository (`cyberfabric/cyber-pilot-kit-sdlc`). See ADR-0013 for details. All SDLC-specific functional requirements are now owned by the kit's own repository. Cypilot core knows only that the SDLC kit exists and is offered for installation during project initialization.
 >
 > All `cpt-cypilot-fr-sdlc-*` requirement IDs (pipeline, plugin, validation, cross-artifact, code-gen, brownfield, lifecycle, guides, pr-review, pr-status, pr-config) have been moved to the kit repository.
+
+### 5.3 Smart Indexing
+
+#### Structural Anchoring and Content Hashing
+
+- [ ] `p1` - **ID**: `cpt-cypilot-fr-structural-anchoring`
+
+The system **MUST** replace line-number-based references with stable identity anchors: heading-tree paths for documentation files and AST container paths for `.py` code files. The system **MUST** compute a SHA-256 content hash for each `@cpt-` marker block and store it alongside the anchor to detect content drift without re-parsing unchanged files.
+
+**Rationale**: Line-number references break on trivial edits (adding a blank line shifts every downstream reference). Stable structural anchors and content hashes eliminate false-positive stale markers and reduce unnecessary re-indexing.
+
+**Actors**: `cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`
+
+#### Incremental Diff-Aware Index
+
+- [ ] `p2` - **ID**: `cpt-cypilot-fr-incremental-index`
+
+The system **MUST** detect changed files via mtime comparison and git diff narrowing, re-parse only the changed files, and persist the resulting index as a JSON cache at `.cypilot-cache/trace-index.json`. The system **MUST** fall back to a full re-index when the cache is missing or corrupt.
+
+**Rationale**: Full re-indexing on every invocation is slow for large repositories. Incremental updates scoped to changed files reduce indexing latency from seconds to milliseconds for typical edits.
+
+**Actors**: `cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`
+
+#### Traceability Graph
+
+- [ ] `p3` - **ID**: `cpt-cypilot-fr-traceability-graph`
+
+The system **MUST** replace the flat `defs_by_id` / `refs_by_id` dictionaries with a node-edge traceability graph. Node types **MUST** include Artifact, Section, Definition, Reference, and CodeBlock. Edge types **MUST** include CONTAINS, DEFINES, REFERENCES, and IMPLEMENTS. The graph **MUST** support dual adjacency-list traversal for both forward and reverse lookups.
+
+**Rationale**: A flat dictionary cannot represent hierarchical containment or multi-hop traceability queries (e.g., "which code blocks implement this FR?"). A typed graph enables richer analysis, visualization, and validation of cross-artifact relationships.
+
+**Actors**: `cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`
+
+#### Real-Time Session Sync
+
+- [ ] `p4` - **ID**: `cpt-cypilot-fr-session-sync`
+
+The system **MUST** watch for buffer changes that modify `@cpt-` markers, push stale notifications when a tracked marker's content hash changes, and trigger an incremental graph refresh for affected nodes. The system **MUST** use file-system polling with a configurable interval (default 2 seconds).
+
+**Rationale**: Developers working in an editor session expect traceability state to reflect their latest changes without manually re-running the indexer. Real-time sync closes the feedback loop between editing and validation.
+
+**Actors**: `cpt-cypilot-actor-user`, `cpt-cypilot-actor-ai-agent`
 
 ---
 

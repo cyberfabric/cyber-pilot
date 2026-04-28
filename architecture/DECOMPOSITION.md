@@ -22,6 +22,7 @@
   - [2.14 Subagent Registration ⏳ HIGH](#214-subagent-registration--high)
   - [2.15 ralphex Delegation ⏳ HIGH](#215-ralphex-delegation--high)
   - [2.16 Project-Level Extensibility ⏳ HIGH](#216-project-level-extensibility--high)
+  - [2.17 Smart Codebase Indexing ⏳ HIGH](#217-smart-codebase-indexing--high)
 - [3. Feature Dependencies](#3-feature-dependencies)
 
 <!-- /toc -->
@@ -836,6 +837,71 @@ Cypilot DESIGN is decomposed into features organized around architectural layers
   - Layer path variables in resolved variable dict
 
 
+### 2.17 [Smart Codebase Indexing](features/smart-indexing.md) ⏳ HIGH
+
+- [ ] `p1` - **ID**: `cpt-cypilot-feature-smart-indexing`
+
+- **Purpose**: Replace fragile line-number-based indexing with structural anchors (heading-tree paths for docs, AST container paths for code), provide content-hash-based change detection, maintain a persistent incremental index, build a queryable traceability graph, and keep the index synchronized with the filesystem in real time.
+
+- **Depends On**: `cpt-cypilot-feature-traceability-validation` (extends the existing validation pipeline with persistent indexing and graph capabilities)
+
+- **Scope**:
+  - P1: Structural anchoring with content hashing (heading-tree paths for `.md`, `ast` container paths for `.py`, SHA-256 per `@cpt-` block)
+  - P2: Incremental diff-aware indexing (mtime + git diff change detection, JSON cache at `.cypilot-cache/trace-index.json`)
+  - P3: Traceability graph construction (typed nodes: Artifact, Section, Definition, Reference, CodeBlock; typed edges: CONTAINS, DEFINES, REFERENCES, IMPLEMENTS; dual adjacency-list traversal)
+  - P4: Real-time session synchronization (mtime polling, stale notifications, incremental graph refresh)
+
+- **Out of scope**:
+  - Multi-language AST parsing beyond Python (stdlib `ast` only; regex fallback for other languages)
+  - External dependency integration (tree-sitter, networkx, SQLite) per ADR-0002
+  - IDE plugin integration (covered by Feature 2.8 Developer Experience)
+  - Cross-repo graph federation (covered by Feature 2.13 Workspace)
+
+- **Requirements Covered**:
+
+  `p1` - `cpt-cypilot-fr-structural-anchoring`
+  `p2` - `cpt-cypilot-fr-incremental-index`
+  `p3` - `cpt-cypilot-fr-traceability-graph`
+  `p4` - `cpt-cypilot-fr-session-sync`
+
+- **Design Principles Covered**:
+
+  `p1` - `cpt-cypilot-principle-determinism-first`
+  `p1` - `cpt-cypilot-principle-occams-razor`
+
+- **Design Constraints Covered**:
+
+  `p1` - `cpt-cypilot-constraint-python-stdlib`
+
+- **Domain Model Entities**:
+  - StructuralAnchor
+  - ContentFingerprint
+  - AnchoredHit
+  - IndexCache
+  - TraceGraph
+  - TraceNode
+  - StaleNotification
+  - SessionIndex
+
+- **API**:
+  - `cpt validate --incremental` (use cached index, re-parse only changed files)
+  - `cpt validate --graph` (build traceability graph for query commands)
+  - `cpt validate --watch` (enter session sync mode with live stale notifications)
+
+- **Sequences**:
+
+  None (indexing is internal to the validation pipeline)
+
+- **Data**:
+  - `.cypilot-cache/trace-index.json` — persistent index cache with structural anchors and content hashes
+
+- **Phase Dependencies**:
+  - P1 Structural Anchoring: no internal dependencies (foundation)
+  - P2 Incremental Index: depends on P1
+  - P3 Traceability Graph: depends on P1, P2
+  - P4 Session Sync: depends on P1, P2, P3
+
+
 ---
 
 ## 3. Feature Dependencies
@@ -860,7 +926,9 @@ cpt-cypilot-feature-core-infra
     │    ↓
     │    ├─→ cpt-cypilot-feature-developer-experience
     │    │
-    │    └─→ cpt-cypilot-feature-spec-coverage
+    │    ├─→ cpt-cypilot-feature-spec-coverage
+    │    │
+    │    └─→ cpt-cypilot-feature-smart-indexing
     │
     ├─→ cpt-cypilot-feature-v2-v3-migration ←── cpt-cypilot-feature-traceability-validation
     │

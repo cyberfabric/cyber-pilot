@@ -894,6 +894,7 @@ def cross_validate_artifacts(
     artifacts: Sequence[ArtifactRecord],
     registered_systems: Optional[Iterable[str]] = None,
     known_kinds: Optional[Iterable[str]] = None,
+    precomputed_hits: Optional[Dict[str, List[Dict[str, object]]]] = None,
 ) -> Dict[str, List[Dict[str, object]]]:
     from .document import headings_by_line, scan_cpt_ids
 
@@ -1061,8 +1062,12 @@ def cross_validate_artifacts(
     headings_cache: Dict[str, List[List[str]]] = {}
     for art in artifacts:
         ak = str(art.artifact_kind).strip().upper()
-        hits = scan_cpt_ids(art.path)
         hkey = str(art.path)
+        # Use precomputed hits when available (incremental index)
+        if precomputed_hits is not None and hkey in precomputed_hits:
+            hits = precomputed_hits[hkey]
+        else:
+            hits = scan_cpt_ids(art.path)
         if hkey not in headings_cache:
             # Prefer constraint heading ids when available; else fallback to raw titles.
             hc = getattr(getattr(art, "constraints", None), "headings", None)
