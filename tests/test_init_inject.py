@@ -8,10 +8,12 @@ Covers:
   D) _inject_root_agents / _inject_root_claude wrappers still work
 """
 
+import io
 import sys
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "cypilot" / "scripts"))
 
@@ -152,6 +154,57 @@ class TestInjectRootWrappers(unittest.TestCase):
             result = _inject_root_agents(root, "cypilot", dry_run=True)
             self.assertEqual(result, "created")
             self.assertFalse((root / "AGENTS.md").exists())
+
+
+class TestPromptKitInstallFlag(unittest.TestCase):
+    """Coverage for _prompt_kit_install_flag interactive/non-interactive paths."""
+
+    def _fn(self):
+        from cypilot.commands.init import _prompt_kit_install_flag
+        return _prompt_kit_install_flag
+
+    def test_non_interactive_returns_true(self):
+        """interactive=False: return True (--yes mode), no prompting."""
+        self.assertTrue(self._fn()(False))
+
+    def test_interactive_no_tty_returns_false(self):
+        """interactive=True but stdin not a TTY: return False (not interactive)."""
+        with patch("sys.stdin.isatty", return_value=False):
+            self.assertFalse(self._fn()(True))
+
+    def test_interactive_tty_accept(self):
+        """User types 'a' → accepted; help text written to stderr."""
+        buf = io.StringIO()
+        with patch("sys.stdin.isatty", return_value=True), \
+             patch("sys.stderr", buf), \
+             patch("builtins.input", return_value="a"):
+            self.assertTrue(self._fn()(True))
+        out = buf.getvalue()
+        self.assertIn("Install SDLC kit", out)
+        self.assertIn("[a]ccept / [d]ecline", out)
+
+    def test_interactive_tty_decline(self):
+        """User types 'd' → declined."""
+        with patch("sys.stdin.isatty", return_value=True), \
+             patch("sys.stderr", io.StringIO()), \
+             patch("builtins.input", return_value="d"):
+            self.assertFalse(self._fn()(True))
+
+    def test_interactive_tty_accept_word(self):
+        """User types 'accept' (full word) → accepted."""
+        with patch("sys.stdin.isatty", return_value=True), \
+             patch("sys.stderr", io.StringIO()), \
+             patch("builtins.input", return_value="ACCEPT"):
+            self.assertTrue(self._fn()(True))
+
+    def test_interactive_tty_eof_declines(self):
+        """EOF on input → treated as decline."""
+        def _raise_eof():
+            raise EOFError
+        with patch("sys.stdin.isatty", return_value=True), \
+             patch("sys.stderr", io.StringIO()), \
+             patch("builtins.input", side_effect=_raise_eof):
+            self.assertFalse(self._fn()(True))
 
 
 if __name__ == "__main__":
