@@ -60,10 +60,16 @@ result = run_delegation(
 if result["status"] == "error":
     # inspect result["error"], result["lifecycle_state"]; do not proceed to handoff
     ...
+elif result["status"] == "ready":
+    # dry_run: inspect result["ralphex_path"], result["validation"],
+    # result["bootstrap"], result["plan_file"], result["command"], result["mode"],
+    # result["lifecycle_state"]; ralphex was NOT invoked
+    ...
 else:
-    # status is "ready" (dry_run) or "delegated";
+    # status is "delegated": ralphex executed successfully (returncode 0)
     # inspect result["ralphex_path"], result["validation"], result["bootstrap"],
-    # result["plan_file"], result["command"], result["mode"], result["lifecycle_state"]
+    # result["plan_file"], result["command"], result["mode"], result["lifecycle_state"],
+    # result["returncode"], result["stdout"], result["stderr"]
     ...
 ```
 
@@ -71,8 +77,8 @@ Required parameters: `config`, `plan_dir`, `repo_root`. Common optional paramete
 
 **Status values:**
 - `"ready"` — dry_run mode, command assembled but not invoked
-- `"delegated"` — command assembled and ready for invocation
-- `"error"` — a precondition failed; check the `error` field
+- `"delegated"` — ralphex was invoked and exited with returncode `0`; lifecycle transitioned to `completed`. `result["returncode"]`, `result["stdout"]`, and `result["stderr"]` are populated. Proceed to Post-Run Handoff.
+- `"error"` — a precondition failed or ralphex exited non-zero; check the `error` field
 
 **Error handling:** When `result["status"] == "error"`, inspect `result["error"]`
 for the failure reason and `result["lifecycle_state"]` for the lifecycle position.

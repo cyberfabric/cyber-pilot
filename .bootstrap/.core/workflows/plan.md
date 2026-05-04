@@ -68,7 +68,7 @@ Budget targets: Phase 0-1 `~200` lines, Phase 2 `~300`, Phase 3 `~500` per phase
 
 Run `EXECUTE: {cpt_cmd} --json info`; store `{cypilot_path}`, `{project_root}`, and the returned `variables` dict for later path resolution.
 
-Variable checkpoint: after resolving `{cpt_cmd}`, `{cypilot_path}`, and `{project_root}`, carry them forward to Phase 3.1, where they MUST be written into the `[meta]` TOML table at the top of `plan.toml` so they survive context compaction and the runtime can read them on resume. On context loss or new-chat resume, parse `plan.toml`'s `[meta]` table first, then re-run `cpt --json info` to verify (or refresh) the resolved values before any path-dependent step.
+Variable checkpoint: after resolving `{cpt_cmd}`, `{cypilot_path}`, and `{project_root}`, carry them forward to Phase 3.1, where they MUST be written into the `[meta]` TOML table at the top of `plan.toml` so they survive context compaction and the runtime can read them on resume. On context loss or new-chat resume, parse `plan.toml`'s `[meta]` table first, then re-run `{cpt_cmd} --json info` to verify (or refresh) the resolved values before any path-dependent step.
 
 ### 0.1 Discover Available Tools
 
