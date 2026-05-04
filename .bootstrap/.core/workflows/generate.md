@@ -50,9 +50,10 @@ Auto-config can scan your project and generate rules that teach Cypilot your con
 This produces config/rules/, heading-level WHEN rules in config/AGENTS.md, navigation rules for existing project guides, and system entries in config/artifacts.toml.
 
 → Run auto-config now? [yes/no/skip]
-"yes"  → Run auto-config methodology (recommended for first-time setup)
-"no"   → Cancel generation
-"skip" → Continue without task-matched project specs/rules (reduced quality)
+Reply with `yes`, `no`, or `skip`.
+"yes"  → Suggested for first-time setup; run auto-config now, then return to generation with task-matched project rules.
+"no"   → Cancel generation now.
+"skip" → Continue without task-matched project specs/rules (reduced quality for this run).
 ```
 
 If user confirms `yes`: execute auto-config methodology (Phases 1→6), then return to generate. If user says `skip`: proceed without task-matched project-specific specs/rules. If user says `no`: cancel.
@@ -89,6 +90,8 @@ STRICT: generation must load the required generation-phase dependencies (typical
 
 After `execution-protocol.md`, you have `KITS_PATH`, the phase-appropriate dependency set, and `REQUIREMENTS`.
 
+Variable checkpoint: `{cpt_cmd}`, `{cypilot_path}`, and `{project_root}` are resolved by `execution-protocol.md`. On context loss or new-chat resume, re-run `cpt --json info` to restore these values before any path-dependent step.
+
 | Condition | Action |
 |-----------|--------|
 | `rules.md` loaded | Phase-appropriate dependencies were already resolved from rules Dependencies; proceed silently. |
@@ -97,7 +100,7 @@ After `execution-protocol.md`, you have `KITS_PATH`, the phase-appropriate depen
 
 **MUST NOT proceed** to Phase 1 until all generation-phase dependencies required for the current target are available.
 
-Raw-input overflow rule: if the direct user prompt plus all provided files exceeds `500` total lines, the agent MUST NOT continue in direct generation mode. It MUST route through `/cypilot-plan`, preserve the same request scope, and require the planner to materialize that raw input under `{cypilot_path}/.plans/{task-slug}/input/` before decomposition. The planner MUST obtain explicit user approval before creating that directory or executing the write-capable `{cpt_cmd} --json chunk-input ... --max-lines 300 --threshold-lines 500` command, and MUST pass `--include-stdin` when direct prompt text must be packaged together with provided files. This routing takes precedence over any later single-context bypass check inside planning.
+Raw-input overflow rule: see `{cypilot_path}/.core/requirements/raw-input-overflow.md`. If the direct user prompt plus all provided files exceeds `500` total lines, the agent MUST stop direct generation long enough to offer `/cypilot-plan` versus continuing here with reduced guarantees, exactly as specified in that file.
 
 ## Phase 0.1: Plan Escalation Gate
 
@@ -120,6 +123,9 @@ This exceeds the safe single-context budget (~2500 lines). The plan workflow can
 Options:
 1. Switch to /cypilot-plan (recommended for full quality)
 2. Continue here (risk: context overflow, rules may be partially applied)
+Reply with `1` or `2`.
+1. Switch to /cypilot-plan — Suggested for full quality; this decomposes the task into focused phases and reduces context-overflow risk.
+2. Continue here — Faster, but context overflow may reduce rule coverage.
 ```
 
 If user chooses plan: stop and tell them to run `/cypilot-plan generate {KIND}` with the same parameters. If user chooses continue: proceed with aggressive chunking and log _"Proceeding in single-context mode — quality may be reduced for large artifacts."_
@@ -132,6 +138,7 @@ If system context is unclear, ask:
 Which system does this artifact/code belong to?
 - {list systems from artifacts.toml}
 - Create new system
+Reply with the system name or `Create new system`.
 ```
 
 Store the selected system for registry placement.
@@ -143,6 +150,7 @@ Where should the result go?
 - File (will be written to disk and registered)
 - Chat only (preview, no file created)
 - MCP tool / external system (specify)
+Reply with `File`, `Chat only`, or `MCP tool / external system`.
 ```
 
 Then: store the selected system; if file output + using rules, determine the path, plan the `artifacts.toml` entry, and check `UPDATE` vs `CREATE`; for artifacts identify parent references; for code identify design artifacts + requirement IDs + traceability markers; for new IDs use `cpt-{system}-{kind}-{slug}` and verify uniqueness with `{cpt_cmd} --json list-ids`.
@@ -153,12 +161,13 @@ Artifacts: parse template H2 sections into questions, load the example, and pres
 
 ```markdown
 ## Inputs for {KIND}: {name}
+Why this input is needed: complete the required sections with concrete, reviewable proposals before writing anything.
 ### {Section from template H2}
 - Context: {from template}
 - Proposal: {based on project context}
 - Reference: {from example}
 ...
-Reply: "approve all" or edits per item
+Reply: `approve all` or provide edits per item
 ```
 
 Code: parse the related artifact, extract requirements to implement, and present:
@@ -171,7 +180,8 @@ Requirements to implement:
 2. {requirement}
 ...
 Proposed approach: {implementation strategy}
-Reply: "approve" or modifications
+Why this input is needed: confirm the implementation direction before code changes are written.
+Reply: `approve` or describe the modifications you want
 ```
 
 Input collection rules: MUST ask all required questions in a single batch by default, propose specific answers, use project context, show reasoning clearly, allow modifications, and require final confirmation. MUST NOT ask open-ended questions without proposals, skip questions, assume answers, or proceed without final confirmation.
@@ -235,6 +245,10 @@ Checkpoint policy: default is chat only; write a checkpoint file only if the use
 **Artifacts registry**: `{cypilot_path}/config/artifacts.toml`: {entry additions/updates, if any}
 **STRICT self-check**: template loaded = {yes/no}; example referenced = {yes/no}; checklist status = {required-and-complete/deferred-to-phase-5}; placeholders absent = {yes/no}; explicit `yes` received = {yes/no}
 **Proceed?** [yes/no/modify]
+Reply with `yes`, `no`, or `modify`.
+`yes` → Suggested when the summary is accurate; write files and continue to validation.
+`no` → Cancel without writing files.
+`modify` → Revisit the inputs or proposal before any files are written.
 ```
 
 Responses: `yes` = create files and validate; `no` = cancel; `modify` = revisit a question and iterate (max 3 iterations, then require explicit `continue iterating` or restart workflow).
@@ -255,7 +269,7 @@ Attempt deterministic validation automatically after generation; do not list it 
 
 > **⛔ CRITICAL**: The agent's own checklist walkthrough is **NOT** a substitute for the applicable deterministic validator command(s). A manual "✅ PASS" table in chat is semantic review, not deterministic validation — these are **separate steps**. See anti-pattern `SIMULATED_VALIDATION`.
 
-### Step 1: Deterministic Validation (tool-based)
+### Phase 5a: Deterministic Validation (tool-based)
 
 MUST run deterministic validation as an actual terminal command using the canonical agent-safe form.
 
@@ -296,12 +310,18 @@ Rules:
 - record the overall deterministic gate result across the full required validator set
 - if no target-applicable deterministic validator exists for the current written output and RELAXED mode takes the explicitly unvalidated path, record `Deterministic gate: SKIPPED`, explicit `Validator availability proof`, explicit `Skip reason`, and an explicit `Validator-backed evidence note` that no deterministic validator command completed
 - if RELAXED recovery stops after repeated validation failure, record the actual failing command results and `Deterministic gate: FAIL`
-- in STRICT mode, MUST NOT proceed to Phase 6 until all applicable deterministic validator command(s) for the current target have been run and the overall deterministic gate is `PASS`
+- in STRICT mode, MUST NOT proceed to Phase 5b until all applicable deterministic validator command(s) for the current target have been run and the overall deterministic gate is `PASS`
 - MUST NOT summarize validation without the actual validator output, omit which validator command produced each result, collapse a mixed-result validator set into a single untraceable line, or claim that no validator was target-applicable without the required validator-availability proof
 - if FAIL → fix errors → re-run until PASS
 - repeated validation failure is a recovery branch, not a PASS substitute
 
-Only after PASS: load `checklist.md` if it was not already loaded, then self-review generated content against it, verify no placeholders (`TODO`, `TBD`, `FIXME`), verify cross-references are meaningful, and verify content quality/completeness.
+Gate: MUST NOT proceed to Phase 5b until Phase 5a deterministic gate result is recorded (PASS, FAIL, or SKIPPED with proof).
+
+### Phase 5b: Semantic Review + Results Assembly
+
+Only enter Phase 5b after Phase 5a is complete (deterministic gate result recorded).
+
+Only after deterministic PASS (or SKIPPED with recorded proof): load `checklist.md` if it was not already loaded, then self-review generated content against it, verify no placeholders (`TODO`, `TBD`, `FIXME`), verify cross-references are meaningful, and verify content quality/completeness.
 
 Validation Results body below is the single authoritative sub-contract for deterministic validation metadata. Whenever this workflow requires validation results to be embedded elsewhere, paste the completed body verbatim with actual values instead of rewriting the fields; include the conditional `SKIPPED`-only lines only when the deterministic gate is `SKIPPED`.
 
@@ -333,6 +353,10 @@ What would you like to do next?
 1. {option from rules Next Steps}
 2. {option from rules Next Steps}
 3. Other
+Reply with the option number or a short custom instruction.
+1. {option from rules Next Steps} — Mark as `Suggested` when it is the clearest continuation from the current result; state why and what happens next.
+2. {option from rules Next Steps} — State what this does next.
+3. Other — Say what you want to change or do next.
 ```
 
 If Phase 4 wrote or updated any files, the next-step menu is informational only; whether the workflow is ending on the validated success path or any RELAXED explicitly unvalidated exit, it MUST generate the review prompts automatically in the same response after listing the options. MUST NOT ask whether review prompts should be generated and MUST NOT wait for a later user turn to generate them.
@@ -430,6 +454,10 @@ Validation failure loop (3+ times):
 1. Review checklist requirements manually and fix the reported validator errors
 2. Simplify artifact scope or revert the last change set, then re-run validation
 3. RELAXED mode only: stop the validated success path and return the result as explicitly unvalidated with `Deterministic gate: FAIL`; do not present it as PASS, and if files were written still emit both review prompts before ending the response
+Reply with `1`, `2`, or `3`.
+1. Review checklist requirements manually and fix the reported validator errors — Suggested default path; continue trying to reach validator `PASS`.
+2. Simplify artifact scope or revert the last change set, then re-run validation — Use this when the current scope is too broad or the last changes were incorrect.
+3. RELAXED mode only: stop the validated success path and return the result as explicitly unvalidated with `Deterministic gate: FAIL`; do not present it as PASS, and if files were written still emit both review prompts before ending the response.
 ```
 
 A legitimate RELAXED `Deterministic gate: SKIPPED` exit for file-writing output is separate from this failure loop: use it only when `Validator availability proof` shows that no canonical validator route is target-applicable for the current written output, and record the explicit `Validator availability proof`, `Skip reason`, `Validator-backed evidence note`, and mandatory review-prompt pair without inventing a validation-failure narrative.

@@ -457,23 +457,26 @@ def run_self_check_from_meta(
             if examples_dir is None:
                 examples_dir = (kind_dir / "examples").resolve()
 
-            # Pick the first (the same file on all file systems) .md file in examples path (directory or single file)
-            example_path = None
+            example_paths: List[Path] = []
             try:
                 if examples_dir is not None and examples_dir.exists():
                     if examples_dir.is_file():
-                        example_path = examples_dir
+                        example_paths = [examples_dir]
                     else:
-                        md_files = list(Path(examples_dir).glob("*.md"))
-                        if md_files:
-                            example_path = sorted(md_files)[0]
+                        example_paths = sorted(
+                            [p for p in Path(examples_dir).glob("*.md") if p.is_file()],
+                        )
             except OSError:
-                example_path = None
+                example_paths = []
+
+            example_path = example_paths[0] if example_paths else None
 
             item: Dict[str, object] = {
                 "kit": str(kit_id),
                 "kind": kind,
                 "example_path": example_path.as_posix() if example_path else None,
+                "example_paths": [p.as_posix() for p in example_paths],
+                "examples_checked": len(example_paths),
                 "status": "PASS",
             }
 
@@ -494,7 +497,7 @@ def run_self_check_from_meta(
                 errs.extend(list(trep.get("errors", []) or []))
                 warns.extend(list(trep.get("warnings", []) or []))
 
-            if not example_path:
+            if not example_paths:
                 pass  # No example for this kind — skip example checks
             else:
                 constraints_for_kind = None
@@ -509,16 +512,17 @@ def run_self_check_from_meta(
                     constraints_path = (kit_base / "constraints.toml").resolve()
                 except OSError:
                     constraints_path = None
-                rep = validate_artifact_file(
-                    artifact_path=example_path,
-                    artifact_kind=str(kind),
-                    constraints=constraints_for_kind,
-                    registered_systems=None,
-                    constraints_path=constraints_path,
-                    kit_id=str(kit_id),
-                )
-                errs.extend(list(rep.get("errors", []) or []))
-                warns.extend(list(rep.get("warnings", []) or []))
+                for example_path in example_paths:
+                    rep = validate_artifact_file(
+                        artifact_path=example_path,
+                        artifact_kind=str(kind),
+                        constraints=constraints_for_kind,
+                        registered_systems=None,
+                        constraints_path=constraints_path,
+                        kit_id=str(kit_id),
+                    )
+                    errs.extend(list(rep.get("errors", []) or []))
+                    warns.extend(list(rep.get("warnings", []) or []))
 
             if errs:
                 item["status"] = "FAIL"

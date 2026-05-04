@@ -37,11 +37,6 @@ Use this workflow to discover workspace sources, confirm roles/settings, write w
 | Check workspace status | `analyze.md` with workspace target |
 Direct workspace quick commands skip Protocol Guard.
 
-## Prerequisite Checklist
-- [ ] Agent has read SKILL.md
-- [ ] Agent understands standalone vs inline workspace config
-- [ ] Agent understands source roles and cross-repo traceability
-
 ## Phase 1: Discover
 **Goal**: find candidate repos.
 
@@ -50,9 +45,15 @@ Direct workspace quick commands skip Protocol Guard.
 | Identify root | `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py --json info` |
 | Scan nested repos | `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py --json workspace-init --dry-run` |
 | Present results | show repo name/path, adapter found or not, and inferred role |
-**Decision point**:
-- [ ] User confirms which repos to include
-- [ ] User chooses standalone workspace file vs inline config
+**Decision point**: after presenting discovered repos, ask one explicit question that covers both inclusion and workspace location.
+
+```text
+Why this input is needed: choose which repositories become workspace sources and where the workspace config should live.
+Reply with the selected repo numbers or names, then `standalone` or `inline`.
+Suggested default: include reachable repos that have the expected adapter, and use `standalone` unless the user specifically wants workspace config inside `config/core.toml`.
+- `standalone` → write `.cypilot-workspace.toml` and keep workspace config separate from `config/core.toml`.
+- `inline` → write `[workspace]` inside `config/core.toml`.
+```
 
 ## Phase 2: Configure
 **Goal**: confirm workspace structure.
@@ -61,6 +62,16 @@ For each selected source, confirm `name`, relative `path` or `url`, `role`, and 
 - `resolve_remote_ids` (default yes; both settings must be true to include remote IDs)
 - workspace location: standalone `.cypilot-workspace.toml` or inline `[workspace]` in `config/core.toml`
 Primary source is always determined by the current working directory; no `primary` field exists.
+
+Use one batched confirmation prompt per source:
+
+```text
+Why this input is needed: confirm the exact source settings before writing workspace configuration.
+Reply with `approve` to accept the proposed source settings, or list only the fields to change.
+Suggested defaults: keep the detected `adapter`, keep `cross_repo = yes`, and keep `resolve_remote_ids = yes` unless the user wants stricter local-only behavior.
+- `approve` → keep the proposed source settings and continue.
+- field edits → update only the named fields, then re-show the proposal.
+```
 
 ## Phase 3: Generate
 **Goal**: write the workspace config.
@@ -88,20 +99,20 @@ Report total sources, reachable sources, sources with adapters, and available cr
 - explicit `source` entries targeting missing repos resolve to `None`
 - scan failures warn on stderr without blocking the operation
 
-## Quick Reference
-
-| Command | Purpose |
-|---|---|
-| `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py --json workspace-init [--root <dir>] [--output <path>] [--inline] [--force] [--dry-run]` | Scan and generate workspace config |
-| `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py --json workspace-add --name <name> [--path <path> \| --url <url>] [--branch <branch>] [--role <role>] [--adapter <path>] [--inline] [--force]` | Add a source |
-| `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py --json workspace-info` | Show workspace sources and status |
-| `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py --json workspace-sync [--source <name>] [--dry-run] [--force]` | Fetch/update Git URL worktrees |
-| `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py --json validate --local-only` | Disable cross-repo resolution |
-| `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py --json list-ids --source <name>` | Restrict IDs to one source |
-
 ## Next Steps
 **After successful workspace setup**:
 - Run `validate` from each participating repo to verify cross-repo ID resolution works
 - Use `list-ids` to confirm artifacts from all sources are visible
 - Add `source` fields to `artifacts.toml` entries that reference remote repos
 - Consider adding workspace setup to project onboarding documentation
+
+When presenting next steps to the user, include a suggested default and an explicit reply contract:
+
+```text
+What would you like to do next?
+Reply with the option number or a short custom instruction.
+1. Run `validate` from each participating repo — Suggested default; verifies cross-repo ID resolution end to end.
+2. Run `list-ids` to confirm artifacts from all sources are visible.
+3. Review or edit workspace/source fields before using the workspace further.
+4. Other — describe the next workspace action you want.
+```

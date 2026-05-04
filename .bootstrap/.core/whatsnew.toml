@@ -256,3 +256,17 @@ details = """\
 - **Validation hardening and error visibility** — workspace config errors, unknown language codes, and TOML helper issues now surface explicitly instead of being silently skipped; related tests and traceability/spec markers were added
 - **Python <3.11 TOML compatibility** — added a shared `_tomllib_compat.py` shim and updated whatsnew / update-related code paths to use it, so core update and whatsnew flows work on older supported Python runtimes
 """
+
+["v3.8.0-beta"]
+summary = "Prompt compactification round 2, list-ids kind inference fix, deterministic self-check"
+details = """\
+- **Major prompt compactification** — second compaction pass across `skills/cypilot/SKILL.md`, `workflows/analyze.md`, `workflows/generate.md`, `workflows/plan.md`, `workflows/workspace.md`, and the `cypilot-codegen` / `cypilot-pr-review` / `cypilot-ralphex` agent definitions; SKILL.md trimmed by ~200 lines, plan.md by ~190 lines while preserving validation gates, escalation logic, and lifecycle handoff
+- **`prompt-engineering.md` loadable-resource-budget rule** — expanded with explicit exemptions and measurement clarifications so agents apply the budget consistently; **`agent-compliance.md`** progress-checkpoint persistence requirements tightened; **`raw-input-overflow.md`** clarifies the chunk-input approval flow and its interaction with the single-context bypass
+- **Plan workflow Phase 0 variable checkpoint** — variables resolved during Phase 0 are now persisted to `plan.toml` `[meta]` so phase runners and recovery flows reuse the same context
+- **Fix: `list-ids` kind inference (#157)** — `_infer_kind` now picks the first matching kind token (matching the canonical `cpt-{system}-{kind}-{slug}` grammar) instead of the last, fixing wrong-kind reports for slugs containing kind keywords (e.g. `interface-component-registry`)
+- **Fix: kit examples validation coverage and determinism (#154)** — `self-check` now collects every `*.md` example file via `sorted(Path(examples_dir).glob("*.md"))` and runs `validate_artifact_file` on each (instead of validating only one file); the result dict gains `example_paths` and `examples_checked`, and the legacy `example_path` field stays for backward-compat as the first sorted file
+- **`self-check` JSON output schema documented in `cypilot.clispec`** — full schema for machine-readable self-check results; interactive TTY accept test expanded to verify all six prompt lines
+- **Test coverage** — added unit tests covering both branches of `_prompt_kit_install_flag` (non-interactive, no-tty, accept/decline, full-word accept, EOF) to keep `init.py` per-file coverage above the 90% threshold
+- **Compact CLI prompts** — `cpt-install` prompt collapsed to one-line format; `whatsnew` continue prompt simplified; `agents.py` copilot-instructions.md template marker order fixed
+- **Project metadata** — `NOTICE` file added with copyright and license information; copyright year updated; README version badge bumped\
+"""

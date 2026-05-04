@@ -93,31 +93,6 @@ Agent MUST structure validation output with these six sections:
 | **5. Final Status** | Deterministic: PASS/FAIL; Semantic: PASS/FAIL (`{N}` issues); Overall: PASS/FAIL |
 | **6. Issues (if any)** | Detailed issue descriptions |
 
-Minimal STRICT-mode example:
-
-```markdown
-## Validation Report
-
-### 1. Protocol Compliance
-- Rules Mode: STRICT (`cypilot-sdlc`)
-- Artifact Read: architecture/DESIGN.md (742 lines)
-
-### 2. Deterministic Gate
-- Status: PASS
-
-### 3. Semantic Review (MANDATORY)
-- Checklist Progress: evidence table included
-
-### 4. Agent Self-Test
-- All 6 questions answered with evidence
-
-### 5. Final Status
-- Overall: PASS
-
-### 6. Issues (if any)
-- None
-```
-
 Free-form `PASS` or `looks good` without this structure is **INVALID** in STRICT mode.
 
 ## Error Handling
@@ -134,9 +109,9 @@ When validating artifacts `>500` lines OR checklist has `>15` categories:
 
 | Situation | Required behavior |
 |---|---|
-| After each category group (3-5 categories) | Output progress checkpoint listing completed category IDs/statuses, then continue |
-| Context runs low | Save checkpoint with completed categories, remaining categories, and resume instructions |
-| Resume after compaction | Re-read artifact via Read tool; verify artifact unchanged (check line count); continue from saved checkpoint |
+| After each category group (3-5 categories) | Persist a durable progress checkpoint (to the agent's todo tracking tool or to a JSON file/DB — not solely conversation output) with `completedCategoryIDs`, `statuses`, `remainingCategoryIDs`, `artifactPath`, `artifactLineCount`, and `timestamp` |
+| Context runs low | Before any context compaction, write the same structured JSON checkpoint (`completedCategoryIDs`, `statuses`, `remainingCategoryIDs`, `artifactPath`, `artifactLineCount`, `timestamp`, plus resume instructions) to durable storage so it survives pruning |
+| Resume after compaction | Re-read the artifact, verify the current line count matches the saved `artifactLineCount`. If they differ → error path: log the discrepancy with details (saved vs current line count, artifact path, timestamps), mark the checkpoint as inconsistent, STOP automated resume, and surface an investigation/retry instruction to the user. Saved checkpoint metadata MUST include retry/backoff options and a manual-override flag so resumption logic can handle divergence safely. Only when line counts match → continue from the recorded position |
 
 ## Recovery from Anti-Pattern Detection
 

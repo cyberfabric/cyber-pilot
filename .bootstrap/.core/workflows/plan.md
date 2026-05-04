@@ -60,13 +60,15 @@ This workflow generates execution plans, not direct results. Use it when work ex
 - Do NOT hold all phase files in context simultaneously; compile and write one at a time.
 - If a phase compilation would exceed current context budget, checkpoint and use Compaction Recovery.
 - The plan manifest (`plan.toml`) is the recovery checkpoint and MUST be written before compilation.
-- If the raw task input itself exceeds `500` lines, materialize it under `{cypilot_path}/.plans/{task-slug}/input/`, chunk it to `<= 300` lines per file, and treat the resulting chunk files as the authoritative raw-input package for the plan. When the source includes direct prompt text, preserve that raw prompt as `input/direct-prompt.md` before chunking.
+- If the raw task input itself exceeds `500` lines, materialize it under `{cypilot_path}/.plans/{task-slug}/input/`, chunk it to `<= 300` lines per file, and treat the resulting chunk files as the authoritative raw-input package for the plan. When the source includes direct prompt text, preserve that raw prompt as `input/direct-prompt.md` before chunking. (See `{cypilot_path}/.core/requirements/raw-input-overflow.md` for the shared overflow rule.)
 
 Budget targets: Phase 0-1 `~200` lines, Phase 2 `~300`, Phase 3 `~500` per phase file, Phase 4 `~50`. The reference appendices below are runtime guidance only and do not consume plan-generation budget unless the user explicitly asks about execution behavior.
 
 ## Phase 0: Resolve Variables & Discover Tools
 
 Run `EXECUTE: {cpt_cmd} --json info`; store `{cypilot_path}`, `{project_root}`, and the returned `variables` dict for later path resolution.
+
+Variable checkpoint: after resolving `{cpt_cmd}`, `{cypilot_path}`, and `{project_root}`, carry them forward to Phase 3.1, where they MUST be written into the `[meta]` TOML table at the top of `plan.toml` so they survive context compaction and the runtime can read them on resume. On context loss or new-chat resume, parse `plan.toml`'s `[meta]` table first, then re-run `{cpt_cmd} --json info` to verify (or refresh) the resolved values before any path-dependent step.
 
 ### 0.1 Discover Available Tools
 
@@ -101,7 +103,7 @@ Context loaded for plan generation:
   
   Estimate `template_lines + rules_lines + checklist_lines + existing_content_lines`.
   
-1. If oversized raw input already required planning, remain on the plan path even when the compiled estimate is `≤ 500`.
+1. If oversized raw input already has an approved or reusable plan package, remain on the plan path even when the compiled estimate is `≤ 500`.
 2. Otherwise, if the estimate is `≤ 500`, continue to Phase 1.4 so `{task-slug}` can be resolved before checking for any existing authoritative raw-input package.
 3. If the estimate is `> 500`, continue planning.
 
@@ -152,7 +154,7 @@ After target identification, compute `{task-slug}` immediately for deterministic
 
 If `{cypilot_path}/.plans/{task-slug}/input/manifest.json` already exists, read its `input_signature` and compare it to the `input_signature` returned by the `--dry-run` invocation above. If they match exactly, remain on the plan path and reuse that authoritative raw-input package even when the compiled estimate is `≤ 500`.
 
-Otherwise, if the compiled estimate is `≤ 500` and oversized raw input did not already require planning, STOP and direct the user to `/cypilot-generate` or `/cypilot-analyze`.
+Otherwise, if the compiled estimate is `≤ 500` and oversized raw input does not already have an approved or reusable plan package, STOP and direct the user to `/cypilot-generate` or `/cypilot-analyze`.
 
 If the direct prompt text plus all provided files exceeds `500` total lines and no authoritative raw-input package with the same `plan.input_signature` exists yet, present:
 ```text
@@ -162,8 +164,11 @@ Preparing the plan will write chunk files under {cypilot_path}/.plans/{task-slug
   Add --include-stdin when direct prompt text must be packaged together with provided files.
   The command also writes {cypilot_path}/.plans/{task-slug}/input/manifest.json with `input_signature` and only replaces the existing package after the full replacement package is staged successfully.
 Proceed with raw-input materialization? [y/n]
+Reply with `y` or `n`.
+`y` → Suggested when you want full plan guarantees; materialize the raw-input package and continue planning from chunk files.
+`n` → Stop here without writing the raw-input package.
 ```
-Wait for explicit user confirmation before creating `{cypilot_path}/.plans/{task-slug}/input/` or executing `chunk-input` (without `--dry-run`). If the user approves (`y`), materialize the raw input there, record the emitted chunk paths plus `manifest.json`, and stop carrying the full raw input in active chat context once the package exists. If the user rejects (`n`), cancel the plan: do not create any files or directories, report `Plan cancelled — raw-input materialization declined`, and stop. This is a valid completion state for `/cypilot-plan`.
+Wait for explicit user confirmation before creating `{cypilot_path}/.plans/{task-slug}/input/` or executing `chunk-input` (without `--dry-run`). If the user approves (`y`), materialize the raw input there, record the emitted chunk paths plus `manifest.json`, and stop carrying the full raw input in active chat context once the package exists. If the user rejects (`n`), do not create any files or directories, report `Raw-input materialization declined — continue with direct workflow if you prefer reduced guarantees`, and stop. This is a valid completion state for `/cypilot-plan`.
 
 ## Phase 2: Decompose
 
@@ -181,11 +186,16 @@ How should completed plans be handled?
   [2] Cleanup phase — add a final Cleanup phase that removes compiled plan artifacts after delivery phases pass
   [3] Archive — move the plan directory to {cypilot_path}/.plans/.archive/
   [4] Manual — stop after execution and ask me what to do with the plan files
+Reply with `1`, `2`, `3`, or `4`.
+[1] Suggested default for most projects — keep plan files available locally and ensure `.plans/` stays gitignored.
+[2] Remove compiled plan artifacts automatically after successful delivery.
+[3] Keep the plan, but move it into the archive location after completion.
+[4] Ask again at the end instead of choosing a lifecycle strategy now.
 ```
 Record `lifecycle = "gitignore" | "cleanup" | "archive" | "manual"`. Lifecycle handling is deterministic and single-path:
 - `gitignore`: planning-time repository hygiene. Ensure `.plans/` is gitignored before or immediately after the first plan file write. Set `plan.lifecycle_status = "done"` as soon as the ignore rule exists. No post-completion plan-file prompt is allowed.
-- `cleanup`: reserve a final Cleanup phase now so `total_phases`, dependencies, briefs, and budget estimates are structurally correct before `plan.toml` is written. After all non-lifecycle phases are `done`, set `plan.lifecycle_status = "ready"`, execute the Cleanup phase, then set `plan.lifecycle_status = "done"` only if cleanup succeeds. The Cleanup phase removes `brief-*`, `phase-*`, and `out/`; `plan.toml` remains as the terminal receipt. Those removed plan artifacts are intentional terminal lifecycle cleanup, not delivery regressions: later recovery/audit MUST treat them as exempt when `lifecycle = "cleanup"` and `plan.lifecycle_status = "done"`, and MUST NOT reopen delivery phases or replay Cleanup solely because those files are absent. No post-completion plan-file prompt is allowed.
-- `archive`: after all phases are `done`, set `plan.lifecycle_status = "ready"`, move the plan directory to `{cypilot_path}/.plans/.archive/{task-slug}/`, then update `plan.active_plan_dir` and set `plan.lifecycle_status = "done"` in the moved manifest. No post-completion plan-file prompt is allowed.
+- `cleanup`: reserve a final Cleanup phase now so `total_phases`, dependencies, briefs, and budget estimates are structurally correct before `plan.toml` is written. After all non-lifecycle phases are `done`, set `plan.lifecycle_status = "ready"`, execute the Cleanup phase, then set `plan.lifecycle_status = "done"` only if cleanup succeeds. If cleanup fails (file removal error, permission error, or unexpected state), set `plan.lifecycle_status = "failed"`, report the specific error and affected paths, and offer manual intervention: list the files that could not be removed and ask the user to remove them manually or retry. The Cleanup phase removes `brief-*`, `phase-*`, and `out/`; `plan.toml` remains as the terminal receipt. Those removed plan artifacts are intentional terminal lifecycle cleanup, not delivery regressions: later recovery/audit MUST treat them as exempt when `lifecycle = "cleanup"` and `plan.lifecycle_status = "done"`, and MUST NOT reopen delivery phases or replay Cleanup solely because those files are absent. No post-completion plan-file prompt is allowed.
+- `archive`: after all phases are `done`, set `plan.lifecycle_status = "ready"`, move the plan directory to `{cypilot_path}/.plans/.archive/{task-slug}/`, then update `plan.active_plan_dir` and set `plan.lifecycle_status = "done"` in the moved manifest. If the archive move fails (target exists, permission error, or disk error), set `plan.lifecycle_status = "failed"`, report the specific error and source path, and offer manual intervention: ask the user to move the directory manually or choose a different lifecycle strategy. No post-completion plan-file prompt is allowed.
 - `manual`: do nothing automatically. After all phases are `done`, set `plan.lifecycle_status = "manual_action_required"` and present exactly one keep/archive/delete choice. This is the only strategy that allows a post-completion plan-file decision prompt.
 
 Select a strategy based on task type:
@@ -223,6 +233,9 @@ Decomposition ({strategy} strategy):
   Budget: 2000 lines max per phase
   
   Proceed with manifest + brief generation after any required raw-input materialization? [y/n]
+Reply with `y` or `n`.
+`y` → Suggested when the decomposition looks correct; write `plan.toml` and the compilation briefs.
+`n` → Stop before writing the manifest and briefs.
 ```
 Wait for user confirmation before proceeding.
 
@@ -240,6 +253,15 @@ The manifest and all `brief-*` files are mandatory outputs of `/cypilot-plan`. A
 
 Write `plan.toml` after decomposition and lifecycle selection, but **before** phase compilation:
 ```toml
+[meta]
+# Variables resolved in Phase 0 from `{cpt_cmd} --json info`.
+# Persisted here so the runtime can read them on resume after context compaction
+# without re-deriving them; refresh by re-running `cpt --json info` if stale.
+cpt_cmd = "{resolved cpt_cmd value}"           # e.g. "cpt" or "python3 /abs/path/.bootstrap/.core/skills/cypilot/scripts/cypilot.py"
+cypilot_path = "{absolute cypilot_path}"        # e.g. "/abs/path/.bootstrap"
+project_root = "{absolute project_root}"        # e.g. "/abs/path/repo"
+# variables = "{path to JSON snapshot}"          # OPTIONAL: full `variables` dict from `info` output
+
 [plan]
 task = "{task description}"
 type = "{generate|analyze|implement}"
@@ -248,7 +270,7 @@ target_key = "{canonical target identity}" # deterministic naming/reuse key for 
 kit_path = "{absolute path to kit}" # e.g. "/abs/path/config/kits/sdlc"
 created = "{ISO 8601 timestamp}"
 lifecycle = "{gitignore|cleanup|archive|manual}"
-execution_status = "not_started"     # not_started|in_progress|done|failed
+execution_status = "not_started"     # not_started|briefs_only|in_progress|done|failed
 lifecycle_status = "pending"         # pending|ready|in_progress|manual_action_required|done|failed; use "done" immediately for `gitignore` once `.plans/` is gitignored
 plan_dir = "{cypilot_path}/.plans/{task-slug}"
 active_plan_dir = "{cypilot_path}/.plans/{task-slug}" # update if archived
@@ -297,8 +319,15 @@ What would you like to do next?
   [2] Generate phase-compilation prompts — emit one self-contained prompt per brief for downstream chats
   [3] Run phase-compiler subagents — invoke `cypilot-phase-compiler` for each brief
   [4] Stop here — keep the manifest and briefs without compiling phase files yet
+Reply with `1`, `2`, `3`, or `4`.
+[1] Suggested when you want to keep working in this chat and compile phase files now.
+[2] Emit downstream prompts instead of compiling phase files here.
+[3] Use dedicated phase-compiler subagents for compilation.
+[4] Stop after the brief package and resume later.
 ```
 Wait for user choice before entering Phase 3.3. Do not emit `Plan created` at this checkpoint.
+
+If the user chooses option `[4]`, set `plan.execution_status = "briefs_only"` in `plan.toml` before stopping. A plan with `execution_status = "briefs_only"` and existing `brief-*` files on disk is valid and does NOT require re-planning. Recovery instruction: in a new chat, read `plan.toml`, confirm `execution_status = "briefs_only"`, and present the same `[1]–[4]` menu to continue from the saved brief package.
 
 ### 3.3 Produce Phase Files Or Phase-Generation Prompts
 
@@ -307,7 +336,7 @@ Phase 3.3 runs only after the user chooses one of the post-brief paths.
 For each phase, apply:
 ```text
 --- CONTEXT BOUNDARY ---
-Disregard all previous context. The brief below is self-contained.
+Disregard previous workflow context except plan.toml metadata and recorded user decisions. The brief below is self-contained.
 Read ONLY the files listed in the brief. Follow its instructions exactly.
 ---
 ```
@@ -343,6 +372,7 @@ Status model in `plan.toml`:
 
 Update rules:
 - all phases `pending` → `plan.execution_status = "not_started"`
+- user chose option `[4]` at brief checkpoint → `plan.execution_status = "briefs_only"` (valid stop state; resume by presenting `[1]-[4]` menu)
 - any phase `in_progress`, or any mix of `done` and `pending`, → `plan.execution_status = "in_progress"`
 - any phase `failed` → `plan.execution_status = "failed"` until explicitly reopened or downgraded
 - all phases `done` → `plan.execution_status = "done"`; `plan.lifecycle_status` may still be `ready`, `in_progress`, or `manual_action_required`
@@ -412,6 +442,12 @@ What would you like to do next?
   [3] Prepare execution handoff — generate the Phase 1 startup prompt for a downstream execution chat
   [4] Review plan files — inspect phase files before execution
   [5] Modify plan — adjust phases, add/remove content
+Reply with `1`, `2`, `3`, `4`, or `5`.
+[1] Suggested default before execution — verify the plan thoroughly with `/cypilot-analyze`.
+[2] Start executing the first phase now with the native phase runner.
+[3] Generate a handoff prompt for a separate execution chat.
+[4] Inspect the plan files manually before deciding what to do next.
+[5] Rework the plan structure or contents before execution.
 ```
 
 ### New-Chat Startup Prompt
@@ -425,25 +461,22 @@ Please read the plan manifest, then execute Phase 1.
 The phase file is self-contained — follow its instructions exactly.
 After completion, report results and generate the prompt for Phase 2.
 ```
-No explanatory text may be mixed into that code fence.
+  No explanatory text may be mixed into that code fence.
 
-## Appendix A: Execute Phases (Reference Only)
+ ## Appendix A: Execute Phases (Reference Only)
 
-This appendix is the runtime contract for a generated plan after `/cypilot-plan` has finished. It is reference material for downstream execution, not a phase performed during plan creation.
+ This appendix is the downstream runtime contract for generated plans. It is not a plan-creation phase.
 
-When the user requests phase execution:
-
-- Route native phase execution intent to `{cypilot_path}/.core/skills/cypilot/agents/cypilot-phase-runner.md`.
+ When the user requests phase execution, route native execution to `{cypilot_path}/.core/skills/cypilot/agents/cypilot-phase-runner.md`.
 
 ### 5.1 Load Phase
 
-1. Read `plan.toml`, including `plan.execution_status`, `plan.lifecycle_status`, and all phase metadata.
-2. Determine the next executable phase from manifest state, not chat memory: choose the first phase whose status is `pending` or explicitly reopened and whose `depends_on` phases are all `done`.
-3. Audit dependency integrity for that candidate phase: every upstream phase marked `done` must still satisfy its declared `output_files`, its declared `outputs`, and any intermediate artifacts required by downstream `inputs`, except that when `lifecycle = "cleanup"` and `plan.lifecycle_status = "done"`, the intentional Cleanup removals of `brief-*`, `phase-*`, and `out/` are exempt from this audit. If any non-exempt requirement is inconsistent, follow [5.7 Abandoned Plan Recovery](#57-abandoned-plan-recovery).
-4. If the audit reopens any delivery phase, repair lifecycle state before further execution: keep `plan.lifecycle_status = "done"` only for `gitignore`; otherwise reset `plan.lifecycle_status` to `"pending"` and clear any stale `manual_action_required`, `ready`, or `in_progress` state from the prior completion attempt.
-5. When all delivery phases still remain `done` and `plan.lifecycle_status = "manual_action_required"`, resolve the single manual lifecycle choice before attempting any further lifecycle handling. A stale manual lifecycle state MUST NOT block recovery.
-6. Update the candidate phase status to `in_progress` and set `plan.execution_status = "in_progress"`.
-7. Read the phase file and follow it exactly — it is self-contained.
+1. Read `plan.toml` and use manifest state, not chat memory, as the source of truth.
+2. If `plan.execution_status = "briefs_only"`, do not read a phase file yet; instead return to the Phase 3.2 post-brief choice set so the user can compile phases via inline generation, downstream prompts, or `cypilot-phase-compiler`.
+3. Select the earliest executable phase whose dependencies are all `done`.
+4. Audit upstream `output_files`, declared `outputs`, and downstream `inputs`; when `lifecycle = "cleanup"` and `plan.lifecycle_status = "done"`, the intentional cleanup removal of `brief-*`, `phase-*`, and `out/` is exempt.
+5. If the audit reopens work, repair lifecycle state before proceeding.
+6. Mark the chosen phase `in_progress`, then read only that phase file and follow it exactly.
 
 ### 5.2 Execute
 
@@ -451,7 +484,7 @@ Follow the phase Task section exactly.
 
 ### 5.3 Save Intermediate Results
 
-Before reporting, verify every file in the phase `outputs` list was created/updated. If any is missing, report failure. `out/` files are the data contract between phases.
+Before reporting, verify every file in the phase `outputs` list was created or updated. `out/` remains the data contract between phases.
 
 ### 5.4 Report
 
@@ -459,98 +492,21 @@ Produce the completion report in the phase file's Output Format.
 
 ### 5.5 Update Status
 
-If all acceptance criteria pass: set status to `done`; otherwise set it to `failed` and record the reason.
-
-```toml
-[[phases]]
-number = 1
-title = "PRD Overview and Actors"
-file = "phase-01-overview.md"
-status = "done"
-depends_on = []
-completed = "2026-03-12T14:30:00Z"
-```
+Set the phase status to `done` only when all acceptance criteria pass; otherwise set it to `failed` with the reason recorded in the manifest.
 
 ### 5.6 Phase Handoff
 
-If the phase file already includes a handoff prompt, do NOT generate a duplicate. Otherwise output:
-```text
-Phase {N}/{M}: {status}
+If the phase file already includes a handoff prompt, do not duplicate it. Otherwise emit a single fenced next-phase prompt, then offer same-chat continuation versus new-chat execution. Same-chat continuation MUST re-enter from `plan.toml`, re-audit dependencies, and ignore prior chat memory.
 
-Next phase prompt (copy-paste into new chat if needed):
-```
-Then emit the next-phase prompt inside a **single fenced code block**:
-```text
-I have a Cypilot execution plan at:
-  {cypilot_path}/.plans/{task-slug}/plan.toml
+If the last phase completes:
+- report all phases complete and set `plan.execution_status = "done"`
+- run the lifecycle action exactly once according to `gitignore`, `cleanup`, `archive`, or `manual`
+- if lifecycle is `manual`, present exactly one keep/archive/delete prompt
+- optionally offer deterministic validation or semantic review only when validator applicability is proven for the completed target
 
-Phase {N} is complete ({status}).
-Please read the plan manifest, confirm the next executable phase, and execute it.
-If manifest state or dependency checks require recovery, follow recovery before reading the next phase file.
-The expected next phase file is: {cypilot_path}/.plans/{task-slug}/phase-{NN}-{slug}.md
-The phase file is self-contained — follow its instructions exactly.
-After completion, report results and generate the prompt for Phase {N+2}.
-```
-Then ask:
-```text
-Continue in this chat? [y] re-enter from plan.toml here | [n] copy prompt above to new chat
-(Recommended: new chat for guaranteed clean context)
-```
-If user chooses continue, apply:
-```text
---- CONTEXT BOUNDARY ---
-Previous phase execution is complete. Disregard prior chat context.
-Re-read `plan.toml`, confirm the next executable phase from manifest state, verify dependency `output_files`, `outputs`, and downstream `inputs`, repair stale lifecycle state if recovery reopens work, then read ONLY that phase file.
-If manifest state disagrees with the expected next phase, follow the manifest and recovery logic instead of chat memory.
----
-```
-The manifest on disk is the sole source of truth. Same-chat continuation MUST re-enter 5.1, including full integrity audit and lifecycle-state repair, and MUST NOT bypass manifest or recovery logic.
+ ### 5.7 Abandoned Plan Recovery
 
-**If last phase** instead of a next-phase prompt, MUST:
-1. Report completion:
-   ```text
-   ═══════════════════════════════════════════════
-   ALL PHASES COMPLETE ({M}/{M})
-   ───────────────────────────────────────────────
-   Plan: {cypilot_path}/.plans/{task-slug}/plan.toml
-   Target: {artifact kind or feature}
-   Phases completed: {M}
-   Execution status: done
-   Lifecycle strategy: {lifecycle}
-   Lifecycle status: {lifecycle_status}
-   ═══════════════════════════════════════════════
-   ```
-2. Set `plan.execution_status = "done"`.
-3. Handle plan-file lifecycle exactly once:
-   - if `lifecycle = "gitignore"`, no further plan-file action runs here; `plan.lifecycle_status` should already be `done`
-   - if `lifecycle = "cleanup"`, the reserved final Cleanup phase is the lifecycle action; when that phase finishes successfully, set `plan.lifecycle_status = "done"`, otherwise `failed`
-   - if `lifecycle = "archive"`, set `plan.lifecycle_status = "ready"`, perform the archive move exactly once, then set `plan.lifecycle_status = "done"` or `failed`
-   - if `lifecycle = "manual"`, set `plan.lifecycle_status = "manual_action_required"` and present exactly one prompt:
-     ```text
-     Plan execution complete. Manual lifecycle selected. What should happen to the plan files?
-
-       [1] Keep — leave plan files for reference and set `lifecycle_status = "done"`
-       [2] Archive — move to `.plans/.archive/` and set `lifecycle_status = "done"`
-       [3] Delete — remove the plan directory after reporting completion; no further manifest status remains on disk
-     ```
-   No second plan-file prompt is allowed after `gitignore`, `cleanup`, or `archive`.
-4. Offer post-completion follow-up:
-   ```text
-   Would you like a post-completion follow-up?
-
-     [1] Deterministic validation — only when validator availability is proven for this exact completed target under `workflows/analyze.md` Phase 2; run the canonical validator command, report exit code plus JSON `status` / `error_count` / `warning_count`, and continue only if PASS
-     [2] Semantic review — run `/cypilot-analyze` on the completed target when semantic inspection is desired or deterministic validation is unavailable
-     [3] No follow-up — done for now
-   ```
-   Routing rules:
-   - `generate`: if one concrete artifact output path is the completed target and validator availability is proven, the canonical deterministic command is `{cpt_cmd} --json validate --artifact {PATH}`
-   - `implement`: use `{cpt_cmd} --json validate` only when active config plus CLI support prove that the code validator applies to the completed target; otherwise deterministic validation is unavailable
-   - `analyze`: do not suggest a generic deterministic validator as a completion default; the plan already executed an analysis path
-   - Validator availability MUST NOT be inferred from workflow prose, examples, artifact labels, or plan type alone
-
-### 5.7 Abandoned Plan Recovery
-
-If a plan is abandoned or same-chat continuation loses state: `plan.toml` is the checkpoint, but recovery MUST audit completed work before resuming.
+ If a plan is abandoned or same-chat continuation loses state: `plan.toml` is the checkpoint, but recovery MUST audit completed work before resuming.
 
 1. Read `plan.toml`.
 2. Audit every phase marked `done` in dependency order against its declared `output_files`, its declared `outputs`, and any intermediate artifacts required by downstream `inputs`, except that when `lifecycle = "cleanup"` and `plan.lifecycle_status = "done"`, the intentional Cleanup removals of `brief-*`, `phase-*`, and `out/` are exempt and MUST NOT count as inconsistency.
@@ -568,24 +524,9 @@ Please read the plan manifest, audit completed phases against their declared `ou
 
 ## Appendix B: Check Status (Reference Only)
 
-This appendix defines how a generated plan reports status after creation. It is reference material for downstream execution/status handling, not a planning step.
+This appendix defines status reporting after plan creation.
 
-When the user asks for plan status, read `plan.toml` and report:
-```text
-Plan: {task description}
-  Type: {type}
-  Target: {target}
-  Execution: {execution_status}
-  Lifecycle: {lifecycle} — {lifecycle_status}
-  Active location: {active_plan_dir}
-  Progress: {done}/{total} phases
-
-  Phase 1: {title} — {status}
-  Phase 2: {title} — {status}
-  ...
-  Phase N: {title} — {status}
-```
-When `lifecycle_status = manual_action_required`, report that one manual lifecycle decision is pending and direct the operator back to the execution flow that presents the single keep/archive/delete prompt; do not duplicate the three choices in a status-only response. If `lifecycle_status = failed`, suggest retrying the lifecycle action or handling it manually. If any phase failed, suggest retry / reopen / abort.
+When the user asks for plan status, read `plan.toml` and report the task, type, target, execution status, lifecycle status, active location, and per-phase progress from the manifest. If `lifecycle_status = manual_action_required`, direct the operator back to the execution flow that presents the single lifecycle choice instead of duplicating that menu in a status-only response. If lifecycle handling failed or any phase failed, suggest retry, reopen, or manual recovery.
 
 ## Plan Storage Format
 

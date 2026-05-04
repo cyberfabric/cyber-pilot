@@ -60,10 +60,16 @@ result = run_delegation(
 if result["status"] == "error":
     # inspect result["error"], result["lifecycle_state"]; do not proceed to handoff
     ...
+elif result["status"] == "ready":
+    # dry_run: inspect result["ralphex_path"], result["validation"],
+    # result["bootstrap"], result["plan_file"], result["command"], result["mode"],
+    # result["lifecycle_state"]; ralphex was NOT invoked
+    ...
 else:
-    # status is "ready" (dry_run) or "delegated";
+    # status is "delegated": ralphex executed successfully (returncode 0)
     # inspect result["ralphex_path"], result["validation"], result["bootstrap"],
-    # result["plan_file"], result["command"], result["mode"], result["lifecycle_state"]
+    # result["plan_file"], result["command"], result["mode"], result["lifecycle_state"],
+    # result["returncode"], result["stdout"], result["stderr"]
     ...
 ```
 
@@ -71,8 +77,8 @@ Required parameters: `config`, `plan_dir`, `repo_root`. Common optional paramete
 
 **Status values:**
 - `"ready"` — dry_run mode, command assembled but not invoked
-- `"delegated"` — command assembled and ready for invocation
-- `"error"` — a precondition failed; check the `error` field
+- `"delegated"` — ralphex was invoked and exited with returncode `0`; lifecycle transitioned to `completed`. `result["returncode"]`, `result["stdout"]`, and `result["stderr"]` are populated. Proceed to Post-Run Handoff.
+- `"error"` — a precondition failed or ralphex exited non-zero; check the `error` field
 
 **Error handling:** When `result["status"] == "error"`, inspect `result["error"]`
 for the failure reason and `result["lifecycle_state"]` for the lifecycle position.
@@ -167,9 +173,13 @@ This agent's response is complete only when ALL of the following are true:
 - `run_delegation()` has been called and the result dict is available
 - If `status == "error"`: the error has been reported with lifecycle state,
   failure reason, and recovery options (retry/abort/bootstrap)
-- If `status != "error"`: Post-Run Handoff steps 1–5 have been executed and
-  the structured Delegation Handoff Report has been emitted
+- If `status == "ready"` (dry-run): the assembled command, plan file, mode,
+  and lifecycle state have been reported; Post-Run Handoff is SKIPPED because
+  ralphex was not invoked (no exit code, no `completed/` artifacts to inspect)
+- If `status == "delegated"`: Post-Run Handoff steps 1–5 have been executed
+  and the structured Delegation Handoff Report has been emitted
 - The SKILL.md invariant has been satisfied (Cypilot mode was loaded)
 
 Do NOT end the response with only a summary or status update. The handoff
-report (or error report with recovery options) is the mandatory terminal block.
+report (for `"delegated"`), dry-run summary (for `"ready"`), or error report
+with recovery options (for `"error"`) is the mandatory terminal block.

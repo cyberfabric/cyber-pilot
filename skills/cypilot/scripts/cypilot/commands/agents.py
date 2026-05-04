@@ -2104,6 +2104,7 @@ def _confirm_v2_generation(
     args: Any,
     preview_create: int,
     preview_update: int,
+    preview_delete: int = 0,
 ) -> bool:
     """Return True if generation should proceed, False if user aborted.
 
@@ -2112,7 +2113,7 @@ def _confirm_v2_generation(
     """
     if args.dry_run:
         return False
-    if preview_create == 0 and preview_update == 0:
+    if preview_create == 0 and preview_update == 0 and preview_delete == 0:
         ui.info("No changes needed — agent files are up to date.")
         return False
     from ..utils.ui import is_json_mode
@@ -2122,7 +2123,8 @@ def _confirm_v2_generation(
             if not sys.stdin.isatty():
                 return True  # non-interactive: proceed
             sys.stdout.write(
-                f"Will create {preview_create} file(s), update {preview_update} file(s).\n"
+                f"Will create {preview_create} file(s), update {preview_update} file(s), "
+                f"delete {preview_delete} file(s).\n"
                 "Reply with `y` to continue or `n` to abort.\n"
                 "Suggested: `y` when this preview matches your intended agent/skill changes.\n"
                 "`y` = write the generated changes. `n` = stop without writing.\n"
@@ -2262,6 +2264,7 @@ def cmd_generate_agents(argv: List[str]) -> int:
         # Step 8: Preview pass — count ALL writes including legacy workflows
         preview_v2_create = 0
         preview_v2_update = 0
+        preview_v2_delete = 0
         preview_agents: Dict[str, Dict[str, Any]] = {}
         preview_skills: Dict[str, Dict[str, Any]] = {}
         legacy_preview: Dict[str, Any] = {}
@@ -2276,6 +2279,7 @@ def cmd_generate_agents(argv: List[str]) -> int:
             preview_skills[target] = pr_s
             preview_v2_create += len(pr_a.get("created", [])) + len(pr_s.get("created", []))
             preview_v2_update += len(pr_a.get("updated", [])) + len(pr_s.get("updated", []))
+            preview_v2_delete += len(pr_a.get("deleted", [])) + len(pr_s.get("deleted", []))
             # Also preview legacy workflow outputs from _process_single_agent
             lp = _process_single_agent(target, project_root, cypilot_root, cfg, cfg_path, dry_run=True)
             legacy_preview[target] = lp
@@ -2283,6 +2287,9 @@ def cmd_generate_agents(argv: List[str]) -> int:
                 sec = lp.get(section, {})
                 preview_v2_create += len(sec.get("created", []))
                 preview_v2_update += len(sec.get("updated", [])) + len(sec.get("renamed", []))
+                preview_v2_delete += len(sec.get("deleted", []))
+                if section == "workflows":
+                    preview_v2_delete += len(sec.get("renamed", []))
 
         if args.dry_run:
             dry_results: Dict[str, Any] = {}
@@ -2304,7 +2311,7 @@ def cmd_generate_agents(argv: List[str]) -> int:
             ui.result(dr, human_fn=lambda d: _human_generate_agents_ok(d, agents_to_process, dry_results, dry_run=True))
             return 0
 
-        if not _confirm_v2_generation(args, preview_v2_create, preview_v2_update):
+        if not _confirm_v2_generation(args, preview_v2_create, preview_v2_update, preview_v2_delete):
             return 0
 
         results, has_errors = _run_v2_pipeline(

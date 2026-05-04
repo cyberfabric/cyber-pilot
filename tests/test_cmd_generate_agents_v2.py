@@ -698,8 +698,8 @@ class TestV2PreviewCountsLegacyWorkflows(unittest.TestCase):
         confirm_args = []
         original_confirm = None
 
-        def _spy_confirm(args, preview_create, preview_update):
-            confirm_args.append((preview_create, preview_update))
+        def _spy_confirm(args, preview_create, preview_update, preview_delete=0):
+            confirm_args.append((preview_create, preview_update, preview_delete))
             return True  # proceed
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -726,7 +726,7 @@ class TestV2PreviewCountsLegacyWorkflows(unittest.TestCase):
                     ])
 
             self.assertTrue(len(confirm_args) >= 1, "_confirm_v2_generation must be called")
-            preview_create, preview_update = confirm_args[0]
+            preview_create, preview_update, _preview_delete = confirm_args[0]
             # There should be at least 1 create for the workflow proxy
             self.assertGreater(
                 preview_create, 0,

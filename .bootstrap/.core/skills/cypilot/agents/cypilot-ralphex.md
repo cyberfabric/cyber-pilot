@@ -40,35 +40,45 @@ invalid root), or 2 on delegation errors (ralphex not found, validation failed).
 ## Library Entrypoint
 
 `run_delegation()` is the backing library function composed by the CLI:
+It performs discover → validate → bootstrap gate → persist → review precondition (if needed) → compile/export plan → build command → track lifecycle. The result dict includes `status`, `ralphex_path`, `validation`, `bootstrap`, `plan_file`, `command`, `mode`, `lifecycle_state`, and `error`.
+
+Import and call:
 
 ```python
 from cypilot.ralphex_export import run_delegation
-```
 
-```python
 result = run_delegation(
-    config=config,          # parsed core.toml dict
-    plan_dir=plan_dir,      # Cypilot plan directory with plan.toml
-    repo_root=repo_root,    # repository root path
-    mode="execute",         # "execute", "tasks-only", or "review"
-    worktree=False,         # request worktree isolation
-    serve=True,             # dashboard serving (default: True; use --no-serve to disable)
-    default_branch="main",  # for review precondition check
-    config_path=config_path,# optional core.toml path for persisting
-    dry_run=False,          # True = assemble command without invoking
+    config=cypilot_config_dict,            # parsed Cypilot config (dict)
+    plan_dir="/abs/path/.bootstrap/.plans/<task-slug>",
+    repo_root="/abs/path/repo",
+    mode="execute",                         # or "review" / "dry-run-style behavior via dry_run=True"
+    default_branch="main",
+    config_path=None,                       # optional Path to the active config file
+    dry_run=False,                          # True → assemble command without invoking ralphex
 )
+
+if result["status"] == "error":
+    # inspect result["error"], result["lifecycle_state"]; do not proceed to handoff
+    ...
+elif result["status"] == "ready":
+    # dry_run: inspect result["ralphex_path"], result["validation"],
+    # result["bootstrap"], result["plan_file"], result["command"], result["mode"],
+    # result["lifecycle_state"]; ralphex was NOT invoked
+    ...
+else:
+    # status is "delegated": ralphex executed successfully (returncode 0)
+    # inspect result["ralphex_path"], result["validation"], result["bootstrap"],
+    # result["plan_file"], result["command"], result["mode"], result["lifecycle_state"],
+    # result["returncode"], result["stdout"], result["stderr"]
+    ...
 ```
 
-The function performs: discover → validate → bootstrap gate (blocking) → persist →
-review precondition (if review mode) → compile plan → write exported plan →
-build command → track lifecycle. It returns a structured dict with keys:
-`status`, `ralphex_path`, `validation`, `bootstrap`, `plan_file`, `command`,
-`mode`, `lifecycle_state`, `error`.
+Required parameters: `config`, `plan_dir`, `repo_root`. Common optional parameters: `mode`, `default_branch`, `config_path`, `dry_run` (additional knobs — `worktree`, `serve`, `plans_dir_override`, `stream_output` — exist for advanced cases).
 
 **Status values:**
 - `"ready"` — dry_run mode, command assembled but not invoked
-- `"delegated"` — command assembled and ready for invocation
-- `"error"` — a precondition failed; check the `error` field
+- `"delegated"` — ralphex was invoked and exited with returncode `0`; lifecycle transitioned to `completed`. `result["returncode"]`, `result["stdout"]`, and `result["stderr"]` are populated. Proceed to Post-Run Handoff.
+- `"error"` — a precondition failed or ralphex exited non-zero; check the `error` field
 
 **Error handling:** When `result["status"] == "error"`, inspect `result["error"]`
 for the failure reason and `result["lifecycle_state"]` for the lifecycle position.
@@ -90,10 +100,6 @@ Do NOT proceed to Post-Run Handoff. Instead:
 | Worktree | `--worktree` flag | Valid only for full and tasks-only modes |
 | Dashboard | `--serve` flag | Web dashboard monitoring |
 
-The commands in this table are assembled internally by `run_delegation()` and
-are not alternate CLI entrypoints. Always use `{cpt_cmd} delegate` as the
-canonical invocation path, and always do so without `--json`.
-
 **Review-mode behavior:**
 
 When `mode="review"` is requested, `run_delegation()` automatically generates
@@ -109,7 +115,6 @@ The generated review override:
   (PASS/PARTIAL/FAIL), residual-risk reporting, and remediation-prompt obligations
 - Is regenerated on every review-mode delegation (not cached)
 
-The review override is a derived artifact — it is NOT a new SDLC source of truth.
 ralphex remains an external executor; this integration does not make ralphex a
 host-tool subagent or a new public Cypilot analyze CLI.
 
@@ -168,9 +173,13 @@ This agent's response is complete only when ALL of the following are true:
 - `run_delegation()` has been called and the result dict is available
 - If `status == "error"`: the error has been reported with lifecycle state,
   failure reason, and recovery options (retry/abort/bootstrap)
-- If `status != "error"`: Post-Run Handoff steps 1–5 have been executed and
-  the structured Delegation Handoff Report has been emitted
+- If `status == "ready"` (dry-run): the assembled command, plan file, mode,
+  and lifecycle state have been reported; Post-Run Handoff is SKIPPED because
+  ralphex was not invoked (no exit code, no `completed/` artifacts to inspect)
+- If `status == "delegated"`: Post-Run Handoff steps 1–5 have been executed
+  and the structured Delegation Handoff Report has been emitted
 - The SKILL.md invariant has been satisfied (Cypilot mode was loaded)
 
 Do NOT end the response with only a summary or status update. The handoff
-report (or error report with recovery options) is the mandatory terminal block.
+report (for `"delegated"`), dry-run summary (for `"ready"`), or error report
+with recovery options (for `"error"`) is the mandatory terminal block.

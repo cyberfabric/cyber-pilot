@@ -600,7 +600,7 @@ cpt doctor
 
 ### self-check
 
-Validate example artifacts against their templates.
+Validate all example artifacts against their templates.
 
 ```
 cpt self-check [--kit KIT] [--verbose]
