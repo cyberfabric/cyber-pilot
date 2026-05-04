@@ -2288,6 +2288,8 @@ def cmd_generate_agents(argv: List[str]) -> int:
                 preview_v2_create += len(sec.get("created", []))
                 preview_v2_update += len(sec.get("updated", [])) + len(sec.get("renamed", []))
                 preview_v2_delete += len(sec.get("deleted", []))
+                if section == "workflows":
+                    preview_v2_delete += len(sec.get("renamed", []))
 
         if args.dry_run:
             dry_results: Dict[str, Any] = {}

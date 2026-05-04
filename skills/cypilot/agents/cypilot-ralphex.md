@@ -173,9 +173,13 @@ This agent's response is complete only when ALL of the following are true:
 - `run_delegation()` has been called and the result dict is available
 - If `status == "error"`: the error has been reported with lifecycle state,
   failure reason, and recovery options (retry/abort/bootstrap)
-- If `status != "error"`: Post-Run Handoff steps 1–5 have been executed and
-  the structured Delegation Handoff Report has been emitted
+- If `status == "ready"` (dry-run): the assembled command, plan file, mode,
+  and lifecycle state have been reported; Post-Run Handoff is SKIPPED because
+  ralphex was not invoked (no exit code, no `completed/` artifacts to inspect)
+- If `status == "delegated"`: Post-Run Handoff steps 1–5 have been executed
+  and the structured Delegation Handoff Report has been emitted
 - The SKILL.md invariant has been satisfied (Cypilot mode was loaded)
 
 Do NOT end the response with only a summary or status update. The handoff
-report (or error report with recovery options) is the mandatory terminal block.
+report (for `"delegated"`), dry-run summary (for `"ready"`), or error report
+with recovery options (for `"error"`) is the mandatory terminal block.
