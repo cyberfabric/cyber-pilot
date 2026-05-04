@@ -40,30 +40,34 @@ invalid root), or 2 on delegation errors (ralphex not found, validation failed).
 ## Library Entrypoint
 
 `run_delegation()` is the backing library function composed by the CLI:
+It performs discover → validate → bootstrap gate → persist → review precondition (if needed) → compile/export plan → build command → track lifecycle. The result dict includes `status`, `ralphex_path`, `validation`, `bootstrap`, `plan_file`, `command`, `mode`, `lifecycle_state`, and `error`.
+
+Import and call:
 
 ```python
 from cypilot.ralphex_export import run_delegation
-```
 
-```python
 result = run_delegation(
-    config=config,          # parsed core.toml dict
-    plan_dir=plan_dir,      # Cypilot plan directory with plan.toml
-    repo_root=repo_root,    # repository root path
-    mode="execute",         # "execute", "tasks-only", or "review"
-    worktree=False,         # request worktree isolation
-    serve=True,             # dashboard serving (default: True; use --no-serve to disable)
-    default_branch="main",  # for review precondition check
-    config_path=config_path,# optional core.toml path for persisting
-    dry_run=False,          # True = assemble command without invoking
+    config=cypilot_config_dict,            # parsed Cypilot config (dict)
+    plan_dir="/abs/path/.bootstrap/.plans/<task-slug>",
+    repo_root="/abs/path/repo",
+    mode="execute",                         # or "review" / "dry-run-style behavior via dry_run=True"
+    default_branch="main",
+    config_path=None,                       # optional Path to the active config file
+    dry_run=False,                          # True → assemble command without invoking ralphex
 )
+
+if result["status"] == "error":
+    # inspect result["error"], result["lifecycle_state"]; do not proceed to handoff
+    ...
+else:
+    # status is "ready" (dry_run) or "delegated";
+    # inspect result["ralphex_path"], result["validation"], result["bootstrap"],
+    # result["plan_file"], result["command"], result["mode"], result["lifecycle_state"]
+    ...
 ```
 
-The function performs: discover → validate → bootstrap gate (blocking) → persist →
-review precondition (if review mode) → compile plan → write exported plan →
-build command → track lifecycle. It returns a structured dict with keys:
-`status`, `ralphex_path`, `validation`, `bootstrap`, `plan_file`, `command`,
-`mode`, `lifecycle_state`, `error`.
+Required parameters: `config`, `plan_dir`, `repo_root`. Common optional parameters: `mode`, `default_branch`, `config_path`, `dry_run` (additional knobs — `worktree`, `serve`, `plans_dir_override`, `stream_output` — exist for advanced cases).
 
 **Status values:**
 - `"ready"` — dry_run mode, command assembled but not invoked
@@ -90,10 +94,6 @@ Do NOT proceed to Post-Run Handoff. Instead:
 | Worktree | `--worktree` flag | Valid only for full and tasks-only modes |
 | Dashboard | `--serve` flag | Web dashboard monitoring |
 
-The commands in this table are assembled internally by `run_delegation()` and
-are not alternate CLI entrypoints. Always use `{cpt_cmd} delegate` as the
-canonical invocation path, and always do so without `--json`.
-
 **Review-mode behavior:**
 
 When `mode="review"` is requested, `run_delegation()` automatically generates
@@ -109,7 +109,6 @@ The generated review override:
   (PASS/PARTIAL/FAIL), residual-risk reporting, and remediation-prompt obligations
 - Is regenerated on every review-mode delegation (not cached)
 
-The review override is a derived artifact — it is NOT a new SDLC source of truth.
 ralphex remains an external executor; this integration does not make ralphex a
 host-tool subagent or a new public Cypilot analyze CLI.
 

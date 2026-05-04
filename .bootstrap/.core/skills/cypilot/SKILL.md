@@ -95,8 +95,13 @@ Setting `{cypilot_mode}`: explicit `cypilot on/off` or a prompt that activates/d
 Run before Protocol Guard when `{cypilot_mode}` is `on`:
 1. `command -v cpt` → `{cpt_cmd} = cpt`, `{cpt_installed} = true`
 2. Otherwise `{cpt_cmd} = python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py`, `{cpt_installed} = false`
-3. If `cpt` is missing and `~/.cypilot/cache/cpt-prompt-dismissed` does not exist, offer `pipx install git+https://github.com/cyberfabric/cyber-pilot.git`; on dismiss create the marker file
-4. Re-offer installation if the user later asks about the long invocation path
+3. If `{cpt_installed}` is `false` and the marker file `~/.cypilot/cache/cpt-prompt-dismissed` does not exist, display this prompt verbatim and wait for input:
+   `Install cpt to enable the short 'cpt' command? Reply 'yes' or 'no' [y/N]:`
+   - `y` or `yes` (case-insensitive) → run `pipx install git+https://github.com/cyberfabric/cyber-pilot.git`; on success set `{cpt_cmd} = cpt` and `{cpt_installed} = true`
+   - `n` or `no` (case-insensitive) → decline; keep `{cpt_cmd} = python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py` and create the marker file `~/.cypilot/cache/cpt-prompt-dismissed` so the prompt is not shown again
+   - Pressing Enter with no input → use the default `no` (the capital `N` in `[y/N]` indicates the default); treat as decline and create the marker file
+   - `Ctrl+C` / interrupt → treat as decline/abort: do not install, create the marker file, and continue with the long-path invocation
+4. Re-offer installation (re-display the prompt above and, on dismissal, refresh the marker file) only when the user later asks about the long invocation path `python3 {cypilot_path}/.core/skills/cypilot/scripts/cypilot.py`; otherwise the marker file suppresses re-prompting
 
 ALWAYS use `{cpt_cmd}` for all later CLI invocations.
 
@@ -149,7 +154,7 @@ Cypilot: {FOUND at path | NOT_FOUND}
 
 ### Direct CLI Commands (No Workflow Routing)
 
-No workflow routing skips workflow selection only. It does not waive confirmation: obtain explicit user confirmation before executing any write-capable direct CLI command below.
+No workflow routing skips workflow selection only. It does not waive confirmation: obtain explicit user confirmation before executing any write-capable direct CLI command below. When asking for that confirmation, explain why the command is needed now, tell the user exactly how to approve or decline, state what approval will do next, and mark the suggested path when one option is clearly safer or more relevant.
 
 | User invocation | Direct action |
 |---|---|
@@ -172,10 +177,10 @@ No workflow routing skips workflow selection only. It does not waive confirmatio
 
 Cypilot has exactly three core workflows plus specialized sub-workflows and dedicated capability agents. Routing priority is `delegate` > `compile-phase` > `execute-phase` > `plan` > `generate`/`analyze`. Delegation intent MUST route to the `cypilot-ralphex` capability agent rather than falling through to generic planning or generation. Generated-plan phase compilation intent MUST route to the dedicated `cypilot-phase-compiler` capability agent, and generated-plan phase execution intent MUST route to the dedicated `cypilot-phase-runner` capability agent rather than back into generic planning.
 
-Oversized-input invariant: if the raw task input exceeds `500` total lines across the direct prompt text, attached or provided files, or one large file, Cypilot MUST route through `/cypilot-plan` before any direct `/cypilot-generate` or `/cypilot-analyze` execution. The planner MUST first compute the input signature using the read-only `{cpt_cmd} --json chunk-input ... --dry-run` mode (which writes no files) to check for existing package reuse, and MUST obtain explicit user approval before materializing that input under `{cypilot_path}/.plans/{task-slug}/input/` using the write-capable `{cpt_cmd} --json chunk-input ... --max-lines 300 --threshold-lines 500` command (without `--dry-run`). The planner MUST pass `--include-stdin` when direct prompt text must be packaged together with provided files; when stdin is used, it MUST also preserve that raw prompt as `input/direct-prompt.md`. The emitted chunk files become mandatory plan inputs for the relevant phases.
+Oversized-input invariant: if the raw task input exceeds `500` total lines across the direct prompt text, attached or provided files, or one large file, Cypilot MUST explicitly offer `/cypilot-plan` before any direct `/cypilot-generate` or `/cypilot-analyze` execution continues. Line count = sum( lines in direct prompt text if present + lines in each attached or provided file ); when stdin is used the direct prompt text is included in this sum as `input/direct-prompt.md`; intermediate/generated chunk files are excluded from this count (only raw user inputs are counted). If the user chooses the plan path, the planner MUST first compute the input signature using the read-only `{cpt_cmd} --json chunk-input ... --dry-run` mode (which writes no files) to check for existing package reuse, and MUST obtain explicit user approval before materializing that input under `{cypilot_path}/.plans/{task-slug}/input/` using the write-capable `{cpt_cmd} --json chunk-input ... --max-lines 300 --threshold-lines 500` command (without `--dry-run`). The planner MUST pass `--include-stdin` when direct prompt text must be packaged together with provided files; when stdin is used, it MUST also preserve that raw prompt as `input/direct-prompt.md`. The emitted chunk files become mandatory plan inputs for the relevant phases. If the user declines plan escalation, Cypilot MAY continue in the direct workflow only after an explicit warning that reduced guarantees apply.
 
 Completion invariants for workflow outputs:
-- A `/cypilot-plan` run is not complete until it reaches one of three valid stopping points defined by `workflows/plan.md`: `(a)` the raw-input approval checkpoint, where the planner has identified oversized input and presented the `Proceed with raw-input materialization? [y/n]` prompt — the user may approve (`y`) to continue or reject (`n`) to cancel the plan with no filesystem mutations; `(b)` the brief checkpoint where `plan.toml` and every required `brief-*` file exist on disk and the response presents the explicit next-step choice set; or `(c)` the fully compiled plan state where every corresponding `phase-*` file also exists on disk after the user chose inline generation or `cypilot-phase-compiler` execution.
+- A `/cypilot-plan` run is not complete until it reaches one of three valid stopping points defined by `workflows/plan.md`: `(a)` the raw-input approval checkpoint, where the planner has identified oversized input and presented the `Proceed with raw-input materialization? [y/n]` prompt — the user may approve (`y`) to continue on the plan path or reject (`n`) to decline raw-input materialization with no filesystem mutations; `(b)` the brief checkpoint where `plan.toml` and every required `brief-*` file exist on disk and the response presents the explicit next-step choice set; or `(c)` the fully compiled plan state where every corresponding `phase-*` file also exists on disk after the user chose inline generation or `cypilot-phase-compiler` execution.
 - A `/cypilot-generate` run that wrote or updated any files is not complete until the final response includes both `Plan Review Prompt` and `Direct Review Prompt` blocks. This applies on both the validated success path and the RELAXED explicitly unvalidated recovery path.
 - A `/cypilot-analyze` run with any actionable issue is not complete until the final response includes both `Fix Prompt` and `Plan Prompt` blocks.
 - A `/cypilot delegate` run is not complete until the final response includes delegation status, handoff result or error details, and next-step options.
@@ -191,206 +196,34 @@ Completion invariants for workflow outputs:
 | Plan | `plan`, `create a plan`, `execution plan`, `break down`, `decompose`, or `plan to ...` | Open and follow `{cypilot_path}/.core/workflows/plan.md` first |
 | Generate | `create`, `edit`, `fix`, `update`, `implement`, `refactor`, `delete`, `add`, `setup`, `configure`, `build`, `code` and user did not say `plan` | Open and follow `{cypilot_path}/.core/workflows/generate.md` |
 | Analyze | `analyze`, `validate`, `review`, `check`, `inspect`, `audit`, `compare`, `list`, `show`, `find` and user did not say `plan` | Open and follow `{cypilot_path}/.core/workflows/analyze.md` |
-| Workspace | `workspace`, `multi-repo`, `add source`, `add repo`, `cross-reference`, `cross-repo` | Open and follow `{cypilot_path}/.core/workflows/workspace.md` |
-| Unclear | `help`, `look at`, `work with`, `handle` | Ask `plan (phased execution) / generate (modify) / analyze (read-only)?` and stop if the user cancels |
-
-`configure` and `auto-config` are workflow shortcuts, not direct no-protocol commands; both route through `generate.md`, which may auto-trigger `requirements/auto-config.md` for brownfield projects with no project-specific rules.
-
-## Command Reference
+ | Workspace | `workspace`, `multi-repo`, `add source`, `add repo`, `cross-reference`, `cross-repo` | Open and follow `{cypilot_path}/.core/workflows/workspace.md` |
+ | Unclear | `help`, `look at`, `work with`, `handle` | Ask `Why this input is needed: I need the Cypilot mode to route your request correctly. Reply with plan / generate / analyze. plan = phased execution for large or multi-step work; generate = create or modify files; analyze = read-only inspection or review. Suggested: generate for requested changes; analyze for inspection-only requests.` and stop if the user cancels |
+ 
+ `configure` and `auto-config` are workflow shortcuts, not direct no-protocol commands; both route through `generate.md`, which may auto-trigger `requirements/auto-config.md` for brownfield projects with no project-specific rules.
+ 
+ ## Command Reference
 
 Entrypoint: `{cpt_cmd} <command> [options]`
-Machine output: add `--json` immediately after `{cpt_cmd}` and before the subcommand, except for `init`, `delegate`, and `update`, which MUST be run without `--json`. Exit codes: `0 = PASS`, `1 = filesystem/config error`, `2 = FAIL`.
+Machine output: add `--json` immediately after `{cpt_cmd}` and before the subcommand, except for `init`, `delegate`, and `update`, which MUST run without `--json`. Exit codes: `0 = PASS`, `1 = filesystem/config error`, `2 = FAIL`.
 Legacy aliases: `validate-code` = `validate`; `validate-rules` = `validate-kits`.
 
 | Category | Commands |
 |---|---|
-| Validation | `{cpt_cmd} --json validate` (artifacts + code), `{cpt_cmd} --json validate-kits` (kit config), `{cpt_cmd} --json validate-toc` (TOC integrity), `{cpt_cmd} --json self-check` (template/example sync), `{cpt_cmd} --json spec-coverage` (marker coverage) |
-| Search | `{cpt_cmd} --json list-ids` (enumerate IDs), `{cpt_cmd} --json list-id-kinds` (kind counts), `{cpt_cmd} --json get-content` (fetch by ID), `{cpt_cmd} --json where-defined` (definition), `{cpt_cmd} --json where-used` (references) |
-| Kit management | `{cpt_cmd} --json kit install` (install kit), `{cpt_cmd} --json kit update` (file-level kit update) |
-| Delegation | `{cpt_cmd} delegate <plan_dir>` (compile and delegate plan to ralphex; MUST run without `--json`) |
-| Utilities | `{cpt_cmd} --json toc` (generate TOC), `{cpt_cmd} --json chunk-input` (chunk oversized workflow input into `input/` files), `{cpt_cmd} --json info` (discover config), `{cpt_cmd} --json resolve-vars` (expand template vars), `{cpt_cmd} init` (bootstrap project; MUST run without `--json`), `{cpt_cmd} update` (refresh adapter; MUST run without `--json`), `{cpt_cmd} --json agents` (show generated integrations), `{cpt_cmd} --json generate-agents` (generate/update integrations) |
-| Migration | `{cpt_cmd} --json migrate` (v2→v3 project), `{cpt_cmd} --json migrate-config` (JSON→TOML config) |
-| Workspace | `{cpt_cmd} --json workspace-init` (create workspace), `{cpt_cmd} --json workspace-add` (add source), `{cpt_cmd} --json workspace-info` (status), `{cpt_cmd} --json workspace-sync` (update Git sources) |
+| Validation | `validate`, `validate-kits`, `validate-toc`, `self-check`, `spec-coverage` |
+| Search | `list-ids`, `list-id-kinds`, `get-content`, `where-defined`, `where-used` |
+| Kit management | `kit install`, `kit update` |
+| Delegation | `delegate <plan_dir>` |
+| Utilities | `toc`, `chunk-input`, `info`, `resolve-vars`, `init`, `update`, `agents`, `generate-agents` |
+| Migration | `migrate`, `migrate-config` |
+| Workspace | `workspace-init`, `workspace-add`, `workspace-info`, `workspace-sync` |
 
-See `skills/cypilot/cypilot.clispec` for full syntax, arguments, options, exit semantics, and examples.
+Use `validate` for artifact or code validation, `toc` for Markdown TOC generation, `chunk-input` for oversized workflow inputs, `info` and `resolve-vars` for discovery/path resolution, and `generate-agents` for integration generation. Use `kit update` for file-level kit refresh, `delegate` for ralphex handoff, and workspace commands for multi-repo setup.
 
-### Validation Commands
+See `{cypilot_path}/.core/skills/cypilot/cypilot.clispec` for full syntax, arguments, options, exit semantics, and examples.
 
-#### validate
-```bash
-validate [--artifact <path>] [--skip-code] [--verbose] [--output <path>] [--local-only] [--source <name>]
-```
-Validates artifacts and code with deterministic checks (structure, cross-refs, task statuses, traceability markers — pairing, coverage, orphans). Use `--local-only` to skip cross-repo workspace validation. Use `--source <name>` to validate a specific workspace source. Note: `--local-only` and `--source` are independent and can be combined — `--source` narrows which artifacts are validated, `--local-only` controls whether cross-repo IDs are included as reference context.
+ ---
 
-Legacy aliases: `validate-code` (same behavior), `validate-rules` (alias for `validate-kits`).
-
-#### validate-kits
-```bash
-validate-kits [--kit <id>] [--template <path>] [--verbose]
-```
-Validates kit configuration — template frontmatter, constraints, resource paths.
-
-#### validate-toc
-```bash
-validate-toc <files...> [--max-level <N>] [--verbose]
-```
-Validates Table of Contents in Markdown files — TOC exists, anchors point to real headings, all headings covered, not stale.
-
-#### self-check
-```bash
-self-check [--kit <id>] [--verbose]
-```
-Validates example artifacts against their templates (template QA). Ensures templates and examples remain synchronized.
-
-#### spec-coverage
-```bash
-spec-coverage [--system <slug>] [--min-coverage <N>] [--min-file-coverage <N>] [--min-granularity <N>] [--verbose] [--output <path>]
-```
-Measures CDSL marker coverage in codebase files. Reports coverage percentage, granularity score, per-file details, and uncovered line ranges. Use `--system` to limit to specific system slug(s). Use `--min-file-coverage` to enforce per-file minimum.
-
-### Search Commands
-
-#### list-ids
-```bash
-list-ids [--artifact <path>] [--pattern <string>] [--regex] [--kind <string>] [--all] [--include-code] [--source <name>]
-```
-Lists all Cypilot IDs from registered artifacts. Supports filtering by pattern, kind, and optional code scanning. Use `--source <name>` to list IDs from a specific workspace source.
-
-#### list-id-kinds
-```bash
-list-id-kinds [--artifact <path>]
-```
-Lists ID kinds that exist in artifacts with counts and template mappings.
-
-#### get-content
-```bash
-get-content (--artifact <path> | --code <path>) --id <string> [--inst <string>]
-```
-Retrieves content block for a specific Cypilot ID from artifacts or code files.
-
-#### where-defined
-```bash
-where-defined --id <id> [--artifact <path>]
-```
-Finds where a Cypilot ID is defined.
-
-#### where-used
-```bash
-where-used --id <id> [--artifact <path>] [--include-definitions]
-```
-Finds all references to a Cypilot ID.
-
-### Kit Management Commands
-
-#### kit install
-```bash
-kit install <source-path> [--dry-run] [--yes]
-```
-Installs a kit from a source directory. Copies kit files to `config/kits/{slug}/`.
-
-#### kit update
-```bash
-kit update [--kit <slug>] [--dry-run] [--yes] [--auto-approve]
-```
-Updates kit files in `config/kits/{slug}/` with file-level diff. Interactive prompts for modified files: accept/decline/accept-all/decline-all.
-
-### Utility Commands
-
-#### toc
-```bash
-toc <files...> [--max-level <N>] [--indent <N>] [--dry-run] [--skip-validate]
-```
-Generates or updates Table of Contents in Markdown files between `<!-- toc -->` markers.
-
-#### info
-```bash
-info [--root <path>] [--cypilot-root <path>]
-```
-Discovers Cypilot configuration and shows project status (cypilot_dir, project_name, specs, kits). Includes a `variables` dict mapping all template variables to absolute paths.
-
-#### resolve-vars
-```bash
-resolve-vars [--root <path>] [--kit <slug>] [--flat]
-```
-Resolves all template variables (`{adr_template}`, `{scripts}`, etc.) to absolute file paths. Sources: system variables (`cypilot_path`, `project_root`) + kit resource bindings from `core.toml`. Use `--kit` to filter to a single kit. Use `--flat` for a plain variable→path dict.
-
-#### init
-```bash
-init [--project-root <path>] [--cypilot-root <path>] [--project-name <string>] [--yes] [--dry-run] [--force]
-```
-Initializes Cypilot config directory (`.core/`, `.gen/`, `config/`) and root `AGENTS.md`.
-
-#### update
-```bash
-update [--source <path>] [--force] [--dry-run]
-```
-Updates `.core/` from cache, updates kit files in `config/kits/` with file-level diff, regenerates `.gen/` aggregates, ensures `config/` scaffold.
-
-#### agents
-```bash
-agents [--agent <name>] [--root <path>] [--cypilot-root <path>]
-```
-Shows generated agent integration status. Read-only dry-run — reports which integration files currently exist or would be created/updated for each supported agent without writing anything.
-Supported: windsurf, cursor, claude, copilot, openai.
-
-#### generate-agents
-```bash
-generate-agents [--agent <name>] [--root <path>] [--cypilot-root <path>] [--dry-run] [--yes] [--show-layers] [--discover]
-```
-Generates agent-specific workflow proxies and skill entry points.
-Supported: windsurf, cursor, claude, copilot, openai.
-
-Generates workflow commands, skill outputs, and **subagents** (isolated agent definitions with scoped tools and dedicated prompts). Two subagents are created for tools that support them: `cypilot-codegen` (full write access, worktree isolation) and `cypilot-pr-review` (read-only). Windsurf does not support subagents and is gracefully skipped.
-
-Use `--show-layers` to display layer provenance report instead of generating. Use `--discover` to scan conventional dirs and populate `manifest.toml` before generating.
-
-Shortcut: `generate-agents --openai`
-
-### Migration Commands
-
-#### migrate
-```bash
-migrate [--project-root <path>] [--cypilot-root <path>] [--dry-run] [--yes]
-```
-Migrates Cypilot v2 projects to v3 (adapter-based → blueprint-based, artifacts.json → artifacts.toml, three-directory layout).
-
-#### migrate-config
-```bash
-migrate-config [--project-root <path>] [--dry-run]
-```
-Converts legacy JSON config files to TOML format.
-
-### Workspace Commands
-
-Workspaces are either **standalone** (`.cypilot-workspace.toml` at project root) or **inline** (`[workspace]` section in `config/core.toml`). The two types cannot be mixed.
-
-#### workspace-init
-```bash
-workspace-init [--root <dir>] [--output <path>] [--inline] [--force] [--max-depth <N>] [--dry-run]
-```
-Initialize a multi-repo workspace by scanning nested sub-directories for repos with cypilot directories. Rejects cross-type conflicts (inline vs standalone) and requires `--force` to reinitialize an existing workspace. Scanning depth is limited by `--max-depth` (default 3) to prevent unbounded traversal; symlinks are skipped.
-
-#### workspace-add
-```bash
-workspace-add --name <name> (--path <path> | --url <url>) [--branch <branch>] [--role <role>] [--adapter <path>] [--inline] [--force]
-```
-Add a source to a workspace config. Auto-detects standalone vs inline workspace. Use `--inline` to force adding to `config/core.toml`. Git URL sources are not supported in inline mode. `--path` is validated at add-time; returns error if directory not found. Returns error if source name already exists unless `--force` is specified.
-
-#### workspace-info
-```bash
-workspace-info
-```
-Display workspace config, list sources, show per-source status (cypilot dir found, artifact count, reachability).
-
-#### workspace-sync
-```bash
-workspace-sync [--source <name>] [--dry-run] [--force]
-```
-Fetch and update worktrees for Git URL sources. Use `--source` to sync a single source. Use `--dry-run` to preview without network operations. Use `--force` to skip dirty worktree check (**WARNING: DESTRUCTIVE** — uncommitted changes will be discarded via `git reset --hard` and local commits may be lost via `git checkout -B`). Local path sources are skipped. Source resolution does not perform network operations for existing repos — use `workspace-sync` to explicitly update.
-
----
-
-## Auto-Configuration
+ ## Auto-Configuration
 
 Use auto-config after `cypilot init` on a brownfield project, when project conventions are unknown, or after major structural changes. It scans structure/conventions, generates `{cypilot_path}/config/rules/{slug}.md`, adds WHEN rules to `{cypilot_path}/config/AGENTS.md`, and registers systems in `{cypilot_path}/config/artifacts.toml`. Invoke via `cypilot auto-config`, `cypilot configure`, or the automatic offer inside `generate.md`.
 

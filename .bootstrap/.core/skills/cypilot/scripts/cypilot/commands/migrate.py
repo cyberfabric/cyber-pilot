@@ -1861,6 +1861,10 @@ def run_migrate(
         sys.stderr.write(f"  Systems:      {plan['systems_count']}\n")
         sys.stderr.write(f"  Kits:         {', '.join(plan['kits']) or 'none'}\n")
         sys.stderr.write(f"  AGENTS.md:    {'yes' if plan['has_agents_md'] else 'no'}\n")
+        sys.stderr.write("  Why this input is needed: confirm the migration plan before files are changed.\n")
+        sys.stderr.write("  Reply with `y` to run the migration or `n` to cancel.\n")
+        sys.stderr.write("  Suggested: `y` only when the adapter/core/target summary above matches your intended migration target.\n")
+        sys.stderr.write("  `y` = perform the migration. `n` = stop without migrating.\n")
         sys.stderr.write("\nProceed with migration? [y/N]: ")
         sys.stderr.flush()
         try:
